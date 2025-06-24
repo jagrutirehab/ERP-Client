@@ -80,7 +80,7 @@
   },
   "scripts": {
     "start:prod": "serve -s build",
-    "dev": "react-scripts start",
+    "dev": "env-cmd -f .env.development react-scripts start",
     "build": "react-scripts build",
     "build:staging": "env-cmd -f .env.staging react-scripts build",
     "build:prod": "env-cmd -f .env.production react-scripts build",
