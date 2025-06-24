@@ -1,0 +1,62 @@
+// 
+// _footer.scss
+// 
+
+.footer {
+    bottom: 0;
+    padding: 20px calc(1.5rem / 2);
+    position: fixed;
+    right: 0;
+    color: gray;
+    left: 250px;
+    height: 60px;
+    background-color: #FFF;
+
+    @media (max-width: 991.98px) {
+        left: 0;
+    }
+}
+
+// .footer {
+//     @media (max-width: 1200px) {
+//         left: 0 !important;
+//     }
+// }
+
+[data-layout="vertical"] {
+
+    &[data-sidebar-size="sm"],
+    &[data-sidebar-size="sm-hover"] {
+        .footer {
+            left: 70px;
+        }
+    }
+    &[data-sidebar-size="md"] {
+        .footer {
+            left: 180px;
+
+            @media (max-width: 991.98px) {
+                left: 0;
+            }
+        }
+    }
+
+}
+
+[data-sidebar-size="sm"] {
+    .footer {
+        @media (max-width: 1199.98px) {
+            left: 0 !important;
+        }
+    }
+}
+
+[data-layout="vertical"][data-layout-style="detached"] {
+
+    @media (min-width: 1024.1px) {
+        .footer {
+            left: 0 !important;
+            background-color: transparent;
+        } 
+    }
+}

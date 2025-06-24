@@ -1,0 +1,34 @@
+.animate-border {
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    // z-index: 999;
+    width: 100%;
+    height: 100%;
+    margin: auto 0;
+    cursor: pointer;
+  }  
+}
+
+.animate-border-container {
+  &:hover {
+    .animate-border::before {
+      background: 
+      linear-gradient(90deg, #1e90ff 50%, transparent 0) repeat-x,
+      linear-gradient(90deg, #1e90ff 50%, transparent 0) repeat-x,
+      linear-gradient(0deg, #1e90ff 50%, transparent 0) repeat-y,
+      linear-gradient(0deg, #1e90ff 50%, transparent 0) repeat-y;
+      background-size: 4px 1px, 4px 1px, 1px 4px, 1px 4px;
+      background-position: 0 0, 0 100%, 0 0, 100% 0;
+        animation: linearGradientMove .3s infinite linear;
+    }
+  }
+}
+
+@keyframes linearGradientMove {
+  100% {
+      background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
+  }
+} 

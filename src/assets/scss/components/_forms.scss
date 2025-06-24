@@ -1,0 +1,16 @@
+//
+// forms.scss
+//
+
+[type="tel"],
+[type="url"],
+[type="email"],
+[type="number"] {
+    &::placeholder {
+        text-align: left /*rtl: right*/;
+    }
+}
+
+.input-sm {
+    line-height: 1 !important;
+}

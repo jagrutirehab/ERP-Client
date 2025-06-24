@@ -1,0 +1,11 @@
+//bill table
+.reports-table, .expenses-table {
+    @media (max-width: 800px) {
+        width: 1000px;
+    }
+}
+
+.hover-animation:hover {
+    padding-left: 15px;
+    transition: 1s;
+}
