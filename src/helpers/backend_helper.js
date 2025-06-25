@@ -72,6 +72,18 @@ export const postSsrstest = (data) =>
   api.create(url.POST_SSRS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+export const postYmrsTest = (data) => {
+  api.create(url.POST_YMRS_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  })
+};
+// export const postYmrsTest = (data) => {
+//   api.create("http://localhost:8080/api/v1/clinical-test/ymrs-test", data, {
+//     headers: { "Content-Type": "multipart/form-data" },
+//   })
+// };
+
 // export const postCiwatest = (data) => api.create(`http://localhost:8080/api/v1/clinical-test/ciwa-test`, data,{
 //     headers: { "Content-Type": "multipart/form-data" },
 //   });

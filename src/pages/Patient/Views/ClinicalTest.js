@@ -15,6 +15,7 @@ import Wrapper from "../Components/Wrapper";
 import CIWAResultComponent from "./Components/CIWAResultComponent ";
 import { fetchClinicalTest } from "../../../store/actions";
 import CSSRSResultComponent from "./Components/SsrsResult";
+import YmscResult from "./Components/YmscResult";
 
 const ClinicalTest = ({
   // addmissionsCharts,
@@ -32,6 +33,7 @@ const ClinicalTest = ({
   }, [patient]);
 
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
+
 
   return (
     <React.Fragment>
@@ -80,11 +82,10 @@ const ClinicalTest = ({
                     outline
                   >
                     <i
-                      className={`${
-                        open === idx.toString()
-                          ? "ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
-                      } fs-6`}
+                      className={`${open === idx.toString()
+                        ? "ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
+                        } fs-6`}
                     ></i>
                   </Button>
                 </div>
@@ -123,15 +124,10 @@ const ClinicalTest = ({
                                           date: test.createdAt,
                                         }}
                                       >
-                                        {test?.testType === 7 ? (
-                                          <CSSRSResultComponent
-                                            resultData={test}
-                                          />
-                                        ) : (
-                                          <CIWAResultComponent
-                                            resultData={test}
-                                          />
-                                        )}
+                                        {test?.testType == 7 && <CSSRSResultComponent resultData={test} />}
+                                        {test?.testType == 8 && <YmscResult resultData={test} />}
+                                        {test?.testType == 6 && <CIWAResultComponent resultData={test} />}
+
                                       </Wrapper>
                                     </div>
                                   );

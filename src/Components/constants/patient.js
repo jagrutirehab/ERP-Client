@@ -77,7 +77,7 @@ const records = [
 const testRecord = [
   // { name : "ROR" },
   // { name : "NIMHAS" },
-  // { name : "TAT" },
+  { name : "YMRS" },
   { name: "CIWA-AR" },
   { name: "C-SSRS" },
 ];
