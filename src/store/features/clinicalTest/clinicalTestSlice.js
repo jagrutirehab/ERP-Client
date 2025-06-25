@@ -5,6 +5,7 @@ import {
   postCiwatest,
   getClinicalTest,
   postSsrstest,
+  postYmrsTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -51,6 +52,19 @@ export const createSsrsTest = createAsyncThunk(
   async (data, { dispatch, rejectWithValue }) => {
     try {
       const response = await postSsrstest(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const createYMRSTest = createAsyncThunk(
+  "createYMRSTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postYmrsTest(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -119,6 +133,18 @@ export const clinicalTestSlice = createSlice({
         state.data = payload.payload;
       })
       .addCase(createSsrsTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+      // create YMRS Test
+    builder
+      .addCase(createYMRSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createYMRSTest.fulfilled, (state) => {
+        state.isLoading = false;
+        
+      })
+      .addCase(createYMRSTest.rejected, (state) => {
         state.isLoading = false;
       });
     // fetchClinicalTest
