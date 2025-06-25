@@ -163,12 +163,14 @@ const Patient = ({ data, centerAccess }) => {
     },
     {
       name: "Doctor",
-      selector: (row) => row?.doctor?.name,
+      selector: (row) =>
+        row?.addmission?.doctors?.map((d) => d?.name).join(", ") || "",
       wrap: true,
     },
     {
       name: "Psychologist",
-      selector: (row) => row?.psychologist?.name,
+      selector: (row) =>
+        row?.addmission?.psychologists?.map((p) => p?.name).join(", ") || "",
       wrap: true,
     },
     {
@@ -267,8 +269,12 @@ const Patient = ({ data, centerAccess }) => {
             age: d.dateOfBirth
               ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
               : "",
-            doctor: d.doctor?.name || "",
-            psychologist: d.psychologist?.name || "",
+            doctor:
+              d?.addmission?.doctors?.map((doc) => doc?.name).join(", ") || "",
+            psychologist:
+              d?.addmission?.psychologists
+                ?.map((psy) => psy?.name)
+                .join(", ") || "",
             addmissionDate: d?.addmission?.addmissionDate
               ? format(
                   new Date(d.addmission.addmissionDate),
