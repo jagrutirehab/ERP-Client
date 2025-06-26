@@ -165,7 +165,10 @@ const Patient = ({ data, centerAccess }) => {
       name: "Doctor",
       selector: (row) =>
         row?.addmission?.doctors?.length > 0
-          ? row.addmission.doctors.map((d) => d?.name || "").join(", ")
+          ? row.addmission.doctors
+              .map((d) => d?.name || "")
+              .filter(Boolean)
+              .pop() || "—"
           : row?.addmission?.doctor?.name || row?.doctor?.name || "—",
       wrap: true,
     },
@@ -173,7 +176,10 @@ const Patient = ({ data, centerAccess }) => {
       name: "Psychologist",
       selector: (row) =>
         row?.addmission?.psychologists?.length > 0
-          ? row.addmission.psychologists.map((p) => p?.name || "").join(", ")
+          ? row.addmission.psychologists
+              .map((p) => p?.name || "")
+              .filter(Boolean)
+              .pop() || "—"
           : row?.addmission?.psychologist?.name ||
             row?.psychologist?.name ||
             "—",
@@ -276,13 +282,17 @@ const Patient = ({ data, centerAccess }) => {
               ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
               : "",
             doctor: d?.addmission?.doctors?.length
-              ? d.addmission.doctors.map((doc) => doc?.name || "").join(", ")
+              ? d.addmission.doctors
+                  .map((doc) => doc?.name || "")
+                  .filter(Boolean)
+                  .pop() || ""
               : d?.doctor?.name || d?.addmission?.doctor?.name || "",
 
             psychologist: d?.addmission?.psychologists?.length
               ? d.addmission.psychologists
                   .map((psy) => psy?.name || "")
-                  .join(", ")
+                  .filter(Boolean)
+                  .pop() || ""
               : d?.psychologist?.name ||
                 d?.addmission?.psychologist?.name ||
                 "",
