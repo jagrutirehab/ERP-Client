@@ -233,7 +233,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
       ))}
 
       {/* Evidence */}
-      <div className="mb-4 p-4 bg-white border rounded shadow-sm">
+      {/* <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-edit me-2 text-primary"></i>
           Evidence
@@ -244,13 +244,27 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
           value={evidence}
           onChange={(e) => setEvidence(e.target.value)}
         />
+      </div> */}
+
+      {/* Observations */}
+      <div className="mb-4 p-4 bg-white border rounded shadow-sm">
+        <h3 className="h6 fw-semibold text-dark mb-2">
+          <i className="fas fa-sticky-note me-2 text-primary"></i>
+          Observations
+        </h3>
+        <textarea
+          className="form-control"
+          rows="3"
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+        />
       </div>
 
       {/* Image Upload */}
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-camera me-2 text-primary"></i>
-          Upload Image (optional)
+          Additional Evidence / Image Upload (optional)
         </h3>
         <input
           type="file"
@@ -271,20 +285,6 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
             style={{ maxWidth: "250px" }}
           />
         )}
-      </div>
-
-      {/* Observations */}
-      <div className="mb-4 p-4 bg-white border rounded shadow-sm">
-        <h3 className="h6 fw-semibold text-dark mb-2">
-          <i className="fas fa-sticky-note me-2 text-primary"></i>
-          Observations
-        </h3>
-        <textarea
-          className="form-control"
-          rows="3"
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-        />
       </div>
 
       {/* Submit */}
