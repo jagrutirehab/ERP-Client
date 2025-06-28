@@ -1,3 +1,4 @@
+
 // login
 export {
   loginSuccess,
@@ -206,6 +207,7 @@ export {
   fetchBills,
   fetchDraftBills,
   addInvoice,
+  addProformaInvoice,
   updateInvoice,
   addDeposit,
   updateDeposit,
@@ -218,6 +220,7 @@ export {
   removeBill,
   removeDraft,
   resetOpdPatientBills,
+  createProformaBill
 } from "./features/bill/billSlice";
 
 // print

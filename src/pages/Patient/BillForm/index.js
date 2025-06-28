@@ -6,6 +6,7 @@ import { connect, useDispatch } from "react-redux";
 //data
 import {
   ADVANCE_PAYMENT,
+  PROFORMA_INVOICE,
   DEPOSIT,
   DRAFT_INVOICE,
   INVOICE,
@@ -18,25 +19,32 @@ import AdvancePayment from "./AdvancePayment";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import InvoiceDraft from "./InvoiceDraft";
 import Deposit from "./Deposit";
-
+import { is } from "date-fns/locale";
+import ProformaInvoice from "./ProformaInvoice";
+ 
 const BillForm = ({ bill, ...rest }) => {
   const dispatch = useDispatch();
   const toggleForm = () => {
     dispatch(createEditBill({ bill: null, isOpen: false }));
   };
 
+
   const isAdvancePayment = bill.bill === ADVANCE_PAYMENT;
+  const isProformaInvoice = bill.bill === PROFORMA_INVOICE;
   const isDeposit = bill.bill === DEPOSIT;
   const isInvoice = bill.bill === INVOICE;
   const isDraftInvoice = bill.bill === DRAFT_INVOICE;
 
   const title = isAdvancePayment
-    ? "Advance Payment"
+    ? "Payment"
     : isDeposit
     ? "Deposit"
     : isDraftInvoice
     ? "Draft Invoice"
-    : "Invoice";
+    : isProformaInvoice
+    ? "Proforma Invoice"
+    : "Invoice"
+    ;
 
   return (
     <React.Fragment>
@@ -49,6 +57,10 @@ const BillForm = ({ bill, ...rest }) => {
       >
         <RenderWhen isTrue={isAdvancePayment}>
           <AdvancePayment toggleForm={toggleForm} {...rest} />
+        </RenderWhen>
+        <RenderWhen isTrue={isProformaInvoice}>
+          <ProformaInvoice toggleForm={toggleForm} {...rest} />
+          {/* <AdvancePayment toggleForm={toggleForm} {...rest} /> */}
         </RenderWhen>
         <RenderWhen isTrue={isDeposit}>
           <Deposit toggleForm={toggleForm} {...rest} />

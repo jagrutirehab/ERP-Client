@@ -5,7 +5,7 @@ import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 //logo
 import Logo from "../../../../assets/images/jagruti-logo.png";
 import { format } from "date-fns";
-import { INVOICE } from "../../../constants/patient";
+import { INVOICE, PROFORMA_INVOICE } from "../../../constants/patient";
 
 Font.register({
   family: "Roboto",
@@ -116,7 +116,7 @@ const PrintHeader = ({ patient, center, bill }) => {
         </View>
         <View style={styles.patientSection}>
           <Text style={{ ...styles.heading, fontSize: "15px" }}>
-            {bill.bill === INVOICE ? "BILL" : "REFUND RECEIPT"}
+            {bill.bill == PROFORMA_INVOICE || bill.bill === INVOICE ? "BILL" : "REFUND RECEIPT"}
           </Text>
           <Text>
             Party:&#160;&#160;

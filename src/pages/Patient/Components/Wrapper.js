@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Row,
@@ -17,6 +17,7 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import {
   ADVANCE_PAYMENT,
   INVOICE,
+  PROFORMA_INVOICE,
   IPD,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
@@ -40,6 +41,7 @@ const Wrapper = ({
   extraOptions,
   clinicalTest
 }) => {
+  
 
   const dispatch = useDispatch();
   const chart = item?.chart;
@@ -58,6 +60,9 @@ const Wrapper = ({
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
       : "";
+
+
+
 
   return (
     <motion.div
@@ -79,7 +84,7 @@ const Wrapper = ({
               {" "}
               <h6 className="fs-md-12 fs-xs-9 text-info">{itemId}</h6>
             </RenderWhen>
-            <h5 className="display-6 fs-14 text-start">{chartName}</h5>
+            <h5 className="display-6 fs-14 text-start">{chartName == "Advance Payment" ? "Payment" : chartName}</h5>
           </div>
           <div className="d-flex justify-content-between ">
             <div>
@@ -158,7 +163,7 @@ const Wrapper = ({
                       </DropdownItem>
                     </CheckPermission>
                     <RenderWhen
-                      isTrue={item?.bill === INVOICE && item.type === IPD}
+                      isTrue={(item?.bill === PROFORMA_INVOICE || item?.bill === INVOICE) && item.type === IPD}
                     >
                       <DropdownItem
                         disabled={disableDelete}
@@ -175,7 +180,7 @@ const Wrapper = ({
                         href="#"
                       >
                         {" "}
-                        <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
+                        <i className="ri-bank-card-line align-bottom text-muted me-2"></i>{" "}
                         Pay
                       </DropdownItem>
                     </RenderWhen>

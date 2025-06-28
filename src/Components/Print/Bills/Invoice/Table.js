@@ -244,7 +244,7 @@ const Table = ({ bill }) => {
               </Text>
             </View>
           )}
-          {parseFloat(invoice.currentAdvance) > 0 && (
+          {parseFloat(invoice?.currentAdvance) > 0 && (
             <View
               style={{
                 ...styles.row,
@@ -260,7 +260,7 @@ const Table = ({ bill }) => {
                   ...styles.footerAmount,
                 }}
               >
-                ₹{addComma((invoice.currentAdvance ?? 0).toFixed(2)) || "0.00"}
+                ₹{addComma((invoice?.currentAdvance ?? 0).toFixed(2)) || "0.00"}
               </Text>
             </View>
           )}

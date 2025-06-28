@@ -137,7 +137,7 @@ const AdvancePayment = ({
           <div className="d-flex flex-wrap gap-5">
             <div>
               <Label>
-                Advance Payment <span className="text-danger">*</span>
+                 Payment <span className="text-danger">*</span>
               </Label>
               <p className="text-info mb-0 fs-5">{totalAmount || 0}</p>
             </div>

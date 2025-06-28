@@ -14,11 +14,14 @@ import {
   addInvoice,
   createEditBill,
   updateInvoice,
+  createProformaBill,
+  addProformaInvoice
 } from "../../../store/actions";
 import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
 import Inovice from "../Dropdowns/Inovice";
+import { updateProformaInvoice } from "../../../store/features/bill/billSlice.js";
 
-const DuePayment = ({
+const ProformaInvoice = ({
   author,
   patient,
   center,
@@ -59,7 +62,7 @@ const DuePayment = ({
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
 
-
+  console.log(patient, "patient");
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -134,9 +137,24 @@ const DuePayment = ({
       bill: Yup.string().required("Bill type required!"),
     }),
     onSubmit: (values) => {
+      // if (editData) {
+      //   dispatch(
+      //     addProformaInvoice({
+      //       id: editBillData._id,
+      //       billId: editData._id,
+      //       appointment: appointment?._id,
+      //       shouldPrintAfterSave,
+      //       ...values,
+      //       paymentModes,
+      //     })
+      //   );
+      // } else {
+
+      // }
+
       if (editData) {
         dispatch(
-          updateInvoice({
+          updateProformaInvoice({
             id: editBillData._id,
             billId: editData._id,
             appointment: appointment?._id,
@@ -147,7 +165,7 @@ const DuePayment = ({
         );
       } else {
         dispatch(
-          addInvoice({
+          addProformaInvoice({
             ...values,
             appointment: appointment?._id,
             paymentModes,
@@ -155,7 +173,16 @@ const DuePayment = ({
           })
         );
       }
-      dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
+
+      // dispatch(
+      //   addProformaInvoice({
+      //     ...values,
+      //     appointment: appointment?._id,
+      //     paymentModes,
+      //     shouldPrintAfterSave,
+      //   })
+      // );
+      dispatch(createProformaBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
     },
   });
@@ -237,6 +264,7 @@ const DuePayment = ({
     totalAdvance,
     paymentModes,
   ]);
+
 
   useEffect(() => {
     if (editBillData) {
@@ -351,7 +379,7 @@ const DuePayment = ({
   );
 };
 
-DuePayment.propTypes = {
+ProformaInvoice.propTypes = {
   author: PropTypes.object.isRequired,
   patient: PropTypes.object.isRequired,
   billDate: PropTypes.any.isRequired,
@@ -375,7 +403,7 @@ const mapStateToProps = (state) => ({
   totalRefund: state.Bill.data[0]?.totalRefund,
 });
 
-export default connect(mapStateToProps)(DuePayment);
+export default connect(mapStateToProps)(ProformaInvoice);
 
 // import React, { useEffect, useState } from "react";
 // import PropTypes from "prop-types";
@@ -398,7 +426,7 @@ export default connect(mapStateToProps)(DuePayment);
 // import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
 // import Inovice from "../Dropdowns/Inovice";
 
-// const DuePayment = ({
+// const proformaInvoice = ({
 //   author,
 //   patient,
 //   center,
@@ -788,7 +816,7 @@ export default connect(mapStateToProps)(DuePayment);
 //   );
 // };
 
-// DuePayment.propTypes = {
+// proformaInvoice.propTypes = {
 //   author: PropTypes.object.isRequired,
 //   patient: PropTypes.object.isRequired,
 //   billDate: PropTypes.any.isRequired,
@@ -813,4 +841,4 @@ export default connect(mapStateToProps)(DuePayment);
 //   totalRefund: state.Bill.data[0]?.totalRefund,
 // });
 
-// export default connect(mapStateToProps)(DuePayment);
+// export default connect(mapStateToProps)(proformaInvoice);

@@ -11,15 +11,16 @@ import CustomModal from "../../../Components/Common/Modal";
 
 //data
 import {
-  ADVANCE_PAYMENT,
+  PROFORMA_INVOICE,
   DEPOSIT,
   DRAFT_INVOICE,
   INVOICE,
+  ADVANCE_PAYMENT,
   REFUND,
 } from "../../../Components/constants/patient";
 
 //redux
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { createEditBill, setBillDate } from "../../../store/actions";
 
 const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
@@ -28,6 +29,11 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
   }, [dispatch, isOpen]);
+
+
+  const billType = useSelector((state) => state.Bill.billType);
+
+
 
   return (
     <React.Fragment>
@@ -104,8 +110,12 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
         </div>
         <div className="d-flex justify-content-end gap-3">
           <Button
+            hidden={
+              editBillData.bill == null
+            }
             outline
             disabled={
+              editBillData.bill === PROFORMA_INVOICE ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
               editBillData.bill === DRAFT_INVOICE ||
@@ -123,7 +133,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
               toggle();
             }}
           >
-            Advance Payment
+            Payment
           </Button>
           <Button
             outline
@@ -131,7 +141,8 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
               editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === ADVANCE_PAYMENT
+              editBillData.bill === PROFORMA_INVOICE ||
+              editBillData.bill == ADVANCE_PAYMENT
             }
             size="sm"
             onClick={() => {
@@ -147,12 +158,36 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
           >
             Deposit
           </Button>
+          {(editBillData.bill !== null || billType !== "Proforma Invoice") && <Button
+            outline
+            disabled={
+              editBillData.bill !== null && editBillData.bill !== PROFORMA_INVOICE
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  patient,
+                  bill: PROFORMA_INVOICE,
+                  isOpen: true,
+                })
+              );
+              toggle();
+            }}
+          >
+            Proforma Invoice
+          </Button>}
+
+
+
           <Button
             outline
             disabled={
-              editBillData.bill === ADVANCE_PAYMENT ||
+              editBillData.bill === PROFORMA_INVOICE ||
               editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              editBillData.bill === DEPOSIT ||
+              editBillData.bill == ADVANCE_PAYMENT
             }
             size="sm"
             onClick={() => {
@@ -167,15 +202,16 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
               toggle();
             }}
           >
-            Inovice
+            Invoice
           </Button>
           <Button
             outline
             disabled={
-              editBillData.bill === ADVANCE_PAYMENT ||
+              editBillData.bill === PROFORMA_INVOICE ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
-              editBillData.bill === DEPOSIT
+              editBillData.bill === DEPOSIT ||
+              editBillData.bill == ADVANCE_PAYMENT
             }
             size="sm"
             onClick={() => {
@@ -190,7 +226,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
               toggle();
             }}
           >
-            Inovice Draft
+            Invoice Draft
           </Button>
         </div>
       </CustomModal>

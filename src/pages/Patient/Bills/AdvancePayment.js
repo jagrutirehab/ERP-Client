@@ -11,7 +11,7 @@ const AdvancePayment = ({ data }) => {
           <Col xs={12}>
             <div className="d-flex justify-content-between align-items-center">
               <p className="fs-xs-14 fs-md-18">
-                Advance Payment {data.fromDeposit && "From Deposit"}
+                 Payment {data.fromDeposit && "From Deposit"}
               </p>
               <p className="font-size-25 text-primary">{data?.totalAmount}</p>
             </div>

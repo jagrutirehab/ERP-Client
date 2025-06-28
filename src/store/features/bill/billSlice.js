@@ -8,6 +8,7 @@ import {
   editDeposit,
   editDraftInvoice,
   editInvoice,
+  editProformaInvoice,
   getBills,
   getBillsAddmissions,
   getDraftBills,
@@ -16,6 +17,7 @@ import {
   postDraftInvoice,
   postDraftToInvoice,
   postInvoice,
+  postProformaInvoice,
 
 } from "../../../helpers/backend_helper";
 import { IPD, OPD } from "../../../Components/constants/patient";
@@ -27,6 +29,7 @@ const initialState = {
   data: [],
   draftData: [],
   opdData: [],
+  proforma_invoice: [],
   billForm: {
     bill: null,
     isOpen: false,
@@ -39,6 +42,7 @@ const initialState = {
   totalDeposit: 0,
   totalRefund: 0,
   totalAmount: 0,
+  billType: "",
 };
 
 export const fetchBillsAddmissions = createAsyncThunk(
@@ -237,7 +241,7 @@ export const addAdvancePayment = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Advance Payment Saved Successfully",
+          message: "Payment Saved Successfully",
         })
       );
       return response;
@@ -256,7 +260,7 @@ export const updateAdvancePayment = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Advance Payment Updated Successfully",
+          message: "Payment Updated Successfully",
         })
       );
       return response;
@@ -373,6 +377,60 @@ export const removeBill = createAsyncThunk(
 );
 
 
+export const addProformaInvoice = createAsyncThunk(
+  "postProformaInvoice",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postProformaInvoice({ ...data, bill: "PROFORMA_INVOICE" });
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Proforma Invoice Saved Successfully",
+        })
+      );
+      const payload = response?.bill;
+      const patient = response?.patient;
+      const appointment = response?.appointment;
+      if (data?.type === OPD) {
+        dispatch(setEventBill({ bill: payload, appointment }));
+        dispatch(togglePrint({ modal: true, data: payload, patient: patient }));
+      }
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const updateProformaInvoice = createAsyncThunk(
+  "updateProformaInvoice",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editProformaInvoice({ ...data, bill: "PROFORMA_INVOICE" });
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Proforma Invoice Saved Successfully",
+        })
+      );
+      const payload = response?.bill;
+      const patient = response?.patient;
+      const appointment = response?.appointment;
+      if (data?.type === OPD) {
+        dispatch(setEventBill({ bill: payload, appointment }));
+        dispatch(togglePrint({ modal: true, data: payload, patient: patient }));
+      }
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 
 
 export const billSlice = createSlice({
@@ -390,9 +448,14 @@ export const billSlice = createSlice({
     createEditBill: (state, { payload }) => {
       state.billForm = payload;
     },
-    
+    createProformaBill: (state, { payload }) => {
+      state.billForm = payload;
+    },
     setBillDate: (state, { payload }) => {
       state.billDate = payload;
+    },
+    setBillType: (state, { payload }) => {
+      state.billType = payload;
     },
     setBillAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
@@ -511,7 +574,6 @@ export const billSlice = createSlice({
         state.loading = true;
       })
       .addCase(addInvoice.fulfilled, (state, { payload }) => {
-        console.log(payload, "payload");
 
         if (payload?.bill?.type === OPD) {
           state.opdData = [payload.bill, ...state.opdData];
@@ -526,8 +588,8 @@ export const billSlice = createSlice({
             state.totalRefund += payload.bill?.invoice?.refund ?? 0;
             state.totalAmount = Math.abs(
               state.totalInvoicePayment +
-                state.totalRefund -
-                state.totalAdvancePayment
+              state.totalRefund -
+              state.totalAdvancePayment
             );
             // if (state.totalInvoicePayment > state.totalAdvancePayment) state.totalAmount +=
             /* ------update calculations when new invoice is created------ */
@@ -550,8 +612,8 @@ export const billSlice = createSlice({
             state.totalRefund += payload.payload[0]?.totalRefund ?? 0;
             state.totalAmount = Math.abs(
               state.totalInvoicePayment +
-                (state.totalRefund || 0) -
-                state.totalAdvancePayment
+              (state.totalRefund || 0) -
+              state.totalAdvancePayment
             );
 
             const admission = {
@@ -601,8 +663,8 @@ export const billSlice = createSlice({
           state.totalRefund += payload.addmissionData[0]?.totalRefund;
           state.totalAmount = Math.abs(
             state.totalInvoicePayment -
-              state.totalAdvancePayment +
-              state.totalRefund
+            state.totalAdvancePayment +
+            state.totalRefund
           );
           // state.totalInvoicePayment -=
           //   currentBillInAddmission?.invoice?.payable;
@@ -663,15 +725,15 @@ export const billSlice = createSlice({
             payload.bill?.advancePayment?.totalAmount ?? 0;
           state.totalAmount = Math.abs(
             state.totalAdvancePayment -
-              (state.totalInvoicePayment + state.totalRefund)
+            (state.totalInvoicePayment + state.totalRefund)
           );
           /* ------update calculations when new advance payament is created------ */
           state.data[findIndex].totalAdvancePayment +=
             payload.bill.advancePayment?.totalAmount ?? 0;
           state.data[findIndex].calculatedAmount = Math.abs(
             state.data[findIndex].totalInvoicePayable +
-              state.data[findIndex].totalRefund -
-              state.data[findIndex].totalAdvancePayment
+            state.data[findIndex].totalRefund -
+            state.data[findIndex].totalAdvancePayment
           );
           /* ------update calculations when new advance payament is created------ */
           state.data[findIndex].bills = payload.payload;
@@ -683,8 +745,8 @@ export const billSlice = createSlice({
           state.totalRefund += payload.payload[0]?.totalRefund ?? 0;
           state.totalAmount = Math.abs(
             state.totalInvoicePayment +
-              state.totalRefund -
-              state.totalAdvancePayment
+            state.totalRefund -
+            state.totalAdvancePayment
           );
           state.data = [...payload.payload, ...state.data];
         }
@@ -714,8 +776,8 @@ export const billSlice = createSlice({
         state.totalRefund += payload.addmissionData[0]?.totalRefund;
         state.totalAmount = Math.abs(
           state.totalInvoicePayment -
-            state.totalAdvancePayment +
-            state.totalRefund
+          state.totalAdvancePayment +
+          state.totalRefund
         );
         // state.totalAdvancePayment -=
         //   state.data[findIndex]?.bills[
@@ -836,12 +898,12 @@ export const billSlice = createSlice({
               payload.payload?.invoice?.payable;
             state.data[findIndex].totalRefund =
               state.data[findIndex].totalRefund -
-                payload.payload?.invoice?.refund || 0;
+              payload.payload?.invoice?.refund || 0;
 
             state.data[findIndex].calculatedAmount = Math.abs(
               state.data[findIndex].totalAdvancePayment -
-                state.data[findIndex].totalInvoicePayable +
-                state.data[findIndex].totalRefund
+              state.data[findIndex].totalInvoicePayable +
+              state.data[findIndex].totalRefund
             );
             state.totalInvoicePayment -= payload.payload?.invoice?.payable;
             state.totalRefund -= payload.payload?.invoice?.refund || 0;
@@ -859,8 +921,8 @@ export const billSlice = createSlice({
           }
           state.totalAmount = Math.abs(
             state.totalAdvancePayment -
-              state.totalInvoicePayment +
-              state.totalRefund || 0
+            state.totalInvoicePayment +
+            state.totalRefund || 0
           );
 
           if (state?.data[findIndex]?.bills?.length === 1) {
@@ -880,18 +942,67 @@ export const billSlice = createSlice({
       });
 
     builder
-      .addCase(removeDraft.pending, (state) => {
+      .addCase(addProformaInvoice.pending, (state) => {
         state.loading = true;
       })
-      .addCase(removeDraft.fulfilled, (state, { payload }) => {
+      .addCase(addProformaInvoice.fulfilled, (state, { payload }) => {
+
+        if (payload?.bill?.type === OPD) {
+          // state.proforma_invoice = [payload.bill, ...state.proforma_invoice];
+        } else {
+          if (payload.isAddmissionAvailable) {
+            const findIndex = state.data.findIndex(
+              (el) => el._id === payload.addmission
+            );
+
+            state.data[findIndex].bills = payload.payload;
+          } else {
+
+            const admission = {
+              ...payload.addmissionData,
+              bills: payload.payload,
+              totalBills: 1,
+            };
+            state.data = [admission, ...state.data];
+          }
+        }
         state.loading = false;
-        state.draftData = state.draftData.filter(
-          (d) => d._id !== payload.payload?._id
-        );
       })
-      .addCase(removeDraft.rejected, (state) => {
+      .addCase(addProformaInvoice.rejected, (state) => {
         state.loading = false;
       });
+    builder
+      .addCase(updateProformaInvoice.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateProformaInvoice.fulfilled, (state, { payload }) => {
+        
+
+        if (payload?.bill?.type === OPD) {
+          // state.proforma_invoice = [payload.bill, ...state.proforma_invoice];
+        } else {
+          if (payload.isAddmissionAvailable) {
+            const findIndex = state.data.findIndex(
+              (el) => el._id === payload.addmission
+            );
+            /* ------update calculations when new proforma invoice is created------ */
+            state.data[findIndex].bills = payload.payload;
+          } else {
+            const admission = {
+              ...payload.addmissionData,
+              bills: payload.payload,
+              totalBills: 1,
+            };
+            
+            state.data = [admission, ...state.data];
+          }
+        }
+        state.loading = false;
+      })
+      .addCase(updateProformaInvoice.rejected, (state) => {
+        state.loading = false;
+      });
+
   },
 });
 
@@ -902,6 +1013,8 @@ export const {
   setBillAdmission,
   setTotalAmount,
   resetOpdPatientBills,
+  createProformaBill,
+  setBillType
 } = billSlice.actions;
 
 export default billSlice.reducer;

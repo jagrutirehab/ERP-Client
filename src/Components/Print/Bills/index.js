@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import {
   INVOICE,
   ADVANCE_PAYMENT,
+  PROFORMA_INVOICE,
   REFUND,
   OPD,
   IPD,
@@ -31,7 +32,7 @@ const Bills = ({ bill, patient, center, doctor, admission }) => {
 
       <RenderWhen
         isTrue={
-          (bill.bill === INVOICE || bill.bill === REFUND) && bill.type === IPD
+          (bill.bill === PROFORMA_INVOICE || bill.bill === INVOICE || bill.bill === REFUND) && bill.type === IPD
         }
       >
         {bill.invoice?.invoiceList?.length > 0 &&

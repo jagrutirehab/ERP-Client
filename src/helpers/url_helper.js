@@ -151,6 +151,8 @@ export const EDIT_ADVANCE_PAYMENT = "/bill/advance-payment";
 export const DELETE_BILL = "/bill";
 export const POST_RESTORE_BILL = "/bill/restore";
 export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
+export const POST_PROFORMA_INVOICE = "/bill/proforma-invoice"
+export const EDIT_PROFORMA_INVOICE = "/bill/proforma-invoice"
 
 //MEDICINE
 export const GET_MEDICINES = "/medicine";

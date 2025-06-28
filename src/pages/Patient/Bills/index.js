@@ -6,6 +6,7 @@ import { connect, useDispatch } from "react-redux";
 import Wrapper from "../Components/Wrapper";
 import {
   ADVANCE_PAYMENT,
+  PROFORMA_INVOICE,
   DEPOSIT,
   INVOICE,
   OPD,
@@ -25,6 +26,7 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { format } from "date-fns";
+import { setBillType } from "../../../store/features/bill/billSlice";
 
 const Bills = ({
   addmissions,
@@ -84,6 +86,9 @@ const Bills = ({
   let totalDeposit = 0;
   let totalAdvance = 0;
   let totalPayable = 0;
+
+
+
   const newBills = (_.cloneDeep(data) || []).map((item, idx) => {
     if (item.bill === ADVANCE_PAYMENT) {
       calcAdvance += parseFloat(item.advancePayment?.totalAmount); //10000
@@ -105,7 +110,7 @@ const Bills = ({
       //totalAdvance
       totalAdvance += item.advancePayment.totalAmount;
     } else if (
-      (item.bill === INVOICE || item.bill === REFUND) &&
+      (item.bill === PROFORMA_INVOICE || item.bill === INVOICE || item.bill === REFUND) &&
       item.type !== OPD
     ) {
       if (adReserve > 0) {
@@ -149,6 +154,51 @@ const Bills = ({
 
       //totalPayable
       totalPayable += item.invoice?.payable || 0;
+    } else if (
+      item.bill === PROFORMA_INVOICE && item.type !== OPD
+    ) {
+      let zero = 0;
+      if (adReserve > 0) {
+        adReserve += calcAdvance; //30000
+        //check for advance payment reserved or left
+        if (adReserve > parseFloat(zero)) {
+          // item.invoice.currentAdvance = adReserve;
+          adReserve = adReserve - parseFloat(zero); //change grandtotal to payNow
+          // item.invoice.calculatedAdvance = adReserve;
+          // item.invoice.calculatedPayable = 0;
+        } else {
+          item.invoice.currentAdvance = adReserve;
+          // item.invoice.currentPayable = previousPayable;
+          previousPayable = 0 + parseFloat(zero) - adReserve; //change grandtotal to payNow
+          item.invoice.calculatedPayable = previousPayable;
+          adReserve = 0;
+        }
+        calcAdvance = 0;
+      } else {
+        // item.invoice.calculatedAdvance = calcAdvance;
+        //set totalPreviousPayable to next invoice
+
+        if (calcAdvance > parseFloat(zero) + previousPayable) {
+          // item.invoice.currentAdvance = calcAdvance;
+          //new addition add previousPayable
+          adReserve =
+            calcAdvance - (parseFloat(zero) + previousPayable);
+          // item.invoice.calculatedAdvance = adReserve; // new addition set previousPayable to next invoice
+          // item.invoice.calculatedPayable = 0;
+          previousPayable = 0;
+        } else {
+          if (item.invoice) {
+            // item.invoice.currentAdvance = calcAdvance;
+            item.invoice.previousPayable = previousPayable;
+            previousPayable += parseFloat(zero) - calcAdvance;
+            item.invoice.calculatedPayable = previousPayable;
+          } // new addition set previousPayable to next invoice
+        }
+        calcAdvance = 0;
+      }
+
+      //totalPayable
+      totalPayable += 0;
     }
 
     if (item.bill === DEPOSIT) totalDeposit += item.deposit.remainingAmount;
@@ -187,7 +237,8 @@ const Bills = ({
       patient.addmissions?.includes(addmission?._id)
     ) {
       const bill = newBills[0];
-      if (bill.bill === INVOICE) {
+      
+      if (bill.bill === PROFORMA_INVOICE || bill.bill === INVOICE) {
         dispatch(
           setTotalAmount({
             calculatedPayable: bill.invoice?.calculatedPayable,
@@ -241,6 +292,19 @@ const Bills = ({
     );
   };
 
+
+
+  useEffect(() => {
+    const hasProforma = newBills.some(item => item.bill === "PROFORMA_INVOICE");
+    if (hasProforma) {
+      dispatch(setBillType("Proforma Invoice"));
+    } else {
+      dispatch(setBillType(null));
+    }
+  }, [newBills, dispatch]);
+
+
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -272,13 +336,15 @@ const Bills = ({
                   toggleDateModal={toggleDateModal}
                   disableEdit={
                     bill.bill === ADVANCE_PAYMENT &&
-                    user?.email !== "rijutarafder000@gmail.com"
+                      user?.email !== "rijutarafder000@gmail.com"
                       ? true
                       : false
                   }
                   itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
                   disableDelete={addmission?.dischargeDate ? true : false}
                 >
+
+                  
                   <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT}>
                     <AdvancePayment data={bill?.advancePayment} />
                   </RenderWhen>
@@ -286,7 +352,8 @@ const Bills = ({
                     <Deposit data={bill?.deposit} />
                   </RenderWhen>
                   <RenderWhen
-                    isTrue={bill.bill === INVOICE || bill.bill === REFUND}
+                    isTrue={bill.bill === PROFORMA_INVOICE || bill.bill === INVOICE || bill.bill === REFUND}
+                    isTrue={bill.bill === PROFORMA_INVOICE || bill.bill === INVOICE || bill.bill === REFUND}
                   >
                     <Invoice data={bill?.invoice} bill={bill} />
                   </RenderWhen>

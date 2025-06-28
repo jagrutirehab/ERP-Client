@@ -11,7 +11,7 @@ export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
-  { label: "Advance Payment", value: ADVANCE_PAYMENT },
+  { label: "Payment", value: ADVANCE_PAYMENT },
   { label: "Invoice", value: INVOICE },
   { label: "Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },

@@ -141,7 +141,7 @@ const InvoiceDraft = ({
       let refund = 0;
       if (invoiceType === "REFUND" && editDraftData?.invoice?.refund) {
         refund =
-          editDraftData.invoice.currentAdvance > gTotal
+          editDraftData.invoice?.currentAdvance > gTotal
             ? editDraftData.invoice?.currentAdvance + (wDiscount || 0) - gTotal
             : 0;
       } else if (invoiceType === "REFUND") {

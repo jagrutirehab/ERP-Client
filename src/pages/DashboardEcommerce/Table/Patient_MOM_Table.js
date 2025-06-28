@@ -183,9 +183,9 @@ const months = [
 
 const fields = [
   { label: "Payable Amount(Lakh)", key: "payable" },
-  { label: "Advance Payment(IPD)", key: "advance_ipd" },
+  { label: " Payment(IPD)", key: "advance_ipd" },
   { label: "OPD", key: "opd" },
-  { label: "Advance Payment", key: "advance" },
+  { label: " Payment", key: "advance" },
   { label: "# Admitted Patient", key: "admitted" },
   { label: "# Discharged Patient", key: "discharged" },
   { label: "# Remains Patient", key: "remains" },

@@ -237,6 +237,13 @@ export const postPaymentAccount = (data) =>
 export const deletePaymentAccount = (data) =>
   api.delete(`${url.DELETE_PAYMENT_ACCOUNT}/${data}`);
 
+export const postProformaInvoice = (data) =>
+  api.create(url.POST_PROFORMA_INVOICE, data);
+
+export const editProformaInvoice = (data) =>
+  api.put(url.EDIT_PROFORMA_INVOICE, data);
+
+
 // Patient Method
 export const getPatients = (data) =>
   api.get(url.GET_PATIENTS, {

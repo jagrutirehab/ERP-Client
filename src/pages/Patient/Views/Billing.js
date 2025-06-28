@@ -18,7 +18,7 @@ import AddmissionCard from "./Components/AddmissionCard";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 //redux
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch ,useSelector} from "react-redux";
 import {
   admitDischargePatient,
   fetchBills,
@@ -46,7 +46,6 @@ const Billing = ({
   drafts,
 }) => {
   const dispatch = useDispatch();
-
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
@@ -74,7 +73,7 @@ const Billing = ({
       setOpen("0");
       setAddmissionId(addmissionsBills[0]?._id);
     }
-
+ 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, patient, addmissionsBills]);
 
@@ -84,7 +83,8 @@ const Billing = ({
       dispatch(fetchBills(addmissionId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, patient, addmissionId]);
+  }, [dispatch, patient, addmissionId,user]);
+  const result = useSelector((state) => state.Bill);
 
   useEffect(() => {
     dispatch(fetchDraftBills({ patient: patient._id }));
@@ -165,7 +165,7 @@ const Billing = ({
         </div>
       </RenderWhen>
       <RenderWhen isTrue={showDraft && Boolean(drafts?.length)}>
-        <DraftInvoice toggleDateModal={toggleModal} />
+        {/* <DraftInvoice toggleDateModal={toggleModal} /> */}
       </RenderWhen>
 
       <RenderWhen isTrue={!patient?.isAdmit}>
@@ -252,30 +252,30 @@ const Billing = ({
                   {(user?.email === "rijutarafder000@gmail.com" ||
                     user?.email === "owais@gmail.com" ||
                     user?.email === "hemanthshinde@gmail.com") && (
-                    <div className="d-flex align-items-center">
-                      <UncontrolledTooltip
-                        placement="bottom"
-                        target="edit-admission"
-                      >
-                        Edit Admission
-                      </UncontrolledTooltip>
-                      <Button
-                        onClick={() => {
-                          dispatch(
-                            admitDischargePatient({
-                              data: addmission,
-                              isOpen: EDIT_ADMISSION,
-                            })
-                          );
-                        }}
-                        id="edit-admission"
-                        size="sm"
-                        outline
-                      >
-                        <i className="ri-quill-pen-line text-muted fs-6"></i>
-                      </Button>
-                    </div>
-                  )}
+                      <div className="d-flex align-items-center">
+                        <UncontrolledTooltip
+                          placement="bottom"
+                          target="edit-admission"
+                        >
+                          Edit Admission
+                        </UncontrolledTooltip>
+                        <Button
+                          onClick={() => {
+                            dispatch(
+                              admitDischargePatient({
+                                data: addmission,
+                                isOpen: EDIT_ADMISSION,
+                              })
+                            );
+                          }}
+                          id="edit-admission"
+                          size="sm"
+                          outline
+                        >
+                          <i className="ri-quill-pen-line text-muted fs-6"></i>
+                        </Button>
+                      </div>
+                    )}
 
                   <div className="d-flex align-items-center">
                     <UncontrolledTooltip
@@ -294,11 +294,10 @@ const Billing = ({
                       outline
                     >
                       <i
-                        className={`${
-                          open === idx.toString()
+                        className={`${open === idx.toString()
                             ? " ri-arrow-up-s-line"
                             : "ri-arrow-down-s-line"
-                        } fs-6`}
+                          } fs-6`}
                       ></i>
                     </Button>
                   </div>

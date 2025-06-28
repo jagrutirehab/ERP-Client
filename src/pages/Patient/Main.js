@@ -39,6 +39,7 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     fetchPatientData();
   }, [dispatch, id]);
 
+
   useEffect(() => {
     if (patient?.addmissions?.length) {
       dispatch(fetchChartsAddmissions(patient.addmissions));
@@ -49,7 +50,7 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     }
   }, [dispatch, patient]);
 
-  console.log({ loading, id }, "loading");
+ 
 
   if (loading) {
     return (

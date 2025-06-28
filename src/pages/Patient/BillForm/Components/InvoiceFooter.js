@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import {
   DRAFT_INVOICE,
   INVOICE,
+  PROFORMA_INVOICE,
   IPD,
   OPD,
   REFUND,
@@ -22,7 +23,7 @@ const InvoiceFooter = (props) => {
   if (props.validation.values.bill === DRAFT_INVOICE) value = props.payable;
   else if (props.type === IPD) {
     value =
-      props.validation.values.bill === INVOICE
+      props.validation.values.bill === PROFORMA_INVOICE || props.validation.values.bill === INVOICE
         ? props.payable
         : // props.totalAdvance > 0 && props.totalAdvance > props.payable
           //   ? 0

@@ -110,7 +110,7 @@ const Billing = ({
               className={classNames({ active: tab === "2" })}
               onClick={() => setTab("2")}
             >
-              Advance Payment
+               Payment
             </NavLink>
           </NavItem>
         </Nav>
