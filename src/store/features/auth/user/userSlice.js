@@ -14,6 +14,7 @@ import {
   getDoctorsScheduleNew,
   postDoctorSchedule,
   editDoctorSchedule,
+  markUserActiveInactive,
 } from "../../../../helpers/backend_helper";
 import { setAlert } from "../../alert/alertSlice";
 
@@ -219,6 +220,29 @@ export const suspendStaff = createAsyncThunk(
             response.payload.status === "active"
               ? "User Restored Successfully!"
               : "User Suspended Successfully!",
+        })
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const markedUserActiveOrInactive = createAsyncThunk(
+  "markedActiveOrInactive",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await markUserActiveInactive(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message:
+            response.payload.isHideFromSearch
+              ? "User Mask Successfully!"
+              : "User Unmask Successfully!",
         })
       );
 
