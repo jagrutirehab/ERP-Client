@@ -712,6 +712,10 @@ const timelineFilters = [
     label: "Bill",
     name: "PATIENT_BILL",
   },
+  {
+    label: "Clinicacl_test",
+    name: "PATIENT_CLINICAL_TEST",
+  },
 ];
 
 const categoryUnitOptions = {

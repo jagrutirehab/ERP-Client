@@ -37,6 +37,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
 
   const patient = useSelector((state) => state.Patient.patient);
   const doctorDetails = useSelector((state) => state.User.doctor);
+  const centerId = useSelector((state) => state.Patient.patient?.center?._id);
 
   const toggle2 = () => setDropdownOpen(!dropdownOpen);
   const toggle3 = () => setDummyDrop(!dummyDrop);
@@ -97,6 +98,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
     formData.append("systemInterpretation", interpretationText);
     formData.append("systemRecommendation", recommendationsText);
     formData.append("questions", JSON.stringify(formattedQuestions));
+    formData.append("centerId", centerId)
 
     const imageFiles = fileInputRef.current?.files;
     if (imageFiles && imageFiles.length > 0) {
