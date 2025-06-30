@@ -12,7 +12,7 @@ export const EDIT_USER = "/auth/user";
 export const EDIT_USER_PASSWORD = "/auth/user";
 export const POST_USER_SESSION_PRICING = "/auth/user/session-pricing";
 export const PUT_USER_SESSION_PRICING = "/auth/user/session-pricing";
-
+export const UPDATE_USER_ACTIVE_INACTIVE ='/auth/user/mark-active-inactive'
 //LOGIN
 export const POST_USER_LOGIN = "/auth/login";
 export const SEARCH_USER = "/auth/search";
