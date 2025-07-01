@@ -466,7 +466,7 @@ const DBLogs = ({ data, loading, pagination }) => {
                 )}
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {/* {totalPages > 1 && (
                   <div className="d-flex justify-content-between align-items-center mt-3">
                     <div>
                       <small className="text-muted">
@@ -523,7 +523,7 @@ const DBLogs = ({ data, loading, pagination }) => {
                       </PaginationItem>
                     </Pagination>
                   </div>
-                )}
+                )} */}
               </CardBody>
             </Card>
           </div>
