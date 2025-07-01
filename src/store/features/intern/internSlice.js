@@ -114,7 +114,7 @@ export const getInternIds = createAsyncThunk(
   async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await getInternId();
-      
+
       return response.internId;
     } catch (error) {
       dispatch(
@@ -136,9 +136,7 @@ export const postInternData = createAsyncThunk(
       dispatch(
         setAlert({ type: "success", message: "Intern Saved Successfully" })
       );
-
-      // dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
-
+      dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -149,15 +147,13 @@ export const postInternData = createAsyncThunk(
 export const editInternForm = createAsyncThunk(
   "intern/editInternForm",
   async ({ id, formData }, { rejectWithValue, dispatch }) => {
-    console.log(id, formData, "slice");
     try {
       const response = await updateInternForm(id, formData);
       dispatch(
         setAlert({ type: "success", message: "Intern updated successfully" })
       );
       dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
-
-      return response; // ✅ return only payload
+      return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "Update failed");
@@ -188,7 +184,6 @@ export const fetchInternById = createAsyncThunk(
   async (id, { rejectWithValue, dispatch }) => {
     try {
       const response = await getInternById(id);
-      console.log(response.payload, " testing in slice");
       return response.payload; // Correct: just the intern object
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));

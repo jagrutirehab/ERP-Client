@@ -55,7 +55,6 @@ const Sidebar = ({
   const filteredInterns = (interns || []).filter((i) =>
     i.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  console.log(filteredInterns, " filteredInterns")
   return (
     <div className="chat-leftsidebar" style={{ marginTop: 80 }}>
       <div className="px-4 pt-4 mb-4">
@@ -148,9 +147,9 @@ const Sidebar = ({
                       <p className="text-truncate text-capitalize font-semi-bold fs-13 mb-0">
                         {int.name || ""}
                       </p>
-                      <p className="text-truncate text-muted fs-12 mb-0">
+                      {/* <p className="text-truncate text-muted fs-12 mb-0">
                         {int.educationalInstitution}
-                      </p>
+                      </p> */}
                     </div>
                     <div className="flex-shrink-0 d-flex align-items-center">
                       <span className="badge badge-soft-dark rounded p-1">

@@ -641,11 +641,12 @@ export const getInternReceipt = (internId) => {
   return api.get(url.GET_INTERN_RECEIPT(internId));
 };
 
-export const updateInternForm = (id) => {
-  return api.put(url.UPDATE_INTERN_FORM(id), {
+export const updateInternForm = (id, data) => {
+  return api.put(url.UPDATE_INTERN_FORM(id), data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
 export const removeIntern = (id) => api.delete(`${url.DELETE_INTERN}/${id}`);
 export const removeInternBill = (id) =>
   api.delete(`${url.DELETE_INTERN_BILL}/${id}`);
