@@ -662,7 +662,7 @@ const Schedule = ({
           </div>
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex gap-2">
-              <span>
+              <span className="text-black" style={{fontSize:'16px',fontWeight:700}}>
                 Website Listing:
               </span>
               <FormGroup switch>
@@ -674,6 +674,8 @@ const Schedule = ({
                     boxShadow: 'none',
                     outline: 'none',
                     border: 'none',
+                    height:'18px',
+                    width:'40px'
                   }}
                   onChange={(e) => handleUserHide(e)}
                 />
