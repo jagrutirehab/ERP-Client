@@ -77,7 +77,7 @@ export const postSsrstest = (data) =>
 export const postYmrsTest = (data) => {
   api.create(url.POST_YMRS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-  })
+  });
 };
 // export const postYmrsTest = (data) => {
 //   api.create("http://localhost:8080/api/v1/clinical-test/ymrs-test", data, {
@@ -577,6 +577,27 @@ export const editCalenderDuration = (data) =>
 //Report
 export const getReport = (data) =>
   api.get(url.GET_REPORT, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getDBLogs = (data) =>
+  api.get(url.GET_DB_LOGS, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getDBLogsByDateRange = (data) =>
+  api.get(url.GET_DB_LOGS_BY_DATE_RANGE, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getDBLogsByAction = (data) =>
+  api.get(url.GET_DB_LOGS_BY_ACTION, {
     params: data,
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });

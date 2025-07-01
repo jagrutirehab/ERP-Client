@@ -265,6 +265,13 @@ export {
 //Notification
 export { fetchBillNotification } from "./features/notification/notificationSlice";
 
+//DB Logs
+export {
+  fetchDBLogs,
+  fetchDBLogsByDateRange,
+  fetchDBLogsByAction,
+} from "./features/report/dbLogSlice";
+
 //Intern
 export {
   toggleInternForm,

@@ -4,6 +4,7 @@ import { Button, ButtonGroup, Container } from "reactstrap";
 import { connect } from "react-redux";
 import {
   DASHBOARD,
+  DB_LOGS,
   FINANACE,
   LEAD_ANALYTICS,
   OPD_ANALYTICS,
@@ -17,6 +18,7 @@ import Patient from "./Components/Patient";
 import Lead from "./Components/Lead";
 import OPD from "./Components/OPD";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
+import DBLogs from "./Components/DBLogs";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
@@ -55,6 +57,12 @@ const Report = ({}) => {
               Patient Analytics
             </Button>
             <Button
+              outline={view !== DB_LOGS}
+              onClick={() => handleView(DB_LOGS)}
+            >
+              DB Logs
+            </Button>
+            <Button
               outline={view !== LEAD_ANALYTICS}
               onClick={() => handleView(LEAD_ANALYTICS)}
             >
@@ -74,6 +82,7 @@ const Report = ({}) => {
             {view === PATIENT_ANALYTICS && <Patient view={view} />}
             {view === LEAD_ANALYTICS && <Lead view={view} />}
             {view === OPD_ANALYTICS && <OPD view={view} />}
+            {view === DB_LOGS && <DBLogs view={view} />}
           </div>
         </Container>
       </div>
