@@ -17,6 +17,7 @@ import {
   Spinner,
 } from "reactstrap";
 import { fetchDBLogs } from "../../../../store/actions";
+import { format } from "date-fns";
 
 const DBLogs = ({ data, loading }) => {
   const dispatch = useDispatch();
@@ -156,6 +157,8 @@ const DBLogs = ({ data, loading }) => {
     }
     return { color: "secondary", text: "System" };
   };
+
+  console.log(data, "data");
 
   return (
     <React.Fragment>
@@ -375,11 +378,11 @@ const DBLogs = ({ data, loading }) => {
                               <td>
                                 <div className="d-flex flex-column">
                                   <small className="text-muted">
-                                    {formatDate(timestamp)}
-                                  </small>
-                                  <small className="text-muted">
                                     {timestamp &&
-                                      new Date(timestamp).toLocaleDateString()}
+                                      format(
+                                        new Date(timestamp),
+                                        "dd/MM/yyyy hh:mm a"
+                                      )}
                                   </small>
                                 </div>
                               </td>
@@ -404,7 +407,7 @@ const DBLogs = ({ data, loading }) => {
                                   </Badge>
                                   {log.patientId && (
                                     <small className="text-muted">
-                                      ID: {log.patientId}
+                                      ID: {log.uid}
                                     </small>
                                   )}
                                 </div>
