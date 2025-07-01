@@ -19,7 +19,7 @@ import {
 import { fetchDBLogs } from "../../../../store/actions";
 import { format } from "date-fns";
 
-const DBLogs = ({ data, loading }) => {
+const DBLogs = ({ data, loading, pagination }) => {
   const dispatch = useDispatch();
   // Mock data for demonstration
   // const [logs] = useState([
@@ -63,7 +63,7 @@ const DBLogs = ({ data, loading }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems] = useState(150);
+  // const [totalItems] = useState(150);
   const [localFilters, setLocalFilters] = useState({
     action: "",
     startDate: "",
@@ -71,7 +71,7 @@ const DBLogs = ({ data, loading }) => {
   });
 
   // Calculate pagination
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.ceil(pagination.totalItems / itemsPerPage);
   const hasNextPage = currentPage < totalPages;
   const hasPrevPage = currentPage > 1;
 
@@ -158,7 +158,7 @@ const DBLogs = ({ data, loading }) => {
     return { color: "secondary", text: "System" };
   };
 
-  console.log(data, "data");
+  console.log(pagination, "pagination");
 
   return (
     <React.Fragment>
@@ -247,7 +247,7 @@ const DBLogs = ({ data, loading }) => {
                   <Col md={6}>
                     <div className="text-right">
                       <small className="text-muted">
-                        Total: {totalItems} logs
+                        Total: {pagination.totalItems} logs
                       </small>
                     </div>
                   </Col>
@@ -471,8 +471,11 @@ const DBLogs = ({ data, loading }) => {
                     <div>
                       <small className="text-muted">
                         Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                        {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
-                        {totalItems} entries
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          pagination.totalItems
+                        )}{" "}
+                        of {pagination.totalItems} entries
                       </small>
                     </div>
                     <Pagination
@@ -533,6 +536,8 @@ const DBLogs = ({ data, loading }) => {
 const mapStateToProps = (state) => ({
   data: state.DBLogs?.logs,
   loading: state.DBLogs?.loading,
+  totalItems: state.DBLogs?.totalItems,
+  pagination: state.DBLogs.pagination,
 });
 
 export default connect(mapStateToProps)(DBLogs);
