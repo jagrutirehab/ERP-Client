@@ -25,6 +25,9 @@ import Layout from "./features/layouts/layoutsSlice";
 // log
 import Log from "./features/log/logSlice";
 
+// db logs
+import DBLogs from "./features/report/dbLogSlice";
+
 // center
 import Center from "./features/center/centerSlice";
 
@@ -39,8 +42,6 @@ import Booking from "./features/booking/bookingSlice";
 
 // patient
 import Patient from "./features/patient/patientSlice";
-
-
 
 // timeline
 import Timeline from "./features/timeline/timelineSlice";
@@ -96,6 +97,7 @@ const rootReducer = combineReducers({
   Intern,
   InternTimeline,
   ClinicalTest,
+  DBLogs,
 });
 
 export default rootReducer;

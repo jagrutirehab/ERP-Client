@@ -31,6 +31,8 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
     setPaymentModes(newPaymentModes);
   };
 
+  console.log("paymentAccounts >>>>>", paymentAccounts);
+
   return (
     <React.Fragment>
       <div>
@@ -54,7 +56,8 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       onKeyDown={(e) => {
                         if (e.key === "ArrowUp" || e.key === "ArrowDown") {
                           e.preventDefault();
-                        }}}
+                        }
+                      }}
                       onChange={(e) => {
                         const event = {
                           target: {

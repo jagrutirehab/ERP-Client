@@ -190,6 +190,9 @@ export const EDIT_CALENDER_DURATION = "/setting/calender";
 
 //REPORT
 export const GET_REPORT = "/report";
+export const GET_DB_LOGS = "/report/db-logs";
+export const GET_DB_LOGS_BY_DATE_RANGE = "/report/db-logs/date-range";
+export const GET_DB_LOGS_BY_ACTION = "/report/db-logs/action/:action";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_LEAD_ANALYTICS = "/report/lead";
