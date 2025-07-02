@@ -34,7 +34,6 @@ const AddIntern = ({ intern, user, centers }) => {
   const [previewImage, setPreviewImage] = useState(null);
 
   const editData = intern.data;
-  console.log(editData, "this is edit data")
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : "";
@@ -47,7 +46,7 @@ const AddIntern = ({ intern, user, centers }) => {
 
   const dataURLtoBlob = (dataURL) => {
     const byteString = atob(dataURL.split(",")[1]);
-    const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+    const mimeString = dataURL.split(",")[0].split(":"[1]).split(";")[0];
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) {
@@ -62,8 +61,11 @@ const AddIntern = ({ intern, user, centers }) => {
       InternId: editData?.InternId || "",
       author: user?._id,
       editor: user?._id,
-      center: editData?.center?.$oid || editData?.center?._id || editData?.center || "",
-      profilePicture: editData?.profilePicture || "",
+      center:
+        editData?.center?.$oid ||
+        editData?.center?._id ||
+        editData?.center ||
+        "",
       name: editData?.name || "",
       contactNumber: editData?.contactNumber || "",
       dateOfBirth,
@@ -81,6 +83,7 @@ const AddIntern = ({ intern, user, centers }) => {
       emergencyContactName: editData?.emergencyContactName || "",
       emergencyContactPhoneNumber: editData?.emergencyContactPhoneNumber || "",
       emergencyContactEmail: editData?.emergencyContactEmail || "",
+      internStatus: editData?.internStatus || "active",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Intern Name is required"),
@@ -111,6 +114,7 @@ const AddIntern = ({ intern, user, centers }) => {
           isValidPhoneNumber(value || "")
         ),
       emergencyContactEmail: Yup.string().email("Invalid Email"),
+      internStatus: Yup.string().oneOf(["active", "completed", "inactive"]),
     }),
     onSubmit: async (values) => {
       const formData = convertToFormData(values);
@@ -122,15 +126,6 @@ const AddIntern = ({ intern, user, centers }) => {
       if (croppedImage) {
         const blob = dataURLtoBlob(croppedImage);
         formData.set("profilePicture", blob, "profile.jpg");
-      } else if (
-        !croppedImage &&
-        editData?.profilePicture?.url &&
-        !editData?.profilePicture?.fileAppended
-      ) {
-        const existingBlob = await fetch(editData.profilePicture.url).then(
-          (res) => res.blob()
-        );
-        formData.set("profilePicture", existingBlob, "profile.jpg");
       }
 
       if (editData) {
@@ -298,6 +293,42 @@ const AddIntern = ({ intern, user, centers }) => {
               }
             }}
           />
+
+          {editData && (
+            <Col md={6}>
+              <div className="mb-3">
+                <Label className="form-label d-block">
+                  Status <span className="text-danger">*</span>
+                </Label>
+                {["active", "completed", "inactive"].map((status) => (
+                  <div className="form-check form-check-inline" key={status}>
+                    <Input
+                      className="form-check-input"
+                      type="radio"
+                      name="internStatus"
+                      id={`status-${status}`}
+                      value={status}
+                      checked={validation.values.internStatus === status}
+                      onChange={validation.handleChange}
+                      invalid={
+                        validation.touched.internStatus &&
+                        !!validation.errors.internStatus
+                      }
+                    />
+                    <Label
+                      className="form-check-label"
+                      htmlFor={`status-${status}`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </Label>
+                  </div>
+                ))}
+                <FormFeedback className="d-block">
+                  {validation.errors.internStatus}
+                </FormFeedback>
+              </div>
+            </Col>
+          )}
 
           <Col xs={12} className="d-flex justify-content-end gap-3 mt-4">
             <Button type="button" color="danger" onClick={cancelForm}>

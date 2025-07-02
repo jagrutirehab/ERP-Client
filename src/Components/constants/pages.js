@@ -137,12 +137,6 @@ const pages = [
 ];
 
 export const setting = [
-  // {
-  //   id: "center",
-  //   label: "Center",
-  //   link: "/setting/center",
-  //   icon: "bx bx-buildings",
-  // },
   {
     id: "medicine",
     label: "Medicine",
@@ -170,18 +164,6 @@ export const recyclebin = [
     link: "/recyclebin/center",
     icon: "bx bx-buildings",
   },
-  // {
-  //   id: "user",
-  //   label: "User",
-  //   link: "/recyclebin/user",
-  //   icon: "bx bx-capsule",
-  // },
-  // {
-  //   id: "medicine",
-  //   label: "Medicine",
-  //   link: "/recyclebin/medicine",
-  //   icon: "bx bx-capsule",
-  // },
   {
     id: "patient",
     label: "Patient",
@@ -210,6 +192,12 @@ export const recyclebin = [
     id: "medicine",
     label: "Medicine",
     link: "/recyclebin/medicine",
+    icon: "bx bx-capsule",
+  },
+  {
+    id: "intern",
+    label: "Intern",
+    link: "/recyclebin/intern",
     icon: "bx bx-capsule",
   },
 ];

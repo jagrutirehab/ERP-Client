@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 //components
 import InternTopbar from "./InternTopbar";
 import Views from "./Views";
@@ -12,9 +12,6 @@ import { useParams } from "react-router-dom";
 import { fetchInternById } from "../../store/actions";
 
 const Main = ({ intern, deleteIntern, setDeleteIntern }) => {
-  const state = useSelector((state) => state);
-  console.log(state, "state <<<<<<<<<<<<<<<<<<<<");
-
   const dispatch = useDispatch();
   const { id } = useParams();
   useEffect(() => {

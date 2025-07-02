@@ -1,22 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import { Button, UncontrolledTooltip, Card, CardBody } from "reactstrap";
-// import { useInView } from "react-hook-inview";
-
-//Import Scrollbar
+import { Button, UncontrolledTooltip } from "reactstrap";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import Tabs from "./Tabs";
-
-//redux
 import { connect, useDispatch } from "react-redux";
-import {
-  fetchMoreInterns,
-  fetchInterns,
-  toggleInternForm,
-  viewIntern,
-} from "../../../store/actions";
+import { fetchInterns, toggleInternForm } from "../../../store/actions";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import { useInView } from "react-hook-inview";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -24,37 +14,60 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 const Sidebar = ({
   interns = [],
   intern,
-  customActiveTab,
+  customActiveTab = "all",
   toggleCustom,
-  centerAccess,
+  hasMore,
 }) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [loadMoreRef, isVisible] = useInView({
-    defaultInView: false,
-  });
+  const [page, setPage] = useState(1);
+  const [loadMoreRef, isVisible] = useInView({ defaultInView: false });
+  const isFetchingRef = useRef(false);
+  const LIMIT = 20;
+
+  const getFilterParams = (pageNumber) => {
+    const base = {
+      page: pageNumber,
+      limit: LIMIT,
+      name: searchQuery,
+    };
+    if (customActiveTab === "active") base.internStatus = "active";
+    else if (customActiveTab === "completed") base.internStatus = "completed";
+    return base;
+  };
 
   useEffect(() => {
-    dispatch(fetchInterns());
-    if (isVisible) {
-    }
-  }, [dispatch, centerAccess, customActiveTab, isVisible, searchQuery]);
+    const fetchInitial = async () => {
+      setPage(1);
+      isFetchingRef.current = true;
+      await dispatch(fetchInterns(getFilterParams(1)));
+      isFetchingRef.current = false;
+    };
+
+    fetchInitial();
+  }, [searchQuery, customActiveTab, dispatch]);
+
+  useEffect(() => {
+    const fetchMore = async () => {
+      if (isVisible && hasMore && !isFetchingRef.current) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        isFetchingRef.current = true;
+        await dispatch(fetchInterns(getFilterParams(nextPage)));
+        isFetchingRef.current = false;
+      }
+    };
+
+    fetchMore();
+  }, [isVisible, hasMore]);
 
   const toggleDataSidebar = () => {
-    const windowSize = document.documentElement.clientWidth;
     const dataList = document.querySelector(".chat-message-list");
-    if (windowSize < 992) {
-      if (dataList.classList.contains("show-chat-message-list")) {
-        dataList.classList.remove("show-chat-message-list");
-      } else {
-        dataList.classList.add("show-chat-message-list");
-      }
+    if (document.documentElement.clientWidth < 992 && dataList) {
+      dataList.classList.toggle("show-chat-message-list");
     }
   };
 
-  const filteredInterns = (interns || []).filter((i) =>
-    i.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
   return (
     <div className="chat-leftsidebar" style={{ marginTop: 80 }}>
       <div className="px-4 pt-4 mb-4">
@@ -93,7 +106,7 @@ const Sidebar = ({
           </div>
         </div>
         <div className="search-box">
-          <Tabs customActiveTab={customActiveTab} toggleCustom={toggleCustom} />
+          <Tabs customActiveTab={customActiveTab || "all"} toggleCustom={toggleCustom} />
           <input
             type="text"
             className="form-control bg-light border-light"
@@ -102,7 +115,7 @@ const Sidebar = ({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <i
-            className="ri-search-2-line search-icon "
+            className="ri-search-2-line search-icon"
             style={{ height: "162%" }}
           ></i>
         </div>
@@ -114,13 +127,12 @@ const Sidebar = ({
             className="list-unstyled chat-list chat-user-list users-list"
             id="userList"
           >
-            {filteredInterns.map((int) => (
-             
+            {(interns || []).map((int) => (
               <li
                 key={int._id}
                 className={intern?._id === int._id ? "active" : ""}
               >
-                <Link to={`/intern/${int?._id}`}>
+                <Link to={`/intern/${int._id}`}>
                   <div className="d-flex align-items-center">
                     <div
                       className={
@@ -138,7 +150,7 @@ const Sidebar = ({
                           />
                         ) : (
                           <div className="avatar-title rounded-circle bg-success userprofile">
-                            {int.name?.slice(0, 1)}
+                            {int.name?.[0]}
                           </div>
                         )}
                       </div>
@@ -147,9 +159,6 @@ const Sidebar = ({
                       <p className="text-truncate text-capitalize font-semi-bold fs-13 mb-0">
                         {int.name || ""}
                       </p>
-                      {/* <p className="text-truncate text-muted fs-12 mb-0">
-                        {int.educationalInstitution}
-                      </p> */}
                     </div>
                     <div className="flex-shrink-0 d-flex align-items-center">
                       <span className="badge badge-soft-dark rounded p-1">
@@ -160,8 +169,10 @@ const Sidebar = ({
                 </Link>
               </li>
             ))}
-            <RenderWhen isTrue={interns?.length >= 20}>
-              <li ref={loadMoreRef} className="p-2 bg-dar"></li>
+            <RenderWhen isTrue={hasMore}>
+              <li ref={loadMoreRef} className="p-2 bg-light text-center">
+                <span className="text-muted">Loading more...</span>
+              </li>
             </RenderWhen>
           </ul>
         </div>
@@ -175,14 +186,15 @@ Sidebar.propTypes = {
   intern: PropTypes.object,
   customActiveTab: PropTypes.string,
   toggleCustom: PropTypes.func,
-  centerAccess: PropTypes.array.isRequired,
+  centerAccess: PropTypes.array,
+  hasMore: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
   interns: state.Intern.data,
   intern: state.Intern.intern,
-
   centerAccess: state.User.centerAccess,
+  hasMore: state.Intern.hasMore,
 });
 
 export default connect(mapStateToProps)(Sidebar);

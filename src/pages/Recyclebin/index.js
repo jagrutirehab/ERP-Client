@@ -10,6 +10,7 @@ import Lead from "./Lead";
 import Medicine from "./Medicine";
 import Chart from "./Chart";
 import Bill from "./Bill";
+import Internrecycle from "./Intern";
 
 const Recyclebin = ({ centerAccess }) => {
   return (
@@ -43,6 +44,10 @@ const Recyclebin = ({ centerAccess }) => {
               <Route
                 path={`/medicine`}
                 element={<Medicine centerAccess={centerAccess} />}
+              />
+              <Route
+                path={`/intern`}
+                element={<Internrecycle centerAccess={centerAccess} />}
               />
             </Routes>
           </div>

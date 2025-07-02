@@ -1,10 +1,6 @@
 export const GENERAL = "GENERAL";
-//Admit Discharge
-
 export const BILLING_VIEW = "BILLING";
 export const TIMELINE_VIEW = "TIMELINE";
-
-// const ADVANCE_PAYMENT = "ADVANCE_PAYMENT";
 const RECEIPT = "RECEIPT";
 const DEPOSIT = "DEPOSIT";
 export const DRAFT_INVOICE = "DRAFT_INVOICE";
@@ -15,16 +11,8 @@ export const CARD = "CARD";
 export const CHEQUE = "CHEQUE";
 export const BANK = "BANK";
 export const UPI = "UPI";
-//Genders
-// const MALE = "MALE";
-// const FEMALE = "FEMALE";
-// const OTHERS = "OTHERS";
-
-//Intern
-//Intern Admission
 const INTERN_ADMISSION = "INTERN_ADMISSION";
 const EDIT_INTERN_ADMISSION = "EDIT_INTERN_ADMISSION";
-
 export const INTERN = "INTERN";
 export const ALL_INTERNS = "ALL_INTERNS";
 
@@ -50,13 +38,17 @@ let addInternFields = [
     options: ["MALE", "FEMALE", "OTHERS"],
     required: true,
   },
-  // Address Fields
+  // {
+  //   label: "Status",
+  //   name: "internStatus",
+  //   type: "radio",
+  //   options: ["active", "completed", "inactive"],
+  // },
   { label: "Street", name: "street", type: "text" },
   { label: "City", name: "city", type: "text" },
   { label: "State", name: "state", type: "text" },
   { label: "Country", name: "country", type: "text" },
   { label: "Postal Code", name: "postalCode", type: "text" },
-  // Education Fields
   {
     label: "Educational Institution",
     name: "educationalInstitution",
@@ -81,7 +73,6 @@ let addInternFields = [
     type: "text",
     required: true,
   },
-  // Emergency Contact Fields
   {
     label: "Emergency Contact Name",
     name: "emergencyContactName",

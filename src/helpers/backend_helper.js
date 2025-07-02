@@ -76,7 +76,7 @@ export const postSsrstest = (data) =>
 export const postYmrsTest = (data) => {
   api.create(url.POST_YMRS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-  })
+  });
 };
 // export const postYmrsTest = (data) => {
 //   api.create("http://localhost:8080/api/v1/clinical-test/ymrs-test", data, {
@@ -627,7 +627,11 @@ export const addInternForm = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const fetchAllInterns = () => api.get(url.GET_INTERN_DATA);
+export const fetchAllInterns = (params = {}) => {
+  const query = qs.stringify(params, { skipNulls: true });
+  return api.get(`${url.GET_INTERN_DATA}?${query}`);
+};
+
 export const getInternId = () => api.get(url.GET_INTERN_ID);
 
 export const getInternById = (id) => api.get(url.GET_INTERN_BY_ID(id));
