@@ -652,6 +652,8 @@ export const updateInternForm = (id, data) => {
 };
 
 export const removeIntern = (id) => api.delete(`${url.DELETE_INTERN}/${id}`);
+export const permenentremoveIntern = (id) =>
+  api.delete(`${url.DELETE_INTERN}permenent-delete/${id}`);
 export const removeInternBill = (id) =>
   api.delete(`${url.DELETE_INTERN_BILL}/${id}`);
 

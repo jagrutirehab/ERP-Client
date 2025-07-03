@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
-
-//Import Scrollbar
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import List from "./List";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-
-//redux
 import { connect, useDispatch } from "react-redux";
 import {
   getRemovedMedicines,

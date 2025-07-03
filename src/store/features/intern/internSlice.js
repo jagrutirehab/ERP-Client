@@ -11,6 +11,7 @@ import {
   removeIntern,
   updateInternReceipt,
   removeInternBill,
+  permenentremoveIntern,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -163,6 +164,22 @@ export const removedIntern = createAsyncThunk(
   }
 );
 
+export const removedInternpermenet = createAsyncThunk(
+  "intern/permenent-delete",
+  async (id, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await permenentremoveIntern(id);
+      dispatch(
+        setAlert({ type: "success", message: "Intern Deleted Successfully" })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const fetchInternById = createAsyncThunk(
   "intern/updateIntern",
   async (id, { rejectWithValue, dispatch }) => {
@@ -286,6 +303,16 @@ export const internSlice = createSlice({
         return { ...initialState };
       })
       .addCase(removedIntern.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(removedInternpermenet.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removedInternpermenet.fulfilled, (state, { payload }) => {
+        return { ...initialState };
+      })
+      .addCase(removedInternpermenet.rejected, (state) => {
         state.loading = false;
       })
 
