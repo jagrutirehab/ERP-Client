@@ -718,6 +718,25 @@ const timelineFilters = [
   },
 ];
 
+const InternTimelineFilter = [
+  {
+    label: "Basic",
+    name: "INTERN",
+  },
+  {
+    label: "Intern",
+    name: "UPDATED_INTERN_FORM",
+  },
+  {
+    label: "delete_Intern",
+    name: "DELETE_INTERN",
+  },
+  {
+    label: "InternReceipt",
+    name: "INTERN_RECEIPT",
+  }
+];
+
 const categoryUnitOptions = {
   "2d echo charges": [{ label: "Nos", value: "nos" }],
   "ac charges": [
@@ -858,4 +877,5 @@ export {
   //TIMELINE FILTER
   timelineFilters,
   INTERN,
+  InternTimelineFilter
 };

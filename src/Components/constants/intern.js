@@ -38,12 +38,6 @@ let addInternFields = [
     options: ["MALE", "FEMALE", "OTHERS"],
     required: true,
   },
-  // {
-  //   label: "Status",
-  //   name: "internStatus",
-  //   type: "radio",
-  //   options: ["active", "completed", "inactive"],
-  // },
   { label: "Street", name: "street", type: "text" },
   { label: "City", name: "city", type: "text" },
   { label: "State", name: "state", type: "text" },

@@ -30,7 +30,7 @@ const Intern = ({ centerAccess }) => {
   const toggleCustom = (tab) => {
     if (customActiveTab !== tab) {
       setcustomActiveTab(tab);
-      setPage(1); // Reset page on tab change
+      setPage(1);
     }
   };
 
@@ -51,14 +51,13 @@ const Intern = ({ centerAccess }) => {
 
   const onDeleteClick = async () => {
     await dispatch(removedIntern(deleteIntern?.data));
-    await dispatch(fetchInterns(getFilterParams(1))); // Reload from page 1
-    setPage(1); // Reset page state
+    await dispatch(fetchInterns(getFilterParams(1)));
+    setPage(1);
     navigate("/intern");
     onCloseClick();
   };
 
   useEffect(() => {
-    // Initial fetch only once
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
       dispatch(fetchInterns(getFilterParams(page)));

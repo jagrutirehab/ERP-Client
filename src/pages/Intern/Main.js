@@ -1,11 +1,8 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { useDispatch } from "react-redux";
-//components
 import InternTopbar from "./InternTopbar";
 import Views from "./Views";
-
-//redux
 import { connect } from "react-redux";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useParams } from "react-router-dom";

@@ -91,6 +91,7 @@ export const UPDATE_ADMISSION_ASSIGNMENT =
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
 export const GET_USER_TIMELINE = "/timeline/user";
+export const GET_INTERN_TIMELINE = "timeline/intern";
 
 //CHART
 export const GET_CHARTS_ADDMISSIONS = "/chart/addmission";
