@@ -135,6 +135,7 @@ const DBLogs = ({ data, loading, pagination }) => {
       }
     });
 
+    console.log("Frontend sending params:", params);
     dispatch(fetchDBLogs(params));
   };
 
