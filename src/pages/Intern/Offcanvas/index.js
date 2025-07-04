@@ -13,12 +13,10 @@ import {
   UncontrolledDropdown,
   Button,
   UncontrolledPopover,
-  PopoverHeader,
   PopoverBody,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-
 import smallImage9 from "../../../assets/images/small/img-9.jpg";
 import { connect, useDispatch } from "react-redux";
 import { undischargePatient, viewProfile } from "../../../store/actions";
@@ -61,9 +59,7 @@ const Offcanvas = ({ profile }) => {
                       className="bookmark-input bookmark-hide"
                     />
                     <Label htmlFor="favourite13" className="btn-star">
-                      <svg width="20" height="20">
-                        {/* <use xlink:href="#icon-star"/> */}
-                      </svg>
+                      <svg width="20" height="20"></svg>
                     </Label>
                   </div>
                 </Col>
@@ -119,57 +115,8 @@ const Offcanvas = ({ profile }) => {
                   </span>
                 </Link>
               </h5>
-              {/* <p className="text-muted">Team Leader & HR</p> */}
             </div>
-            {/* <div className="hstack gap-2 justify-content-center mt-4">
-              <div className="avatar-xs">
-                <Link
-                  to="#"
-                  className="avatar-title bg-soft-secondary text-secondary rounded fs-16"
-                >
-                  <i className="ri-facebook-fill"></i>
-                </Link>
-              </div>
-              <div className="avatar-xs">
-                <Link
-                  to="#"
-                  className="avatar-title bg-soft-success text-success rounded fs-16"
-                >
-                  <i className="ri-slack-fill"></i>
-                </Link>
-              </div>
-              <div className="avatar-xs">
-                <Link
-                  to="#"
-                  className="avatar-title bg-soft-info text-info rounded fs-16"
-                >
-                  <i className="ri-linkedin-fill"></i>
-                </Link>
-              </div>
-              <div className="avatar-xs">
-                <Link
-                  to="#"
-                  className="avatar-title bg-soft-danger text-danger rounded fs-16"
-                >
-                  <i className="ri-dribbble-fill"></i>
-                </Link>
-              </div>
-            </div> */}
           </div>
-          {/* <Row className="g-0 text-center">
-            <Col xs={6}>
-              <div className="p-3 border border-dashed border-start-0">
-                <h5 className="mb-1">124</h5>
-                <p className="text-muted mb-0">Projects</p>
-              </div>
-            </Col>
-            <Col xs={6}>
-              <div className="p-3 border border-dashed border-start-0">
-                <h5 className="mb-1">81</h5>
-                <p className="text-muted mb-0">Tasks</p>
-              </div>
-            </Col>
-          </Row> */}
           <div className="p-3">
             <h5 className="fs-15 mb-3">Personal Details</h5>
             <div className="mb-3">
@@ -178,11 +125,6 @@ const Offcanvas = ({ profile }) => {
               </p>
               <div className="d-flex justify-content-between">
                 <h6>{patient?.doctor?.name}</h6>
-                {/* <time>
-                  Assigned At{" "}
-                  {patient.doctor.assignedAt &&
-                    format(new Date(patient.doctor.assignedAt), "dd MMM yyyy")}
-                </time> */}
               </div>
               <h6 className="ps-2 text-primary">Tree:</h6>
               {(patient?.doctors || []).map((d, i) => (
@@ -222,14 +164,6 @@ const Offcanvas = ({ profile }) => {
               </p>
               <div className="d-flex justify-content-between">
                 <h6>{patient?.psychologist?.name}</h6>
-                {/* <time>
-                  Assigned At{" "}
-                  {patient.psychologist.assignedAt &&
-                    format(
-                      new Date(patient.psychologist.assignedAt),
-                      "dd MMM yyyy"
-                    )}
-                </time> */}
               </div>
               <h6 className="ps-2 text-primary">Tree:</h6>
               {(patient?.psychologists || []).map((p, i) => (
@@ -316,59 +250,8 @@ const Offcanvas = ({ profile }) => {
                 </UncontrolledPopover>
               </div>
             </div>
-            {/* <div className="d-flex mb-3">
-              <div className="flex-shrink-0 avatar-xs">
-                <div className="avatar-title bg-soft-secondary text-secondary rounded fs-16">
-                  <i className="ri-file-zip-line"></i>
-                </div>
-              </div>
-              <div className="flex-grow-1 ms-3">
-                <h6 className="mb-1">
-                  <Link to="#">Documents</Link>
-                </h6>
-                <p className="text-muted mb-0">46 Files</p>
-              </div>
-              <div className="text-muted">3.46 GB</div>
-            </div>
-            <div className="d-flex mb-3">
-              <div className="flex-shrink-0 avatar-xs">
-                <div className="avatar-title bg-soft-success text-success rounded fs-16">
-                  <i className="ri-live-line"></i>
-                </div>
-              </div>
-              <div className="flex-grow-1 ms-3">
-                <h6 className="mb-1">
-                  <Link to="#">Media</Link>
-                </h6>
-                <p className="text-muted mb-0">124 Files</p>
-              </div>
-              <div className="text-muted">4.3 GB</div>
-            </div>
-            <div className="d-flex">
-              <div className="flex-shrink-0 avatar-xs">
-                <div className="avatar-title bg-soft-primary text-primary rounded fs-16">
-                  <i className="ri-error-warning-line"></i>
-                </div>
-              </div>
-              <div className="flex-grow-1 ms-3">
-                <h6 className="mb-1">
-                  <Link to="#">Others</Link>
-                </h6>
-                <p className="text-muted mb-0">18 Files</p>
-              </div>
-              <div className="text-muted">846 MB</div>
-            </div> */}
           </div>
         </OffcanvasBody>
-        {/* <div className="offcanvas-foorter border p-3 hstack gap-3 text-center position-relative">
-          <button className="btn btn-light w-100">
-            <i className="ri-question-answer-fill align-bottom ms-1"></i> Send
-            Message
-          </button>
-          <Link to="/pages-profile" className="btn btn-primary w-100">
-            <i className="ri-user-3-fill align-bottom ms-1"></i> View Profile
-          </Link>
-        </div> */}
       </PatientOffCanvas>
     </React.Fragment>
   );

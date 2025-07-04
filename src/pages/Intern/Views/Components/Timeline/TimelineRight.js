@@ -17,11 +17,18 @@ const TimelineRight = ({ data, children }) => {
         </div>
         <div className="content">
           <h5 className="fs-14">
-            <h4 className="fs-12">
+            {/* <h4 className="fs-12">
               {data?.create
                 ? `${data?.create?.id?.prefix}${data?.create?.id?.patientId}-${data?.create?.id?.value}`
                 : `${data?.edit?.id?.prefix}${data?.edit?.id?.patientId}-${data?.edit?.id?.value}` ||
                   ""}
+            </h4> */}
+            <h4 className="fs-12">
+              {data?.create
+                ? `${data.create.id?.prefix || ""}${
+                    data.create.id?.patientId || ""
+                  }-${data.create.id?.value || ""}`
+                : ""}
             </h4>
             {children}
             {data.description}{" "}

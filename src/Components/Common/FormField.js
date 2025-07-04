@@ -1,10 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { Col, FormFeedback, Input, Label, Spinner } from "reactstrap";
 import RenderWhen from "./RenderWhen";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 const FormField = ({ fields, validation, doctorLoading, handleChange }) => {

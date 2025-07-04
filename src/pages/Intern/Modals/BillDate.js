@@ -2,17 +2,10 @@ import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Form, Button } from "reactstrap";
 import { set } from "date-fns";
-
-//flatpicker
 import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-
 import CustomModal from "../../../Components/Common/Modal";
-
-//data
-import { RECEIPT, REFUND } from "../../../Components/constants/intern";
-
-//redux
+import { RECEIPT } from "../../../Components/constants/intern";
 import { connect, useDispatch } from "react-redux";
 import {
   createEditInternBill,
@@ -56,11 +49,6 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, intern }) => {
                   }}
                   options={{
                     dateFormat: "d M, Y",
-                    // enable: [
-                    //   function (date) {
-                    //     return date.getDate() === new Date().getDate();
-                    //   },
-                    // ],
                   }}
                   className="form-control shadow-none bg-light"
                   id="dateOfAdmission"
@@ -85,7 +73,6 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, intern }) => {
                     noCalendar: true,
                     dateFormat: "G:i:S K",
                     time_24hr: false,
-                    // defaultDate: moment().format('LT'),
                   }}
                   className="form-control shadow-none bg-light"
                   id="dateOfAdmission"
@@ -95,7 +82,6 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, intern }) => {
             <div className="d-flex align-items-center mt-3">
               <p className="text-muted d-block mb-0">Name:</p>
               <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
-                {/* {user?.name} */}
                 Course Name
               </p>
             </div>
