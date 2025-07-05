@@ -2,11 +2,7 @@ import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import {
   Card,
-  CardHeader,
   CardBody,
-  Table,
-  Badge,
-  Button,
   Row,
   Col,
   Input,
@@ -14,10 +10,11 @@ import {
   PaginationItem,
   PaginationLink,
   Alert,
-  Spinner,
 } from "reactstrap";
 import { fetchDBLogs } from "../../../../store/actions";
-import { format } from "date-fns";
+import DBLogsHeader from "./components/DBLogsHeader";
+import DBLogsFilters from "./components/DBLogsFilters";
+import DBLogsTable from "./components/DBLogsTable";
 
 const DBLogs = ({ data, loading, pagination }) => {
   const dispatch = useDispatch();
@@ -66,6 +63,7 @@ const DBLogs = ({ data, loading, pagination }) => {
   // const [totalItems] = useState(150);
   const [localFilters, setLocalFilters] = useState({
     action: "",
+    collectionName: "",
     startDate: "",
     endDate: "",
     search: "",
@@ -95,6 +93,7 @@ const DBLogs = ({ data, loading, pagination }) => {
   const handleClearFilters = () => {
     setLocalFilters({
       action: "",
+      collectionName: "",
       startDate: "",
       endDate: "",
       search: "",
@@ -183,77 +182,20 @@ const DBLogs = ({ data, loading, pagination }) => {
     }
   };
 
-  // Get entity type badge
-  const getEntityBadge = (patientId) => {
-    if (patientId) {
-      return { color: "info", text: "Patient" };
-    }
-    return { color: "secondary", text: "System" };
-  };
-
   console.log(pagination, "pagination");
 
   return (
     <React.Fragment>
       <div className="">
-        {/* Page Header */}
         <div className="row mt-4">
           <div className="col-12">
             <Card>
-              <CardHeader className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h5 className="mb-0">
-                    <i className="fas fa-chart-line mr-2"></i>
-                    Activity Logs
-                  </h5>
-                  <small className="text-muted">
-                    Monitor system activities and user actions
-                  </small>
-                </div>
-                <div className="d-flex gap-2">
-                  <Button
-                    color="primary"
-                    outline
-                    onClick={handleRefresh}
-                    disabled={loading}
-                    className="btn-sm"
-                    style={{ minWidth: "120px" }}
-                  >
-                    <i className="fas fa-sync-alt mr-1"></i>
-                    Refresh
-                  </Button>
-                  <Button
-                    color="outline-secondary"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="btn-sm"
-                    style={{ minWidth: "120px" }}
-                  >
-                    <i className="fas fa-filter mr-1"></i>
-                    {showFilters ? "Hide" : "Show"} Filters
-                    <i
-                      className={`fas fa-chevron-${
-                        showFilters ? "up" : "down"
-                      } ml-1`}
-                    ></i>
-                  </Button>
-                  {/* <Dropdown>
-                    <DropdownToggle
-                      color="outline-primary"
-                      className="btn-sm"
-                      style={{ minWidth: "120px" }}
-                    >
-                      <i className="fas fa-download mr-1"></i>
-                      Export
-                    </DropdownToggle>
-                    <DropdownMenu>
-                      <DropdownItem>Export as CSV</DropdownItem>
-                      <DropdownItem>Export as PDF</DropdownItem>
-                      <DropdownItem>Export as Excel</DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown> */}
-                </div>
-              </CardHeader>
-
+              <DBLogsHeader
+                onRefresh={handleRefresh}
+                onToggleFilters={() => setShowFilters(!showFilters)}
+                showFilters={showFilters}
+                loading={loading}
+              />
               <CardBody>
                 {/* Error Alert */}
                 {error && (
@@ -286,250 +228,17 @@ const DBLogs = ({ data, loading, pagination }) => {
                   </Col>
                 </Row>
 
-                {/* Filters */}
                 {showFilters && (
-                  <Card className="mb-4 border-light">
-                    <CardBody className="p-0">
-                      <Row>
-                        <Col md={3}>
-                          <div>
-                            <label htmlFor="action">
-                              <i className="fas fa-chart-line mr-1"></i>
-                              Action Type
-                            </label>
-                            <Input
-                              type="select"
-                              name="action"
-                              id="action"
-                              value={localFilters.action}
-                              onChange={handleFilterChange}
-                            >
-                              <option value="">All Actions</option>
-                              <option value="delete">Delete</option>
-                              <option value="update">Update</option>
-                              <option value="create">Create</option>
-                            </Input>
-                          </div>
-                        </Col>
-                        <Col md={3}>
-                          <div>
-                            <label htmlFor="startDate">
-                              <i className="fas fa-calendar mr-1"></i>
-                              Start Date
-                            </label>
-                            <Input
-                              type="date"
-                              name="startDate"
-                              id="startDate"
-                              value={localFilters.startDate}
-                              onChange={handleFilterChange}
-                            />
-                          </div>
-                        </Col>
-                        <Col md={3}>
-                          <div>
-                            <label htmlFor="endDate">
-                              <i className="fas fa-calendar mr-1"></i>
-                              End Date
-                            </label>
-                            <Input
-                              type="date"
-                              name="endDate"
-                              id="endDate"
-                              value={localFilters.endDate}
-                              onChange={handleFilterChange}
-                            />
-                          </div>
-                        </Col>
-                        <Col md={3}>
-                          <div>
-                            <label htmlFor="search">
-                              <i className="fas fa-search mr-1"></i>
-                              Search Notes
-                            </label>
-                            <Input
-                              type="text"
-                              name="search"
-                              id="search"
-                              placeholder="Search in notes..."
-                              value={localFilters.search}
-                              onChange={handleFilterChange}
-                            />
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row className="mt-3">
-                        <Col
-                          md={12}
-                          className="d-flex gap-3 justify-content-end"
-                        >
-                          <Button
-                            color="primary"
-                            onClick={handleApplyFilters}
-                            className="btn-sm"
-                            style={{ minWidth: "100px" }}
-                            disabled={loading}
-                          >
-                            Apply Filters
-                          </Button>
-                          <Button
-                            color="secondary"
-                            onClick={handleClearFilters}
-                            className="btn-sm"
-                            style={{ minWidth: "100px" }}
-                            disabled={loading}
-                          >
-                            Clear Filters
-                          </Button>
-                        </Col>
-                      </Row>
-                    </CardBody>
-                  </Card>
+                  <DBLogsFilters
+                    filters={localFilters}
+                    onFilterChange={handleFilterChange}
+                    onApplyFilters={handleApplyFilters}
+                    onClearFilters={handleClearFilters}
+                    loading={loading}
+                  />
                 )}
 
-                {/* Loading State */}
-                {loading && (
-                  <div className="text-center py-4">
-                    <Spinner color="primary" />
-                    <p className="mt-2">Loading logs...</p>
-                  </div>
-                )}
-
-                {/* Logs Table */}
-                {!loading && (
-                  <div className="table-responsive">
-                    <Table striped hover className="mb-0">
-                      <thead className="thead-light">
-                        <tr>
-                          <th>
-                            <i className="fas fa-clock mr-1"></i>#
-                          </th>
-                          <th>
-                            <i className="fas fa-clock mr-1"></i>
-                            Timestamp
-                          </th>
-                          <th>
-                            <i className="fas fa-chart-line mr-1"></i>
-                            Action
-                          </th>
-                          <th>
-                            <i className="fas fa-user mr-1"></i>
-                            Entity
-                          </th>
-                          <th>
-                            <i className="fas fa-database mr-1"></i>
-                            Source
-                          </th>
-                          <th>Details</th>
-                          <th>Changes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(data || []).map((log, index) => {
-                          const actionBadge = getActionBadge(log.action);
-                          const entityBadge = getEntityBadge(log.patientId);
-                          const timestamp = log.date;
-
-                          return (
-                            <tr key={log._id || index}>
-                              <td>
-                                <div className="d-flex flex-column">
-                                  <small className="text-muted">
-                                    {index + 1}
-                                  </small>
-                                </div>
-                              </td>
-                              <td>
-                                <div className="d-flex flex-column">
-                                  <small className="text-muted">
-                                    {timestamp &&
-                                      format(
-                                        new Date(timestamp),
-                                        "dd/MM/yyyy hh:mm a"
-                                      )}
-                                  </small>
-                                </div>
-                              </td>
-                              <td>
-                                <Badge
-                                  color={actionBadge.color}
-                                  className="d-flex align-items-center"
-                                >
-                                  <span className="mr-1">
-                                    {actionBadge.icon}
-                                  </span>
-                                  {actionBadge.text}
-                                </Badge>
-                              </td>
-                              <td>
-                                <div className="d-flex align-items-center">
-                                  <Badge
-                                    color={entityBadge.color}
-                                    className="mr-2"
-                                  >
-                                    {entityBadge.text}
-                                  </Badge>
-                                  {log.patientId && (
-                                    <small className="text-muted">
-                                      ID: {log.uid}
-                                    </small>
-                                  )}
-                                </div>
-                              </td>
-                              <td>
-                                <Badge color="info" outline>
-                                  {log.source || "System"}
-                                </Badge>
-                              </td>
-                              <td>
-                                <small className="text-muted">
-                                  {log.note || "No description"}
-                                </small>
-                              </td>
-                              <td>
-                                {log.updatedFields &&
-                                  Object.keys(log.updatedFields).length > 0 && (
-                                    <div className="mb-1">
-                                      <small className="text-success">
-                                        <strong>Updated:</strong>{" "}
-                                        {Object.keys(log.updatedFields).join(
-                                          ", "
-                                        )}
-                                      </small>
-                                    </div>
-                                  )}
-                                {log.removedFields &&
-                                  log.removedFields.length > 0 && (
-                                    <div>
-                                      <small className="text-danger">
-                                        <strong>Removed:</strong>{" "}
-                                        {log.removedFields.join(", ")}
-                                      </small>
-                                    </div>
-                                  )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                  </div>
-                )}
-
-                {/* No Data */}
-                {!loading && (data || []).length === 0 && (
-                  <div className="text-center py-5">
-                    <i className="fas fa-database fa-3x text-muted mb-3"></i>
-                    <h5 className="text-muted">No logs found</h5>
-                    <p className="text-muted">
-                      {localFilters.action ||
-                      localFilters.startDate ||
-                      localFilters.search
-                        ? "Try adjusting your filters"
-                        : "No activity logs available"}
-                    </p>
-                  </div>
-                )}
+                <DBLogsTable data={data} loading={loading} />
 
                 {/* Pagination */}
                 {totalPages > 1 && (
