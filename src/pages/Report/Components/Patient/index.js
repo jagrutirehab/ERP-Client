@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { differenceInYears, endOfDay, format, startOfDay } from "date-fns";
 import { connect } from "react-redux";
-
-//components
 import Header from "../Header";
 import Divider from "../../../../Components/Common/Divider";
 import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
 import { Button, Input } from "reactstrap";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
-import { GET_PATIENT_ANALYTICS } from "../../../../helpers/url_helper";
+import {
+  GET_PATIENT_ANALYTICS,
+  GET_PATIENT_ANALYTICS_WP,
+} from "../../../../helpers/url_helper";
 import axios from "axios";
 
 const Patient = ({ centerAccess }) => {
@@ -22,7 +23,75 @@ const Patient = ({ centerAccess }) => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
+
+  const fetchFullData = async () => {
+    try {
+      setCsvLoading(true);
+      const res = await axios.get(GET_PATIENT_ANALYTICS_WP, {
+        params: {
+          startDate: reportDate.start.toISOString(),
+          endDate: reportDate.end.toISOString(),
+          filter,
+          centerAccess,
+        },
+      });
+
+      if (res.success) {
+        const fullData = res.payload || [];
+        const formatted = fullData.map((d, i) => ({
+          ...d,
+          id: i + 1,
+          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${
+            d?.id?.value || d?.patient?.id?.value || ""
+          }`,
+          age: d?.dateOfBirth
+            ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
+            : d?.patient?.dateOfBirth
+            ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
+            : "",
+          doctor: d?.addmission?.doctors?.length
+            ? d.addmission.doctors.map((doc) => doc?.name || "").pop() || ""
+            : d?.doctor?.name || d?.addmission?.doctor?.name || "",
+          psychologist: d?.addmission?.psychologists?.length
+            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop() ||
+              ""
+            : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
+          addmissionDate: d?.addmission?.addmissionDate
+            ? format(
+                new Date(d.addmission.addmissionDate),
+                "d MMM yyyy hh:mm a"
+              )
+            : d?.addmissionDate
+            ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
+            : "",
+          dischargeDate: d?.addmission?.dischargeDate
+            ? format(new Date(d.addmission.dischargeDate), "d MMM yyyy hh:mm a")
+            : d?.dischargeDate
+            ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
+            : "",
+          billCycleDate: d?.addmission?.addmissionDate
+            ? format(new Date(d.addmission.addmissionDate), "d")
+            : "",
+        }));
+
+        setCsvData(formatted);
+
+        // trigger download
+        setTimeout(() => {
+          csvRef.current.link.click();
+        }, 100);
+      }
+    } catch (err) {
+      console.error("Failed to fetch full patient analytics", err);
+    } finally {
+      setCsvLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -48,7 +117,7 @@ const Patient = ({ centerAccess }) => {
 
   useEffect(() => {
     fetchData();
-  }, [page, reportDate, filter]);
+  }, [page, reportDate, filter, limit]);
 
   const generalColumns = [
     {
@@ -68,16 +137,6 @@ const Patient = ({ centerAccess }) => {
       name: "UID",
       selector: (row) => `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
     },
-    // {
-    //   name: "Doctor",
-    //   selector: (row) => row.patient?.doctor?.name || "-",
-    //   wrap: true,
-    // },
-    // {
-    //   name: "Psychologist",
-    //   selector: (row) => row.patient?.psychologist?.name,
-    //   wrap: true,
-    // },
     {
       name: "Doctor",
       selector: (row) => {
@@ -347,70 +406,68 @@ const Patient = ({ centerAccess }) => {
     { label: "Referred By", key: "referredBy" },
     { label: "IPD File No", key: "ipdFileNumber" },
   ];
+  //   return filter === "ADMITTED_PATIENTS" ||
+  //     filter === "DISCHARGED_PATIENTS" ||
+  //     filter === "ALL_PATIENTS"
+  //     ? data?.map((d, i) => {
+  //         return {
+  //           ...d,
+  //           id: i + 1,
+  //           uid: `${d?.id?.prefix}${d?.id?.value}`,
+  //           age: d.dateOfBirth
+  //             ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
+  //             : "",
+  //           doctor: d?.addmission?.doctors?.length
+  //             ? d.addmission.doctors
+  //                 .map((doc) => doc?.name || "")
+  //                 .filter(Boolean)
+  //                 .pop() || ""
+  //             : d?.doctor?.name || d?.addmission?.doctor?.name || "",
 
-  const csvPatients = () => {
-    return filter === "ADMITTED_PATIENTS" ||
-      filter === "DISCHARGED_PATIENTS" ||
-      filter === "ALL_PATIENTS"
-      ? data?.map((d, i) => {
-          return {
-            ...d,
-            id: i + 1,
-            uid: `${d?.id?.prefix}${d?.id?.value}`,
-            age: d.dateOfBirth
-              ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
-              : "",
-            doctor: d?.addmission?.doctors?.length
-              ? d.addmission.doctors
-                  .map((doc) => doc?.name || "")
-                  .filter(Boolean)
-                  .pop() || ""
-              : d?.doctor?.name || d?.addmission?.doctor?.name || "",
-
-            psychologist: d?.addmission?.psychologists?.length
-              ? d.addmission.psychologists
-                  .map((psy) => psy?.name || "")
-                  .filter(Boolean)
-                  .pop() || ""
-              : d?.psychologist?.name ||
-                d?.addmission?.psychologist?.name ||
-                "",
-            addmissionDate: d?.addmission?.addmissionDate
-              ? format(
-                  new Date(d.addmission.addmissionDate),
-                  "d MMM yyyy hh:mm a"
-                )
-              : "",
-            dischargeDate: d?.addmission?.dischargeDate
-              ? format(
-                  new Date(d.addmission.dischargeDate),
-                  "d MMM yyyy hh:mm a"
-                )
-              : "",
-            billCycleDate: d?.addmission?.addmissionDate
-              ? format(new Date(d.addmission.addmissionDate), "d")
-              : "",
-          };
-        })
-      : data?.map((d, i) => {
-          return {
-            ...d,
-            id: i + 1,
-            uid: `${d?.patient?.id?.prefix}${d?.patient?.id?.value}`,
-            doctor: d.patient?.doctor?.name || "",
-            psychologist: d.patient?.psychologist?.name || "",
-            age: d.patient?.dateOfBirth
-              ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
-              : "",
-            addmissionDate: d?.addmissionDate
-              ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
-              : "",
-            dischargeDate: d?.dischargeDate
-              ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
-              : "",
-          };
-        });
-  };
+  //           psychologist: d?.addmission?.psychologists?.length
+  //             ? d.addmission.psychologists
+  //                 .map((psy) => psy?.name || "")
+  //                 .filter(Boolean)
+  //                 .pop() || ""
+  //             : d?.psychologist?.name ||
+  //               d?.addmission?.psychologist?.name ||
+  //               "",
+  //           addmissionDate: d?.addmission?.addmissionDate
+  //             ? format(
+  //                 new Date(d.addmission.addmissionDate),
+  //                 "d MMM yyyy hh:mm a"
+  //               )
+  //             : "",
+  //           dischargeDate: d?.addmission?.dischargeDate
+  //             ? format(
+  //                 new Date(d.addmission.dischargeDate),
+  //                 "d MMM yyyy hh:mm a"
+  //               )
+  //             : "",
+  //           billCycleDate: d?.addmission?.addmissionDate
+  //             ? format(new Date(d.addmission.addmissionDate), "d")
+  //             : "",
+  //         };
+  //       })
+  //     : data?.map((d, i) => {
+  //         return {
+  //           ...d,
+  //           id: i + 1,
+  //           uid: `${d?.patient?.id?.prefix}${d?.patient?.id?.value}`,
+  //           doctor: d.patient?.doctor?.name || "",
+  //           psychologist: d.patient?.psychologist?.name || "",
+  //           age: d.patient?.dateOfBirth
+  //             ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
+  //             : "",
+  //           addmissionDate: d?.addmissionDate
+  //             ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
+  //             : "",
+  //           dischargeDate: d?.dischargeDate
+  //             ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
+  //             : "",
+  //         };
+  //       });
+  // };
 
   return (
     <React.Fragment>
@@ -429,7 +486,7 @@ const Patient = ({ centerAccess }) => {
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
           <div className="d-flex justify-content-between mt-3">
-            <div>
+            <div className="d-flex gap-2">
               <Input
                 type="select"
                 value={filter}
@@ -444,12 +501,35 @@ const Patient = ({ centerAccess }) => {
                 </option>
                 <option value={"ALL_PATIENTS"}>All Patients</option>
               </Input>
+
+              <Input
+                type="select"
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                style={{ width: "100px" }}
+              >
+                {[10, 20, 30, 40, 50].map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </Input>
             </div>
             <div>
+              <Button
+                color="info"
+                onClick={fetchFullData}
+                disabled={csvLoading}
+              >
+                {csvLoading ? "Preparing CSV..." : "Export CSV"}
+              </Button>
+
               <CSVLink
-                data={csvPatients() || []}
-                title="CSV Download"
-                filename={"reports.csv"}
+                data={csvData || []}
+                filename="reports.csv"
                 headers={
                   filter === "ADMITTED_PATIENTS"
                     ? admittedHeaders
@@ -459,10 +539,9 @@ const Patient = ({ centerAccess }) => {
                     ? patientHeaders
                     : generalHeaders
                 }
-                className="btn btn-info px-2 ms-3"
-              >
-                <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
-              </CSVLink>
+                className="d-none"
+                ref={csvRef}
+              />
             </div>
           </div>
           <Divider />
