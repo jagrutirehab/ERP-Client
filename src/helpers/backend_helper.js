@@ -49,6 +49,8 @@ export const getDoctorUsers = (data) => api.get(url.GET_DOCTOR_USERS, data);
 export const deleteUser = (data) =>
   api.delete(`${url.DELETE_USER}/${data.userId}/${data.pageId}`);
 export const suspendUser = (data) => api.update(url.SUSPEND_USER, data);
+export const markUserActiveInactive = (data) =>
+  api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
 
 export const editUser = (data) =>
   api.put(url.EDIT_USER, data, {
@@ -583,20 +585,6 @@ export const getReport = (data) =>
   });
 export const getDBLogs = (data) =>
   api.get(url.GET_DB_LOGS, {
-    params: data,
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
-  });
-export const getDBLogsByDateRange = (data) =>
-  api.get(url.GET_DB_LOGS_BY_DATE_RANGE, {
-    params: data,
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
-  });
-export const getDBLogsByAction = (data) =>
-  api.get(url.GET_DB_LOGS_BY_ACTION, {
     params: data,
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });

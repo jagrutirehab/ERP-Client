@@ -311,6 +311,7 @@ const YMSCQuestion = () => {
 
         // Append JSON fields as strings:
         formData.append("patientId", id);
+        formData.append("centerId", centerId);
         formData.append("doctorId", selectedDoctor?.id);
         formData.append("testType", "YMRS");
         formData.append("questions", JSON.stringify(submissionData));

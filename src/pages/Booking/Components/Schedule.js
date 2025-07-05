@@ -6,7 +6,6 @@ import React, {
   useState,
   memo,
 } from "react";
-
 //flatpicker
 import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
@@ -26,6 +25,7 @@ import {
   Nav,
   NavItem,
   NavLink,
+  FormGroup,
   Row,
 } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
@@ -49,6 +49,7 @@ import {
 } from "date-fns";
 import Pricing from "./Pricing";
 import WeeklySchedule from "../../Setting/Calender/Components/DoctorSchedule";
+import { markedUserActiveOrInactive } from "../../../store/features/auth/user/userSlice";
 
 export const generateTimes = ({
   date,
@@ -60,17 +61,17 @@ export const generateTimes = ({
   const start =
     startHour > 0
       ? setMinutes(
-          setHours(setSeconds(new Date(date), 0), startHour),
-          startMinutes + 15 || 0
-        )
+        setHours(setSeconds(new Date(date), 0), startHour),
+        startMinutes + 15 || 0
+      )
       : startOfDay(new Date(date));
 
   const end =
     endHour > 0
       ? setMinutes(
-          setHours(setSeconds(new Date(date), 0), endHour),
-          endMinutes - 15 || 0
-        )
+        setHours(setSeconds(new Date(date), 0), endHour),
+        endMinutes - 15 || 0
+      )
       : endOfDay(new Date(date));
 
   const times = [];
@@ -280,9 +281,8 @@ const ScheduleRow = memo(
             className="mt-auto"
           >
             <i
-              className={`${
-                idx === 0 ? "ri-eraser-line" : "ri-close-circle-line"
-              } font-size-20 mt-auto`}
+              className={`${idx === 0 ? "ri-eraser-line" : "ri-close-circle-line"
+                } font-size-20 mt-auto`}
             ></i>
           </Button>
         </Col>
@@ -367,6 +367,9 @@ const Schedule = ({
   // const [holidays, setHolidays] = useState([]);
   // const [workingSchedule, setWorkingSchedule] = useState([]);
   const dispatch = useDispatch();
+  const [toggled, setToggled] = useState(false);
+  const [apiFlag, setApiFlag] = useState(false)
+
 
   const [tab, setTab] = useState(0);
   const [scheduleTab, setScheduleTab] = useState(0);
@@ -382,6 +385,8 @@ const Schedule = ({
       },
     ],
   });
+
+
 
   useEffect(() => {
     if (sessionPricing) {
@@ -420,10 +425,10 @@ const Schedule = ({
               workingSchedule: d.workingSchedule.map((sch, j) =>
                 j === scheduleIndex
                   ? {
-                      ...sch,
-                      ...(value === "ONLINE" && { center: null }),
-                      [field]: value,
-                    }
+                    ...sch,
+                    ...(value === "ONLINE" && { center: null }),
+                    [field]: value,
+                  }
                   : sch
               ),
             };
@@ -440,18 +445,18 @@ const Schedule = ({
       prevDates.map((d, i) =>
         i === dateIndex
           ? {
-              ...d,
-              workingSchedule: [
-                ...d.workingSchedule,
-                {
-                  id: uuid(),
-                  type: "",
-                  startTime: "",
-                  endTime: "",
-                  center: "",
-                },
-              ],
-            }
+            ...d,
+            workingSchedule: [
+              ...d.workingSchedule,
+              {
+                id: uuid(),
+                type: "",
+                startTime: "",
+                endTime: "",
+                center: "",
+              },
+            ],
+          }
           : d
       )
     );
@@ -462,24 +467,24 @@ const Schedule = ({
       prevDates.map((date, i) =>
         i === dateIndex
           ? {
-              ...date,
-              workingSchedule:
-                scheduleIndex === 0
-                  ? date.workingSchedule.map((_, idx) =>
-                      idx === scheduleIndex
-                        ? {
-                            id: uuid(),
-                            type: "",
-                            startTime: "",
-                            endTime: "",
-                            center: "",
-                          }
-                        : _
-                    )
-                  : date.workingSchedule.filter(
-                      (_, idx) => idx !== scheduleIndex
-                    ),
-            }
+            ...date,
+            workingSchedule:
+              scheduleIndex === 0
+                ? date.workingSchedule.map((_, idx) =>
+                  idx === scheduleIndex
+                    ? {
+                      id: uuid(),
+                      type: "",
+                      startTime: "",
+                      endTime: "",
+                      center: "",
+                    }
+                    : _
+                )
+                : date.workingSchedule.filter(
+                  (_, idx) => idx !== scheduleIndex
+                ),
+          }
           : date
       )
     );
@@ -548,7 +553,7 @@ const Schedule = ({
             return (
               val.date &&
               format(new Date(val.date), "dd MMM yyyy") ===
-                format(new Date(sch.date), "dd MMM yyyy")
+              format(new Date(sch.date), "dd MMM yyyy")
             );
           } //new Date(val.date).toISOString().split("T")[0] === schDate
         );
@@ -587,11 +592,45 @@ const Schedule = ({
   }, [isOpen, userSchedule]);
 
   useEffect(() => {
-    if (doctor) dispatch(fetchUserSchedule(doctor?._id));
-  }, [dispatch, doctor]);
+    const fetchSchedule = async () => {
+      if (doctor?._id) {
+        const resultAction = await dispatch(fetchUserSchedule(doctor._id));
+        setToggled(resultAction?.payload?.user?.isHideFromSearch);
+      }
+    };
+
+    fetchSchedule();
+  }, [dispatch, doctor?._id, apiFlag]);
 
   const components = {
     Option: Option,
+  };
+
+
+  useEffect(() => {
+    if (doctor) {
+      setToggled(doctor?.isHideFromSearch)
+    }
+  }, [doctor])
+  const handleUserHide = async (e) => {
+    if (!doctor) return;
+    const newStatus = e.target.checked;
+    setToggled(newStatus);
+
+    try {
+      const result = await dispatch(
+        markedUserActiveOrInactive({
+          userId: doctor._id,
+        })
+      ).unwrap();
+
+      // ✅ API call succeeded
+      console.log("Update success:", result);
+      setApiFlag(!apiFlag) // or show a toast/snackbar here
+    } catch (err) {
+      console.error("Update failed:", err);
+
+    }
   };
 
   const memoizeIncrementalSchedule = useMemo(() => {
@@ -621,7 +660,30 @@ const Schedule = ({
               />
             ))}
           </div>
-          <div className="d-flex justify-content-end">
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="d-flex gap-2">
+              <span className="text-black" style={{fontSize:'16px',fontWeight:700}}>
+                Website Listing:
+              </span>
+              <FormGroup switch>
+                <Input
+                  type="switch"
+                  id="activeSwitch"
+                  checked={!toggled}
+                  style={{
+                    boxShadow: 'none',
+                    outline: 'none',
+                    border: 'none',
+                    height:'18px',
+                    width:'40px'
+                  }}
+                  onChange={(e) => handleUserHide(e)}
+                />
+                <Label for="activeSwitch" check>
+               
+                </Label>
+              </FormGroup>
+            </div>
             <button type="submit" className="btn btn-secondary btn-sm">
               Save
             </button>

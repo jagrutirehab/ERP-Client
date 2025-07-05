@@ -12,7 +12,7 @@ export const EDIT_USER = "/auth/user";
 export const EDIT_USER_PASSWORD = "/auth/user";
 export const POST_USER_SESSION_PRICING = "/auth/user/session-pricing";
 export const PUT_USER_SESSION_PRICING = "/auth/user/session-pricing";
-
+export const UPDATE_USER_ACTIVE_INACTIVE = "/auth/user/mark-active-inactive";
 //LOGIN
 export const POST_USER_LOGIN = "/auth/login";
 export const SEARCH_USER = "/auth/search";
@@ -191,8 +191,6 @@ export const EDIT_CALENDER_DURATION = "/setting/calender";
 //REPORT
 export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
-export const GET_DB_LOGS_BY_DATE_RANGE = "/report/db-logs/date-range";
-export const GET_DB_LOGS_BY_ACTION = "/report/db-logs/action/:action";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_LEAD_ANALYTICS = "/report/lead";

@@ -68,6 +68,7 @@ const DBLogs = ({ data, loading, pagination }) => {
     action: "",
     startDate: "",
     endDate: "",
+    search: "",
   });
 
   // Calculate pagination
@@ -85,14 +86,10 @@ const DBLogs = ({ data, loading, pagination }) => {
   };
 
   // Apply filters
-  // const handleApplyFilters = () => {
-  //   setLoading(true);
-  //   // Simulate API call
-  //   setTimeout(() => {
-  //     setLoading(false);
-  //     setCurrentPage(1);
-  //   }, 1000);
-  // };
+  const handleApplyFilters = () => {
+    setCurrentPage(1); // Reset to first page when applying filters
+    fetchData();
+  };
 
   // Clear filters
   const handleClearFilters = () => {
@@ -100,6 +97,7 @@ const DBLogs = ({ data, loading, pagination }) => {
       action: "",
       startDate: "",
       endDate: "",
+      search: "",
     });
     setCurrentPage(1);
   };
@@ -109,17 +107,51 @@ const DBLogs = ({ data, loading, pagination }) => {
     setCurrentPage(page);
   };
 
-  // Refresh data
-  const handleRefresh = () => {
-    dispatch(fetchDBLogs());
-    // setLoading(true);
-    // setTimeout(() => {
-    //   setLoading(false);
-    // }, 1000);
+  // Handle items per page change
+  const handleItemsPerPageChange = (e) => {
+    const newItemsPerPage = Number(e.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
+  // Fetch data function
+  const fetchData = () => {
+    const params = {
+      page: currentPage,
+      limit: itemsPerPage,
+      sortBy: "date",
+      sortOrder: "desc",
+      ...localFilters,
+    };
+
+    // Remove empty filters
+    Object.keys(params).forEach((key) => {
+      if (
+        params[key] === "" ||
+        params[key] === null ||
+        params[key] === undefined
+      ) {
+        delete params[key];
+      }
+    });
+
+    dispatch(fetchDBLogs(params));
+  };
+
+  // Refresh data
+  const handleRefresh = () => {
+    fetchData();
+  };
+
+  // Effect to fetch data when pagination or filters change
   useEffect(() => {
-    handleRefresh();
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, itemsPerPage]);
+
+  // Effect to fetch data on initial load
+  useEffect(() => {
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -236,7 +268,7 @@ const DBLogs = ({ data, loading, pagination }) => {
                       type="select"
                       name="itemsPerPage"
                       value={itemsPerPage}
-                      onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                      onChange={handleItemsPerPageChange}
                     >
                       <option value={10}>10 per page</option>
                       <option value={20}>20 per page</option>
@@ -308,11 +340,32 @@ const DBLogs = ({ data, loading, pagination }) => {
                             />
                           </div>
                         </Col>
-                        <Col md={3} className="d-flex gap-3 align-items-end">
+                        <Col md={3}>
+                          <div>
+                            <label htmlFor="search">
+                              <i className="fas fa-search mr-1"></i>
+                              Search Notes
+                            </label>
+                            <Input
+                              type="text"
+                              name="search"
+                              id="search"
+                              placeholder="Search in notes..."
+                              value={localFilters.search}
+                              onChange={handleFilterChange}
+                            />
+                          </div>
+                        </Col>
+                      </Row>
+                      <Row className="mt-3">
+                        <Col
+                          md={12}
+                          className="d-flex gap-3 justify-content-end"
+                        >
                           <Button
                             color="primary"
-                            // onClick={handleApplyFilters}
-                            className="mr-2 btn-sm"
+                            onClick={handleApplyFilters}
+                            className="btn-sm"
                             style={{ minWidth: "100px" }}
                             disabled={loading}
                           >
@@ -348,6 +401,9 @@ const DBLogs = ({ data, loading, pagination }) => {
                       <thead className="thead-light">
                         <tr>
                           <th>
+                            <i className="fas fa-clock mr-1"></i>#
+                          </th>
+                          <th>
                             <i className="fas fa-clock mr-1"></i>
                             Timestamp
                           </th>
@@ -375,6 +431,13 @@ const DBLogs = ({ data, loading, pagination }) => {
 
                           return (
                             <tr key={log._id || index}>
+                              <td>
+                                <div className="d-flex flex-column">
+                                  <small className="text-muted">
+                                    {index + 1}
+                                  </small>
+                                </div>
+                              </td>
                               <td>
                                 <div className="d-flex flex-column">
                                   <small className="text-muted">
@@ -458,7 +521,9 @@ const DBLogs = ({ data, loading, pagination }) => {
                     <i className="fas fa-database fa-3x text-muted mb-3"></i>
                     <h5 className="text-muted">No logs found</h5>
                     <p className="text-muted">
-                      {localFilters.action || localFilters.startDate
+                      {localFilters.action ||
+                      localFilters.startDate ||
+                      localFilters.search
                         ? "Try adjusting your filters"
                         : "No activity logs available"}
                     </p>
@@ -466,7 +531,7 @@ const DBLogs = ({ data, loading, pagination }) => {
                 )}
 
                 {/* Pagination */}
-                {/* {totalPages > 1 && (
+                {totalPages > 1 && (
                   <div className="d-flex justify-content-between align-items-center mt-3">
                     <div>
                       <small className="text-muted">
@@ -523,7 +588,7 @@ const DBLogs = ({ data, loading, pagination }) => {
                       </PaginationItem>
                     </Pagination>
                   </div>
-                )} */}
+                )}
               </CardBody>
             </Card>
           </div>

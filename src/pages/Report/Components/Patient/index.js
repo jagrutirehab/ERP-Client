@@ -1,37 +1,54 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { differenceInYears, endOfDay, format, startOfDay } from "date-fns";
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 
 //components
 import Header from "../Header";
 import Divider from "../../../../Components/Common/Divider";
-import { fetchPatientAnalytics } from "../../../../store/actions";
 import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
-import { Input } from "reactstrap";
+import { Button, Input } from "reactstrap";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
+import { GET_PATIENT_ANALYTICS } from "../../../../helpers/url_helper";
+import axios from "axios";
 
-const Patient = ({ data, centerAccess }) => {
-  const dispatch = useDispatch();
+const Patient = ({ centerAccess }) => {
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
   const [filter, setFilter] = useState("");
-  //sort by date
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
-  // toggle advance filter
-  //   const [isOpen, setIsOpen] = useState(false);
-  //   const toggle = () => setIsOpen(!isOpen);
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(GET_PATIENT_ANALYTICS, {
+        params: {
+          page,
+          limit,
+          startDate: reportDate.start.toISOString(),
+          endDate: reportDate.end.toISOString(),
+          filter,
+          centerAccess,
+        },
+      });
+
+      if (res.success) {
+        setData(res.payload || []);
+        setTotalPages(res.pagination?.totalPages || 1);
+      }
+    } catch (err) {
+      console.error("Failed to fetch patient analytics", err);
+    }
+  };
 
   useEffect(() => {
-    const startDate = startOfDay(reportDate.start);
-    const endDate = endOfDay(reportDate.end);
-    dispatch(
-      fetchPatientAnalytics({ startDate, endDate, centerAccess, filter })
-    );
-  }, [dispatch, reportDate, centerAccess, filter]);
+    fetchData();
+  }, [page, reportDate, filter]);
 
   const generalColumns = [
     {
@@ -51,14 +68,84 @@ const Patient = ({ data, centerAccess }) => {
       name: "UID",
       selector: (row) => `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
     },
+    // {
+    //   name: "Doctor",
+    //   selector: (row) => row.patient?.doctor?.name || "-",
+    //   wrap: true,
+    // },
+    // {
+    //   name: "Psychologist",
+    //   selector: (row) => row.patient?.psychologist?.name,
+    //   wrap: true,
+    // },
     {
       name: "Doctor",
-      selector: (row) => row.patient?.doctor?.name,
+      selector: (row) => {
+        const doctorsFromArray =
+          row?.doctors?.length > 0
+            ? row.doctors
+                .map((d) =>
+                  d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
+                )
+                .filter(Boolean)
+                .join(", ")
+            : null;
+
+        const doctorsFromAdmission =
+          row?.addmission?.doctors?.length > 0
+            ? row.addmission.doctors
+                .map((d) => d?.name || "")
+                .filter(Boolean)
+                .join(", ")
+            : null;
+
+        const fallbackDoctor =
+          row?.addmission?.doctor?.name ||
+          row?.doctor?.name ||
+          row?.patient?.doctor?.name ||
+          "-";
+
+        return doctorsFromArray || doctorsFromAdmission || fallbackDoctor;
+      },
       wrap: true,
     },
     {
       name: "Psychologist",
-      selector: (row) => row.patient?.psychologist?.name,
+      selector: (row) => {
+        const psychologistsFromArray =
+          row?.psychologists?.length > 0
+            ? row.psychologists
+                .map((p) =>
+                  p?.name
+                    ? p.name
+                    : p?.psychologist?.name
+                    ? p.psychologist.name
+                    : ""
+                )
+                .filter(Boolean)
+                .join(", ")
+            : null;
+
+        const psychologistsFromAdmission =
+          row?.addmission?.psychologists?.length > 0
+            ? row.addmission.psychologists
+                .map((p) => p?.name || "")
+                .filter(Boolean)
+                .join(", ")
+            : null;
+
+        const fallbackPsychologist =
+          row?.addmission?.psychologist?.name ||
+          row?.psychologist?.name ||
+          row?.patient?.psychologist?.name ||
+          "-";
+
+        return (
+          psychologistsFromArray ||
+          psychologistsFromAdmission ||
+          fallbackPsychologist
+        );
+      },
       wrap: true,
     },
     {
@@ -74,7 +161,6 @@ const Patient = ({ data, centerAccess }) => {
       name: "Phone No",
       selector: (row) => row.patient?.phoneNumber,
     },
-    //
     {
       name: "Age",
       selector: (row) =>
@@ -97,14 +183,6 @@ const Patient = ({ data, centerAccess }) => {
           : "",
       wrap: true,
     },
-    // {
-    //   name: "#",
-    //   selector: (row) => row.,
-    // },
-    // {
-    //   name: "#",
-    //   selector: (row) => row.,
-    // },
   ];
 
   const billCycleDate = {
@@ -185,6 +263,7 @@ const Patient = ({ data, centerAccess }) => {
             "—",
       wrap: true,
     },
+
     {
       name: "Phone No",
       selector: (row) => row?.phoneNumber,
@@ -358,9 +437,6 @@ const Patient = ({ data, centerAccess }) => {
                   setFilter(e.target.value);
                 }}
               >
-                {/* <option value="" selected disabled hidden>
-                  Choose here
-                </option> */}
                 <option value={""}>General</option>
                 <option value={"ADMITTED_PATIENTS"}>Admitted Patients</option>
                 <option value={"DISCHARGED_PATIENTS"}>
@@ -404,6 +480,23 @@ const Patient = ({ data, centerAccess }) => {
             data={data?.map((d) => ({ ...d, uid: d.id, id: d._id })) || []}
             highlightOnHover
           />
+          <div className="d-flex justify-content-between align-items-center mt-3">
+            <Button
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            >
+              Prev
+            </Button>
+            <span>
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </React.Fragment>

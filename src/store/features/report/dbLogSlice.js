@@ -1,9 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getDBLogs,
-  getDBLogsByAction,
-  getDBLogsByDateRange,
-} from "../../../helpers/backend_helper.js";
+import { getDBLogs } from "../../../helpers/backend_helper.js";
 
 // Initial state
 const initialState = {
@@ -20,7 +16,8 @@ const initialState = {
     action: null,
     startDate: null,
     endDate: null,
-    sortBy: "createdAt",
+    search: null,
+    sortBy: "date",
     sortOrder: "desc",
   },
   loading: false,
@@ -33,33 +30,7 @@ export const fetchDBLogs = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await getDBLogs(params);
-
       console.log(response, "db logs response");
-
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchDBLogsByDateRange = createAsyncThunk(
-  "logs/fetchLogsByDateRange",
-  async (params, { rejectWithValue }) => {
-    try {
-      const response = await getDBLogsByDateRange(params);
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchDBLogsByAction = createAsyncThunk(
-  "logs/fetchLogsByAction",
-  async ({ action, params = {} }, { rejectWithValue }) => {
-    try {
-      const response = await getDBLogsByAction(action, params);
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -110,38 +81,11 @@ const dbLogSlice = createSlice({
         state.loading = false;
         state.logs = action.payload.payload;
         state.pagination = action.payload.pagination;
+        if (action.payload.filters) {
+          state.filters = { ...state.filters, ...action.payload.filters };
+        }
       })
       .addCase(fetchDBLogs.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // Fetch logs by date range
-      .addCase(fetchDBLogsByDateRange.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDBLogsByDateRange.fulfilled, (state, action) => {
-        state.loading = false;
-        state.logs = action.payload.data;
-        state.pagination = action.payload.pagination;
-      })
-      .addCase(fetchDBLogsByDateRange.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // Fetch logs by action
-      .addCase(fetchDBLogsByAction.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDBLogsByAction.fulfilled, (state, action) => {
-        state.loading = false;
-        state.logs = action.payload.data;
-        state.pagination = action.payload.pagination;
-      })
-      .addCase(fetchDBLogsByAction.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -157,12 +101,4 @@ export const {
   clearError,
 } = dbLogSlice.actions;
 
-// Export selectors
-export const selectLogs = (state) => state.logs.logs;
-export const selectPagination = (state) => state.logs.pagination;
-export const selectFilters = (state) => state.logs.filters;
-export const selectLoading = (state) => state.logs.loading;
-export const selectError = (state) => state.logs.error;
-
-// Export reducer
 export default dbLogSlice.reducer;
