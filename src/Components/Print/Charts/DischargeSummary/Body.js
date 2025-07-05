@@ -317,16 +317,30 @@ const SummaryBody = ({ chart }) => {
             <PrescriptionTable medicines={data.medicine} />{" "}
           </View>
         )}
-        {data?.followUp && (
+        {typeof data?.followUp === "string" && data?.followUp.trim() && (
           <View style={styles.marginBottom}>
-            <Text style={styles.fontSize13}>FOLLOW-UP:</Text>
-            <Text style={styles.preText}>{data?.followUp || ""}</Text>
+            <Text style={styles.fontSize13}>Follow-Up:</Text>
+            <Text style={styles.preText}>
+              {data.followUp
+                .trim()
+                .split(/\r?\n|(?<=\.)\s+/)
+                .map((line, idx) => (
+                  <Text key={idx}>{line.trim() + "\n"}</Text>
+                ))}
+            </Text>
           </View>
         )}
-        {data?.note && (
-          <View style={styles.marginBottom}>
+        {typeof data?.note === "string" && data?.note.trim() && (
+          <View style={styles.marginBottom} wrap={false}>
             <Text style={styles.fontSize13}>Note:</Text>
-            <Text style={styles.preText}>{data?.note || ""}</Text>
+            <Text style={styles.preText}>
+              {data.note
+                .trim()
+                .split(/\r?\n|(?<=\.)\s+/)
+                .map((line, idx) => (
+                  <Text key={idx}>{line.trim() + "\n"}</Text>
+                ))}
+            </Text>
           </View>
         )}
       </View>
