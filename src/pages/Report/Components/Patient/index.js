@@ -22,6 +22,7 @@ const Patient = ({ centerAccess }) => {
   const [filter, setFilter] = useState("");
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
+  const [totaldata, setTotaldata] = useState(0)
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -109,6 +110,7 @@ const Patient = ({ centerAccess }) => {
       if (res.success) {
         setData(res.payload || []);
         setTotalPages(res.pagination?.totalPages || 1);
+        setTotaldata(res?.pagination?.total)
       }
     } catch (err) {
       console.error("Failed to fetch patient analytics", err);
@@ -406,83 +408,15 @@ const Patient = ({ centerAccess }) => {
     { label: "Referred By", key: "referredBy" },
     { label: "IPD File No", key: "ipdFileNumber" },
   ];
-  //   return filter === "ADMITTED_PATIENTS" ||
-  //     filter === "DISCHARGED_PATIENTS" ||
-  //     filter === "ALL_PATIENTS"
-  //     ? data?.map((d, i) => {
-  //         return {
-  //           ...d,
-  //           id: i + 1,
-  //           uid: `${d?.id?.prefix}${d?.id?.value}`,
-  //           age: d.dateOfBirth
-  //             ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
-  //             : "",
-  //           doctor: d?.addmission?.doctors?.length
-  //             ? d.addmission.doctors
-  //                 .map((doc) => doc?.name || "")
-  //                 .filter(Boolean)
-  //                 .pop() || ""
-  //             : d?.doctor?.name || d?.addmission?.doctor?.name || "",
-
-  //           psychologist: d?.addmission?.psychologists?.length
-  //             ? d.addmission.psychologists
-  //                 .map((psy) => psy?.name || "")
-  //                 .filter(Boolean)
-  //                 .pop() || ""
-  //             : d?.psychologist?.name ||
-  //               d?.addmission?.psychologist?.name ||
-  //               "",
-  //           addmissionDate: d?.addmission?.addmissionDate
-  //             ? format(
-  //                 new Date(d.addmission.addmissionDate),
-  //                 "d MMM yyyy hh:mm a"
-  //               )
-  //             : "",
-  //           dischargeDate: d?.addmission?.dischargeDate
-  //             ? format(
-  //                 new Date(d.addmission.dischargeDate),
-  //                 "d MMM yyyy hh:mm a"
-  //               )
-  //             : "",
-  //           billCycleDate: d?.addmission?.addmissionDate
-  //             ? format(new Date(d.addmission.addmissionDate), "d")
-  //             : "",
-  //         };
-  //       })
-  //     : data?.map((d, i) => {
-  //         return {
-  //           ...d,
-  //           id: i + 1,
-  //           uid: `${d?.patient?.id?.prefix}${d?.patient?.id?.value}`,
-  //           doctor: d.patient?.doctor?.name || "",
-  //           psychologist: d.patient?.psychologist?.name || "",
-  //           age: d.patient?.dateOfBirth
-  //             ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
-  //             : "",
-  //           addmissionDate: d?.addmissionDate
-  //             ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
-  //             : "",
-  //           dischargeDate: d?.dischargeDate
-  //             ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
-  //             : "",
-  //         };
-  //       });
-  // };
 
   return (
     <React.Fragment>
       <div className="pt-4">
         <div className="bg-white p-2 m-n3">
           <div className="">
-            <RenderWhen
-              isTrue={
-                filter === "ADMITTED_PATIENTS" || filter === "ALL_PATIENTS"
-              }
-            >
               <h6 className="display-6 fs-6 my-3">
-                Total Patients {data?.length}
+                Total Patients:- {totaldata}
               </h6>
-            </RenderWhen>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
           <div className="d-flex justify-content-between mt-3">
