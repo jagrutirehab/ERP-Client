@@ -286,22 +286,36 @@ const AdmitPatient = ({
       <div className="d-flex justify-content-end mt-3">
         <Button
           onClick={() => {
-            // Validate only step 1 fields
+            // Get all required fields from step 1
             const step1Fields = [
               ...patientFields,
               ...patientGuardianFields,
             ].map((f) => f.name);
+
+            // Touch all fields to trigger validation
+            step1Fields.forEach((field) => {
+              validation.setFieldTouched(field, true);
+            });
+
+            // Check if there are any validation errors
             const step1Errors = step1Fields.filter(
-              (field) => validation.touched[field] && validation.errors[field]
+              (field) => validation.errors[field]
             );
 
-            if (step1Errors.length > 0) {
-              // Touch all fields to show errors
-              step1Fields.forEach((field) => {
-                validation.setFieldTouched(field, true);
-              });
-              return;
+            // Check if any required fields are empty
+            const emptyFields = step1Fields.filter(
+              (field) =>
+                !validation.values[field] ||
+                validation.values[field].toString().trim() === ""
+            );
+
+            if (step1Errors.length > 0 || emptyFields.length > 0) {
+              console.log("Validation errors:", step1Errors);
+              console.log("Empty fields:", emptyFields);
+              return; // Don't proceed to next step
             }
+
+            // If validation passes, proceed to step 2
             setStep(2);
           }}
           color="success"
@@ -444,23 +458,66 @@ const AdmitPatient = ({
           type="submit"
           onClick={(e) => {
             e.preventDefault();
-            // Validate all fields before final submission
+
+            // First validate step 1 fields
+            const step1Fields = [
+              ...patientFields,
+              ...patientGuardianFields,
+            ].map((f) => f.name);
+
+            // Touch all step 1 fields
+            step1Fields.forEach((field) => {
+              validation.setFieldTouched(field, true);
+            });
+
+            // Check step 1 validation
+            const step1Errors = step1Fields.filter(
+              (field) => validation.errors[field]
+            );
+            const step1EmptyFields = step1Fields.filter(
+              (field) =>
+                !validation.values[field] ||
+                validation.values[field].toString().trim() === ""
+            );
+
+            // Then validate step 2 fields
             const step2Fields = [
               "center",
               "addmissionDate",
               ...admissionFields.map((f) => f.name),
             ];
+
+            // Touch all step 2 fields
+            step2Fields.forEach((field) => {
+              validation.setFieldTouched(field, true);
+            });
+
+            // Check step 2 validation
             const step2Errors = step2Fields.filter(
-              (field) => validation.touched[field] && validation.errors[field]
+              (field) => validation.errors[field]
+            );
+            const step2EmptyFields = step2Fields.filter(
+              (field) =>
+                !validation.values[field] ||
+                validation.values[field].toString().trim() === ""
             );
 
-            if (step2Errors.length > 0) {
-              // Touch all fields to show errors
-              step2Fields.forEach((field) => {
-                validation.setFieldTouched(field, true);
-              });
+            // If there are any errors or empty fields, don't submit
+            if (
+              step1Errors.length > 0 ||
+              step1EmptyFields.length > 0 ||
+              step2Errors.length > 0 ||
+              step2EmptyFields.length > 0
+            ) {
+              console.log("Cannot submit: Validation errors or empty fields");
+              console.log("Step 1 errors:", step1Errors);
+              console.log("Step 1 empty fields:", step1EmptyFields);
+              console.log("Step 2 errors:", step2Errors);
+              console.log("Step 2 empty fields:", step2EmptyFields);
               return;
             }
+
+            // If all validation passes, submit the form
             validation.handleSubmit();
           }}
         >
@@ -492,26 +549,60 @@ const AdmitPatient = ({
           color={step === 2 ? "primary" : "light"}
           onClick={() => {
             if (step === 1) {
-              // Validate only step 1 fields before proceeding
+              // Get all required fields from step 1
               const step1Fields = [
                 ...patientFields,
                 ...patientGuardianFields,
               ].map((f) => f.name);
+
+              // Touch all fields to trigger validation
+              step1Fields.forEach((field) => {
+                validation.setFieldTouched(field, true);
+              });
+
+              // Check if there are any validation errors
               const step1Errors = step1Fields.filter(
-                (field) => validation.touched[field] && validation.errors[field]
+                (field) => validation.errors[field]
               );
 
-              if (step1Errors.length > 0) {
-                // Touch all fields to show errors
-                step1Fields.forEach((field) => {
-                  validation.setFieldTouched(field, true);
-                });
-                return;
+              // Check if any required fields are empty
+              const emptyFields = step1Fields.filter(
+                (field) =>
+                  !validation.values[field] ||
+                  validation.values[field].toString().trim() === ""
+              );
+
+              if (step1Errors.length > 0 || emptyFields.length > 0) {
+                console.log(
+                  "Cannot proceed: Validation errors or empty fields"
+                );
+                return; // Don't proceed to step 2
               }
             }
             setStep(2);
           }}
           active={step === 2}
+          disabled={
+            step === 1 &&
+            (() => {
+              // Check if step 1 is incomplete
+              const step1Fields = [
+                ...patientFields,
+                ...patientGuardianFields,
+              ].map((f) => f.name);
+
+              const hasErrors = step1Fields.some(
+                (field) => validation.errors[field]
+              );
+              const hasEmptyFields = step1Fields.some(
+                (field) =>
+                  !validation.values[field] ||
+                  validation.values[field].toString().trim() === ""
+              );
+
+              return hasErrors || hasEmptyFields;
+            })()
+          }
         >
           Admission Info
         </Button>
