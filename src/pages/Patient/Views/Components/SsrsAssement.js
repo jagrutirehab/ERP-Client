@@ -74,6 +74,14 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
       return;
     }
 
+    const unansweredQuestions = cssrsQuestions.filter((q) => !answers[q.id]);
+
+    if (unansweredQuestions.length > 0) {
+      setIsModalOpen(true);
+      setModalMessage("Please attempt all the questions");
+      return;
+    }
+
     const score = calculateScore(answers);
     const { interpretationText, recommendationsText } = generateInterpretation({
       patientName: patient.name,
@@ -98,7 +106,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
     formData.append("systemInterpretation", interpretationText);
     formData.append("systemRecommendation", recommendationsText);
     formData.append("questions", JSON.stringify(formattedQuestions));
-    formData.append("centerId", centerId)
+    formData.append("centerId", centerId);
 
     const imageFiles = fileInputRef.current?.files;
     if (imageFiles && imageFiles.length > 0) {
@@ -137,7 +145,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
               {selectedDoctor.name}
             </DropdownToggle>
             <DropdownMenu>
-              {doctorDetails.map((doc) => (
+              {(doctorDetails || []).map((doc) => (
                 <DropdownItem
                   key={doc._id}
                   onClick={() =>

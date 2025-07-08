@@ -22,7 +22,7 @@ const YmscResult = ({ resultData }) => {
 
         <div className="mb-3">
           <p className="h6 fw-semibold text-indigo">
-            Total C-SSRS Score:{" "}
+            Total YMRS Score:{" "}
             <span className="display-6 fw-bold">
               {resultData?.systemTotalScore || 0}
             </span>{" "}

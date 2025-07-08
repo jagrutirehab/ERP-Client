@@ -84,7 +84,10 @@ const AdmitPatient = ({
       // aadhaarCard: Yup.string().required("Please select Aadhaar Card"),
       name: Yup.string().required("Please select Name"),
       phoneNumber: Yup.string().required("Please select Phone Number"),
-      // email: Yup.string().required("Please select Email"),
+      email: Yup.string()
+        .email("Please enter a valid email")
+        .nullable()
+        .notRequired(),
       dateOfBirth: Yup.string().required("Please select Date of birth"),
       gender: Yup.string().required("Please select Gender"),
       address: Yup.string().required("Please select Address"),
@@ -170,6 +173,7 @@ const AdmitPatient = ({
       label: "Email",
       name: "email",
       type: "email",
+      required: false,
     },
     {
       label: "Date of Birth",
@@ -286,9 +290,9 @@ const AdmitPatient = ({
       <div className="d-flex justify-content-end mt-3">
         <Button
           onClick={() => {
-            // Get all required fields from step 1
+            // Get all required fields from step 1 (excluding email)
             const step1Fields = [
-              ...patientFields,
+              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
               ...patientGuardianFields,
             ].map((f) => f.name);
 
@@ -302,7 +306,7 @@ const AdmitPatient = ({
               (field) => validation.errors[field]
             );
 
-            // Check if any required fields are empty
+            // Check if any required fields are empty (excluding email)
             const emptyFields = step1Fields.filter(
               (field) =>
                 !validation.values[field] ||
@@ -461,7 +465,7 @@ const AdmitPatient = ({
 
             // First validate step 1 fields
             const step1Fields = [
-              ...patientFields,
+              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
               ...patientGuardianFields,
             ].map((f) => f.name);
 
@@ -551,7 +555,7 @@ const AdmitPatient = ({
             if (step === 1) {
               // Get all required fields from step 1
               const step1Fields = [
-                ...patientFields,
+                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
                 ...patientGuardianFields,
               ].map((f) => f.name);
 
@@ -585,9 +589,9 @@ const AdmitPatient = ({
           disabled={
             step === 1 &&
             (() => {
-              // Check if step 1 is incomplete
+              // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
-                ...patientFields,
+                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
                 ...patientGuardianFields,
               ].map((f) => f.name);
 
