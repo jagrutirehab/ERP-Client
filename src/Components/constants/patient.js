@@ -713,7 +713,7 @@ const timelineFilters = [
     name: "PATIENT_BILL",
   },
   {
-    label: "Clinicacl_test",
+    label: "Clinical_test",
     name: "PATIENT_CLINICAL_TEST",
   },
 ];
