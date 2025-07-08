@@ -11,6 +11,7 @@ import {
   removeIntern,
   updateInternReceipt,
   removeInternBill,
+  permenentremoveIntern,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -19,6 +20,17 @@ const initialState = {
   error: null,
   internId: null,
   intern: null,
+  hasMore: false, // ✅ added
+  pagination: {
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+    total: 0,
+  },
+  filters: {
+    name: "",
+    internStatus: "",
+  },
   InternAdmission: {
     data: null,
     isOpen: "",
@@ -29,40 +41,15 @@ const initialState = {
     isOpen: false,
   },
 };
-// export const addReceiptPayment = createAsyncThunk(
-//   "postAdvancePayment",
-//   async (data, { rejectWithValue, dispatch }) => {
-//     try {
-//       const response = await postAdvancePayment(data);
-//       dispatch(
-//         setAlert({
-//           type: "success",
-//           message: "Advance Payment Saved Successfully",
-//         })
-//       );
-//       return response;
-//     } catch (error) {
-//       dispatch(setAlert({ type: "error", message: error.message }));
-//       return rejectWithValue("something went wrong");
-//     }
-//   }
-// );
 
 export const addInternBillReceipt = createAsyncThunk(
   "intern/receipt/addInternReceipt",
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await addInternReceiptAPI(data);
-
       dispatch(
-        setAlert({
-          type: "success",
-          message: "Receipt Saved Successfully",
-        })
+        setAlert({ type: "success", message: "Receipt Saved Successfully" })
       );
-
-      const payload = response?.bill;
-      const intern = response?.intern;
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -114,7 +101,6 @@ export const getInternIds = createAsyncThunk(
   async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await getInternId();
-      
       return response.internId;
     } catch (error) {
       dispatch(
@@ -136,9 +122,7 @@ export const postInternData = createAsyncThunk(
       dispatch(
         setAlert({ type: "success", message: "Intern Saved Successfully" })
       );
-
-      // dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
-
+      dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -146,34 +130,47 @@ export const postInternData = createAsyncThunk(
     }
   }
 );
+
 export const editInternForm = createAsyncThunk(
   "intern/editInternForm",
   async ({ id, formData }, { rejectWithValue, dispatch }) => {
-    console.log(id, formData, "slice");
     try {
       const response = await updateInternForm(id, formData);
       dispatch(
         setAlert({ type: "success", message: "Intern updated successfully" })
       );
       dispatch(toggleInternForm({ data: null, leadData: null, isOpen: false }));
-
-      return response; // ✅ return only payload
+      return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "Update failed");
     }
   }
 );
+
 export const removedIntern = createAsyncThunk(
   "intern/deleteIntern",
   async (id, { rejectWithValue, dispatch }) => {
     try {
       const response = await removeIntern(id);
       dispatch(
-        setAlert({
-          type: "success",
-          message: "Intern Deleted Successfully",
-        })
+        setAlert({ type: "success", message: "Intern Deleted Successfully" })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removedInternpermenet = createAsyncThunk(
+  "intern/permenent-delete",
+  async (id, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await permenentremoveIntern(id);
+      dispatch(
+        setAlert({ type: "success", message: "Intern Deleted Successfully" })
       );
       return response;
     } catch (error) {
@@ -188,25 +185,26 @@ export const fetchInternById = createAsyncThunk(
   async (id, { rejectWithValue, dispatch }) => {
     try {
       const response = await getInternById(id);
-      console.log(response.payload, " testing in slice");
-      return response.payload; // Correct: just the intern object
+      return response.payload;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "something went wrong");
     }
   }
 );
+
 export const fetchInterns = createAsyncThunk(
   "intern/fetchAllInterns",
-  async (_, { rejectWithValue, dispatch }) => {
+  async (params = {}, { rejectWithValue, dispatch }) => {
     try {
-      const response = await fetchAllInterns();
-
+      const response = await fetchAllInterns(params);
       if (!response?.success || !Array.isArray(response?.payload)) {
         throw new Error(response?.message || "Invalid server response");
       }
-
-      return response.payload;
+      return {
+        interns: response.payload,
+        pagination: response.pagination,
+      };
     } catch (error) {
       dispatch(
         setAlert({
@@ -224,7 +222,6 @@ export const getInternReceiptById = createAsyncThunk(
   async (internId, { rejectWithValue, dispatch }) => {
     try {
       const response = await getInternReceipt(internId);
-      console.log(response, " rtk");
       return response;
     } catch (error) {
       dispatch(
@@ -273,7 +270,6 @@ export const internSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
       .addCase(postInternData.pending, (state) => {
         state.loading = true;
       })
@@ -281,7 +277,7 @@ export const internSlice = createSlice({
         state.loading = false;
         state.data = [payload.payload, ...(state.data || [])];
       })
-      .addCase(postInternData.rejected, (state, action) => {
+      .addCase(postInternData.rejected, (state) => {
         state.loading = false;
       })
 
@@ -294,9 +290,9 @@ export const internSlice = createSlice({
           (pt) => pt._id === payload.payload._id
         );
         state.data[index] = payload.payload;
-        state.intern = payload.payload; // <-- if API returns { payload: updatedIntern }
+        state.intern = payload.payload;
       })
-      .addCase(editInternForm.rejected, (state, action) => {
+      .addCase(editInternForm.rejected, (state) => {
         state.loading = false;
       })
 
@@ -304,11 +300,19 @@ export const internSlice = createSlice({
         state.loading = true;
       })
       .addCase(removedIntern.fulfilled, (state, { payload }) => {
-        state.loading = false;
-        state.data = state.payload;
-        state.patient = null;
+        return { ...initialState };
       })
       .addCase(removedIntern.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(removedInternpermenet.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removedInternpermenet.fulfilled, (state, { payload }) => {
+        return { ...initialState };
+      })
+      .addCase(removedInternpermenet.rejected, (state) => {
         state.loading = false;
       })
 
@@ -330,22 +334,18 @@ export const internSlice = createSlice({
         state.error = null;
       })
       .addCase(getInternReceiptById.fulfilled, (state, { payload }) => {
-        state.loading = false; // intern data here
+        state.loading = false;
         state.bills = payload.payload;
-        state.error = null;
       })
-      .addCase(getInternReceiptById.rejected, (state, { payload }) => {
-        console.log(state);
+      .addCase(getInternReceiptById.rejected, (state) => {
         state.loading = false;
       })
 
       .addCase(addInternBillReceipt.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(addInternBillReceipt.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.error = null;
         state.bills = [payload.payload, ...(state.bills || [])];
       })
       .addCase(addInternBillReceipt.rejected, (state, action) => {
@@ -363,7 +363,7 @@ export const internSlice = createSlice({
         );
         state.bills[index] = payload.payload;
       })
-      .addCase(editInternReceipt.rejected, (state, action) => {
+      .addCase(editInternReceipt.rejected, (state) => {
         state.loading = false;
       })
 
@@ -373,23 +373,34 @@ export const internSlice = createSlice({
       })
       .addCase(fetchInternById.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.intern = payload; // intern data here
-        state.error = null;
+        state.intern = payload;
       })
       .addCase(fetchInternById.rejected, (state, { payload }) => {
         state.loading = false;
-        state.error = payload || payload.error.message || "Unknown error";
+        state.error = payload || payload.error?.message || "Unknown error";
       })
 
       .addCase(fetchInterns.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-
-      // need to change action into payload
       .addCase(fetchInterns.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload; // This should now be your array of interns
+        const { interns, pagination } = action.payload;
+
+        state.data =
+          action.meta.arg?.page && action.meta.arg.page > 1
+            ? [...state.data, ...interns]
+            : interns;
+
+        state.pagination = {
+          ...state.pagination,
+          ...pagination,
+        };
+
+        // ✅ Calculate hasMore
+        state.hasMore = pagination.page < pagination.totalPages;
+
         state.error = null;
       })
       .addCase(fetchInterns.rejected, (state, action) => {
@@ -397,7 +408,7 @@ export const internSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(getInternIds.fulfilled, (state, action) => {
-        state.internId = action.payload; // ✅ store the ID
+        state.internId = action.payload;
       });
   },
 });

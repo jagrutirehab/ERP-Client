@@ -91,6 +91,7 @@ export const UPDATE_ADMISSION_ASSIGNMENT =
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
 export const GET_USER_TIMELINE = "/timeline/user";
+export const GET_INTERN_TIMELINE = "timeline/intern";
 
 //CHART
 export const GET_CHARTS_ADDMISSIONS = "/chart/addmission";
@@ -193,6 +194,7 @@ export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
+export const GET_PATIENT_ANALYTICS_WP = "/report/patient-csv"
 export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
 

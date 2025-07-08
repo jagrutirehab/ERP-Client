@@ -1,21 +1,11 @@
-import React from "react";
-import PropTypes from "prop-types";
 import { Link, useLocation } from "react-router-dom";
-// import { Button, UncontrolledTooltip } from "reactstrap";
-
-//Import Scrollbar
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
-
-//recyclebin pages
 import { recyclebin } from "../../../Components/constants/pages";
-
-//redux
 import { connect } from "react-redux";
 
 const Sidebar = () => {
   const location = useLocation();
-
   const toggleDataSidebar = () => {
     var windowSize = document.documentElement.clientWidth;
     const dataList = document.querySelector(".chat-message-list");
@@ -65,22 +55,11 @@ const Sidebar = () => {
                     recyclebin.id === location.pathname ? "active" : ""
                   }
                 >
-                  <Link
-                    // onClick={() => dispatch(viewPatient(pt))}
-                    to={page.link}
-                  >
+                  <Link to={page.link}>
                     <div className="d-flex align-items-center">
                       <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
                         <div className="avatar-xxs">
-                          {/* {chat.image ? (
-          <img
-            src={""}
-            className="rounded-circle img-fluid userprofile"
-            alt=""
-          />
-        ) : ( */}
                           <i className={`${page.icon} fs-4`}></i>
-                          {/* //   )} */}
                         </div>
                         <span className="user-status"></span>
                       </div>

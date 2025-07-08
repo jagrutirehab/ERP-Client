@@ -3,8 +3,6 @@ import PropTypes from "prop-types";
 import { Input, Label, Button, Form } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./component/Payment";
-
-//data
 import {
   RECEIPT,
   BANK,
@@ -12,10 +10,7 @@ import {
   CASH,
   CHEQUE,
   UPI,
-  IPD,
 } from "../../../Components/constants/intern";
-
-// Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { connect, useDispatch } from "react-redux";
@@ -32,16 +27,11 @@ const InternReceipt = ({
   billDate,
   editBillData,
   type,
-  center,
-  remarks,
-  date,
+  center
 }) => {
   const dispatch = useDispatch();
   const [paymentModes, setPaymentModes] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
-
-  console.log(editBillData, "editBillData");
-
   const addPaymentMode = (e) => {
     const value = e.target.value;
     const isIncluded = paymentModes.find((mode) => mode.paymentMode === value);
@@ -69,9 +59,7 @@ const InternReceipt = ({
   const editData = editBillData?.receipt;
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
     initialValues: {
       author: author._id,
       intern: intern._id || "",
@@ -128,10 +116,7 @@ const InternReceipt = ({
         <Form
           onSubmit={(e) => {
             e.preventDefault();
-
             validation.handleSubmit();
-            // toggle();
-            // return false;
           }}
           className="needs-validation"
           action="#"
@@ -148,7 +133,6 @@ const InternReceipt = ({
                 Mode Of Payment <span className="text-danger">*</span>
               </Label>
               <Input
-                // bsSize='sm'
                 className="w-100"
                 size={"sm"}
                 name="modeOfPayment"
@@ -197,7 +181,6 @@ const InternReceipt = ({
               </Button>
               <Button size="sm" type="submit">
                 Save
-                {/* {chart ? "Update" : "Save"} */}
               </Button>
             </div>
           </div>
@@ -210,7 +193,6 @@ const InternReceipt = ({
 InternReceipt.propTypes = {
   toggleForm: PropTypes.func,
   author: PropTypes.object.isRequired,
-
   intern: PropTypes.object.isRequired,
   billDate: PropTypes.any.isRequired,
   editBillData: PropTypes.object,

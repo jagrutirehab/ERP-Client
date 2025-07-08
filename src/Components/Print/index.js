@@ -42,9 +42,6 @@ const Print = ({
     )?.charts;
   }
 
-  console.log(printData, "printData <<<<<<<<<<<<<<<<<<<<");
-  console.log(intern, "intern <<<<<<<<<<<<<<<<<<<<");
-
   return (
     <React.Fragment>
       <CustomModal

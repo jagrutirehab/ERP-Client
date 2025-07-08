@@ -17,30 +17,50 @@ import history from "../../../../Routes/HistoryRoute";
 
 function* loginUser({ payload: { values, navigate } }) {
   try {
+    console.log("🔄 Starting login process for:", values.email);
+
     const response = yield call(postJwtLogin, {
       email: values.email,
       password: values.password,
     });
+
+    console.log("✅ Login API response received:", {
+      success: response.success,
+      hasToken: !!response.token,
+      hasPayload: !!response.payload,
+      hasUserCenters: !!response.userCenters,
+    });
+
     const authUser = {
       data: response.payload,
       token: response.token,
       status: "success",
     };
+
+    console.log("💾 Storing auth data in localStorage:", {
+      hasData: !!authUser.data,
+      hasToken: !!authUser.token,
+      tokenLength: authUser.token?.length,
+    });
+
     localStorage.setItem("authUser", JSON.stringify(authUser));
     localStorage.setItem("userCenters", JSON.stringify(response.userCenters));
+
+    console.log("✅ Auth data stored successfully");
+
     if (response.success === true) {
+      console.log("🎉 Login successful, dispatching loginSuccess");
       yield put(loginSuccess(response));
-      //user access auth
+
+      console.log("🚀 Navigating to dashboard...");
       navigate("/dashboard");
-      // if (response.payload.centerAccess.length === 1) navigate("/center");
-      // else navigate("/patient");
     } else {
-      console.log(response, "Login error 1");
+      console.log("❌ Login failed:", response);
       toast.error(response.error.message || "Invalid Credentials");
       yield put(apiError(response));
     }
   } catch (error) {
-    console.log(error, "Login error 2");
+    console.error("💥 Login error:", error);
     toast.error(error.message || "Invalid Credentials");
     yield put(apiError(error));
   }

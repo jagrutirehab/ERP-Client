@@ -636,7 +636,11 @@ export const addInternForm = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const fetchAllInterns = () => api.get(url.GET_INTERN_DATA);
+export const fetchAllInterns = (params = {}) => {
+  const query = qs.stringify(params, { skipNulls: true });
+  return api.get(`${url.GET_INTERN_DATA}?${query}`);
+};
+
 export const getInternId = () => api.get(url.GET_INTERN_ID);
 
 export const getInternById = (id) => api.get(url.GET_INTERN_BY_ID(id));
@@ -650,12 +654,15 @@ export const getInternReceipt = (internId) => {
   return api.get(url.GET_INTERN_RECEIPT(internId));
 };
 
-export const updateInternForm = (id) => {
-  return api.put(url.UPDATE_INTERN_FORM(id), {
+export const updateInternForm = (id, data) => {
+  return api.put(url.UPDATE_INTERN_FORM(id), data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
 export const removeIntern = (id) => api.delete(`${url.DELETE_INTERN}/${id}`);
+export const permenentremoveIntern = (id) =>
+  api.delete(`${url.DELETE_INTERN}permenent-delete/${id}`);
 export const removeInternBill = (id) =>
   api.delete(`${url.DELETE_INTERN_BILL}/${id}`);
 

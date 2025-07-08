@@ -1,30 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Container } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
-import {
-removedIntern
-} from "../../store/actions";
+import { fetchInterns, removedIntern } from "../../store/actions";
 import { Route, Routes } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Main from "./Main";
 import AddIntern from "./InternForm/AddInternform";
 import Offcanvas from "./Offcanvas";
 import DeleteModal from "../../Components/Common/DeleteModal";
-import { ALL_INTERNS } from "../../Components/constants/intern";
 import Print from "../../Components/Print";
 
 const Intern = ({ centerAccess }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const LIMIT = 20;
+
   const [deleteIntern, setDeleteIntern] = useState({
     data: null,
     isOpen: false,
   });
 
-  const [customActiveTab, setcustomActiveTab] = useState(ALL_INTERNS);
+  const [customActiveTab, setcustomActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const isFirstLoad = useRef(true);
+
   const toggleCustom = (tab) => {
     if (customActiveTab !== tab) {
       setcustomActiveTab(tab);
+      setPage(1);
     }
   };
 
@@ -32,21 +38,31 @@ const Intern = ({ centerAccess }) => {
     setDeleteIntern({ data: null, isOpen: false });
   };
 
-  const onDeleteClick = () => {
-    // dispatch(removeIntern(deleteIntern?.data));
-    dispatch(removedIntern(deleteIntern?.data));
+  const getFilterParams = (pageNumber = 1) => {
+    const base = {
+      page: pageNumber,
+      limit: LIMIT,
+      name: searchQuery,
+    };
+    if (customActiveTab === "active") base.internStatus = "active";
+    else if (customActiveTab === "completed") base.internStatus = "completed";
+    return base;
+  };
 
+  const onDeleteClick = async () => {
+    await dispatch(removedIntern(deleteIntern?.data));
+    await dispatch(fetchInterns(getFilterParams(1)));
+    setPage(1);
+    navigate("/intern");
     onCloseClick();
   };
 
   useEffect(() => {
-    // dispatch();
-    // fetchInterns({
-    //   type: customActiveTab,
-    //   centerAccess,
-    //   skip: 0,
-    // })
-  }, [dispatch, centerAccess, customActiveTab]);
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      dispatch(fetchInterns(getFilterParams(page)));
+    }
+  }, [dispatch]);
 
   document.title = "Intern";
 
@@ -59,6 +75,10 @@ const Intern = ({ centerAccess }) => {
               <Sidebar
                 customActiveTab={customActiveTab}
                 toggleCustom={toggleCustom}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                page={page}
+                setPage={setPage}
               />
               <Print />
               <Offcanvas />

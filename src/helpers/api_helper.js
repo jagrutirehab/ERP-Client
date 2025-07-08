@@ -11,17 +11,33 @@ axios.defaults.headers.post["Content-Type"] = "application/json";
 axios.defaults.withCredentials = "include";
 
 // content type
-const token = JSON.parse(localStorage.getItem("authUser"))
-  ? JSON.parse(localStorage.getItem("authUser")).token
-  : null;
-if (token) axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+const authUser = localStorage.getItem("authUser");
+console.log("🔍 Auth user from localStorage:", authUser);
+
+const token = authUser ? JSON.parse(authUser).token : null;
+console.log("🔑 Token from localStorage:", token ? "Found" : "Not found");
+
+if (token) {
+  axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+  console.log("✅ Authorization header set");
+} else {
+  console.log("⚠️ No token found, Authorization header not set");
+}
 
 // intercepting to capture errors
 axios.interceptors.response.use(
   function (response) {
+    console.log("✅ API Response:", response.config.url, response.status);
     return response.data ? response.data : response;
   },
   function (error) {
+    console.error("❌ API Error:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      logout: error?.response?.data?.logout,
+    });
+
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // let message;
     // switch (error.status) {
@@ -38,6 +54,7 @@ axios.interceptors.response.use(
     //     message = error.message || error;
     // }
     if (error?.response?.data?.logout) {
+      console.log("🚫 Logout flag detected, redirecting to /logout");
       history.replace("/logout");
     }
     return Promise.reject(

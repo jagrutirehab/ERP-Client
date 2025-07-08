@@ -9,12 +9,11 @@ import {
   DropdownItem,
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
-// import { toggleInternForm, permanentDeleteIntern } from "../../store/actions";
 import { Link, useParams } from "react-router-dom";
 import CheckPermission from "../../Components/HOC/CheckPermission";
 import { toggleInternForm } from "../../store/actions";
-const InternTopbar = ({ deleteIntern, setDeleteIntern }) => {
-  const { id } = useParams(); // ✅ Correct usage
+const InternTopbar = ({ setDeleteIntern }) => {
+  const { id } = useParams();
 
   useEffect(() => {}, [id]);
   const dispatch = useDispatch();
@@ -29,8 +28,6 @@ const InternTopbar = ({ deleteIntern, setDeleteIntern }) => {
 
   const handleDelete = () => {
     setDeleteIntern({ data: intern?._id, isOpen: true });
-
-    // dispatch(removedIntern(id));
   };
 
   return (
@@ -104,9 +101,7 @@ const InternTopbar = ({ deleteIntern, setDeleteIntern }) => {
                     color=""
                     className="bx bx-dots-vertical-rounded fs-4"
                     id="delete"
-                  >
-                    {/* <i className="ri-delete-bin-line"></i> */}
-                  </DropdownToggle>
+                  ></DropdownToggle>
                   <DropdownMenu>
                     <DropdownItem onClick={handleEdit}>
                       <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>

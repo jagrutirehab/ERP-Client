@@ -32,6 +32,7 @@ import DischargePatient from "./Table/DischargePatient";
 import AdvanceAmount from "./Table/AdvanceAmount";
 import InvoiceAmount from "./Table/InvoiceAmount";
 import OccupiedBed from "./Table/Ocuupied_Bed_Table";
+import axios from "axios";
 
 const DashboardEcommerce = ({
   user,
@@ -60,27 +61,49 @@ const DashboardEcommerce = ({
     console.log("Selected Center ID:", selectedId);
   };
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
+    const authUser = localStorage.getItem("authUser");
+    const token = authUser ? JSON.parse(authUser).token : null;
+    const headerSet =
+      axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
+
+    if (token && headerSet && user) {
+      dispatch(fetchCenters(user?.centerAccess));
+    }
   }, [dispatch, user]);
 
   useEffect(() => {
-    if (!patients.length) dispatch(fetchAllPatients());
+    const authUser = localStorage.getItem("authUser");
+    const token = authUser ? JSON.parse(authUser).token : null;
+    const headerSet =
+      axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
 
-    dispatch(fetchMedicines());
-    dispatch(fetchBillItems(userCenters));
-    dispatch(fetchPaymentAccounts(userCenters));
-    dispatch(fetchBillNotification(userCenters));
+    if (token && headerSet) {
+      if (!patients.length) dispatch(fetchAllPatients());
+      dispatch(fetchMedicines());
+
+      if (userCenters) {
+        dispatch(fetchBillItems(userCenters));
+        dispatch(fetchPaymentAccounts(userCenters));
+        dispatch(fetchBillNotification(userCenters));
+      }
+    }
   }, [dispatch, userCenters, patients]);
 
   useEffect(() => {
+    const authUser = localStorage.getItem("authUser");
+    const token = authUser ? JSON.parse(authUser).token : null;
+    const headerSet =
+      axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
 
-    dispatch(
-      fetchUserLogs({
-        ...date,
-        centerAccess: JSON.stringify(userCenters),
-        users: JSON.stringify(selectedOptions?.length && selectedOptions[0]),
-      })
-    );
+    if (token && headerSet && access && userCenters) {
+      dispatch(
+        fetchUserLogs({
+          ...date,
+          centerAccess: JSON.stringify(userCenters),
+          users: JSON.stringify(selectedOptions?.length && selectedOptions[0]),
+        })
+      );
+    }
   }, [dispatch, access, date, userCenters, selectedOptions]);
 
   document.title = "Dashboard";
