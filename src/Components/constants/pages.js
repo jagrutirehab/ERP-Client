@@ -155,6 +155,18 @@ export const setting = [
     link: "/setting/calender",
     icon: "bx bx-capsule",
   },
+  {
+    id: "offer",
+    label: "Offer Code",
+    link: "/setting/offercode",
+    icon: "bx bx-capsule",
+  },
+   {
+    id: "taxmanagement",
+    label: "Tax Management",
+    link: "/setting/taxmanagement",
+    icon: "bx bx-capsule",
+  },
 ];
 
 export const recyclebin = [

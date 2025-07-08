@@ -9,6 +9,8 @@ import Center from "./Center";
 import Medicine from "../Medicine";
 import Billing from "./Billing";
 import Calender from "./Calender";
+import OfferCode from "./OfferCode";
+import TaxManagement from "./TaxManagement";
 
 const index = (props) => {
   return (
@@ -22,6 +24,8 @@ const index = (props) => {
               <Route path={`/medicine`} element={<Medicine />} />
               <Route path={`/billing`} element={<Billing />} />
               <Route path={`/calender`} element={<Calender />} />
+              <Route path={`/offercode`} element={<OfferCode />} />
+              <Route path={`/taxmanagement`} element={<TaxManagement />} />
             </Routes>
           </div>
         </Container>
