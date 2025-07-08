@@ -100,10 +100,9 @@ const Views = (props) => {
           </div>
         ) : (
           <div className="patient-content position-relative overflow-auto bg-white mt-1 px-3 py-3">
-            {data=="C-SSRS" && <SsrsQuestion />}
-            {data =="CIWA-AR" && <CiwaQuestion />}
-            {data== "YMRS" && <YMSCQuestion/> }
-            
+            {data == "C-SSRS" && <SsrsQuestion />}
+            {data == "CIWA-AR" && <CiwaQuestion />}
+            {data == "YMRS" && <YMSCQuestion />}
           </div>
         )}
       </div>
