@@ -12,10 +12,25 @@ const AuthProtected = (props) => {
   const dispatch = useDispatch();
   let { userProfile, loading, token } = useProfile();
 
+  console.log("🔒 AuthProtected component state:", {
+    hasUserProfile: !!userProfile,
+    loading,
+    hasToken: !!token,
+    tokenLength: token?.length,
+  });
+
   useEffect(() => {
+    console.log("🔄 AuthProtected useEffect triggered:", {
+      hasUserProfile: !!userProfile,
+      loading,
+      hasToken: !!token,
+    });
+
     if (userProfile && !loading && token) {
+      console.log("✅ Setting authorization header with token");
       setAuthorization(token);
     } else if (!userProfile && loading && !token) {
+      console.log("❌ No user profile or token, dispatching logout");
       dispatch(logoutUser());
     }
   }, [token, userProfile, loading, dispatch]);
@@ -46,9 +61,11 @@ const AuthProtected = (props) => {
     redirect is un-auth access protected routes via url
     */
   if (!userProfile && loading && !token) {
+    console.log("🚫 Redirecting to login - no auth data");
     return <Navigate to="/login" state={{ from: props.location }} />;
   }
 
+  console.log("✅ AuthProtected rendering children");
   return <>{props.children}</>;
 };
 
