@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dropdown,
@@ -17,6 +17,7 @@ import {
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import { fetchDoctors } from "../../../../store/actions";
 
 const PsychologistAssessment = ({ onAssessmentComplete }) => {
   const dispatch = useDispatch();
@@ -39,6 +40,10 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
   const doctorDetails = useSelector((state) => state.User.doctor);
   const centerId = useSelector((state) => state.Patient.patient?.center?._id);
 
+  useEffect(() => {
+    dispatch(fetchDoctors({ center: centerId }));
+  }, [centerId, dispatch]);
+
   const toggle2 = () => setDropdownOpen(!dropdownOpen);
   const toggle3 = () => setDummyDrop(!dummyDrop);
 
@@ -49,7 +54,8 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
 
   // Function to close the custom modal
   const closeModal = () => {
-    if (selectedDoctor.id === -1) {
+    const unAnsweredQuestions = cssrsQuestions.filter((q) => !answers[q.id]);
+    if (selectedDoctor.id === -1 || unAnsweredQuestions.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
       return;
@@ -77,8 +83,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
     const unansweredQuestions = cssrsQuestions.filter((q) => !answers[q.id]);
 
     if (unansweredQuestions.length > 0) {
-      setIsModalOpen(true);
-      setModalMessage("Please attempt all the questions");
+      openModal("Please answer all the questions", -1);
       return;
     }
 
