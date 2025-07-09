@@ -49,18 +49,6 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     }
   }, [dispatch, patient]);
 
-  console.log({ loading, id }, "loading");
-
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center align-items-center h-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <React.Fragment>
       <RenderWhen isTrue={patient ? true : false}>

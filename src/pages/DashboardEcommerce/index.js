@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Input } from "reactstrap";
-import Placeholder from "../Patient/Views/Components/Placeholder";
+import { Container } from "reactstrap";
 import PropTypes from "prop-types";
 // import DashBoardTable from './DashBoardTable/DashBoard'
 import DashBoardTable from "./DashBoardTable/MonthOnMonth";
@@ -13,25 +12,10 @@ import {
   fetchMedicines,
   fetchPaymentAccounts,
   fetchUserLogs,
-  setTotalAmount,
-  viewPatient,
 } from "../../store/actions";
 import { connect, useDispatch } from "react-redux";
-import TimelineRight from "../Patient/Views/Components/Timeline/TimelineRight";
-import Header from "../Report/Components/Header";
 import { endOfDay, startOfDay } from "date-fns";
-import { Link } from "react-router-dom";
-import PatientFilter from "./PatientFilter";
 import { TIMELINE_VIEW } from "../../Components/constants/patient";
-// import PatientInfo from "./PatientInfo";
-import TableData from "./Table/OpdTable";
-import AdmitPatientsTable from "./Table/AdmitPatientsTable";
-import Patient_MOM_Table from "./Table/Patient_MOM_Table";
-import Opd_Ipd_analysis from "./Table/OPD_IPD_Analysis";
-import DischargePatient from "./Table/DischargePatient";
-import AdvanceAmount from "./Table/AdvanceAmount";
-import InvoiceAmount from "./Table/InvoiceAmount";
-import OccupiedBed from "./Table/Ocuupied_Bed_Table";
 import axios from "axios";
 
 const DashboardEcommerce = ({
@@ -113,6 +97,7 @@ const DashboardEcommerce = ({
   const handleSelectChange = (e) => {
     setSelectedComponent(e.target.value);
   };
+
   return (
     <React.Fragment>
       <div className="page-content">
