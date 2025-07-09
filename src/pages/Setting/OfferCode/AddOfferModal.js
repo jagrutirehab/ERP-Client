@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
 import CouponForm from "./AddCoupanForm";
 
-const AddOfferModal = ({modal,toggle})=>{
+const AddOfferModal = ({modal,toggle, apiFlag, setApiFlag})=>{
     return(
          <React.Fragment>
               <CustomModal
@@ -13,7 +13,7 @@ const AddOfferModal = ({modal,toggle})=>{
                 centered
                 title={"Add Offer"}
               >
-              <CouponForm  toggle={toggle}/>
+              <CouponForm  toggle={toggle} apiFlag={apiFlag} setApiFlag={setApiFlag}/>
               </CustomModal>
             </React.Fragment>
     )
@@ -22,6 +22,8 @@ const AddOfferModal = ({modal,toggle})=>{
 AddOfferModal.propTypes = {
   modal: PropTypes.bool,
   toggle: PropTypes.func,
+  setApiFlag:PropTypes.func,
+  apiFlag:PropTypes.bool
 };
 
 

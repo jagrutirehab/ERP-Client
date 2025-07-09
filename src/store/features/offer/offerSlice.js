@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
  add_offer_helper,
- getOfferList
+ getOfferList,
+ updateOffer
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -41,6 +42,22 @@ export const fetchOfferList = createAsyncThunk(
       const message = error?.response?.data?.message || "Something went wrong";
       dispatch(setAlert({ type: "error", message }));
       return rejectWithValue(message);
+    }
+  }
+);
+
+export const updateOfferFunction = createAsyncThunk(
+  "editCenter",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await updateOffer(data);
+      dispatch(
+        setAlert({ type: "success", message: "Offer Updated Successfully" })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
     }
   }
 );

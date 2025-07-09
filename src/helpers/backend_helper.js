@@ -682,6 +682,12 @@ export const add_offer_helper = (data) =>
   );
 };
 
+export const updateOffer = (data) => {
+  return api.put(url.UPDATE_OFFER, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 export const add_tax_helper = (data) =>
   api.create(url.ADD_TAX, data, {
     headers: { "Content-Type": "application/json" },

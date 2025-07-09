@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 const MedicinesList = ({
     offerCode,
     totalCount,
+    setEditOffer,
     setDeleteOffer,
     currentPage,
     itemsPerPage,
@@ -74,7 +75,7 @@ const MedicinesList = ({
                                         size="sm"
                                         color="info"
                                         className="me-2"
-                                        onClick={() => console.log("object")}
+                                        onClick={() => setEditOffer({ isOpen: true, data: obj })}
                                     >
                                         <i className="ri-quill-pen-line"></i>
                                     </Button>
@@ -124,11 +125,9 @@ const MedicinesList = ({
 };
 
 MedicinesList.propTypes = {
-    medicines: PropTypes.array.isRequired,
     totalCount: PropTypes.number.isRequired,
-    setDeleteMedicine: PropTypes.func.isRequired,
-    toggleDeleteModal: PropTypes.func,
-    searchItem: PropTypes.string,
+    setDeleteOffer: PropTypes.func.isRequired,
+    setEditOffer: PropTypes.func.isRequired,
     currentPage: PropTypes.number.isRequired,
     itemsPerPage: PropTypes.number.isRequired,
     onPageChange: PropTypes.func.isRequired,

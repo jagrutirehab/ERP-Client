@@ -94,7 +94,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 };
 
 
-const CouponForm = ({ toggle }) => {
+const CouponForm = ({ toggle, apiFlag, setApiFlag }) => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAllCenters());
@@ -153,6 +153,7 @@ const CouponForm = ({ toggle }) => {
         try {
             const response = await dispatch(addOffer(data)).unwrap();
             if (response.success) {
+                setApiFlag(!apiFlag)
                 toggle();
             }
 
@@ -278,5 +279,7 @@ const CouponForm = ({ toggle }) => {
 };
 CouponForm.propTypes = {
     toggle: PropTypes.func,
+    setApiFlag:PropTypes.func,
+    apiFlag:PropTypes.bool
 };
 export default CouponForm;
