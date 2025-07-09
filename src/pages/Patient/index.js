@@ -6,6 +6,7 @@ import { Container } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import {
   fetchBillItems,
+  fetchCenters,
   fetchMedicines,
   fetchPatients,
   deletePatient as removePatient,
@@ -27,7 +28,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 import { ALL_PATIENTS } from "../../Components/constants/patient";
 import EditAdmission from "./Modals/EditAdmission";
 
-const Patient = ({ centerAccess, patients }) => {
+const Patient = ({ centerAccess, patients, user }) => {
   const dispatch = useDispatch();
   const [deletePatient, setDeletePatient] = useState({
     data: null,
@@ -64,6 +65,7 @@ const Patient = ({ centerAccess, patients }) => {
 
   useEffect(() => {
     dispatch(fetchBillItems(centerAccess));
+    dispatch(fetchCenters(user?.centerAccess));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
@@ -121,6 +123,7 @@ Patient.propTypes = {
 
 const mapStateToProps = (state) => ({
   centerAccess: state.User.centerAccess,
+  user: state.User.user,
   patients: state.Patient.data,
 });
 
