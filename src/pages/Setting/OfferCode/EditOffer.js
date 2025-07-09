@@ -175,7 +175,7 @@ const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
                         endDate: data?.endDate ? data.endDate.split('T')[0] : '',
                         usageLimitGlobal: data?.usageLimitGlobal || '',
                         usageLimitPerUser: data?.usageLimitPerUser || '',
-                        // status: data?.status || false,
+                        status: data?.status || false,
                     }}
                     validationSchema={couponSchema}
                     onSubmit={handleSubmit}
@@ -270,10 +270,10 @@ const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
                                     <FormikInput name="usageLimitPerUser" type="number" />
                                 </div>
                                 <div className='col-md-4'>
-                                    {/* <div className='col-md-4 mt-2'>
-                                <label> isActive  </label>
+                            <div className='col-md-4 mt-2'>
+                                <label> Status  </label>
                                 <FormikInput name="status" type="checkbox" className="mt-2" />
-                            </div> */}
+                            </div> 
 
                                 </div>
                                 <div className='col-md-4 d-flex justify-content-end' style={{ height: '70px' }}>
