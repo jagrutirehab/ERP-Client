@@ -669,3 +669,14 @@ export const removeInternBill = (id) =>
 export const updateInternReceipt = (data) => {
   return api.put(url.UPDATE_INTERN_RECEIPT, data);
 };
+
+
+export const add_offer_helper = (data) =>
+  api.create(url.ADD_OFFER, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+
+export const add_tax_helper = (data) =>
+  api.create(url.ADD_TAX, data, {
+    headers: { "Content-Type": "application/json" },
+  });

@@ -220,3 +220,9 @@ export const POST_CIWA_TEST = "/clinical-test/ciwa-test";
 export const POST_SSRS_TEST = "/clinical-test/ssrs-test";
 export const POST_YMRS_TEST = "/clinical-test/ymrs-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
+
+// OFFER
+export const ADD_OFFER = "/offer/addoffer";
+
+//TAX
+export const ADD_TAX = "/tax/addtax";

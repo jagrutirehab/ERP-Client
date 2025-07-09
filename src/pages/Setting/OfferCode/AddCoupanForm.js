@@ -5,7 +5,8 @@ import SearchableSelect from './SelectInput';
 import { fetchAllCenters, fetchAllDoctorSchedule } from '../../../store/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-
+import { addOffer } from '../../../store/features/offer/offerSlice';
+import PropTypes from "prop-types";
 export const couponSchema = Yup.object().shape({
     code: Yup.string().required('Code is required'),
     discountType: Yup.string().oneOf(['FIXED', 'PERCENTAGE'], 'Invalid type').required('Discount type is required'),
@@ -13,9 +14,9 @@ export const couponSchema = Yup.object().shape({
     minBookingAmount: Yup.number().min(0, 'Must be positive').optional(),
     newUsersOnly: Yup.boolean().optional(),
     visibleToAll: Yup.boolean().optional(),
-    applicableCenters: Yup.array().of(Yup.string()).required('Select at least one center'),
-    applicableServices: Yup.array().of(Yup.string()).required('Select at least one service'),
-    applicableConsultants: Yup.array().of(Yup.string()).required('Select at least one consultant'),
+    applicableCenters: Yup.array().of(Yup.string()).optional(),
+    applicableServices: Yup.array().of(Yup.string()).optional(),
+    applicableConsultants: Yup.array().of(Yup.string()).optional(),
     startDate: Yup.date().required('Start date is required'),
     endDate: Yup.date()
         .min(Yup.ref('startDate'), 'End date must be after start date')
@@ -32,7 +33,7 @@ const initialValues = {
     discountValue: '',
     minBookingAmount: '',
     newUsersOnly: false,
-    visibleToAll: false,
+    visibleToAll: true,
     applicableCenters: [],
     applicableServices: [],
     applicableConsultants: [],
@@ -93,63 +94,71 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 };
 
 
-const CouponForm = () => {
+const CouponForm = ({ toggle }) => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
- const centerAccess = useSelector((state) => state.User.centerAccess);
-     useEffect(() => {
+    const centerAccess = useSelector((state) => state.User.centerAccess);
+    useEffect(() => {
         setTimeout(() => {
-          dispatch(
-            fetchAllDoctorSchedule({
-              name: '',
-              centerAccess: JSON.stringify(centerAccess),
-            })
-          );
+            dispatch(
+                fetchAllDoctorSchedule({
+                    name: '',
+                    centerAccess: JSON.stringify(centerAccess),
+                })
+            );
         }, 1000);
-      }, [dispatch, centerAccess]);
+    }, [dispatch, centerAccess]);
 
-    const centers = useSelector((state) => state.Center.data);
+    const centers = useSelector((state) => state.Center.allCenters);
     const doctors = useSelector((state) => state.Setting.doctorSchedule);
-     const doctorList = doctors && doctors?.filter((obj)=>obj.status !=='suspended')?.map((obj)=>{
-        return{
-            label:obj?.name,
-            value:obj?._id
+    const doctorList = doctors && doctors?.filter((obj) => obj.status !== 'suspended')?.map((obj) => {
+        return {
+            label: obj?.name,
+            value: obj?._id
         }
-     })
-     const centerList = centers && centers.map((obj)=>{
-        return{
-          label:obj?.title,
-          value:obj?._id       
+    })
+    const centerList = centers && centers.map((obj) => {
+        return {
+            label: obj?.title,
+            value: obj?._id
         }
-     }) 
+    })
 
     const serviceList = [
         {
-          label:"DOCTOR",
-          value:"DOCTOR"  
+            label: "DOCTOR",
+            value: "DOCTOR"
         },
-         {
-          label:"ACCOUNTANT",
-          value:"ACCOUNTANT"  
+        {
+            label: "ACCOUNTANT",
+            value: "ACCOUNTANT"
         },
-         {
-          label:"CONSULTANT",
-          value:"CONSULTANT"  
+        {
+            label: "CONSULTANT",
+            value: "CONSULTANT"
         },
-          {
-          label:"COUNSELLOR",
-          value:"COUNSELLOR"  
+        {
+            label: "COUNSELLOR",
+            value: "COUNSELLOR"
         },
-           {
-          label:"NURSE",
-          value:"NURSE"  
+        {
+            label: "NURSE",
+            value: "NURSE"
         },
     ]
-    console.log(centers, "center");
-    const handleSubmit = (values) => {
-        console.log('Submitted:', values);
+
+    const handleSubmit = async (data) => {
+        try {
+            const response = await dispatch(addOffer(data)).unwrap();
+            if (response.success) {
+                toggle();
+            }
+
+        } catch (error) {
+            console.error("Add offer failed:", error);
+        }
     };
 
     return (
@@ -268,5 +277,7 @@ const CouponForm = () => {
         </Formik>
     );
 };
-
+CouponForm.propTypes = {
+    toggle: PropTypes.func,
+};
 export default CouponForm;

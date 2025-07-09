@@ -13,7 +13,7 @@ const AddTaxModal = ({modal,toggle})=>{
                 centered
                 title={"Add Tax"}
               >
-              <TaxForm />
+              <TaxForm toggle={toggle}/>
               </CustomModal>
             </React.Fragment>
     )

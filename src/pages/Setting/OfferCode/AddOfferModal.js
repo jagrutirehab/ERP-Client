@@ -13,7 +13,7 @@ const AddOfferModal = ({modal,toggle})=>{
                 centered
                 title={"Add Offer"}
               >
-              <CouponForm />
+              <CouponForm  toggle={toggle}/>
               </CustomModal>
             </React.Fragment>
     )

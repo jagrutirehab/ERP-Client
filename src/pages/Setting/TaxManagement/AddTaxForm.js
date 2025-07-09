@@ -5,7 +5,8 @@ import { fetchAllCenters } from '../../../store/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import SearchableSelect from '../OfferCode/SelectInput';
-
+import { addTax } from '../../../store/features/tax/taxSlice';
+import PropTypes from "prop-types";
 export const schema = Yup.object().shape({
     taxName: Yup.string().required('Tax Name is required'),
     taxType: Yup.string().oneOf(['FIXED', 'PERCENTAGE'], 'Invalid type').required('Tax type is required'),
@@ -83,15 +84,15 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 };
 
 
-const TaxForm = () => {
+const TaxForm = ({toggle}) => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
 
-    const centers = useSelector((state) => state.Center.data);
-  
-     const centerList = centers && centers.map((obj)=>{
+    const centers = useSelector((state) => state.Center.allCenters);
+      const centerList =
+      centers && centers?.map((obj)=>{
         return{
           label:obj?.title,
           value:obj?._id       
@@ -99,9 +100,17 @@ const TaxForm = () => {
      }) 
 
    
-    const handleSubmit = (values) => {
-        console.log('Submitted:', values);
-    };
+       const handleSubmit = async (data) => {
+            try {
+                const response = await dispatch(addTax(data)).unwrap();
+                if (response.success) {
+                    toggle();
+                }
+    
+            } catch (error) {
+                console.error("Add tax failed:", error);
+            }
+        };
 
     return (
         <Formik
@@ -188,5 +197,7 @@ const TaxForm = () => {
         </Formik>
     );
 };
-
+TaxForm.propTypes = {
+    toggle: PropTypes.func,
+};
 export default TaxForm;
