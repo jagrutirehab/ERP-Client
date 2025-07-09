@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Row, Col, Table, Input } from "reactstrap";
-import PropTypes from "prop-types";
-
+import PropTypes, { oneOf } from "prop-types";
+import { format } from 'date-fns';
 import { connect } from "react-redux";
 
 const MedicinesList = ({
@@ -13,10 +13,7 @@ const MedicinesList = ({
     onPageChange,
     onItemsPerPageChange,
 }) => {
-
-    console.log(offerCode);
     const totalPages = Math.ceil(totalCount / itemsPerPage);
-
     return (
         <div className="p-4 bg-light rounded shadow-sm">
             <Row className="mb-3 align-items-center">
@@ -36,7 +33,7 @@ const MedicinesList = ({
                     </Input>
                 </Col>
                 <Col className="text-end text-muted">
-                    Page 5 of  10
+                    Page {currentPage} of {totalPages}
                 </Col>
             </Row>
 
@@ -44,59 +41,57 @@ const MedicinesList = ({
                 <thead className="table-primary text-center">
                     <tr>
                         <th>Code</th>
-                        <th>description</th>
                         <th>Type</th>
                         <th>Value</th>
                         <th>Use/User</th>
                         <th>Total Applicable</th>
                         <th>Start Date</th>
                         <th>End Date</th>
-                        <th>Offer Status</th>
+                        <th>Status</th>
                         <th>Visible To All</th>
                         <th>Offer Remains</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-
-                    <tr>
-                        <td className="text-capitalize fw-semibold text-primary">
-                            offer code
-                        </td>
-                        <td>Description</td>
-                        <td>offer type</td>
-                        <td>offer value</td>
-                        <td>per user usuable</td>
-                        <td>Total used</td>
-                        <td>startDate</td>
-                        <td>endDate</td>
-                        <td>Offer Status</td>
-                        <td>Visible to all</td>
-                        <td>0</td>
-                        <td>
-                            <Button
-                                size="sm"
-                                color="info"
-                                className="me-2"
-                                onClick={() => console.log("object")}
-                            >
-                                <i className="ri-quill-pen-line"></i>
-                            </Button>
-                            <Button
-                                size="sm"
-                                color="danger"
-                                outline
-                                onClick={() =>
-                                    setDeleteOffer({ isOpen: true, data: '' })
-                                }
-                            >
-                                <i className="ri-close-circle-line"></i>
-                            </Button>
-                        </td>
-
-
-                    </tr>
-
+                    {offerCode && Array.isArray(offerCode) && offerCode?.map((obj) => {
+                        return (
+                            <tr key={obj?._id}>
+                                <td className="text-capitalize fw-semibold text-primary">
+                                    {obj?.code}
+                                </td>
+                                <td>{obj?.discountType}</td>
+                                <td>{obj?.discountValue}</td>
+                                <td>{obj?.usageLimitPerUser}</td>
+                                <td>{obj?.usageLimitGlobal}</td>
+                                <td>{format(new Date(obj?.startDate), 'dd MMM, yyyy')}</td>
+                                <td>{format(new Date(obj?.endDate), 'dd MMM, yyyy')}</td>
+                                <td>{obj?.status ? 'Active' : 'Inactive'}</td>
+                                <td>{obj?.visibleToAll ? 'Yes' : 'No'}</td>
+                                <td>{Number(obj?.usageLimitGlobal) - Number(obj?.totalUsed)}</td>
+                                <td>
+                                    <Button
+                                        size="sm"
+                                        color="info"
+                                        className="me-2"
+                                        onClick={() => console.log("object")}
+                                    >
+                                        <i className="ri-quill-pen-line"></i>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        color="danger"
+                                        outline
+                                        onClick={() =>
+                                            setDeleteOffer({ isOpen: true, data: obj })
+                                        }
+                                    >
+                                        <i className="ri-close-circle-line"></i>
+                                    </Button>
+                                </td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </Table>
 
@@ -141,8 +136,8 @@ MedicinesList.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    medicines: state.Medicine.data,
-    totalCount: state.Medicine.totalCount,
+    data: state.Offers.data,
+    totalCount: state.Offers.totalCount,
 });
 
 export default connect(mapStateToProps)(MedicinesList);

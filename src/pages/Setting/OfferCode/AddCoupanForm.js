@@ -235,7 +235,6 @@ const CouponForm = ({ toggle }) => {
                         </div>
                     </div>
 
-
                     <div className='row'>
                         <div className='col-md-4'>
                             <label>Start Date</label>
@@ -243,7 +242,7 @@ const CouponForm = ({ toggle }) => {
                         </div>
                         <div className='col-md-4'>
                             <label>End Date</label>
-                            <FormikInput name="endDate" type="date" />
+                            <FormikInput name="endDate" type="date" min={new Date().toISOString().split("T")[0]}/>
                         </div>
 
                         <div className='col-md-4'>

@@ -72,6 +72,9 @@ import InternTimeline from "./features/Intern timeline/internTimelineSlice";
 // clinical test
 import ClinicalTest from "./features/clinicalTest/clinicalTestSlice";
 
+//for offers
+import Offers from "./features/offer/offerSlice"
+
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -98,6 +101,7 @@ const rootReducer = combineReducers({
   InternTimeline,
   ClinicalTest,
   DBLogs,
+  Offers
 });
 
 export default rootReducer;

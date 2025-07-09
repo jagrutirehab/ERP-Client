@@ -233,6 +233,10 @@ export {
   setMedicines,
 } from "./features/medicine/medicineSlice";
 
+//offer
+
+export {addOffer, fetchOfferList} from "./features/offer/offerSlice"
+
 // Setting
 export {
   addBillItem,

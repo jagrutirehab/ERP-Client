@@ -13,24 +13,29 @@ import {
 import OfferListing from "./OfferListing";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import AddOfferModal from "./AddOfferModal";
+import { fetchOfferList } from "../../../store/actions";
+import { useDispatch, useSelector } from "react-redux";
 
 const OfferCode = () => {
     const offerCode = [];
-
+    const dispatch = useDispatch();
     const [modal, setModal] = useState(false);
-
+    const [searchItem, setSearchItem] = useState('')
     const [deleteOffer, setDeleteOffer] = useState({
         isOpen: false,
         data: null,
     });
-
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [tempSearch, setTempSearch] = useState("");
+ const data = useSelector((state) => state.Offers.data);
+  const totalCount = useSelector((state) => state.Offers.totalCount);
+  const totalPages = useSelector((state) => state.Offers.totalPages);
 
+  console.log(data, totalCount, totalPages);
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
-            console.log(tempSearch);
+            setSearchItem(tempSearch);
         }, 500);
 
         return () => clearTimeout(delayDebounce);
@@ -49,6 +54,16 @@ const OfferCode = () => {
     const handleDelete = () => {
         setDeleteOffer({ isOpen: false, data: null })
     }
+
+      useEffect(() => {
+        dispatch(
+          fetchOfferList({
+            page: currentPage,
+            limit: itemsPerPage,
+            search: searchItem,
+          })
+        );
+      }, [dispatch, currentPage, itemsPerPage, searchItem]);
     return (
         <div className="container-fluid d-flex flex-column h-100 px-3">
             <div className="mt-4 mx-4">
@@ -81,9 +96,9 @@ const OfferCode = () => {
             </CardBody>
             <div className="flex-grow-1 d-flex flex-column overflow-auto">
                 <OfferListing
-                    offerCode={offerCode}
-                    totalCount={10}
-                    totalPages={50}
+                    offerCode={data}
+                    totalCount={totalCount}
+                    totalPages={totalPages}
                     setDeleteOffer={setDeleteOffer}
                     currentPage={currentPage}
                     itemsPerPage={itemsPerPage}

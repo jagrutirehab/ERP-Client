@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
- add_offer_helper
+ add_offer_helper,
+ getOfferList
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -26,6 +27,20 @@ export const addOffer = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchOfferList = createAsyncThunk(
+  "offerlist/fetchofferlist",
+  async ({ page = 1, limit = 10, search = "" }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getOfferList({ page, limit, search});
+      return response;
+    } catch (error) {
+      const message = error?.response?.data?.message || "Something went wrong";
+      dispatch(setAlert({ type: "error", message }));
+      return rejectWithValue(message);
     }
   }
 );
@@ -55,6 +70,22 @@ const offerSlice = createSlice({
       .addCase(addOffer.rejected, (state) => {
         state.loading = false;
       });
+
+     builder
+          .addCase(fetchOfferList.pending, (state) => {
+            state.loading = true;
+          })
+          .addCase(fetchOfferList.fulfilled, (state, action) => {
+            state.loading = false;
+            const list = action.payload?.payload || [];
+            const totalCount = action.payload?.pagination?.total || 0;
+            state.data = list;
+            state.totalCount = totalCount;
+          })
+          .addCase(fetchOfferList.rejected, (state) => {
+            state.loading = false;
+          });
+    
       },
 });
 

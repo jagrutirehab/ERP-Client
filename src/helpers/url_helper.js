@@ -223,6 +223,7 @@ export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER
 export const ADD_OFFER = "/offer/addoffer";
+export const GET_OFFER_LIST =  '/offer/get-offer-list';
 
 //TAX
 export const ADD_TAX = "/tax/addtax";
