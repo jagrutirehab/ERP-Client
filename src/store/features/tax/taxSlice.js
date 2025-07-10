@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
   add_tax_helper,
-  getTaxList
+  getTaxList,
+  updateTax
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -41,6 +42,22 @@ export const fetchTaxList = createAsyncThunk(
       const message = error?.response?.data?.message || "Something went wrong";
       dispatch(setAlert({ type: "error", message }));
       return rejectWithValue(message);
+    }
+  }
+);
+
+export const updateTaxFunction = createAsyncThunk(
+  "editTax",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await updateTax(data);
+      dispatch(
+        setAlert({ type: "success", message: "Tax Updated Successfully" })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
     }
   }
 );

@@ -13,7 +13,8 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import TaxListing from "./TaxListing";
 import AddTaxModal from "./AddTaxModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTaxList } from "../../../store/features/tax/taxSlice";
+import { fetchTaxList, updateTaxFunction } from "../../../store/features/tax/taxSlice";
+import EditModal from "./EditTax";
 
 
 const TaxManagement = () => {
@@ -54,8 +55,18 @@ const TaxManagement = () => {
         setCurrentPage(pageNumber);
     };
 
-    const handleDelete = () => {
-        setDeleteOffer({ isOpen: false, data: null })
+      const handleDelete = async () => {
+        if (!deleteOffer?.data) return;
+        const data = { ...deleteOffer?.data, deleted: true }
+        try {
+            const response = await dispatch(updateTaxFunction(data)).unwrap();
+            if (response.success) {
+                setApiFlag(!apiFlag)
+                setDeleteOffer({ isOpen: false, data: null })
+            }
+        } catch (error) {
+            console.error("Delete offer failed:", error);
+        }
     }
 
     useEffect(() => {
@@ -114,8 +125,9 @@ const TaxManagement = () => {
             <DeleteModal
                 show={deleteOffer.isOpen}
                 onDeleteClick={handleDelete}
-                onCloseClick={handleDelete}
+                onCloseClick={() => setDeleteOffer({ data: null, isOpen: false })}
             />
+             <EditModal modal={editOffer?.isOpen} toggle={() => { setEditOffer({ data: null, isOpen: false }) }} data={editOffer?.data}  setApiFlag={setApiFlag} apiFlag={apiFlag}/>
             <AddTaxModal modal={modal} toggle={toggleForm} apiFlag={apiFlag} setApiFlag={setApiFlag} />
         </div>
     );

@@ -26,7 +26,7 @@ export const couponSchema = Yup.object().shape({
         .required('End date is required'),
     usageLimitGlobal: Yup.number().min(0, 'Must be positive').required('Usage limit is required'),
     usageLimitPerUser: Yup.number().min(0, 'Must be positive').required('Per-user limit is required'),
-    // status: Yup.boolean().optional(),
+    status: Yup.boolean().optional(),
 });
 
 const FormikSearchableSelect = ({ name, options = [], isMulti = false, placeholder = "Select..." }) => {

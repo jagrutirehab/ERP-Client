@@ -229,3 +229,4 @@ export const UPDATE_OFFER ='/offer/update'
 //TAX
 export const ADD_TAX = "/tax/addtax";
 export const GET_TAX_LIST =  '/tax/get-tax-list';
+export const UPDATE_TAX = '/tax/update';

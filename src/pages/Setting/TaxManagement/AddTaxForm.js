@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import SearchableSelect from '../OfferCode/SelectInput';
 import { addTax } from '../../../store/features/tax/taxSlice';
 import PropTypes from "prop-types";
+
 export const schema = Yup.object().shape({
     taxName: Yup.string().required('Tax Name is required'),
     taxType: Yup.string().oneOf(['FIXED', 'PERCENTAGE'], 'Invalid type').required('Tax type is required'),

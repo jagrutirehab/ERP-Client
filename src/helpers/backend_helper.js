@@ -698,3 +698,9 @@ export const add_tax_helper = (data) =>
     { page, limit, search },
   );
 };
+
+export const updateTax = (data) => {
+  return api.put(url.UPDATE_TAX, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
