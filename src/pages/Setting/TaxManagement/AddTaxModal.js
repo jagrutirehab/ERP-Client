@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
 import TaxForm from "./AddTaxForm";
 
-const AddTaxModal = ({modal,toggle})=>{
+const AddTaxModal = ({modal,toggle,apiFlag, setApiFlag})=>{
     return(
          <React.Fragment>
               <CustomModal
@@ -13,7 +13,7 @@ const AddTaxModal = ({modal,toggle})=>{
                 centered
                 title={"Add Tax"}
               >
-              <TaxForm toggle={toggle}/>
+              <TaxForm toggle={toggle} apiFlag={apiFlag} setApiFlag={setApiFlag}/>
               </CustomModal>
             </React.Fragment>
     )
@@ -22,6 +22,8 @@ const AddTaxModal = ({modal,toggle})=>{
 AddTaxModal.propTypes = {
   modal: PropTypes.bool,
   toggle: PropTypes.func,
+  setApiFlag:PropTypes.func,
+  apiFlag:PropTypes.bool
 };
 
 

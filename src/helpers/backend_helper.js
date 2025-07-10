@@ -692,3 +692,9 @@ export const add_tax_helper = (data) =>
   api.create(url.ADD_TAX, data, {
     headers: { "Content-Type": "application/json" },
   });
+
+   export const getTaxList = ({ page = 1, limit = 10, search = "" } = {}) => {
+  return api.get(url.GET_TAX_LIST, 
+    { page, limit, search },
+  );
+};

@@ -26,10 +26,9 @@ const initialValues = {
     taxName: '',
     taxType: '',
     taxValue: '',
-    visibleToAll: false,
     applicableCenters: [],
     startDate: '',
-    visibleToAll:false,
+    visibleToAll:true,
     endDate: '',
     // status: true,
 };
@@ -84,7 +83,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 };
 
 
-const TaxForm = ({toggle}) => {
+const TaxForm = ({toggle,apiFlag, setApiFlag }) => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchAllCenters());
@@ -104,6 +103,7 @@ const TaxForm = ({toggle}) => {
             try {
                 const response = await dispatch(addTax(data)).unwrap();
                 if (response.success) {
+                    setApiFlag(!apiFlag)
                     toggle();
                 }
     
@@ -199,5 +199,7 @@ const TaxForm = ({toggle}) => {
 };
 TaxForm.propTypes = {
     toggle: PropTypes.func,
+    setApiFlag:PropTypes.func,
+    apiFlag:PropTypes.bool
 };
 export default TaxForm;

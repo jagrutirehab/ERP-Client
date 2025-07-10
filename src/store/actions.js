@@ -235,7 +235,7 @@ export {
 
 //offer
 
-export {addOffer, fetchOfferList} from "./features/offer/offerSlice"
+export {addOffer, fetchOfferList, updateOfferFunction} from "./features/offer/offerSlice"
 
 // Setting
 export {

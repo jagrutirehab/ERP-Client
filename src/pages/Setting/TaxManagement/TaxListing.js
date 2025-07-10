@@ -1,22 +1,20 @@
 import React, { useState } from "react";
 import { Button, Row, Col, Table, Input } from "reactstrap";
 import PropTypes from "prop-types";
-
+import { format } from 'date-fns';
 import { connect } from "react-redux";
 
 const TaxList = ({
-    offerCode,
+    taxCode,
     totalCount,
+    setEditOffer,
     setDeleteOffer,
     currentPage,
     itemsPerPage,
     onPageChange,
     onItemsPerPageChange,
 }) => {
-
-    console.log(offerCode);
     const totalPages = Math.ceil(totalCount / itemsPerPage);
-
     return (
         <div className="p-4 bg-light rounded shadow-sm">
             <Row className="mb-3 align-items-center">
@@ -36,57 +34,59 @@ const TaxList = ({
                     </Input>
                 </Col>
                 <Col className="text-end text-muted">
-                    Page 5 of  10
+                    Page {currentPage} of  {totalPages}
                 </Col>
             </Row>
 
             <Table bordered hover className="bg-white">
                 <thead className="table-primary text-center">
                     <tr>
-                        <th>Name</th>
-                        <th>Value</th>
+                        <th>Tax Name</th>
+                        <th>Tax Value</th>
                         <th>Tax Type</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Status</th>
+                        <th>Visible To All</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-
-                    <tr>
-                        <td className="text-capitalize fw-semibold text-primary">
-                            GST
-                        </td>
-                        <td>12%</td>
-                        <th>Tax </th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <td>Active</td>
-                        <td>
-                            <Button
-                                size="sm"
-                                color="info"
-                                className="me-2"
-                                onClick={() => console.log("object")}
-                            >
-                                <i className="ri-quill-pen-line"></i>
-                            </Button>
-                            <Button
-                                size="sm"
-                                color="danger"
-                                outline
-                                onClick={() =>
-                                    setDeleteOffer({ isOpen: true, data: '' })
-                                }
-                            >
-                                <i className="ri-close-circle-line"></i>
-                            </Button>
-                        </td>
-
-
-                    </tr>
-
+                    {taxCode && Array.isArray(taxCode) && taxCode.map((obj) => {
+                        return (
+                            <tr key={obj?._id}>
+                                <td className="text-capitalize fw-semibold text-primary">
+                                    {obj?.taxName}
+                                </td>
+                                <td>{`${obj?.taxValue}${obj?.taxType === 'FIXED' ? '₹' : '%'}`}</td>
+                                <td>{obj?.taxType}</td>
+                                <td>{format(new Date(obj?.startDate), 'dd MMM, yyyy')}</td>
+                                <td>{format(new Date(obj?.endDate), 'dd MMM, yyyy')}</td>
+                                <td>{obj?.status ? 'Active' : 'Inactive'}</td>
+                                <td>{obj?.visibleToAll ? 'Yes' : 'No'}</td>
+                                <td>
+                                    <Button
+                                        size="sm"
+                                        color="info"
+                                        className="me-2"
+                                        onClick={() => setEditOffer({ isOpen: true, data: obj })}
+                                    >
+                                        <i className="ri-quill-pen-line"></i>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        color="danger"
+                                        outline
+                                        onClick={() =>
+                                            setDeleteOffer({ isOpen: true, data: obj })
+                                        }
+                                    >
+                                        <i className="ri-close-circle-line"></i>
+                                    </Button>
+                                </td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </Table>
 
@@ -119,11 +119,9 @@ const TaxList = ({
 };
 
 TaxList.propTypes = {
-    medicines: PropTypes.array.isRequired,
     totalCount: PropTypes.number.isRequired,
-    setDeleteMedicine: PropTypes.func.isRequired,
-    toggleDeleteModal: PropTypes.func,
-    searchItem: PropTypes.string,
+    setDeleteOffer: PropTypes.func.isRequired,
+    setEditOffer: PropTypes.func.isRequired,
     currentPage: PropTypes.number.isRequired,
     itemsPerPage: PropTypes.number.isRequired,
     onPageChange: PropTypes.func.isRequired,
@@ -131,8 +129,8 @@ TaxList.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    medicines: state.Medicine.data,
-    totalCount: state.Medicine.totalCount,
+    data: state.Taxes.data,
+    totalCount: state.Taxes.totalCount,
 });
 
 export default connect(mapStateToProps)(TaxList);

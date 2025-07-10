@@ -66,7 +66,7 @@ const OfferCode = () => {
                 setDeleteOffer({ isOpen: false, data: null })
             }
         } catch (error) {
-            console.error("Add offer failed:", error);
+            console.error("Delete offer failed:", error);
         }
     }
 

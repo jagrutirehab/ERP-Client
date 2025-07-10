@@ -75,6 +75,8 @@ import ClinicalTest from "./features/clinicalTest/clinicalTestSlice";
 //for offers
 import Offers from "./features/offer/offerSlice"
 
+//for tax
+import Taxes from './features/tax/taxSlice'
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -101,7 +103,8 @@ const rootReducer = combineReducers({
   InternTimeline,
   ClinicalTest,
   DBLogs,
-  Offers
+  Offers,
+  Taxes
 });
 
 export default rootReducer;

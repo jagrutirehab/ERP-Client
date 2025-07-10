@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
- add_tax_helper
+  add_tax_helper,
+  getTaxList
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -26,6 +27,20 @@ export const addTax = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchTaxList = createAsyncThunk(
+  "taxlist/fetchtaxlist",
+  async ({ page = 1, limit = 10, search = "" }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getTaxList({ page, limit, search });
+      return response;
+    } catch (error) {
+      const message = error?.response?.data?.message || "Something went wrong";
+      dispatch(setAlert({ type: "error", message }));
+      return rejectWithValue(message);
     }
   }
 );
@@ -55,7 +70,22 @@ const taxSlice = createSlice({
       .addCase(addTax.rejected, (state) => {
         state.loading = false;
       });
-      },
+
+    builder
+      .addCase(fetchTaxList.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTaxList.fulfilled, (state, action) => {
+        state.loading = false;
+        const list = action.payload?.payload || [];
+        const totalCount = action.payload?.pagination?.total || 0;
+        state.data = list;
+        state.totalCount = totalCount;
+      })
+      .addCase(fetchTaxList.rejected, (state) => {
+        state.loading = false;
+      });
+  },
 });
 
 export const { setTax } = taxSlice.actions;

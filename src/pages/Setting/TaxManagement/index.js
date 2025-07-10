@@ -12,12 +12,20 @@ import {
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import TaxListing from "./TaxListing";
 import AddTaxModal from "./AddTaxModal";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTaxList } from "../../../store/features/tax/taxSlice";
 
 
 const TaxManagement = () => {
-    const offerCode = [];
-    const [modal, setModal] = useState(true);
+    const dispatch = useDispatch();
+    const [modal, setModal] = useState(false);
+    const [searchItem, setSearchItem] = useState('')
+    const [apiFlag, setApiFlag] = useState(false)
     const [deleteOffer, setDeleteOffer] = useState({
+        isOpen: false,
+        data: null,
+    });
+    const [editOffer, setEditOffer] = useState({
         isOpen: false,
         data: null,
     });
@@ -25,10 +33,12 @@ const TaxManagement = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [tempSearch, setTempSearch] = useState("");
-
+    const data = useSelector((state) => state.Taxes.data);
+    const totalCount = useSelector((state) => state.Taxes.totalCount);
+    const totalPages = useSelector((state) => state.Taxes.totalPages);
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
-            console.log(tempSearch);
+            setSearchItem(tempSearch);
         }, 500);
 
         return () => clearTimeout(delayDebounce);
@@ -47,10 +57,21 @@ const TaxManagement = () => {
     const handleDelete = () => {
         setDeleteOffer({ isOpen: false, data: null })
     }
+
+    useEffect(() => {
+        dispatch(
+            fetchTaxList({
+                page: currentPage,
+                limit: itemsPerPage,
+                search: searchItem,
+            })
+        );
+    }, [dispatch, currentPage, itemsPerPage, searchItem, apiFlag]);
+
     return (
         <div className="container-fluid d-flex flex-column h-100 px-3">
             <div className="mt-4 mx-4">
-                <Breadcrumb title="Offer Code" pageTitle="Offer Code" />
+                <Breadcrumb title="Tax Management" pageTitle="Tax Management" />
             </div>
 
             <CardBody className="p-3 bg-white">
@@ -79,9 +100,10 @@ const TaxManagement = () => {
             </CardBody>
             <div className="flex-grow-1 d-flex flex-column overflow-auto">
                 <TaxListing
-                    offerCode={offerCode}
-                    totalCount={10}
-                    totalPages={50}
+                    taxCode={data}
+                    totalCount={totalCount}
+                    totalPages={totalPages}
+                    setEditOffer={setEditOffer}
                     setDeleteOffer={setDeleteOffer}
                     currentPage={currentPage}
                     itemsPerPage={itemsPerPage}
@@ -94,7 +116,7 @@ const TaxManagement = () => {
                 onDeleteClick={handleDelete}
                 onCloseClick={handleDelete}
             />
-          <AddTaxModal modal={modal} toggle={toggleForm} /> 
+            <AddTaxModal modal={modal} toggle={toggleForm} apiFlag={apiFlag} setApiFlag={setApiFlag} />
         </div>
     );
 };

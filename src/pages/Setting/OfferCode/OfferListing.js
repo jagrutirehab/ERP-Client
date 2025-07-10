@@ -4,7 +4,7 @@ import PropTypes, { oneOf } from "prop-types";
 import { format } from 'date-fns';
 import { connect } from "react-redux";
 
-const MedicinesList = ({
+const OfferList = ({
     offerCode,
     totalCount,
     setEditOffer,
@@ -62,7 +62,7 @@ const MedicinesList = ({
                                     {obj?.code}
                                 </td>
                                 <td>{obj?.discountType}</td>
-                                <td>{obj?.discountValue}</td>
+                                 <td>{`${obj?.discountValue}${obj?.discountType === 'FIXED'?'₹':'%'}`}</td>
                                 <td>{obj?.usageLimitPerUser}</td>
                                 <td>{obj?.usageLimitGlobal}</td>
                                 <td>{format(new Date(obj?.startDate), 'dd MMM, yyyy')}</td>
@@ -124,7 +124,7 @@ const MedicinesList = ({
     );
 };
 
-MedicinesList.propTypes = {
+OfferList.propTypes = {
     totalCount: PropTypes.number.isRequired,
     setDeleteOffer: PropTypes.func.isRequired,
     setEditOffer: PropTypes.func.isRequired,
@@ -139,4 +139,4 @@ const mapStateToProps = (state) => ({
     totalCount: state.Offers.totalCount,
 });
 
-export default connect(mapStateToProps)(MedicinesList);
+export default connect(mapStateToProps)(OfferList);
