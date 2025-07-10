@@ -271,7 +271,7 @@ const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
                                 </div>
                                 <div className='col-md-4'>
                             <div className='col-md-4 mt-2'>
-                                <label> Status  </label>
+                                <label> Active  </label>
                                 <FormikInput name="status" type="checkbox" className="mt-2" />
                             </div> 
 

@@ -168,7 +168,7 @@ const EditModal = ({ modal, toggle, data, setApiFlag, apiFlag }) => {
                                             <FormikInput name="visibleToAll" type="checkbox" className="mt-2" />
                                         </div>
                                         <div className='col-md-2'>
-                                            <label> Status </label>
+                                            <label> Active </label>
                                             <FormikInput name="status" type="checkbox" className="mt-2" />
                                         </div>
                                     </div>
