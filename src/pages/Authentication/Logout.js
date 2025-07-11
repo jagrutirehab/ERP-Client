@@ -18,9 +18,8 @@ const Logout = (props) => {
   useEffect(() => {
     const handleLogout = async () => {
       dispatch(logoutUser());
-      localStorage.removeItem("authUser");
-      localStorage.removeItem("medicines");
-      localStorage.removeItem("centers");
+      localStorage.clear();
+      sessionStorage.clear();
     };
 
     handleLogout();
