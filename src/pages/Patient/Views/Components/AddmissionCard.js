@@ -14,7 +14,9 @@ const AddmissionCard = ({ data, children }) => {
             <div className="d-flex align-items-center">
               <span>Addmission Date:</span>
               <h6 className="display-6 fs-6 mb-0 ms-2">
-                {format(new Date(data.addmissionDate), "dd MMMM yyyy")}
+                {data?.addmissionDate && !isNaN(new Date(data.addmissionDate))
+                  ? format(new Date(data.addmissionDate), "dd MMMM yyyy")
+                  : "N/A"}
               </h6>
             </div>
             {data.dischargeDate && (
