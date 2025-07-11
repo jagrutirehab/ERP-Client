@@ -9,7 +9,7 @@ import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
 import SubmitForm from "./Components/SubmitForm";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addInvoice,
   createEditBill,
@@ -26,7 +26,7 @@ const DuePayment = ({
   editBillData,
   admission,
   invoiceProcedures,
-  ttlAdvance = 0,
+  // ttlAdvance = 0,
   appointment,
   type,
   shouldPrintAfterSave,
@@ -40,7 +40,10 @@ const DuePayment = ({
       : editBillData.invoice
     : null;
 
-  const [totalAdvance, setTotalAdvance] = useState(ttlAdvance);
+    const advpayment = useSelector((state) => state.Bill.calculatedAdvance);
+
+
+  const [totalAdvance, setTotalAdvance] = useState(advpayment);
   const [invoiceList, setInvoiceList] = useState([]);
   //all total values
   const [totalCost, setTotalCost] = useState(0);
@@ -58,8 +61,6 @@ const DuePayment = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
-
-  console.log(patient, "patient");
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -264,9 +265,10 @@ const DuePayment = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editBillData]);
 
-  useEffect(() => {
-    if (ttlAdvance && !editBillData) setTotalAdvance(ttlAdvance);
-  }, [editBillData, ttlAdvance]);
+  // useEffect(() => {
+  //   console.log(ttlAdvance)
+  //   if (ttlAdvance && !editBillData) setTotalAdvance(ttlAdvance);
+  // }, [editBillData, ttlAdvance]);
 
   const addInvoiceItem = (item, data) => {
     if (!item) return;

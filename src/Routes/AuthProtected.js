@@ -32,6 +32,8 @@ const AuthProtected = (props) => {
     } else if (!userProfile && loading && !token) {
       console.log("❌ No user profile or token, dispatching logout");
       dispatch(logoutUser());
+      localStorage.clear();
+      sessionStorage.clear();
     }
   }, [token, userProfile, loading, dispatch]);
 

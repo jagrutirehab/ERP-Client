@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ButtonGroup, Button } from "reactstrap";
-
 //constants
 import {
   BILLING_VIEW,
@@ -8,14 +7,11 @@ import {
   TIMELINE_VIEW,
   OPD_VIEW,
 } from "../../../Components/constants/patient";
-
 //components
 import Charting from "./Charting";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
-import ScrollBar from "react-perfect-scrollbar";
 import { connect, useSelector } from "react-redux";
-import RorQuestion from "./Components/RorQuestion";
 import CiwaQuestion from "./Components/CiwaQuestion";
 import SsrsQuestion from "./Components/SsrsQuestion";
 import YMSCQuestion from "./Components/YMSCQuestion";
@@ -45,14 +41,6 @@ const Views = (props) => {
       ? vws[patientPage.subAccess[0]?.name]
       : ""
   );
-
-  useEffect(() => {
-    const scrollContainer = ref.current;
-    console.log(scrollContainer, "scroll div");
-
-    // if (scrollContainer)
-    //   scrollContainer.setAttribute("style", "overflow: auto !important;");
-  }, []);
 
   const handleView = (v) => setView(v);
 
@@ -100,9 +88,9 @@ const Views = (props) => {
           </div>
         ) : (
           <div className="patient-content position-relative overflow-auto bg-white mt-1 px-3 py-3">
-            {data == "C-SSRS" && <SsrsQuestion />}
-            {data == "CIWA-AR" && <CiwaQuestion />}
-            {data == "YMRS" && <YMSCQuestion />}
+            {data === "C-SSRS" && <SsrsQuestion />}
+            {data === "CIWA-AR" && <CiwaQuestion />}
+            {data === "YMRS" && <YMSCQuestion />}
           </div>
         )}
       </div>

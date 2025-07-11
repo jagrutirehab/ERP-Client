@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Accordion,
@@ -46,7 +46,6 @@ const Billing = ({
   drafts,
 }) => {
   const dispatch = useDispatch();
-
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
@@ -77,13 +76,10 @@ const Billing = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, patient, addmissionsBills]);
-
-  //fetch addmission bills
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       dispatch(fetchBills(addmissionId));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, patient, addmissionId]);
 
   useEffect(() => {
@@ -133,20 +129,6 @@ const Billing = ({
               0
             </h6>
           </RenderWhen>
-          {/* <RenderWhen
-            isTrue={totalAdvancePayment > totalInvoicePayment + totalRefund}
-          >
-            =
-            <UncontrolledTooltip placement="bottom" target="refund-amount">
-              Current Balance
-            </UncontrolledTooltip>
-            <h6
-              id="refund-amount"
-              className="display-6 fs-xs-12 fs-md-18 mb-0 text-success"
-            >
-              {totalAmount}
-            </h6>
-          </RenderWhen> */}
         </div>
       </div>
 
@@ -181,8 +163,6 @@ const Billing = ({
       <BillForm type={IPD} />
 
       <div className="mt-3">
-        {/* <div className="timeline-2">
-          <div className="timeline-continue"> */}
         <Row className="timeline-right row-gap-5">
           {(addmissionsBills || []).map((addmission, idx) => {
             const payable =
@@ -193,7 +173,6 @@ const Billing = ({
               idx === 0
                 ? totalDeposit
                 : addmission.remainingDepositAfterInvoice;
-            const isPayable = payable > advancePayment;
 
             return (
               <AddmissionCard
@@ -203,13 +182,6 @@ const Billing = ({
                 toggleModal={toggleModal}
               >
                 <div className="d-flex gap-3 mt-2">
-                  {/* <CheckPermission permission={"create"} subAccess={"Charting"}>
-                    <RenderWhen isTrue={!addmission.dischargeDate}>
-                      <Button onClick={toggleModal} size="sm">
-                        Create new Bill
-                      </Button>
-                    </RenderWhen>
-                  </CheckPermission> */}
                   <div>
                     <div className="d-flex">
                       <span>Arreras:</span>
@@ -230,21 +202,8 @@ const Billing = ({
                       </div>
                     )}
                   </div>
-                  {/* <div className="d-flex">
-                    <span>Refund:</span>
-                    <h6 className="display-6 fs-6 mb-0 ms-2">
-                      {addmission.totalRefund}
-                    </h6>
-                  </div> */}
                 </div>
                 <div className="d-flex align-items-center mt-2 flex-column">
-                  {/* <h6
-                    className={`display-6 fs-6 ${
-                      isPayable ? "text-danger" : "text-success"
-                    }`}
-                  >
-                    {addmission.calculatedAmount}
-                  </h6> */}
                   <h6 className={`display-6 fs-6`}>{addmission.totalBills}</h6>
                 </div>
 
@@ -329,8 +288,6 @@ const Billing = ({
             );
           })}
         </Row>
-        {/* </div>
-        </div> */}
       </div>
     </div>
   );

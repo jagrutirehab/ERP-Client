@@ -37,53 +37,72 @@ const monthNames = {
   12: "Dec",
 };
 
-const MonthTillDate = ({ centerId }) => {
-  const { data, loading, error } = useQuery(GET_MONTH_TILL_DATE_DATA, {
-    variables: { id: centerId },
-  });
+const MonthTillDate = ({ centerId, data }) => {
+  // const { data, loading, error } = useQuery(GET_MONTH_TILL_DATE_DATA, {
+  //   variables: { id: centerId },
+  // });
+
+  console.log(data, "data mtd");
 
   // Progress bar state
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    if (loading) {
-      setProgress(0);
-      const interval = setInterval(() => {
-        setProgress((prev) => (prev < 95 ? prev + 1 : 95));
-      }, 30);
+  // useEffect(() => {
+  //   if (loading) {
+  //     setProgress(0);
+  //     const interval = setInterval(() => {
+  //       setProgress((prev) => (prev < 95 ? prev + 1 : 95));
+  //     }, 30);
 
-      return () => clearInterval(interval);
-    }
-  }, [loading]);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [loading]);
 
   const { columnDefs, rowData } = useMemo(() => {
     if (!data) return { columnDefs: [], rowData: [] };
 
-    const tagSource = (records, source) =>
-      records.map((section) => ({
-        ...section,
-        records: section.records.map((r) => ({ ...r, source })),
-      }));
-    console.log(data.getMonthlyBillingData.deposit, "deposit mtd");
+    // const tagSource = (records, source) =>
+    //   records.map((section) => ({
+    //     ...section,
+    //     records: section.records.map((r) => ({ ...r, source })),
+    //   }));
+    const tagSource = (records, source) => {
+      if (!records || !Array.isArray(records)) {
+        return [];
+      }
+
+      return records.map((section) => {
+        console.log(section, "section");
+
+        return {
+          ...section,
+          records: section?.records?.map((r) => ({ ...r, source })) || [],
+        };
+      });
+    };
+    console.log(data.deposit, "deposit mtd");
     const allSections = [
-      ...tagSource(data.getMonthlyBillingData.opd, "opd"),
-      ...tagSource(data.getMonthlyBillingData.admitPatients, "admit"),
-      ...tagSource(data.getMonthlyBillingData.dischargePatients, "discharge"),
+      ...tagSource(data?.opdData ? [data.opdData] : [], "opd"),
+      ...tagSource(data?.admitData ? [data.admitData] : [], "admit"),
       ...tagSource(
-        data.getMonthlyBillingData.invoicedAmountAdvanceAmount,
+        data?.dischargeData ? [data.dischargeData] : [],
+        "discharge"
+      ),
+      ...tagSource(
+        data?.advanceAndInvoiceAmount ? [data.advanceAndInvoiceAmount] : [],
         "invoice"
       ),
-      ...tagSource(data.getMonthlyBillingData.occupancy, "occupancy"),
-      ...tagSource(data.getMonthlyBillingData.remainPatientData, "remain"),
+      ...tagSource(data?.occupancy ? [data.occupancy] : [], "occupancy"),
+      ...tagSource(data?.remainPatient ? [data.remainPatient] : [], "remain"),
       ...tagSource(
-        data.getMonthlyBillingData.invoicedAppointmentsData,
+        data?.invoicedAppointments ? [data.invoicedAppointments] : [],
         "totalAppointments"
       ),
       ...tagSource(
-        data.getMonthlyBillingData.appointmentsData,
+        data?.appointments ? [data.appointments] : [],
         "appointmentsData"
       ),
-      ...tagSource(data.getMonthlyBillingData.deposit || [], "deposit"),
+      ...tagSource(data?.deposit ? [data.deposit] : [], "deposit"),
     ];
 
     const allRecords = allSections.flatMap((section) => section.records);
@@ -91,34 +110,41 @@ const MonthTillDate = ({ centerId }) => {
     const recordMap = {};
 
     allRecords.forEach((record) => {
-      const year = parseInt(record.year);
-      const month = isNaN(record.month)
-        ? new Date(`${record.month} 1, ${year}`).getMonth() + 1
-        : parseInt(record.month);
+      const year = record?.year ? parseInt(record.year) : 0;
+      const month = record?.month
+        ? isNaN(record.month)
+          ? new Date(`${record.month} 1, ${year}`).getMonth() + 1
+          : parseInt(record.month)
+        : 0;
       const key = `${year}-${month}`;
 
       if (!recordMap[key]) {
         recordMap[key] = { year, month };
       }
 
-      Object.entries(record).forEach(([k, v]) => {
-        if (v == null) return;
+      // Add null check before Object.entries
+      if (record && typeof record === "object") {
+        Object.entries(record).forEach(([k, v]) => {
+          console.log(record, "record");
 
-        if (k === "totalPatients") {
-          const fieldName =
-            record.source === "admit"
-              ? "admittedPatients"
-              : record.source === "discharge"
-              ? "dischargedPatients"
-              : k;
+          if (v == null) return;
 
-          recordMap[key][fieldName] = (recordMap[key][fieldName] ?? 0) + v;
-        } else if (k !== "source") {
-          if (!recordMap[key][k]) {
-            recordMap[key][k] = v;
+          if (k === "totalPatients") {
+            const fieldName =
+              record.source === "admit"
+                ? "admittedPatients"
+                : record.source === "discharge"
+                ? "dischargedPatients"
+                : k;
+
+            recordMap[key][fieldName] = (recordMap[key][fieldName] ?? 0) + v;
+          } else if (k !== "source") {
+            if (!recordMap[key][k]) {
+              recordMap[key][k] = v;
+            }
           }
-        }
-      });
+        });
+      }
     });
 
     const months = Object.values(recordMap).sort((a, b) => {
@@ -169,34 +195,34 @@ const MonthTillDate = ({ centerId }) => {
     return { columnDefs, rowData };
   }, [data]);
 
-  if (loading) {
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "200px" }}
-      >
-        <div style={{ width: "50%" }}>
-          <div className="progress">
-            <div
-              className="progress-bar progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              style={{ width: `${progress}%` }}
-              aria-valuenow={progress}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            >
-              {progress}%
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div
+  //       className="d-flex justify-content-center align-items-center"
+  //       style={{ height: "200px" }}
+  //     >
+  //       <div style={{ width: "50%" }}>
+  //         <div className="progress">
+  //           <div
+  //             className="progress-bar progress-bar-striped progress-bar-animated"
+  //             role="progressbar"
+  //             style={{ width: `${progress}%` }}
+  //             aria-valuenow={progress}
+  //             aria-valuemin="0"
+  //             aria-valuemax="100"
+  //           >
+  //             {progress}%
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (error) return <p>Error loading data</p>;
+  // if (error) return <p>Error loading data</p>;
 
   return (
-    <div className="ag-theme-quartz" style={{ height: "445px", width: "100%" }}>
+    <div className="ag-theme-quartz">
       <h1 style={{ textAlign: "center" }}>Month Till Date Table</h1>
       <AgGridReact
         columnDefs={columnDefs}
