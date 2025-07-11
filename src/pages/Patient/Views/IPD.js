@@ -29,13 +29,9 @@ const IPDComponent = ({
 }) => {
   const dispatch = useDispatch();
 
-  console.log(addmissionsCharts, "addmissionsCharts");
-
   return (
     <React.Fragment>
       <div className="">
-        {/* <div className="timeline-2">
-          <div className="timeline-continue"> */}
         <Row className="timeline-right row-gap-5">
           {(addmissionsCharts || []).map((addmission, idx) => (
             <AddmissionCard
@@ -83,32 +79,6 @@ const IPDComponent = ({
                 </Button>
               </div>
               <div className="d-flex align-items-center gap-4">
-                {/* <CheckPermission permission={"edit"}> */}
-                {/* {user?.email === "rijutarafder000@gmail.com" && ( */}
-                {/* <div className="d-flex align-items-center">
-                  <UncontrolledTooltip
-                    placement="bottom"
-                    target="edit-admission"
-                  >
-                    Delete Admission
-                  </UncontrolledTooltip>
-                  <Button
-                    onClick={() => {
-                      dispatch(
-                        admitDischargePatient({
-                          data: addmission,
-                          isOpen: EDIT_ADMISSION,
-                        })
-                      );
-                    }}
-                    id="edit-admission"
-                    size="sm"
-                    outline
-                  >
-                    <i className="ri-delete-bin-5-line text-muted fs-6"></i>
-                  </Button>
-                </div> */}
-                {/* )} */}
                 {(user?.email === "rijutarafder000@gmail.com" ||
                   user?.email === "owais@gmail.com" ||
                   user?.email === "hemanthshinde@gmail.com") && (
