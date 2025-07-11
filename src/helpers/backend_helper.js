@@ -109,7 +109,7 @@ export const getUserLogs = (data) => api.get(url.GET_USER_LOGS, data);
 
 // Dashboard Method
 export const getDashboardAnalytics = (data) =>
-  api.get(url.GET_DASHBOARD_ANALYTICS, data);
+  api.get(`${url.GET_DASHBOARD_ANALYTICS}/${data}`);
 
 // Center Method
 export const postCenter = (data) =>

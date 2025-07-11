@@ -139,23 +139,26 @@ const monthNames = {
   12: "Dec",
 };
 
-const MonthOnMonth = ({ centerId }) => {
-  const { data, loading, error } = useQuery(GET_ON_MONTH_DATA, {
-    variables: { id: centerId },
-  });
+const MonthOnMonth = ({ centerId, data }) => {
+  // const { data, loading, error } = useQuery(GET_ON_MONTH_DATA, {
+  //   variables: { id: centerId },
+  // });
   // Progress bar state
+
+  console.log(data, "data mom");
+
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    if (loading) {
-      setProgress(0);
-      const interval = setInterval(() => {
-        setProgress((prev) => (prev < 95 ? prev + 1 : 95));
-      }, 30);
+  // useEffect(() => {
+  //   if (loading) {
+  //     setProgress(0);
+  //     const interval = setInterval(() => {
+  //       setProgress((prev) => (prev < 95 ? prev + 1 : 95));
+  //     }, 30);
 
-      return () => clearInterval(interval);
-    }
-  }, [loading]);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [loading]);
 
   const { columnDefs, rowData } = useMemo(() => {
     // console.log(GET_ON_MONTH_DATA)
@@ -163,24 +166,28 @@ const MonthOnMonth = ({ centerId }) => {
 
     // Attach source info to help distinguish 'totalPatients' in admit/discharge
     const tagSource = (records, source) =>
-      records.map((section) => ({
-        ...section,
-        records: section.records.map((r) => ({ ...r, source })),
-      }));
-    console.log(data.getBillingData.deposit, "deposit mom");
+      records.map((section) => {
+        console.log(section, "section");
+
+        return {
+          ...section,
+          records: section.records.map((r) => ({ ...r, source })),
+        };
+      });
+    console.log(data.deposit, "deposit mom");
     const allSections = [
-      ...tagSource(data.getBillingData.opd, "opd"),
-      ...tagSource(data.getBillingData.admitPatients, "admit"),
-      ...tagSource(data.getBillingData.dischargePatients, "discharge"),
-      ...tagSource(data.getBillingData.invoicedAmountAdvanceAmount, "invoice"),
-      ...tagSource(data.getBillingData.occupancy, "occupancy"),
-      ...tagSource(data.getBillingData.remainPatientData, "remain"),
+      ...tagSource([data.opdData] || [], "opd"),
+      ...tagSource([data.admitData] || [], "admit"),
+      ...tagSource([data.dischargeData] || [], "discharge"),
+      ...tagSource([data.advanceAndInvoiceAmount] || [], "invoice"),
+      ...tagSource([data.occupancy] || [], "occupancy"),
+      ...tagSource([data.remainPatient] || [], "remain"),
       ...tagSource(
-        data.getBillingData.invoicedAppointmentsData,
+        [data.invoicedAppointments] || [],
         "invoicedAppointmentsData"
       ),
-      ...tagSource(data.getBillingData.appointmentsData, "appointmentsData"),
-      ...tagSource(data.getBillingData.deposit || [], "deposit"),
+      ...tagSource([data.appointments] || [], "appointmentsData"),
+      ...tagSource([data.deposit] || [], "deposit"),
     ];
 
     const allRecords = allSections.flatMap((section) => section.records);
@@ -268,33 +275,33 @@ const MonthOnMonth = ({ centerId }) => {
 
     return { columnDefs, rowData };
   }, [data]);
-  if (loading) {
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ height: "200px" }}
-      >
-        <div style={{ width: "50%" }}>
-          <div className="progress">
-            <div
-              className="progress-bar progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              style={{ width: `${progress}%` }}
-              aria-valuenow={progress}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            >
-              {progress}%
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (error) return <p>Error loading data</p>;
+  // if (loading) {
+  //   return (
+  //     <div
+  //       className="d-flex justify-content-center align-items-center"
+  //       style={{ height: "200px" }}
+  //     >
+  //       <div style={{ width: "50%" }}>
+  //         <div className="progress">
+  //           <div
+  //             className="progress-bar progress-bar-striped progress-bar-animated"
+  //             role="progressbar"
+  //             style={{ width: `${progress}%` }}
+  //             aria-valuenow={progress}
+  //             aria-valuemin="0"
+  //             aria-valuemax="100"
+  //           >
+  //             {progress}%
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+  // if (error) return <p>Error loading data</p>;
 
   return (
-    <div className="ag-theme-quartz" style={{ height: "645px", width: "100%" }}>
+    <div className="ag-theme-quartz">
       <h1 style={{ textAlign: "center" }}>Month On Month Data Table</h1>
       <AgGridReact
         columnDefs={columnDefs}
