@@ -178,7 +178,17 @@ const Bills = ({
           })
         );
       } else if (bill.bill === DEPOSIT) {
-        if (adReserve <= 0) {
+        if (adReserve <= 0 && previousPayable <= 0) {
+          dispatch(
+            setTotalAmount({
+              calculatedPayable: 0,
+              calculatedAdvance: totalAdvance,
+              totalPayable,
+              totalAdvance,
+              totalDeposit,
+            })
+          );
+        } else if (adReserve <= 0) {
           dispatch(
             setTotalAmount({
               calculatedPayable: previousPayable,
