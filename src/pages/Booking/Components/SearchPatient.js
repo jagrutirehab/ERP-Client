@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -14,125 +8,36 @@ import {
   Input,
   Spinner,
   Dropdown,
-  // UncontrolledDropdown,
 } from "reactstrap";
 import RenderWhen from "../../../Components/Common/RenderWhen";
-// import { socket } from "../../../socket";
-import debounce from "lodash.debounce"; // Use debounce utility
-
-import { connect, useDispatch } from "react-redux";
+import debounce from "lodash.debounce";
+import { connect } from "react-redux";
 import { io } from "socket.io-client";
 import config from "../../../config";
-
-// Initialize the socket connection
 const socket = io(config.api.BASE_URL, {
   path: "/socket/search",
 });
 
-const SearchPatient = ({
-  patients,
-  validation,
-  disabled,
-  searchLoading,
-  editEvent,
-  centerAccess,
-}) => {
-  // const dispatch = useDispatch();
-
-  // const [value, setValue] = useState("");
-  // const handleChange = (e) => {
-  //   const val = e.target.value;
-  //   setValue(val);
-  //   // validation.setFieldValue("patientName", val);
-  // };
-
-  const [worker, setWorker] = useState(null);
-  const [value, setValue] = useState("");
+const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [dropdown, setDropdown] = useState(false);
-
-  // const fuse = useMemo(() => {
-  //   const fuseOptions = {
-  //     isCaseSensitive: false,
-  //     // includeScore: false,
-  //     // shouldSort: true,
-  //     // includeMatches: false,
-  //     // findAllMatches: false,
-  //     minMatchCharLength: 3,
-  //     // location: 0,
-  //     threshold: 0.2,
-  //     distance: 10,
-  //     // useExtendedSearch: false,
-  //     // ignoreLocation: false,
-  //     ignoreFieldNorm: true,
-  //     // fieldNormWeight: 1,
-  //     keys: ["name", "phoneNumber"],
-  //   };
-  //   return new Fuse([...patients], fuseOptions);
-  // }, [patients]);
-
   const handleChange = (e) => {
     const val = e.target.value;
     setIsSearching(true);
     socket.emit("search", val);
-    // setIsSearching(true);
-    // const debounceQuery = debounce(() => {
-    //   socket.emit("search", val);
-    //   console.log(worker, "worker");
-    // }, 2000);
-    // debounceQuery();
-
-    // if (worker.onmessage) {
-    //   console.log("post message");
-
-    //   worker.postMessage({ type: "search", query: val });
-    // }
   };
 
   const debouncedOnChange = debounce(handleChange, 500);
 
   useEffect(() => {
-    // const newWorker = new Worker(
-    //   new URL("../../../workers/search.js", import.meta.url)
-    // );
-    // console.log(newWorker, "worker");
-
-    // const nData = [
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   // ...patients,
-    //   ...patients,
-    //   ...patients,
-    // ];
-    // newWorker.postMessage({ type: "initialize", data: nData });
-    // newWorker.onmessage = (event) => {
-    //   setFilteredPatients(event.data);
-    //   setIsSearching(false);
-    // };
-    // setWorker(newWorker);
-    // if (socket) {
     socket.on("searchResults", (data) => {
       setIsSearching(false);
       setFilteredPatients(data);
     });
-    // }
-
-    // Cleanup on component unmount
     return () => {
       socket.off("searchResults");
     };
-
-    // return () => newWorker.terminate();
   }, []);
 
   useEffect(() => {

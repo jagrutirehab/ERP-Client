@@ -516,9 +516,6 @@ const CiwaQuestions = () => {
                     <DropdownItem
                       key={idx}
                       onClick={() => {
-                        console.log("Selected:", item);
-                        // dispatch(setTestName(item.name))
-                        // toggle(); // Optional: close modal
                       }}
                     >
                       {item}

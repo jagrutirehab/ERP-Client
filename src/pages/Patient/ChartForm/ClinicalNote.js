@@ -116,7 +116,6 @@ const ClinicalNote = ({
         });
 
         const clinicalNote = response?.payload?.clinicalNote;
-        console.log("Fetched Clinical Note:", clinicalNote);
         setFetchedNote(clinicalNote || null);
       } catch (error) {
         console.error("Error fetching OPD Prescription:", error);

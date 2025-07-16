@@ -1,16 +1,13 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { differenceInMinutes, format } from "date-fns";
 import { useDispatch } from "react-redux";
 import {
-  addClinicalNote,
   createEditBill,
   createEditChart,
   setBillDate,
   setChartDate,
   setTotalAmount,
   togglePrint,
-  updateClinicalNote,
   viewPatient,
 } from "../../../store/actions";
 import {
@@ -33,16 +30,10 @@ const EventInfo = ({
   const meetingId = data?.meetingId;
   const doctorName = data?.doctor?.name;
   const userType = "doctor";
-  console.log(data, "data");
   return (
     <React.Fragment>
       <div>
         <div className="d-flex justify-content-end align-items-center">
-          {/* {!data?.isCancelled && (
-          <button type="button" className="btn btn-light btn-sm">
-            <i className="ri-file-copy-line"></i>
-          </button>
-        )} */}
           {!data?.isCancelled && (
             <>
               {meetingId ? (
@@ -90,11 +81,6 @@ const EventInfo = ({
           )}
         </div>
         <div className="patient?-profile">
-          {/* <Button
-        id='profilePopover'
-        type='button'
-        className='p-0 btn-light me-3 rounded-circle shadow-none'
-      > */}
           <img
             className="rounded-circle avatar-smm me-2 header-profile-user"
             src={
@@ -103,7 +89,6 @@ const EventInfo = ({
             }
             alt="Patient Avatar"
           />
-          {/* </Button> */}
           <div>
             <h5 className="font-semi-bold text-capitalize font-size-16">
               <Link
@@ -126,18 +111,6 @@ const EventInfo = ({
             </h5>
             <div className="font-size-14">
               {data?.patient?.gender && <span>{data.patient.gender}</span>}
-              {/* {data?.patient?.gender && data?.patient?.dateOfBirth && (
-                <span className="ms-2 me-2">|</span>
-              )}
-              {data?.patient?.dateOfBirth && (
-                <>
-                  <span>
-                    {format(new Date(data.patient.dateOfBirth), "d MMM yyyy")}
-                  </span>
-                </>
-              )} */}
-              {/* <span>|</span>
-            <span>Blood Group</span> */}
             </div>
           </div>
         </div>
@@ -168,12 +141,6 @@ const EventInfo = ({
             )}
           </div>
         </div>
-        {/* <div>
-        <h5 className="font-semi-bold mt-3 text-capitalize font-size-16">
-          Medical History
-        </h5>
-        <p className="text-muted">Heart Disease</p>
-      </div> */}
         <div className="d-flex justify-content-end mt-3">
           {data?.chart && data?.doctor?.role === "COUNSELLOR" ? (
             <>

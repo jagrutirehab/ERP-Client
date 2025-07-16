@@ -1,33 +1,21 @@
 import axios from "axios";
 import { api } from "../config";
 import history from "../Routes/HistoryRoute";
-
-console.log(api, "api");
-
-// default
+import { toast } from "react-toastify";
 axios.defaults.baseURL = api.API_URL;
-// content type
 axios.defaults.headers.post["Content-Type"] = "application/json";
 axios.defaults.withCredentials = "include";
-
-// content type
 const authUser = localStorage.getItem("authUser");
-console.log("🔍 Auth user from localStorage:", authUser);
-
 const token = authUser ? JSON.parse(authUser).token : null;
-console.log("🔑 Token from localStorage:", token ? "Found" : "Not found");
 
 if (token) {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
-  console.log("✅ Authorization header set");
 } else {
-  console.log("⚠️ No token found, Authorization header not set");
+  toast.error("⚠️ No token found, Authorization header not set");
 }
 
-// intercepting to capture errors
 axios.interceptors.response.use(
   function (response) {
-    console.log("✅ API Response:", response.config.url, response.status);
     return response.data ? response.data : response;
   },
   function (error) {
@@ -37,24 +25,7 @@ axios.interceptors.response.use(
       data: error.response?.data,
       logout: error?.response?.data?.logout,
     });
-
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // let message;
-    // switch (error.status) {
-    //   case 500:
-    //     message = "Internal Server Error";
-    //     break;
-    //   case 401:
-    //     message = "Invalid credentials";
-    //     break;
-    //   case 404:
-    //     message = "Sorry! the data you are looking for could not be found";
-    //     break;
-    //   default:
-    //     message = error.message || error;
-    // }
     if (error?.response?.data?.logout) {
-      console.log("🚫 Logout flag detected, redirecting to /logout");
       history.replace("/logout");
     }
     return Promise.reject(
@@ -62,18 +33,11 @@ axios.interceptors.response.use(
     );
   }
 );
-/**
- * Sets the default authorization
- * @param {*} token
- */
 const setAuthorization = (token) => {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 };
 
 class APIClient {
-  /**
-   * Fetches data from given url
-   */
   get = (url, params) => {
     let response;
 

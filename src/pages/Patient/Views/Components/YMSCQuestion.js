@@ -363,7 +363,7 @@ const YMSCQuestion = () => {
                                 </DropdownToggle>
                                 <DropdownMenu flip={false}>
                                     {["English"].map((item, idx) => (
-                                        <DropdownItem key={idx} onClick={() => console.log("Selected:", item)}>
+                                        <DropdownItem key={idx}>
                                             {item}
                                         </DropdownItem>
                                     ))}

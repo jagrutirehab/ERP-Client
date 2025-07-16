@@ -42,7 +42,6 @@ const DashboardEcommerce = ({
   const handleSelectCenter = (e) => {
     const selectedId = e.target.value;
     setSelectedCenterId(selectedId);
-    console.log("Selected Center ID:", selectedId);
   };
   useEffect(() => {
     const authUser = localStorage.getItem("authUser");
@@ -102,99 +101,6 @@ const DashboardEcommerce = ({
     <React.Fragment>
       <div className="page-content">
         <Container fluid></Container>
-        {/* {access && (
-          <>
-            <div className="d-flex align-items-center justify-content-end gap-4">
-              <div className="w-25">
-                <PatientFilter
-                  selectedOptions={selectedOptions}
-                  setSelectedOptions={setSelectedOptions}
-                />
-              </div>
-              <Header reportDate={date} setReportDate={setDate} />
-            </div>
-            {loading ? (
-              <Placeholder />
-            ) : (
-              <div>
-                <div className="timeline">
-                  {(logs || []).map((item, idx) => (
-                    <React.Fragment key={idx}>
-                      {item.patient ? (
-                        <Link
-                          onClick={() => {
-                            dispatch(viewPatient(item.patient));
-                            // dispatch(
-                            //   setTotalAmount({
-                            //     totalPayable: 0,
-                            //     totalAdvance: 0,
-                            //   })
-                            // );
-                          }}
-                          to={`/patient/${item.patient?._id}`}
-                        >
-                          <TimelineRight data={item}>
-                            <h6 className="display-6 fs-14 text-info">
-                              {item.center?.map((cn) => cn?.title).join(", ") ||
-                                ""}
-                            </h6>
-                            <h6 className="display-6 fs-14">
-                              {item.patient?.name || ""}
-                              <span className="text-success">
-                                {` ${item.patient?.id?.prefix || ""}${
-                                  item.patient?.id?.value || ""
-                                }`}
-                              </span>
-                            </h6>
-                          </TimelineRight>
-                        </Link>
-                      ) : (
-                        <TimelineRight data={item}>
-                          <h6 className="display-6 fs-14 text-info">
-                            {item.center?.map((cn) => cn?.title).join(", ") ||
-                              ""}
-                          </h6>
-                          <h6 className="display-6 fs-14">
-                            {item.patient?.name || ""}
-                            <span className="text-success">
-                              {` ${item.patient?.id?.prefix || ""}${
-                                item.patient?.id?.value || ""
-                              }`}
-                            </span>
-                          </h6>
-                        </TimelineRight>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )} */}
-        {/* <PatientInfo />
-         */}
-
-        {/* category wise data table
- <div>
-      <select onChange={handleSelectChange} value={selectedComponent}>
-        <option value="">Select Component</option>
-        <option value="tableData">OPD Data Table</option>
-        <option value="admittedPatient">Admitted Patient Table</option>
-        <option value="DischargePatient">Discharge Patient Table</option>
-        <option value="InvoiceAmount">Invoice Amount</option>
-        <option value="AdvanceAmount">Advance Amount</option>
-        <option value="occupiedBed">Occupied Bed</option>
-      </select>
-
-      <div>
-        {selectedComponent === 'tableData' && <TableData />}
-        {selectedComponent === 'admittedPatient' && <AdmitPatientsTable />}
-        {selectedComponent === 'DischargePatient' && <DischargePatient />}
-        {selectedComponent === 'InvoiceAmount' && <InvoiceAmount />}
-        {selectedComponent === 'AdvanceAmount' && <AdvanceAmount />}
-        {selectedComponent === 'occupiedBed' && <OccupiedBed />}
-      </div>
-    </div> */}
         <label htmlFor="centerSelect" className="form-label fw-semibold">
           Select a Center
         </label>
@@ -235,8 +141,6 @@ DashboardEcommerce.prototype = {
   isFormOpen: PropTypes.bool,
 };
 const mapStateToProps = (state) => {
-  console.log("Redux State", state); // ✅ Valid here
-
   return {
     user: state.User.user,
     pageAccess: state.User.user.pageAccess.pages,

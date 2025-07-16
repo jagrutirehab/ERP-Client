@@ -36,7 +36,6 @@ const Offcanvas = ({ admissions, profile }) => {
   };
 
   const patient = profile?.data;
-  console.log(patient, "patient");
 
   const admission = (admissions || []).find(
     (admission) => admission._id === patient?.addmission._id

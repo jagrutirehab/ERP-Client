@@ -57,8 +57,6 @@ const PatientTopbar = ({
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
 
-  console.log(admissions, "admissions");
-
   const admission = admissions.find(
     (admission) => admission._id === patient.addmission._id
   );
@@ -114,8 +112,6 @@ const PatientTopbar = ({
   const toggleSettings = () => {
     setsettings_Menu(!settings_Menu);
   };
-
-  console.log(admission);
 
   return (
     <React.Fragment>
@@ -181,32 +177,6 @@ const PatientTopbar = ({
             </Col>
             <Col sm={7} xs={4}>
               <ul className="list-inline user-chat-nav text-end mb-0">
-                {/* <li className="list-inline-item m-0">
-                  <div
-                    id="patient-discharge"
-                    className="form-check form-switch form-switch-danger mb-3"
-                  >
-                    <input
-                      role="switch"
-                      id="SwitchCheck5"
-                      type="checkbox"
-                      className="form-check-input form-check-input"
-                      // checked=""
-                    />
-                    <label
-                      htmlFor="SwitchCheck5"
-                      className="form-check-label form-label"
-                    ></label>
-                  </div>
-                  <UncontrolledTooltip
-                    color="danger"
-                    placement="bottom"
-                    target="patient-discharge"
-                  >
-                    Patient Discharge Status
-                  </UncontrolledTooltip>
-                </li> */}
-
                 <li
                   id="patient-psychologist"
                   className="list-inline-item m-0 d-none d-md-inline"

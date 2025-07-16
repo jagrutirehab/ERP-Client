@@ -177,10 +177,6 @@ const bookingSlice = createSlice({
       const findIndex = state.data?.findIndex(
         (_) => _._id === payload.appointment
       );
-      console.log(
-        { findIndex, payload, data: state.data, event: state.event },
-        "setEventChart"
-      );
 
       if (findIndex >= 0) {
         state.data[findIndex].chart = payload.chart;

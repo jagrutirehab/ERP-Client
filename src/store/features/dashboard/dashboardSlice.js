@@ -12,9 +12,6 @@ export const fetchDashboardAnalytics = createAsyncThunk(
   async (data, { dispatch, rejectWithValue }) => {
     try {
       const response = await getDashboardAnalytics(data);
-
-      console.log(response, "response of dashboard analytics");
-
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));

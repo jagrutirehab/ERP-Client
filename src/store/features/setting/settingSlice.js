@@ -269,9 +269,6 @@ export const fetchDoctorSchedule = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getDoctorSchedule(data);
-
-      console.log(response, "doctor schedule");
-
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.response }));

@@ -30,7 +30,6 @@ export const fetchDBLogs = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await getDBLogs(params);
-      console.log(response, "db logs response");
       return response;
     } catch (error) {
       return rejectWithValue(error.message);

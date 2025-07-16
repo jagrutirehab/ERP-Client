@@ -61,17 +61,17 @@ export const generateTimes = ({
   const start =
     startHour > 0
       ? setMinutes(
-        setHours(setSeconds(new Date(date), 0), startHour),
-        startMinutes + 15 || 0
-      )
+          setHours(setSeconds(new Date(date), 0), startHour),
+          startMinutes + 15 || 0
+        )
       : startOfDay(new Date(date));
 
   const end =
     endHour > 0
       ? setMinutes(
-        setHours(setSeconds(new Date(date), 0), endHour),
-        endMinutes - 15 || 0
-      )
+          setHours(setSeconds(new Date(date), 0), endHour),
+          endMinutes - 15 || 0
+        )
       : endOfDay(new Date(date));
 
   const times = [];
@@ -281,8 +281,9 @@ const ScheduleRow = memo(
             className="mt-auto"
           >
             <i
-              className={`${idx === 0 ? "ri-eraser-line" : "ri-close-circle-line"
-                } font-size-20 mt-auto`}
+              className={`${
+                idx === 0 ? "ri-eraser-line" : "ri-close-circle-line"
+              } font-size-20 mt-auto`}
             ></i>
           </Button>
         </Col>
@@ -358,18 +359,9 @@ const Schedule = ({
   userSchedule,
   weeklySchedule,
 }) => {
-  console.log(userSchedule, "user schedule");
-
-  // const { schedule: userSchedule } = useSelector((state) => ({
-  //   schedule: state.User.schedule,
-  // }));
-
-  // const [holidays, setHolidays] = useState([]);
-  // const [workingSchedule, setWorkingSchedule] = useState([]);
   const dispatch = useDispatch();
   const [toggled, setToggled] = useState(false);
-  const [apiFlag, setApiFlag] = useState(false)
-
+  const [apiFlag, setApiFlag] = useState(false);
 
   const [tab, setTab] = useState(0);
   const [scheduleTab, setScheduleTab] = useState(0);
@@ -386,15 +378,11 @@ const Schedule = ({
     ],
   });
 
-
-
   useEffect(() => {
     if (sessionPricing) {
       setPricing(sessionPricing);
     }
   }, [sessionPricing]);
-
-  console.log(sessionPricing, "session pricing");
 
   const date = new Date();
 
@@ -425,10 +413,10 @@ const Schedule = ({
               workingSchedule: d.workingSchedule.map((sch, j) =>
                 j === scheduleIndex
                   ? {
-                    ...sch,
-                    ...(value === "ONLINE" && { center: null }),
-                    [field]: value,
-                  }
+                      ...sch,
+                      ...(value === "ONLINE" && { center: null }),
+                      [field]: value,
+                    }
                   : sch
               ),
             };
@@ -445,18 +433,18 @@ const Schedule = ({
       prevDates.map((d, i) =>
         i === dateIndex
           ? {
-            ...d,
-            workingSchedule: [
-              ...d.workingSchedule,
-              {
-                id: uuid(),
-                type: "",
-                startTime: "",
-                endTime: "",
-                center: "",
-              },
-            ],
-          }
+              ...d,
+              workingSchedule: [
+                ...d.workingSchedule,
+                {
+                  id: uuid(),
+                  type: "",
+                  startTime: "",
+                  endTime: "",
+                  center: "",
+                },
+              ],
+            }
           : d
       )
     );
@@ -467,24 +455,24 @@ const Schedule = ({
       prevDates.map((date, i) =>
         i === dateIndex
           ? {
-            ...date,
-            workingSchedule:
-              scheduleIndex === 0
-                ? date.workingSchedule.map((_, idx) =>
-                  idx === scheduleIndex
-                    ? {
-                      id: uuid(),
-                      type: "",
-                      startTime: "",
-                      endTime: "",
-                      center: "",
-                    }
-                    : _
-                )
-                : date.workingSchedule.filter(
-                  (_, idx) => idx !== scheduleIndex
-                ),
-          }
+              ...date,
+              workingSchedule:
+                scheduleIndex === 0
+                  ? date.workingSchedule.map((_, idx) =>
+                      idx === scheduleIndex
+                        ? {
+                            id: uuid(),
+                            type: "",
+                            startTime: "",
+                            endTime: "",
+                            center: "",
+                          }
+                        : _
+                    )
+                  : date.workingSchedule.filter(
+                      (_, idx) => idx !== scheduleIndex
+                    ),
+            }
           : date
       )
     );
@@ -553,7 +541,7 @@ const Schedule = ({
             return (
               val.date &&
               format(new Date(val.date), "dd MMM yyyy") ===
-              format(new Date(sch.date), "dd MMM yyyy")
+                format(new Date(sch.date), "dd MMM yyyy")
             );
           } //new Date(val.date).toISOString().split("T")[0] === schDate
         );
@@ -606,30 +594,25 @@ const Schedule = ({
     Option: Option,
   };
 
-
   useEffect(() => {
     if (doctor) {
-      setToggled(doctor?.isHideFromSearch)
+      setToggled(doctor?.isHideFromSearch);
     }
-  }, [doctor])
+  }, [doctor]);
   const handleUserHide = async (e) => {
     if (!doctor) return;
     const newStatus = e.target.checked;
     setToggled(newStatus);
 
     try {
-      const result = await dispatch(
+      await dispatch(
         markedUserActiveOrInactive({
           userId: doctor._id,
         })
       ).unwrap();
-
-      // ✅ API call succeeded
-      console.log("Update success:", result);
-      setApiFlag(!apiFlag) // or show a toast/snackbar here
+      setApiFlag(!apiFlag); // or show a toast/snackbar here
     } catch (err) {
       console.error("Update failed:", err);
-
     }
   };
 
@@ -662,7 +645,10 @@ const Schedule = ({
           </div>
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex gap-2">
-              <span className="text-black" style={{fontSize:'16px',fontWeight:700}}>
+              <span
+                className="text-black"
+                style={{ fontSize: "16px", fontWeight: 700 }}
+              >
                 Website Listing:
               </span>
               <FormGroup switch>
@@ -671,17 +657,15 @@ const Schedule = ({
                   id="activeSwitch"
                   checked={!toggled}
                   style={{
-                    boxShadow: 'none',
-                    outline: 'none',
-                    border: 'none',
-                    height:'18px',
-                    width:'40px'
+                    boxShadow: "none",
+                    outline: "none",
+                    border: "none",
+                    height: "18px",
+                    width: "40px",
                   }}
                   onChange={(e) => handleUserHide(e)}
                 />
-                <Label for="activeSwitch" check>
-               
-                </Label>
+                <Label for="activeSwitch" check></Label>
               </FormGroup>
             </div>
             <button type="submit" className="btn btn-secondary btn-sm">

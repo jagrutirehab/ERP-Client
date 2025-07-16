@@ -112,39 +112,19 @@ export const addPrescription = createAsyncThunk(
           message: "Prescription Saved Successfully",
         })
       );
-
-      console.log("pass 1");
-      //FOR OPD PRESCRIPTION
       const payload = response?.payload;
       const patient = response?.patient;
       const appointment = response?.appointment;
       const doctor = response?.doctor;
-      console.log("pass 2");
       if (data?.type === OPD) {
-        console.log({ payload, appointment, patient });
         dispatch(setEventChart({ chart: payload, appointment, patient }));
-
-        console.log("pass 2 A");
-        console.log({ patient });
-
         dispatch(viewPatient(patient));
-        console.log({ payload, patient, doctor });
-
-        console.log("pass 2 B");
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
-        console.log("pass 2 C");
       }
-
-      console.log("pass 3");
       if (response.medicines?.length)
         localStorage.setItem("medicines", JSON.stringify(response.medicines));
-
-      console.log("pass 4");
       dispatch(setMedicines(response.medicines));
-
-      console.log("pass 5");
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
-      console.log("pass 6");
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -745,12 +725,7 @@ export const chartSlice = createSlice({
       state.chartDate = payload;
     },
     setChartAdmission: (state, { payload }) => {
-      console.log(payload, "payload <<<<<<<<<<<<<<<<<<<<");
-
       const index = state.data?.findIndex((d) => d._id === payload._id);
-
-      console.log(index, "index <<<<<<<<<<<<<<<<<<<<");
-
       state.data[index] = payload;
     },
     // resetChartForm: (state, { payload }) => {

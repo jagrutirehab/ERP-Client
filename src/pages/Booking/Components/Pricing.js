@@ -214,30 +214,18 @@ const Pricing = ({
 
   const handleSubmit = (e) => {
     if (sessionPricing) {
-      const res = dispatch(
+      dispatch(
         updateUserSessionPricing({
           userId: doctor?._id,
           sessionPricing: pricing,
         })
       );
-      console.log(res, "res");
-
-      // if (res) {
-      //   toggle();
-      // }
     } else {
-      const res = dispatch(
+      dispatch(
         addUserSessionPricing({ sessionPricing: pricing, userId: doctor?._id })
       );
-      console.log(res, "res");
-
-      // if (res) {
-      //   toggle();
-      // }
     }
   };
-
-  console.log(pricing, "pricing");
 
   return (
     <React.Fragment>

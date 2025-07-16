@@ -13,7 +13,6 @@ const PatientInfo = ({ data, loading, centerAccess }) => {
   useEffect(() => {
     // Initial fetch with current date range
     if (dateRange[0] && dateRange[1]) {
-      console.log("run fetch");
 
       dispatch(
         fetchDashboardAnalytics({
@@ -30,8 +29,6 @@ const PatientInfo = ({ data, loading, centerAccess }) => {
       setDateRange(selectedDates);
     }
   };
-
-  console.log(data, "data");
 
   return (
     <React.Fragment>

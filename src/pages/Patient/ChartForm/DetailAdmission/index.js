@@ -120,9 +120,6 @@ const DetailAdmission = ({
   const [formStep, setFormStep] = useState(CONSET_FILES);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
-
-  console.log(type, "type");
-
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -305,8 +302,6 @@ const DetailAdmission = ({
       }
     },
   });
-
-  // console.log(consentFiles[0]?.file, "consent files");
 
   useEffect(() => {
     if (!detailAdmissionForm) {

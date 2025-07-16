@@ -477,7 +477,6 @@ export const billSlice = createSlice({
         state.loading = true;
       })
       .addCase(addInvoice.fulfilled, (state, { payload }) => {
-        console.log(payload, "payload");
 
         if (payload?.bill?.type === OPD) {
           state.opdData = [payload.bill, ...state.opdData];

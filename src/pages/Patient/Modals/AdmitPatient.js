@@ -42,8 +42,6 @@ const AdmitPatient = ({
     ? format(new Date(patient.dateOfBirth), "yyyy-MM-dd")
     : "";
 
-  console.log({ patient, data });
-
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -120,14 +118,8 @@ const AdmitPatient = ({
   });
 
   useEffect(() => {
-    // if (data) {
-    //   setStep(2);
-    // } else {
     setStep(1);
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
-  // console.log(data, "data");
 
   const handleChange = (e, fieldType) => {
     if (fieldType === "file") {
@@ -314,8 +306,6 @@ const AdmitPatient = ({
             );
 
             if (step1Errors.length > 0 || emptyFields.length > 0) {
-              console.log("Validation errors:", step1Errors);
-              console.log("Empty fields:", emptyFields);
               return; // Don't proceed to next step
             }
 
@@ -513,11 +503,6 @@ const AdmitPatient = ({
               step2Errors.length > 0 ||
               step2EmptyFields.length > 0
             ) {
-              console.log("Cannot submit: Validation errors or empty fields");
-              console.log("Step 1 errors:", step1Errors);
-              console.log("Step 1 empty fields:", step1EmptyFields);
-              console.log("Step 2 errors:", step2Errors);
-              console.log("Step 2 empty fields:", step2EmptyFields);
               return;
             }
 
@@ -577,9 +562,6 @@ const AdmitPatient = ({
               );
 
               if (step1Errors.length > 0 || emptyFields.length > 0) {
-                console.log(
-                  "Cannot proceed: Validation errors or empty fields"
-                );
                 return; // Don't proceed to step 2
               }
             }

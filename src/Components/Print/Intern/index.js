@@ -1,14 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
-
-//bills
 import Receipt from "./Receipt";
 import RenderWhen from "../../Common/RenderWhen";
 import { RECEIPT } from "../../constants/intern";
 
 const Bills = ({ bill, center, intern }) => {
-  console.log("in intern bill print");
-
   return (
     <React.Fragment>
       <RenderWhen isTrue={bill.bill === RECEIPT}>

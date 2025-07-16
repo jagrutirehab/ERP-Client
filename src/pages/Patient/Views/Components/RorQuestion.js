@@ -46,9 +46,6 @@ const RorQuestion = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Submitted Answers:", questions);
-        console.log("Summary:", summary);
-        console.log("Files:", selectedFiles);
         alert("Form submitted! Check console for values.");
     };
 

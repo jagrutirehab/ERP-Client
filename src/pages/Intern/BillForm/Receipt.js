@@ -73,10 +73,6 @@ const InternReceipt = ({
       totalAmount: Yup.number().moreThan(0),
     }),
     onSubmit: (values) => {
-      console.log(values, "values");
-      console.log(paymentModes, "paymentModes");
-      console.log(totalAmount, "totalAmount");
-
       if (editData) {
         dispatch(
           editInternReceipt({

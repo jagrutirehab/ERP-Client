@@ -34,8 +34,6 @@ const Timeline = ({ timeline, patient }) => {
   const [dropdown, setDropdown] = useState(false);
   const toggleFilter = () => setDropdown(!dropdown);
 
-  console.log(timeline, "timeline ");
-
   return (
     <React.Fragment>
       <div>

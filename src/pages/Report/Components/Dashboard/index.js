@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import ReactECharts from "echarts-for-react";
 import { connect, useDispatch } from "react-redux";
 import { fetchDashboardAnalytics } from "../../../../store/actions";
 import MonthTillDate from "../../../DashboardEcommerce/DashBoardTable/MonthTillDate";
@@ -20,8 +19,6 @@ const Dashboard = ({ centers, data, loading }) => {
     const centerId = event.target.value;
     setSelectedCenterId(centerId);
   };
-
-  console.log(data, "data");
 
   return (
     <React.Fragment>

@@ -38,6 +38,7 @@ import {
 } from "../../Components/constants/user";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { addUserProfilePicture } from "../../store/actions";
+import { toast } from "react-toastify";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -132,7 +133,7 @@ const UserProfile = () => {
                                 dispatch(addUserProfilePicture(formData));
                               },
                               error(err) {
-                                console.log(err.message);
+                                toast.error(err.message);
                               },
                             });
                           }}

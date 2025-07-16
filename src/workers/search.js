@@ -3,7 +3,6 @@ import Fuse from "fuse.js";
 let fuse;
 onmessage = function (e) {
   const { type, data, query } = e.data;
-  // console.log(e.data, "data");
 
   if (type === "initialize") {
     const fuseOptions = {
@@ -24,8 +23,6 @@ onmessage = function (e) {
     };
     fuse = new Fuse(data, fuseOptions);
   } else if (type === "search" && fuse) {
-    console.log("search it now data: ", e.data, "fuse: ", fuse);
-
     const result = fuse.search(query);
     postMessage(result);
   }

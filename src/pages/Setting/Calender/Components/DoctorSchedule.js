@@ -133,13 +133,6 @@ const SessionTypeSelect = ({
   ];
 
   const handleTypeChange = (newType) => {
-    // Clear previous error
-    // setSessionErrors((prev) => {
-    //   const { [currentIndex]: _, ...rest } = prev;
-    //   return rest;
-    // });
-
-    // Check for overlaps with the new type
     const currentSession = sessions[currentIndex];
     if (currentSession.startTime && currentSession.endTime) {
       const hasOverlap = validateSessionOverlap(
@@ -150,13 +143,7 @@ const SessionTypeSelect = ({
         newType
       );
 
-      // console.log(hasOverlap, "hasOverlap");
-
       if (hasOverlap) {
-        // setSessionErrors((prev) => ({
-        //   ...prev,
-        //   [`${currentIndex}`]: `This time slot overlaps with another ${newType.toLowerCase()} session`,
-        // }));
         return;
       }
     }
@@ -231,10 +218,6 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
   });
   const [sessionErrors, setSessionErrors] = useState({});
   const [error, setError] = useState("");
-
-  console.log(weeklySchedule, "weekly schedule");
-
-  // console.log(sessionErrors, "session errors");
 
   const handleChange = (e, idx) => {
     let list = [...workingSchedule];
@@ -355,32 +338,13 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
       return;
     }
 
-    console.log(workingSchedule, "working schedule");
-
     if (!checkDays) {
-      // if (weeklySchedule?.length > 0)
-      //   dispatch(
-      //     updateUserWeeklySchedule({ workingSchedule, user: doctor?._id })
-      //   );
-      // else
       dispatch(addUserWeeklySchedule({ workingSchedule, user: doctor?._id }));
-      // setWorkingSchedule([]);
-      // toggle();
     }
   };
 
-  // console.log(weeklySchedule, "working schedule");
-
-  // console.log(workingSchedule, "working schedule");
-
   return (
     <React.Fragment>
-      {/* <CustomModal
-        size={"xl"}
-        isOpen={doctor.isOpen}
-        // toggle={toggle}
-        title={"Doctor Schedule"}
-      > */}
       <Form
         onSubmit={(e) => {
           e.preventDefault();

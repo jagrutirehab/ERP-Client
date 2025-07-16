@@ -29,7 +29,6 @@ const MyAgGrid = () => {
   const [rowData, setRowData] = useState([]);
 
   useEffect(() => {
-    console.log(data, " data")
     if (!data?.dischargePatients?.length) return;
   
     const monthYearSet = new Set();

@@ -201,10 +201,6 @@ export const editAdmission = createAsyncThunk(
           message: "Admission Updated Successfully!",
         })
       );
-
-      console.log(response, "response");
-
-      //update the admission renderd in chart and bill section bcz it in chart and bill slice.
       dispatch(updateChartAdmission(response.payload));
       dispatch(updateBillAdmission(response.payload));
       dispatch(setPatient(response.patient));
@@ -228,8 +224,6 @@ export const editAdmissionAssignment = createAsyncThunk(
           message: "Doctor and Psychologist Updated Successfully!",
         })
       );
-
-      console.log(response, "response -------------------------");
       dispatch(setChartAdmission(response.payload));
       dispatch(setBillAdmission(response.payload));
 

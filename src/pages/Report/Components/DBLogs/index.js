@@ -18,44 +18,6 @@ import DBLogsTable from "./components/DBLogsTable";
 
 const DBLogs = ({ data, loading, pagination }) => {
   const dispatch = useDispatch();
-  // Mock data for demonstration
-  // const [logs] = useState([
-  //   {
-  //     _id: "1",
-  //     action: "delete",
-  //     patientId: "P001",
-  //     idType: "ID_TYPE_001",
-  //     source: "changeStream",
-  //     note: "Patient record deleted",
-  //     createdAt: new Date("2024-01-15T10:30:00"),
-  //     updatedFields: {},
-  //     removedFields: ["name", "email"],
-  //   },
-  //   {
-  //     _id: "2",
-  //     action: "update",
-  //     patientId: "P002",
-  //     idType: "ID_TYPE_002",
-  //     source: "changeStream",
-  //     note: "Patient information updated",
-  //     createdAt: new Date("2024-01-15T09:15:00"),
-  //     updatedFields: { name: "John Doe", email: "john@example.com" },
-  //     removedFields: [],
-  //   },
-  //   {
-  //     _id: "3",
-  //     action: "create",
-  //     patientId: "P003",
-  //     idType: "ID_TYPE_003",
-  //     source: "changeStream",
-  //     note: "New patient created",
-  //     createdAt: new Date("2024-01-15T08:45:00"),
-  //     updatedFields: {},
-  //     removedFields: [],
-  //   },
-  // ]);
-
-  // const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -133,8 +95,6 @@ const DBLogs = ({ data, loading, pagination }) => {
         delete params[key];
       }
     });
-
-    console.log("Frontend sending params:", params);
     dispatch(fetchDBLogs(params));
   };
 
@@ -181,8 +141,6 @@ const DBLogs = ({ data, loading, pagination }) => {
         return { color: "secondary", icon: "📝", text: action || "Unknown" };
     }
   };
-
-  console.log(pagination, "pagination");
 
   return (
     <React.Fragment>

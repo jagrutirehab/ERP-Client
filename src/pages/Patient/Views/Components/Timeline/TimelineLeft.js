@@ -1,10 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { format } from "date-fns";
 
 const TimelineLeft = ({ data }) => {
-  console.log(data, "data");
-
   return (
     <React.Fragment>
       <div className="timeline-item left">
@@ -25,10 +22,6 @@ const TimelineLeft = ({ data }) => {
                 ""}
           </h4>
           <h5 className="fs-14">{data.description}</h5>
-          {/* <p className="text-muted">
-            Powerful, clean & modern responsive bootstrap 5 admin template. The
-            maximum file size for uploads in this demo :
-          </p> */}
         </div>
       </div>
     </React.Fragment>

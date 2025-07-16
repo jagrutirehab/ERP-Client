@@ -13,7 +13,6 @@ export const createMeeting = async () => {
 
 export const generateToken = async (meetingId, name, userType) => {
     try {
-        console.log('req hit')
         const response = await axios.post(`${API_BASE_URL}/meeting/generate-token`, {
             meetingId,
             name,

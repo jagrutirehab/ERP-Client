@@ -1,5 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
 import {
   ModuleRegistry,
@@ -7,7 +6,6 @@ import {
   PaginationModule,
   themeQuartz,
 } from "ag-grid-community";
-import { GET_MONTH_TILL_DATE_DATA } from "../../../GraphQL/graphQl-Query/financeQueries";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, PaginationModule]);
@@ -38,49 +36,20 @@ const monthNames = {
 };
 
 const MonthTillDate = ({ centerId, data }) => {
-  // const { data, loading, error } = useQuery(GET_MONTH_TILL_DATE_DATA, {
-  //   variables: { id: centerId },
-  // });
-
-  console.log(data, "data mtd");
-
-  // Progress bar state
-  const [progress, setProgress] = useState(0);
-
-  // useEffect(() => {
-  //   if (loading) {
-  //     setProgress(0);
-  //     const interval = setInterval(() => {
-  //       setProgress((prev) => (prev < 95 ? prev + 1 : 95));
-  //     }, 30);
-
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [loading]);
-
   const { columnDefs, rowData } = useMemo(() => {
     if (!data) return { columnDefs: [], rowData: [] };
-
-    // const tagSource = (records, source) =>
-    //   records.map((section) => ({
-    //     ...section,
-    //     records: section.records.map((r) => ({ ...r, source })),
-    //   }));
     const tagSource = (records, source) => {
       if (!records || !Array.isArray(records)) {
         return [];
       }
 
       return records.map((section) => {
-        console.log(section, "section");
-
         return {
           ...section,
           records: section?.records?.map((r) => ({ ...r, source })) || [],
         };
       });
     };
-    console.log(data.deposit, "deposit mtd");
     const allSections = [
       ...tagSource(data?.opdData ? [data.opdData] : [], "opd"),
       ...tagSource(data?.admitData ? [data.admitData] : [], "admit"),
@@ -121,12 +90,8 @@ const MonthTillDate = ({ centerId, data }) => {
       if (!recordMap[key]) {
         recordMap[key] = { year, month };
       }
-
-      // Add null check before Object.entries
       if (record && typeof record === "object") {
         Object.entries(record).forEach(([k, v]) => {
-          console.log(record, "record");
-
           if (v == null) return;
 
           if (k === "totalPatients") {
@@ -194,33 +159,6 @@ const MonthTillDate = ({ centerId, data }) => {
 
     return { columnDefs, rowData };
   }, [data]);
-
-  // if (loading) {
-  //   return (
-  //     <div
-  //       className="d-flex justify-content-center align-items-center"
-  //       style={{ height: "200px" }}
-  //     >
-  //       <div style={{ width: "50%" }}>
-  //         <div className="progress">
-  //           <div
-  //             className="progress-bar progress-bar-striped progress-bar-animated"
-  //             role="progressbar"
-  //             style={{ width: `${progress}%` }}
-  //             aria-valuenow={progress}
-  //             aria-valuemin="0"
-  //             aria-valuemax="100"
-  //           >
-  //             {progress}%
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  // if (error) return <p>Error loading data</p>;
-
   return (
     <div className="ag-theme-quartz">
       <h1 style={{ textAlign: "center" }}>Month Till Date Table</h1>

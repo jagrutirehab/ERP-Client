@@ -27,8 +27,6 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
     setPaymentModes(newPaymentModes);
   };
 
-  console.log("paymentAccounts >>>>>", paymentAccounts);
-
   return (
     <React.Fragment>
       <div>

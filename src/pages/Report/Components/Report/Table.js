@@ -201,8 +201,6 @@ const Table = ({
       : null,
   ];
 
-  console.log(data);
-
   return (
     <React.Fragment>
       <div>

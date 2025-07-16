@@ -22,7 +22,6 @@ function* searchPatient({ payload }) {
     const patients = yield call(getSearchPatients, payload);
     yield put(searchPatientSuccess(patients));
   } catch (error) {
-    console.log(error, "saga error");
     yield put(searchPatientFail(error));
   }
 }
