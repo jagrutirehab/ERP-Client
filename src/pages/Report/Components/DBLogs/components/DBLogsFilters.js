@@ -50,6 +50,7 @@ const DBLogsFilters = ({
                 <option value="Bill">Bill</option>
                 <option value="Chart">Chart</option>
                 <option value="Center">Center</option>
+                <option value="ssrsTest">SSRS Test</option>
                 <option value="Lead">Lead</option>
                 <option value="Intern">Intern</option>
                 <option value="Addmission">Admission</option>
