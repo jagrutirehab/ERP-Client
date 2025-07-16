@@ -209,6 +209,16 @@ const Bills = ({
             })
           );
         }
+      } else if (bill.bill === REFUND) {
+        dispatch(
+          setTotalAmount({
+            calculatedPayable: 0,
+            calculatedAdvance: calcAdvance,
+            totalPayable,
+            totalAdvance,
+            totalDeposit,
+          })
+        );
       } else {
         dispatch(
           setTotalAmount({

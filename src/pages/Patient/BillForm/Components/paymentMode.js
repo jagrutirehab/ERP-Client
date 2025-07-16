@@ -1,5 +1,5 @@
 import React from "react";
-import { div, Col, Input, Label, Button, FormFeedback } from "reactstrap";
+import { Col, Input, Label, Button, FormFeedback } from "reactstrap";
 import {
   CARD,
   CASH,
@@ -10,7 +10,6 @@ import {
 const PaymentMode = ({
   paymentModes,
   setPaymentModes,
-  payable,
   validation,
 }) => {
   const addPaymentMode = (e) => {
@@ -55,12 +54,10 @@ const PaymentMode = ({
                 Payment Mode <span className="text-danger">*</span>
               </Label>
               <Input
-                // bsSize="sm"
                 className="w-50 pt-1 pb-1 fs-10"
                 size={"1"}
                 name="modeOfPayment"
                 style={{ height: "31px" }}
-                // value={paymentModes?.type || ""}
                 onChange={addPaymentMode}
                 type="select"
               >

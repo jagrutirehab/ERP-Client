@@ -1,9 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Row, Col, Label, Input, Button } from "reactstrap";
-
-//redux
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 import {
   BANK,
   CARD,
@@ -12,8 +10,6 @@ import {
 } from "../../../../Components/constants/patient";
 
 const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
-  const dispatch = useDispatch();
-
   const handleChange = (e) => {
     const idx = e.target.id;
     const prop = e.target.name;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Row, Col, Input } from "reactstrap";
 import { connect } from "react-redux";
@@ -18,36 +18,58 @@ const InvoiceFooter = (props) => {
       ? (parseFloat(props.wholeDiscount.value) / 100) * props.totalCost
       : parseFloat(props.wholeDiscount.value);
 
-  let value = 0;
-  if (props.validation.values.bill === DRAFT_INVOICE) value = props.payable;
+  let initialValue = null;
+  if (props.validation.values.bill === DRAFT_INVOICE)
+    initialValue = props.payable;
   else if (props.type === IPD) {
-    value =
-      props.validation.values.bill === INVOICE
-        ? props.payable
-        : // props.totalAdvance > 0 && props.totalAdvance > props.payable
-          //   ? 0
-          //   : props.totalAdvance < props.payable
-          //   ? props.payable - props.totalAdvance
-          //   : props.payable - props.totalAdvance
-          props.refund;
+    initialValue =
+      props.validation.values.bill === INVOICE ? props.payable : props.refund;
   } else {
-    value = props.payable;
+    initialValue = props.payable;
   }
 
-  // let value = 0;
-  // if (props.validation.values.bill === DRAFT_INVOICE) value = props.payable;
-  // else if (props.type === IPD) {
-  //   value =
-  //     props.validation.values.bill === INVOICE
-  //       ? props.totalAdvance > 0 && props.totalAdvance > props.payable
-  //         ? 0
-  //         : props.totalAdvance < props.payable
-  //         ? props.payable - props.totalAdvance
-  //         : props.payable - props.totalAdvance
-  //       : props.refund;
-  // } else {
-  //   value = props.payable;
-  // }
+  const [amountInput, setAmountInput] = useState(String(initialValue || ""));
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (props.validation?.values?.bill === REFUND) {
+      const refundVal = String(props.refund || "");
+      setAmountInput(refundVal);
+      props.validation.setFieldValue("refund", refundVal);
+    } else {
+      const payableVal = String(props.payable || "");
+      setAmountInput(payableVal);
+      props.validation.setFieldValue("refund", payableVal);
+    }
+    setError("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.validation?.values?.bill, props.refund, props.payable]);
+
+  const handleAmountChange = (e) => {
+    const val = e.target.value;
+
+    if (val === "") {
+      setAmountInput("");
+      setError("");
+      props.validation.setFieldValue("refund", "");
+      return;
+    }
+
+    if (!/^\d{0,7}(\.\d{0,2})?$/.test(val)) return;
+
+    const num = parseFloat(val);
+
+    if (num > props.refund) {
+      const refundStr = String(props.refund);
+      setAmountInput(refundStr);
+      props.validation.setFieldValue("refund", refundStr);
+      setError("Amount exceeds refund limit");
+    } else {
+      setAmountInput(val);
+      props.validation.setFieldValue("refund", val);
+      setError("");
+    }
+  };
 
   return (
     <React.Fragment>
@@ -94,7 +116,9 @@ const InvoiceFooter = (props) => {
           </div>
         </Col>
       </Row>
+
       <div className="w-100 bg-primary mt-3 mb-2" style={{ height: "1px" }} />
+
       <div>
         <Row className="align-items-center justify-content-between">
           <Col xs={12} lg={4}>
@@ -153,48 +177,7 @@ const InvoiceFooter = (props) => {
               </p>
             </div>
           </Col>
-          {/* <Col xs={12} lg={4}>
-            <div className="mt-4 mb-4 m-lg-0">
-              <h6 className="text-muted mt-2 mb-3 fs-10">From Deposit (₹)</h6>
-              <div className="input-group" style={{ width: "150px" }}>
-                <Input
-                  bsSize="sm"
-                  size={1}
-                  type="number"
-                  name="fromDeposit"
-                  disabled={props.totalDeposit === 0} //props.payable === 0 ||
-                  value={props.fromDeposit || ""}
-                  style={{ height: "9px", width: "60px" }}
-                  className="form-control"
-                  onChange={(e) =>
-                    props.setFromDeposit(parseFloat(e.target.value || 0))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.which === 38 || e.which === 40) {
-                      e.preventDefault();
-                    }
-                  }}
-                />
-              </div>
-              <p className="mb-0">
-                {props.totalDeposit < props.fromDeposit ? (
-                  <span className="text-danger font-size-10">
-                    should be less than total deposit
-                  </span>
-                ) : props.fromDeposit > props.grandTotal ? (
-                  <span className="text-danger font-size-10">
-                    should be less than total payable
-                  </span>
-                ) : (
-                  <span>
-                    Remaining: ₹
-                    {(props.totalDeposit - props.fromDeposit)?.toFixed(2) ||
-                      "0.00"}
-                  </span>
-                )}
-              </p>
-            </div>
-          </Col> */}
+
           <RenderWhen isTrue={props.type === OPD}>
             <Col xs={12} lg={4}>
               <PaymentMode
@@ -205,6 +188,7 @@ const InvoiceFooter = (props) => {
               />
             </Col>
           </RenderWhen>
+
           <Col xs={12} lg={4}>
             <div className="w-50 ms-md-auto">
               <div className="fs-10">
@@ -225,13 +209,26 @@ const InvoiceFooter = (props) => {
                   <option value={REFUND}>Refund</option>
                 </Input>
               </div>
+
               <Input
                 bsSize="sm"
                 type="text"
-                value={value}
+                value={amountInput}
                 style={{ height: "30px" }}
                 className="mt-2"
+                onChange={handleAmountChange}
+                disabled={props.validation?.values?.bill !== REFUND}
               />
+              {props.validation?.values?.bill === REFUND && (
+                <div className="font-size-10 mt-1">
+                  <span className="text-muted">
+                    Refund limit: ₹{props.refund.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {error && (
+                <div className="text-danger font-size-10 mt-1">{error}</div>
+              )}
             </div>
           </Col>
         </Row>
