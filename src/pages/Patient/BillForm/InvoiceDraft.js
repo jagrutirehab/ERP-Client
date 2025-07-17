@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Form, FormFeedback } from "reactstrap";
+import { Form, FormFeedback } from "reactstrap";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -106,7 +106,6 @@ const InvoiceDraft = ({
       let tTax = 0;
       let gTotal = 0;
       (invoiceList || []).forEach((item) => {
-        //only add discount to total discount if less than item total cost
         let discount = 0;
         let totalValue =
           item.unit && item.cost

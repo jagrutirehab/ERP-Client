@@ -147,7 +147,7 @@ const Deposit = ({ bill, center, patient }) => {
               <Text>
                 On:{" "}
                 {bill.date
-                  ? format(new Date(bill.date), "dd MMM yyyy hh:mm a")
+                  ? format(new Date(bill.date), "dd MMM yyyy")
                   : ""}
               </Text>
             </View>

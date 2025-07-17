@@ -197,13 +197,13 @@ const PrintHeader = ({ patient, center, bill, admission }) => {
           </Text>
           <Text style={styles.item}>
             <Text style={styles.label}>Date of Admission:</Text>{" "}
-            {formatDateTime(
+            {formatDate(
               admission?.addmissionDate || patient?.addmission?.addmissionDate
             )}
           </Text>
           <Text style={styles.item}>
             <Text style={styles.label}>Date of Discharge:</Text>{" "}
-            {formatDateTime(
+            {formatDate(
               admission?.dischargeDate || patient?.addmission?.dischargeDate
             )}
           </Text>

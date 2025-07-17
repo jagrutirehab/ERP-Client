@@ -209,7 +209,9 @@ const InvoiceFooter = (props) => {
                   <option value={REFUND}>Refund</option>
                 </Input>
               </div>
-
+              {error && (
+                <div className="text-danger font-size-12 mt-1">{error}</div>
+              )}
               <Input
                 bsSize="sm"
                 type="text"
@@ -217,7 +219,11 @@ const InvoiceFooter = (props) => {
                 style={{ height: "30px" }}
                 className="mt-2"
                 onChange={handleAmountChange}
-                disabled={props.validation?.values?.bill !== REFUND}
+                disabled={
+                  props.validation?.values?.bill !== REFUND ||
+                  !props.refund ||
+                  Number.isNaN(props.refund)
+                }
               />
               {props.validation?.values?.bill === REFUND && (
                 <div className="font-size-10 mt-1">
@@ -225,9 +231,6 @@ const InvoiceFooter = (props) => {
                     Refund limit: ₹{props.refund.toFixed(2)}
                   </span>
                 </div>
-              )}
-              {error && (
-                <div className="text-danger font-size-10 mt-1">{error}</div>
               )}
             </div>
           </Col>

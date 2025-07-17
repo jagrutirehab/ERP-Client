@@ -307,7 +307,8 @@ const DuePayment = ({
             // OPD
             {...rest}
           />
-          <SubmitForm {...rest} />
+          {/* <SubmitForm {...rest} /> */}
+          <SubmitForm {...rest} enteredRefundAmount={validation.values.refund} bill={invoiceType} />
         </Form>
       </div>
     </React.Fragment>
