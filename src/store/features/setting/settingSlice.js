@@ -212,7 +212,7 @@ export const addPaymentAccount = createAsyncThunk(
 export const fetchPaymentAccounts = createAsyncThunk(
   "getPaymentAccounts",
   async (
-    { centerIds, page = 1, limit = 10, search = "" },
+    { centerIds, page, limit, search = "" },
     { rejectWithValue, dispatch }
   ) => {
     try {

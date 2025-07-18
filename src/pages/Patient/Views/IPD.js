@@ -55,7 +55,8 @@ const IPDComponent = ({
                   </RenderWhen>
                 </CheckPermission>
                 <h6 className={`display-6 fs-6 mb-0`}>
-                  Total Charts: {addmission.totalCharts}
+                  Total Charts: 
+                  {/* {addmission.totalCharts} */}
                 </h6>
                 <Button
                   onClick={() => {

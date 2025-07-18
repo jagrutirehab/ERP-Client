@@ -221,7 +221,7 @@ export const editBillItem = (data) => api.put(url.EDIT_BILL_ITEM, data);
 export const deleteBillItem = (data) =>
   api.delete(`${url.DELETE_BILL_ITEM}/${data}`);
 //advance payment
-export const getPaymentAccounts = (data, page = 1, limit = 10, search = "") =>
+export const getPaymentAccounts = (data, page, limit, search = "") =>
   api.get(url.GET_PAYMENT_ACCOUNTS, {
     params: {
       centerIds: data,

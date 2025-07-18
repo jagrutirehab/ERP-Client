@@ -210,6 +210,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                   id="apply"
                   onClick={() => {
                     dispatch(changeUserAccess(access));
+                    toggleWebAppDropdown()
                   }}
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
                 >

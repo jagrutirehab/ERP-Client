@@ -7,7 +7,6 @@ import Divider from "../../../../Components/Common/Divider";
 import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
 import { Button, Input } from "reactstrap";
-import RenderWhen from "../../../../Components/Common/RenderWhen";
 import {
   GET_PATIENT_ANALYTICS,
   GET_PATIENT_ANALYTICS_WP,
@@ -119,7 +118,7 @@ const Patient = ({ centerAccess }) => {
 
   useEffect(() => {
     fetchData();
-  }, [page, reportDate, filter, limit]);
+  }, [page, reportDate, filter, limit, centerAccess]);
 
   const generalColumns = [
     {

@@ -4,7 +4,7 @@ import { Input, Label, Button, Form } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./Components/Payment";
 
-//data
+// data
 import {
   ADVANCE_PAYMENT,
   BANK,
@@ -12,17 +12,17 @@ import {
   CASH,
   CHEQUE,
   UPI,
-  IPD,
 } from "../../../Components/constants/patient";
 
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addAdvancePayment,
   createEditBill,
   updateAdvancePayment,
+  fetchPaymentAccounts,
 } from "../../../store/actions";
 
 const AdvancePayment = ({
@@ -37,6 +37,8 @@ const AdvancePayment = ({
   paymentAccounts,
 }) => {
   const dispatch = useDispatch();
+  const userCenters = useSelector((state) => state?.User?.centerAccess);
+  console.log(userCenters);
   const [paymentModes, setPaymentModes] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -54,6 +56,11 @@ const AdvancePayment = ({
       },
     ];
     setPaymentModes(newPaymentModes);
+
+    // Trigger fetchPaymentAccounts if BANK is selected
+    if (value === BANK) {
+        dispatch(fetchPaymentAccounts({centerIds: userCenters}));
+    }
   };
 
   useEffect(() => {
@@ -67,9 +74,7 @@ const AdvancePayment = ({
   const editData = editBillData?.advancePayment;
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
     initialValues: {
       author: author._id,
       patient: patient._id,
@@ -116,7 +121,7 @@ const AdvancePayment = ({
   useEffect(() => {
     if (editBillData) {
       const advancePayment = editBillData.advancePayment;
-      setPaymentModes(advancePayment?.paymentModes);
+      setPaymentModes(advancePayment?.paymentModes || []);
     }
   }, [editBillData]);
 
@@ -128,7 +133,6 @@ const AdvancePayment = ({
           onSubmit={(e) => {
             e.preventDefault();
             validation.handleSubmit();
-            // toggle();
             return false;
           }}
           className="needs-validation"
@@ -146,7 +150,6 @@ const AdvancePayment = ({
                 Mode Of Payment <span className="text-danger">*</span>
               </Label>
               <Input
-                // bsSize='sm'
                 className="w-100"
                 size={"sm"}
                 name="modeOfPayment"
@@ -162,12 +165,14 @@ const AdvancePayment = ({
               </Input>
             </div>
           </div>
+
           <div className="mt-3">
             <Payment
               paymentModes={paymentModes}
               setPaymentModes={setPaymentModes}
             />
           </div>
+
           <div className="mb-3 w-50 mt-5">
             <Label>Payment Against Bill Number</Label>
             <Input
@@ -179,6 +184,7 @@ const AdvancePayment = ({
               onChange={validation.handleChange}
             />
           </div>
+
           <div className="mt-3 w-75">
             <Label>Remarks</Label>
             <Input
@@ -188,6 +194,7 @@ const AdvancePayment = ({
               onChange={validation.handleChange}
             />
           </div>
+
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
               <Button
@@ -205,7 +212,6 @@ const AdvancePayment = ({
               </Button>
               <Button size="sm" type="submit">
                 Save
-                {/* {chart ? "Update" : "Save"} */}
               </Button>
             </div>
           </div>
