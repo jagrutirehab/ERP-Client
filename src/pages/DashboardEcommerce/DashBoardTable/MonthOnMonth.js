@@ -60,7 +60,9 @@ const MonthOnMonth = ({ centerId, data }) => {
       ...tagSource([data.deposit] || [], "deposit"),
     ];
 
-    const allRecords = allSections.flatMap((section) => section.records);
+    const allRecords = allSections.flatMap((section) => {
+      return section?.records || [];
+    });
 
     const recordMap = {};
 
