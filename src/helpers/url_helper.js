@@ -223,10 +223,13 @@ export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER
 export const ADD_OFFER = "/offer/addoffer";
-export const GET_OFFER_LIST =  '/offer/get-offer-list';
-export const UPDATE_OFFER ='/offer/update'
+export const GET_OFFER_LIST = "/offer/get-offer-list";
+export const UPDATE_OFFER = "/offer/update";
 
 //TAX
 export const ADD_TAX = "/tax/addtax";
-export const GET_TAX_LIST =  '/tax/get-tax-list';
-export const UPDATE_TAX = '/tax/update';
+export const GET_TAX_LIST = "/tax/get-tax-list";
+export const UPDATE_TAX = "/tax/update";
+
+//HUBSPOT
+export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";

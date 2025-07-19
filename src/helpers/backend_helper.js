@@ -670,16 +670,13 @@ export const updateInternReceipt = (data) => {
   return api.put(url.UPDATE_INTERN_RECEIPT, data);
 };
 
-
 export const add_offer_helper = (data) =>
   api.create(url.ADD_OFFER, data, {
     headers: { "Content-Type": "application/json" },
   });
 
-  export const getOfferList = ({ page = 1, limit = 10, search = "" } = {}) => {
-  return api.get(url.GET_OFFER_LIST, 
-    { page, limit, search },
-  );
+export const getOfferList = ({ page = 1, limit = 10, search = "" } = {}) => {
+  return api.get(url.GET_OFFER_LIST, { page, limit, search });
 };
 
 export const updateOffer = (data) => {
@@ -693,14 +690,22 @@ export const add_tax_helper = (data) =>
     headers: { "Content-Type": "application/json" },
   });
 
-   export const getTaxList = ({ page = 1, limit = 10, search = "" } = {}) => {
-  return api.get(url.GET_TAX_LIST, 
-    { page, limit, search },
-  );
+export const getTaxList = ({ page = 1, limit = 10, search = "" } = {}) => {
+  return api.get(url.GET_TAX_LIST, { page, limit, search });
 };
 
 export const updateTax = (data) => {
   return api.put(url.UPDATE_TAX, data, {
     headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const getHubspotContacts = ({
+  page = 1,
+  limit = 10,
+  search = "",
+} = {}) => {
+  return api.get(url.GET_HUBSPOT_CONTACTS, {
+    params: { page, limit, search },
   });
 };

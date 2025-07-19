@@ -235,7 +235,11 @@ export {
 
 //offer
 
-export {addOffer, fetchOfferList, updateOfferFunction} from "./features/offer/offerSlice"
+export {
+  addOffer,
+  fetchOfferList,
+  updateOfferFunction,
+} from "./features/offer/offerSlice";
 
 // Setting
 export {
@@ -265,6 +269,14 @@ export {
   fetchLeadAnalytics,
   fetchOPDAnalytics,
 } from "./features/report/reportSlice";
+
+//Hubspot
+export {
+  fetchHubspotContacts,
+  clearContacts,
+  setPagination,
+  clearError,
+} from "./features/report/hubspotContactsSlice";
 
 //Notification
 export { fetchBillNotification } from "./features/notification/notificationSlice";

@@ -73,10 +73,11 @@ import InternTimeline from "./features/Intern timeline/internTimelineSlice";
 import ClinicalTest from "./features/clinicalTest/clinicalTestSlice";
 
 //for offers
-import Offers from "./features/offer/offerSlice"
+import Offers from "./features/offer/offerSlice";
 
 //for tax
-import Taxes from './features/tax/taxSlice'
+import Taxes from "./features/tax/taxSlice";
+import HubspotContacts from "./features/report/hubspotContactsSlice";
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -104,7 +105,8 @@ const rootReducer = combineReducers({
   ClinicalTest,
   DBLogs,
   Offers,
-  Taxes
+  Taxes,
+  HubspotContacts,
 });
 
 export default rootReducer;
