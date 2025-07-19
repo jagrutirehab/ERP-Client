@@ -32,9 +32,9 @@ const HubspotContactsHeader = ({
           <option value={100}>100 per page</option>
         </Input>
       </Col>
-      <Col md={6} className="text-right">
+      {/* <Col md={6} className="text-right">
         <small className="text-muted">Total: {totalItems || 0} contacts</small>
-      </Col>
+      </Col> */}
     </Row>
   );
 };
