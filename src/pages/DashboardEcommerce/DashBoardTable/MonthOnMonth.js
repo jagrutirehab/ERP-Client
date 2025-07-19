@@ -34,14 +34,15 @@ const monthNames = {
 };
 
 const MonthOnMonth = ({ centerId, data }) => {
-
   const { columnDefs, rowData } = useMemo(() => {
     if (!data) return { columnDefs: [], rowData: [] };
     const tagSource = (records, source) =>
       records.map((section) => {
+        if (!section) return null;
+        console.log(section, "<<<<<<<<<<<<< section");
         return {
           ...section,
-          records: section.records.map((r) => ({ ...r, source })),
+          records: section?.records?.map((r) => ({ ...r, source })),
         };
       });
     const allSections = [

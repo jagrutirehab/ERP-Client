@@ -44,6 +44,7 @@ const MonthTillDate = ({ centerId, data }) => {
       }
 
       return records.map((section) => {
+        if (!section) return null;
         return {
           ...section,
           records: section?.records?.map((r) => ({ ...r, source })) || [],
