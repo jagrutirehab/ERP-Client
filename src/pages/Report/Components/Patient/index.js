@@ -19,9 +19,10 @@ const Patient = ({ centerAccess }) => {
     end: endOfDay(new Date()),
   });
   const [filter, setFilter] = useState("");
+  const [val, setVal] = useState("");
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
-  const [totaldata, setTotaldata] = useState(0)
+  const [totaldata, setTotaldata] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -37,6 +38,7 @@ const Patient = ({ centerAccess }) => {
           startDate: reportDate.start.toISOString(),
           endDate: reportDate.end.toISOString(),
           filter,
+          val,
           centerAccess,
         },
       });
@@ -102,6 +104,7 @@ const Patient = ({ centerAccess }) => {
           startDate: reportDate.start.toISOString(),
           endDate: reportDate.end.toISOString(),
           filter,
+          val,
           centerAccess,
         },
       });
@@ -109,7 +112,7 @@ const Patient = ({ centerAccess }) => {
       if (res.success) {
         setData(res.payload || []);
         setTotalPages(res.pagination?.totalPages || 1);
-        setTotaldata(res?.pagination?.total)
+        setTotaldata(res?.pagination?.total);
       }
     } catch (err) {
       console.error("Failed to fetch patient analytics", err);
@@ -118,7 +121,7 @@ const Patient = ({ centerAccess }) => {
 
   useEffect(() => {
     fetchData();
-  }, [page, reportDate, filter, limit, centerAccess]);
+  }, [page, reportDate, filter, limit, centerAccess, val]);
 
   const generalColumns = [
     {
@@ -413,9 +416,9 @@ const Patient = ({ centerAccess }) => {
       <div className="pt-4">
         <div className="bg-white p-2 m-n3">
           <div className="">
-              <h6 className="display-6 fs-6 my-3">
-                Total Patients:- {totaldata}
-              </h6>
+            <h6 className="display-6 fs-6 my-3">
+              Total Patients:- {totaldata}
+            </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
           <div className="d-flex justify-content-between mt-3">
@@ -452,6 +455,25 @@ const Patient = ({ centerAccess }) => {
               </Input>
             </div>
             <div>
+              {filter === "ADMITTED_PATIENTS" &&
+                (val === "ALL_ADMITTED" ? (
+                  <Button
+                    color="info"
+                    onClick={() => setVal("")}
+                    style={{ marginRight: "10px" }}
+                  >
+                    Back to dates
+                  </Button>
+                ) : (
+                  <Button
+                    color="info"
+                    onClick={() => setVal("ALL_ADMITTED")}
+                    style={{ marginRight: "10px" }}
+                  >
+                    Show All Admitted Patients
+                  </Button>
+                ))}
+
               <Button
                 color="info"
                 onClick={fetchFullData}
