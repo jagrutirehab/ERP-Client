@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Input,
@@ -9,10 +9,11 @@ import {
   Label,
 } from "reactstrap";
 import { CAPSULE, CREAM, DROP } from "../../../Components/constants/medicine";
-import { connect } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { categoryUnitOptions } from "../../../Components/constants/patient";
+import { fetchBillItems } from "../../../store/actions";
 
 const Inovice = ({
   data,
@@ -22,7 +23,13 @@ const Inovice = ({
   categories,
   setCategories,
 }) => {
+  const dispatch = useDispatch();
+  const centers = useSelector((state) => state.User.centerAccess);
   const [searchItem, setSearchItem] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
+  }, [dispatch, centers]);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -50,14 +57,6 @@ const Inovice = ({
                 className="w-100"
                 style={{ height: "37px" }}
               />
-              {/* add custom medicine */}
-              {/* <span
-              onClick={() => {
-                addItem(searchItem, data);
-                setSearchItem("");
-              }}
-              className="link-success ri-send-plane-2-fill dropdown-input-icon"
-            ></span> */}
             </DropdownToggle>
             <DropdownMenu className="dropdown-menu-md overflow-auto dropdown-height-md">
               <DropdownItem></DropdownItem>
@@ -68,7 +67,7 @@ const Inovice = ({
                     .includes(searchItem.toLowerCase());
 
                   const matchesCategory =
-                    categoryValues?.length === 0 || // <- show all if category list is empty
+                    categoryValues?.length === 0 ||
                     categoryValues?.includes(item.category?.toLowerCase());
 
                   return matchesSearch && matchesCategory;
@@ -106,7 +105,6 @@ const Inovice = ({
         <div className="w-25">
           <Label>Categories</Label>
           <Select
-            // defaultValue={[{ label: "All", value: "all" }]}
             isMulti
             name="colors"
             onChange={(e) => setCategories(e)}
@@ -115,26 +113,7 @@ const Inovice = ({
                 label: key,
                 value: key,
               })),
-              // { label: "All", value: "all" },
             ]}
-            styles={
-              {
-                // control: (base) => ({
-                //   ...base,
-                //   minHeight: "32px !important",
-                //   height: "31px !important",
-                //   alignItems: "center",
-                // }),
-                // input: (base) => ({
-                //   ...base,
-                //   margin: 0,
-                //   // marginBottom: "px",
-                //   minHeight: "20px",
-                //   height: "20px",
-                //   padding: 0,
-                // }),
-              }
-            }
             className="basic-multi-select text-capitalize"
             classNamePrefix="select"
           />
@@ -150,8 +129,6 @@ Inovice.propTypes = {
   dataList: PropTypes.array,
 };
 
-const mapStateToProps = (state) => ({
-  //dataList: state.Inovice.data,
-});
+const mapStateToProps = (state) => ({});
 
 export default connect(mapStateToProps)(Inovice);
