@@ -35,12 +35,10 @@ const HubspotContactsTable = ({ contacts, loading, error }) => {
           {contacts && contacts.length > 0 ? (
             contacts.map((contact) => (
               <tr key={contact.id || contact._id}>
-                <td>
-                  {contact.fullName ||
-                    `${contact.firstname || ""} ${
-                      contact.lastname || ""
-                    }`.trim() ||
-                    "N/A"}
+                <td className="text-capitalize">
+                  {`${contact.firstname || ""} ${
+                    contact.lastname || ""
+                  }`.trim() || "N/A"}
                 </td>
                 <td>{contact.email || "-"}</td>
                 <td>{contact.phone || "-"}</td>

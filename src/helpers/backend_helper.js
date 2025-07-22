@@ -704,8 +704,10 @@ export const getHubspotContacts = ({
   page = 1,
   limit = 10,
   search = "",
+  visitDate,
+  status,
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
-    params: { page, limit, search },
+    params: { page, limit, search, visitDate, status },
   });
 };

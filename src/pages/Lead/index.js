@@ -32,6 +32,7 @@ import { CSVLink } from "react-csv";
 import { endOfDay, format, startOfDay } from "date-fns";
 import Merge from "./Merge";
 import UnMerge from "./UnMerge";
+import HubspotContacts from "../Report/Components/Hubspot";
 
 const Lead = ({ searchLoading, leads, centerAccess }) => {
   const dispatch = useDispatch();
@@ -115,7 +116,7 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
       <div className="page-content">
         <Container fluid>
           <BreadCrumb title="Leads" pageTitle="Leads" />
-          <Card>
+          <Card className="mb-0">
             <CardBody className="bg-white">
               <Row className="g-2">
                 <Col sm={4}>
@@ -173,7 +174,8 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
           </Card>
           {/* Create Edit Lead */}
           <PatientForm />
-          <LeadForm date={date} />
+          <HubspotContacts leadDate={date} />
+          {/* <LeadForm date={date} />
           <Merge date={date} lead={mergeLead} setLead={setMergeLead} />
           <UnMerge
             date={date}
@@ -191,7 +193,7 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
             setDeleteLead={setDeleteLead}
             setMergeLead={setMergeLead}
             setUnMergeLead={setUnMergeLead}
-          />
+          /> */}
         </Container>
       </div>
     </React.Fragment>

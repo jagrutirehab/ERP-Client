@@ -76,12 +76,12 @@ const Report = ({}) => {
             >
               OPD Analytics
             </Button>
-            <Button
+            {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
             >
               Hubspot Contacts
-            </Button>
+            </Button> */}
           </ButtonGroup>
           <div>
             {view === DASHBOARD && <Dashboard view={view} />}
