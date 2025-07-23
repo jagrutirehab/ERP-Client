@@ -1,20 +1,8 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
-import UserBar from "./Components/UserBar";
 import { connect, useDispatch } from "react-redux";
 import { fetchUserTimeline } from "../../store/features/timeline/timelineSlice";
 import Timeline from "../../Components/Common/Timeline";
-import {
-  CREATED,
-  DELETED,
-  DELETED_PERMANENTLY,
-  PATIENT,
-  PATIENT_BILL,
-  PATIENT_CENTER,
-  PATIENT_CHART,
-  PATIENT_STATUS,
-  UPDATED,
-} from "../../Components/constants/log";
 
 const Activity = ({ userActivity, data }) => {
   const dispatch = useDispatch();

@@ -23,7 +23,6 @@ const DischargePatient = ({ isOpen, patient }) => {
   const dispatch = useDispatch();
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
 
     initialValues: {
@@ -32,10 +31,28 @@ const DischargePatient = ({ isOpen, patient }) => {
       dischargeDate: "",
     },
     validationSchema: Yup.object({
-      dischargeDate: Yup.date().required("Please select addmission date"),
+      dischargeDate: Yup.date().required(
+        "Please select discharge date and time"
+      ),
     }),
     onSubmit: (values) => {
-      dispatch(dischargeIpdPatient(values));
+      const dischargeDate = new Date(values.dischargeDate);
+      const formattedDate = `${dischargeDate
+        .getDate()
+        .toString()
+        .padStart(2, "0")} ${dischargeDate.toLocaleString("default", {
+        month: "short",
+      })} ${dischargeDate.getFullYear()} ${dischargeDate
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${dischargeDate
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
+
+      dispatch(
+        dischargeIpdPatient({ ...values, dischargeDate: formattedDate })
+      );
       validation.resetForm();
       toggle();
     },
@@ -48,7 +65,7 @@ const DischargePatient = ({ isOpen, patient }) => {
     <React.Fragment>
       <CustomModal
         isOpen={isOpen === DISCHARGE_PATIENT}
-        title={"Admit Patient"}
+        title={"Discharge Patient"}
         toggle={toggle}
       >
         <Form
@@ -64,23 +81,25 @@ const DischargePatient = ({ isOpen, patient }) => {
             <Col>
               <div className="mb-3">
                 <Label htmlFor="dischargeDate" className="form-label">
-                  Discharge Date
+                  Discharge Date & Time
                 </Label>
                 <Flatpicker
-                  name="dateOfAdmission"
+                  name="dischargeDate"
                   value={validation.values.dischargeDate || ""}
-                  onChange={([e]) => {
+                  onChange={([date]) => {
                     const event = {
-                      target: { name: "dischargeDate", value: e },
+                      target: { name: "dischargeDate", value: date },
                     };
                     validation.handleChange(event);
                   }}
                   options={{
-                    dateFormat: "d M, Y",
+                    enableTime: true,
+                    time_24hr: true,
+                    dateFormat: "d M Y H:i",
                     disable: [
                       {
-                        from: "1900-01-01", // Replace with an appropriate minimum date
-                        to: patient?.addmission?.addmissionDate || new Date(), // Use the admission date or today's date
+                        from: "1900-01-01",
+                        to: patient?.addmission?.addmissionDate || new Date(),
                       },
                     ],
                     enable: [
@@ -90,38 +109,11 @@ const DischargePatient = ({ isOpen, patient }) => {
                           : false;
                       },
                     ],
-                    // enable: [
-                    //   function (date) {
-                    //     return date.getDate() === new Date().getDate();
-                    //   },
-                    // ],
                   }}
                   onBlur={validation.handleBlur}
-                  onInvalid={
-                    validation.touched.dischargeDate &&
-                    validation.errors.dischargeDate
-                      ? true
-                      : false
-                  }
                   className="form-control shadow-none bg-light"
-                  id="dateOfAdmission"
+                  id="dischargeDate"
                 />
-                {/* <Input
-                  name="dischargeDate"
-                  className="form-control"
-                  placeholder="Select Addmission Date"
-                  type="date"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.dischargeDate || ""}
-                  invalid={
-                    validation.touched.dischargeDate &&
-                    validation.errors.dischargeDate
-                      ? true
-                      : false
-                  }
-                  autoComplete="on"
-                /> */}
                 {validation.touched.dischargeDate &&
                 validation.errors.dischargeDate ? (
                   <FormFeedback className="d-block" type="invalid">
@@ -137,7 +129,6 @@ const DischargePatient = ({ isOpen, patient }) => {
                 </Button>
                 <Button size="sm" type="submit">
                   Save
-                  {/* {chart ? "Update" : "Save"} */}
                 </Button>
               </div>
             </Col>

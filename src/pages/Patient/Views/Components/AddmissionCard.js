@@ -1,9 +1,23 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Col } from "reactstrap";
-import { format } from "date-fns";
 import { connect } from "react-redux";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
+
+// ✅ Helper to format ISO date string in UTC to "DD Month YYYY"
+const formatDate = (isoDateStr) => {
+  if (!isoDateStr) return "N/A";
+  const date = new Date(isoDateStr);
+
+  const day = date.getUTCDate().toString().padStart(2, "0");
+  const month = date.toLocaleString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  const year = date.getUTCFullYear();
+
+  return `${day} ${month} ${year}`;
+};
 
 const AddmissionCard = ({ data, children }) => {
   return (
@@ -15,7 +29,7 @@ const AddmissionCard = ({ data, children }) => {
               <span>Addmission Date:</span>
               <h6 className="display-6 fs-6 mb-0 ms-2">
                 {data?.addmissionDate && !isNaN(new Date(data.addmissionDate))
-                  ? format(new Date(data.addmissionDate), "dd MMMM yyyy")
+                  ? formatDate(data.addmissionDate)
                   : "N/A"}
               </h6>
             </div>
@@ -23,11 +37,12 @@ const AddmissionCard = ({ data, children }) => {
               <div className="d-flex align-items-center">
                 <span>Discharge Date:</span>
                 <h6 className="display-6 fs-6 mb-0 ms-2">
-                  {format(new Date(data.dischargeDate), "dd MMMM yyyy")}
+                  {formatDate(data.dischargeDate)}
                 </h6>
               </div>
             )}
           </div>
+
           <RenderWhen isTrue={data.addmissionDate && data.dischargeDate}>
             <div className="position-absolute patient-addmission-complete badge bg-light rounded-pill px-1">
               <i className="ri-checkbox-circle-line text-success fs-5"></i>

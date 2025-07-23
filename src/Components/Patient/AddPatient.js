@@ -1,23 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-import {
-  Form,
-  Row,
-  Col,
-  Label,
-  Input,
-  FormFeedback,
-  Button,
-  Spinner,
-} from "reactstrap";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import { Form, Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
+import { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { format } from "date-fns";
-
-// Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { addPatientFields, patientGuradianFields } from "../constants/patient";
@@ -33,20 +19,13 @@ import {
   togglePatientForm,
   updatePatient,
 } from "../../store/actions";
-
-//cropper
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
-//compress image
 import Compressor from "compressorjs";
-
-//user dummy image
 import UserDummyImage from "../../assets/images/users/user-dummy-img.jpg";
-// import convertToFormData from "../../utils/convertToFormData";
 import UploadedFiles from "../Common/UploadedFiles";
 import PatientId from "./PatientId";
-import RenderWhen from "../Common/RenderWhen";
-import FormField from "../Common/FormField";
+import FormField from "../Common/FormField"; // Assuming this component is well-styled or will be adapted
 import convertToFormDataPatient from "../../utils/convertToFormDataPatient";
 
 const AddPatient = ({
@@ -60,11 +39,10 @@ const AddPatient = ({
 }) => {
   const dispatch = useDispatch();
   const [fields, setFields] = useState(addPatientFields);
-  const [image, setImage] = useState(null);
-  const [croppedImage, setCroppedImage] = useState(null); // To hold the cropped image
-  const [imageToCrop, setImageToCrop] = useState(null); // To hold the selected image
+  const [croppedImage, setCroppedImage] = useState(null);
+  const [imageToCrop, setImageToCrop] = useState(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
-  const cropperRef = useRef(null); // Cropper reference
+  const cropperRef = useRef(null);
 
   const editData = patient.data;
   const leadData = patient.leadData;
@@ -79,12 +57,10 @@ const AddPatient = ({
     : "";
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
     initialValues: {
-      author: user?._id, //user might be the create of patient
-      editor: user?._id, //user might be the editor of patient
+      author: user?._id,
+      editor: user?._id,
       id: editData?.id ? editData.id.value : generatedPatientId?.value,
       center: editData ? editData.center?._id : "",
       profilePicture: editData ? editData?.profilePicture : "",
@@ -102,7 +78,7 @@ const AddPatient = ({
       guardianName: editData ? editData.guardianName : "",
       guardianRelation: editData ? editData.guardianRelation : "",
       guardianPhoneNumber: editData ? editData.guardianPhoneNumber : "",
-      dateOfAddmission: editData?.dateOfAddmission //&& editData.dateOfAddmission instanceof Date
+      dateOfAddmission: editData?.dateOfAddmission
         ? format(new Date(editData.dateOfAddmission), "yyyy-MM-dd")
         : "",
       referredBy: editData ? editData.referredBy : "",
@@ -137,57 +113,35 @@ const AddPatient = ({
     }),
     onSubmit: (values) => {
       const formData = convertToFormDataPatient(values);
-
-      // ✅ Append only if a file exists
       if (values.aadhaarCard?.file instanceof Blob) {
         formData.append("aadhaarCard", values.aadhaarCard.file);
       }
-
       if (values.profilePicture instanceof Blob) {
         formData.append("profilePicture", values.profilePicture);
       }
-
       if (editData) {
         formData.append("editId", editData?._id);
-
-        // ✅ Skip appending again, but remove if not changed
-        const checkProfilePicture = values.profilePicture instanceof Blob;
-        const checkAadhaarCard = values.aadhaarCard?.file instanceof Blob;
-        if (!checkProfilePicture) formData.delete("profilePicture");
-        if (!checkAadhaarCard) formData.delete("aadhaarCard");
-
+        if (!(values.profilePicture instanceof Blob))
+          formData.delete("profilePicture");
+        if (!(values.aadhaarCard?.file instanceof Blob))
+          formData.delete("aadhaarCard");
         dispatch(updatePatient(formData));
+        dispatch(
+          togglePatientForm({ data: null, leadData: null, isOpen: false })
+        );
       } else if (leadData) {
         formData.append("lead", leadData._id);
         dispatch(addLeadPatient(formData));
+        dispatch(
+          togglePatientForm({ data: null, leadData: null, isOpen: false })
+        );
       } else {
-        dispatch(addPatient(formData)); // ✅ now clean
+        dispatch(addPatient(formData));
+        dispatch(
+          togglePatientForm({ data: null, leadData: null, isOpen: false })
+        );
       }
     },
-
-    // onSubmit: (values) => {
-    //   const formData = convertToFormData(values);
-    //   formData.append("aadhaarCard", values.aadhaarCard?.file);
-
-    //   if (values.profilePicture instanceof Blob) {
-    //     formData.append("profilePicture", values.profilePicture);
-    //   }
-
-    //   if (editData) {
-    //     formData.append("editId", editData?._id);
-    //     const checkProfilePicture = values.profilePicture instanceof Blob;
-    //     const checkAadhaarCard = values.aadhaarCard.file instanceof Blob;
-    //     if (!checkProfilePicture) formData.delete("profilePicture");
-    //     if (!checkAadhaarCard) formData.delete("aadhaarCard");
-    //     dispatch(updatePatient(formData));
-    //   } else if (leadData) {
-    //     formData.append("lead", leadData._id);
-    //     dispatch(addLeadPatient(formData));
-    //   } else {
-    //     dispatch(addPatient(formData));
-    //   }
-    //   // cancelForm();
-    // },
   });
 
   const cancelForm = () => {
@@ -196,64 +150,12 @@ const AddPatient = ({
   };
 
   useEffect(() => {
-    if (!editData) {
-      validation.resetForm();
-    }
+    if (!editData) validation.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
-  const toggleCropModal = () => {
-    setIsCropModalOpen(!isCropModalOpen);
-  };
-  const handleFiles = (e) => {
-    const file = e.target.files[0];
-    const name = e.target.name;
-    if (!file) {
-      return;
-    }
-
-    new Compressor(file, {
-      quality: 0.5,
-      success(result) {
-        // Set the image to be cropped
-        setImageToCrop(URL.createObjectURL(result));
-        // Update form value (for the selected file)
-        setIsCropModalOpen(true);
-        const ev = { target: { name: name, value: result } };
-        validation.handleChange(ev);
-      },
-      error(err) {
-        console.error(err.message);
-      },
-    });
-  };
-  // Handle cropping of the image
-  const cropImage = () => {
-    const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      const canvas = cropper.getCroppedCanvas();
-      if (canvas) {
-        setCroppedImage(canvas.toDataURL()); // Set the cropped image
-        toggleCropModal();
-      }
-    }
-  };
-  const handleChange = (e, fieldType) => {
-    if (fieldType === "file") {
-      const name = e.target.name;
-      const file = e.target.files[0];
-      const event = {
-        target: { name, value: { file, path: e.target.value } }, //new Blob([{ file, path: e.target.value }])
-      };
-      validation.handleChange(event);
-    } else {
-      validation.handleChange(e);
-    }
-  };
 
   useEffect(() => {
-    if (patient?.isOpen) {
-      dispatch(fetchPatientId());
-    }
+    if (patient?.isOpen) dispatch(fetchPatientId());
   }, [dispatch, patient]);
 
   useEffect(() => {
@@ -276,367 +178,420 @@ const AddPatient = ({
   }, [doctors]);
 
   useEffect(() => {
-    if (editData) {
-      const fls = [...fields].map((l) =>
-        l.name === "name" ? { ...l, disabled: true } : l
-      );
-      setFields(fls);
-    } else {
-      const fls = [...fields].map((l) =>
-        l.name === "name" ? { ...l, disabled: false } : l
-      );
-      setFields(fls);
-    }
+    const fls = [...fields].map((l) =>
+      l.name === "name" ? { ...l, disabled: !!editData } : l
+    );
+    setFields(fls);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
 
+  useEffect(() => {
+    if (patient?.submitSuccess) {
+      dispatch(
+        togglePatientForm({ data: null, leadData: null, isOpen: false })
+      );
+    }
+  }, [dispatch, patient?.submitSuccess]);
+
+  const toggleCropModal = () => setIsCropModalOpen(!isCropModalOpen);
+
+  const handleFiles = (e) => {
+    const file = e.target.files[0];
+    const name = e.target.name;
+    if (!file) return;
+
+    new Compressor(file, {
+      quality: 0.5,
+      success(result) {
+        setImageToCrop(URL.createObjectURL(result));
+        setIsCropModalOpen(true);
+        validation.handleChange({ target: { name: name, value: result } });
+      },
+      error(err) {
+        console.error(err.message);
+      },
+    });
+  };
+
+  const cropImage = () => {
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      const canvas = cropper.getCroppedCanvas();
+      if (canvas) {
+        canvas.toBlob((blob) => {
+          validation.setFieldValue("profilePicture", blob);
+          setCroppedImage(canvas.toDataURL());
+          toggleCropModal();
+        });
+      }
+    }
+  };
+
+  const handleChange = (e, fieldType) => {
+    if (fieldType === "file") {
+      const name = e.target.name;
+      const file = e.target.files[0];
+      validation.handleChange({
+        target: { name, value: { file, path: e.target.value } },
+      });
+    } else {
+      validation.handleChange(e);
+    }
+  };
+
   return (
-    <React.Fragment>
-      <CustomModal
-        isOpen={patient.isOpen}
-        title={"Add Patient"}
-        centered={true}
-        size={"xl"}
-      >
-        <div>
-          <Form
-            onSubmit={(e) => {
-              e.preventDefault();
-              validation.handleSubmit();
-              // toggle();
-              return false;
+    <CustomModal
+      isOpen={patient.isOpen}
+      title={editData ? "Update Patient" : "Add Patient"}
+      centered
+      size="xl"
+    >
+      <Form onSubmit={validation.handleSubmit} style={{ padding: "1.5rem" }}>
+        <Row>
+          {/* Profile Picture Section */}
+          <Col
+            xs={12}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "2rem",
             }}
-            className="needs-validation"
-            action="#"
           >
-            <Row>
-              <Col xs={12}>
-                {editData?.aadhaarCard?.url && (
-                  <UploadedFiles
-                    title={"Patient Files"}
-                    files={[editData.aadhaarCard]}
-                    deleteFilePermanently={() =>
-                      dispatch(removeAadhaarCard({ id: editData._id }))
-                    }
-                  />
-                )}
-              </Col>
-              <Col xs={12}>
-                <PatientId validation={validation} editData={editData} />
-              </Col>
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <img
+                src={
+                  croppedImage ||
+                  editData?.profilePicture?.url ||
+                  UserDummyImage
+                }
+                alt="profile"
+                style={{
+                  width: 144, // w-36 -> 144px
+                  height: 144, // h-36 -> 144px
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "4px solid #d1d5db", // border-4 border-gray-300
+                  boxShadow:
+                    "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)", // shadow-lg
+                  transition: "transform 0.2s ease-in-out", // transition-transform
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                } // hover:scale-105
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+              />
+              <Label
+                htmlFor="profile-img-file-input"
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  backgroundColor: "#ffffff", // bg-white
+                  borderRadius: "50%",
+                  padding: "0.5rem", // p-2
+                  cursor: "pointer",
+                  boxShadow:
+                    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", // shadow-md
+                  transition: "background-color 0.2s ease-in-out", // transition-colors
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#f3f4f6")
+                } // hover:bg-gray-100
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#ffffff")
+                }
+              >
+                <i
+                  className="ri-camera-fill"
+                  style={{ color: "#4b5563", fontSize: "1.25rem" }}
+                />{" "}
+                {/* text-gray-700 text-xl */}
+              </Label>
+              <Input
+                id="profile-img-file-input"
+                onChange={handleFiles}
+                type="file"
+                style={{ display: "none" }} // hidden
+                accept="image/*"
+                name="profilePicture"
+              />
+            </div>
+          </Col>
 
-              <Col md={12}>
-                <div className="profile-wrapper">
-                  {/* <Label>Profile Picture</Label> */}
-                  <div className="image-wrapper text-center position-relative">
-                    {/* <img
-                      src={
-                        validation.values.profilePicture?.url
-                          ? validation.values.profilePicture.url
-                          : validation.values.profilePicture instanceof Blob
-                          ? // validation.values.profilePicture instanceof File
-                            URL.createObjectURL(
-                              validation.values.profilePicture
-                            )
-                          : UserDummyImage
-                      }
-                      className="rounded-circle avatar-lg img-thumbnail user-profile-image"
-                      alt="Patient Profile"
-                    /> */}
-                    <img
-                      src={croppedImage || UserDummyImage}
-                      className="user-image"
-                      alt="Patient Profile"
-                    />
-                    {/* <div className="avatar-xs p-0 rounded-circle profile-photo-edit"> */}
-                    <div>
-                      <Input
-                        id="profile-img-file-input"
-                        onChange={handleFiles}
-                        type="file"
-                        // className="profile-img-file-input"
-                        className="d-none"
-                        accept="image/*"
-                        name="profilePicture"
-                      />
-                      <Label
-                        htmlFor="profile-img-file-input"
-                        className="camera-icon-label"
-                        onClick={() => setIsCropModalOpen(true)}
-                      >
-                        <span>
-                          <i className="ri-camera-fill"></i>
-                        </span>
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-              {/* Conditionally render the Cropper */}
+          {/* Aadhaar Files */}
+          {editData?.aadhaarCard?.url && (
+            <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+              {" "}
+              {/* mb-6 */}
+              <UploadedFiles
+                title="Patient Files"
+                files={[editData.aadhaarCard]}
+                deleteFilePermanently={() =>
+                  dispatch(removeAadhaarCard({ id: editData._id }))
+                }
+              />
+            </Col>
+          )}
 
-              <Col xs={12}>
-                <div>
-                  <CustomModal
-                    isOpen={isCropModalOpen}
-                    title={"Crop Image"}
-                    centered={true}
-                    size={"lg"}
-                    toggle={toggleCropModal} // Allows modal to close via the backdrop or close button
-                  >
-                    {/* Display Cropper when an image is selected */}
-                    {imageToCrop ? (
-                      <div className="d-flex justify-content-center align-items-center flex-column">
-                        <div className="cropper-wrapper">
-                          <Cropper
-                            ref={cropperRef}
-                            src={imageToCrop}
-                            style={{
-                              width: 400,
-                              // maxWidth: "600px",
-                              height: "100%", // Defined height for consistency
-                            }}
-                            crop
-                            zoomTo={0}
-                            disabled={false}
-                            viewMode={1}
-                            minCropBoxHeight={100}
-                            minCropBoxWidth={100}
-                            initialAspectRatio={1} // For square cropping
-                            guides={false}
-                            cropBoxResizable={true}
-                            cropBoxMovable={true}
-                          />
-                        </div>
+          {/* Patient ID Field */}
+          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+            {" "}
+            {/* mb-6 */}
+            <PatientId validation={validation} editData={editData} />
+          </Col>
 
-                        {/* Buttons */}
-                        <div className="mt-3 text-center">
-                          <Button
-                            onClick={cropImage}
-                            color="success"
-                            outline
-                            size="sm"
-                            className="me-2"
-                          >
-                            Crop Image
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-3">
-                        <p>No image selected for cropping</p>
-                      </div>
-                    )}
-                  </CustomModal>
-                </div>
-              </Col>
-
-              <Col xs={12} className="d-flex justify-content-center">
-                {/* {centers.length > 1 && ( */}
-                <Col xs={12} md={4}>
-                  <div className="mb-3">
-                    <Label htmlFor="aadhaar-card" className="form-label">
-                      Center
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      type="select"
-                      name="center"
-                      onChange={validation.handleChange}
-                      onBlur={validation.handleBlur}
-                      value={validation.values.center || ""}
-                      invalid={
-                        validation.touched.center && validation.errors.center
-                          ? true
-                          : false
-                      }
-                      disabled={editData ? true : false}
-                      className="form-control"
-                      placeholder=""
-                      id="aadhaar-card"
-                    >
-                      <option value="" selected disabled hidden>
-                        Choose here
-                      </option>
-                      {(centers || []).map((option, idx) => (
-                        <option key={idx} value={option._id}>
-                          {option.title}
-                        </option>
-                      ))}
-                    </Input>
-                    {validation.touched.center && validation.errors.center ? (
-                      <FormFeedback type="invalid">
-                        <div>{validation.errors.center}</div>
-                      </FormFeedback>
-                    ) : null}
-                  </div>
-                </Col>
-                {/* )} */}
-              </Col>
-
+          {/* Main Form Fields */}
+          <Col xs={12}>
+            <Row
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem",
+                marginBottom: "2rem",
+              }}
+            >
+              {" "}
+              {/* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mb-8 */}
               <FormField
                 fields={fields}
                 validation={validation}
                 doctorLoading={doctorLoading}
                 handleChange={handleChange}
               />
-              {/* {(fields || []).map((field, i) => (
-                <Col key={i + field} xs={12} lg={6}>
-                  <div className="mb-3">
-                    <Label htmlFor={field.name} className="form-label">
-                      {field.label}
-                    </Label>
-                    {field.type === "radio" ? (
-                      <>
-                        <div className="d-flex flex-wrap">
-                          {(field.options || []).map((item, idx) => (
-                            <React.Fragment key={item + idx}>
-                              <div
-                                key={item + idx}
-                                className="d-flex me-5 align-items-center"
-                              >
-                                <Input
-                                  className="me-2 mt-0"
-                                  type={field.type}
-                                  name={field.name}
-                                  value={item}
-                                  onChange={validation.handleChange}
-                                  checked={validation.values.gender === item}
-                                />
-                                <Label className="form-label fs-14 mb-0">
-                                  {item}
-                                </Label>
-                              </div>
-                            </React.Fragment>
-                          ))}
-                          {validation.touched[field.name] &&
-                          validation.errors[field.name] ? (
-                            <FormFeedback type="invalid" className="d-block">
-                              {validation.errors[field.name]}
-                            </FormFeedback>
-                          ) : null}
-                        </div>
-                      </>
-                    ) : field.type === "select" ? (
-                      <>
-                        <div
-                          // key={item + idx}
-                          className="d-flex align-items-center position-relative"
-                        >
-                          <Input
-                            className="me-2 fs-13 mt-0"
-                            type={field.type}
-                            name={field.name}
-                            value={validation.values[field.name]}
-                            onChange={validation.handleChange}
-                          >
-                            <option value="" selected disabled hidden>
-                              Choose here
-                            </option>
-                            {(field.options || []).map((option, idx) => (
-                              <option key={idx} value={option._id}>
-                                {option.name}
-                              </option>
-                            ))}
-                          </Input>
-                          <RenderWhen isTrue={doctorLoading}>
-                            <span
-                              className="link-success dropdown-input-icon"
-                              style={{ right: "50px" }}
-                            >
-                              <Spinner size={"sm"} color="success" />
-                            </span>
-                          </RenderWhen>
-                        </div>
-                        {validation.touched[field.name] &&
-                        validation.errors[field.name] ? (
-                          <FormFeedback type="invalid" className="d-block">
-                            {validation.errors[field.name]}
-                          </FormFeedback>
-                        ) : null}
-                      </>
-                    ) : (
-                      <Input
-                        name={field.name}
-                        className="form-control"
-                        placeholder={`Enter ${field.label}`}
-                        type={field.type}
-                        onChange={(e) => handleChange(e, field.type)}
-                        onBlur={validation.handleBlur}
-                        value={
-                          field.type !== "file"
-                            ? validation.values[field.name] || ""
-                            : validation.values[field.name]?.path || ""
-                        }
-                        invalid={
-                          validation.touched[field.name] &&
-                          validation.errors[field.name]
-                            ? true
-                            : false
-                        }
-                        accept={field.accept}
-                      />
-                    )}
-                    {validation.touched[field.name] &&
-                    validation.errors[field.name] ? (
-                      <FormFeedback type="invalid">
-                        {validation.errors[field.name]}
-                      </FormFeedback>
-                    ) : null}
-                  </div>
-                </Col>
-              ))} */}
-              <Col xs={12}>
-                <div className="d-flex gap-3 align-items-center">
-                  <h6 className="display-6 fs-4">Guardian</h6>
-                  <Divider />
-                </div>
-              </Col>
-              {(patientGuradianFields || []).map((f, idx) => (
-                <Col key={f.name + idx} xs={12} lg={4}>
-                  <div className="mb-3">
-                    <Label htmlFor="aadhaar-card" className="form-label">
-                      {f.label}
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      type={f.type}
-                      name={f.name}
-                      onChange={validation.handleChange}
-                      onBlur={validation.handleBlur}
-                      value={validation.values[f.name] || ""}
-                      invalid={
-                        validation.touched[f.name] && validation.errors[f.name]
-                          ? true
-                          : false
-                      }
-                      disabled={f.name === "dateOfAddmission" && editData}
-                      className="form-control"
-                      placeholder=""
-                      id="aadhaar-card"
-                    />
-                    {validation.touched[f.name] && validation.errors[f.name] ? (
-                      <FormFeedback type="invalid">
-                        <div>{validation.errors[f.name]}</div>
-                      </FormFeedback>
-                    ) : null}
-                  </div>
-                </Col>
-              ))}
-              <Col xs={12}>
-                <div className="d-flex align-items-center justify-content-end gap-3">
-                  <Button onClick={cancelForm} size="sm" color="danger">
-                    Cancel
-                  </Button>
-                  <Button type="submit" size="sm" outline>
-                    Save
-                  </Button>
-                </div>
-              </Col>
             </Row>
-          </Form>
-        </div>
-      </CustomModal>
-    </React.Fragment>
+          </Col>
+
+          {/* Guardian Header */}
+          <Col
+            xs={12}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              marginBottom: "1.5rem",
+            }}
+          >
+            {" "}
+            {/* flex items-center gap-4 mb-6 */}
+            <h6
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "600",
+                color: "#374151",
+                margin: 0,
+              }}
+            >
+              Guardian
+            </h6>{" "}
+            {/* text-2xl font-semibold text-gray-800 m-0 */}
+            <Divider />
+          </Col>
+
+          {/* Guardian Fields */}
+          <Col xs={12}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+                gap: "2rem",
+                marginBottom: "2.5rem",
+              }}
+            >
+              {(patientGuradianFields || []).map((f, idx) => (
+                <div key={f.name + idx}>
+                  <Label
+                    style={{
+                      display: "block",
+                      color: "#374151",
+                      fontWeight: "500",
+                      marginBottom: "0.25rem",
+                    }}
+                  >
+                    {f.label}
+                    <span style={{ color: "#ef4444" }}>*</span>
+                  </Label>
+                  <Input
+                    type={f.type}
+                    name={f.name}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values[f.name] || ""}
+                    className={
+                      validation.touched[f.name] && validation.errors[f.name]
+                        ? "is-invalid"
+                        : ""
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "0.625rem 0.75rem",
+                      fontSize: "1rem",
+                      fontWeight: "400",
+                      border: `1px solid ${
+                        validation.touched[f.name] && validation.errors[f.name]
+                          ? "#ef4444"
+                          : "#d1d5db"
+                      }`,
+                      borderRadius: "0.375rem",
+                      outline: "none",
+                      boxShadow:
+                        validation.touched[f.name] && validation.errors[f.name]
+                          ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
+                          : "0 0 0 2px rgba(96, 165, 250, 0.3)",
+                      transition:
+                        "border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out",
+                    }}
+                    disabled={f.name === "dateOfAddmission" && !!editData}
+                  />
+                  {validation.touched[f.name] && validation.errors[f.name] && (
+                    <FormFeedback
+                      style={{
+                        color: "#ef4444",
+                        fontSize: "0.875rem",
+                        marginTop: "0.25rem",
+                      }}
+                    >
+                      {validation.errors[f.name]}
+                    </FormFeedback>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Col>
+
+          {/* Buttons */}
+          <Col xs={12}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: "2.5rem",
+                gap: "1rem",
+              }}
+            >
+              {" "}
+              {/* flex justify-end mt-10 gap-4 */}
+              <Button
+                type="button"
+                onClick={cancelForm}
+                size="sm"
+                color="danger"
+                style={{
+                  padding: "0.5rem 1.5rem", // px-6 py-2
+                  borderRadius: "0.375rem", // rounded-md
+                  border: "1px solid #ef4444", // border border-red-500
+                  color: "#dc2626", // text-red-600
+                  backgroundColor: "transparent",
+                  transition:
+                    "background-color 0.2s ease-in-out, color 0.2s ease-in-out", // transition-colors
+                  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)", // shadow-sm
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#fef2f2")
+                } // hover:bg-red-50
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                color="primary"
+                style={{
+                  padding: "0.5rem 1.5rem", // px-6 py-2
+                  borderRadius: "0.375rem", // rounded-md
+                  backgroundColor: "#2563eb", // bg-blue-600
+                  color: "#ffffff", // text-white
+                  border: "none",
+                  transition: "background-color 0.2s ease-in-out", // transition-colors
+                  boxShadow:
+                    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)", // shadow-md
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#1d4ed8")
+                } // hover:bg-blue-700
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#2563eb")
+                }
+              >
+                {editData ? "Update" : "Save"}
+              </Button>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Crop Modal */}
+        <CustomModal
+          isOpen={isCropModalOpen}
+          title="Crop Image"
+          centered
+          size="lg"
+          toggle={toggleCropModal}
+        >
+          {imageToCrop ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+              }}
+            >
+              {" "}
+              {/* flex flex-col items-center justify-center p-4 */}
+              <Cropper
+                ref={cropperRef}
+                src={imageToCrop}
+                style={{
+                  width: "100%",
+                  maxHeight: 400,
+                  marginBottom: "1rem",
+                  backgroundColor: "#f3f4f6",
+                }} // w-full max-h-96 mb-4 bg-gray-100
+                viewMode={1}
+                initialAspectRatio={1}
+                guides={false}
+                cropBoxResizable
+                cropBoxMovable
+              />
+              <Button
+                type="button"
+                style={{
+                  marginTop: "0.75rem", // mt-3
+                  padding: "0.5rem 1.5rem", // px-6 py-2
+                  borderRadius: "0.375rem", // rounded-md
+                  border: "1px solid #10b981", // border border-green-500
+                  color: "#059669", // text-green-600
+                  backgroundColor: "transparent",
+                  transition:
+                    "background-color 0.2s ease-in-out, color 0.2s ease-in-out", // transition-colors
+                  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)", // shadow-sm
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#ecfdf5")
+                } // hover:bg-green-50
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.backgroundColor = "transparent")
+                }
+                onClick={cropImage}
+              >
+                Crop Image
+              </Button>
+            </div>
+          ) : (
+            <p
+              style={{ textAlign: "center", color: "#4b5563", padding: "1rem" }}
+            >
+              No image selected for cropping
+            </p>
+          )}
+        </CustomModal>
+      </Form>
+    </CustomModal>
   );
 };
 
