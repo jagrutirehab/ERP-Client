@@ -1,89 +1,119 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { UncontrolledTooltip } from "reactstrap";
 import { Link } from "react-router-dom";
 
 const UserBar = ({ user }) => {
   return (
-    <React.Fragment>
-      <div className="chat-message-list">
-        <ul
-          className="list-unstyled chat-list chat-user-list users-list px-2"
-          id="userList"
+    <div style={{ padding: "1rem", maxWidth: "100%" }}>
+      <ul style={{ listStyleType: "none", margin: 0, padding: 0 }}>
+        <li
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "0.75rem",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+            padding: "1rem",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            display: "flex",
+            flexDirection: "column",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.transform = "translateY(-2px)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.transform = "translateY(0)")
+          }
         >
-          <li
-            className="bg-white shadow-lg  py-2"
-            // className={patient?._id === center._id ? "active" : ""}
+          <Link
+            to="#"
+            onClick={(e) => e.preventDefault()}
+            style={{
+              textDecoration: "none",
+              color: "#212529",
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              flexWrap: "wrap",
+            }}
           >
-            <Link onClick={() => {}} to={`#`}>
-              <div className="d-flex align-items-center">
-                <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
-                  <div className="avatar-xxs">
-                    {user?.profilePicture ? (
-                      <img
-                        src={user.profilePicture.url}
-                        className="rounded-circle img-fluid userprofile"
-                        alt=""
-                      />
-                    ) : (
-                      <div
-                        className={
-                          "avatar-title rounded-circle bg-success userprofile"
-                        }
-                      >
-                        C
-                      </div>
-                    )}
-                  </div>
-                  <span className="user-status"></span>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture.url}
+                  alt="User"
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #e9ecef",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    backgroundColor: "#198754",
+                    color: "#fff",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.2rem",
+                  }}
+                >
+                  {user?.name?.[0]?.toUpperCase() || "U"}
                 </div>
-                <div className="flex-grow-1 overflow-hidden">
-                  <p className="text-truncate font-semi-bold fs-15 mb-0">
-                    {user?.name || ""}{" "}
-                    <span className="fst-italic">({user?.role})</span>
-                  </p>
-                </div>
-                {/* <div className="flex-shrink-0 gap-3 d-flex align-items-center">
-                  <button
-                    // onClick={() =>
-                    //   setCenter({ data: center, isOpen: true })
-                    // }
-                    size="sm"
-                    className="btn btn-info btn-sm"
-                  >
-                    View details
-                  </button>
-                  <button
-                    // onClick={() =>
-                    //   dispatch(restoreCenter({ id: center?._id }))
-                    // }
-                    id="restore-patient"
-                    className="btn bg-light btn-sm"
-                  >
-                    <i className="bx bx-reset text-success align-bottom fs-4"></i>{" "}
-                    <UncontrolledTooltip target={"restore-patient"}>
-                      Restore
-                    </UncontrolledTooltip>
-                  </button>
-                  <button
-                    // onClick={() =>
-                    //   setDeleteCenter({ data: center?._id, isOpen: true })
-                    // }
-                    id="delete-permenantly"
-                    className="btn bg-light btn-sm"
-                  >
-                    <i className="ri-delete-bin-2-line text-danger align-bottom fs-6"></i>{" "}
-                    <UncontrolledTooltip target={"delete-permenantly"}>
-                      Delete Permenantly
-                    </UncontrolledTooltip>
-                  </button>
-                </div> */}
+              )}
+              <span
+                title="Online"
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: "10px",
+                  height: "10px",
+                  backgroundColor: "#198754",
+                  border: "2px solid #fff",
+                  borderRadius: "50%",
+                }}
+              ></span>
+            </div>
+
+            <div style={{ flexGrow: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  marginBottom: "0.25rem",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={user?.name || "Unknown User"}
+              >
+                {user?.name || "Unknown User"}
               </div>
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </React.Fragment>
+              <div
+                style={{
+                  fontSize: "0.85rem",
+                  color: "#6c757d",
+                  fontStyle: "italic",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={user?.role || "Role not defined"}
+              >
+                {user?.role || "Role not defined"}
+              </div>
+            </div>
+          </Link>
+        </li>
+      </ul>
+    </div>
   );
 };
 
