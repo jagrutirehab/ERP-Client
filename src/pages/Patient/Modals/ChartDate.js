@@ -197,7 +197,7 @@ const ChartDate = ({
             <Button onClick={() => {
               dispatch(setTestPageOpen(true));
               toggle()
-            }} color="primary" disabled={selectedTest=="Add test"}>Start</Button>
+            }} color="primary" disabled={selectedTest==="Add test"}>Start</Button>
           </div>}
 
         </div>

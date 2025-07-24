@@ -6,6 +6,7 @@ import {
   getClinicalTest,
   postSsrstest,
   postYmrsTest,
+  postMPQtest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -52,6 +53,19 @@ export const createSsrsTest = createAsyncThunk(
   async (data, { dispatch, rejectWithValue }) => {
     try {
       const response = await postSsrstest(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const createMPQTest = createAsyncThunk(
+  "createMPQTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postMPQtest(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -135,14 +149,25 @@ export const clinicalTestSlice = createSlice({
       .addCase(createSsrsTest.rejected, (state) => {
         state.isLoading = false;
       });
-      // create YMRS Test
+    // create MPQ test
+    builder
+      .addCase(createMPQTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createMPQTest.fulfilled, (state, { payload }) => {
+        state.isLoading = false;
+        state.data = payload.payload;
+      })
+      .addCase(createMPQTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+    // create YMRS Test
     builder
       .addCase(createYMRSTest.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(createYMRSTest.fulfilled, (state) => {
         state.isLoading = false;
-        
       })
       .addCase(createYMRSTest.rejected, (state) => {
         state.isLoading = false;

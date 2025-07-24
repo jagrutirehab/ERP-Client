@@ -15,6 +15,7 @@ import { connect, useSelector } from "react-redux";
 import CiwaQuestion from "./Components/CiwaQuestion";
 import SsrsQuestion from "./Components/SsrsQuestion";
 import YMSCQuestion from "./Components/YMSCQuestion";
+import MPQQuestion from "./Components/MPQ9Question";
 
 const Views = (props) => {
   const ref = useRef();
@@ -91,6 +92,7 @@ const Views = (props) => {
             {data === "C-SSRS" && <SsrsQuestion />}
             {data === "CIWA-AR" && <CiwaQuestion />}
             {data === "YMRS" && <YMSCQuestion />}
+            {data === "MPQ-9" && <MPQQuestion />}
           </div>
         )}
       </div>

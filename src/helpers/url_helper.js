@@ -218,6 +218,7 @@ export const UPDATE_INTERN_RECEIPT = "intern/receipt";
 export const GET_CIWA_TEST = "/clinical-test/ciwa-test";
 export const POST_CIWA_TEST = "/clinical-test/ciwa-test";
 export const POST_SSRS_TEST = "/clinical-test/ssrs-test";
+export const POST_MPQ_TEST = "/clinical-test/mpq-test";
 export const POST_YMRS_TEST = "/clinical-test/ymrs-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
 

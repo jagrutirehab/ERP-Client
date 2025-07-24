@@ -80,6 +80,7 @@ const testRecord = [
   { name : "YMRS" },
   { name: "CIWA-AR" },
   { name: "C-SSRS" },
+  { name: "MPQ-9" },
 ];
 
 const prescriptionFormFields = [
