@@ -106,12 +106,6 @@ const MPQ9Assessment = () => {
     formData.append("systemRecommendation", recommendationsText);
     formData.append("questions", JSON.stringify(formattedQuestions));
     formData.append("centerId", centerId);
-
-    // Append individual domain scores
-    // Object.entries(scores).forEach(([domain, score]) => {
-    //   formData.append(`domainScore[${domain}]`, score);
-    // });
-
     const files = fileInputRef.current?.files;
     if (files?.length > 0) {
       Array.from(files).forEach((file) => formData.append("files", file));
@@ -208,44 +202,9 @@ const MPQ9Assessment = () => {
           <li className="mb-2 text-black">
             <strong>Evidence/Image:</strong> If applicable, you can provide a
             URL for an image (e.g., a relevant drawing by the patient, a visual
-            aid used) that serves as evidence for your observations. *Note: For
-            a real application, secure image upload to cloud storage would be
-            implemented.*
-          </li>
-          <li className="mb-2 text-black">
-            <strong>Scoring Key Reference:</strong>
+            aid used) that serves as evidence for your observations.
           </li>
         </ul>
-        <ul className="list-disc list-inside ml-4">
-          <li>
-            <strong>Psychoticism:</strong> Higher scores (e.g., 3-4) may
-            indicate unconventional thinking.
-          </li>
-          <li>
-            <strong>Neuroticism:</strong> Higher scores (e.g., 3-4) suggest
-            increased worry/tension.
-          </li>
-          <li>
-            <strong>Obsessive Compulsive:</strong> Higher scores (e.g., 3-4)
-            indicate tendencies for repetitive thoughts/behaviors.
-          </li>
-          <li>
-            <strong>Somatization of Anxiety:</strong> Higher scores (e.g., 3-4)
-            suggest physical manifestation of anxiety.
-          </li>
-          <li>
-            <strong>Depression:</strong> Higher scores (e.g., 3-4) indicate
-            significant depressive symptoms. (Note: Q5 is reverse-scored).
-          </li>
-          <li>
-            <strong>Hysteria:</strong> Higher scores (e.g., 3-4) may indicate
-            tendency to exaggerate or feel misunderstood.
-          </li>
-        </ul>
-        <p style={{ color: "red" }}>
-          Disclaimer: This is a screening tool. A comprehensive diagnosis
-          requires a full clinical assessment by a qualified professional.
-        </p>
       </div>
 
       {/* Questions */}

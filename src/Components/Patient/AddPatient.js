@@ -336,11 +336,50 @@ const AddPatient = ({
           )}
 
           {/* Patient ID Field */}
-          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
-            {" "}
-            {/* mb-6 */}
-            <PatientId validation={validation} editData={editData} />
-          </Col>
+          <Row style={{ marginBottom: "1.5rem" }}>
+            {/* Patient ID */}
+            {/* <Col xs={12} md={6}> */}
+              <PatientId validation={validation} editData={editData} />
+            {/* </Col> */}
+
+            {/* Center Dropdown */}
+            <Col xs={12} md={6}>
+              <div className="mb-3">
+                <Label htmlFor="center" className="form-label">
+                  Center <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="select"
+                  name="center"
+                  id="center"
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.center || ""}
+                  invalid={
+                    validation.touched.center && validation.errors.center
+                      ? true
+                      : false
+                  }
+                  disabled={!!editData}
+                  className="form-control"
+                >
+                  <option value="" disabled hidden>
+                    Choose here
+                  </option>
+                  {(centers || []).map((option, idx) => (
+                    <option key={idx} value={option._id}>
+                      {option.title}
+                    </option>
+                  ))}
+                </Input>
+                {validation.touched.center && validation.errors.center && (
+                  <FormFeedback type="invalid">
+                    <div>{validation.errors.center}</div>
+                  </FormFeedback>
+                )}
+              </div>
+            </Col>
+          </Row>
 
           {/* Main Form Fields */}
           <Col xs={12}>

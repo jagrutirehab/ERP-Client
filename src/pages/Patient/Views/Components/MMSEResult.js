@@ -1,18 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const MPQ9ResultComponent = ({ resultData }) => {
-  const {
-    systemTotalScore,
-    systemInterpretation,
-    systemRecommendation,
-    observation,
-    Psychoticism,
-    Neuroticism,
-    ObsessiveCompulsive,
-    SomatizationAnxiety,
-    Depression,
-    Hysteria,
-  } = resultData;
+const MMSEResultComponent = ({ resultData }) => {
+  const { scores, interpretation, recommendation, observation } = resultData;
 
   const formatRecommendations = (text) => {
     if (!text) return <li>No Recommendation</li>;
@@ -29,26 +18,25 @@ const MPQ9ResultComponent = ({ resultData }) => {
       <div className="p-4 bg-light border border-primary rounded shadow-lg">
         <h2 className="h5 h4-sm fw-semibold text-primary mb-3">
           <i className="fas fa-chart-line me-2 text-primary"></i>
-          MPQ-9 Test Results shown
+          MMSE Test Results shown
         </h2>
 
         <div className="mb-3">
           <p className="h6 fw-semibold text-indigo">
-            Total MPQ-9 Score:{" "}
-            <span className="display-6 fw-bold">{systemTotalScore || 0}</span> /
-            24
+            Total MMSE Score:{" "}
+            <span className="display-6 fw-bold">{scores?.total || 0}</span> / 30
           </p>
         </div>
 
         <div className="mb-4 p-4 border border-primary-subtle rounded-3 bg-light shadow-sm">
           <div className="row g-3">
             {[
-              { label: "Psychoticism", value: Psychoticism },
-              { label: "Neuroticism", value: Neuroticism },
-              { label: "Obsessive Compulsive", value: ObsessiveCompulsive },
-              { label: "Somatization Anxiety", value: SomatizationAnxiety },
-              { label: "Depression", value: Depression },
-              { label: "Hysteria", value: Hysteria },
+              { label: "Orientation", value: scores.orientation },
+              { label: "Registration", value: scores.registration },
+              { label: "Attention", value: scores.attention },
+              { label: "Recall", value: scores.recall },
+              { label: "Language", value: scores.language },
+              { label: "Drawing", value: scores.drawing },
             ].map((item, index) => (
               <div key={index} className="col-12 col-sm-6 col-lg-4">
                 <div className="bg-white border border-info-subtle rounded-3 p-3 shadow-sm h-100">
@@ -66,14 +54,12 @@ const MPQ9ResultComponent = ({ resultData }) => {
 
         <p className="text-dark fs-6 lh-lg mb-4">
           <span className="fw-bold text-primary">Interpretation:</span>{" "}
-          {systemInterpretation || "No Interpretation"}
+          {interpretation || "No Interpretation"}
         </p>
 
         <div className="text-dark fs-6 lh-lg mb-4">
           <span className="fw-bold text-success">Recommendation:</span>
-          <ul className="mt-2 ms-4">
-            {formatRecommendations(systemRecommendation)}
-          </ul>
+          <ul className="mt-2 ms-4">{formatRecommendations(recommendation)}</ul>
         </div>
         <div className="mt-3 border border-secondary rounded p-3 bg-white">
           <p className="fw-semibold text-secondary mb-2">
@@ -88,4 +74,4 @@ const MPQ9ResultComponent = ({ resultData }) => {
   );
 };
 
-export default MPQ9ResultComponent;
+export default MMSEResultComponent;

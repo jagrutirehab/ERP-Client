@@ -17,6 +17,7 @@ import { fetchClinicalTest } from "../../../store/actions";
 import CSSRSResultComponent from "./Components/SsrsResult";
 import YmscResult from "./Components/YmscResult";
 import MPQ9ResultComponent from "./Components/MPQ9Result";
+import MMSEResultComponent from "./Components/MMSEResult";
 
 const ClinicalTest = ({
   // addmissionsCharts,
@@ -129,6 +130,7 @@ const ClinicalTest = ({
                                         {test?.testType === 8 && <YmscResult resultData={test} />}
                                         {test?.testType === 6 && <CIWAResultComponent resultData={test} />}
                                         {test?.testType === 9 && <MPQ9ResultComponent resultData={test} />}
+                                        {test?.testType === 10 && <MMSEResultComponent resultData={test} />}
                                       </Wrapper>
                                     </div>
                                   );

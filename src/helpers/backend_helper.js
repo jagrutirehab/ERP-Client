@@ -80,6 +80,11 @@ export const postMPQtest = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const postMMSEtest = (data) =>
+  api.create(url.POST_MMSE_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const postYmrsTest = (data) => {
   api.create(url.POST_YMRS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },

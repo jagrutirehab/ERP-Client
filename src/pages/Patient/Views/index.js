@@ -16,6 +16,7 @@ import CiwaQuestion from "./Components/CiwaQuestion";
 import SsrsQuestion from "./Components/SsrsQuestion";
 import YMSCQuestion from "./Components/YMSCQuestion";
 import MPQQuestion from "./Components/MPQ9Question";
+import MMSEQuestion from "./Components/MMSEQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -93,6 +94,7 @@ const Views = (props) => {
             {data === "CIWA-AR" && <CiwaQuestion />}
             {data === "YMRS" && <YMSCQuestion />}
             {data === "MPQ-9" && <MPQQuestion />}
+            {/* {data === "MMSE" && <MMSEQuestion />} */}
           </div>
         )}
       </div>
