@@ -25,6 +25,10 @@ const MedicineChart = ({ medicines }) => {
       name: "Duration",
       selector: (row, idx) =>
         row?.instructions ? `${row?.instructions}, ` : "" + row?.intake || "",
+            style: {
+        textWrap: "wrap",
+      },
+
     },
   ];
 
