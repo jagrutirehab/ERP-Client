@@ -250,7 +250,7 @@ export const getInterpretationAndRecommendations = (subscaleScores) => {
     interpretation +=
       "The Depression score is elevated, reflecting symptoms such as low mood, loss of interest, and feelings of sadness. This indicates a significant level of depressive symptomatology. ";
     recommendations +=
-      "Immediate and thorough clinical evaluation for depression is strongly recommended.**\n";
+      "Immediate and thorough clinical evaluation for depression is strongly recommended.\n";
     recommendations +=
       "Consider psychotherapy (e.g., CBT, IPT) and pharmacological interventions as appropriate.\n";
     recommendations +=

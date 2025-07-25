@@ -200,9 +200,9 @@ const MPQ9Assessment = () => {
             additional comments during the test administration.
           </li>
           <li className="mb-2 text-black">
-            <strong>Evidence/Image:</strong> If applicable, you can provide a
-            URL for an image (e.g., a relevant drawing by the patient, a visual
-            aid used) that serves as evidence for your observations.
+            <strong>Evidence/Image:</strong> If applicable, you can provide an
+            image (e.g., a relevant drawing by the patient, a visual aid used)
+            that serves as evidence for your observations.
           </li>
         </ul>
       </div>
@@ -260,7 +260,7 @@ const MPQ9Assessment = () => {
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-camera me-2 text-primary"></i>
-          Additional Evidence / Image Upload (optional)
+          Evidence / Image Upload (optional)
         </h3>
         <input
           type="file"
