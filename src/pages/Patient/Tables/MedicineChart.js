@@ -26,7 +26,7 @@ const MedicineChart = ({ medicines }) => {
       selector: (row, idx) =>
         row?.instructions ? `${row?.instructions}, ` : "" + row?.intake || "",
             style: {
-        textWrap: "wrap",
+        whiteSpace: "normal",
       },
 
     },
