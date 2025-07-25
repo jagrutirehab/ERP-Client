@@ -23,11 +23,17 @@ const MedicineChart = ({ medicines }) => {
     },
     {
       name: "Duration",
-      selector: (row, idx) =>
-        row?.instructions ? `${row?.instructions}, ` : "" + row?.intake || "",
-            style: {
-        whiteSpace: "normal",
-      },
+      cell: (row) => (
+        <div style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+          {row?.instructions ? `${row?.instructions}, ` : ""}
+          {row?.intake || ""}
+        </div>
+      ),
+      // selector: (row, idx) =>
+      //   row?.instructions ? `${row?.instructions}, ` : "" + row?.intake || "",
+      //       style: {
+      //   whiteSpace: "normal",
+      // },
 
     },
   ];
