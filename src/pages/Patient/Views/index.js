@@ -94,7 +94,7 @@ const Views = (props) => {
             {data === "CIWA-AR" && <CiwaQuestion />}
             {data === "YMRS" && <YMSCQuestion />}
             {data === "MPQ-9" && <MPQQuestion />}
-            {/* {data === "MMSE" && <MMSEQuestion />} */}
+            {data === "MMSE" && <MMSEQuestion />}
           </div>
         )}
       </div>
