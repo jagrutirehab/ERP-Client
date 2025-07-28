@@ -174,8 +174,8 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
           </Card>
           {/* Create Edit Lead */}
           <PatientForm />
-          <HubspotContacts leadDate={date} />
-          {/* <LeadForm date={date} />
+          {/* <HubspotContacts leadDate={date} /> */}
+          <LeadForm date={date} />
           <Merge date={date} lead={mergeLead} setLead={setMergeLead} />
           <UnMerge
             date={date}
@@ -193,7 +193,7 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
             setDeleteLead={setDeleteLead}
             setMergeLead={setMergeLead}
             setUnMergeLead={setUnMergeLead}
-          /> */}
+          />
         </Container>
       </div>
     </React.Fragment>
