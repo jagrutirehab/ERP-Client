@@ -3,26 +3,15 @@ import * as url from "./url_helper";
 import qs from "qs";
 
 const api = new APIClient();
-
-// Gets the logged in user data from local session
 export const getLoggedInUser = () => {
   const user = localStorage.getItem("user");
   if (user) return JSON.parse(user);
   return null;
 };
-
-// //is user is logged in
 export const isUserAuthenticated = () => {
   return getLoggedInUser() !== null;
 };
 
-// Login Method
-// export const postFakeLogin = data => api.create(url.POST_FAKE_LOGIN, data);
-
-// Login Method
-// export const postJwtLogin = (data) => api.create(url.POST_FAKE_JWT_LOGIN, data);
-
-// Register Method
 export const postUser = (data) =>
   api.create(url.POST_USER_REGISTER, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -59,12 +48,8 @@ export const editUser = (data) =>
 
 export const editUserPassword = (data) =>
   api.update(url.EDIT_USER_PASSWORD, data);
-
-// ClinicalTest
 export const getCiwaTest = (data) =>
   api.get(`${url.GET_CIWA_TEST}?patientId=${data}`);
-// export const getCiwaTest = (data) => api.get(`http://localhost:8080/api/v1/clinical-test/ciwa-test?patientId=${data}`);
-
 export const postCiwatest = (data) =>
   api.create(url.POST_CIWA_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -90,38 +75,15 @@ export const postYmrsTest = (data) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
-// export const postYmrsTest = (data) => {
-//   api.create("http://localhost:8080/api/v1/clinical-test/ymrs-test", data, {
-//     headers: { "Content-Type": "multipart/form-data" },
-//   })
-// };
-
-// export const postCiwatest = (data) => api.create(`http://localhost:8080/api/v1/clinical-test/ciwa-test`, data,{
-//     headers: { "Content-Type": "multipart/form-data" },
-//   });
 
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
-// export const getClinicalTest = (data) => api.get(`http://localhost:8080/api/v1/clinical-test/?patientId=${data.patientId}`);
-
-// Login Method
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
-
-// Login Method
 export const postJwtLogin = (data) => api.create(url.POST_USER_LOGIN, data);
-// export const postSearchUser = (data) => api.get(url.SEARCH_USER, data);
-
-// Logout Method
 export const postLogout = () => api.get(url.POST_USER_LOGOUT);
-
-// Log Method
 export const getUserLogs = (data) => api.get(url.GET_USER_LOGS, data);
-
-// Dashboard Method
 export const getDashboardAnalytics = (data) =>
   api.get(`${url.GET_DASHBOARD_ANALYTICS}/${data}`);
-
-// Center Method
 export const postCenter = (data) =>
   api.create(url.POST_CENTER, data, {
     headers: { "Content-Type": "multipart/form-data" },

@@ -30,7 +30,6 @@ const pages = [
       delete: true,
     },
     children: [
-      
       {
         name: "Timeline",
         permissions: {
@@ -47,7 +46,6 @@ const pages = [
           delete: true,
         },
       },
-     
     ],
   },
   {
@@ -147,25 +145,31 @@ export const setting = [
     id: "billing",
     label: "Billing",
     link: "/setting/billing",
-    icon: "bx bx-capsule",
+    icon: "bx bx-receipt",
   },
   {
     id: "calender",
     label: "Calender",
     link: "/setting/calender",
-    icon: "bx bx-capsule",
+    icon: "bx bxs-calendar",
   },
   {
     id: "offer",
     label: "Offer Code",
     link: "/setting/offercode",
-    icon: "bx bx-capsule",
+    icon: "bx bxs-offer",
   },
-   {
+  {
     id: "taxmanagement",
     label: "Tax Management",
     link: "/setting/taxmanagement",
-    icon: "bx bx-capsule",
+    icon: "bx bx-stats",
+  },
+  {
+    id: "roles",
+    label: "Roles & Permissions",
+    link: "/setting/rolesmanagment",
+    icon: "bx bx-fingerprint",
   },
 ];
 

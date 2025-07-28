@@ -235,3 +235,6 @@ export const UPDATE_TAX = "/tax/update";
 
 //HUBSPOT
 export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
+
+//Roles
+export const ROLES = "/role"

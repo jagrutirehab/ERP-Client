@@ -12,7 +12,7 @@ export const mmseQuestions = [
       hi: "पूछें: 'वर्तमान वर्ष क्या है?'",
     },
     correctAnswer: {
-      en: "Current Year (e.g., 2025)",
+      en: "Current Year (e.g. 2025)",
       hi: "वर्तमान वर्ष (उदाहरण के लिए, 2025)",
     },
     options: ["Correct", "Incorrect"],
@@ -29,7 +29,7 @@ export const mmseQuestions = [
       hi: "पूछें: 'यह कौन सी ऋतु है?'",
     },
     correctAnswer: {
-      en: "Current Season (e.g., Summer)",
+      en: "Current Season (e.g. Summer)",
       hi: "वर्तमान ऋतु (उदाहरण के लिए, गर्मी)",
     },
     options: ["Correct", "Incorrect"],
@@ -46,7 +46,7 @@ export const mmseQuestions = [
       hi: "पूछें: 'आज की तारीख (संख्या) क्या है?'",
     },
     correctAnswer: {
-      en: "Current Date (e.g., 24)",
+      en: "Current Date (e.g. 24)",
       hi: "वर्तमान तारीख (उदाहरण के लिए, 24)",
     },
     options: ["Correct", "Incorrect"],
@@ -63,7 +63,7 @@ export const mmseQuestions = [
       hi: "पूछें: 'यह सप्ताह का कौन सा दिन है?'",
     },
     correctAnswer: {
-      en: "Current Day of the Week (e.g., Thursday)",
+      en: "Current Day of the Week (e.g. Thursday)",
       hi: "वर्तमान सप्ताह का दिन (उदाहरण के लिए, गुरुवार)",
     },
     options: ["Correct", "Incorrect"],
@@ -80,7 +80,7 @@ export const mmseQuestions = [
       hi: "पूछें: 'यह कौन सा महीना है?'",
     },
     correctAnswer: {
-      en: "Current Month (e.g., July)",
+      en: "Current Month (e.g. July)",
       hi: "वर्तमान महीना (उदाहरण के लिए, जुलाई)",
     },
     options: ["Correct", "Incorrect"],
@@ -437,7 +437,7 @@ export const mmseQuestions = [
       hi: "3-चरण कमांड: अपने दाहिने हाथ में कागज लें",
     },
     guidance: {
-      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half, and put it on the floor.'",
+      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half and put it on the floor.'",
       hi: "रोगी को एक कागज दें। कहें: 'इस कागज को अपने दाहिने हाथ में लें, इसे आधा मोड़ें, और इसे फर्श पर रखें।'",
     },
     correctAnswer: {
@@ -454,7 +454,7 @@ export const mmseQuestions = [
       hi: "3-चरण कमांड: इसे आधा मोड़ें",
     },
     guidance: {
-      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half, and put it on the floor.'",
+      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half and put it on the floor.'",
       hi: "रोगी को एक कागज दें। कहें: 'इस कागज को अपने दाहिने हाथ में लें, इसे आधा मोड़ें, और इसे फर्श पर रखें।'",
     },
     correctAnswer: {
@@ -471,7 +471,7 @@ export const mmseQuestions = [
       hi: "3-चरण कमांड: इसे फर्श पर रखें",
     },
     guidance: {
-      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half, and put it on the floor.'",
+      en: "Give the patient a piece of paper. Say: 'Take this paper in your right hand, fold it in half and put it on the floor.'",
       hi: "रोगी को एक कागज दें। कहें: 'इस कागज को अपने दाहिने हाथ में लें, इसे आधा मोड़ें, और इसे फर्श पर रखें।'",
     },
     correctAnswer: {
@@ -548,17 +548,17 @@ export const getInterpretationAndRecommendations = (totalScore) => {
     interpretationText =
       "The patient's MMSE score indicates mild cognitive impairment. This suggests some decline in cognitive abilities, which may affect daily activities.";
     recommendationsText =
-      "Further comprehensive neuropsychological evaluation is recommended to identify specific areas of impairment and potential underlying causes. Consider lifestyle modifications, cognitive stimulation activities, and regular monitoring. Discuss findings with the patient and family, and explore potential medical or neurological consultations if appropriate.";
+      "Further comprehensive neuropsychological evaluation is recommended to identify specific areas of impairment and potential underlying causes. Consider lifestyle modifications, cognitive stimulation activities and regular monitoring. Discuss findings with the patient and family and explore potential medical or neurological consultations if appropriate.";
   } else if (totalScore >= 10 && totalScore <= 19) {
     interpretationText =
       "The patient's MMSE score suggests moderate cognitive impairment. This level of impairment is likely to significantly impact daily functioning and independence.";
     recommendationsText =
-      "Urgent and thorough medical and neuropsychological evaluation is strongly recommended to determine the etiology of cognitive decline. Consider interventions such as cognitive rehabilitation, environmental modifications for safety, and support for caregivers. A multidisciplinary approach involving neurology, geriatrics, and social services may be beneficial. Discuss long-term care planning with the patient and family.";
+      "Urgent and thorough medical and neuropsychological evaluation is strongly recommended to determine the etiology of cognitive decline. Consider interventions such as cognitive rehabilitation, environmental modifications for safety and support for caregivers. A multidisciplinary approach involving neurology, geriatrics and social services may be beneficial. Discuss long-term care planning with the patient and family.";
   } else if (totalScore >= 0 && totalScore <= 9) {
     interpretationText =
       "The patient's MMSE score indicates severe cognitive impairment. This suggests a profound decline in cognitive function, likely leading to significant dependence in most daily activities.";
     recommendationsText =
-      "Immediate and comprehensive medical and neurological assessment is crucial to identify the cause and manage symptoms. Focus on ensuring patient safety, comfort, and dignity. Provide extensive support for caregivers. Consider palliative care options and discuss advanced care planning. A multidisciplinary team approach is essential for managing complex needs.";
+      "Immediate and comprehensive medical and neurological assessment is crucial to identify the cause and manage symptoms. Focus on ensuring patient safety, comfort and dignity. Provide extensive support for caregivers. Consider palliative care options and discuss advanced care planning. A multidisciplinary team approach is essential for managing complex needs.";
   } else {
     interpretationText =
       "Invalid MMSE score. Please ensure the score is between 0 and 30.";
