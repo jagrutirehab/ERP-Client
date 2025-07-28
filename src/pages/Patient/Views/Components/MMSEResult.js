@@ -5,12 +5,41 @@ const MMSEResultComponent = ({ resultData }) => {
 
   const formatRecommendations = (text) => {
     if (!text) return <li>No Recommendation</li>;
-    const parts = text.split(/(?=\d+\.\s)/);
-    return parts.map((line, index) => (
-      <li key={index} className="mb-1">
-        {line.replace(/^\d+\.\s*/, "").trim()}
-      </li>
-    ));
+
+    // Protect common abbreviations with a placeholder
+    const placeholderMap = {
+      "e.g.": "___eg___",
+      "i.e.": "___ie___",
+      "etc.": "___etc___",
+      "vs.": "___vs___",
+    };
+
+    let safeText = text;
+    for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
+      safeText = safeText.replaceAll(abbr, placeholder);
+    }
+
+    // First try numbered bullets (1., 2., etc.)
+    let parts = safeText.split(/(?=\d+\.\s)/);
+
+    // If no numbered items, try sentence-based split (ends with . ! or ?)
+    if (parts.length === 1) {
+      parts = safeText.match(/[^.!?]+[.!?]+(\s|$)/g) || [safeText];
+    }
+
+    return parts.map((line, index) => {
+      // Restore abbreviations
+      let restored = line.trim();
+      for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
+        restored = restored.replaceAll(placeholder, abbr);
+      }
+
+      return (
+        <li key={index} className="mb-1">
+          {restored.replace(/^\d+\.\s*/, "").trim()}
+        </li>
+      );
+    });
   };
 
   return (

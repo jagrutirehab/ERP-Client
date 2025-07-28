@@ -533,3 +533,90 @@ export const mmseQuestions = [
     options: ["Correct", "Incorrect"],
   },
 ];
+
+
+export const getInterpretationAndRecommendations = (totalScore) => {
+  let interpretationText = "";
+  let recommendationsText = "";
+
+  if (totalScore >= 25 && totalScore <= 30) {
+    interpretationText =
+      "The patient's MMSE score suggests normal cognitive function. There are no significant signs of cognitive impairment based on this screening tool.";
+    recommendationsText =
+      "Continue routine follow-up as per standard medical guidelines. No specific cognitive interventions are indicated at this time based on MMSE results alone. Consider further assessment if clinical concerns persist despite the normal MMSE score.";
+  } else if (totalScore >= 20 && totalScore <= 24) {
+    interpretationText =
+      "The patient's MMSE score indicates mild cognitive impairment. This suggests some decline in cognitive abilities, which may affect daily activities.";
+    recommendationsText =
+      "Further comprehensive neuropsychological evaluation is recommended to identify specific areas of impairment and potential underlying causes. Consider lifestyle modifications, cognitive stimulation activities, and regular monitoring. Discuss findings with the patient and family, and explore potential medical or neurological consultations if appropriate.";
+  } else if (totalScore >= 10 && totalScore <= 19) {
+    interpretationText =
+      "The patient's MMSE score suggests moderate cognitive impairment. This level of impairment is likely to significantly impact daily functioning and independence.";
+    recommendationsText =
+      "Urgent and thorough medical and neuropsychological evaluation is strongly recommended to determine the etiology of cognitive decline. Consider interventions such as cognitive rehabilitation, environmental modifications for safety, and support for caregivers. A multidisciplinary approach involving neurology, geriatrics, and social services may be beneficial. Discuss long-term care planning with the patient and family.";
+  } else if (totalScore >= 0 && totalScore <= 9) {
+    interpretationText =
+      "The patient's MMSE score indicates severe cognitive impairment. This suggests a profound decline in cognitive function, likely leading to significant dependence in most daily activities.";
+    recommendationsText =
+      "Immediate and comprehensive medical and neurological assessment is crucial to identify the cause and manage symptoms. Focus on ensuring patient safety, comfort, and dignity. Provide extensive support for caregivers. Consider palliative care options and discuss advanced care planning. A multidisciplinary team approach is essential for managing complex needs.";
+  } else {
+    interpretationText =
+      "Invalid MMSE score. Please ensure the score is between 0 and 30.";
+    recommendationsText =
+      "Review the test administration and scoring. Ensure all sections are correctly evaluated.";
+  }
+
+  return { interpretationText, recommendationsText };
+};
+
+
+export const calculateScores = (answers) => {
+  const sections = {
+    orientation: { max: 10, current: 0 },
+    registration: { max: 3, current: 0 },
+    attention: { max: 5, current: 0 },
+    recall: { max: 3, current: 0 },
+    language: { max: 8, current: 0 },
+    drawing: { max: 1, current: 0 },
+  };
+
+  mmseQuestions.forEach((question) => {
+    const section = question.section;
+    const answer = answers[question.id];
+    if (answer && section in sections) {
+      if (section === "attention" && question.id === "q3_world_total_score") {
+        sections.attention.current = Math.max(
+          sections.attention.current,
+          parseInt(answer) || 0
+        );
+      } else if (answer === "Correct") {
+        sections[section].current += 1;
+      }
+    }
+  });
+
+  let serial7sScore = 0;
+  for (let i = 1; i <= 5; i++) {
+    if (answers[`q3_s7_${i}_score`] === "Correct") {
+      serial7sScore += 1;
+    }
+  }
+  const worldBackwardsScore = answers.q3_world_total_score
+    ? parseInt(answers.q3_world_total_score)
+    : 0;
+  sections.attention.current = Math.max(serial7sScore, worldBackwardsScore);
+
+  Object.keys(sections).forEach((section) => {
+    sections[section].current = Math.min(
+      sections[section].current,
+      sections[section].max
+    );
+  });
+
+  const totalScore = Object.values(sections).reduce(
+    (sum, section) => sum + section.current,
+    0
+  );
+
+  return { ...sections, totalScore };
+};
