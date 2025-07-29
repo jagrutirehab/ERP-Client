@@ -1,19 +1,22 @@
 import axios from "axios";
 import { api } from "../config";
 import history from "../Routes/HistoryRoute";
-import { toast } from "react-toastify";
+
+// ✅ Main Axios setup (unchanged)
 axios.defaults.baseURL = api.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 axios.defaults.withCredentials = "include";
+
 const authUser = localStorage.getItem("authUser");
 const token = authUser ? JSON.parse(authUser).token : null;
 
 if (token) {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 } else {
-  toast.error("⚠️ No token found, Authorization header not set");
+  delete axios.defaults.headers.common["Authorization"];
 }
 
+// ✅ Main API response interceptor
 axios.interceptors.response.use(
   function (response) {
     return response.data ? response.data : response;
@@ -33,24 +36,53 @@ axios.interceptors.response.use(
     );
   }
 );
+
+// ✅ Optional token setter
 const setAuthorization = (token) => {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 };
 
+// ✅ Separate Axios instance for AUTH_SERVICE_URL
+const authAxios = axios.create({
+  baseURL: api.AUTH_SERVICE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+});
+
+// ✅ Automatically set token for authAxios
+if (token) {
+  authAxios.defaults.headers.common["Authorization"] = "Bearer " + token;
+}
+
+// ✅ Optional interceptor for authAxios (optional)
+authAxios.interceptors.response.use(
+  (response) => (response.data ? response.data : response),
+  (error) => {
+    console.error("❌ Auth API Error:", {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return Promise.reject(
+      error?.response?.data || { message: "Auth service error!" }
+    );
+  }
+);
+
+// ✅ Reusable API client (for main API_URL)
 class APIClient {
   get = (url, params) => {
     let response;
-
     let paramKeys = [];
 
     if (params) {
-      Object.keys(params).map((key) => {
-        paramKeys.push(key + "=" + params[key]);
-        return paramKeys;
+      Object.keys(params).forEach((key) => {
+        paramKeys.push(`${key}=${params[key]}`);
       });
 
-      const queryString =
-        paramKeys && paramKeys.length ? paramKeys.join("&") : "";
+      const queryString = paramKeys.length > 0 ? paramKeys.join("&") : "";
       response = axios.get(`${url}?${queryString}`, params);
     } else {
       response = axios.get(`${url}`, params);
@@ -58,39 +90,37 @@ class APIClient {
 
     return response;
   };
-  /**
-   * post given data to url
-   */
+
   create = (url, data, headers) => {
     return axios.post(url, data, headers);
   };
-  /**
-   * Updates on certain data
-   */
+
   update = (url, data) => {
     return axios.patch(url, data);
   };
-  /**
-   * Updates whole data
-   */
+
   put = (url, data, headers) => {
     return axios.put(url, data, headers);
   };
-  /**
-   * Delete
-   */
+
   delete = (url, config) => {
     return axios.delete(url, { ...config });
   };
 }
 
+// ✅ Auth API client (for AUTH_SERVICE_URL)
+class AuthAPIClient {
+  get = (url, config = {}) => authAxios.get(url, config);
+  post = (url, data) => authAxios.post(url, data);
+  put = (url, data) => authAxios.put(url, data);
+  patch = (url, data) => authAxios.patch(url, data);
+  delete = (url, config) => authAxios.delete(url, { ...config });
+}
+
+// ✅ Get logged-in user
 const getLoggedinUser = () => {
   const user = localStorage.getItem("authUser");
-  if (!user) {
-    return null;
-  } else {
-    return JSON.parse(user);
-  }
+  return user ? JSON.parse(user) : null;
 };
 
-export { APIClient, setAuthorization, getLoggedinUser };
+export { APIClient, AuthAPIClient, setAuthorization, getLoggedinUser };

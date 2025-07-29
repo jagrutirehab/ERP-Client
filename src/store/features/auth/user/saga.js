@@ -1,37 +1,61 @@
-import { call, put, takeEvery, takeLatest } from "redux-saga/effects";
+import { call, put, takeEvery, takeLatest, all } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import {
   apiError,
   loginSuccess,
+  setMicroLogin,
   searchUserFail,
   searchUserSuccess,
 } from "./userSlice";
-import { getUsers, postJwtLogin } from "../../../../helpers/backend_helper";
+import {
+  getUsers,
+  postJwtLogin,
+  PostLoginService,
+  GetCsrf,
+} from "../../../../helpers/backend_helper";
+
 function* loginUser({ payload: { values, navigate } }) {
   try {
-    const response = yield call(postJwtLogin, {
-      email: values.email,
-      password: values.password,
-    });
+    const [mainLoginRes, csrfRes] = yield all([
+      call(postJwtLogin, {
+        email: values.email,
+        password: values.password,
+      }),
+      call(GetCsrf),
+    ]);
+    let microLoginRes = null;
+    if (csrfRes?.success || csrfRes?.status === 200) {
+      microLoginRes = yield call(PostLoginService, {
+        email: values.email,
+        password: values.password,
+      });
+    }
+    console.log(microLoginRes);
+    if (mainLoginRes.success === true) {
+      const authUser = {
+        data: mainLoginRes.payload,
+        token: mainLoginRes.token,
+        status: "success",
+      };
+      localStorage.setItem("authUser", JSON.stringify(authUser));
+      localStorage.setItem(
+        "userCenters",
+        JSON.stringify(mainLoginRes.userCenters)
+      );
 
-    const authUser = {
-      data: response.payload,
-      token: response.token,
-      status: "success",
-    };
-
-    localStorage.setItem("authUser", JSON.stringify(authUser));
-    localStorage.setItem("userCenters", JSON.stringify(response.userCenters));
-
-    if (response.success === true) {
-      yield put(loginSuccess(response));
+      yield put(loginSuccess(mainLoginRes));
       navigate("/dashboard");
     } else {
-      toast.error(response.error.message || "Invalid Credentials");
-      yield put(apiError(response));
+      toast.error(mainLoginRes.error?.message || "Invalid Credentials");
+      yield put(apiError(mainLoginRes));
+    }
+    if (microLoginRes?.statusCode === 200) {
+      yield put(setMicroLogin(microLoginRes.data));
+    } else if (microLoginRes) {
+      toast.warn("Microservice login failed");
     }
   } catch (error) {
-    toast.error(error.message || "Invalid Credentials");
+    toast.error(error.message || "Login failed");
     yield put(apiError(error));
   }
 }

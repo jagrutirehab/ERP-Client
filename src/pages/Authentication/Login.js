@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardBody,
@@ -10,18 +10,12 @@ import {
   Button,
   Form,
   FormFeedback,
-  Alert,
 } from "reactstrap";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
-
-//redux
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { loginUser } from "../../store/actions";
-
 import { Link, useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Hooks/withRouter";
-
-// Formik validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
@@ -29,14 +23,9 @@ const Login = (props) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [viewPassword, setViewPassword] = useState(false);
-  // const { user } = useSelector(state => ({
-  //     user: state.User.user,
-  // }));
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
     initialValues: {
       email: "",
       password: "",
@@ -55,34 +44,53 @@ const Login = (props) => {
   return (
     <React.Fragment>
       <ParticlesAuth>
-        <div className="auth-page-content">
+        <div
+          className="auth-page-content"
+          style={{ minHeight: "100vh", backgroundColor: "#f4f6f9" }}
+        >
           <Container>
             <Row>
               <Col lg={12}>
-                <div className="text-center mt-sm-5 mb-4 text-white-50">
-                  <div>
-                    <Link to="/" className="d-inline-block auth-logo">
-                      {/* Jagruti Group of Companies */}
-                      {/* <img src={logoLight} alt="" height="20" /> */}
-                    </Link>
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginTop: "3rem",
+                    marginBottom: "2rem",
+                    color: "#6c757d",
+                  }}
+                >
+                  <div className="d-inline-block auth-logo">
+                    <h2 style={{ fontWeight: 600, color: "#4a90e2" }}>
+                      Jagruti Rehab Center Dashboard
+                    </h2>
                   </div>
-                  {/* <p className="mt-3 fs-15 fw-medium">Premium Admin & Dashboard Template</p> */}
                 </div>
               </Col>
             </Row>
 
             <Row className="justify-content-center">
-              <div className="col-12 col-md-8 col-lg-6">
-                <Card className="mt-4 bg-light">
-                  <CardBody className="p-4">
-                    <div className="text-center mt-2">
-                      <h5 className="text-primary">Welcome Back !</h5>
-                      <p className="text-muted">
-                        Sign in to continue to Workspace.
+              <div className="col-12 col-md-8 col-lg-5">
+                <Card
+                  className="shadow"
+                  style={{
+                    border: "none",
+                    borderRadius: "20px",
+                    backgroundColor: "#ffffff",
+                    marginTop: "1rem",
+                  }}
+                >
+                  <CardBody style={{ padding: "2rem" }}>
+                    <div
+                      style={{ textAlign: "center", marginBottom: "1.5rem" }}
+                    >
+                      <h4 style={{ color: "#1f2937", fontWeight: "600" }}>
+                        Welcome Back!
+                      </h4>
+                      <p style={{ color: "#6b7280", marginTop: "0.5rem" }}>
+                        Sign in to continue.
                       </p>
                     </div>
-                    {/* {error && error ? (<Alert color="danger"> {error} </Alert>) : null} */}
-                    <div className="p-2 mt-4">
+                    <div>
                       <Form
                         onSubmit={(e) => {
                           e.preventDefault();
@@ -92,13 +100,17 @@ const Login = (props) => {
                         action="#"
                       >
                         <div className="mb-3">
-                          <Label htmlFor="email" className="form-label">
+                          <Label
+                            htmlFor="email"
+                            className="form-label"
+                            style={{ fontWeight: "500", color: "#374151" }}
+                          >
                             Email
                           </Label>
                           <Input
                             name="email"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="Enter your email"
                             type="email"
                             autoComplete="on"
                             onChange={validation.handleChange}
@@ -110,6 +122,11 @@ const Login = (props) => {
                                 ? true
                                 : false
                             }
+                            style={{
+                              height: "45px",
+                              borderRadius: "10px",
+                              borderColor: "#ced4da",
+                            }}
                           />
                           {validation.touched.email &&
                           validation.errors.email ? (
@@ -120,18 +137,17 @@ const Login = (props) => {
                         </div>
 
                         <div className="mb-3">
-                          <div className="float-end">
-                            <Link to="/forgot-password" className="text-muted">
-                              Forgot password?
-                            </Link>
-                          </div>
                           <Label
                             className="form-label"
                             htmlFor="password-input"
+                            style={{ fontWeight: "500", color: "#374151" }}
                           >
                             Password
                           </Label>
-                          <div className="position-relative auth-pass-inputgroup mb-3">
+                          <div
+                            className="position-relative auth-pass-inputgroup mb-3"
+                            style={{ position: "relative" }}
+                          >
                             <Input
                               name="password"
                               value={validation.values.password || ""}
@@ -139,7 +155,6 @@ const Login = (props) => {
                               className="form-control pe-5"
                               placeholder="Enter Password"
                               autoComplete="on"
-                              auto
                               onChange={validation.handleChange}
                               onBlur={validation.handleBlur}
                               invalid={
@@ -148,6 +163,11 @@ const Login = (props) => {
                                   ? true
                                   : false
                               }
+                              style={{
+                                height: "45px",
+                                borderRadius: "10px",
+                                borderColor: "#ced4da",
+                              }}
                             />
                             {validation.touched.password &&
                             validation.errors.password ? (
@@ -156,36 +176,47 @@ const Login = (props) => {
                               </FormFeedback>
                             ) : null}
                             <button
-                              className="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
+                              className="btn btn-link position-absolute"
                               type="button"
-                              id="password-addon"
                               onClick={() => setViewPassword(!viewPassword)}
+                              style={{
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                right: "10px",
+                                color: "#6c757d",
+                                fontSize: "1.1rem",
+                              }}
                             >
                               <i className="ri-eye-fill align-middle"></i>
                             </button>
                           </div>
-                        </div>
-
-                        <div className="form-check">
-                          <Input
-                            className="form-check-input"
-                            type="checkbox"
-                            value=""
-                            id="auth-remember-check"
-                          />
-                          <Label
-                            className="form-check-label"
-                            htmlFor="auth-remember-check"
+                          <div
+                            style={{
+                              textAlign: "right",
+                              marginBottom: "0.25rem",
+                            }}
                           >
-                            Remember me
-                          </Label>
+                            <Link
+                              to="/forgot-password"
+                              className="text-muted"
+                              style={{ fontSize: "0.9rem" }}
+                            >
+                              Forgot password?
+                            </Link>
+                          </div>
                         </div>
-
-                        <div className="mt-4">
+                        <div className="d-grid">
                           <Button
                             color="success"
-                            className="btn btn-success w-100"
                             type="submit"
+                            style={{
+                              backgroundColor: "#10b981",
+                              border: "none",
+                              borderRadius: "10px",
+                              height: "45px",
+                              fontWeight: "500",
+                              fontSize: "1rem",
+                            }}
                           >
                             Sign In
                           </Button>
@@ -194,10 +225,6 @@ const Login = (props) => {
                     </div>
                   </CardBody>
                 </Card>
-
-                {/* <div className="mt-4 text-center">
-                                    <p className="mb-0">Don't have an account ? <Link to="/register" className="fw-semibold text-primary text-decoration-underline"> Signup </Link> </p>
-                                </div> */}
               </div>
             </Row>
           </Container>

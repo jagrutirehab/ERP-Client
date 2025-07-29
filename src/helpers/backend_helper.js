@@ -1,8 +1,9 @@
-import { APIClient } from "./api_helper";
+import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
 
 const api = new APIClient();
+const userService = new AuthAPIClient();
 export const getLoggedInUser = () => {
   const user = localStorage.getItem("user");
   if (user) return JSON.parse(user);
@@ -681,5 +682,19 @@ export const getHubspotContacts = ({
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
     params: { page, limit, search, visitDate, status },
+  });
+};
+
+//  User Microservices
+export const PostLoginService = (data) =>
+  userService.post(url.MICRO_SIGN_IN, data);
+export const GetCsrf = () => userService.get(url.CSRF);
+
+export const getAllRoles = ({ page = 1, limit = 10, token }) => {
+  return userService.get(url.ROLES, {
+    params: { page, limit },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 };

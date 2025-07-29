@@ -236,5 +236,7 @@ export const UPDATE_TAX = "/tax/update";
 //HUBSPOT
 export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
 
-//Roles
+//New Microservice APIS
+export const CSRF = "/csrf-token"
+export const MICRO_SIGN_IN = "/userauths/signin"
 export const ROLES = "/role"

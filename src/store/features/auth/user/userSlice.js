@@ -21,6 +21,7 @@ import { setAlert } from "../../alert/alertSlice";
 const initialState = {
   data: null,
   user: null,
+  microLogin: null,
   schedule: null,
   doctor: null,
   counsellors: null,
@@ -179,19 +180,6 @@ export const fetchDoctors = createAsyncThunk(
   }
 );
 
-// export const fetchUsers = createAsyncThunk(
-//   "getUsers",
-//   async (data, { dispatch, rejectWithValue }) => {
-//     try {
-//       const response = await getUsers(data);
-//       return response;
-//     } catch (error) {
-//       dispatch(setAlert({ type: "error", message: error.message }));
-//       return rejectWithValue("something went wrong");
-//     }
-//   }
-// );
-
 export const removeUser = createAsyncThunk(
   "deleteUser",
   async (data, { dispatch, rejectWithValue }) => {
@@ -239,10 +227,9 @@ export const markedUserActiveOrInactive = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message:
-            response.payload.isHideFromSearch
-              ? "User Mask Successfully!"
-              : "User Unmask Successfully!",
+          message: response.payload.isHideFromSearch
+            ? "User Mask Successfully!"
+            : "User Unmask Successfully!",
         })
       );
 
@@ -309,6 +296,9 @@ const userSlice = createSlice({
   reducers: {
     loginUser: (state) => {
       state.forgetError = null;
+    },
+    setMicroLogin: (state, action) => {
+      state.microLogin = action.payload;
     },
     loginSuccess: (state, { payload }) => {
       state.user = payload.payload;
@@ -453,19 +443,6 @@ const userSlice = createSlice({
       .addCase(fetchUserSchedule.rejected, (state, action) => {
         state.loading = false;
       });
-
-    // builder
-    //   .addCase(fetchUsers.pending, (state) => {
-    //     state.loading = true;
-    //   })
-    //   .addCase(fetchUsers.fulfilled, (state, { payload }) => {
-    //     state.loading = false;
-    //     state.data = payload.payload;
-    //   })
-    //   .addCase(fetchUsers.rejected, (state, action) => {
-    //     state.loading = false;
-    //   });
-
     builder
       .addCase(removeUser.pending, (state) => {
         state.loading = true;
@@ -537,6 +514,7 @@ const userSlice = createSlice({
 
 export const {
   loginUser,
+  setMicroLogin,
   loginSuccess,
   logoutUserSuccess,
   changeUserAccess,
