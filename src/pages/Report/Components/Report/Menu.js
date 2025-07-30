@@ -1,9 +1,6 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { Button, Col, Input, Row } from "reactstrap";
 import { format } from "date-fns";
-
-//csv file
 import { CSVLink } from "react-csv";
 import SearchPatient from "./SeachPatient";
 import {
@@ -22,6 +19,7 @@ import {
   DUE_AMOUNT,
   INVOICE,
   OPD_BILL,
+  INTERN,
   advancePaymentHeaders,
   advancePaymentHeadersAddmissionDischargeDate,
   allTransactionHeaders,
@@ -49,73 +47,80 @@ const Menu = ({
   toggle,
   ...rest
 }) => {
-  const documents = () =>
-    data?.map((row) => ({
+  const documents = () => {
+    const filteredData =
+      billType === INTERN ? data?.filter((row) => row.intern) : data;
+    return filteredData?.map((row) => ({
       ...row,
-      date: row.date && format(new Date(row.date), "dd MMM yyyy"),
-      uid: `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
-      invoiceNumber: `${row.key?.prefix}${row.key?.patientId}-${row.key?.value}`,
+      name: row.intern ? row.intern.name : row.patient?.name || "",
+      date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
+      uid:
+        row.patient?.id
+          ? `${row.patient.id.prefix}${row.patient.id.value}`
+          : "",
+      invoiceNumber:
+        row.key
+          ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
+          : "",
       dateOfAddmission: row.patient?.addmission?.addmissionDate
-        ? format(
-            new Date(row.patient?.addmission.addmissionDate),
-            "dd MMM yyyy"
-          )
+        ? format(new Date(row.patient.addmission.addmissionDate), "dd MMM yyyy")
         : "",
       dateOfDischarge: row.patient?.addmission?.dischargeDate
-        ? format(new Date(row.patient?.addmission.dischargeDate), "dd MMM yyyy")
+        ? format(new Date(row.patient.addmission.dischargeDate), "dd MMM yyyy")
         : "",
-      ...(row.type === "OPD" && {
-        invoice: { payable: row.receiptInvoice?.payable },
-        advancePayment: { totalAmount: row.receiptInvoice?.payable },
-      }),
-      paymentModes: (
-        row.advancePayment?.paymentModes || row.receiptInvoice?.paymentModes
-      )?.map((item, idx) => {
-        if (item.paymentMode === CASH || item.type === CASH)
-          return `${item.paymentMode || item.type} ₹${item.amount}`;
-        if (item.paymentMode === CARD || item.type === CARD) {
-          return row.advancePayment?.paymentModes[idx - 1] ||
-            row.receiptInvoice?.paymentModes[idx - 1]
-            ? `\n${item.paymentMode || item.type} ${item.cardNumber} ₹${
-                item.amount
-              }`
-            : `${item.paymentMode || item.type} ${item.cardNumber} ₹${
-                item.amount
-              }`;
-        }
-        if (item.paymentMode === UPI || item.type === UPI) {
-          return row.advancePayment?.paymentModes[idx - 1] ||
-            row.receiptInvoice?.paymentModes[idx - 1]
-            ? `\n${item.paymentMode || item.type} ${item.transactionId}`
-            : `${item.paymentMode || item.type} ${item.transactionId}`;
-        }
-        if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-          return row.advancePayment?.paymentModes[idx - 1] ||
-            row.receiptInvoice?.paymentModes[idx - 1]
-            ? `\n${item.paymentMode || item.type} ${item.bankName || ""} ${
-                item.chequeNo || item.chequeNumber || ""
-              } ₹${item.amount}`
-            : `${item.paymentMode || item.type} ${item.bankName || ""} ${
-                item.chequeNo || item.chequeNumber || ""
-              } ₹${item.amount}`;
-        }
-        if (item.paymentMode === BANK || item.type === BANK) {
-          return row.advancePayment?.paymentModes[idx - 1] ||
-            row.receiptInvoice?.paymentModes[idx - 1]
-            ? `\n${item.paymentMode || item.type} ${item.bankName || ""} ₹${
-                item.amount
-              }`
-            : `${item.paymentMode || item.type} ${item.bankName || ""} ₹${
-                item.amount
-              }`;
-        }
-        return "";
-      }),
+      invoice: {
+        payable:
+          row.intern && row.receipt
+            ? ""
+            : row.invoice?.payable || row.receiptInvoice?.payable || 0,
+      },
+      advancePayment: {
+        totalAmount:
+          row.intern && row.receipt
+            ? row.receipt.totalAmount || 0
+            : row.advancePayment?.totalAmount ||
+              row.receiptInvoice?.payable ||
+              0,
+      },
+      paymentModes: (row.intern
+        ? row.receipt?.paymentModes
+        : row.advancePayment?.paymentModes || row.receiptInvoice?.paymentModes
+      )
+        ?.map((item, idx, arr) => {
+          const prevItem = arr[idx - 1];
+          const prefix = prevItem ? "\n" : "";
+          if (item.paymentMode === CASH || item.type === CASH) {
+            return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
+          }
+          if (item.paymentMode === CARD || item.type === CARD) {
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.cardNumber || ""
+            } ₹${item.amount}`;
+          }
+          if (item.paymentMode === UPI || item.type === UPI) {
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.transactionId || ""
+            }`;
+          }
+          if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+          }
+          if (item.paymentMode === BANK || item.type === BANK) {
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ₹${item.amount}`;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join(""),
     }));
+  };
 
   const headers = () => {
-    let resultantHeaders = undefined;
-    /* -------------------------First Condition Start------------------------ */
+    let resultantHeaders = [];
     if (
       (sortByDate === ADDMISSION_DATE || sortByDate === DISCHARGE_DATE) &&
       diagnosisCol
@@ -166,9 +171,18 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === INTERN)
+        resultantHeaders = [
+          { label: "Patient/Intern", key: "name" },
+          { label: "Center", key: "center.title" },
+          { label: "Date", key: "date" },
+          { label: "UID", key: "uid" },
+          { label: "Invoice No", key: "invoiceNumber" },
+          { label: "Invoiced Amount", key: "invoice.payable" },
+          { label: "Payment Modes", key: "paymentModes" },
+          { label: "Paid Amount", key: "advancePayment.totalAmount" },
+        ];
     } else if (
-      /* -------------------------First Condition End------------------------ */
-      /* -------------------------Second Condition Start------------------------ */
       sortByDate === ADDMISSION_DATE ||
       sortByDate === DISCHARGE_DATE
     ) {
@@ -206,9 +220,18 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === INTERN)
+        resultantHeaders = [
+          { label: "Patient/Intern", key: "name" },
+          { label: "Center", key: "center.title" },
+          { label: "Date", key: "date" },
+          { label: "UID", key: "uid" },
+          { label: "Invoice No", key: "invoiceNumber" },
+          { label: "Invoiced Amount", key: "invoice.payable" },
+          { label: "Payment Modes", key: "paymentModes" },
+          { label: "Paid Amount", key: "advancePayment.totalAmount" },
+        ];
     } else if (diagnosisCol) {
-      /* -------------------------Second Condition End------------------------ */
-      /* -------------------------Third Condition Start------------------------ */
       if (billType === DUE_AMOUNT) {
         resultantHeaders = [
           ...dueAmountHeaders,
@@ -259,9 +282,18 @@ const Menu = ({
             key: "dischargeSummary.diagnosis",
           },
         ];
+      else if (billType === INTERN)
+        resultantHeaders = [
+          { label: "Patient/Intern", key: "name" },
+          { label: "Center", key: "center.title" },
+          { label: "Date", key: "date" },
+          { label: "UID", key: "uid" },
+          { label: "Invoice No", key: "invoiceNumber" },
+          { label: "Invoiced Amount", key: "invoice.payable" },
+          { label: "Payment Modes", key: "paymentModes" },
+          { label: "Paid Amount", key: "advancePayment.totalAmount" },
+        ];
     } else if (billType === DUE_AMOUNT)
-      /* -------------------------Third Condition End------------------------ */
-      /* -------------------------Fourth Condition Start------------------------ */
       resultantHeaders = [
         ...dueAmountHeaders,
         sortPatientStatus === DISCHARGE_PATIENT
@@ -274,48 +306,47 @@ const Menu = ({
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    /* -------------------------Fourth Condition End------------------------ */
-    /* -------------------------Fifth Condition Start------------------------ */ else if (
-      billType === ADVANCE_PAYMENT
-    )
+    else if (billType === ADVANCE_PAYMENT)
       resultantHeaders = [
         ...advancePaymentHeaders,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    /* -------------------------Fifth Condition End------------------------ */
-    /* -------------------------Sixth Condition Start------------------------ */ else if (
-      billType === INVOICE
-    )
+    else if (billType === INVOICE)
       resultantHeaders = [
         ...payableAmountHeaders,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    /* -------------------------Sixth Condition End------------------------ */
-    /* -------------------------Seventh Condition Start------------------------ */ else if (
-      billType === ALL_TRANSACTIONS
-    )
+    else if (billType === ALL_TRANSACTIONS)
       resultantHeaders = [
         ...allTransactionHeaders,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    /* -------------------------Eighteth Condition End------------------------ */ if (
-      billType === OPD_BILL
-    )
+    else if (billType === OPD_BILL)
       resultantHeaders = [
         ...opdBillHeaders,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
       ];
-    /* -------------------------Eighteth Condition End------------------------ */
+    else if (billType === INTERN)
+      resultantHeaders = [
+        { label: "Patient/Intern", key: "name" },
+        { label: "Center", key: "center.title" },
+        { label: "Date", key: "date" },
+        // { label: "UID", key: "uid" },
+        // { label: "Invoice No", key: "invoiceNumber" },
+        // { label: "Invoiced Amount", key: "invoice.payable" },
+        { label: "Payment Modes", key: "paymentModes" },
+        { label: "Paid Amount", key: "advancePayment.totalAmount" },
+      ];
 
-    return resultantHeaders;
+    return resultantHeaders.filter((header) => header !== null);
   };
 
   const handleChange = (e) => {
@@ -346,7 +377,6 @@ const Menu = ({
                     value={billType || ""}
                     className="form-control form-control-sm"
                   >
-                    {/* <option style={{ display: 'none' }} value=''></option> */}
                     {(payments || []).map((item, idx) => (
                       <option
                         value={item.value}
@@ -380,21 +410,15 @@ const Menu = ({
                   >
                     <i className="ri-printer-line"></i>
                   </Button>
-                  {/* <Button
-                    size="sm"
-                    className="btn-info ms-3"
-                    title="CSV Download"
-                  > */}{" "}
                   <CSVLink
                     data={documents() || []}
                     title="CSV Download"
                     filename={"reports.csv"}
-                    headers={headers()?.filter((header) => header !== null)}
+                    headers={headers()}
                     className="btn btn-info px-2 ms-3"
                   >
                     <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
                   </CSVLink>
-                  {/* </Button> */}
                   <Button
                     size="sm"
                     color="secondary"
