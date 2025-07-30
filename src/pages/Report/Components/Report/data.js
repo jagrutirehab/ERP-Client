@@ -8,7 +8,7 @@ export const ADDMISSION_DATE = "ADDMISSION_DATE";
 export const DISCHARGE_DATE = "DISCAHRGE_DATE";
 export const ADMIT_PATIENT = "ADMIT_PATIENT";
 export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
-export const INTERN  = "INTERN"
+export const INTERN = "INTERN";
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
@@ -23,7 +23,7 @@ export const calendar = ["Daily", "Monthly", "Pre Doctor", "Pre Procedure"];
 
 export const allTransactionHeaders = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -35,7 +35,7 @@ export const allTransactionHeaders = [
 
 export const allTransactionHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -47,7 +47,7 @@ export const allTransactionHeadersAddmissionDischargeDate = [
 ];
 
 export const dueAmountHeaders = [
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "Center", key: "patient.center.title" },
   { label: "UID", key: "uid" },
   { label: "Date of Addmission", key: "dateOfAddmission" },
@@ -71,7 +71,7 @@ export const dueAmountHeaders = [
 
 export const advancePaymentHeaders = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -82,7 +82,7 @@ export const advancePaymentHeaders = [
 
 export const advancePaymentHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -95,7 +95,7 @@ export const advancePaymentHeadersAddmissionDischargeDate = [
 
 export const payableAmountHeaders = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -105,7 +105,7 @@ export const payableAmountHeaders = [
 
 export const payableAmountHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
@@ -117,7 +117,7 @@ export const payableAmountHeadersAddmissionDischargeDate = [
 
 export const opdBillHeaders = [
   { label: "Date", key: "date" },
-  { label: "Patient Name", key: "patient.name" },
+  { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
   { label: "Center", key: "center.title" },
