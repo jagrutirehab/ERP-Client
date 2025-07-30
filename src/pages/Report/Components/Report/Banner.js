@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 import { DUE_AMOUNT, OPD_BILL } from "./data";
 
@@ -6,13 +6,18 @@ const Banner = ({ data, billType }) => {
   const totalAdvancePayment = (dt) => {
     let amount = 0;
     dt?.forEach((item) => {
-      if (billType === DUE_AMOUNT) amount += item?.totalAdvancePayment;
-      else if (billType === OPD_BILL) amount += item?.receiptInvoice?.payable;
-      else
+      if (item.intern && item.receipt?.totalAmount) {
+        amount += item.receipt.totalAmount;
+      } else if (billType === DUE_AMOUNT) {
+        amount += item?.totalAdvancePayment || 0;
+      } else if (billType === OPD_BILL) {
+        amount += item?.receiptInvoice?.payable || 0;
+      } else {
         amount +=
           item?.advancePayment?.totalAmount ||
           item?.receiptInvoice?.payable ||
           0;
+      }
     });
     return amount;
   };
@@ -20,9 +25,14 @@ const Banner = ({ data, billType }) => {
   const totalPayable = (dt) => {
     let amount = 0;
     dt?.forEach((item) => {
-      if (billType === DUE_AMOUNT) amount += item?.totalPayable;
-      else amount += item?.invoice?.payable || 0;
-      if (billType === OPD_BILL) amount += item?.receiptInvoice?.payable;
+      if (billType === DUE_AMOUNT) {
+        amount += item?.totalPayable || 0;
+      } else {
+        amount += item?.invoice?.payable || 0;
+      }
+      if (billType === OPD_BILL && !item.intern) {
+        amount += item?.receiptInvoice?.payable || 0;
+      }
     });
     return amount;
   };
@@ -30,10 +40,7 @@ const Banner = ({ data, billType }) => {
   const dueAmount = (dt) => {
     const totalAdPayment = totalAdvancePayment(dt);
     const totalPay = totalPayable(dt);
-
-    if (totalPayable > totalAdvancePayment)
-      return Math.abs(totalPay - totalAdPayment);
-    else return "0.00";
+    return totalPay > totalAdPayment ? totalPay - totalAdPayment : 0.0;
   };
 
   return (

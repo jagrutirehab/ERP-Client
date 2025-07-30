@@ -43,6 +43,9 @@ const CiwaQuestions = () => {
     dispatch(fetchDoctors({ center: centerId }));
   }, [id, centerId, dispatch]);
   const doctorDetails = useSelector((state) => state.User?.doctor);
+  const counselerDetails = useSelector((state) => state.User.counsellors);
+
+  const allMedicalStaff = [...doctorDetails, ...counselerDetails];
 
   const clinicalTestLoading = useSelector(
     (state) => state.ClinicalTest?.isLoading
@@ -329,10 +332,7 @@ const CiwaQuestions = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result); // Set base64 string for preview
-        // In a real MERN stack app, you'd send this to the backend:
-        // sendFileToBackend(reader.result, file.type);
-        // openModal(`Image "${file.name}" selected. In a full application, this would be uploaded to the server.`);
+        setImagePreview(reader.result); 
       };
       reader.readAsDataURL(file);
     } else {
@@ -363,33 +363,8 @@ const CiwaQuestions = () => {
     setModalMessage("");
     dispatch(setTestName(""));
     dispatch(setTestPageOpen(false));
-    // If the modal was for submission, transition to results page
-    // if (currentPage === 'assessment') {
-    //     setCurrentPage('results');
-    //     // fetch the cewa-ar test
-    //     dispatch(fetchCiwaTest(id))
-    // }
   };
-
-  // Conceptual initialization of Firebase (for userId display)
-  // In a real application, Firebase would be properly initialized and authenticated here.
   useEffect(() => {
-    // This is a placeholder for Firebase auth setup.
-    // In a real app, you would initialize Firebase, handle authentication,
-    // and get the actual userId from Firebase Auth.
-    // Example:
-    // const app = initializeApp(firebaseConfig);
-    // const auth = getAuth(app);
-    // onAuthStateChanged(auth, (user) => {
-    //     if (user) {
-    //         setUserId(user.uid);
-    //     } else {
-    //         // If not authenticated, use a random ID as a placeholder for anonymous access
-    //         setUserId(crypto.randomUUID());
-    //     }
-    // });
-
-    // For this demo, just generate a random ID
     setUserId(`user-${Math.random().toString(36).substring(2, 11)}`);
   }, []);
 
@@ -399,10 +374,9 @@ const CiwaQuestions = () => {
 
     if (
       selectedDoctor.id === null ||
-      selectedDoctor.id == -1 ||
-      selectedDoctor.id == "-1"
+      selectedDoctor.id === -1 ||
+      selectedDoctor.id === "-1"
     ) {
-      // alert("Please select a doctor name ");
       openModal("Please choose a doctor first", -1);
       return;
     }
@@ -488,9 +462,9 @@ const CiwaQuestions = () => {
                   {selectedDoctor.name || "Select Doctor"}
                 </DropdownToggle>
                 <DropdownMenu flip={false}>
-                  {doctorDetails &&
-                    doctorDetails.length > 0 &&
-                    doctorDetails.map((item, idx) => (
+                  {allMedicalStaff &&
+                    allMedicalStaff.length > 0 &&
+                    allMedicalStaff.map((item, idx) => (
                       <DropdownItem
                         key={item._id}
                         onClick={() => {

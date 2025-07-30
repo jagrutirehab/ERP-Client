@@ -22,6 +22,9 @@ const YMSCQuestion = () => {
     const patientDetails = useSelector((state) => state.Patient?.patient?.id || {});
     const centerId = useSelector((state) => state.Patient.patient?.center?._id);
     const doctorDetails = useSelector((state) => state.User?.doctor);
+    const counselerDetails = useSelector((state) => state.User.counsellors);
+    
+      const allMedicalStaff = [...doctorDetails, ...counselerDetails];
     const clinicalTestLoading = useSelector((state) => state.ClinicalTest?.isLoading);
 
     const [center, setCenters] = useState('');
@@ -349,7 +352,7 @@ const YMSCQuestion = () => {
                                     {selectedDoctor.name || "Select Doctor"}
                                 </DropdownToggle>
                                 <DropdownMenu flip={false}>
-                                    {doctorDetails && doctorDetails.length > 0 && doctorDetails.map((item) => (
+                                    {allMedicalStaff && allMedicalStaff.length > 0 && allMedicalStaff.map((item) => (
                                         <DropdownItem key={item._id} onClick={() => setSelectedDoctor({ name: item.name, id: item._id })}>
                                             {item.name}
                                         </DropdownItem>

@@ -8,6 +8,7 @@ export const ADDMISSION_DATE = "ADDMISSION_DATE";
 export const DISCHARGE_DATE = "DISCAHRGE_DATE";
 export const ADMIT_PATIENT = "ADMIT_PATIENT";
 export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
+export const INTERN  = "INTERN"
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
@@ -15,6 +16,7 @@ export const payments = [
   { label: "Invoice", value: INVOICE },
   { label: "Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },
+  { label: "Interns", value: INTERN },
 ];
 
 export const calendar = ["Daily", "Monthly", "Pre Doctor", "Pre Procedure"];

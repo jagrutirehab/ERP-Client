@@ -38,6 +38,9 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
 
   const patient = useSelector((state) => state.Patient.patient);
   const doctorDetails = useSelector((state) => state.User.doctor);
+  const counselerDetails = useSelector((state) => state.User.counsellors);
+
+  const allMedicalStaff = [...doctorDetails, ...counselerDetails];
   const centerId = useSelector((state) => state.Patient.patient?.center?._id);
 
   useEffect(() => {
@@ -150,7 +153,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
               {selectedDoctor.name}
             </DropdownToggle>
             <DropdownMenu>
-              {(doctorDetails || []).map((doc) => (
+              {(allMedicalStaff || []).map((doc) => (
                 <DropdownItem
                   key={doc._id}
                   onClick={() =>
