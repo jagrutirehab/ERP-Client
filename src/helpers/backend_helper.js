@@ -698,3 +698,44 @@ export const getAllRoles = ({ page = 1, limit = 10, token }) => {
     },
   });
 };
+
+export const editRole = ({ id, name, permissions, token }) => {
+  return userService.put(
+    `${url.ROLES}/${id}`,
+    {
+      name,
+      permissions,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const addRole = ({ name, permissions, token }) => {
+  console.log(token);
+  return userService.post(
+    url.ROLES,
+    {
+      name,
+      permissions,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const deleteRole = ({ id, token }) => {
+  return userService.delete(`${url.ROLES}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};

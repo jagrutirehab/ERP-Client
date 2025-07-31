@@ -18,8 +18,15 @@ export const permissionList = [
 
 export const modulePermissionOptions = ["READ", "WRITE", "NONE"];
 export const getSubmoduleOptions = (subType) => {
-  if (subType === "LIST") return ["READ", "NONE"];
-  if (subType === "CREATE" || subType === "EDIT") return ["WRITE", "NONE"];
-  if (subType === "DELETE") return ["DELETE", "NONE"];
-  return ["NONE"];
+  switch (subType) {
+    case "DELETE":
+      return ["DELETE", "NONE"];
+    case "LIST":
+      return ["READ", "NONE"];
+    case "CREATE":
+    case "EDIT":
+      return ["WRITE", "NONE"];
+    default:
+      return ["NONE"];
+  }
 };

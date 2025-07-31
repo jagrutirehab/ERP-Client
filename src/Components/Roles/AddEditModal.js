@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { modulePermissionOptions, permissionList } from "../../Data/Roles.data";
+import {
+  getSubmoduleOptions,
+  modulePermissionOptions,
+  permissionList,
+} from "../../Data/Roles.data";
 
 const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const [name, setName] = useState("");
@@ -10,9 +14,31 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const isEditMode = Boolean(initialData);
 
   useEffect(() => {
+    // Initialize name
     setName(initialData?.name || "");
-    setPermissions(
-      initialData?.permissions ||
+
+    // Initialize permissions with defensive checks
+    if (initialData?.permissions && Array.isArray(initialData.permissions)) {
+      setPermissions(
+        permissionList.map(({ key, subModules }) => {
+          const existingModule = initialData.permissions.find(
+            (mod) => mod.module === key.toLowerCase()
+          );
+          return {
+            module: key.toLowerCase(),
+            type: existingModule?.type || "NONE",
+            subModules: subModules.map((sm) => ({
+              name: sm.name,
+              type:
+                existingModule?.subModules?.find((s) => s.name === sm.name)
+                  ?.type || "NONE",
+            })),
+          };
+        })
+      );
+    } else {
+      // Default permissions for add mode
+      setPermissions(
         permissionList.map(({ key, subModules }) => ({
           module: key.toLowerCase(),
           type: "NONE",
@@ -21,13 +47,16 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             type: "NONE",
           })),
         }))
-    );
+      );
+    }
   }, [initialData]);
 
   const getModulePermission = (modKey) => {
     return (
       permissions.find((mod) => mod.module === modKey.toLowerCase()) || {
+        module: modKey.toLowerCase(),
         type: "NONE",
+        subModules: [],
       }
     );
   };
@@ -39,7 +68,7 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
           ? {
               ...mod,
               type: newType,
-              subModules: mod.subModules?.map((sm) => ({
+              subModules: mod.subModules.map((sm) => ({
                 ...sm,
                 type:
                   newType === "NONE"
@@ -86,20 +115,6 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   };
 
   if (!isOpen) return null;
-
-  const getSubmoduleOptions = (subType) => {
-    switch (subType) {
-      case "DELETE":
-        return ["DELETE", "NONE"];
-      case "LIST":
-        return ["READ", "NONE"];
-      case "CREATE":
-      case "EDIT":
-        return ["WRITE", "NONE"];
-      default:
-        return ["NONE"];
-    }
-  };
 
   return (
     <div

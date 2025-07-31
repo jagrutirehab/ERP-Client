@@ -111,10 +111,10 @@ class APIClient {
 // ✅ Auth API client (for AUTH_SERVICE_URL)
 class AuthAPIClient {
   get = (url, config = {}) => authAxios.get(url, config);
-  post = (url, data) => authAxios.post(url, data);
-  put = (url, data) => authAxios.put(url, data);
-  patch = (url, data) => authAxios.patch(url, data);
-  delete = (url, config) => authAxios.delete(url, { ...config });
+  post = (url, data, config = {}) => authAxios.post(url, data, config);
+  put = (url, data, config = {}) => authAxios.put(url, data, config);
+  patch = (url, data, config = {}) => authAxios.patch(url, data, config);
+  delete = (url, config = {}) => authAxios.delete(url, { ...config });
 }
 
 // ✅ Get logged-in user

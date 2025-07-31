@@ -3,9 +3,9 @@ import { toast } from "react-toastify";
 import {
   apiError,
   loginSuccess,
-  setMicroLogin,
   searchUserFail,
   searchUserSuccess,
+  setMicroLogin,
 } from "./userSlice";
 import {
   getUsers,
@@ -50,6 +50,8 @@ function* loginUser({ payload: { values, navigate } }) {
       yield put(apiError(mainLoginRes));
     }
     if (microLoginRes?.statusCode === 200) {
+      const microdata = microLoginRes.data
+      localStorage.setItem("micrologin", JSON.stringify(microdata));
       yield put(setMicroLogin(microLoginRes.data));
     } else if (microLoginRes) {
       toast.warn("Microservice login failed");

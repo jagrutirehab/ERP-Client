@@ -122,7 +122,11 @@ export const RoleCard = ({
         onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
       >
-        <i className="bx bx-trash" style={{ fontSize: "1.25rem" }} />
+        {totalUsers <= 0 ? (
+          <i className="bx bx-trash" style={{ fontSize: "1.25rem" }} />
+        ) : (
+          ""
+        )}
       </button>
     </div>
   </Card>
