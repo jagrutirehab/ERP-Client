@@ -83,6 +83,14 @@ const styles = StyleSheet.create({
 
 const SummaryBody = ({ chart }) => {
   const data = chart.dischargeSummary;
+  const splitTextIntoLines = (text) => {
+    if (typeof text !== "string" || !text.trim()) return [];
+    return text
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line);
+  };
   return (
     <React.Fragment>
       <View style={styles.body}>
@@ -317,7 +325,7 @@ const SummaryBody = ({ chart }) => {
             <PrescriptionTable medicines={data.medicine} />{" "}
           </View>
         )}
-        {typeof data?.followUp === "string" && data?.followUp.trim() && (
+        {/* {typeof data?.followUp === "string" && data?.followUp.trim() && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>Follow-Up:</Text>
             <Text style={styles.preText}>
@@ -329,8 +337,23 @@ const SummaryBody = ({ chart }) => {
                 ))}
             </Text>
           </View>
+        )} */}
+        {typeof data?.followUp === "string" && data?.followUp.trim() && (
+          <View style={styles.marginBottom}>
+            <Text style={styles.fontSize13}>Follow-Up:</Text>
+            <View style={styles.paddingLeft5}>
+              {data.followUp
+                .trim()
+                .split(/\r?\n|(?<=\.)\s+/)
+                .map((line, idx) => (
+                  <Text key={idx} style={styles.preText}>
+                    {line.trim()}
+                  </Text>
+                ))}
+            </View>
+          </View>
         )}
-        {typeof data?.note === "string" && data?.note.trim() && (
+        {/* {typeof data?.note === "string" && data?.note.trim() && (
           <View style={styles.marginBottom} wrap={false}>
             <Text style={styles.fontSize13}>Note:</Text>
             <Text style={styles.preText}>
@@ -341,6 +364,12 @@ const SummaryBody = ({ chart }) => {
                   <Text key={idx}>{line.trim() + "\n"}</Text>
                 ))}
             </Text>
+          </View>
+        )} */}
+        {typeof data?.note === "string" && data?.note.trim() && (
+          <View style={styles.marginBottom} wrap={false}>
+            <Text style={styles.fontSize13}>Note:</Text>
+            <Text style={styles.preText}>{data.note.trim()}</Text>
           </View>
         )}
       </View>
