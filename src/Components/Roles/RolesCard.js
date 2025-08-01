@@ -109,25 +109,24 @@ export const RoleCard = ({
           Edit Role
         </button>
       </div>
-
-      <button
-        onClick={onDelete}
-        style={{
-          padding: "0.5rem",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "#9CA3AF",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
-      >
-        {totalUsers <= 0 ? (
+      {totalUsers <= 0 ? (
+        <button
+          onClick={onDelete}
+          style={{
+            padding: "0.5rem",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "#9CA3AF",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
+        >
           <i className="bx bx-trash" style={{ fontSize: "1.25rem" }} />
-        ) : (
-          ""
-        )}
-      </button>
+        </button>
+      ) : (
+        ""
+      )}
     </div>
   </Card>
 );
