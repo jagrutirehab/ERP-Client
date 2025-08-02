@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import {
-  getSubmoduleOptions,
+  getFilteredSubmoduleOptions,
   modulePermissionOptions,
   permissionList,
 } from "../../Data/Roles.data";
@@ -14,18 +14,15 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const isEditMode = Boolean(initialData);
 
   useEffect(() => {
-    // Initialize name
     setName(initialData?.name || "");
-
-    // Initialize permissions with defensive checks
     if (initialData?.permissions && Array.isArray(initialData.permissions)) {
       setPermissions(
         permissionList.map(({ key, subModules }) => {
           const existingModule = initialData.permissions.find(
-            (mod) => mod.module === key.toLowerCase()
+            (mod) => mod.module.toUpperCase() === key
           );
           return {
-            module: key.toLowerCase(),
+            module: key,
             type: existingModule?.type || "NONE",
             subModules: subModules.map((sm) => ({
               name: sm.name,
@@ -37,10 +34,9 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
         })
       );
     } else {
-      // Default permissions for add mode
       setPermissions(
         permissionList.map(({ key, subModules }) => ({
-          module: key.toLowerCase(),
+          module: key,
           type: "NONE",
           subModules: subModules.map((sm) => ({
             name: sm.name,
@@ -53,8 +49,8 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   const getModulePermission = (modKey) => {
     return (
-      permissions.find((mod) => mod.module === modKey.toLowerCase()) || {
-        module: modKey.toLowerCase(),
+      permissions.find((mod) => mod.module === modKey) || {
+        module: modKey,
         type: "NONE",
         subModules: [],
       }
@@ -64,18 +60,13 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const updateModulePermission = (modKey, newType) => {
     setPermissions((prev) =>
       prev.map((mod) =>
-        mod.module === modKey.toLowerCase()
+        mod.module === modKey
           ? {
               ...mod,
               type: newType,
               subModules: mod.subModules.map((sm) => ({
                 ...sm,
-                type:
-                  newType === "NONE"
-                    ? "NONE"
-                    : newType === "READ"
-                    ? "READ"
-                    : sm.type,
+                type: newType,
               })),
             }
           : mod
@@ -89,7 +80,7 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
   const updateSubmodulePermission = (modKey, subName, subType) => {
     setPermissions((prev) =>
       prev.map((mod) =>
-        mod.module === modKey.toLowerCase()
+        mod.module === modKey
           ? {
               ...mod,
               subModules: mod.subModules.map((sm) =>
@@ -271,7 +262,8 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                       </label>
                     ))}
                     {(modulePerm.type === "READ" ||
-                      modulePerm.type === "WRITE") && (
+                      modulePerm.type === "WRITE" ||
+                      modulePerm.type === "DELETE") && (
                       <button
                         type="button"
                         onClick={() => toggleSubmodules(key)}
@@ -308,79 +300,68 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                         No submodules present.
                       </p>
                     ) : (
-                      subModules
-                        .filter((sm) => {
-                          if (
-                            sm.type === "LIST" &&
-                            modulePerm.type !== "READ" &&
-                            modulePerm.type !== "WRITE"
-                          )
-                            return false;
-                          if (sm.type !== "LIST" && modulePerm.type !== "WRITE")
-                            return false;
-                          return true;
-                        })
-                        .map((sm) => {
-                          const subOptions = getSubmoduleOptions(sm.type);
-                          const current =
-                            modulePerm.subModules?.find(
-                              (s) => s.name === sm.name
-                            )?.type || "NONE";
+                      subModules.map((sm) => {
+                        const subOptions = getFilteredSubmoduleOptions(
+                          modulePerm.type
+                        );
+                        const current =
+                          modulePerm.subModules?.find((s) => s.name === sm.name)
+                            ?.type || "NONE";
 
-                          return (
-                            <div
-                              key={sm.name}
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: "10px",
-                                paddingLeft: "8px",
-                                borderBottom: "1px dashed #ccc",
-                                paddingBottom: "6px",
-                              }}
-                            >
-                              <span style={{ fontSize: "14px", color: "#333" }}>
-                                {sm.label}
-                              </span>
-                              <div style={{ display: "flex", gap: "12px" }}>
-                                {subOptions.map((opt) => (
-                                  <label
-                                    key={opt}
+                        return (
+                          <div
+                            key={sm.name}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: "10px",
+                              paddingLeft: "8px",
+                              borderBottom: "1px dashed #ccc",
+                              paddingBottom: "6px",
+                            }}
+                          >
+                            <span style={{ fontSize: "14px", color: "#333" }}>
+                              {sm.label}
+                            </span>
+                            <div style={{ display: "flex", gap: "12px" }}>
+                              {subOptions.map((opt) => (
+                                <label
+                                  key={opt}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                  }}
+                                >
+                                  <input
+                                    type="radio"
+                                    name={`sub-${key}-${sm.name}`}
+                                    value={opt}
+                                    checked={current === opt}
+                                    onChange={() =>
+                                      updateSubmodulePermission(
+                                        key,
+                                        sm.name,
+                                        opt
+                                      )
+                                    }
+                                  />
+                                  <span
                                     style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "4px",
+                                      fontSize: "13px",
+                                      color: "#333",
+                                      textTransform: "capitalize",
                                     }}
                                   >
-                                    <input
-                                      type="radio"
-                                      name={`sub-${key}-${sm.name}`}
-                                      value={opt}
-                                      checked={current === opt}
-                                      onChange={() =>
-                                        updateSubmodulePermission(
-                                          key,
-                                          sm.name,
-                                          opt
-                                        )
-                                      }
-                                    />
-                                    <span
-                                      style={{
-                                        fontSize: "13px",
-                                        color: "#333",
-                                        textTransform: "capitalize",
-                                      }}
-                                    >
-                                      {opt.toLowerCase()}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
+                                    {opt.toLowerCase()}
+                                  </span>
+                                </label>
+                              ))}
                             </div>
-                          );
-                        })
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 )}
