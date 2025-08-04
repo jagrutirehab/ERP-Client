@@ -9,6 +9,8 @@ import { registerUser, updateUser } from "../../store/actions";
 import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
+import { getAllRoleslist } from "../../helpers/backend_helper";
+import { toast } from "react-toastify";
 
 const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const dispatch = useDispatch();
@@ -18,6 +20,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
+  const token = useSelector((state) => state.User.microLogin.token);
   const [faqs, setFaqs] = useState(userData?.faqs?.length ? userData.faqs : []);
   const [signature, setSignature] = useState(null);
   const [cropSignature, setCropSignature] = useState(null);
@@ -28,6 +31,26 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const [options, setOptions] = useState([]);
   const [expertise, setExpertise] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [accessroles, setAcccessRoles] = useState([]);
+  const [search, setSearch] = useState([]);
+
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllRoleslist({ token, search });
+      setAcccessRoles(response?.data || []);
+    } catch (error) {
+      toast.error("Failed to fetch roles.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleChange = (selectedOptions) => {
     setOptions(selectedOptions || []);
@@ -96,6 +119,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       authorId: author?._id || "",
       name: userData?.name || "",
       email: userData?.email || "",
+      accessroles: userData?.accessroles || "",
       role: userData?.role || "",
       signature: "",
       degrees: userData?.education?.degrees || "",
@@ -125,6 +149,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
           .required("Confirm Password is required"),
       }),
       centerAccess: Yup.array().min(1, "At least one center is required"),
+      accessroles: Yup.string().required("Access Role is required"),
       role: Yup.string().required("Role is required"),
     }),
     onSubmit: (values) => {
@@ -132,6 +157,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       formData.append("authorId", values.authorId);
       formData.append("name", values.name);
       formData.append("email", values.email);
+      formData.append("accessroles", values.accessroles);
       formData.append("role", values.role);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
@@ -191,6 +217,13 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       name: "email",
       type: "email",
       placeholder: "Enter email address",
+    },
+    {
+      label: "Acccess Role",
+      name: "accessroles",
+      type: "select",
+      options: accessroles,
+      placeholder: "Select Access role",
     },
     {
       label: "Role",
@@ -265,43 +298,43 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     validation.resetForm();
   };
 
-  const handleAccess = (e, field, item, val) => {
-    const value = val
-      ? field.subCheck(field.name, item.name, val.name)
-      : field.check(field, item);
-    const currentPageAccess = validation.values.pageAccess || [];
-    let updatedPageAccess = [];
-    if (value) {
-      if (val) {
-        updatedPageAccess = currentPageAccess.map((pg) => {
-          if (item.name === pg.name) {
-            const page = pg.subAccess.filter((sb) => sb.name !== val.name);
-            return { ...pg, subAccess: page };
-          }
-          return pg;
-        });
-      } else {
-        updatedPageAccess = currentPageAccess.filter(
-          (pg) => pg.name !== item.name
-        );
-      }
-    } else {
-      if (val) {
-        updatedPageAccess = currentPageAccess.map((pg) => {
-          if (item.name === pg.name) {
-            return { ...pg, subAccess: [...pg.subAccess, val] };
-          }
-          return pg;
-        });
-      } else {
-        updatedPageAccess = [
-          ...currentPageAccess,
-          { ...item, name: item.name, subAccess: item.children || [] },
-        ];
-      }
-    }
-    validation.setFieldValue("pageAccess", updatedPageAccess);
-  };
+  // const handleAccess = (e, field, item, val) => {
+  //   const value = val
+  //     ? field.subCheck(field.name, item.name, val.name)
+  //     : field.check(field, item);
+  //   const currentPageAccess = validation.values.pageAccess || [];
+  //   let updatedPageAccess = [];
+  //   if (value) {
+  //     if (val) {
+  //       updatedPageAccess = currentPageAccess.map((pg) => {
+  //         if (item.name === pg.name) {
+  //           const page = pg.subAccess.filter((sb) => sb.name !== val.name);
+  //           return { ...pg, subAccess: page };
+  //         }
+  //         return pg;
+  //       });
+  //     } else {
+  //       updatedPageAccess = currentPageAccess.filter(
+  //         (pg) => pg.name !== item.name
+  //       );
+  //     }
+  //   } else {
+  //     if (val) {
+  //       updatedPageAccess = currentPageAccess.map((pg) => {
+  //         if (item.name === pg.name) {
+  //           return { ...pg, subAccess: [...pg.subAccess, val] };
+  //         }
+  //         return pg;
+  //       });
+  //     } else {
+  //       updatedPageAccess = [
+  //         ...currentPageAccess,
+  //         { ...item, name: item.name, subAccess: item.children || [] },
+  //       ];
+  //     }
+  //   }
+  //   validation.setFieldValue("pageAccess", updatedPageAccess);
+  // };
 
   const handlePermission = (a, b, c) => {
     let currentPageAccess = [...validation.values.pageAccess];
@@ -623,7 +656,6 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
               </div>
             </div>
           )}
-
           <div
             style={{
               display: "grid",
@@ -686,8 +718,11 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                       {field.placeholder}
                     </option>
                     {field.options.map((option, idx) => (
-                      <option key={idx} value={option}>
-                        {option}
+                      <option
+                        key={idx}
+                        value={typeof option === "object" ? option._id : option}
+                      >
+                        {typeof option === "object" ? option.name : option}
                       </option>
                     ))}
                   </select>
@@ -960,7 +995,6 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
               </div>
             ))}
           </div>
-
           <div
             style={{
               display: "flex",

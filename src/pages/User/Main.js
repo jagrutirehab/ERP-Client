@@ -12,30 +12,34 @@ import {
   UncontrolledDropdown,
   Spinner,
   Badge,
+  Pagination,
+  PaginationItem,
+  PaginationLink,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import Highlighter from "react-highlight-words";
-import {
-  fetchAllCenters,
-  fetchCenters,
-  removeUser,
-  searchUser,
-  setUserForm,
-  suspendStaff,
-} from "../../store/actions";
-import { useDispatch, connect } from "react-redux";
+import { useDispatch, useSelector, connect } from "react-redux";
 import UserForm from "./Form";
 import PasswordForm from "./PasswordForm";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import CheckPermission from "../../Components/HOC/CheckPermission";
 import smallImage9 from "../../assets/images/small/img-9.jpg";
+import { toast } from "react-toastify";
+import { getAllUsers } from "../../helpers/backend_helper";
+import {
+  fetchAllCenters,
+  fetchCenters,
+  removeUser,
+  setUserForm,
+  suspendStaff,
+} from "../../store/actions";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!centers || centers.length === 0) {
+  if (!centers || !Array.isArray(centers) || centers.length === 0) {
     return <p className="text-muted mb-0">No centers assigned.</p>;
   }
 
@@ -45,8 +49,8 @@ const UserCenterList = ({ centers }) => {
   return (
     <div className="d-flex flex-wrap gap-2 align-items-center">
       {visibleCenters.map((center) => (
-        <Badge key={center._id} color="primary" pill>
-          {center.title}
+        <Badge key={center._id || center.id} color="primary" pill>
+          {center.name || "Unnamed Center"}
         </Badge>
       ))}
       {remainingCount > 0 && (
@@ -66,13 +70,20 @@ UserCenterList.propTypes = {
   centers: PropTypes.array.isRequired,
 };
 
-const Main = ({ users, user, form, loading, centerAccess }) => {
+const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
+  const token = useSelector((state) => state.User.microLogin.token);
+  const centers = useSelector((state) => state.Center.allcenters || []);
   const [query, setQuery] = useState("");
-  const [userData, setUserData] = useState();
+  const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [userDataa, setUserDataa] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   useEffect(() => {
     dispatch(fetchCenters(user?.centerAccess));
@@ -81,13 +92,63 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      dispatch(
-        searchUser({ query, centerAccess: JSON.stringify(centerAccess) })
-      );
+      const fetchUser = async () => {
+        try {
+          setLoading(true);
+          const response = await getAllUsers({
+            page: currentPage,
+            limit,
+            search: query,
+            token,
+            centerAccess: JSON.stringify(centerAccess),
+          });
+          let users = response?.data?.data || [];
+          console.log("Fetched users:", users);
+          console.log("Available centers:", centers);
+
+          // Map centerAccess IDs to full center objects if centers is available
+          if (
+            users.length > 0 &&
+            Array.isArray(centers) &&
+            centers.length > 0
+          ) {
+            users = users.map((user) => ({
+              ...user,
+              centerAccess: (user.centerAccess || []).map(
+                (centerId) =>
+                  centers.find((center) => center._id === centerId) || {
+                    _id: centerId,
+                    title: "Unknown Center",
+                  }
+              ),
+            }));
+          } else {
+            // Fallback if centers is not available
+            users = users.map((user) => ({
+              ...user,
+              centerAccess: (user.centerAccess || []).map((centerId) => ({
+                _id: centerId,
+                title: "Unknown Center",
+              })),
+            }));
+          }
+
+          console.log("Processed users with mapped centers:", users);
+          setUserDataa(users);
+          setTotalPages(response?.data?.totalPages || 1);
+          setCurrentPage(response?.data?.currentPage || currentPage);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          toast.error("Failed to fetch users.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchUser();
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [dispatch, query, centerAccess]);
+  }, [query, currentPage, token, centerAccess, centers]);
 
   document.title = "Users | Your App Name";
 
@@ -141,6 +202,12 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
       .map((w) => w.charAt(0))
       .join("")
       .toUpperCase();
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <>
@@ -208,7 +275,7 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
       />
 
       <Row className="g-4">
-        {(users || []).map((item) => (
+        {(userDataa || []).map((item) => (
           <Col xxl={3} lg={4} md={6} key={item._id}>
             <Card className="team-box h-100">
               <div className="team-cover">
@@ -227,7 +294,9 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                           />
                         ) : (
                           <div
-                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${item.bgColor} text-${item.textColor}`}
+                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${
+                              item.bgColor || "primary"
+                            } text-${item.textColor || "primary"}`}
                           >
                             <span className="fs-22">
                               {shortName(item.name)}
@@ -244,7 +313,7 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                           textToHighlight={item.name || ""}
                         />
                       </h5>
-                      <p className="text-muted mb-0">{item.role}</p>
+                      <p className="text-muted mb-0">{item.role || "N/A"}</p>
                     </div>
                     <div className="flex-shrink-0">
                       <UncontrolledDropdown direction="start">
@@ -285,7 +354,6 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                       </UncontrolledDropdown>
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <p className="text-muted mb-1">Email Address</p>
                     <h6 className="mb-0">
@@ -323,23 +391,49 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
           </Col>
         ))}
       </Row>
+
+      {totalPages > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center align-items-center">
+            <Pagination className="pagination mb-0">
+              <PaginationItem disabled={currentPage === 1}>
+                <PaginationLink
+                  previous
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  Previous
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem disabled>
+                <PaginationLink>
+                  Page {currentPage} of {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem disabled={currentPage === totalPages}>
+                <PaginationLink
+                  next
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  Next
+                </PaginationLink>
+              </PaginationItem>
+            </Pagination>
+          </Col>
+        </Row>
+      )}
     </>
   );
 };
 
 const mapStateToProps = (state) => ({
-  users: state.User.data,
   user: state.User.user,
   form: state.User.form,
-  loading: state.User.loading,
   centerAccess: state.User.centerAccess,
 });
 
 Main.propTypes = {
-  users: PropTypes.array.isRequired,
   user: PropTypes.object.isRequired,
   form: PropTypes.object.isRequired,
-  loading: PropTypes.bool.isRequired,
   centerAccess: PropTypes.array.isRequired,
 };
 

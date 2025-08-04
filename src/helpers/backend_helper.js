@@ -689,12 +689,23 @@ export const getHubspotContacts = ({
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
 export const GetCsrf = () => userService.get(url.CSRF);
-
+// Roles
 export const getAllRoles = ({ page = 1, limit = 10, token }) => {
   return userService.get(url.ROLES, {
     params: { page, limit },
     headers: {
       Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const getAllRoleslist = ({ token, search = "" }) => {
+  return userService.get(`${url.ROLES}/role-list`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    params: {
+      search,
     },
   });
 };
@@ -734,6 +745,15 @@ export const addRole = ({ name, permissions, token }) => {
 
 export const deleteRole = ({ id, token }) => {
   return userService.delete(`${url.ROLES}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+// Users
+export const getAllUsers = ({ page = 1, limit = 10, search = "", token }) => {
+  return userService.get(url.USER, {
+    params: { page, limit, search },
     headers: {
       Authorization: `Bearer ${token}`,
     },
