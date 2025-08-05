@@ -38,6 +38,8 @@ const BillForm = ({ bill, ...rest }) => {
     ? "Draft Invoice"
     : "Invoice";
 
+  console.log(bill, "bill", { ...rest });
+
   return (
     <React.Fragment>
       <CustomModal

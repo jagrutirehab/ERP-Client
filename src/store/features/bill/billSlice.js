@@ -354,6 +354,7 @@ export const billSlice = createSlice({
       }
     },
     createEditBill: (state, { payload }) => {
+      console.log(payload, "payload");
       state.billForm = payload;
     },
 
@@ -477,7 +478,6 @@ export const billSlice = createSlice({
         state.loading = true;
       })
       .addCase(addInvoice.fulfilled, (state, { payload }) => {
-
         if (payload?.bill?.type === OPD) {
           state.opdData = [payload.bill, ...state.opdData];
         } else {

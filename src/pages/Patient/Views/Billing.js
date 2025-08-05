@@ -48,6 +48,7 @@ const Billing = ({
   const dispatch = useDispatch();
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
+  const [admission, setAdmission] = useState(null);
   const toggleModal = () => setDateModal(!dateModal);
 
   const handleAdmitPatient = () => {
@@ -86,13 +87,26 @@ const Billing = ({
     dispatch(fetchDraftBills({ patient: patient._id }));
   }, [dispatch, patient]);
 
+  console.log(
+    addmissionsBills.map((addmission) => addmission._id),
+    "addmissionsBills",
+    admission
+  );
+
   return (
     <div className="mt-3">
       <div className="d-flex align-items-center justify-content-between">
         <div className="flex">
           <CheckPermission permission={"create"} subAccess={"Billing"}>
             <RenderWhen isTrue={patient?.isAdmit}>
-              <Button className="text-nowrap" onClick={toggleModal} size="sm">
+              <Button
+                className="text-nowrap"
+                onClick={() => {
+                  setAdmission(null);
+                  toggleModal();
+                }}
+                size="sm"
+              >
                 Create new Bill
               </Button>
             </RenderWhen>
@@ -159,7 +173,7 @@ const Billing = ({
           patient in order to create bills!
         </Alert>
       </RenderWhen>
-      <BillDate isOpen={dateModal} toggle={toggleModal} />
+      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} />
       <BillForm type={IPD} />
 
       <div className="mt-3">
@@ -181,6 +195,28 @@ const Billing = ({
                 data={addmission}
                 toggleModal={toggleModal}
               >
+                <div className="d-flex align-items-center mt-2 flex-column">
+                  <RenderWhen
+                    isTrue={
+                      (user?.email === "rijutarafder000@gmail.com" ||
+                        user?.email === "owais@gmail.com" ||
+                        user?.email === "hemanthshinde@gmail.com") &&
+                      addmission.dischargeDate
+                    }
+                  >
+                    <Button
+                      className="text-nowrap"
+                      onClick={() => {
+                        setAdmission(addmission._id);
+                        toggleModal();
+                      }}
+                      size="sm"
+                    >
+                      Create new Bill
+                    </Button>
+                  </RenderWhen>
+                </div>
+
                 <div className="d-flex gap-3 mt-2">
                   <div>
                     <div className="d-flex">

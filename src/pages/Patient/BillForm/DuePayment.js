@@ -30,6 +30,8 @@ const DuePayment = ({
 }) => {
   const dispatch = useDispatch();
 
+  console.log(admission, "admission");
+
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
@@ -308,7 +310,11 @@ const DuePayment = ({
             {...rest}
           />
           {/* <SubmitForm {...rest} /> */}
-          <SubmitForm {...rest} enteredRefundAmount={validation.values.refund} bill={invoiceType} />
+          <SubmitForm
+            {...rest}
+            enteredRefundAmount={validation.values.refund}
+            bill={invoiceType}
+          />
         </Form>
       </div>
     </React.Fragment>
