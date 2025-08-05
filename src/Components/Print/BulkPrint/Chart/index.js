@@ -38,98 +38,92 @@ const styles = StyleSheet.create({
 });
 
 const Charts = ({ charts, patient, doctor }) => {
- 
 
+  const chartChunks = _.chunk(charts || [], 5);
+  
   return (
     <React.Fragment>
-      <Document>
-        <Page size="A4" style={styles.page} wrap={true}>
-          {charts?.length > 0 && patient ? (
+    <Document>
+      {chartChunks.map((chunk, index) => (
+        <Page key={index} size="A4" style={styles.page} wrap={true}>
+          {index === 0 && charts?.length > 0 && patient && (
             <Header
               chart={charts[0]}
               center={charts[0]?.center}
               patient={patient}
             />
-          ) : (
-            ""
           )}
-          <>
-            {/* {(_.chunk(charts, 20) || []).map((chunk, i) => (
-              <React.Fragment key={i}> */}
+          {chunk.map((chart) => (
+            <React.Fragment key={chart._id}>
+              <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>
+                <Prescription
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  doctor={doctor}
+                />
+              </RenderWhen>
 
-            {/* </React.Fragment>
-            ))} */}
-            {(charts || []).map((chart) => (
-              <React.Fragment key={chart._id}>
-                <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>
-                  <Prescription
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                    doctor={doctor}
-                  />
-                </RenderWhen>
+              <RenderWhen isTrue={chart?.chart === CLINICAL_NOTE}>
+                <ClinicalNote
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
 
-                <RenderWhen isTrue={chart?.chart === CLINICAL_NOTE}>
-                  <ClinicalNote
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                  />
-                </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === LAB_REPORT &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <LabReport
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
 
-                <RenderWhen
-                  isTrue={
-                    chart?.chart === LAB_REPORT &&
-                    (chart.type === IPD || chart.type === GENERAL)
-                  }
-                >
-                  <LabReport
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                  />
-                </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === RELATIVE_VISIT &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <RelativeVisit
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
 
-                <RenderWhen
-                  isTrue={
-                    chart?.chart === RELATIVE_VISIT &&
-                    (chart.type === IPD || chart.type === GENERAL)
-                  }
-                >
-                  <RelativeVisit
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                  />
-                </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === VITAL_SIGN &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <VitalSign
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
 
-                <RenderWhen
-                  isTrue={
-                    chart?.chart === VITAL_SIGN &&
-                    (chart.type === IPD || chart.type === GENERAL)
-                  }
-                >
-                  <VitalSign
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                  />
-                </RenderWhen>
-
-                <RenderWhen
-                  isTrue={
-                    chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD
-                  }
-                >
-                  <DischargeSummary
-                    chart={chart}
-                    center={chart.center}
-                    patient={patient}
-                  />
-                </RenderWhen>
-              </React.Fragment>
-            ))}
+              <RenderWhen
+                isTrue={
+                  chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD
+                }
+              >
+                <DischargeSummary
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
+            </React.Fragment>
+          ))}
 
             {/* {(charts || []).slice(20, 40).map((chart) => (
               <React.Fragment key={chart._id}>
@@ -346,10 +340,10 @@ const Charts = ({ charts, patient, doctor }) => {
                 </RenderWhen>
               </React.Fragment>
             ))} */}
-            <Footer />
-          </>
+          <Footer />
         </Page>
-      </Document>
+      ))}
+    </Document>
     </React.Fragment>
   );
 };
