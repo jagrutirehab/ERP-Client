@@ -191,7 +191,7 @@ const Main = ({ user, form, centerAccess }) => {
   };
 
   const suspendUser = () => {
-    dispatch(suspendStaff({ userId: userData._id }));
+    dispatch(suspendStaff({ id: userData._id, token }));
     setUserData(null);
     toggleSuspendModal();
   };
@@ -256,6 +256,7 @@ const Main = ({ user, form, centerAccess }) => {
         toggleForm={togglePasswordModal}
         userData={userData}
         setUserData={setUserData}
+        token={token}
       />
       <DeleteModal
         show={deleteModal}
