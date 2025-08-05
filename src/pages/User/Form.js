@@ -115,43 +115,75 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   }, [userData]);
 
   const validation = useFormik({
+    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
+
     initialValues: {
       authorId: author?._id || "",
-      name: userData?.name || "",
-      email: userData?.email || "",
+      name: userData ? userData.name : "",
+      email: userData ? userData.email : "",
       accessroles: userData?.accessroles || "",
-      role: userData?.role || "",
+      role: userData ? userData.role : "",
       signature: "",
-      degrees: userData?.education?.degrees || "",
-      speciality: userData?.education?.speciality || "",
-      registrationNo: userData?.education?.registrationNo || "",
-      centerAccess: userData?.centerAccess?.map((cn) => cn._id) || [],
-      pageAccess: userData?.pageAccess?.pages || [],
+      degrees: userData?.education ? userData.education?.degrees : "",
+      speciality: userData?.education ? userData.education?.speciality : "",
+      registrationNo: userData?.education
+        ? userData.education?.registrationNo
+        : "",
+
+      centerAccess: userData?.centerAccess
+        ? userData.centerAccess.map((cn) => cn._id)
+        : [],
+      pageAccess: userData ? userData.pageAccess?.pages : [],
       confirm_password: "",
       password: "",
-      patientsConcern:
-        userData?.patientsConcern?.map((p) => ({ label: p, value: p })) || [],
-      languages:
-        userData?.languages?.map((p) => ({ label: p, value: p })) || [],
-      bio: userData?.bio || "",
-      experience: userData?.experience || "",
-      expertise:
-        userData?.expertise?.map((e) => ({ label: e, value: e })) || [],
-      availabilityMode: userData?.availabilityMode || [],
+      patientsConcern: userData
+        ? userData?.patientsConcern?.map((p) => ({ label: p, value: p }))
+        : [],
+      languages: userData
+        ? userData?.languages?.map((p) => ({ label: p, value: p }))
+        : [],
+      bio: userData ? userData?.bio : "",
+      experience: userData ? userData?.experience : "",
+      expertise: userData
+        ? userData?.expertise?.map((e) => ({ label: e, value: e }))
+        : [],
+      availabilityMode: userData ? userData?.availabilityMode : [],
     },
     validationSchema: Yup.object({
-      email: Yup.string().email("Invalid email").required("Email is required"),
-      name: Yup.string().required("Name is required"),
+      email: Yup.string().required("Please Enter Your Email"),
+      name: Yup.string().required("Please Enter Your Username"),
       ...(!userData && {
-        password: Yup.string().required("Password is required"),
-        confirm_password: Yup.string()
-          .oneOf([Yup.ref("password")], "Passwords must match")
-          .required("Confirm Password is required"),
+        password: Yup.string().required("Please Enter Your Password"),
       }),
-      centerAccess: Yup.array().min(1, "At least one center is required"),
+      ...(!userData && {
+        confirm_password: Yup.string().oneOf(
+          [Yup.ref("password")],
+          "Confirm Password Doesn't Match"
+        ),
+      }),
+      centerAccess: Yup.array().test(
+        "notEmpty",
+        "Center Access is required",
+        (value) => {
+          if (!value || value.length === 0) {
+            return false;
+          }
+          return true;
+        }
+      ),
       accessroles: Yup.string().required("Access Role is required"),
-      role: Yup.string().required("Role is required"),
+      pageAccess: Yup.array().test(
+        "notEmpty",
+        "Pages Access is required",
+        (value) => {
+          if (!value || value.length === 0) {
+            return false;
+          }
+          return true;
+        }
+      ),
+      role: Yup.string().required("Please Select User Role"),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -163,25 +195,26 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
-      formData.append("centerAccess", values.centerAccess.join(","));
+     formData.append("centerAccess", values.centerAccess.join(","));
+      formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
       if (expertise?.length)
         formData.append(
           "expertise",
-          JSON.stringify(expertise.map((o) => o.value))
+          JSON.stringify(expertise?.map((o) => o.value))
         );
       formData.append("availabilityMode", values.availabilityMode);
       formData.append("experience", values.experience);
       if (options?.length)
         formData.append(
           "patientsConcern",
-          JSON.stringify(options.map((o) => o.value))
+          JSON.stringify(options?.map((o) => o.value))
         );
       if (languages?.length)
         formData.append(
           "languages",
-          JSON.stringify(languages.map((o) => o.value))
+          JSON.stringify(languages?.map((o) => o.value))
         );
       if (faqs?.length) formData.append("faqs", JSON.stringify(faqs));
       if (cropSignature?.file) formData.append("signature", cropSignature.file);
@@ -190,19 +223,14 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       if (userData) {
         formData.append("pageAccessId", userData.pageAccess?._id);
         if (userData.education?._id)
-          formData.append("educationId", userData.education._id);
+          formData.append("educationId", userData.education?._id);
         formData.append("id", userData._id);
         dispatch(updateUser({data:formData,id:userData._id,token}));
+
         setUserData(null);
-      } else {
-        dispatch(addNewUser({data: formData, token}));
-      }
-      setCropProfilePic(null);
-      setCropSignature(null);
-      setSignature(null);
-      setProfilePic(null);
-      validation.resetForm();
-      toggleForm();
+      } else        dispatch(addNewUser({data: formData, token}));
+      // validation.resetForm();
+      // toggleForm();
     },
   });
 
@@ -257,36 +285,37 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       check: (field, item) =>
         validation.values[field.name]?.includes(item?._id),
     },
-    // {
-    //   label: "Page Access",
-    //   name: "pageAccess",
-    //   type: "checkbox",
-    //   value: "label",
-    //   options: pages,
-    //   check: (field, item) =>
-    //     validation.values[field.name]?.find((tm) => tm.name === item.name),
-    //   subCheck: (field, item, val) => {
-    //     const result = validation.values[field.name]
-    //       ?.find((tm) => tm.name === item.name)
-    //       ?.subAccess?.some((sub) => sub.name === val);
-    //     return !!result;
-    //   },
-    //   checkPermission: (a, b, c) => {
-    //     const result = validation.values.pageAccess?.find((tm) => {
-    //       if (c) {
-    //         if (tm.name === a)
-    //           return tm.subAccess?.find((sub) => sub.name === c)?.permissions[
-    //             b
-    //           ];
-    //         return false;
-    //       }
-    //       if (tm.name === a) return tm.permissions[b];
-    //       return false;
-    //     });
-    //     return !!result;
-    //   },
-    //   handleChange: (e, field, item, val) => handleAccess(e, field, item, val),
-    // },
+    {
+      label: "Page Access",
+      name: "pageAccess",
+      type: "checkbox",
+      value: "label",
+      options: pages,
+      check: (field, item) =>
+        validation.values[field.name]?.find((tm) => tm.name === item.name),
+      subCheck: (field, item, val) => {
+        const result = validation.values[field.name]
+          ?.find((tm) => tm.name === item.name)
+          ?.subAccess?.some((sub) => sub.name === val);
+        return !!result;
+      },
+      checkPermission: (a, b, c) => {
+        const result = validation.values.pageAccess?.find((tm) => {
+          if (c) {
+            if (tm.name === a)
+              return tm.subAccess?.find((sub) => sub.name === c)?.permissions[
+                b
+              ];
+            return false;
+          }
+          if (tm.name === a) return tm.permissions[b];
+          return false;
+        });
+        return !!result;
+      },
+      handleChange: (e, field, item, val) => handleAccess(e, field, item, val),
+
+    },
   ];
 
   const cancelForm = () => {
@@ -299,43 +328,43 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     validation.resetForm();
   };
 
-  // const handleAccess = (e, field, item, val) => {
-  //   const value = val
-  //     ? field.subCheck(field.name, item.name, val.name)
-  //     : field.check(field, item);
-  //   const currentPageAccess = validation.values.pageAccess || [];
-  //   let updatedPageAccess = [];
-  //   if (value) {
-  //     if (val) {
-  //       updatedPageAccess = currentPageAccess.map((pg) => {
-  //         if (item.name === pg.name) {
-  //           const page = pg.subAccess.filter((sb) => sb.name !== val.name);
-  //           return { ...pg, subAccess: page };
-  //         }
-  //         return pg;
-  //       });
-  //     } else {
-  //       updatedPageAccess = currentPageAccess.filter(
-  //         (pg) => pg.name !== item.name
-  //       );
-  //     }
-  //   } else {
-  //     if (val) {
-  //       updatedPageAccess = currentPageAccess.map((pg) => {
-  //         if (item.name === pg.name) {
-  //           return { ...pg, subAccess: [...pg.subAccess, val] };
-  //         }
-  //         return pg;
-  //       });
-  //     } else {
-  //       updatedPageAccess = [
-  //         ...currentPageAccess,
-  //         { ...item, name: item.name, subAccess: item.children || [] },
-  //       ];
-  //     }
-  //   }
-  //   validation.setFieldValue("pageAccess", updatedPageAccess);
-  // };
+  const handleAccess = (e, field, item, val) => {
+    const value = val
+      ? field.subCheck(field.name, item.name, val.name)
+      : field.check(field, item);
+    const currentPageAccess = validation.values.pageAccess || [];
+    let updatedPageAccess = [];
+    if (value) {
+      if (val) {
+        updatedPageAccess = currentPageAccess.map((pg) => {
+          if (item.name === pg.name) {
+            const page = pg.subAccess.filter((sb) => sb.name !== val.name);
+            return { ...pg, subAccess: page };
+          }
+          return pg;
+        });
+      } else {
+        updatedPageAccess = currentPageAccess.filter(
+          (pg) => pg.name !== item.name
+        );
+      }
+    } else {
+      if (val) {
+        updatedPageAccess = currentPageAccess.map((pg) => {
+          if (item.name === pg.name) {
+            return { ...pg, subAccess: [...pg.subAccess, val] };
+          }
+          return pg;
+        });
+      } else {
+        updatedPageAccess = [
+          ...currentPageAccess,
+          { ...item, name: item.name, subAccess: item.children || [] },
+        ];
+      }
+    }
+    validation.setFieldValue("pageAccess", updatedPageAccess);
+  };
 
   const handlePermission = (a, b, c) => {
     let currentPageAccess = [...validation.values.pageAccess];

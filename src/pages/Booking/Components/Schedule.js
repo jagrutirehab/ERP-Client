@@ -49,7 +49,7 @@ import {
 } from "date-fns";
 import Pricing from "./Pricing";
 import WeeklySchedule from "../../Setting/Calender/Components/DoctorSchedule";
-import { markedUserActiveOrInactive } from "../../../store/features/auth/user/userSlice";
+// import { markedUserActiveOrInactive } from "../../../store/features/auth/user/userSlice";
 
 export const generateTimes = ({
   date,
@@ -605,11 +605,11 @@ const Schedule = ({
     setToggled(newStatus);
 
     try {
-      await dispatch(
-        markedUserActiveOrInactive({
-          userId: doctor._id,
-        })
-      ).unwrap();
+      // await dispatch(
+      //   markedUserActiveOrInactive({
+      //     userId: doctor._id,
+      //   })
+      // ).unwrap();
       setApiFlag(!apiFlag); // or show a toast/snackbar here
     } catch (err) {
       console.error("Update failed:", err);

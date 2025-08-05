@@ -14,9 +14,10 @@ import {
   getDoctorsScheduleNew,
   postDoctorSchedule,
   editDoctorSchedule,
-  markUserActiveInactive,
+  // markUserActiveInactive,
   addUser,
   editUserDetails,
+  postLogoutService,
 } from "../../../../helpers/backend_helper";
 import { setAlert } from "../../alert/alertSlice";
 
@@ -200,9 +201,9 @@ export const removeUser = createAsyncThunk(
 
 export const suspendStaff = createAsyncThunk(
   "suspendUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({id, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await suspendUser(data);
+      const response = await suspendUser(id,token);
       dispatch(
         setAlert({
           type: "success",
@@ -221,27 +222,27 @@ export const suspendStaff = createAsyncThunk(
   }
 );
 
-export const markedUserActiveOrInactive = createAsyncThunk(
-  "markedActiveOrInactive",
-  async (data, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await markUserActiveInactive(data);
-      dispatch(
-        setAlert({
-          type: "success",
-          message: response.payload.isHideFromSearch
-            ? "User Mask Successfully!"
-            : "User Unmask Successfully!",
-        })
-      );
+// export const markedUserActiveOrInactive = createAsyncThunk(
+//   "markedActiveOrInactive",
+//   async (data, { dispatch, rejectWithValue }) => {
+//     try {
+//       // const response = await markUserActiveInactive(data);
+//       dispatch(
+//         setAlert({
+//           type: "success",
+//           message: response.payload.isHideFromSearch
+//             ? "User Mask Successfully!"
+//             : "User Unmask Successfully!",
+//         })
+//       );
 
-      return response;
-    } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
-    }
-  }
-);
+//       return response;
+//     } catch (error) {
+//       dispatch(setAlert({ type: "error", message: error.message }));
+//       return rejectWithValue("something went wrong");
+//     }
+//   }
+// );
 
 export const addNewUser = createAsyncThunk(
   "addUser",
@@ -279,9 +280,9 @@ export const updateUser = createAsyncThunk(
 
 export const updateUserPassword = createAsyncThunk(
   "editUserPassword",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({id, newPassword, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await editUserPassword(data);
+      const response = await editUserPassword(id, newPassword, token);
       dispatch(
         setAlert({
           type: "success",
@@ -298,9 +299,9 @@ export const updateUserPassword = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   "logoutUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (token, { dispatch, rejectWithValue }) => {
     try {
-      const response = await postLogout();
+      const response = await postLogoutService(token);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));

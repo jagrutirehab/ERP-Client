@@ -36,19 +36,11 @@ export const getUsers = (data) => api.get(url.GET_USERS, data);
 
 export const getDoctorUsers = (data) => api.get(url.GET_DOCTOR_USERS, data);
 
-// export const deleteUser = (data) =>
-//   api.delete(`${url.DELETE_USER}/${data.userId}/${data.pageId}`);
-export const suspendUser = (data) => api.update(url.SUSPEND_USER, data);
-export const markUserActiveInactive = (data) =>
-  api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
-
 export const editUser = (data) =>
   api.put(url.EDIT_USER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const editUserPassword = (data) =>
-  api.update(url.EDIT_USER_PASSWORD, data);
 export const getCiwaTest = (data) =>
   api.get(`${url.GET_CIWA_TEST}?patientId=${data}`);
 export const postCiwatest = (data) =>
@@ -699,6 +691,14 @@ export const getAllRoles = ({ page = 1, limit = 10, token }) => {
   });
 };
 
+export const postLogoutService = (token)=>{
+  return userService.post(url.MICRO_LOGOUT,{},{
+    headers:{
+      Authorization: `Bearer ${token}`,
+    }
+  })
+};
+
 export const getAllRoleslist = ({ token, search = "" }) => {
   return userService.get(`${url.ROLES}/role-list`, {
     headers: {
@@ -781,9 +781,25 @@ export const editUserDetails = (data, id, token) => {
 }
 
 export const deleteUser = (id, token) => {
-  return userService.delete(`${url.USER}/${id}`, {
+  return userService.put(`${url.USER}/${id}`, {}, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 };
+
+export const suspendUser=(id, token)=>{
+  return userService.patch(`${url.ACTIVATE_DEACTIVATE_USER}/${id}`,{}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export const editUserPassword=(id,newPassword, token)=>{
+  return userService.post(`${url.CHANGE_USER_PASSWORD}/${id}`, {newPassword},{
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
