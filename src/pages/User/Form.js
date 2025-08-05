@@ -122,7 +122,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       authorId: author?._id || "",
       name: userData ? userData.name : "",
       email: userData ? userData.email : "",
-      accessroles: userData?.accessroles || "",
+      accessroles: userData?.accessroles._id || "",
       role: userData ? userData.role : "",
       signature: "",
       degrees: userData?.education ? userData.education?.degrees : "",
@@ -195,7 +195,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
-     formData.append("centerAccess", values.centerAccess.join(","));
+      formData.append("centerAccess", values.centerAccess.join(","));
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
@@ -225,10 +225,10 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
         if (userData.education?._id)
           formData.append("educationId", userData.education?._id);
         formData.append("id", userData._id);
-        dispatch(updateUser({data:formData,id:userData._id,token}));
+        dispatch(updateUser({ data: formData, id: userData._id, token }));
 
         setUserData(null);
-      } else        dispatch(addNewUser({data: formData, token}));
+      } else dispatch(addNewUser({ data: formData, token }));
       // validation.resetForm();
       // toggleForm();
     },
@@ -285,6 +285,10 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       check: (field, item) =>
         validation.values[field.name]?.includes(item?._id),
     },
+    // hidden input
+    {
+      name: "hidden_input",
+    },
     {
       label: "Page Access",
       name: "pageAccess",
@@ -314,7 +318,6 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
         return !!result;
       },
       handleChange: (e, field, item, val) => handleAccess(e, field, item, val),
-
     },
   ];
 
@@ -757,7 +760,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                     ))}
                   </select>
                 ) : field.type === "checkbox" &&
-                  field.name !== "centerAccess" ? (
+                  field.name == "availabilityMode" ? (
                   <div
                     style={{
                       display: "grid",
@@ -944,6 +947,244 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                                             style={{
                                               fontSize: "15px",
                                               color: "#374151",
+                                              textTransform: "capitalize",
+                                            }}
+                                          >
+                                            {perm}
+                                          </label>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                            </div>
+                          ))}
+                      </div>
+                    ))}
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <p
+                          style={{
+                            color: "#ef4444",
+                            fontSize: "13px",
+                            marginTop: "6px",
+                            gridColumn: "1 / -1",
+                          }}
+                        >
+                          {validation.errors[field.name]}
+                        </p>
+                      )}
+                  </div>
+                  // hidden input
+                ) : field.name === "hidden_input" ? (
+                  <>
+                    <label style={{ display: "hidden" }}></label>
+                    <input type="hidden" name={field.name} />
+                  </>
+                ) : field.type === "checkbox" && field.name === "pageAccess" ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(300px, 1fr))",
+                      gap: "24px",
+                    }}
+                  >
+                    {field.options.map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: "#F9FAFB",
+                          padding: "20px",
+                          borderRadius: "12px",
+                          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "16px",
+                          border: "1px solid #e5e7eb",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            name={field.name}
+                            value={item[field.value]}
+                            checked={field.check(field, item)}
+                            onChange={(e) =>
+                              field.handleChange
+                                ? field.handleChange(e, field, item)
+                                : validation.handleChange(e)
+                            }
+                            style={{
+                              marginRight: "12px",
+                              width: "18px",
+                              height: "18px",
+                              cursor: "pointer",
+                            }}
+                          />
+                          <label
+                            style={{
+                              fontSize: "16px",
+                              color: "#111827",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {item.title || item.label}
+                          </label>
+                        </div>
+
+                        {field.check(field, item) && item.permissions && (
+                          <div
+                            style={{
+                              marginLeft: "24px",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "10px",
+                            }}
+                          >
+                            {Object.entries(item.permissions).map(
+                              ([perm, value]) => (
+                                <div
+                                  key={perm}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    name={field.name}
+                                    value={perm}
+                                    checked={field.checkPermission(
+                                      item.name,
+                                      perm
+                                    )}
+                                    onChange={() =>
+                                      handlePermission(item, perm)
+                                    }
+                                    style={{
+                                      marginRight: "10px",
+                                      width: "16px",
+                                      height: "16px",
+                                      cursor: "pointer",
+                                    }}
+                                  />
+                                  <label
+                                    style={{
+                                      fontSize: "15px",
+                                      color: "#4b5563",
+                                      textTransform: "capitalize",
+                                    }}
+                                  >
+                                    {perm}
+                                  </label>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+
+                        {field.check(field, item) &&
+                          item.children?.map((val, id) => (
+                            <div
+                              key={id}
+                              style={{
+                                marginLeft: "24px",
+                                paddingTop: "10px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "12px",
+                                borderTop: "1px dashed #e5e7eb",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  name={field.name}
+                                  value={val.name}
+                                  checked={field.subCheck(
+                                    field.name,
+                                    item.name,
+                                    val.name
+                                  )}
+                                  onChange={(e) =>
+                                    field.handleChange(e, field, item, val)
+                                  }
+                                  style={{
+                                    marginRight: "10px",
+                                    width: "16px",
+                                    height: "16px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                                <label
+                                  style={{
+                                    fontSize: "15px",
+                                    color: "#1f2937",
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {val.name}
+                                </label>
+                              </div>
+
+                              {field.subCheck(
+                                field.name,
+                                item.name,
+                                val.name
+                              ) &&
+                                val.permissions && (
+                                  <div
+                                    style={{
+                                      marginLeft: "20px",
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: "10px",
+                                    }}
+                                  >
+                                    {Object.entries(val.permissions).map(
+                                      ([perm, value]) => (
+                                        <div
+                                          key={perm}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                          }}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            name={field.name}
+                                            value={perm}
+                                            checked={field.checkPermission(
+                                              item.name,
+                                              perm,
+                                              val.name
+                                            )}
+                                            onChange={() =>
+                                              handlePermission(item, perm, val)
+                                            }
+                                            style={{
+                                              marginRight: "10px",
+                                              width: "16px",
+                                              height: "16px",
+                                              cursor: "pointer",
+                                            }}
+                                          />
+                                          <label
+                                            style={{
+                                              fontSize: "14px",
+                                              color: "#6b7280",
                                               textTransform: "capitalize",
                                             }}
                                           >
