@@ -36,8 +36,8 @@ export const getUsers = (data) => api.get(url.GET_USERS, data);
 
 export const getDoctorUsers = (data) => api.get(url.GET_DOCTOR_USERS, data);
 
-export const deleteUser = (data) =>
-  api.delete(`${url.DELETE_USER}/${data.userId}/${data.pageId}`);
+// export const deleteUser = (data) =>
+//   api.delete(`${url.DELETE_USER}/${data.userId}/${data.pageId}`);
 export const suspendUser = (data) => api.update(url.SUSPEND_USER, data);
 export const markUserActiveInactive = (data) =>
   api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
@@ -727,7 +727,6 @@ export const editRole = ({ id, name, permissions, token }) => {
 };
 
 export const addRole = ({ name, permissions, token }) => {
-  console.log(token);
   return userService.post(
     url.ROLES,
     {
@@ -754,6 +753,35 @@ export const deleteRole = ({ id, token }) => {
 export const getAllUsers = ({ page = 1, limit = 10, search = "", token }) => {
   return userService.get(url.USER, {
     params: { page, limit, search },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const addUser = (data, token) => {
+  console.log(data, token);
+  return userService.post(url.MICRO_SIGN_UP, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+export const editUserDetails = (data, id, token) => {
+  return userService.put(`${url.USER}/${id}`, data, {
+    headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+        "Content-Type": "multipart/form-data",
+      },
+    });
+}
+
+export const deleteUser = (id, token) => {
+  return userService.delete(`${url.USER}/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

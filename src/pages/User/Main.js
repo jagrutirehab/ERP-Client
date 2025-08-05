@@ -73,7 +73,7 @@ UserCenterList.propTypes = {
 const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
   const token = useSelector((state) => state.User.microLogin.token);
-  const centers = useSelector((state) => state.Center.allcenters || []);
+  const centers = useSelector((state) => state.Center.allCenters || []);
   const [query, setQuery] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
@@ -174,7 +174,7 @@ const Main = ({ user, form, centerAccess }) => {
 
   const deleteUser = () => {
     dispatch(
-      removeUser({ userId: userData._id, pageId: userData.pageAccess._id })
+      removeUser({id: userData._id, token})
     );
     setUserData(null);
     toggleDeleteModal();

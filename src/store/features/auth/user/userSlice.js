@@ -15,6 +15,8 @@ import {
   postDoctorSchedule,
   editDoctorSchedule,
   markUserActiveInactive,
+  addUser,
+  editUserDetails,
 } from "../../../../helpers/backend_helper";
 import { setAlert } from "../../alert/alertSlice";
 
@@ -182,9 +184,9 @@ export const fetchDoctors = createAsyncThunk(
 
 export const removeUser = createAsyncThunk(
   "deleteUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({id, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await deleteUser(data);
+      const response = await deleteUser(id, token);
       dispatch(
         setAlert({ type: "success", message: "User Deleted Successfully" })
       );
@@ -241,11 +243,28 @@ export const markedUserActiveOrInactive = createAsyncThunk(
   }
 );
 
+export const addNewUser = createAsyncThunk(
+  "addUser",
+  async ({data, token}, { dispatch, rejectWithValue }) => {
+    try {
+      console.log(data,token);
+      const response = await addUser(data, token);
+      dispatch(
+        setAlert({ type: "success", message: "User Added Successfully" })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const updateUser = createAsyncThunk(
   "editUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({data,id,token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await editUser(data);
+      const response = await editUserDetails(data,id,token);
       dispatch(
         setAlert({ type: "success", message: "User Updated Successfully" })
       );
@@ -479,9 +498,9 @@ const userSlice = createSlice({
       .addCase(updateUser.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findUserIndex = state.data.findIndex(
-          (el) => el._id === payload.payload._id
+          (el) => el._id === payload.data._id
         );
-        state.data[findUserIndex] = payload.payload;
+        state.data[findUserIndex] = payload.data;
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;

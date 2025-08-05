@@ -30,7 +30,6 @@ function* loginUser({ payload: { values, navigate } }) {
         password: values.password,
       });
     }
-    console.log(microLoginRes);
     if (mainLoginRes.success === true) {
       const authUser = {
         data: mainLoginRes.payload,

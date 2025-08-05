@@ -239,5 +239,6 @@ export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
 //New Microservice APIS
 export const CSRF = "/csrf-token"
 export const MICRO_SIGN_IN = "/userauths/signin"
+export const MICRO_SIGN_UP = "/userauths/signup";
 export const ROLES = "/role"
 export const USER = "/user"

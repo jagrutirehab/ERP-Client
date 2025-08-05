@@ -11,6 +11,7 @@ import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
+import { addNewUser } from "../../store/features/auth/user/userSlice";
 
 const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const dispatch = useDispatch();
@@ -162,7 +163,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
-      formData.append("centerAccess", JSON.stringify(values.centerAccess));
+      formData.append("centerAccess", values.centerAccess.join(","));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
       if (expertise?.length)
@@ -191,10 +192,10 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
         if (userData.education?._id)
           formData.append("educationId", userData.education._id);
         formData.append("id", userData._id);
-        dispatch(updateUser(formData));
+        dispatch(updateUser({data:formData,id:userData._id,token}));
         setUserData(null);
       } else {
-        dispatch(registerUser(formData));
+        dispatch(addNewUser({data: formData, token}));
       }
       setCropProfilePic(null);
       setCropSignature(null);
