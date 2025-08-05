@@ -240,5 +240,6 @@ export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
 export const CSRF = "/csrf-token"
 export const MICRO_SIGN_IN = "/userauths/signin"
 export const MICRO_SIGN_UP = "/userauths/signup";
+export const MICRO_FORGOTT = "/userauths/forgott-password";
 export const ROLES = "/role"
 export const USER = "/user"

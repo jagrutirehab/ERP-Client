@@ -10,19 +10,34 @@ import {
   Button,
   Form,
   FormFeedback,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "reactstrap";
 import ParticlesAuth from "../AuthenticationInner/ParticlesAuth";
-import { useDispatch } from "react-redux";
-import { loginUser } from "../../store/actions";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import withRouter from "../../Components/Hooks/withRouter";
 import * as Yup from "yup";
 import { useFormik } from "formik";
+import { toast } from "react-toastify";
+import { firstchange } from "../../helpers/backend_helper";
+import {
+  loginUser,
+  closeChangePasswordModal,
+} from "../../store/features/auth/user/userSlice";
 
-const Login = (props) => {
+const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [viewPassword, setViewPassword] = useState(false);
+  const [viewNewPassword, setViewNewPassword] = useState(false);
+  const [viewConfirmPassword, setViewConfirmPassword] = useState(false);
+  const [changePasswordError, setChangePasswordError] = useState("");
+  const { showChangePasswordModal = false, tempToken = null } = useSelector(
+    (state) => state.User || {}
+  );
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -34,8 +49,50 @@ const Login = (props) => {
       email: Yup.string().required("Please Enter Your Email"),
       password: Yup.string().required("Please Enter Your Password"),
     }),
-    onSubmit: (values) => {
-      dispatch(loginUser({ values, navigate }));
+    onSubmit: async (values) => {
+      await dispatch(loginUser({ values, navigate })).unwrap();
+    },
+  });
+
+  const changePasswordValidation = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
+    validationSchema: Yup.object({
+      newPassword: Yup.string()
+        .min(8, "Password must be at least 8 characters")
+        .required("Please Enter Your New Password"),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("newPassword"), null], "Passwords must match")
+        .required("Please Confirm Your New Password"),
+    }),
+    onSubmit: async (values) => {
+      try {
+        const token = tempToken;
+        await firstchange({
+          oldPassword: validation.values.password,
+          newPassword: values.newPassword,
+          token,
+        });
+        toast.success("Password changed successfully!");
+        dispatch(closeChangePasswordModal());
+        dispatch(
+          loginUser({
+            values: {
+              email: validation.values.email,
+              password: values.newPassword,
+            },
+            navigate,
+          })
+        );
+      } catch (error) {
+        console.error("Password change error:", error);
+        setChangePasswordError(
+          error.response?.data?.message || "Failed to change password"
+        );
+      }
     },
   });
 
@@ -230,6 +287,165 @@ const Login = (props) => {
           </Container>
         </div>
       </ParticlesAuth>
+
+      <Modal
+        isOpen={showChangePasswordModal}
+        toggle={() => dispatch(closeChangePasswordModal())}
+        centered
+      >
+        <ModalHeader toggle={() => dispatch(closeChangePasswordModal())}>
+          Change Password
+        </ModalHeader>
+        <ModalBody>
+          <Form
+            onSubmit={(e) => {
+              e.preventDefault();
+              changePasswordValidation.handleSubmit();
+              return false;
+            }}
+          >
+            <div className="mb-3">
+              <Label
+                htmlFor="newPassword"
+                className="form-label"
+                style={{ fontWeight: "500", color: "#374151" }}
+              >
+                New Password
+              </Label>
+              <div
+                className="position-relative auth-pass-inputgroup mb-3"
+                style={{ position: "relative" }}
+              >
+                <Input
+                  name="newPassword"
+                  className="form-control pe-5"
+                  placeholder="Enter new password"
+                  type={viewNewPassword ? "text" : "password"}
+                  onChange={changePasswordValidation.handleChange}
+                  onBlur={changePasswordValidation.handleBlur}
+                  value={changePasswordValidation.values.newPassword || ""}
+                  invalid={
+                    changePasswordValidation.touched.newPassword &&
+                    changePasswordValidation.errors.newPassword
+                      ? true
+                      : false
+                  }
+                  style={{
+                    height: "45px",
+                    borderRadius: "10px",
+                    borderColor: "#ced4da",
+                  }}
+                />
+                {changePasswordValidation.touched.newPassword &&
+                changePasswordValidation.errors.newPassword ? (
+                  <FormFeedback type="invalid">
+                    {changePasswordValidation.errors.newPassword}
+                  </FormFeedback>
+                ) : null}
+                <button
+                  className="btn btn-link position-absolute"
+                  type="button"
+                  onClick={() => setViewNewPassword(!viewNewPassword)}
+                  style={{
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    right: "10px",
+                    color: "#6c757d",
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  <i className="ri-eye-fill align-middle"></i>
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <Label
+                htmlFor="confirmPassword"
+                className="form-label"
+                style={{ fontWeight: "500", color: "#374151" }}
+              >
+                Confirm Password
+              </Label>
+              <div
+                className="position-relative auth-pass-inputgroup mb-3"
+                style={{ position: "relative" }}
+              >
+                <Input
+                  name="confirmPassword"
+                  className="form-control pe-5"
+                  placeholder="Confirm new password"
+                  type={viewConfirmPassword ? "text" : "password"}
+                  onChange={changePasswordValidation.handleChange}
+                  onBlur={changePasswordValidation.handleBlur}
+                  value={changePasswordValidation.values.confirmPassword || ""}
+                  invalid={
+                    changePasswordValidation.touched.confirmPassword &&
+                    changePasswordValidation.errors.confirmPassword
+                      ? true
+                      : false
+                  }
+                  style={{
+                    height: "45px",
+                    borderRadius: "10px",
+                    borderColor: "#ced4da",
+                  }}
+                />
+                {changePasswordValidation.touched.confirmPassword &&
+                changePasswordValidation.errors.confirmPassword ? (
+                  <FormFeedback type="invalid">
+                    {changePasswordValidation.errors.confirmPassword}
+                  </FormFeedback>
+                ) : null}
+                <button
+                  className="btn btn-link position-absolute"
+                  type="button"
+                  onClick={() => setViewConfirmPassword(!viewConfirmPassword)}
+                  style={{
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    right: "10px",
+                    color: "#6c757d",
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  <i className="ri-eye-fill align-middle"></i>
+                </button>
+              </div>
+            </div>
+
+            {changePasswordError && (
+              <div className="alert alert-danger" role="alert">
+                {changePasswordError}
+              </div>
+            )}
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            color="primary"
+            onClick={() => changePasswordValidation.handleSubmit()}
+            style={{
+              borderRadius: "10px",
+              height: "45px",
+              fontWeight: "500",
+            }}
+          >
+            Change Password
+          </Button>
+          <Button
+            color="secondary"
+            onClick={() => dispatch(closeChangePasswordModal())}
+            style={{
+              borderRadius: "10px",
+              height: "45px",
+              fontWeight: "500",
+            }}
+          >
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
     </React.Fragment>
   );
 };

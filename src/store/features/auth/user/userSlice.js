@@ -35,6 +35,9 @@ const initialState = {
   loading: false,
   profileLoading: false,
   form: { isOpen: false, data: null },
+  showChangePasswordModal: false, // Added for modal state
+  tempToken: null, // Added for tempToken
+  requirePasswordChange: false,
 };
 
 export const registerUser = createAsyncThunk(
@@ -319,6 +322,16 @@ const userSlice = createSlice({
     setMicroLogin: (state, action) => {
       state.microLogin = action.payload;
     },
+    openChangePasswordModal: (state, action) => {
+      state.requirePasswordChange = true;
+      state.tempToken = action.payload;
+      state.showChangePasswordModal = true;
+    },
+    closeChangePasswordModal(state) {
+      state.showChangePasswordModal = false;
+      state.tempToken = null;
+      state.requirePasswordChange = false;
+    },
     loginSuccess: (state, { payload }) => {
       state.user = payload.payload;
       state.centerAccess = payload.payload.centerAccess;
@@ -533,6 +546,8 @@ const userSlice = createSlice({
 
 export const {
   loginUser,
+  openChangePasswordModal,
+  closeChangePasswordModal,
   setMicroLogin,
   loginSuccess,
   logoutUserSuccess,

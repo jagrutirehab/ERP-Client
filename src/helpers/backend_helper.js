@@ -759,8 +759,23 @@ export const getAllUsers = ({ page = 1, limit = 10, search = "", token }) => {
   });
 };
 
+export const firstchange = ({ oldPassword, newPassword, token }) => {
+  return userService.post(
+    url.MICRO_FORGOTT,
+    {
+      oldPassword,
+      newPassword,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
 export const addUser = (data, token) => {
-  console.log(data, token);
   return userService.post(url.MICRO_SIGN_UP, data, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -768,17 +783,17 @@ export const addUser = (data, token) => {
       "Content-Type": "multipart/form-data",
     },
   });
-}
+};
 
 export const editUserDetails = (data, id, token) => {
   return userService.put(`${url.USER}/${id}`, data, {
     headers: {
-        Authorization: `Bearer ${token}`,
-        "X-No-Cookie-Token": "true",
-        "Content-Type": "multipart/form-data",
-      },
-    });
-}
+      Authorization: `Bearer ${token}`,
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
 export const deleteUser = (id, token) => {
   return userService.delete(`${url.USER}/${id}`, {

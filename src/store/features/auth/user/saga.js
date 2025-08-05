@@ -1,8 +1,10 @@
+/* eslint-disable no-throw-literal */
 import { call, put, takeEvery, takeLatest, all } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import {
   apiError,
   loginSuccess,
+  openChangePasswordModal,
   searchUserFail,
   searchUserSuccess,
   setMicroLogin,
@@ -23,13 +25,26 @@ function* loginUser({ payload: { values, navigate } }) {
       }),
       call(GetCsrf),
     ]);
+
     let microLoginRes = null;
     if (csrfRes?.success || csrfRes?.status === 200) {
       microLoginRes = yield call(PostLoginService, {
         email: values.email,
         password: values.password,
       });
+
+      if (microLoginRes?.statusCode === 200) {
+        const microdata = microLoginRes.data;
+        localStorage.setItem("micrologin", JSON.stringify(microdata));
+        yield put(setMicroLogin(microLoginRes.data));
+      } else if (microLoginRes) {
+        toast.warn("Microservice login failed");
+      }
     }
+
+    // Store mainLoginRes in localStorage
+    localStorage.setItem("loginResponse", JSON.stringify(mainLoginRes));
+
     if (mainLoginRes.success === true) {
       const authUser = {
         data: mainLoginRes.payload,
@@ -44,20 +59,28 @@ function* loginUser({ payload: { values, navigate } }) {
 
       yield put(loginSuccess(mainLoginRes));
       navigate("/dashboard");
+      return { status: 200, payload: mainLoginRes };
+    } else if (mainLoginRes.status === 403) {
+      throw { response: { status: 403, data: mainLoginRes } };
     } else {
       toast.error(mainLoginRes.error?.message || "Invalid Credentials");
       yield put(apiError(mainLoginRes));
-    }
-    if (microLoginRes?.statusCode === 200) {
-      const microdata = microLoginRes.data
-      localStorage.setItem("micrologin", JSON.stringify(microdata));
-      yield put(setMicroLogin(microLoginRes.data));
-    } else if (microLoginRes) {
-      toast.warn("Microservice login failed");
+      throw {
+        response: { status: mainLoginRes.status || 400, data: mainLoginRes },
+      };
     }
   } catch (error) {
-    toast.error(error.message || "Login failed");
+    const status = error?.data?.requirePasswordChange;
+    const temptoken = error?.data?.tempToken;
+
+    if (status === true) {
+      yield put(openChangePasswordModal(temptoken));
+    }
+    toast.error(
+      error.response?.data?.message || error.message || "Login failed"
+    );
     yield put(apiError(error));
+    throw error;
   }
 }
 
