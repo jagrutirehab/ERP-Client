@@ -6,6 +6,7 @@ import history from "../Routes/HistoryRoute";
 axios.defaults.baseURL = api.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
 axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 const authUser = localStorage.getItem("authUser");
 const token = authUser ? JSON.parse(authUser).token : null;
