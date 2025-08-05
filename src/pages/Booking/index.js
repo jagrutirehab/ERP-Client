@@ -170,6 +170,8 @@ const Booking = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, range]);
 
+  console.log(appointments, "appointments");
+
   return (
     <React.Fragment>
       <div className="page-content">

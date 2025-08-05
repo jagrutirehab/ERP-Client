@@ -120,12 +120,23 @@ const EventInfo = ({
         </div>
         <div className="d-flex justify-content-between pt-1 pb-1 mt-3 align-items-center border-top border-bottom">
           <div className="text-muted w-50">
-            In-Clinic Appointment with {data?.doctor?.name} at{" "}
-            {data?.startDate && format(new Date(data.startDate), "hh:mm a")} for{" "}
-            {differenceInMinutes(
-              new Date(data?.endDate),
-              new Date(data?.startDate)
-            )}{" "}
+            In-Clinic Appointment with {data?.doctor?.name} on{" "}
+            <span className="font-semibold">
+              {data?.startDate &&
+                format(new Date(data.startDate), "dd MMM yyyy")}
+            </span>{" "}
+            at{" "}
+            <span className="font-semibold">
+              {data?.startDate && format(new Date(data.startDate), "hh:mm a")}
+            </span>{" "}
+            for{" "}
+            <span className="font-semibold">
+              {" "}
+              {differenceInMinutes(
+                new Date(data?.endDate),
+                new Date(data?.startDate)
+              )}{" "}
+            </span>
             mins
           </div>
           <div>
@@ -141,6 +152,41 @@ const EventInfo = ({
             )}
           </div>
         </div>
+
+        {/* Payment Information */}
+        {data?.transactionId && (
+          <div className="mt-3 p-3 bg-light rounded border">
+            <h6 className="font-weight-bold mb-2">
+              Online Payment Information
+            </h6>
+            <div className="row">
+              <div className="col-md-4">
+                <div className="d-flex align-items-center">
+                  <small className="text-muted me-2">Status</small>
+                  <span className="badge text-success me-2">
+                    {data.transactionId.payment_Status}
+                  </span>
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="d-flex align-items-center">
+                  <small className="text-muted me-2">Amount</small>
+                  <span className="font-weight-bold text-primary me-2">
+                    ₹{data.transactionId.booking_price}
+                  </span>
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="d-flex align-items-center">
+                  <small className="text-muted me-2">Method</small>
+                  <span className="text-capitalize font-weight-bold me-2">
+                    {data.transactionId.payment_method}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="d-flex justify-content-end mt-3">
           {data?.chart && data?.doctor?.role === "COUNSELLOR" ? (
             <>
