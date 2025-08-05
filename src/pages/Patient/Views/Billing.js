@@ -200,7 +200,8 @@ const Billing = ({
                     isTrue={
                       (user?.email === "rijutarafder000@gmail.com" ||
                         user?.email === "owais@gmail.com" ||
-                        user?.email === "hemanthshinde@gmail.com") &&
+                        user?.email === "hemanthshinde@gmail.com" ||
+                        user?.email === "surjeet.parida@gmail.com") &&
                       addmission.dischargeDate
                     }
                   >
