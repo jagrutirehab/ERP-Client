@@ -8,6 +8,8 @@ import {
   searchUserFail,
   searchUserSuccess,
   setMicroLogin,
+  setUser,
+  setUserCenters,
 } from "./userSlice";
 import {
   getUsers,
@@ -35,15 +37,11 @@ function* loginUser({ payload: { values, navigate } }) {
 
       if (microLoginRes?.statusCode === 200) {
         const microdata = microLoginRes.data;
-        localStorage.setItem("micrologin", JSON.stringify(microdata));
         yield put(setMicroLogin(microLoginRes.data));
       } else if (microLoginRes) {
         toast.warn("Microservice login failed");
       }
     }
-
-    // Store mainLoginRes in localStorage
-    localStorage.setItem("loginResponse", JSON.stringify(mainLoginRes));
 
     if (mainLoginRes.success === true) {
       const authUser = {
@@ -51,12 +49,9 @@ function* loginUser({ payload: { values, navigate } }) {
         token: mainLoginRes.token,
         status: "success",
       };
-      localStorage.setItem("authUser", JSON.stringify(authUser));
-      localStorage.setItem(
-        "userCenters",
-        JSON.stringify(mainLoginRes.userCenters)
-      );
 
+      yield put(setUser(authUser));
+      yield put(setUserCenters(mainLoginRes.userCenters))
       yield put(loginSuccess(mainLoginRes));
       navigate("/dashboard");
       return { status: 200, payload: mainLoginRes };

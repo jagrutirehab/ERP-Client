@@ -66,8 +66,8 @@ export const permissionList = [
     ],
   },
   {
-    key: "RECYCLEBEAN",
-    label: "Recycle Bean",
+    key: "RECYCLEBIN",
+    label: "Recycle BIN",
     subModules: [
       { name: "CENTERLIST", label: "Center List" },
       { name: "PATIENTSLIST", label: "Paitents List" },

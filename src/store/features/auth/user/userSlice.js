@@ -70,11 +70,6 @@ export const addUserProfilePicture = createAsyncThunk(
           message: "User Profile Pictrue Uploaded Successfully",
         })
       );
-      const authUser = JSON.parse(localStorage.getItem("authUser"));
-      localStorage.setItem(
-        "authUser",
-        JSON.stringify({ ...authUser, data: response.payload })
-      );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -394,7 +389,10 @@ const userSlice = createSlice({
       })
       .addCase(addUserProfilePicture.fulfilled, (state, { payload }) => {
         state.profileLoading = false;
-        state.user = payload.payload;
+        state.user = {
+          ...state.user,
+          ...payload.payload,
+        };
       })
       .addCase(addUserProfilePicture.rejected, (state, action) => {
         state.profileLoading = false;
@@ -536,8 +534,7 @@ const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(logoutUser.fulfilled, (state, { payload }) => {
-        state.loading = false;
-        state.isUserLogout = true;
+        return initialState;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;

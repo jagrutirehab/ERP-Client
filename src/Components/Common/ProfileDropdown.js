@@ -10,8 +10,10 @@ import {
 //import images
 import avatar1 from "../../assets/images/users/user-dummy-img.jpg";
 import { logoutUser } from "../../store/actions";
+import { useNavigate } from "react-router-dom";
 
 const ProfileDropdown = ({ user }) => {
+  const navigate = useNavigate();
   // const [userName, setUserName] = useState("Admin");
 
   // useEffect(() => {
@@ -34,8 +36,7 @@ const ProfileDropdown = ({ user }) => {
 
   const handleLogout = async () => {
     dispatch(logoutUser(token));
-    localStorage.clear();
-    sessionStorage.clear();
+    navigate("/login");
   };
 
   return (

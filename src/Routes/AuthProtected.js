@@ -4,6 +4,7 @@ import { setAuthorization } from "../helpers/api_helper";
 import { connect, useDispatch } from "react-redux";
 import { useProfile } from "../Components/Hooks/UserHooks";
 import { logoutUser } from "../store/actions";
+import { persistor } from "../store/store";
 
 const AuthProtected = (props) => {
   const dispatch = useDispatch();
@@ -14,8 +15,7 @@ const AuthProtected = (props) => {
       setAuthorization(token);
     } else if (!userProfile && loading && !token) {
       dispatch(logoutUser());
-      localStorage.clear();
-      sessionStorage.clear();
+      persistor.purge();
     }
   }, [token, userProfile, loading, dispatch]);
   if (!userProfile && loading && !token) {

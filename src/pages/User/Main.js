@@ -50,7 +50,7 @@ const UserCenterList = ({ centers }) => {
     <div className="d-flex flex-wrap gap-2 align-items-center">
       {visibleCenters.map((center) => (
         <Badge key={center._id || center.id} color="primary" pill>
-          {center?.displayName || "Unnamed Center"}
+          {center?.displayName || center.title}
         </Badge>
       ))}
       {remainingCount > 0 && (

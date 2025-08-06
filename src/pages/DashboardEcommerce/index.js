@@ -14,6 +14,7 @@ import {
   fetchUserLogs,
 } from "../../store/actions";
 import { connect, useDispatch } from "react-redux";
+import store from "../../store/store";
 import { endOfDay, startOfDay } from "date-fns";
 import { TIMELINE_VIEW } from "../../Components/constants/patient";
 import axios from "axios";
@@ -44,7 +45,7 @@ const DashboardEcommerce = ({
     setSelectedCenterId(selectedId);
   };
   useEffect(() => {
-    const authUser = localStorage.getItem("authUser");
+     const authUser = localStorage.getItem("authUser");
     const token = authUser ? JSON.parse(authUser).token : null;
     const headerSet =
       axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
@@ -55,8 +56,8 @@ const DashboardEcommerce = ({
   }, [dispatch, user]);
 
   useEffect(() => {
-    const authUser = localStorage.getItem("authUser");
-    const token = authUser ? JSON.parse(authUser).token : null;
+   const authUser = store.getState().User.user;
+    const token = authUser ? authUser.token : null;
     const headerSet =
       axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
 
@@ -73,8 +74,8 @@ const DashboardEcommerce = ({
   }, [dispatch, userCenters, patients]);
 
   useEffect(() => {
-    const authUser = localStorage.getItem("authUser");
-    const token = authUser ? JSON.parse(authUser).token : null;
+    const authUser = store.getState().User.user;
+    const token = authUser ? authUser.token : null;
     const headerSet =
       axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
 
