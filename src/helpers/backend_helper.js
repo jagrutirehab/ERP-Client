@@ -796,7 +796,7 @@ export const editUserDetails = (data, id, token) => {
 };
 
 export const deleteUser = (id, token) => {
-  return userService.put(`${url.USER}/${id}`, {}, {
+  return userService.put(`${url.MOVE_TO_BIN}/${id}`, {}, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

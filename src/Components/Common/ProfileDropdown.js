@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { connect, useSelector } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import {
   Dropdown,
   DropdownItem,
@@ -9,6 +9,7 @@ import {
 
 //import images
 import avatar1 from "../../assets/images/users/user-dummy-img.jpg";
+import { logoutUser } from "../../store/actions";
 
 const ProfileDropdown = ({ user }) => {
   // const [userName, setUserName] = useState("Admin");
@@ -20,11 +21,23 @@ const ProfileDropdown = ({ user }) => {
   //     }
   // }, [userName]);
 
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.User.microLogin.token);
+  const { isUserLogout } = useSelector((state) => ({
+    isUserLogout: state.User.isUserLogout,
+  }));
   //Dropdown Toggle
   const [isProfileDropdown, setIsProfileDropdown] = useState(false);
   const toggleProfileDropdown = () => {
     setIsProfileDropdown(!isProfileDropdown);
   };
+
+  const handleLogout = async () => {
+    dispatch(logoutUser(token));
+    localStorage.clear();
+    sessionStorage.clear();
+  };
+
   return (
     <React.Fragment>
       <Dropdown
@@ -74,7 +87,7 @@ const ProfileDropdown = ({ user }) => {
                                 className="align-middle">Settings</span></DropdownItem>
                     <DropdownItem href="/auth-lockscreen-basic"><i
                         className="mdi mdi-lock text-muted fs-16 align-middle me-1"></i> <span className="align-middle">Lock screen</span></DropdownItem> */}
-          <DropdownItem href="/logout">
+          <DropdownItem onClick={handleLogout}>
             <i className="mdi mdi-logout text-muted fs-16 align-middle me-1"></i>{" "}
             <span className="align-middle" data-key="t-logout">
               Logout
