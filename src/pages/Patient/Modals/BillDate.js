@@ -22,7 +22,14 @@ import {
 import { connect, useDispatch } from "react-redux";
 import { createEditBill, setBillDate } from "../../../store/actions";
 
-const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
+const BillDate = ({
+  isOpen,
+  toggle,
+  billDate,
+  editBillData,
+  patient,
+  admission,
+}) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -118,6 +125,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
                   ...editBillData,
                   bill: ADVANCE_PAYMENT,
                   isOpen: true,
+                  admission,
                 })
               );
               toggle();
@@ -140,6 +148,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
                   ...editBillData,
                   bill: DEPOSIT,
                   isOpen: true,
+                  admission,
                 })
               );
               toggle();
@@ -162,6 +171,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
                   patient,
                   bill: INVOICE,
                   isOpen: true,
+                  admission,
                 })
               );
               toggle();
@@ -185,6 +195,7 @@ const BillDate = ({ isOpen, toggle, billDate, editBillData, patient }) => {
                   patient,
                   bill: DRAFT_INVOICE,
                   isOpen: true,
+                  admission,
                 })
               );
               toggle();
@@ -204,6 +215,7 @@ BillDate.propTypes = {
   billDate: PropTypes.any,
   editBillData: PropTypes.object,
   patient: PropTypes.object.isRequired,
+  admission: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

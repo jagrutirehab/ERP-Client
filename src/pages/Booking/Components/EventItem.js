@@ -11,7 +11,7 @@ const DetailEventItem = ({ event }) => {
         className="d-flex justify-content-between flex-wrap align-items-start"
       >
         <div className="d-flex align-items-start">
-          {event.chart && event.bill && (
+          {event.chart && (event.bill || event.transactionId) && (
             <span className="mt-n1">
               <i className="ri-checkbox-circle-line text-white fs-14"></i>
             </span>
@@ -32,8 +32,8 @@ const DetailEventItem = ({ event }) => {
               {event?.consultationType}
               {(event.chart || event.bill) && "- ("}
               {event.chart && "Prescribed"}
-              {event.chart && event.bill && " , "}
-              {event.bill && "Paid"}
+              {event.chart && (event.bill || event.transactionId) && " , "}
+              {(event.bill || event.transactionId) && "Paid"}
               {(event.chart || event.bill) && " )"}
             </span>
           </h1>

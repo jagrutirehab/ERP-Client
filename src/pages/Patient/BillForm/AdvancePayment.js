@@ -36,9 +36,11 @@ const AdvancePayment = ({
   admission,
   paymentAccounts,
 }) => {
+  console.log(admission, "admission");
+
   const dispatch = useDispatch();
   const userCenters = useSelector((state) => state?.User?.centerAccess);
-  console.log(userCenters);
+
   const [paymentModes, setPaymentModes] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -59,7 +61,7 @@ const AdvancePayment = ({
 
     // Trigger fetchPaymentAccounts if BANK is selected
     if (value === BANK) {
-        dispatch(fetchPaymentAccounts({centerIds: userCenters}));
+      dispatch(fetchPaymentAccounts({ centerIds: userCenters }));
     }
   };
 
