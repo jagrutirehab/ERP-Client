@@ -116,11 +116,12 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     setCropProfilePic(
       userData?.profilePicture ? { dataURI: userData.profilePicture } : null
     );
-    setCropSignature(null);
+    setCropSignature(
+      userData?.signature?{dataURI:userData.signature}:null
+    );
     setSignature(null);
     setProfilePic(null);
   }, [userData]);
-console.log(userData)
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -131,7 +132,6 @@ console.log(userData)
       email: userData ? userData.email : "",
       accessroles: userData?.accessroles._id || "",
       role: userData ? userData.role : "",
-      signature: userData ? userData.signature : "",
       degrees: userData?.education ? userData.education?.degrees : "",
       speciality: userData?.education ? userData.education?.speciality : "",
       registrationNo: userData?.education
@@ -156,6 +156,9 @@ console.log(userData)
         ? userData?.expertise?.map((e) => ({ label: e, value: e }))
         : [],
       availabilityMode: userData ? userData?.availabilityMode : [],
+      speciality: userData? userData.speciality : "",
+      degrees: userData ? userData.degrees : "",
+      registrationNo:userData?userData.registrationNo:""
     },
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
