@@ -13,9 +13,11 @@ import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const isMobile = useMediaQuery("(max-width: 640px)");
+  const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
   const dispatch = useDispatch();
   const cropperRef = useRef(null);
   const profilePicRef = useRef(null);
@@ -24,9 +26,12 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
   const token = useSelector((state) => state.User.microLogin.token);
+  const loader = useSelector((state) => state.User.loading);
   const [faqs, setFaqs] = useState(userData?.faqs?.length ? userData.faqs : []);
   const [signature, setSignature] = useState(null);
-  const [cropSignature, setCropSignature] = useState(null);
+  const [cropSignature, setCropSignature] = useState(
+    userData?.signature ? { dataURI: userData.signature } : null
+  );
   const [profilePic, setProfilePic] = useState(null);
   const [cropProfilePic, setCropProfilePic] = useState(
     userData?.profilePicture ? { dataURI: userData.profilePicture } : null
@@ -115,7 +120,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     setSignature(null);
     setProfilePic(null);
   }, [userData]);
-
+console.log(userData)
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -126,7 +131,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       email: userData ? userData.email : "",
       accessroles: userData?.accessroles._id || "",
       role: userData ? userData.role : "",
-      signature: "",
+      signature: userData ? userData.signature : "",
       degrees: userData?.education ? userData.education?.degrees : "",
       speciality: userData?.education ? userData.education?.speciality : "",
       registrationNo: userData?.education
@@ -230,7 +235,9 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
         dispatch(updateUser({ data: formData, id: userData._id, token }));
 
         setUserData(null);
-      } else dispatch(addNewUser({ data: formData, token }));
+      } else {
+        dispatch(addNewUser({ data: formData, token }));
+      }
       // validation.resetForm();
       // toggleForm();
     },
@@ -299,11 +306,15 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       options: pages,
       check: (field, item) =>
         validation.values[field.name]?.find((tm) => tm.name === item.name),
-      subCheck: (field, item, val) => {
-        const result = validation.values[field.name]
-          ?.find((tm) => tm.name === item.name)
-          ?.subAccess?.some((sub) => sub.name === val);
-        return !!result;
+      subCheck: (fieldName, parentName, subName) => {
+        const parent = validation.values[fieldName]?.find(
+          (pg) => pg.name === parentName
+        );
+        return (
+          parent &&
+          Array.isArray(parent.subAccess) &&
+          parent.subAccess.some((sb) => sb.name === subName)
+        );
       },
       checkPermission: (a, b, c) => {
         const result = validation.values.pageAccess?.find((tm) => {
@@ -334,67 +345,81 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   };
 
   const handleAccess = (e, field, item, val) => {
-    const value = val
-      ? field.subCheck(field.name, item.name, val.name)
-      : field.check(field, item);
     const currentPageAccess = validation.values.pageAccess || [];
     let updatedPageAccess = [];
-    if (value) {
-      if (val) {
-        updatedPageAccess = currentPageAccess.map((pg) => {
-          if (item.name === pg.name) {
-            const page = pg.subAccess.filter((sb) => sb.name !== val.name);
-            return { ...pg, subAccess: page };
+
+    if (val) {
+      updatedPageAccess = currentPageAccess.map((pg) => {
+        if (item.name === pg.name) {
+          const subAccessArr = Array.isArray(pg.subAccess) ? pg.subAccess : [];
+          const exists = subAccessArr.some((sb) => sb.name === val.name);
+          if (exists) {
+            return {
+              ...pg,
+              subAccess: subAccessArr.filter((sb) => sb.name !== val.name),
+            };
+          } else {
+            return {
+              ...pg,
+              subAccess: [
+                ...subAccessArr,
+                { ...val, permissions: { ...val.permissions } },
+              ],
+            };
           }
-          return pg;
-        });
-      } else {
+        }
+        return pg;
+      });
+    } else {
+      const exists = currentPageAccess.some((pg) => pg.name === item.name);
+      if (exists) {
         updatedPageAccess = currentPageAccess.filter(
           (pg) => pg.name !== item.name
         );
-      }
-    } else {
-      if (val) {
-        updatedPageAccess = currentPageAccess.map((pg) => {
-          if (item.name === pg.name) {
-            return { ...pg, subAccess: [...pg.subAccess, val] };
-          }
-          return pg;
-        });
       } else {
         updatedPageAccess = [
           ...currentPageAccess,
-          { ...item, name: item.name, subAccess: item.children || [] },
+          {
+            ...item,
+            permissions: { ...item.permissions },
+            subAccess: item.children ? [] : [],
+          },
         ];
       }
     }
+
     validation.setFieldValue("pageAccess", updatedPageAccess);
   };
 
-  const handlePermission = (a, b, c) => {
+  const handlePermission = (item, perm, subItem) => {
     let currentPageAccess = [...validation.values.pageAccess];
-    if (c) {
+    if (subItem) {
       currentPageAccess = currentPageAccess.map((pg) => {
-        if (a.name === pg.name) {
-          const page = pg.subAccess.map((sb) => {
-            if (sb.name === c.name) {
-              return {
-                ...sb,
-                permissions: { ...sb.permissions, [b]: !sb.permissions[b] },
-              };
-            }
-            return sb;
-          });
-          return { ...pg, subAccess: page };
+        if (item.name === pg.name) {
+          return {
+            ...pg,
+            subAccess: pg.subAccess.map((sb) => {
+              if (sb.name === subItem.name) {
+                return {
+                  ...sb,
+                  permissions: {
+                    ...sb.permissions,
+                    [perm]: !sb.permissions[perm],
+                  },
+                };
+              }
+              return sb;
+            }),
+          };
         }
         return pg;
       });
     } else {
       currentPageAccess = currentPageAccess.map((pg) => {
-        if (a.name === pg.name) {
+        if (item.name === pg.name) {
           return {
             ...pg,
-            permissions: { ...pg.permissions, [b]: !pg.permissions[b] },
+            permissions: { ...pg.permissions, [perm]: !pg.permissions[perm] },
           };
         }
         return pg;
@@ -466,10 +491,10 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
           borderRadius: "12px",
           boxShadow: "0 6px 20px rgba(0, 0, 0, 0.2)",
           width: "100%",
-          maxWidth: "1000px",
+          maxWidth: "1200px",
           maxHeight: "80vh",
           overflowY: "auto",
-          padding: "32px",
+          padding: "48px",
         }}
       >
         <div
@@ -891,6 +916,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                                       item.name,
                                       val.name
                                     )}
+                                    disabled={!field.check(field, item)}
                                     onChange={(e) =>
                                       field.handleChange(e, field, item, val)
                                     }
@@ -1071,6 +1097,8 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                         display: "grid",
                         gridTemplateColumns: isMobile
                           ? "1fr"
+                          : isTablet
+                          ? "repeat(2, 1fr)"
                           : "repeat(3, 1fr)",
                         gap: "20px",
                         width: "100%",
@@ -1130,8 +1158,9 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                               style={{
                                 marginLeft: "24px",
                                 display: "flex",
-                                flexWrap: "wrap",
+                                flexWrap: isMobile ? "wrap" : "nowrap",
                                 gap: "20px",
+                                overflowX: isMobile ? "visible" : "auto",
                               }}
                             >
                               {Object.entries(item.permissions).map(
@@ -1141,6 +1170,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
+                                      flexShrink: 0,
                                     }}
                                   >
                                     <input
@@ -1176,117 +1206,135 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                             </div>
                           )}
 
-                          {field.check(field, item) &&
-                            item.children?.map((val, id) => (
-                              <div
-                                key={id}
-                                style={{
-                                  marginLeft: "24px",
-                                  paddingTop: "10px",
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  gap: "12px",
-                                  borderTop: "1px dashed #e5e7eb",
-                                }}
-                              >
+                          {field.check(field, item) && item.children && (
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: isMobile
+                                  ? "1fr"
+                                  : isTablet
+                                  ? "1fr 1fr"
+                                  : "1fr 1fr 1fr",
+                                gap: "16px",
+                                marginTop: "10px",
+                              }}
+                            >
+                              {item.children.map((val, id) => (
                                 <div
+                                  key={id}
                                   style={{
+                                    background: "#f3f4f6",
+                                    borderRadius: "8px",
+                                    padding: "12px",
+                                    border: "1px solid #e5e7eb",
                                     display: "flex",
-                                    alignItems: "center",
+                                    flexDirection: "column",
+                                    gap: "8px",
                                   }}
                                 >
-                                  <input
-                                    type="checkbox"
-                                    name={field.name}
-                                    value={val.name}
-                                    checked={field.subCheck(
-                                      field.name,
-                                      item.name,
-                                      val.name
-                                    )}
-                                    onChange={(e) =>
-                                      field.handleChange(e, field, item, val)
-                                    }
+                                  <div
                                     style={{
-                                      marginRight: "10px",
-                                      width: "16px",
-                                      height: "16px",
-                                      cursor: "pointer",
-                                    }}
-                                  />
-                                  <label
-                                    style={{
-                                      fontSize: "15px",
-                                      color: "#1f2937",
-                                      fontWeight: 500,
+                                      display: "flex",
+                                      alignItems: "center",
                                     }}
                                   >
-                                    {val.name}
-                                  </label>
-                                </div>
-
-                                {field.subCheck(
-                                  field.name,
-                                  item.name,
-                                  val.name
-                                ) &&
-                                  val.permissions && (
-                                    <div
+                                    <input
+                                      type="checkbox"
+                                      name={field.name}
+                                      value={val.name}
+                                      checked={field.subCheck(
+                                        field.name,
+                                        item.name,
+                                        val.name
+                                      )}
+                                      disabled={!field.check(field, item)}
+                                      onChange={(e) =>
+                                        field.handleChange(e, field, item, val)
+                                      }
                                       style={{
-                                        marginLeft: "20px",
-                                        display: "flex",
-                                        flexWrap: "wrap",
-                                        gap: "15px",
+                                        marginRight: "10px",
+                                        width: "16px",
+                                        height: "16px",
+                                        cursor: !field.check(field, item)
+                                          ? "not-allowed"
+                                          : "pointer",
+                                      }}
+                                    />
+                                    <label
+                                      style={{
+                                        fontSize: "15px",
+                                        color: "#1f2937",
+                                        fontWeight: 500,
                                       }}
                                     >
-                                      {Object.entries(val.permissions).map(
-                                        ([perm, value]) => (
-                                          <div
-                                            key={perm}
-                                            style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                            }}
-                                          >
-                                            <input
-                                              type="checkbox"
-                                              name={field.name}
-                                              value={perm}
-                                              checked={field.checkPermission(
-                                                item.name,
-                                                perm,
-                                                val.name
-                                              )}
-                                              onChange={() =>
-                                                handlePermission(
-                                                  item,
-                                                  perm,
-                                                  val
-                                                )
-                                              }
+                                      {val.name}
+                                    </label>
+                                  </div>
+                                  {field.subCheck(
+                                    field.name,
+                                    item.name,
+                                    val.name
+                                  ) &&
+                                    val.permissions && (
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          flexDirection: "row",
+                                          flexWrap: "wrap",
+                                          gap: "8px",
+                                          marginLeft: "10px",
+                                        }}
+                                      >
+                                        {Object.entries(val.permissions).map(
+                                          ([perm, value]) => (
+                                            <div
+                                              key={perm}
                                               style={{
-                                                marginRight: "10px",
-                                                width: "16px",
-                                                height: "16px",
-                                                cursor: "pointer",
-                                              }}
-                                            />
-                                            <label
-                                              style={{
-                                                fontSize: "14px",
-                                                color: "#6b7280",
-                                                textTransform: "capitalize",
+                                                display: "flex",
+                                                alignItems: "center",
                                               }}
                                             >
-                                              {perm}
-                                            </label>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  )}
-                              </div>
-                            ))}
+                                              <input
+                                                type="checkbox"
+                                                name={field.name}
+                                                value={perm}
+                                                checked={field.checkPermission(
+                                                  item.name,
+                                                  perm,
+                                                  val.name
+                                                )}
+                                                onChange={() =>
+                                                  handlePermission(
+                                                    item,
+                                                    perm,
+                                                    val
+                                                  )
+                                                }
+                                                style={{
+                                                  marginRight: "10px",
+                                                  width: "16px",
+                                                  height: "16px",
+                                                  cursor: "pointer",
+                                                }}
+                                              />
+                                              <label
+                                                style={{
+                                                  fontSize: "14px",
+                                                  color: "#6b7280",
+                                                  textTransform: "capitalize",
+                                                }}
+                                              >
+                                                {perm}
+                                              </label>
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                       {validation.touched[field.name] &&
@@ -1385,80 +1433,168 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
             <div
               style={{ display: "flex", flexDirection: "column", gap: "24px" }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Signature
-                </label>
-                {cropSignature ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "20px",
-                    }}
-                  >
-                    <img
-                      src={cropSignature.dataURI}
-                      alt="Signature"
-                      style={{ maxWidth: "250px", height: "auto" }}
-                    />
-                    <button
-                      type="button"
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#ef4444",
-                        color: "#ffffff",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s",
-                      }}
-                      onMouseOver={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#dc2626")
-                      }
-                      onMouseOut={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#ef4444")
-                      }
-                      onClick={() => setCropSignature(null)}
-                    >
-                      Clear Signature
-                    </button>
-                  </div>
-                ) : (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style={{
-                      padding: "10px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "6px",
-                      fontSize: "15px",
-                      outline: "none",
-                      width: "100%",
-                      backgroundColor: "#ffffff",
-                      transition: "border-color 0.2s",
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.border = "1px solid #3b82f6")
-                    }
-                    onBlur={(e) =>
-                      (e.target.style.border = "1px solid #d1d5db")
-                    }
-                    onChange={onSignatureChange}
-                  />
-                )}
-              </div>
+          <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+      }}
+    >
+      <label
+        style={{
+          fontSize: "15px",
+          fontWeight: "500",
+          color: "#374151",
+        }}
+      >
+        Signature
+      </label>
+      {cropSignature ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "20px",
+          }}
+        >
+          <img
+            src={cropSignature.dataURI}
+            alt="Edited Signature"
+            style={{ 
+              maxWidth: "250px", 
+              height: "auto",
+              border: "1px solid #e5e7eb",
+              borderRadius: "4px",
+              padding: "4px",
+              backgroundColor: "#f9fafb"
+            }}
+          />
+          <button
+            type="button"
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#ef4444",
+              color: "#ffffff",
+              borderRadius: "6px",
+              cursor: "pointer",
+              transition: "background-color 0.2s",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor = "#dc2626")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor = "#ef4444")
+            }
+            onClick={() => setCropSignature(null)}
+          >
+            Clear Signature
+          </button>
+        </div>
+      ) : userData?.signature?.url ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "20px",
+          }}
+        >
+          <img
+            src={userData.signature}
+            alt="Current Signature"
+            style={{ 
+              maxWidth: "250px", 
+              height: "auto",
+              border: "1px solid #e5e7eb",
+              borderRadius: "4px",
+              padding: "4px",
+              backgroundColor: "#f9fafb"
+            }}
+          />
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              type="button"
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#ef4444",
+                color: "#ffffff",
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.backgroundColor = "#dc2626")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.backgroundColor = "#ef4444")
+              }
+              onClick={() => {
+                setCropSignature(null);
+                validation.setFieldValue("signature", "");
+              }}
+            >
+              Remove
+            </button>
+            <label
+              htmlFor="signatureInput"
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#3b82f6",
+                color: "#ffffff",
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.backgroundColor = "#2563eb")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.backgroundColor = "#3b82f6")
+              }
+            >
+              Change
+            </label>
+            <input
+              id="signatureInput"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={onSignatureChange}
+            />
+          </div>
+        </div>
+      ) : (
+        <div>
+          <input
+            type="file"
+            accept="image/*"
+            style={{
+              padding: "10px",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+              fontSize: "15px",
+              outline: "none",
+              width: "100%",
+              backgroundColor: "#ffffff",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) =>
+              (e.target.style.border = "1px solid #3b82f6")
+            }
+            onBlur={(e) =>
+              (e.target.style.border = "1px solid #d1d5db")
+            }
+            onChange={onSignatureChange}
+          />
+          <p style={{
+            fontSize: "13px",
+            color: "#6b7280",
+            marginTop: "8px"
+          }}>
+            Upload a clear signature image (PNG format recommended)
+          </p>
+        </div>
+      )}
+    </div>
 
               <div
                 style={{
@@ -2036,21 +2172,37 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
             </button>
             <button
               type="submit"
+              disabled={loader}
               style={{
                 padding: "10px 20px",
-                backgroundColor: "#3b82f6",
+                backgroundColor: loader ? "#2563eb" : "#3b82f6",
                 color: "#ffffff",
                 borderRadius: "6px",
-                cursor: "pointer",
+                cursor: loader ? "not-allowed" : "pointer",
                 transition: "background-color 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                border: "none",
+                minWidth: "100px",
               }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.backgroundColor = "#2563eb")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.backgroundColor = "#3b82f6")
-              }
+              onMouseOver={(e) => {
+                if (!loader) e.currentTarget.style.backgroundColor = "#2563eb";
+              }}
+              onMouseOut={(e) => {
+                if (!loader) e.currentTarget.style.backgroundColor = "#3b82f6";
+              }}
             >
+              <RenderWhen isTrue={loader}>
+                <div
+                  className="spinner-border spinner-border-sm text-light"
+                  role="status"
+                  style={{ width: "1rem", height: "1rem" }}
+                >
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </RenderWhen>
               Save
             </button>
           </div>

@@ -15,7 +15,7 @@ import FullScreenDropdown from "../Components/Common/FullScreenDropdown";
 import NotificationDropdown from "../Components/Common/NotificationDropdown";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
 import LightDark from "../Components/Common/LightDark";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { searchPatient, viewPatient } from "../store/actions";
 import Highlighter from "react-highlight-words";
 import RenderWhen from "../Components/Common/RenderWhen";
@@ -32,6 +32,7 @@ const Header = ({
 }) => {
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
+  const loader=useSelector((state)=>state.User.loading);
   const onChangeData = (e) => {
     var dropdown = document.getElementById("mb-search-dropdown");
     var searchInput = document.getElementById("mb-search-options");
@@ -276,7 +277,15 @@ const Header = ({
                   </Form>
                 </DropdownMenu>
               </Dropdown>
-
+              <RenderWhen isTrue={loader}>
+                <div
+                  className="spinner-border spinner-border-sm text-light"
+                  role="status"
+                  style={{ width: "1rem", height: "1rem" }}
+                >
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </RenderWhen>
               {/* WebAppsDropdown */}
               <WebAppsDropdown />
 

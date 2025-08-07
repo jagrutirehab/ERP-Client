@@ -23,10 +23,8 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { toast } from "react-toastify";
 import { firstchange } from "../../helpers/backend_helper";
-import {
-  loginUser,
-  closeChangePasswordModal,
-} from "../../store/features/auth/user/userSlice";
+import { closeChangePasswordModal } from "../../store/features/auth/user/userSlice";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -35,9 +33,11 @@ const Login = () => {
   const [viewNewPassword, setViewNewPassword] = useState(false);
   const [viewConfirmPassword, setViewConfirmPassword] = useState(false);
   const [changePasswordError, setChangePasswordError] = useState("");
-  const { showChangePasswordModal = false, tempToken = null } = useSelector(
-    (state) => state.User || {}
-  );
+  const {
+    showChangePasswordModal = false,
+    tempToken = null,
+    loading,
+  } = useSelector((state) => state.User || {});
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -50,7 +50,7 @@ const Login = () => {
       password: Yup.string().required("Please Enter Your Password"),
     }),
     onSubmit: async (values) => {
-      await dispatch(loginUser({ values, navigate })).unwrap();
+      dispatch({ type: "user/loginUser", payload: { values, navigate } });
     },
   });
 
@@ -78,15 +78,16 @@ const Login = () => {
         });
         toast.success("Password changed successfully!");
         dispatch(closeChangePasswordModal());
-        dispatch(
-          loginUser({
+        dispatch({
+          type: "user/loginUser",
+          payload: {
             values: {
               email: validation.values.email,
               password: values.newPassword,
             },
             navigate,
-          })
-        );
+          },
+        });
       } catch (error) {
         console.error("Password change error:", error);
         setChangePasswordError(
@@ -264,6 +265,7 @@ const Login = () => {
                         </div>
                         <div className="d-grid">
                           <Button
+                            disabled={loading}
                             color="success"
                             type="submit"
                             style={{
@@ -273,8 +275,23 @@ const Login = () => {
                               height: "45px",
                               fontWeight: "500",
                               fontSize: "1rem",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "10px",
                             }}
                           >
+                            <RenderWhen isTrue={loading}>
+                              <div
+                                className="spinner-border spinner-border-sm"
+                                role="status"
+                                style={{ width: "1rem", height: "1rem" }}
+                              >
+                                <span className="visually-hidden">
+                                  Loading...
+                                </span>
+                              </div>
+                            </RenderWhen>
                             Sign In
                           </Button>
                         </div>

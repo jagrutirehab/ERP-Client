@@ -206,7 +206,7 @@ export const suspendStaff = createAsyncThunk(
         setAlert({
           type: "success",
           message:
-            response.payload.status === "active"
+            response.data.status === "active"
               ? "User Restored Successfully!"
               : "User Suspended Successfully!",
         })
@@ -246,8 +246,8 @@ export const addNewUser = createAsyncThunk(
   "addUser",
   async ({data, token}, { dispatch, rejectWithValue }) => {
     try {
-      console.log(data,token);
       const response = await addUser(data, token);
+      dispatch(setUserForm({ isOpen: false, data: null }));
       dispatch(
         setAlert({ type: "success", message: "User Added Successfully" })
       );
@@ -263,7 +263,7 @@ export const updateUser = createAsyncThunk(
   "editUser",
   async ({data,id,token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await editUserDetails(data,id,token);
+      const response = await editUserDetails(data, id, token);
       dispatch(
         setAlert({ type: "success", message: "User Updated Successfully" })
       );
@@ -312,11 +312,15 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    loginUser: (state) => {
+    resetLoginError: (state) => {
+      console.log("here ss");
       state.forgetError = null;
     },
     setMicroLogin: (state, action) => {
       state.microLogin = action.payload;
+    },
+    setData: (state, action) => {
+      state.data = action.payload;
     },
     openChangePasswordModal: (state, action) => {
       state.requirePasswordChange = true;
@@ -369,6 +373,12 @@ const userSlice = createSlice({
     resetLoginFlag: (state, { payload }) => {
       state.forgetError = payload;
     },
+    setAddNewUser: (state, { payload }) => {
+      state.data.unshift(payload.data[0]);
+    },
+    setLoading:(state,{payload})=>{
+      state.loading=payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -480,9 +490,7 @@ const userSlice = createSlice({
       })
       .addCase(removeUser.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.data = state.data.filter(
-          (item) => item._id !== payload.payload._id
-        );
+        state.data = state.data.filter((item) => item._id !== payload.data._id);
       })
       .addCase(removeUser.rejected, (state, action) => {
         state.loading = false;
@@ -495,9 +503,9 @@ const userSlice = createSlice({
       .addCase(suspendStaff.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findUserIndex = state.data.findIndex(
-          (el) => el._id === payload.payload._id
+          (el) => el._id === payload.data._id
         );
-        state.data[findUserIndex] = payload.payload;
+        state.data[findUserIndex].status = payload.data.status;
       })
       .addCase(suspendStaff.rejected, (state, action) => {
         state.loading = false;
@@ -510,9 +518,9 @@ const userSlice = createSlice({
       .addCase(updateUser.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findUserIndex = state.data.findIndex(
-          (el) => el._id === payload.data._id
+          (el) => el._id === payload.data[0]._id
         );
-        state.data[findUserIndex] = payload.data;
+        state.data[findUserIndex] = payload.data[0];
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
@@ -539,14 +547,26 @@ const userSlice = createSlice({
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
       });
+
+    builder
+      .addCase(addNewUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addNewUser.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data.unshift(payload.data[0]);
+      })
+      .addCase(addNewUser.rejected, (state, action) => {
+        state.loading = false;
+      });
   },
 });
 
 export const {
-  loginUser,
   openChangePasswordModal,
   closeChangePasswordModal,
   setMicroLogin,
+  setData,
   loginSuccess,
   logoutUserSuccess,
   changeUserAccess,
@@ -559,6 +579,9 @@ export const {
   apiError,
   socialLogin,
   resetLoginFlag,
+  setAddNewUser,
+  resetLoginError,
+  setLoading
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -35,6 +35,7 @@ import {
   setUserForm,
   suspendStaff,
 } from "../../store/actions";
+import { setData } from "../../store/features/auth/user/userSlice";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -74,13 +75,13 @@ const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
   const token = useSelector((state) => state.User.microLogin.token);
   const centers = useSelector((state) => state.Center.allCenters || []);
+  const userDataa=useSelector((state)=>state.User.data||[]);
   const [query, setQuery] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userDataa, setUserDataa] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
@@ -91,6 +92,7 @@ const Main = ({ user, form, centerAccess }) => {
   }, [dispatch, user]);
 
   useEffect(() => {
+    if(!centers || centers.length === 0) return;
     const handler = setTimeout(() => {
       const fetchUser = async () => {
         try {
@@ -132,9 +134,9 @@ const Main = ({ user, form, centerAccess }) => {
               })),
             }));
           }
-
+          
           console.log("Processed users with mapped centers:", users);
-          setUserDataa(users);
+          dispatch(setData(users)); 
           setTotalPages(response?.data?.totalPages || 1);
           setCurrentPage(response?.data?.currentPage || currentPage);
         } catch (error) {
@@ -287,10 +289,10 @@ const Main = ({ user, form, centerAccess }) => {
                   <div className="d-flex align-items-start mb-4">
                     <div className="flex-shrink-0">
                       <div className="avatar-lg img-thumbnail rounded-circle">
-                        {item.profilePicture?.url ? (
+                        {item.profilePicture ? (
                           <img
-                            src={item.profilePicture.url}
-                            alt=""
+                            src={item.profilePicture}
+                            alt={item.name}
                             className="img-fluid d-block h-100 w-100 rounded-circle object-fit-cover"
                           />
                         ) : (
