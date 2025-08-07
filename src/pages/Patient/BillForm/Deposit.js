@@ -36,6 +36,8 @@ const Deposit = ({
   admission,
   paymentAccounts,
 }) => {
+  console.log(admission, "admission");
+
   const dispatch = useDispatch();
   const [paymentModes, setPaymentModes] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
