@@ -11,11 +11,17 @@ import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import { addNewUser } from "../../store/features/auth/user/userSlice";
+import {
+  addNewUser,
+  clearUser,
+} from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
+import { useNavigate } from "react-router-dom";
+import { persistor } from "../../store/store";
 
 const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
+  const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
   const dispatch = useDispatch();
@@ -44,12 +50,20 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const [search, setSearch] = useState([]);
 
   const fetchRoles = async () => {
+    if (!token) return;
     try {
       setLoading(true);
       const response = await getAllRoleslist({ token, search });
       setAcccessRoles(response?.data || []);
     } catch (error) {
-      toast.error("Failed to fetch roles.");
+      if (error?.statusCode === 401) {
+        dispatch(clearUser());
+        persistor.purge();
+        toast.error("Session expired, please relogin");
+        navigate("/login");
+      } else {
+        toast.error("Fai led to fetch roles.");
+      }
     } finally {
       setLoading(false);
     }
@@ -117,7 +131,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       userData?.profilePicture ? { dataURI: userData.profilePicture } : null
     );
     setCropSignature(
-      userData?.signature?{dataURI:userData.signature}:null
+      userData?.signature ? { dataURI: userData.signature } : null
     );
     setSignature(null);
     setProfilePic(null);
@@ -195,7 +209,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       ),
       role: Yup.string().required("Please Select User Role"),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const formData = new FormData();
       formData.append("authorId", values.authorId);
       formData.append("name", values.name);
@@ -235,11 +249,27 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
         if (userData.education?._id)
           formData.append("educationId", userData.education?._id);
         formData.append("id", userData._id);
-        dispatch(updateUser({ data: formData, id: userData._id, token }));
 
-        setUserData(null);
+        try {
+          await dispatch(updateUser({ data: formData, id: userData._id, token })).unwrap();
+          setUserData(null);
+        } catch (error) {
+           if (error.type === "unauthorized") {
+            dispatch(clearUser());
+            persistor.purge();
+            navigate("/login");
+          }
+        }
       } else {
-        dispatch(addNewUser({ data: formData, token }));
+        try {
+          await dispatch(addNewUser({ data: formData, token })).unwrap();
+        } catch (error) {
+          if (error.type === "unauthorized") {
+            dispatch(clearUser());
+            persistor.purge();
+            navigate("/login");
+          }
+        }
       }
       // validation.resetForm();
       // toggleForm();
@@ -1217,7 +1247,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                                   ? "1fr"
                                   : isTablet
                                   ? "1fr 1fr"
-                                  : "1fr 1fr 1fr",
+                                  : "1fr 1fr",
                                 gap: "16px",
                                 marginTop: "10px",
                               }}
@@ -1436,168 +1466,168 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
             <div
               style={{ display: "flex", flexDirection: "column", gap: "24px" }}
             >
-          <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-      }}
-    >
-      <label
-        style={{
-          fontSize: "15px",
-          fontWeight: "500",
-          color: "#374151",
-        }}
-      >
-        Signature
-      </label>
-      {cropSignature ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
-          <img
-            src={cropSignature.dataURI}
-            alt="Edited Signature"
-            style={{ 
-              maxWidth: "250px", 
-              height: "auto",
-              border: "1px solid #e5e7eb",
-              borderRadius: "4px",
-              padding: "4px",
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  Signature
+                </label>
+                {cropSignature ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "20px",
+                    }}
+                  >
+                    <img
+                      src={cropSignature.dataURI}
+                      alt="Edited Signature"
+                      style={{
+                        maxWidth: "250px",
+                        height: "auto",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "4px",
+                        padding: "4px",
               backgroundColor: "#f9fafb"
-            }}
-          />
-          <button
-            type="button"
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#ef4444",
-              color: "#ffffff",
-              borderRadius: "6px",
-              cursor: "pointer",
-              transition: "background-color 0.2s",
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.backgroundColor = "#dc2626")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.backgroundColor = "#ef4444")
-            }
-            onClick={() => setCropSignature(null)}
-          >
-            Clear Signature
-          </button>
-        </div>
-      ) : userData?.signature?.url ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "20px",
-          }}
-        >
-          <img
-            src={userData.signature}
-            alt="Current Signature"
-            style={{ 
-              maxWidth: "250px", 
-              height: "auto",
-              border: "1px solid #e5e7eb",
-              borderRadius: "4px",
-              padding: "4px",
-              backgroundColor: "#f9fafb"
-            }}
-          />
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button
-              type="button"
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#ef4444",
-                color: "#ffffff",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.backgroundColor = "#dc2626")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.backgroundColor = "#ef4444")
-              }
-              onClick={() => {
-                setCropSignature(null);
-                validation.setFieldValue("signature", "");
-              }}
-            >
-              Remove
-            </button>
-            <label
-              htmlFor="signatureInput"
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#3b82f6",
-                color: "#ffffff",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.backgroundColor = "#2563eb")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.backgroundColor = "#3b82f6")
-              }
-            >
-              Change
-            </label>
-            <input
-              id="signatureInput"
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={onSignatureChange}
-            />
-          </div>
-        </div>
-      ) : (
-        <div>
-          <input
-            type="file"
-            accept="image/*"
-            style={{
-              padding: "10px",
-              border: "1px solid #d1d5db",
-              borderRadius: "6px",
-              fontSize: "15px",
-              outline: "none",
-              width: "100%",
-              backgroundColor: "#ffffff",
-              transition: "border-color 0.2s",
-            }}
-            onFocus={(e) =>
-              (e.target.style.border = "1px solid #3b82f6")
-            }
-            onBlur={(e) =>
-              (e.target.style.border = "1px solid #d1d5db")
-            }
-            onChange={onSignatureChange}
-          />
+                      }}
+                    />
+                    <button
+                      type="button"
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#ef4444",
+                        color: "#ffffff",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#dc2626")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.backgroundColor = "#ef4444")
+                      }
+                      onClick={() => setCropSignature(null)}
+                    >
+                      Clear Signature
+                    </button>
+                  </div>
+                ) : userData?.signature?.url ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "20px",
+                    }}
+                  >
+                    <img
+                      src={userData.signature}
+                      alt="Current Signature"
+                      style={{
+                        maxWidth: "250px",
+                        height: "auto",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "4px",
+                        padding: "4px",
+                        backgroundColor: "#f9fafb",
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button
+                        type="button"
+                        style={{
+                          padding: "10px 20px",
+                          backgroundColor: "#ef4444",
+                          color: "#ffffff",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseOver={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#dc2626")
+                        }
+                        onMouseOut={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#ef4444")
+                        }
+                        onClick={() => {
+                          setCropSignature(null);
+                          validation.setFieldValue("signature", "");
+                        }}
+                      >
+                        Remove
+                      </button>
+                      <label
+                        htmlFor="signatureInput"
+                        style={{
+                          padding: "10px 20px",
+                          backgroundColor: "#3b82f6",
+                          color: "#ffffff",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseOver={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#2563eb")
+                        }
+                        onMouseOut={(e) =>
+                          (e.currentTarget.style.backgroundColor = "#3b82f6")
+                        }
+                      >
+                        Change
+                      </label>
+                      <input
+                        id="signatureInput"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={onSignatureChange}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{
+                        padding: "10px",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "6px",
+                        fontSize: "15px",
+                        outline: "none",
+                        width: "100%",
+                        backgroundColor: "#ffffff",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) =>
+                        (e.target.style.border = "1px solid #3b82f6")
+                      }
+                      onBlur={(e) =>
+                        (e.target.style.border = "1px solid #d1d5db")
+                      }
+                      onChange={onSignatureChange}
+                    />
           <p style={{
-            fontSize: "13px",
-            color: "#6b7280",
+                        fontSize: "13px",
+                        color: "#6b7280",
             marginTop: "8px"
           }}>
-            Upload a clear signature image (PNG format recommended)
-          </p>
-        </div>
-      )}
-    </div>
+                      Upload a clear signature image (PNG format recommended)
+                    </p>
+                  </div>
+                )}
+              </div>
 
               <div
                 style={{

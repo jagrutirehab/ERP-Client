@@ -11,6 +11,8 @@ import {
 import avatar1 from "../../assets/images/users/user-dummy-img.jpg";
 import { logoutUser } from "../../store/actions";
 import { useNavigate } from "react-router-dom";
+import { persistor } from "../../store/store";
+import { clearUser } from "../../store/features/auth/user/userSlice";
 
 const ProfileDropdown = ({ user }) => {
   const navigate = useNavigate();
@@ -35,7 +37,14 @@ const ProfileDropdown = ({ user }) => {
   };
 
   const handleLogout = async () => {
-    dispatch(logoutUser(token));
+    try {
+      if (!token) return;
+      await dispatch(logoutUser(token)).unwrap();
+    } catch (error) {
+      console.log("logout error", error.messge);
+    }
+    dispatch(clearUser());
+    persistor.purge();
     navigate("/login");
   };
 

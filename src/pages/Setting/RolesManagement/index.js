@@ -27,6 +27,7 @@ const RolesManagement = () => {
   const limit = 10;
 
   const fetchRoles = async (page = 1) => {
+     if(!token) return;
     try {
       setLoading(true);
       const response = await getAllRoles({ page, limit, token });

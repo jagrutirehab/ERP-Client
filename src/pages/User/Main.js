@@ -17,7 +17,7 @@ import {
   PaginationLink,
 } from "reactstrap";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { useDispatch, useSelector, connect } from "react-redux";
 import UserForm from "./Form";
@@ -35,7 +35,9 @@ import {
   setUserForm,
   suspendStaff,
 } from "../../store/actions";
-import { setData } from "../../store/features/auth/user/userSlice";
+import { clearUser, setData } from "../../store/features/auth/user/userSlice";
+import { persistor } from "../../store/store";
+import React from "react";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -73,9 +75,10 @@ UserCenterList.propTypes = {
 
 const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const token = useSelector((state) => state.User.microLogin.token);
   const centers = useSelector((state) => state.Center.allCenters || []);
-  const userDataa=useSelector((state)=>state.User.data||[]);
+  const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
@@ -87,12 +90,14 @@ const Main = ({ user, form, centerAccess }) => {
   const limit = 10;
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
-    dispatch(fetchAllCenters());
-  }, [dispatch, user]);
+    if (token) {
+      dispatch(fetchCenters(user?.centerAccess));
+      dispatch(fetchAllCenters());
+    }
+  }, [dispatch, user, token]);
 
   useEffect(() => {
-    if(!centers || centers.length === 0) return;
+    if (!centers || centers.length === 0 || !token) return;
     const handler = setTimeout(() => {
       const fetchUser = async () => {
         try {
@@ -134,14 +139,21 @@ const Main = ({ user, form, centerAccess }) => {
               })),
             }));
           }
-          
+
           console.log("Processed users with mapped centers:", users);
-          dispatch(setData(users)); 
+          dispatch(setData(users));
           setTotalPages(response?.data?.totalPages || 1);
           setCurrentPage(response?.data?.currentPage || currentPage);
         } catch (error) {
-          console.error("Error fetching users:", error);
-          toast.error("Failed to fetch users.");
+          if (error?.statusCode === 401) {
+            dispatch(clearUser());
+            persistor.purge();
+            toast.error("Session expired, please relogin");
+            navigate("/login");
+          } else {
+            console.error("Error fetching users:", error);
+            toast.error("Failed to fetch users.");
+          }
         } finally {
           setLoading(false);
         }
@@ -174,12 +186,18 @@ const Main = ({ user, form, centerAccess }) => {
     setSuspendModal((prev) => !prev);
   };
 
-  const deleteUser = () => {
-    dispatch(
-      removeUser({id: userData._id, token})
-    );
-    setUserData(null);
-    toggleDeleteModal();
+  const deleteUser = async() => {
+    try {
+     await dispatch(removeUser({ id: userData._id, token })).unwrap();
+      setUserData(null);
+      toggleDeleteModal();
+    } catch (error) {
+      if (error.type === "unauthorized") {
+        dispatch(clearUser());
+        persistor.purge();
+        navigate("/login");
+      }
+    }
   };
 
   const closeDeleteUser = () => {
@@ -192,10 +210,18 @@ const Main = ({ user, form, centerAccess }) => {
     toggleSuspendModal();
   };
 
-  const suspendUser = () => {
-    dispatch(suspendStaff({ id: userData._id, token }));
-    setUserData(null);
-    toggleSuspendModal();
+  const suspendUser = async () => {
+    try {
+      await dispatch(suspendStaff({ id: userData._id, token })).unwrap();
+      setUserData(null);
+      toggleSuspendModal();
+    } catch (error) {
+      if (error.type === "unauthorized") {
+        dispatch(clearUser());
+        persistor.purge();
+        navigate("/login");
+      }
+    }
   };
 
   const shortName = (name = "") =>

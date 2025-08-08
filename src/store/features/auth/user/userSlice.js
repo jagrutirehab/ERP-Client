@@ -22,9 +22,17 @@ import {
 import { setAlert } from "../../alert/alertSlice";
 
 const initialState = {
-  data: null,
-  user: null,
-  microLogin: null,
+  data: [],
+  user: {
+    centerAccess:[],
+    pageAccess:{
+      pages:[]
+    },
+    deleted:false,
+  },
+  microLogin: {
+    token:null,
+  },
   schedule: null,
   doctor: null,
   counsellors: null,
@@ -191,8 +199,18 @@ export const removeUser = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+     if (error.statusCode === 401) {
+        dispatch(
+          setAlert({
+            type: "error",
+            message: "session expired, please relogin",
+          })
+        );
+        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
+      } else {
+        dispatch(setAlert({ type: "error", message: error.message }));
+        return rejectWithValue("something went wrong");
+      }
     }
   }
 );
@@ -214,8 +232,18 @@ export const suspendStaff = createAsyncThunk(
 
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      if (error.statusCode === 401) {
+        dispatch(
+          setAlert({
+            type: "error",
+            message: "session expired, please relogin",
+          })
+        );
+        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
+      } else {
+        dispatch(setAlert({ type: "error", message: error.message }));
+        return rejectWithValue("something went wrong");
+      }
     }
   }
 );
@@ -253,8 +281,18 @@ export const addNewUser = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      if (error.statusCode === 401) {
+        dispatch(
+          setAlert({
+            type: "error",
+            message: "session expired, please relogin",
+          })
+        );
+        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
+      } else {
+        dispatch(setAlert({ type: "error", message: error.message }));
+        return rejectWithValue("something went wrong");
+      }
     }
   }
 );
@@ -270,8 +308,18 @@ export const updateUser = createAsyncThunk(
       dispatch(setUserForm({ isOpen: false, data: null }));
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+       if (error.statusCode === 401) {
+        dispatch(
+          setAlert({
+            type: "error",
+            message: "session expired, please relogin",
+          })
+        );
+        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
+      } else {
+        dispatch(setAlert({ type: "error", message: error.message }));
+        return rejectWithValue("something went wrong");
+      }
     }
   }
 );
@@ -315,6 +363,9 @@ const userSlice = createSlice({
     resetLoginError: (state) => {
       console.log("here ss");
       state.forgetError = null;
+    },
+    clearUser:()=>{
+       return initialState;
     },
     setMicroLogin: (state, action) => {
       state.microLogin = action.payload;
@@ -581,7 +632,8 @@ export const {
   resetLoginFlag,
   setAddNewUser,
   resetLoginError,
-  setLoading
+  setLoading,
+  clearUser
 } = userSlice.actions;
 
 export default userSlice.reducer;
