@@ -1,3 +1,4 @@
+import CheckPermission from "../HOC/CheckPermission";
 import { Card } from "./Card";
 
 export const RoleCard = ({
@@ -6,6 +7,7 @@ export const RoleCard = ({
   roleName = "Unnamed Role",
   onEdit,
   onDelete,
+  permissions = [],
 }) => (
   <Card
     style={{
@@ -90,25 +92,28 @@ export const RoleCard = ({
         >
           {roleName}
         </h3>
-        <button
-          onClick={onEdit}
-          style={{
-            marginTop: "0.25rem",
-            fontSize: "0.875rem",
-            color: "#4F46E5",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
-        >
-          <i
-            className="bx bx-edit-alt"
-            style={{ fontSize: "1rem", marginRight: "0.25rem" }}
-          />
-          Edit Role
-        </button>
+        <CheckPermission accessRolePermission={permissions} permission="edit">
+          <button
+            onClick={onEdit}
+            style={{
+              marginTop: "0.25rem",
+              fontSize: "0.875rem",
+              color: "#4F46E5",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textDecoration: "underline",
+            }}
+          >
+            <i
+              className="bx bx-edit-alt"
+              style={{ fontSize: "1rem", marginRight: "0.25rem" }}
+            />
+            Edit Role
+          </button>
+        </CheckPermission>
       </div>
+      <CheckPermission accessRolePermission={permissions} permission="delete">
       {totalUsers <= 0 ? (
         <button
           onClick={onDelete}
@@ -127,6 +132,7 @@ export const RoleCard = ({
       ) : (
         ""
       )}
+      </CheckPermission>
     </div>
   </Card>
 );

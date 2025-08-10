@@ -32,7 +32,7 @@ const Header = ({
 }) => {
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
-  const loader=useSelector((state)=>state.User.loading);
+  const { loading : globalLoader, dataLoader } = useSelector((state) => state.User);
   const onChangeData = (e) => {
     var dropdown = document.getElementById("mb-search-dropdown");
     var searchInput = document.getElementById("mb-search-options");
@@ -277,7 +277,7 @@ const Header = ({
                   </Form>
                 </DropdownMenu>
               </Dropdown>
-              <RenderWhen isTrue={loader}>
+              <RenderWhen isTrue={globalLoader || dataLoader}>
                 <div
                   className="spinner-border spinner-border-sm text-light"
                   role="status"

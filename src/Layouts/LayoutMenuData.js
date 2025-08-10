@@ -5,12 +5,12 @@ import pages from "../Components/constants/pages";
 
 const Navdata = () => {
   const history = useNavigate();
-  const { userPages } = useSelector((state) => ({
-    userPages: state.User.user.pageAccess.pages,
-  }));
+  const  userPages  = useSelector((state) => 
+  state.User.user?.pageAccess?.pages||[]
+);
 
-  const dynamicPages = userPages.map((pg) => {
-    const pageIndex = pages.findIndex((r) => r.label === pg.name);
+  const dynamicPages = userPages?.map((pg) => {
+    const pageIndex = pages?.findIndex((r) => r.label === pg.name);
     const page = pages[pageIndex];
     return page;
   });
@@ -26,7 +26,7 @@ const Navdata = () => {
       "recyclebin",
     ];
 
-    routes.sort((a, b) => {
+    routes?.sort((a, b) => {
       const indexA = sortOrder.indexOf(a.id);
       const indexB = sortOrder.indexOf(b.id);
 

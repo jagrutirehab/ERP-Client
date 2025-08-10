@@ -17,11 +17,16 @@ import {
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateUserPassword } from "../../store/actions";
+import RenderWhen from "../../Components/Common/RenderWhen";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../Components/Hooks/useAuthError";
 
 const PasswordForm = ({ userData, isOpen, toggleForm, setUserData, token }) => {
   const dispatch = useDispatch();
+  const loader = useSelector((state) => state.User.loading);
+  const handleAuthError = useAuthError();
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -38,17 +43,24 @@ const PasswordForm = ({ userData, isOpen, toggleForm, setUserData, token }) => {
         "Confirm Password Doesn't Match"
       ),
     }),
-    onSubmit: (values) => {
-      dispatch(
-        updateUserPassword({
-          id: userData._id,
-          newPassword: values.password,
-          token,
-        })
-      );
-      setUserData(null);
-      validation.resetForm();
-      toggleForm();
+    onSubmit: async (values) => {
+      try {
+       await dispatch(
+          updateUserPassword({
+            id: userData._id,
+            newPassword: values.password,
+            token,
+          })
+        ).unwrap();
+        setUserData(null);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error("Failed to update password.");
+        }
+      } finally {
+        validation.resetForm();
+        toggleForm();
+      }
     },
   });
 
@@ -140,9 +152,24 @@ const PasswordForm = ({ userData, isOpen, toggleForm, setUserData, token }) => {
 
                   <Col xs={12}>
                     <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
-                      <Button type="submit" size="sm" color="primary" outline>
-                    Save
-                  </Button>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        color="primary"
+                        outline
+                        className="d-flex align-items-center"
+                      >
+                        <RenderWhen isTrue={loader}>
+                          <div
+                            className="spinner-border spinner-border-sm text-light me-2"
+                            role="status"
+                            style={{ width: "1rem", height: "1rem" }}
+                          >
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                        </RenderWhen>
+                        Save
+                      </Button>
                       <Button onClick={cancelForm} size="sm" color="danger">
                         Cancel
                       </Button>

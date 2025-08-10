@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   deleteUser,
-  getUsers,
   postUser,
-  editUser,
-  postLogout,
   editUserPassword,
   getDoctorUsers,
   postUserDetailInformation,
@@ -23,16 +20,9 @@ import { setAlert } from "../../alert/alertSlice";
 
 const initialState = {
   data: [],
-  user: {
-    centerAccess:[],
-    pageAccess:{
-      pages:[]
-    },
-    deleted:false,
-  },
-  microLogin: {
-    token:null,
-  },
+  dataLoader:false,
+  user: null,
+  microLogin: null,
   schedule: null,
   doctor: null,
   counsellors: null,
@@ -191,26 +181,13 @@ export const fetchDoctors = createAsyncThunk(
 
 export const removeUser = createAsyncThunk(
   "deleteUser",
-  async ({id, token}, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
     try {
       const response = await deleteUser(id, token);
-      dispatch(
-        setAlert({ type: "success", message: "User Deleted Successfully" })
-      );
+      dispatch(setAlert({ type: "success", message: "User Deleted Successfully" }));
       return response;
     } catch (error) {
-     if (error.statusCode === 401) {
-        dispatch(
-          setAlert({
-            type: "error",
-            message: "session expired, please relogin",
-          })
-        );
-        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
-      } else {
-        dispatch(setAlert({ type: "error", message: error.message }));
-        return rejectWithValue("something went wrong");
-      }
+      return rejectWithValue(error);
     }
   }
 );
@@ -232,43 +209,10 @@ export const suspendStaff = createAsyncThunk(
 
       return response;
     } catch (error) {
-      if (error.statusCode === 401) {
-        dispatch(
-          setAlert({
-            type: "error",
-            message: "session expired, please relogin",
-          })
-        );
-        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
-      } else {
-        dispatch(setAlert({ type: "error", message: error.message }));
-        return rejectWithValue("something went wrong");
-      }
+      return rejectWithValue(error);
     }
   }
 );
-
-// export const markedUserActiveOrInactive = createAsyncThunk(
-//   "markedActiveOrInactive",
-//   async (data, { dispatch, rejectWithValue }) => {
-//     try {
-//       // const response = await markUserActiveInactive(data);
-//       dispatch(
-//         setAlert({
-//           type: "success",
-//           message: response.payload.isHideFromSearch
-//             ? "User Mask Successfully!"
-//             : "User Unmask Successfully!",
-//         })
-//       );
-
-//       return response;
-//     } catch (error) {
-//       dispatch(setAlert({ type: "error", message: error.message }));
-//       return rejectWithValue("something went wrong");
-//     }
-//   }
-// );
 
 export const addNewUser = createAsyncThunk(
   "addUser",
@@ -281,18 +225,7 @@ export const addNewUser = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      if (error.statusCode === 401) {
-        dispatch(
-          setAlert({
-            type: "error",
-            message: "session expired, please relogin",
-          })
-        );
-        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
-      } else {
-        dispatch(setAlert({ type: "error", message: error.message }));
-        return rejectWithValue("something went wrong");
-      }
+      return rejectWithValue(error);
     }
   }
 );
@@ -308,21 +241,11 @@ export const updateUser = createAsyncThunk(
       dispatch(setUserForm({ isOpen: false, data: null }));
       return response;
     } catch (error) {
-       if (error.statusCode === 401) {
-        dispatch(
-          setAlert({
-            type: "error",
-            message: "session expired, please relogin",
-          })
-        );
-        return rejectWithValue({ type: "unauthorized", message: "session expired, please relogin" });
-      } else {
-        dispatch(setAlert({ type: "error", message: error.message }));
-        return rejectWithValue("something went wrong");
-      }
+       return rejectWithValue(error);
     }
   }
 );
+
 
 export const updateUserPassword = createAsyncThunk(
   "editUserPassword",
@@ -337,8 +260,7 @@ export const updateUserPassword = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
@@ -350,8 +272,7 @@ export const logoutUser = createAsyncThunk(
       const response = await postLogoutService(token);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
@@ -360,12 +281,14 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    resetLoginError: (state) => {
-      console.log("here ss");
-      state.forgetError = null;
+    clearUser: (state) => {
+      state.loading=false
+      state.isUserLogout = true;
+      state.microLogin = null;
+      state.user = null;
     },
-    clearUser:()=>{
-       return initialState;
+    setdataLoader: (state, {payload}) => {
+      state.dataLoader = payload;
     },
     setMicroLogin: (state, action) => {
       state.microLogin = action.payload;
@@ -427,9 +350,9 @@ const userSlice = createSlice({
     setAddNewUser: (state, { payload }) => {
       state.data.unshift(payload.data[0]);
     },
-    setLoading:(state,{payload})=>{
-      state.loading=payload;
-    }
+    setLoading: (state, { payload }) => {
+      state.loading = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -593,7 +516,10 @@ const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(logoutUser.fulfilled, (state, { payload }) => {
-        return initialState;
+        state.isUserLogout = true;
+        state.loading = false;
+        state.microLogin = null;
+        state.user=null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -606,6 +532,7 @@ const userSlice = createSlice({
       .addCase(addNewUser.fulfilled, (state, { payload }) => {
         state.loading = false;
         state.data.unshift(payload.data[0]);
+        state.data.pop();
       })
       .addCase(addNewUser.rejected, (state, action) => {
         state.loading = false;
@@ -631,9 +558,9 @@ export const {
   socialLogin,
   resetLoginFlag,
   setAddNewUser,
-  resetLoginError,
   setLoading,
-  clearUser
+  clearUser,
+  setdataLoader
 } = userSlice.actions;
 
 export default userSlice.reducer;

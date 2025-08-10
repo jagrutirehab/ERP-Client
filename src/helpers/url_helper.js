@@ -248,3 +248,6 @@ export const USER = "/user"
 export const MOVE_TO_BIN="/user/move-recyclebin"
 export const ACTIVATE_DEACTIVATE_USER="/user/deactive"
 export const CHANGE_USER_PASSWORD="/user/change-password"
+export const EDIT_SELF="/user/edit-self";
+export const USER_ACTIVITY="/activity";
+export const GET_USER_ROLES="/user/roles";
