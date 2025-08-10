@@ -9,6 +9,8 @@ import { fetchAllCenters, fetchAllDoctorSchedule } from '../../../store/actions'
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { updateOfferFunction } from '../../../store/features/offer/offerSlice';
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 export const couponSchema = Yup.object().shape({
     code: Yup.string().required('Code is required'),
@@ -80,6 +82,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 
 const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
     const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
@@ -146,7 +149,10 @@ const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
             };
 
         } catch (error) {
-            console.error("Add offer failed:", error);
+            if(!handleAuthError(error)) {
+                console.error("Update offer failed:", error);
+                toast.error(error.message || "Failed to update offer.");
+            }
         }
     };
 

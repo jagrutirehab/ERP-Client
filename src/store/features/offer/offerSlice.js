@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { toast } from "react-toastify";
 import {
  add_offer_helper,
  getOfferList,
@@ -26,8 +25,7 @@ export const addOffer = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
@@ -39,9 +37,7 @@ export const fetchOfferList = createAsyncThunk(
       const response = await getOfferList({ page, limit, search});
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -56,8 +52,7 @@ export const updateOfferFunction = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );

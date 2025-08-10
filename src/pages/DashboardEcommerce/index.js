@@ -144,7 +144,7 @@ DashboardEcommerce.prototype = {
 const mapStateToProps = (state) => {
   return {
     user: state.User.user,
-    pageAccess: state.User.user.pageAccess.pages,
+    pageAccess: state.User.user?.pageAccess?.pages || [],
     users: state.User.data,
     userCenters: state.User.centerAccess,
     logs: state.Log.user,

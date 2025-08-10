@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Breadcrumb from "../../../Components/Common/BreadCrumb";
-import { CardBody, Button } from "reactstrap";
+import { CardBody, Button, Spinner } from "reactstrap";
 import { AddRoleCard, RoleCard } from "../../../Components/Roles/RolesCard";
 import defaultimage from "../../../assets/profile-image.png";
 import {
@@ -13,9 +13,15 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import AddEditRoleModal from "../../../Components/Roles/AddEditModal";
 import DeleteConfirmationModal from "../../../Components/Roles/DeleteConfirmationModal";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const RolesManagement = () => {
-  const token = useSelector((state) => state.User.microLogin.token);
+  const navigate = useNavigate();
+  const token = useSelector((state) => state.User?.microLogin?.token);
+
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,8 +29,12 @@ const RolesManagement = () => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);   
+
   const limit = 10;
+  const { loading: permissionLoader, hasPermission, roles:userRoles } = usePermissions(token);
+  const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
+    const handleAuthError = useAuthError();
 
   const fetchRoles = async (page = 1) => {
      if(!token) return;
@@ -35,16 +45,19 @@ const RolesManagement = () => {
       setTotalPages(response?.data?.totalPages || 1);
       setCurrentPage(response?.data?.currentPage || page);
     } catch (error) {
-      toast.error("Failed to fetch roles.");
+      if(!handleAuthError(error)){
+        toast.error("Failed to fetch roles.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+     if (!hasUserPermission) return;
     fetchRoles(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, currentPage]);
+  }, [token, currentPage, hasUserPermission]);
 
   const handleSubmit = async (formData) => {
     try {
@@ -74,9 +87,11 @@ const RolesManagement = () => {
       setIsModalOpen(false);
       setSelectedRole(null);
     } catch (error) {
-      toast.error(
+     if(!handleAuthError(error)){
+       toast.error(
         selectedRole ? "Failed to update role." : "Failed to create role."
       );
+     }
     } finally {
       setLoading(false);
     }
@@ -104,7 +119,9 @@ const RolesManagement = () => {
       setIsDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (error) {
-      toast.error("Failed to delete role.");
+      if(!handleAuthError(error)){
+        toast.error("Failed to delete role.");
+      }
     } finally {
       setLoading(false);
     }
@@ -122,6 +139,20 @@ const RolesManagement = () => {
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
+
+
+ if (permissionLoader) {
+     return (
+       <div className="d-flex justify-content-center align-items-center vh-100">
+         <Spinner color="primary" className="d-block" style={{ width: '3rem', height: '3rem' }} />
+       </div>
+     );
+   }
+
+   if (!hasUserPermission) {
+     navigate("/unauthorized");
+     return null;
+   }
 
   return (
     <div className="container-fluid d-flex flex-column h-100 px-3">
@@ -152,9 +183,12 @@ const RolesManagement = () => {
                     roleName={role.name}
                     onEdit={() => handleEditClick(role)}
                     onDelete={() => handleDeleteClick(role)}
+                    permissions={userRoles?.permissions}
                   />
                 ))}
-                <AddRoleCard onAdd={handleAddClick} />
+                <CheckPermission accessRolePermission={userRoles?.permissions} permission="create">
+                  <AddRoleCard onAdd={handleAddClick} />
+                </CheckPermission>
               </>
             )}
           </div>

@@ -818,3 +818,30 @@ export const editUserPassword=(id,newPassword, token)=>{
     },
   })
 }
+
+export const getUserActivityById = ({id, page=1, limit=12, token}) => {
+  return userService.get(
+    `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
+export const editSelf = (data, token) =>{
+  return userService.put(url.EDIT_SELF, data, {
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data" },
+    });
+}
+
+export const getRoles= (token) => {
+  return userService.get(url.GET_USER_ROLES, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
