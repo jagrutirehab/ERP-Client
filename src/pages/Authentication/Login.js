@@ -50,7 +50,16 @@ const Login = () => {
       password: Yup.string().required("Please Enter Your Password"),
     }),
     onSubmit: async (values) => {
-      dispatch({ type: "user/loginUser", payload: { values, navigate } });
+      dispatch({
+        type: "user/loginUser",
+        payload: {
+          values: {
+            ...values,
+            email: values.email.toLowerCase(),
+          },
+          navigate,
+        },
+      });
     },
   });
 
