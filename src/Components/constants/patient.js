@@ -82,6 +82,7 @@ const testRecord = [
   { name: "C-SSRS" },
   { name: "MPQ-9" },
   { name: "MMSE" },
+  { name: "Y-BOCS" }
 ];
 
 const prescriptionFormFields = [

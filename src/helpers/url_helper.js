@@ -221,6 +221,7 @@ export const POST_SSRS_TEST = "/clinical-test/ssrs-test";
 export const POST_MPQ_TEST = "/clinical-test/mpq-test";
 export const POST_MMSE_TEST = "/clinical-test/mmse-test";
 export const POST_YMRS_TEST = "/clinical-test/ymrs-test";
+export const POST_YBOCS_TEST = "/clinical-test/ybocs-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER
