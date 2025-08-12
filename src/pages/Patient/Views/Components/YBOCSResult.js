@@ -82,14 +82,7 @@ const YBOCSResultComponent = ({ resultData }) => {
             )}
           </div>
         </div>
-
-        <p className="h6 fw-semibold text-indigo">
-          Severity:{" "}
-          <span className="fw-bold text-primary">
-            {systemSeverity || "Not rated"}
-          </span>
-        </p>
-
+        
         <p className="text-dark fs-6 lh-lg mb-4">
           <span className="fw-bold text-primary">Interpretation:</span>{" "}
           {systemInterpretation || "No Interpretation"}
