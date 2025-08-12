@@ -60,7 +60,7 @@ const YBOCSResultComponent = ({ resultData }) => {
           <p className="h6 fw-semibold text-indigo">
             Total Y-BOCS Score:{" "}
             <span className="display-6 fw-bold">{systemTotalScore || 0}</span> /
-            24
+            40
           </p>
         </div>
 
