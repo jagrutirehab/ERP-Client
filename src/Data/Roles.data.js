@@ -67,7 +67,7 @@ export const permissionList = [
   },
   {
     key: "RECYCLEBIN",
-    label: "Recycle BIN",
+    label: "Recycle Bin",
     subModules: [
       { name: "CENTERLIST", label: "Center List" },
       { name: "PATIENTSLIST", label: "Paitents List" },
