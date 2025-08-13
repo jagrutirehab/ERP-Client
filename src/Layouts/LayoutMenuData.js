@@ -188,6 +188,12 @@ const Navdata = () => {
       icon: "bx bx-layer",
       link: "/centers",
     },
+    {
+      id: "nurse",
+      label: "Nurse",
+      icon: "bx bx-user",
+      link: "/nurse",
+    },
     // {
     //   id: "lead",
     //   label: "Lead",
