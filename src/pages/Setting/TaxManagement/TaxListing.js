@@ -3,6 +3,7 @@ import { Button, Row, Col, Table, Input } from "reactstrap";
 import PropTypes from "prop-types";
 import { format } from 'date-fns';
 import { connect } from "react-redux";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const TaxList = ({
     taxCode,
@@ -13,6 +14,7 @@ const TaxList = ({
     itemsPerPage,
     onPageChange,
     onItemsPerPageChange,
+    userPermissions
 }) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
     return (
@@ -48,7 +50,9 @@ const TaxList = ({
                         <th>End Date</th>
                         <th>Status</th>
                         <th>Visible To All</th>
+                        <CheckPermission accessRolePermission={userPermissions} permission="edit">
                         <th>Actions</th>
+                        </CheckPermission>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,14 +69,23 @@ const TaxList = ({
                                 <td>{obj?.status ? 'Active' : 'Inactive'}</td>
                                 <td>{obj?.visibleToAll ? 'Yes' : 'No'}</td>
                                 <td>
+                                     <CheckPermission
+                                      accessRolePermission={userPermissions}
+                                      permission="edit"
+                                      >
                                     <Button
                                         size="sm"
                                         color="info"
                                         className="me-2"
                                         onClick={() => setEditOffer({ isOpen: true, data: obj })}
-                                    >
+                                        >
                                         <i className="ri-quill-pen-line"></i>
                                     </Button>
+                                        </CheckPermission>
+                                     <CheckPermission accessRolePermission={userPermissions}
+                    permission="delete"
+                >
+                    
                                     <Button
                                         size="sm"
                                         color="danger"
@@ -80,9 +93,10 @@ const TaxList = ({
                                         onClick={() =>
                                             setDeleteOffer({ isOpen: true, data: obj })
                                         }
-                                    >
+                                        >
                                         <i className="ri-close-circle-line"></i>
                                     </Button>
+                                        </CheckPermission>
                                 </td>
                             </tr>
                         )

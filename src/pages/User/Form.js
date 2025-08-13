@@ -5,7 +5,7 @@ import CreatableSelect from "react-select/creatable";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser, updateUser } from "../../store/actions";
+import { updateUser } from "../../store/actions";
 import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
@@ -17,11 +17,9 @@ import {
 } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
-import { useNavigate } from "react-router-dom";
-import { persistor } from "../../store/store";
+import { useAuthError } from "../../Components/Hooks/useAuthError";
 
-const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
-  const navigate = useNavigate();
+const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission }) => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
   const dispatch = useDispatch();
@@ -31,7 +29,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
-  const token = useSelector((state) => state.User.microLogin.token);
+  const token = useSelector((state) => state.User?.microLogin?.token || null);
   const loader = useSelector((state) => state.User.loading);
   const [faqs, setFaqs] = useState(userData?.faqs?.length ? userData.faqs : []);
   const [signature, setSignature] = useState(null);
@@ -48,21 +46,18 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
   const [search, setSearch] = useState([]);
+  const handleAuthError = useAuthError();
 
   const fetchRoles = async () => {
     if (!token) return;
+    if (!hasUserPermission) return;
     try {
       setLoading(true);
       const response = await getAllRoleslist({ token, search });
       setAcccessRoles(response?.data || []);
     } catch (error) {
-      if (error?.statusCode === 401) {
-        dispatch(clearUser());
-        persistor.purge();
-        toast.error("Session expired, please relogin");
-        navigate("/login");
-      } else {
-        toast.error("Fai led to fetch roles.");
+      if(!handleAuthError(error)){
+        toast.error("Failed to fetch access roles.");
       }
     } finally {
       setLoading(false);
@@ -254,20 +249,16 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
           await dispatch(updateUser({ data: formData, id: userData._id, token })).unwrap();
           setUserData(null);
         } catch (error) {
-           if (error.type === "unauthorized") {
-            dispatch(clearUser());
-            persistor.purge();
-            navigate("/login");
+          if(!handleAuthError(error)){
+            toast.error(error.message || "Failed to update user.");
           }
         }
       } else {
         try {
           await dispatch(addNewUser({ data: formData, token })).unwrap();
         } catch (error) {
-          if (error.type === "unauthorized") {
-            dispatch(clearUser());
-            persistor.purge();
-            navigate("/login");
+          if(!handleAuthError(error)){
+            toast.error(error.message || "Failed to add new user.");
           }
         }
       }
@@ -825,7 +816,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                       ))}
                     </select>
                   ) : field.type === "checkbox" &&
-                    field.name == "availabilityMode" ? (
+                    field.name === "availabilityMode" ? (
                     <div
                       style={{
                         display: "grid",
@@ -1056,6 +1047,9 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                       type={field.type}
                       name={field.name}
                       placeholder={field.placeholder}
+                      autoComplete={
+                        field.type === "password" ? "new-password" : "off"
+                      }
                       style={{
                         padding: "10px",
                         border: `1px solid ${
@@ -1618,7 +1612,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                       }
                       onChange={onSignatureChange}
                     />
-          <p style={{
+           <p style={{
                         fontSize: "13px",
                         color: "#6b7280",
             marginTop: "8px"

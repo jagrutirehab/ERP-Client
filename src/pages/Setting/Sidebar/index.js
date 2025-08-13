@@ -1,5 +1,3 @@
-import React from "react";
-import PropTypes from "prop-types";
 import { Link, useLocation } from "react-router-dom";
 // import { Button, UncontrolledTooltip } from "reactstrap";
 
@@ -11,9 +9,15 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 import { setting } from "../../../Components/constants/pages";
 
 //redux
-import { connect } from "react-redux";
+import { connect, useSelector } from "react-redux";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Sidebar = () => {
+  const token = useSelector((state) => state.User?.microLogin?.token);
+
+const {  hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
+
   const location = useLocation();
 
   const toggleDataSidebar = () => {
@@ -26,6 +30,13 @@ const Sidebar = () => {
       } else dataList.classList.add("show-chat-message-list");
     }
   };
+
+   const filteredSettings = (setting || []).filter((page) => {
+    if (page.id === "roles" && !hasUserPermission) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div>
@@ -56,7 +67,7 @@ const Sidebar = () => {
               className="list-unstyled chat-list chat-user-list users-list"
               id="userList"
             >
-              {(setting || []).map((page, idx) => (
+              {(filteredSettings || []).map((page, idx) => (
                 <li
                   className={setting.id === location.pathname ? "active" : ""}
                 >

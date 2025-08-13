@@ -12,9 +12,6 @@ import {
   UncontrolledDropdown,
   Spinner,
   Badge,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,9 +32,12 @@ import {
   setUserForm,
   suspendStaff,
 } from "../../store/actions";
-import { clearUser, setData } from "../../store/features/auth/user/userSlice";
-import { persistor } from "../../store/store";
-import React from "react";
+import {
+  setData,
+  setdataLoader,
+} from "../../store/features/auth/user/userSlice";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useAuthError } from "../../Components/Hooks/useAuthError";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -76,7 +76,8 @@ UserCenterList.propTypes = {
 const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector((state) => state.User.microLogin.token);
+  const token = useSelector((state) => state.User?.microLogin?.token);
+  const dataLoader = useSelector((state) => state.User.dataLoader);
   const centers = useSelector((state) => state.Center.allCenters || []);
   const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
@@ -84,11 +85,14 @@ const Main = ({ user, form, centerAccess }) => {
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 10;
+  const [totalCount, setTotalCount] = useState(0);
+  const limit = 12;
 
+  const {loading: permissionLoader, hasPermission, roles} = usePermissions(token);
+  const hasUserPermission = hasPermission("USER", null, "READ");
+  const handleAuthError = useAuthError();
   useEffect(() => {
     if (token) {
       dispatch(fetchCenters(user?.centerAccess));
@@ -98,10 +102,11 @@ const Main = ({ user, form, centerAccess }) => {
 
   useEffect(() => {
     if (!centers || centers.length === 0 || !token) return;
+    if (!hasUserPermission) return;
     const handler = setTimeout(() => {
       const fetchUser = async () => {
         try {
-          setLoading(true);
+          dispatch(setdataLoader(true));
           const response = await getAllUsers({
             page: currentPage,
             limit,
@@ -140,29 +145,24 @@ const Main = ({ user, form, centerAccess }) => {
             }));
           }
 
-          console.log("Processed users with mapped centers:", users);
           dispatch(setData(users));
           setTotalPages(response?.data?.totalPages || 1);
+          setTotalCount(response?.data?.total);
           setCurrentPage(response?.data?.currentPage || currentPage);
         } catch (error) {
-          if (error?.statusCode === 401) {
-            dispatch(clearUser());
-            persistor.purge();
-            toast.error("Session expired, please relogin");
-            navigate("/login");
-          } else {
+          if (!handleAuthError(error)) {
             console.error("Error fetching users:", error);
-            toast.error("Failed to fetch users.");
+            toast.error(error.message || "Failed to fetch users.");
           }
         } finally {
-          setLoading(false);
+          dispatch(setdataLoader(false));
         }
       };
       fetchUser();
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [query, currentPage, token, centerAccess, centers]);
+  }, [query, currentPage, token, centerAccess, centers, roles]);
 
   document.title = "Users | Your App Name";
 
@@ -186,17 +186,16 @@ const Main = ({ user, form, centerAccess }) => {
     setSuspendModal((prev) => !prev);
   };
 
-  const deleteUser = async() => {
+  const deleteUser = async () => {
     try {
-     await dispatch(removeUser({ id: userData._id, token })).unwrap();
+      await dispatch(removeUser({ id: userData._id, token })).unwrap();
       setUserData(null);
-      toggleDeleteModal();
     } catch (error) {
-      if (error.type === "unauthorized") {
-        dispatch(clearUser());
-        persistor.purge();
-        navigate("/login");
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to delete user.");
       }
+    } finally {
+      toggleDeleteModal();
     }
   };
 
@@ -214,13 +213,12 @@ const Main = ({ user, form, centerAccess }) => {
     try {
       await dispatch(suspendStaff({ id: userData._id, token })).unwrap();
       setUserData(null);
-      toggleSuspendModal();
     } catch (error) {
-      if (error.type === "unauthorized") {
-        dispatch(clearUser());
-        persistor.purge();
-        navigate("/login");
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to suspend user.");
       }
+    } finally {
+      toggleSuspendModal();
     }
   };
 
@@ -237,6 +235,23 @@ const Main = ({ user, form, centerAccess }) => {
     }
   };
 
+  if (permissionLoader) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner
+          color="primary"
+          className="d-block"
+          style={{ width: "3rem", height: "3rem" }}
+        />
+      </div>
+    );
+  }
+
+  if (!hasUserPermission) {
+    navigate("/unauthorized");
+    return null;
+  }
+
   return (
     <>
       <Card>
@@ -252,7 +267,7 @@ const Main = ({ user, form, centerAccess }) => {
                   placeholder="Search by name or email..."
                 />
                 <i className="ri-search-line search-icon" />
-                <RenderWhen isTrue={loading}>
+                <RenderWhen isTrue={dataLoader}>
                   <Spinner
                     className="position-absolute end-0 top-50 translate-middle-y me-2"
                     color="success"
@@ -262,7 +277,10 @@ const Main = ({ user, form, centerAccess }) => {
               </div>
             </Col>
             <Col md={8} className="text-sm-end">
-              <CheckPermission permission="create">
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                permission="create"
+              >
                 <Button color="success" onClick={() => openUserForm()}>
                   <i className="ri-add-fill me-1 align-bottom" />
                   Add User
@@ -278,6 +296,7 @@ const Main = ({ user, form, centerAccess }) => {
         toggleForm={() => openUserForm(null)}
         userData={userData}
         setUserData={setUserData}
+        hasUserPermission={hasUserPermission}
       />
       <PasswordForm
         isOpen={passwordModal}
@@ -346,21 +365,39 @@ const Main = ({ user, form, centerAccess }) => {
                     </div>
                     <div className="flex-shrink-0">
                       <UncontrolledDropdown direction="start">
-                        <DropdownToggle tag="a" role="button">
+                       <CheckPermission accessRolePermission={roles?.permissions} permission="create">
+                         <DropdownToggle tag="a" role="button">
                           <i className="ri-more-fill fs-17"></i>
                         </DropdownToggle>
+                       </CheckPermission>
                         <DropdownMenu>
-                          <CheckPermission permission="edit">
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="edit"
+                          >
                             <DropdownItem onClick={() => openUserForm(item)}>
                               <i className="ri-pencil-line me-2 align-middle" />
                               Edit Details
                             </DropdownItem>
+                          </CheckPermission>
+
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="edit"
+                            subAccess="USERPASSWORDCHANGE"
+                          >
                             <DropdownItem
                               onClick={() => togglePasswordModal(item)}
                             >
                               <i className="ri-lock-password-line me-2 align-middle" />
                               Change Password
                             </DropdownItem>
+                          </CheckPermission>
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="delete"
+                            subAccess="SUSPENDUSER"
+                          >
                             <DropdownItem
                               onClick={() => toggleSuspendModal(item)}
                             >
@@ -370,7 +407,10 @@ const Main = ({ user, form, centerAccess }) => {
                                 : "Suspend User"}
                             </DropdownItem>
                           </CheckPermission>
-                          <CheckPermission permission="delete">
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="delete"
+                          >
                             <DropdownItem
                               className="text-danger"
                               onClick={() => toggleDeleteModal(item)}
@@ -409,7 +449,7 @@ const Main = ({ user, form, centerAccess }) => {
                     </Badge>
                   </div>
                   <Link
-                    to={`/user-activity/${item._id}`}
+                    to={`/user/activity/${item._id}`}
                     className="btn btn-soft-primary view-btn"
                   >
                     View Activity
@@ -422,31 +462,28 @@ const Main = ({ user, form, centerAccess }) => {
       </Row>
 
       {totalPages > 1 && (
-        <Row className="mt-4">
-          <Col className="d-flex justify-content-center align-items-center">
-            <Pagination className="pagination mb-0">
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationLink
-                  previous
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  Previous
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem disabled>
-                <PaginationLink>
-                  Page {currentPage} of {totalPages}
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLink
-                  next
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  Next
-                </PaginationLink>
-              </PaginationItem>
-            </Pagination>
+        <Row className="mt-4 justify-content-center align-items-center">
+          <Col xs="auto" className="d-flex justify-content-center">
+            <Button
+              color="secondary"
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              ← Previous
+            </Button>
+          </Col>
+          <Col xs="auto" className="text-center text-muted mx-3">
+            Showing {Math.min((currentPage - 1) * limit + 1, totalCount)}–
+            {Math.min(currentPage * limit, totalCount)} of {totalCount}
+          </Col>
+          <Col xs="auto" className="d-flex justify-content-center">
+            <Button
+              color="secondary"
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Next →
+            </Button>
           </Col>
         </Row>
       )}

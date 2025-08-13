@@ -8,6 +8,7 @@ import {
     Button,
     InputGroup,
     InputGroupText,
+    Spinner,
 } from "reactstrap";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import TaxListing from "./TaxListing";
@@ -15,9 +16,15 @@ import AddTaxModal from "./AddTaxModal";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTaxList, updateTaxFunction } from "../../../store/features/tax/taxSlice";
 import EditModal from "./EditTax";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
 
 
 const TaxManagement = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const [modal, setModal] = useState(false);
     const [searchItem, setSearchItem] = useState('')
@@ -37,6 +44,11 @@ const TaxManagement = () => {
     const data = useSelector((state) => state.Taxes.data);
     const totalCount = useSelector((state) => state.Taxes.totalCount);
     const totalPages = useSelector((state) => state.Taxes.totalPages);
+    const token = useSelector((state) => state.User?.microLogin?.token);
+    const { loading: permissionLoader, hasPermission, roles:userRoles } = usePermissions(token);
+    const hasUserPermission = hasPermission("SETTING", "TAXMANAGEMENTSETTING", "READ");
+    const handleAuthError = useAuthError();
+    
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
             setSearchItem(tempSearch);
@@ -65,19 +77,53 @@ const TaxManagement = () => {
                 setDeleteOffer({ isOpen: false, data: null })
             }
         } catch (error) {
-            console.error("Delete offer failed:", error);
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to delete tax.");
+            }
         }
     }
 
     useEffect(() => {
-        dispatch(
+        const loadTaxList = async () => {
+        if (!hasUserPermission) return;
+        try {
+          await dispatch(
             fetchTaxList({
-                page: currentPage,
-                limit: itemsPerPage,
-                search: searchItem,
+              page: currentPage,
+              limit: itemsPerPage,
+              search: searchItem,
             })
-        );
-    }, [dispatch, currentPage, itemsPerPage, searchItem, apiFlag]);
+          ).unwrap();
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            toast.error("Failed to fetch tax list.");
+          }
+        }
+      };
+
+        loadTaxList();
+    }, [
+      dispatch,
+      currentPage,
+      itemsPerPage,
+      searchItem,
+      apiFlag,
+      hasUserPermission,
+    ]);
+
+
+     if (permissionLoader) {
+             return (
+               <div className="d-flex justify-content-center align-items-center vh-100">
+                 <Spinner color="primary" className="d-block" style={{ width: '3rem', height: '3rem' }} />
+               </div>
+             );
+           }
+        
+           if (!hasUserPermission) {
+             navigate("/unauthorized");
+             return null;
+           }
 
     return (
         <div className="container-fluid d-flex flex-column h-100 px-3">
@@ -101,12 +147,17 @@ const TaxManagement = () => {
                         </InputGroup>
                     </Col>
 
+<CheckPermission
+              accessRolePermission={userRoles?.permissions}
+              permission="create"
+            >
 
                     <Col className="col-sm-auto ms-auto">
                         <Button color="success" className="text-white" onClick={() => setModal(true)}>
                             <i className="ri-add-fill me-1 align-bottom"></i> Add Tax
                         </Button>
                     </Col>
+            </CheckPermission>
                 </Row>
             </CardBody>
             <div className="flex-grow-1 d-flex flex-column overflow-auto">
@@ -120,6 +171,7 @@ const TaxManagement = () => {
                     itemsPerPage={itemsPerPage}
                     onPageChange={handlePageChange}
                     onItemsPerPageChange={handleItemsPerPageChange}
+                    userPermissions={userRoles?.permissions}
                 />
             </div>
             <DeleteModal
