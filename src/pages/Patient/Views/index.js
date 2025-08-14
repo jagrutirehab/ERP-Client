@@ -17,6 +17,7 @@ import SsrsQuestion from "./Components/SsrsQuestion";
 import YMSCQuestion from "./Components/YMSCQuestion";
 import MPQQuestion from "./Components/MPQ9Question";
 import MMSEQuestion from "./Components/MMSEQuestion";
+import YBOCSQuestion from "./Components/YBOCSQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -95,6 +96,7 @@ const Views = (props) => {
             {data === "YMRS" && <YMSCQuestion />}
             {data === "MPQ-9" && <MPQQuestion />}
             {data === "MMSE" && <MMSEQuestion />}
+            {data === "Y-BOCS" && <YBOCSQuestion />}
           </div>
         )}
       </div>

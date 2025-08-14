@@ -41,6 +41,7 @@ const UserProfile = React.lazy(() =>
 
 // Center
 const Center = React.lazy(() => import("../pages/Center"));
+const Nurse = React.lazy(() => import("../pages/Nurse"));
 
 // Patient
 // const Patient = React.lazy(() => import("../pages/Patient"));
@@ -66,6 +67,7 @@ const allElements = [
   { element: Recyclebin, label: "Recycle bin" },
   { element: Lead, label: "Lead" },
   { element: Report, label: "Report" },
+  { element: Nurse, label: "Nurse" },
 ];
 
 const authProtectedRoutes = [
@@ -85,6 +87,7 @@ const authProtectedRoutes = [
   { path: "/intern/*", component: Intern },
   //Center
   { path: "/centers", component: Center },
+  { path: "/nurse/*", component: Nurse },
 
   // this route should be at the end of all other routes
   // eslint-disable-next-line react/display-name

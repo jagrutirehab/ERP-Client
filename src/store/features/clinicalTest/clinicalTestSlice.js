@@ -8,6 +8,7 @@ import {
   postYmrsTest,
   postMPQtest,
   postMMSEtest,
+  postYBOCSTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -100,6 +101,21 @@ export const createYMRSTest = createAsyncThunk(
     }
   }
 );
+
+export const createYBOCSTest = createAsyncThunk(
+  "createYBOCSTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postYBOCSTest(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+
 
 const initialState = {
   testName: "babu raw",
@@ -196,6 +212,17 @@ export const clinicalTestSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(createYMRSTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+    // create YBOCS Test
+    builder
+      .addCase(createYBOCSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createYBOCSTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createYBOCSTest.rejected, (state) => {
         state.isLoading = false;
       });
     // fetchClinicalTest
