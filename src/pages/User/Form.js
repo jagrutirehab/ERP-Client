@@ -12,6 +12,8 @@ import {
   Row,
 } from "reactstrap";
 import UploadedFiles from "../../Components/Common/UploadedFiles";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 //cropper
 import Cropper from "react-cropper";
@@ -33,6 +35,7 @@ import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import CustomModal from "../../Components/Common/Modal";
 import PropTypes from "prop-types";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 
 const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
   const dispatch = useDispatch();
@@ -118,6 +121,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       name: userData ? userData.name : "",
       email: userData ? userData.email : "",
       role: userData ? userData.role : "",
+      phoneNumber: userData ? userData.phoneNumber : "",
       signature: "",
       degrees: userData?.education ? userData.education?.degrees : "",
       speciality: userData?.education ? userData.education?.speciality : "",
@@ -155,6 +159,11 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
           "Confirm Password Doesn't Match"
         ),
       }),
+      phoneNumber: Yup.string()
+        .required("Please Enter Phone Number")
+        .test("is-valid-phone", "Invalid phone number", function (value) {
+          return isValidPhoneNumber(value || "");
+        }),
       centerAccess: Yup.array().test(
         "notEmpty",
         "Center Access is required",
@@ -183,6 +192,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       formData.append("name", values.name);
       formData.append("email", values.email);
       formData.append("role", values.role);
+      formData.append("phoneNumber", values.phoneNumber);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
@@ -246,6 +256,12 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
       name: "role",
       type: "select",
       options: authRoles,
+      handleChange: (e) => validation.handleChange(e),
+    },
+    {
+      label: "Phone number",
+      name: "phoneNumber",
+      type: "phoneNumber",
       handleChange: (e) => validation.handleChange(e),
     },
     {
@@ -668,7 +684,41 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                         {field.label}
                       </Label>
 
-                      {field.type === "select" ? (
+                      {field.name === "phoneNumber" ? (
+                        <>
+                          <PhoneInputWithCountrySelect
+                            placeholder="Enter phone number"
+                            name={field.name}
+                            value={validation.values[field.name]}
+                            onBlur={validation.handleBlur}
+                            onChange={(value) =>
+                              field.handleChange({
+                                target: {
+                                  name: field.name,
+                                  value: value,
+                                },
+                              })
+                            }
+                            limitMaxLength={true}
+                            defaultCountry="IN"
+                            className="w-100"
+                            style={{
+                              width: "100%",
+                              height: "42px",
+                              padding: "0.5rem 0.75rem",
+                              border: "1px solid #d1d5db",
+                              borderRadius: "0.375rem",
+                              fontSize: "1rem",
+                            }}
+                          />
+                          {validation.touched[field.name] &&
+                            validation.errors[field.name] && (
+                              <FormFeedback type="invalid" className="d-block">
+                                {validation.errors[field.name]}
+                              </FormFeedback>
+                            )}
+                        </>
+                      ) : field.type === "select" ? (
                         <>
                           <Input
                             name={field.name}
@@ -689,8 +739,8 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                               Choose here
                             </option>
                             {(field.options || []).map((option, idx) => (
-                              <option key={idx} value={option}>
-                                {option}
+                              <option key={idx} value={option.value}>
+                                {option.label}
                               </option>
                             ))}
                           </Input>

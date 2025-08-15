@@ -296,6 +296,18 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                       />
                     </h6>
                   </div>
+                  {item.phoneNumber && (
+                    <div className="mb-4">
+                      <p className="text-muted mb-1">Contact Number</p>
+                      <h6 className="mb-0">
+                        <Highlighter
+                          searchWords={[query]}
+                          autoEscape
+                          textToHighlight={item.phoneNumber || "-"}
+                        />
+                      </h6>
+                    </div>
+                  )}
                   <div className="mb-4">
                     <p className="text-muted mb-1">Assigned Centers</p>
                     <UserCenterList centers={item.centerAccess || []} />
