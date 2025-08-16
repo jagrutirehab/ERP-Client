@@ -1164,7 +1164,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData }) => {
                       name={"experience"}
                       className="form-control"
                       placeholder={`Enter Your Experience`}
-                      type={"text"}
+                      type={"number"}
                       onChange={validation.handleChange}
                       onBlur={validation.handleBlur}
                       value={validation.values.experience || ""}
