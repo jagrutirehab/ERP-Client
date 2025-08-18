@@ -18,8 +18,19 @@ import {
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
+import PhoneInputWithCountrySelect, {
+  isValidPhoneNumber,
+} from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { FormFeedback } from "reactstrap";
 
-const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission }) => {
+const UserForm = ({
+  isOpen,
+  toggleForm,
+  userData,
+  setUserData,
+  hasUserPermission,
+}) => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
   const dispatch = useDispatch();
@@ -56,7 +67,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
       const response = await getAllRoleslist({ token, search });
       setAcccessRoles(response?.data || []);
     } catch (error) {
-      if(!handleAuthError(error)){
+      if (!handleAuthError(error)) {
         toast.error("Failed to fetch access roles.");
       }
     } finally {
@@ -132,20 +143,23 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
     setProfilePic(null);
   }, [userData]);
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
     initialValues: {
       authorId: author?._id || "",
       name: userData ? userData.name : "",
       email: userData ? userData.email : "",
-      accessroles: userData?.accessroles._id || "",
+      accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
-      degrees: userData?.education ? userData.education?.degrees : "",
-      speciality: userData?.education ? userData.education?.speciality : "",
+      phoneNumber: userData ? userData.phoneNumber : "",
+      degrees: userData?.education
+        ? userData.education?.degrees
+        : userData?.degrees || "",
+      speciality: userData?.education
+        ? userData.education?.speciality
+        : userData?.speciality || "",
       registrationNo: userData?.education
         ? userData.education?.registrationNo
-        : "",
+        : userData?.registrationNo || "",
 
       centerAccess: userData?.centerAccess
         ? userData.centerAccess.map((cn) => cn._id)
@@ -165,9 +179,6 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
         ? userData?.expertise?.map((e) => ({ label: e, value: e }))
         : [],
       availabilityMode: userData ? userData?.availabilityMode : [],
-      speciality: userData? userData.speciality : "",
-      degrees: userData ? userData.degrees : "",
-      registrationNo:userData?userData.registrationNo:""
     },
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
@@ -181,6 +192,11 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
           "Confirm Password Doesn't Match"
         ),
       }),
+      phoneNumber: Yup.string()
+        .required("Please Enter Phone Number")
+        .test("is-valid-phone", "Invalid phone number", function (value) {
+          return isValidPhoneNumber(value || "");
+        }),
       centerAccess: Yup.array().test(
         "notEmpty",
         "Center Access is required",
@@ -211,6 +227,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
       formData.append("email", values.email);
       formData.append("accessroles", values.accessroles);
       formData.append("role", values.role);
+      formData.append("phoneNumber", values.phoneNumber);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
@@ -246,10 +263,12 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
         formData.append("id", userData._id);
 
         try {
-          await dispatch(updateUser({ data: formData, id: userData._id, token })).unwrap();
+          await dispatch(
+            updateUser({ data: formData, id: userData._id, token })
+          ).unwrap();
           setUserData(null);
         } catch (error) {
-          if(!handleAuthError(error)){
+          if (!handleAuthError(error)) {
             toast.error(error.message || "Failed to update user.");
           }
         }
@@ -257,7 +276,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
         try {
           await dispatch(addNewUser({ data: formData, token })).unwrap();
         } catch (error) {
-          if(!handleAuthError(error)){
+          if (!handleAuthError(error)) {
             toast.error(error.message || "Failed to add new user.");
           }
         }
@@ -293,6 +312,12 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
       type: "select",
       options: authRoles,
       placeholder: "Select role",
+    },
+    {
+      label: "Phone number",
+      name: "phoneNumber",
+      type: "phoneNumber",
+      handleChange: (e) => validation.handleChange(e),
     },
     !userData && {
       label: "Password",
@@ -768,7 +793,35 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
                   >
                     {field.label}
                   </label>
-                  {field.type === "select" ? (
+                  {field.name === "phoneNumber" ? (
+                    <>
+                      <PhoneInputWithCountrySelect
+                        placeholder="Enter phone number"
+                        name={field.name}
+                        value={validation.values[field.name]}
+                        onBlur={validation.handleBlur}
+                        onChange={(value) =>
+                          field.handleChange({
+                            target: {
+                              name: field.name,
+                              value: value,
+                            },
+                          })
+                        }
+                        limitMaxLength={true}
+                        defaultCountry="IN"
+                        className="w-100"
+                        style={{
+                          width: "100%",
+                          height: "42px",
+                          padding: "0.5rem 0.75rem",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "0.375rem",
+                          fontSize: "1rem",
+                        }}
+                      />
+                    </>
+                  ) : field.type === "select" ? (
                     <select
                       name={field.name}
                       style={{
@@ -1493,7 +1546,7 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
                         border: "1px solid #e5e7eb",
                         borderRadius: "4px",
                         padding: "4px",
-              backgroundColor: "#f9fafb"
+                        backgroundColor: "#f9fafb",
                       }}
                     />
                     <button
@@ -1612,11 +1665,13 @@ const UserForm = ({ isOpen, toggleForm, userData, setUserData, hasUserPermission
                       }
                       onChange={onSignatureChange}
                     />
-           <p style={{
+                    <p
+                      style={{
                         fontSize: "13px",
                         color: "#6b7280",
-            marginTop: "8px"
-          }}>
+                        marginTop: "8px",
+                      }}
+                    >
                       Upload a clear signature image (PNG format recommended)
                     </p>
                   </div>

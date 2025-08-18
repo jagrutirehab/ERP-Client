@@ -28,7 +28,6 @@ const Activity = () => {
   useEffect(() => {
     if (!token || !hasUserPermission) return;
     const fetchUserActivity = async () => {
-      console.log(id);
       try {
         setLoading(true);
         const response = await getUserActivityById({

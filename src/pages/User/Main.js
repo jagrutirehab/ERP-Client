@@ -90,7 +90,11 @@ const Main = ({ user, form, centerAccess }) => {
   const [totalCount, setTotalCount] = useState(0);
   const limit = 12;
 
-  const {loading: permissionLoader, hasPermission, roles} = usePermissions(token);
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles,
+  } = usePermissions(token);
   const hasUserPermission = hasPermission("USER", null, "READ");
   const handleAuthError = useAuthError();
   useEffect(() => {
@@ -115,10 +119,6 @@ const Main = ({ user, form, centerAccess }) => {
             centerAccess: JSON.stringify(centerAccess),
           });
           let users = response?.data?.data || [];
-          console.log("Fetched users:", users);
-          console.log("Available centers:", centers);
-
-          // Map centerAccess IDs to full center objects if centers is available
           if (
             users.length > 0 &&
             Array.isArray(centers) &&
@@ -135,7 +135,6 @@ const Main = ({ user, form, centerAccess }) => {
               ),
             }));
           } else {
-            // Fallback if centers is not available
             users = users.map((user) => ({
               ...user,
               centerAccess: (user.centerAccess || []).map((centerId) => ({
@@ -162,6 +161,7 @@ const Main = ({ user, form, centerAccess }) => {
     }, 500);
 
     return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, currentPage, token, centerAccess, centers, roles]);
 
   document.title = "Users | Your App Name";
@@ -365,11 +365,14 @@ const Main = ({ user, form, centerAccess }) => {
                     </div>
                     <div className="flex-shrink-0">
                       <UncontrolledDropdown direction="start">
-                       <CheckPermission accessRolePermission={roles?.permissions} permission="create">
-                         <DropdownToggle tag="a" role="button">
-                          <i className="ri-more-fill fs-17"></i>
-                        </DropdownToggle>
-                       </CheckPermission>
+                        <CheckPermission
+                          accessRolePermission={roles?.permissions}
+                          permission="create"
+                        >
+                          <DropdownToggle tag="a" role="button">
+                            <i className="ri-more-fill fs-17"></i>
+                          </DropdownToggle>
+                        </CheckPermission>
                         <DropdownMenu>
                           <CheckPermission
                             accessRolePermission={roles?.permissions}
@@ -433,6 +436,18 @@ const Main = ({ user, form, centerAccess }) => {
                       />
                     </h6>
                   </div>
+                  {/* {item?.phoneNumber && ( */}
+                    <div className="mb-4">
+                      <p className="text-muted mb-1">Contact Number</p>
+                      <h6 className="mb-0">
+                        <Highlighter
+                          searchWords={[query]}
+                          autoEscape
+                          textToHighlight={item?.phoneNumber || "-"}
+                        />
+                      </h6>
+                    </div>
+                  {/* )} */}
                   <div className="mb-4">
                     <p className="text-muted mb-1">Assigned Centers</p>
                     <UserCenterList centers={item.centerAccess || []} />
