@@ -599,6 +599,7 @@ const Schedule = ({
       setToggled(doctor?.isHideFromSearch);
     }
   }, [doctor]);
+
   const handleUserHide = async (e) => {
     if (!doctor) return;
     const newStatus = e.target.checked;

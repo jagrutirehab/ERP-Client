@@ -7,7 +7,7 @@ import {
   updateUserSessionPricing,
 } from "../../../store/actions";
 
-const sessions = [15, 30, 40, 50, 60, 75, 90, 120];
+const sessions = [10, 15, 30, 40, 50, 60, 75, 90, 120];
 
 const Pricing = ({
   pricing,
