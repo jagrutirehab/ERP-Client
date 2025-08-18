@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { addOffer } from '../../../store/features/offer/offerSlice';
 import PropTypes from "prop-types";
+import { useAuthError } from '../../../Components/Hooks/useAuthError';
+import { toast } from 'react-toastify';
 export const couponSchema = Yup.object().shape({
     code: Yup.string().required('Code is required'),
     discountType: Yup.string().oneOf(['FIXED', 'PERCENTAGE'], 'Invalid type').required('Discount type is required'),
@@ -96,6 +98,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 
 const CouponForm = ({ toggle, apiFlag, setApiFlag }) => {
     const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
@@ -158,7 +161,10 @@ const CouponForm = ({ toggle, apiFlag, setApiFlag }) => {
             }
 
         } catch (error) {
-            console.error("Add offer failed:", error);
+            if(!handleAuthError(error)) {
+                console.error("Add offer failed:", error);
+                toast.error(error.message || "Failed to add offer.");
+            }
         }
     };
 

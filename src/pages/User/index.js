@@ -22,9 +22,9 @@ const Register = (props) => {
             pageTitle="User"
           />
           <Routes>
-            <Route
-              path="/:name"
-              element={<Activity userActivity={userActivity} />}
+             <Route
+              path="activity/:id"
+              element={<Activity />}
             />
             <Route
               path="/"

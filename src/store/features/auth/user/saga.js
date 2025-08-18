@@ -1,37 +1,90 @@
-import { call, put, takeEvery, takeLatest } from "redux-saga/effects";
+/* eslint-disable no-throw-literal */
+import { call, put, takeEvery, takeLatest, all } from "redux-saga/effects";
 import { toast } from "react-toastify";
 import {
   apiError,
   loginSuccess,
+  openChangePasswordModal,
   searchUserFail,
   searchUserSuccess,
+  setLoading,
+  setMicroLogin,
+  setUser,
+  setUserCenters,
 } from "./userSlice";
-import { getUsers, postJwtLogin } from "../../../../helpers/backend_helper";
+import {
+  getUsers,
+  postJwtLogin,
+  PostLoginService,
+  GetCsrf,
+} from "../../../../helpers/backend_helper";
+
+
 function* loginUser({ payload: { values, navigate } }) {
   try {
-    const response = yield call(postJwtLogin, {
-      email: values.email,
-      password: values.password,
-    });
+    yield put(setLoading(true));
+    const [mainLoginRes, csrfRes] = yield all([
+      call(postJwtLogin, {
+        email: values.email,
+        password: values.password,
+      }),
+      call(GetCsrf),
+    ]);
 
-    const authUser = {
-      data: response.payload,
-      token: response.token,
-      status: "success",
-    };
+    let microLoginRes = null;
+    if (csrfRes?.success || csrfRes?.status === 200) {
+      microLoginRes = yield call(PostLoginService, {
+        email: values.email,
+        password: values.password,
+      });
 
-    localStorage.setItem("authUser", JSON.stringify(authUser));
-    localStorage.setItem("userCenters", JSON.stringify(response.userCenters));
+      if (microLoginRes?.statusCode === 200) {
+        const microdata = microLoginRes.data;
+        yield put(setMicroLogin(microLoginRes.data));
+      } else if (microLoginRes) {
+        toast.dismiss();
+        toast.warn("Microservice login failed", { toastId: "micoservice-error" });
+      }
+    }
 
-    if (response.success === true) {
-      yield put(loginSuccess(response));
+    if (mainLoginRes.success === true) {
+      const authUser = {
+        data: mainLoginRes.payload,
+        token: mainLoginRes.token,
+        status: "success",
+      };
+
+      yield put(setUser(authUser));
+      yield put(setUserCenters(mainLoginRes.userCenters));
+      yield put(loginSuccess(mainLoginRes));
+      yield put(setLoading(false));
+      toast.dismiss();
+      toast.success("Login successful", { toastId: "login-success" });
       navigate("/dashboard");
+      return { status: 200, payload: mainLoginRes };
+    } else if (mainLoginRes.status === 403) {
+      yield put(setLoading(false));
+      throw { response: { status: 403, data: mainLoginRes } };
     } else {
-      toast.error(response.error.message || "Invalid Credentials");
-      yield put(apiError(response));
+      toast.error("Invalid credentials", { toastId: "login-error" });
+      yield put(setLoading(false));
+      yield put(apiError(mainLoginRes));
+      throw {
+        response: { status: mainLoginRes.status || 400, data: mainLoginRes },
+      };
     }
   } catch (error) {
-    toast.error(error.message || "Invalid Credentials");
+    yield put(setLoading(false));
+    const status = error?.data?.requirePasswordChange;
+    const temptoken = error?.data?.tempToken;
+
+    if (status === true) {
+      yield put(openChangePasswordModal(temptoken));
+    }
+    toast.dismiss();
+    toast.error(
+      error.response?.data?.message || error.message || "Login failed"
+    );
     yield put(apiError(error));
   }
 }

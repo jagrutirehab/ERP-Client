@@ -3,6 +3,7 @@ import { Button, Row, Col, Table, Input } from "reactstrap";
 import PropTypes, { oneOf } from "prop-types";
 import { format } from 'date-fns';
 import { connect } from "react-redux";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const OfferList = ({
     offerCode,
@@ -13,6 +14,7 @@ const OfferList = ({
     itemsPerPage,
     onPageChange,
     onItemsPerPageChange,
+    userPermissions,
 }) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
     return (
@@ -51,47 +53,70 @@ const OfferList = ({
                         <th>Status</th>
                         <th>Visible To All</th>
                         <th>Offer Remains</th>
+                        <CheckPermission accessRolePermission={userPermissions} permission="edit">
                         <th>Actions</th>
+                        </CheckPermission>
                     </tr>
                 </thead>
                 <tbody>
                     {offerCode && Array.isArray(offerCode) && offerCode?.map((obj) => {
                         return (
-                            <tr key={obj?._id}>
-                                <td className="text-capitalize fw-semibold text-primary">
-                                    {obj?.code}
-                                </td>
-                                <td>{obj?.discountType}</td>
-                                 <td>{`${obj?.discountValue}${obj?.discountType === 'FIXED'?'₹':'%'}`}</td>
-                                <td>{obj?.usageLimitPerUser}</td>
-                                <td>{obj?.usageLimitGlobal}</td>
-                                <td>{format(new Date(obj?.startDate), 'dd MMM, yyyy')}</td>
-                                <td>{format(new Date(obj?.endDate), 'dd MMM, yyyy')}</td>
-                                <td>{obj?.status ? 'Active' : 'Inactive'}</td>
-                                <td>{obj?.visibleToAll ? 'Yes' : 'No'}</td>
-                                <td>{Number(obj?.usageLimitGlobal) - Number(obj?.totalUsed)}</td>
-                                <td>
-                                    <Button
-                                        size="sm"
-                                        color="info"
-                                        className="me-2"
-                                        onClick={() => setEditOffer({ isOpen: true, data: obj })}
-                                    >
-                                        <i className="ri-quill-pen-line"></i>
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        color="danger"
-                                        outline
-                                        onClick={() =>
-                                            setDeleteOffer({ isOpen: true, data: obj })
-                                        }
-                                    >
-                                        <i className="ri-close-circle-line"></i>
-                                    </Button>
-                                </td>
-                            </tr>
-                        )
+                          <tr key={obj?._id}>
+                            <td className="text-capitalize fw-semibold text-primary">
+                              {obj?.code}
+                            </td>
+                            <td>{obj?.discountType}</td>
+                            <td>{`${obj?.discountValue}${
+                              obj?.discountType === "FIXED" ? "₹" : "%"
+                            }`}</td>
+                            <td>{obj?.usageLimitPerUser}</td>
+                            <td>{obj?.usageLimitGlobal}</td>
+                            <td>
+                              {format(new Date(obj?.startDate), "dd MMM, yyyy")}
+                            </td>
+                            <td>
+                              {format(new Date(obj?.endDate), "dd MMM, yyyy")}
+                            </td>
+                            <td>{obj?.status ? "Active" : "Inactive"}</td>
+                            <td>{obj?.visibleToAll ? "Yes" : "No"}</td>
+                            <td>
+                              {Number(obj?.usageLimitGlobal) -
+                                Number(obj?.totalUsed)}
+                            </td>
+                            <td>
+                              <CheckPermission
+                                accessRolePermission={userPermissions}
+                                permission="edit"
+                              >
+                                <Button
+                                  size="sm"
+                                  color="info"
+                                  className="me-2"
+                                  onClick={() =>
+                                    setEditOffer({ isOpen: true, data: obj })
+                                  }
+                                >
+                                  <i className="ri-quill-pen-line"></i>
+                                </Button>
+                              </CheckPermission>
+                              <CheckPermission
+                                accessRolePermission={userPermissions}
+                                permission="delete"
+                              >
+                                <Button
+                                  size="sm"
+                                  color="danger"
+                                  outline
+                                  onClick={() =>
+                                    setDeleteOffer({ isOpen: true, data: obj })
+                                  }
+                                >
+                                  <i className="ri-close-circle-line"></i>
+                                </Button>
+                              </CheckPermission>
+                            </td>
+                          </tr>
+                        );
                     })}
                 </tbody>
             </Table>
@@ -132,6 +157,7 @@ OfferList.propTypes = {
     itemsPerPage: PropTypes.number.isRequired,
     onPageChange: PropTypes.func.isRequired,
     onItemsPerPageChange: PropTypes.func.isRequired,
+    userPermissions: PropTypes.array.isRequired
 };
 
 const mapStateToProps = (state) => ({

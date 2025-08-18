@@ -14,28 +14,35 @@ import {
   Badge,
 } from "reactstrap";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
-import {
-  fetchAllCenters,
-  fetchCenters,
-  removeUser,
-  searchUser,
-  setUserForm,
-  suspendStaff,
-} from "../../store/actions";
-import { useDispatch, connect } from "react-redux";
+import { useDispatch, useSelector, connect } from "react-redux";
 import UserForm from "./Form";
 import PasswordForm from "./PasswordForm";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import CheckPermission from "../../Components/HOC/CheckPermission";
 import smallImage9 from "../../assets/images/small/img-9.jpg";
+import { toast } from "react-toastify";
+import { getAllUsers } from "../../helpers/backend_helper";
+import {
+  fetchAllCenters,
+  fetchCenters,
+  removeUser,
+  setUserForm,
+  suspendStaff,
+} from "../../store/actions";
+import {
+  setData,
+  setdataLoader,
+} from "../../store/features/auth/user/userSlice";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useAuthError } from "../../Components/Hooks/useAuthError";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!centers || centers.length === 0) {
+  if (!centers || !Array.isArray(centers) || centers.length === 0) {
     return <p className="text-muted mb-0">No centers assigned.</p>;
   }
 
@@ -45,8 +52,8 @@ const UserCenterList = ({ centers }) => {
   return (
     <div className="d-flex flex-wrap gap-2 align-items-center">
       {visibleCenters.map((center) => (
-        <Badge key={center._id} color="primary" pill>
-          {center.title}
+        <Badge key={center._id || center.id} color="primary" pill>
+          {center?.displayName || center.title}
         </Badge>
       ))}
       {remainingCount > 0 && (
@@ -66,28 +73,96 @@ UserCenterList.propTypes = {
   centers: PropTypes.array.isRequired,
 };
 
-const Main = ({ users, user, form, loading, centerAccess }) => {
+const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const token = useSelector((state) => state.User?.microLogin?.token);
+  const dataLoader = useSelector((state) => state.User.dataLoader);
+  const centers = useSelector((state) => state.Center.allCenters || []);
+  const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
-  const [userData, setUserData] = useState();
+  const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const limit = 12;
+
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles,
+  } = usePermissions(token);
+  const hasUserPermission = hasPermission("USER", null, "READ");
+  const handleAuthError = useAuthError();
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchCenters(user?.centerAccess));
+      dispatch(fetchAllCenters());
+    }
+  }, [dispatch, user, token]);
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
-    dispatch(fetchAllCenters());
-  }, [dispatch, user]);
-
-  useEffect(() => {
+    if (!centers || centers.length === 0 || !token) return;
+    if (!hasUserPermission) return;
     const handler = setTimeout(() => {
-      dispatch(
-        searchUser({ query, centerAccess: JSON.stringify(centerAccess) })
-      );
+      const fetchUser = async () => {
+        try {
+          dispatch(setdataLoader(true));
+          const response = await getAllUsers({
+            page: currentPage,
+            limit,
+            search: query,
+            token,
+            centerAccess: JSON.stringify(centerAccess),
+          });
+          let users = response?.data?.data || [];
+          if (
+            users.length > 0 &&
+            Array.isArray(centers) &&
+            centers.length > 0
+          ) {
+            users = users.map((user) => ({
+              ...user,
+              centerAccess: (user.centerAccess || []).map(
+                (centerId) =>
+                  centers.find((center) => center._id === centerId) || {
+                    _id: centerId,
+                    title: "Unknown Center",
+                  }
+              ),
+            }));
+          } else {
+            users = users.map((user) => ({
+              ...user,
+              centerAccess: (user.centerAccess || []).map((centerId) => ({
+                _id: centerId,
+                title: "Unknown Center",
+              })),
+            }));
+          }
+
+          dispatch(setData(users));
+          setTotalPages(response?.data?.totalPages || 1);
+          setTotalCount(response?.data?.total);
+          setCurrentPage(response?.data?.currentPage || currentPage);
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            console.error("Error fetching users:", error);
+            toast.error(error.message || "Failed to fetch users.");
+          }
+        } finally {
+          dispatch(setdataLoader(false));
+        }
+      };
+      fetchUser();
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [dispatch, query, centerAccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, currentPage, token, centerAccess, centers, roles]);
 
   document.title = "Users | Your App Name";
 
@@ -111,12 +186,17 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
     setSuspendModal((prev) => !prev);
   };
 
-  const deleteUser = () => {
-    dispatch(
-      removeUser({ userId: userData._id, pageId: userData.pageAccess._id })
-    );
-    setUserData(null);
-    toggleDeleteModal();
+  const deleteUser = async () => {
+    try {
+      await dispatch(removeUser({ id: userData._id, token })).unwrap();
+      setUserData(null);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to delete user.");
+      }
+    } finally {
+      toggleDeleteModal();
+    }
   };
 
   const closeDeleteUser = () => {
@@ -129,10 +209,17 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
     toggleSuspendModal();
   };
 
-  const suspendUser = () => {
-    dispatch(suspendStaff({ userId: userData._id }));
-    setUserData(null);
-    toggleSuspendModal();
+  const suspendUser = async () => {
+    try {
+      await dispatch(suspendStaff({ id: userData._id, token })).unwrap();
+      setUserData(null);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to suspend user.");
+      }
+    } finally {
+      toggleSuspendModal();
+    }
   };
 
   const shortName = (name = "") =>
@@ -141,6 +228,29 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
       .map((w) => w.charAt(0))
       .join("")
       .toUpperCase();
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  if (permissionLoader) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner
+          color="primary"
+          className="d-block"
+          style={{ width: "3rem", height: "3rem" }}
+        />
+      </div>
+    );
+  }
+
+  if (!hasUserPermission) {
+    navigate("/unauthorized");
+    return null;
+  }
 
   return (
     <>
@@ -157,7 +267,7 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                   placeholder="Search by name or email..."
                 />
                 <i className="ri-search-line search-icon" />
-                <RenderWhen isTrue={loading}>
+                <RenderWhen isTrue={dataLoader}>
                   <Spinner
                     className="position-absolute end-0 top-50 translate-middle-y me-2"
                     color="success"
@@ -167,7 +277,10 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
               </div>
             </Col>
             <Col md={8} className="text-sm-end">
-              <CheckPermission permission="create">
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                permission="create"
+              >
                 <Button color="success" onClick={() => openUserForm()}>
                   <i className="ri-add-fill me-1 align-bottom" />
                   Add User
@@ -183,12 +296,14 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
         toggleForm={() => openUserForm(null)}
         userData={userData}
         setUserData={setUserData}
+        hasUserPermission={hasUserPermission}
       />
       <PasswordForm
         isOpen={passwordModal}
         toggleForm={togglePasswordModal}
         userData={userData}
         setUserData={setUserData}
+        token={token}
       />
       <DeleteModal
         show={deleteModal}
@@ -208,7 +323,7 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
       />
 
       <Row className="g-4">
-        {(users || []).map((item) => (
+        {(userDataa || []).map((item) => (
           <Col xxl={3} lg={4} md={6} key={item._id}>
             <Card className="team-box h-100">
               <div className="team-cover">
@@ -219,15 +334,17 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                   <div className="d-flex align-items-start mb-4">
                     <div className="flex-shrink-0">
                       <div className="avatar-lg img-thumbnail rounded-circle">
-                        {item.profilePicture?.url ? (
+                        {item.profilePicture ? (
                           <img
-                            src={item.profilePicture.url}
-                            alt=""
+                            src={item.profilePicture}
+                            alt={item.name}
                             className="img-fluid d-block h-100 w-100 rounded-circle object-fit-cover"
                           />
                         ) : (
                           <div
-                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${item.bgColor} text-${item.textColor}`}
+                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${
+                              item.bgColor || "primary"
+                            } text-${item.textColor || "primary"}`}
                           >
                             <span className="fs-22">
                               {shortName(item.name)}
@@ -244,25 +361,46 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                           textToHighlight={item.name || ""}
                         />
                       </h5>
-                      <p className="text-muted mb-0">{item.role}</p>
+                      <p className="text-muted mb-0">{item.role || "N/A"}</p>
                     </div>
                     <div className="flex-shrink-0">
                       <UncontrolledDropdown direction="start">
-                        <DropdownToggle tag="a" role="button">
-                          <i className="ri-more-fill fs-17"></i>
-                        </DropdownToggle>
+                        <CheckPermission
+                          accessRolePermission={roles?.permissions}
+                          permission="create"
+                        >
+                          <DropdownToggle tag="a" role="button">
+                            <i className="ri-more-fill fs-17"></i>
+                          </DropdownToggle>
+                        </CheckPermission>
                         <DropdownMenu>
-                          <CheckPermission permission="edit">
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="edit"
+                          >
                             <DropdownItem onClick={() => openUserForm(item)}>
                               <i className="ri-pencil-line me-2 align-middle" />
                               Edit Details
                             </DropdownItem>
+                          </CheckPermission>
+
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="edit"
+                            subAccess="USERPASSWORDCHANGE"
+                          >
                             <DropdownItem
                               onClick={() => togglePasswordModal(item)}
                             >
                               <i className="ri-lock-password-line me-2 align-middle" />
                               Change Password
                             </DropdownItem>
+                          </CheckPermission>
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="delete"
+                            subAccess="SUSPENDUSER"
+                          >
                             <DropdownItem
                               onClick={() => toggleSuspendModal(item)}
                             >
@@ -272,7 +410,10 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                                 : "Suspend User"}
                             </DropdownItem>
                           </CheckPermission>
-                          <CheckPermission permission="delete">
+                          <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            permission="delete"
+                          >
                             <DropdownItem
                               className="text-danger"
                               onClick={() => toggleDeleteModal(item)}
@@ -285,7 +426,6 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                       </UncontrolledDropdown>
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <p className="text-muted mb-1">Email Address</p>
                     <h6 className="mb-0">
@@ -296,18 +436,18 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                       />
                     </h6>
                   </div>
-                  {item.phoneNumber && (
+                  {/* {item?.phoneNumber && ( */}
                     <div className="mb-4">
                       <p className="text-muted mb-1">Contact Number</p>
                       <h6 className="mb-0">
                         <Highlighter
                           searchWords={[query]}
                           autoEscape
-                          textToHighlight={item.phoneNumber || "-"}
+                          textToHighlight={item?.phoneNumber || "-"}
                         />
                       </h6>
                     </div>
-                  )}
+                  {/* )} */}
                   <div className="mb-4">
                     <p className="text-muted mb-1">Assigned Centers</p>
                     <UserCenterList centers={item.centerAccess || []} />
@@ -324,7 +464,7 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
                     </Badge>
                   </div>
                   <Link
-                    to={`/user-activity/${item._id}`}
+                    to={`/user/activity/${item._id}`}
                     className="btn btn-soft-primary view-btn"
                   >
                     View Activity
@@ -335,23 +475,46 @@ const Main = ({ users, user, form, loading, centerAccess }) => {
           </Col>
         ))}
       </Row>
+
+      {totalPages > 1 && (
+        <Row className="mt-4 justify-content-center align-items-center">
+          <Col xs="auto" className="d-flex justify-content-center">
+            <Button
+              color="secondary"
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              ← Previous
+            </Button>
+          </Col>
+          <Col xs="auto" className="text-center text-muted mx-3">
+            Showing {Math.min((currentPage - 1) * limit + 1, totalCount)}–
+            {Math.min(currentPage * limit, totalCount)} of {totalCount}
+          </Col>
+          <Col xs="auto" className="d-flex justify-content-center">
+            <Button
+              color="secondary"
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Next →
+            </Button>
+          </Col>
+        </Row>
+      )}
     </>
   );
 };
 
 const mapStateToProps = (state) => ({
-  users: state.User.data,
   user: state.User.user,
   form: state.User.form,
-  loading: state.User.loading,
   centerAccess: state.User.centerAccess,
 });
 
 Main.propTypes = {
-  users: PropTypes.array.isRequired,
   user: PropTypes.object.isRequired,
   form: PropTypes.object.isRequired,
-  loading: PropTypes.bool.isRequired,
   centerAccess: PropTypes.array.isRequired,
 };
 
