@@ -55,7 +55,7 @@ const Login = () => {
         payload: {
           values: {
             ...values,
-            email: values.email.toLowerCase(),
+            email: values.email,
           },
           navigate,
         },
