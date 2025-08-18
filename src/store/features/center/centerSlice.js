@@ -145,7 +145,6 @@ const centerSlice = createSlice({
       })
       .addCase(fetchCenters.fulfilled, (state, { payload }) => {
         state.loading = false;
-        localStorage.setItem("centers", JSON.stringify(payload.payload));
         state.data = payload.payload;
       })
       .addCase(fetchCenters.rejected, (state) => {

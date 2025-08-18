@@ -79,6 +79,7 @@ const Index = () => {
             );
           })}
           <Route path="/*" element={<Basic404 />} />
+          <Route path="/unauthorized" element={<Basic404 />} />
           {/* {MultiRoutes({
           paths: availablePublicRoutesPaths,
           element: (

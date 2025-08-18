@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { updateTaxFunction } from "../../../store/features/tax/taxSlice";
 import SearchableSelect from "../OfferCode/SelectInput";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 export const schema = Yup.object().shape({
     taxName: Yup.string().required('Tax Name is required'),
@@ -75,6 +77,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 
 const EditModal = ({ modal, toggle, data, setApiFlag, apiFlag }) => {
     const dispatch = useDispatch();
+    const handleAuthError=useAuthError();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
@@ -101,7 +104,10 @@ const EditModal = ({ modal, toggle, data, setApiFlag, apiFlag }) => {
             };
 
         } catch (error) {
-            console.error("Edit tax failed:", error);
+            if (!handleAuthError(error)) {
+                console.error("Edit tax failed:", error);
+                toast.error(error.message || "Failed to update tax.");
+            }
         }
     };
 

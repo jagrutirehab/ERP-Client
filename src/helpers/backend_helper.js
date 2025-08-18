@@ -1,8 +1,9 @@
-import { APIClient } from "./api_helper";
+import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
 
 const api = new APIClient();
+const userService = new AuthAPIClient();
 export const getLoggedInUser = () => {
   const user = localStorage.getItem("user");
   if (user) return JSON.parse(user);
@@ -35,19 +36,11 @@ export const getUsers = (data) => api.get(url.GET_USERS, data);
 
 export const getDoctorUsers = (data) => api.get(url.GET_DOCTOR_USERS, data);
 
-export const deleteUser = (data) =>
-  api.delete(`${url.DELETE_USER}/${data.userId}/${data.pageId}`);
-export const suspendUser = (data) => api.update(url.SUSPEND_USER, data);
-export const markUserActiveInactive = (data) =>
-  api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
-
 export const editUser = (data) =>
   api.put(url.EDIT_USER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
-export const editUserPassword = (data) =>
-  api.update(url.EDIT_USER_PASSWORD, data);
 export const getCiwaTest = (data) =>
   api.get(`${url.GET_CIWA_TEST}?patientId=${data}`);
 export const postCiwatest = (data) =>
@@ -686,5 +679,174 @@ export const getHubspotContacts = ({
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
     params: { page, limit, search, visitDate, status },
+  });
+};
+
+//  User Microservices
+export const PostLoginService = (data) =>
+  userService.post(url.MICRO_SIGN_IN, data);
+export const GetCsrf = () => userService.get(url.CSRF);
+// Roles
+export const getAllRoles = ({ page = 1, limit = 10, token }) => {
+  return userService.get(url.ROLES, {
+    params: { page, limit },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const postLogoutService = (token)=>{
+  return userService.post(url.MICRO_LOGOUT,{},{
+    headers:{
+      Authorization: `Bearer ${token}`,
+    }
+  })
+};
+
+export const getAllRoleslist = ({ token, search = "" }) => {
+  return userService.get(`${url.ROLES}/role-list`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    params: {
+      search,
+    },
+  });
+};
+
+export const editRole = ({ id, name, permissions, token }) => {
+  return userService.put(
+    `${url.ROLES}/${id}`,
+    {
+      name,
+      permissions,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const addRole = ({ name, permissions, token }) => {
+  return userService.post(
+    url.ROLES,
+    {
+      name,
+      permissions,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const deleteRole = ({ id, token }) => {
+  return userService.delete(`${url.ROLES}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+// Users
+export const getAllUsers = ({ page = 1, limit = 10, search = "", token }) => {
+  return userService.get(url.USER, {
+    params: { page, limit, search },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const firstchange = ({ oldPassword, newPassword, token }) => {
+  return userService.post(
+    url.MICRO_FORGOTT,
+    {
+      oldPassword,
+      newPassword,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const addUser = (data, token) => {
+  return userService.post(url.MICRO_SIGN_UP, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const editUserDetails = (data, id, token) => {
+  return userService.put(`${url.USER}/${id}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteUser = (id, token) => {
+  return userService.put(`${url.MOVE_TO_BIN}/${id}`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+export const suspendUser=(id, token)=>{
+  return userService.patch(`${url.ACTIVATE_DEACTIVATE_USER}/${id}`,{}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export const editUserPassword=(id,newPassword, token)=>{
+  return userService.post(`${url.CHANGE_USER_PASSWORD}/${id}`, {newPassword},{
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
+
+export const getUserActivityById = ({id, page=1, limit=12, token}) => {
+  return userService.get(
+    `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
+export const editSelf = (data, token) =>{
+  return userService.put(url.EDIT_SELF, data, {
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data" },
+    });
+}
+
+export const getRoles= (token) => {
+  return userService.get(url.GET_USER_ROLES, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 };

@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   deleteUser,
-  getUsers,
   postUser,
-  editUser,
-  postLogout,
   editUserPassword,
   getDoctorUsers,
   postUserDetailInformation,
@@ -14,13 +11,18 @@ import {
   getDoctorsScheduleNew,
   postDoctorSchedule,
   editDoctorSchedule,
-  markUserActiveInactive,
+  // markUserActiveInactive,
+  addUser,
+  editUserDetails,
+  postLogoutService,
 } from "../../../../helpers/backend_helper";
 import { setAlert } from "../../alert/alertSlice";
 
 const initialState = {
-  data: null,
+  data: [],
+  dataLoader:false,
   user: null,
+  microLogin: null,
   schedule: null,
   doctor: null,
   counsellors: null,
@@ -32,6 +34,9 @@ const initialState = {
   loading: false,
   profileLoading: false,
   form: { isOpen: false, data: null },
+  showChangePasswordModal: false, // Added for modal state
+  tempToken: null, // Added for tempToken
+  requirePasswordChange: false,
 };
 
 export const registerUser = createAsyncThunk(
@@ -62,11 +67,6 @@ export const addUserProfilePicture = createAsyncThunk(
           type: "success",
           message: "User Profile Pictrue Uploaded Successfully",
         })
-      );
-      const authUser = JSON.parse(localStorage.getItem("authUser"));
-      localStorage.setItem(
-        "authUser",
-        JSON.stringify({ ...authUser, data: response.payload })
       );
       return response;
     } catch (error) {
@@ -179,45 +179,29 @@ export const fetchDoctors = createAsyncThunk(
   }
 );
 
-// export const fetchUsers = createAsyncThunk(
-//   "getUsers",
-//   async (data, { dispatch, rejectWithValue }) => {
-//     try {
-//       const response = await getUsers(data);
-//       return response;
-//     } catch (error) {
-//       dispatch(setAlert({ type: "error", message: error.message }));
-//       return rejectWithValue("something went wrong");
-//     }
-//   }
-// );
-
 export const removeUser = createAsyncThunk(
   "deleteUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
     try {
-      const response = await deleteUser(data);
-      dispatch(
-        setAlert({ type: "success", message: "User Deleted Successfully" })
-      );
+      const response = await deleteUser(id, token);
+      dispatch(setAlert({ type: "success", message: "User Deleted Successfully" }));
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const suspendStaff = createAsyncThunk(
   "suspendUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({id, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await suspendUser(data);
+      const response = await suspendUser(id,token);
       dispatch(
         setAlert({
           type: "success",
           message:
-            response.payload.status === "active"
+            response.data.status === "active"
               ? "User Restored Successfully!"
               : "User Suspended Successfully!",
         })
@@ -225,57 +209,49 @@ export const suspendStaff = createAsyncThunk(
 
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
 
-export const markedUserActiveOrInactive = createAsyncThunk(
-  "markedActiveOrInactive",
-  async (data, { dispatch, rejectWithValue }) => {
+export const addNewUser = createAsyncThunk(
+  "addUser",
+  async ({data, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await markUserActiveInactive(data);
+      const response = await addUser(data, token);
+      dispatch(setUserForm({ isOpen: false, data: null }));
       dispatch(
-        setAlert({
-          type: "success",
-          message:
-            response.payload.isHideFromSearch
-              ? "User Mask Successfully!"
-              : "User Unmask Successfully!",
-        })
+        setAlert({ type: "success", message: "User Added Successfully" })
       );
-
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const updateUser = createAsyncThunk(
   "editUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({data,id,token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await editUser(data);
+      const response = await editUserDetails(data, id, token);
       dispatch(
         setAlert({ type: "success", message: "User Updated Successfully" })
       );
       dispatch(setUserForm({ isOpen: false, data: null }));
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+       return rejectWithValue(error);
     }
   }
 );
 
+
 export const updateUserPassword = createAsyncThunk(
   "editUserPassword",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({id, newPassword, token}, { dispatch, rejectWithValue }) => {
     try {
-      const response = await editUserPassword(data);
+      const response = await editUserPassword(id, newPassword, token);
       dispatch(
         setAlert({
           type: "success",
@@ -284,21 +260,19 @@ export const updateUserPassword = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const logoutUser = createAsyncThunk(
   "logoutUser",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (token, { dispatch, rejectWithValue }) => {
     try {
-      const response = await postLogout();
+      const response = await postLogoutService(token);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      return rejectWithValue(error);
     }
   }
 );
@@ -307,8 +281,30 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    loginUser: (state) => {
-      state.forgetError = null;
+    clearUser: (state) => {
+      state.loading=false
+      state.isUserLogout = true;
+      state.microLogin = null;
+      state.user = null;
+    },
+    setdataLoader: (state, {payload}) => {
+      state.dataLoader = payload;
+    },
+    setMicroLogin: (state, action) => {
+      state.microLogin = action.payload;
+    },
+    setData: (state, action) => {
+      state.data = action.payload;
+    },
+    openChangePasswordModal: (state, action) => {
+      state.requirePasswordChange = true;
+      state.tempToken = action.payload;
+      state.showChangePasswordModal = true;
+    },
+    closeChangePasswordModal(state) {
+      state.showChangePasswordModal = false;
+      state.tempToken = null;
+      state.requirePasswordChange = false;
     },
     loginSuccess: (state, { payload }) => {
       state.user = payload.payload;
@@ -351,6 +347,12 @@ const userSlice = createSlice({
     resetLoginFlag: (state, { payload }) => {
       state.forgetError = payload;
     },
+    setAddNewUser: (state, { payload }) => {
+      state.data.unshift(payload.data[0]);
+    },
+    setLoading: (state, { payload }) => {
+      state.loading = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -371,7 +373,10 @@ const userSlice = createSlice({
       })
       .addCase(addUserProfilePicture.fulfilled, (state, { payload }) => {
         state.profileLoading = false;
-        state.user = payload.payload;
+        state.user = {
+          ...state.user,
+          ...payload.payload,
+        };
       })
       .addCase(addUserProfilePicture.rejected, (state, action) => {
         state.profileLoading = false;
@@ -453,28 +458,13 @@ const userSlice = createSlice({
       .addCase(fetchUserSchedule.rejected, (state, action) => {
         state.loading = false;
       });
-
-    // builder
-    //   .addCase(fetchUsers.pending, (state) => {
-    //     state.loading = true;
-    //   })
-    //   .addCase(fetchUsers.fulfilled, (state, { payload }) => {
-    //     state.loading = false;
-    //     state.data = payload.payload;
-    //   })
-    //   .addCase(fetchUsers.rejected, (state, action) => {
-    //     state.loading = false;
-    //   });
-
     builder
       .addCase(removeUser.pending, (state) => {
         state.loading = true;
       })
       .addCase(removeUser.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.data = state.data.filter(
-          (item) => item._id !== payload.payload._id
-        );
+        state.data = state.data.filter((item) => item._id !== payload.data._id);
       })
       .addCase(removeUser.rejected, (state, action) => {
         state.loading = false;
@@ -487,9 +477,9 @@ const userSlice = createSlice({
       .addCase(suspendStaff.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findUserIndex = state.data.findIndex(
-          (el) => el._id === payload.payload._id
+          (el) => el._id === payload.data._id
         );
-        state.data[findUserIndex] = payload.payload;
+        state.data[findUserIndex].status = payload.data.status;
       })
       .addCase(suspendStaff.rejected, (state, action) => {
         state.loading = false;
@@ -502,9 +492,9 @@ const userSlice = createSlice({
       .addCase(updateUser.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findUserIndex = state.data.findIndex(
-          (el) => el._id === payload.payload._id
+          (el) => el._id === payload.data[0]._id
         );
-        state.data[findUserIndex] = payload.payload;
+        state.data[findUserIndex] = payload.data[0];
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
@@ -526,17 +516,35 @@ const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(logoutUser.fulfilled, (state, { payload }) => {
-        state.loading = false;
         state.isUserLogout = true;
+        state.loading = false;
+        state.microLogin = null;
+        state.user=null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addNewUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addNewUser.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data.unshift(payload.data[0]);
+        state.data.pop();
+      })
+      .addCase(addNewUser.rejected, (state, action) => {
         state.loading = false;
       });
   },
 });
 
 export const {
-  loginUser,
+  openChangePasswordModal,
+  closeChangePasswordModal,
+  setMicroLogin,
+  setData,
   loginSuccess,
   logoutUserSuccess,
   changeUserAccess,
@@ -549,6 +557,10 @@ export const {
   apiError,
   socialLogin,
   resetLoginFlag,
+  setAddNewUser,
+  setLoading,
+  clearUser,
+  setdataLoader
 } = userSlice.actions;
 
 export default userSlice.reducer;

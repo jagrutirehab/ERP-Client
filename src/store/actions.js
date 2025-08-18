@@ -14,7 +14,6 @@ export {
   updateUser,
   fetchDoctors,
   fetchUserSchedule,
-  loginUser,
   logoutUser,
   searchUser,
   searchUserSuccess,

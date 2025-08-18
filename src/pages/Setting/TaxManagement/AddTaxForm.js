@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 import SearchableSelect from '../OfferCode/SelectInput';
 import { addTax } from '../../../store/features/tax/taxSlice';
 import PropTypes from "prop-types";
+import { useAuthError } from '../../../Components/Hooks/useAuthError';
+import { toast } from 'react-toastify';
 
 export const schema = Yup.object().shape({
     taxName: Yup.string().required('Tax Name is required'),
@@ -86,6 +88,7 @@ const FormikInput = ({ name, type = "text", ...rest }) => {
 
 const TaxForm = ({toggle,apiFlag, setApiFlag }) => {
     const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
@@ -109,7 +112,9 @@ const TaxForm = ({toggle,apiFlag, setApiFlag }) => {
                 }
     
             } catch (error) {
-                console.error("Add tax failed:", error);
+                if(!handleAuthError(error)){
+                    toast.error(error.message || "Failed to add tax.");
+                }
             }
         };
 
