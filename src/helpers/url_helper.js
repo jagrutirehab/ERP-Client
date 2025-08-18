@@ -238,4 +238,13 @@ export const UPDATE_TAX = "/tax/update";
 export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
 
 //Roles
-export const ROLES = "/role"
+export const ROLES = "/role";
+
+// nurse
+export const GET_NURSE_ASSIGNED_PATIENTS = "/nurse/patients";
+export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE= "/nurse/clinical-test-summary";
+export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
+export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
+
+// alerts
+export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";

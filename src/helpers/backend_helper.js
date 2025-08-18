@@ -688,3 +688,30 @@ export const getHubspotContacts = ({
     params: { page, limit, search, visitDate, status },
   });
 };
+
+export const getNurseAssignedPatients = ({
+  page = 1,
+  limit = 10,
+  search = "",
+  flag,
+} = {}) => {
+  return api.get(
+    `${url.GET_NURSE_ASSIGNED_PATIENTS}?page=${page}&limit=${limit}&flag=${flag}&search=${search}`
+  );
+};
+
+export const getPatientOverview = (patientId) => {
+  return api.get(`${url.GET_PATIENT_OVERVIEW_BY_NURSE}?patientId=${patientId}`);
+};
+
+export const getPatientPrescription = (patientId) => {
+  return api.get(`${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`);
+};
+
+export const getClinicalTestSummary = (patientId) => {
+  return api.get(`${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`);
+};
+
+export const getAlertsByPatient=(patientId) => {
+  return api.get(`${url.GET_ALERTS_BY_PATIENT}?patientId=${patientId}`);
+}

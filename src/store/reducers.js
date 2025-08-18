@@ -72,6 +72,9 @@ import InternTimeline from "./features/Intern timeline/internTimelineSlice";
 // clinical test
 import ClinicalTest from "./features/clinicalTest/clinicalTestSlice";
 
+//  for Nurse
+import Nurse from "./features/nurse/nurseSlice";
+
 //for offers
 import Offers from "./features/offer/offerSlice";
 
@@ -105,6 +108,7 @@ const rootReducer = combineReducers({
   ClinicalTest,
   DBLogs,
   Offers,
+  Nurse,
   Taxes,
   HubspotContacts,
 });
