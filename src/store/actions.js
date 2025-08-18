@@ -310,3 +310,11 @@ export {
   createCiwaTest,
   fetchClinicalTest,
 } from "./features/clinicalTest/clinicalTestSlice";
+
+// nurse
+export {
+  setAlertModal,
+  setAlertData,
+  setNotesModal,
+  setNotesData,
+} from "./features/nurse/nurseSlice";

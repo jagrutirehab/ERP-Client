@@ -1,0 +1,2 @@
+export const OVERVIEW_VIEW = "OVERVIEW";
+export const MEDICATION_VIEW = "MEDICATION_VIEW";

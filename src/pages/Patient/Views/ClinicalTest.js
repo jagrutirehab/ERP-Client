@@ -55,17 +55,19 @@ const ClinicalTest = ({
                     justifyContent: "center",
                   }}
                 >
-                  <Button
-                    onClick={() => {
-                      toggleModal(); // Opens the modal
-                      setChartType(CLINIC_TEST); // Set your own type
-                    }}
-                    size="sm"
-                    color="primary"
-                    className="mr-10"
-                  >
-                    Create new test
-                  </Button>
+                  {patient.isAdmit === true && (
+                    <Button
+                      onClick={() => {
+                        toggleModal(); // Opens the modal
+                        setChartType(CLINIC_TEST); // Set your own type
+                      }}
+                      size="sm"
+                      color="primary"
+                      className="mr-10"
+                    >
+                      Create new test
+                    </Button>
+                  )}
                 </div>
 
                 <div className="d-flex align-items-center">
@@ -85,7 +87,7 @@ const ClinicalTest = ({
                     outline
                   >
                     <i
-                      className={`${open === idx.toString()
+                       className={`${open === idx.toString()
                         ? "ri-arrow-up-s-line"
                         : "ri-arrow-down-s-line"
                         } fs-6`}
