@@ -250,8 +250,8 @@ const Charting = ({
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
         <ul className="nav nav-tabs border-0 gap-">
           {pageAccess
-            .find((pg) => pg.name === "Patient")
-            ?.subAccess.find((s) => s.name === "OPD") && (
+            ?.find((pg) => pg.name === "Patient")
+            ?.subAccess?.find((s) => s.name === "OPD") && (
               <li className="nav-item">
                 <button
                   onClick={() => setTab(OPD)}

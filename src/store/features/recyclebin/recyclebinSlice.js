@@ -385,14 +385,14 @@ const recyclebinSlice = createSlice({
     /* --------------------------- patient ----------------------------- */
     builder
       .addCase(getRemovedPatients.pending, (state) => {
-        state.loading = true;
+        // state.loading = true;
       })
       .addCase(getRemovedPatients.fulfilled, (state, { payload }) => {
-        state.loading = false;
+        // state.loading = false;
         state.patients = payload?.payload;
       })
       .addCase(getRemovedPatients.rejected, (state) => {
-        state.loading = false;
+        // state.loading = false;
       });
 
     builder
@@ -582,16 +582,16 @@ const recyclebinSlice = createSlice({
     /* --------------------------- chart ----------------------------- */
 
     builder
-      .addCase(getRemovedCharts.pending, (state) => {
-        state.loading = true;
-      })
+      // .addCase(getRemovedCharts.pending, (state) => {
+      //   // state.loading = true;
+      // })
       .addCase(getRemovedCharts.fulfilled, (state, { payload }) => {
-        state.loading = false;
+        // state.loading = false;
         state.charts = payload?.payload;
       })
-      .addCase(getRemovedCharts.rejected, (state) => {
-        state.loading = false;
-      });
+      // .addCase(getRemovedCharts.rejected, (state) => {
+      //   // state.loading = false;
+      // });
 
     builder
       .addCase(restoreChart.pending, (state) => {
@@ -628,16 +628,16 @@ const recyclebinSlice = createSlice({
     /* ---------------------------- bill ----------------------------- */
 
     builder
-      .addCase(getRemovedBills.pending, (state) => {
-        state.loading = true;
-      })
+      // .addCase(getRemovedBills.pending, (state) => {
+      //   state.loading = true;
+      // })
       .addCase(getRemovedBills.fulfilled, (state, { payload }) => {
-        state.loading = false;
+        // state.loading = false;
         state.bills = payload?.payload;
       })
-      .addCase(getRemovedBills.rejected, (state) => {
-        state.loading = false;
-      });
+      // .addCase(getRemovedBills.rejected, (state) => {
+      //   state.loading = false;
+      // });
 
     builder
       .addCase(restoreBill.pending, (state) => {

@@ -13,7 +13,7 @@ const Views = (props) => {
     Billing: BILLING_VIEW,
     Timeline: TIMELINE_VIEW,
   };
-  const internPage = props.pageAccess.find((pg) => pg.name === "Intern");
+  const internPage = props?.pageAccess?.find((pg) => pg.name === "Intern");
   const [view, setView] = useState(
     internPage?.subAccess[0]?.name ? vws[internPage.subAccess[0]?.name] : ""
   );
@@ -29,9 +29,9 @@ const Views = (props) => {
         <div className="patient-content postion-relative overflow-auto bg-white mt-1 px-3 py-3">
           <div className="d-flex justify-content-between flex-wrap">
             <ButtonGroup size="sm">
-              {props.pageAccess
-                .find((pg) => pg.name === "Intern")
-                ?.subAccess.filter((s) => s.name !== "OPD")
+              {props?.pageAccess
+                ?.find((pg) => pg.name === "Intern")
+                ?.subAccess?.filter((s) => s.name !== "OPD")
                 .map((sub) => {
                   const vw =
                     sub.name.toUpperCase() === BILLING_VIEW
@@ -64,7 +64,7 @@ Views.propTypes = {};
 
 const mapStateToProps = (state) => {
   return {
-    pageAccess: state.User.user.pageAccess.pages,
+    pageAccess: state.User?.user?.pageAccess?.pages,
   };
 };
 

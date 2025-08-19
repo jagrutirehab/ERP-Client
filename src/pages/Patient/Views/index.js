@@ -34,16 +34,15 @@ const Views = (props) => {
     Timeline: TIMELINE_VIEW,
   };
 
-  const patientPage = props.pageAccess.find((pg) => pg.name === "Patient");
+  const patientPage = props?.pageAccess?.find((pg) => pg.name === "Patient");
   const [view, setView] = useState(
-    patientPage?.subAccess.find(
-      (sub) => sub.name.toUpperCase() === CHARTING_VIEW
-    )
-      ? CHARTING_VIEW
-      : patientPage.subAccess[0]?.name
-      ? vws[patientPage.subAccess[0]?.name]
-      : ""
-  );
+  patientPage?.subAccess?.find(sub => sub?.name.toUpperCase() === CHARTING_VIEW)
+    ? CHARTING_VIEW
+    : patientPage?.subAccess[0]?.name
+    ? vws[patientPage?.subAccess[0]?.name]
+    : ""
+);
+
 
   const handleView = (v) => setView(v);
 
@@ -58,16 +57,16 @@ const Views = (props) => {
           <div className="patient-content postion-relative overflow-auto bg-white mt-1 px-3 py-3">
             <div className="d-flex justify-content-between flex-wrap">
               <ButtonGroup size="sm">
-                {props.pageAccess
-                  .find((pg) => pg.name === "Patient")
-                  ?.subAccess.filter((s) => s.name !== "OPD")
+                {props?.pageAccess
+                  ?.find((pg) => pg.name === "Patient")
+                  ?.subAccess?.filter((s) => s.name !== "OPD")
                   .map((sub) => {
                     const vw =
-                      sub.name.toUpperCase() === CHARTING_VIEW
+                      sub?.name.toUpperCase() === CHARTING_VIEW
                         ? CHARTING_VIEW
-                        : sub.name.toUpperCase() === BILLING_VIEW
+                        : sub?.name.toUpperCase() === BILLING_VIEW
                         ? BILLING_VIEW
-                        : sub.name.toUpperCase() === TIMELINE_VIEW
+                        : sub?.name.toUpperCase() === TIMELINE_VIEW
                         ? TIMELINE_VIEW
                         : "";
                     return (
@@ -107,7 +106,7 @@ const Views = (props) => {
 Views.propTypes = {};
 
 const mapStateToProps = (state) => ({
-  pageAccess: state.User.user.pageAccess.pages,
+  pageAccess: state.User?.user?.pageAccess?.pages,
 });
 
 export default connect(mapStateToProps)(Views);
