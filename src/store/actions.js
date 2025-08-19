@@ -267,6 +267,7 @@ export {
   fetchPatientAnalytics,
   fetchLeadAnalytics,
   fetchOPDAnalytics,
+  fetchBookingAnalytics,
 } from "./features/report/reportSlice";
 
 //Hubspot

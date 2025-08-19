@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  getBookingAnalytics,
   getLeadAnalytics,
   getOPDAnalytics,
   getPatientAnalytics,
@@ -13,7 +14,11 @@ const initialState = {
   patient: null,
   lead: null,
   opd: null,
+  booking: null,
   loading: false,
+  totalPages: 0,
+  currentPage: 0,
+  limit: 0,
 };
 
 export const fetchReport = createAsyncThunk(
@@ -60,6 +65,19 @@ export const fetchOPDAnalytics = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getOPDAnalytics(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchBookingAnalytics = createAsyncThunk(
+  "getBookingAnalytics",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getBookingAnalytics(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -118,6 +136,23 @@ const reportSlice = createSlice({
         state.opd = payload.payload;
       })
       .addCase(fetchOPDAnalytics.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchBookingAnalytics.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchBookingAnalytics.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        console.log(payload, "payload");
+        state.booking = payload.payload;
+        state.total = payload.total;
+        state.totalPages = payload.totalPages;
+        state.currentPage = payload.currentPage;
+        state.limit = payload.limit;
+      })
+      .addCase(fetchBookingAnalytics.rejected, (state) => {
         state.loading = false;
       });
   },

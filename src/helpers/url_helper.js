@@ -197,6 +197,7 @@ export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_PATIENT_ANALYTICS_WP = "/report/patient-csv";
 export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
+export const GET_BOOKING_ANALYTICS = "/report/booking";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
@@ -238,25 +239,26 @@ export const UPDATE_TAX = "/tax/update";
 export const GET_HUBSPOT_CONTACTS = "/hubspot/getContacts";
 
 //New Microservice APIS
-export const CSRF = "/csrf-token"
-export const MICRO_SIGN_IN = "/userauths/signin"
+export const CSRF = "/csrf-token";
+export const MICRO_SIGN_IN = "/userauths/signin";
 export const MICRO_SIGN_UP = "/userauths/signup";
 export const MICRO_FORGOTT = "/userauths/forgott-password";
-export const MICRO_LOGOUT="/userauths/logout";
-export const CHANGE_PASSWORD="/userauths/forgott-password"
-export const USER = "/user"
-export const MOVE_TO_BIN="/user/move-recyclebin"
-export const ACTIVATE_DEACTIVATE_USER="/user/deactive"
-export const CHANGE_USER_PASSWORD="/user/change-password"
-export const EDIT_SELF="/user/edit-self";
-export const USER_ACTIVITY="/activity";
-export const GET_USER_ROLES="/user/roles";
+export const MICRO_LOGOUT = "/userauths/logout";
+export const CHANGE_PASSWORD = "/userauths/forgott-password";
+export const USER = "/user";
+export const MOVE_TO_BIN = "/user/move-recyclebin";
+export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
+export const CHANGE_USER_PASSWORD = "/user/change-password";
+export const EDIT_SELF = "/user/edit-self";
+export const USER_ACTIVITY = "/activity";
+export const GET_USER_ROLES = "/user/roles";
 //Roles
 export const ROLES = "/role";
 
 // nurse
 export const GET_NURSE_ASSIGNED_PATIENTS = "/nurse/patients";
-export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE= "/nurse/clinical-test-summary";
+export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE =
+  "/nurse/clinical-test-summary";
 export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
 export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
 

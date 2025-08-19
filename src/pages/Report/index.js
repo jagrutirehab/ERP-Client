@@ -11,6 +11,7 @@ import {
   OPD_ANALYTICS,
   PATIENT_ANALYTICS,
   REPORT,
+  BOOKING,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -21,6 +22,7 @@ import OPD from "./Components/OPD";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DBLogs from "./Components/DBLogs";
 import HubspotContacts from "./Components/Hubspot";
+import Booking from "./Components/Booking";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
@@ -76,6 +78,12 @@ const Report = ({}) => {
             >
               OPD Analytics
             </Button>
+            <Button
+              outline={view !== BOOKING}
+              onClick={() => handleView(BOOKING)}
+            >
+              Booking
+            </Button>
             {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
@@ -92,6 +100,7 @@ const Report = ({}) => {
             {view === OPD_ANALYTICS && <OPD view={view} />}
             {view === DB_LOGS && <DBLogs view={view} />}
             {view === HUBSPOT_CONTACTS && <HubspotContacts view={view} />}
+            {view === BOOKING && <Booking view={view} />}
           </div>
         </Container>
       </div>
