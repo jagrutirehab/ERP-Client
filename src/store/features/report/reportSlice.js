@@ -145,7 +145,6 @@ const reportSlice = createSlice({
       })
       .addCase(fetchBookingAnalytics.fulfilled, (state, { payload }) => {
         state.loading = false;
-        console.log(payload, "payload");
         state.booking = payload.payload;
         state.total = payload.total;
         state.totalPages = payload.totalPages;

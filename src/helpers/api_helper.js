@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 // ✅ Main Axios setup (unchanged)
 axios.defaults.baseURL = api.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.headers.post["credentials"] = "include";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 const authUser = localStorage.getItem("authUser");
@@ -60,6 +61,7 @@ const authAxios = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
+  credentials: "include",
 });
 
 // ✅ Automatically set token for authAxios
