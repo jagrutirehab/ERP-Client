@@ -44,7 +44,8 @@ const TaxManagement = () => {
     const data = useSelector((state) => state.Taxes.data);
     const totalCount = useSelector((state) => state.Taxes.totalCount);
     const totalPages = useSelector((state) => state.Taxes.totalPages);
-    const token = useSelector((state) => state.User?.microLogin?.token);
+   const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
     const { loading: permissionLoader, hasPermission, roles:userRoles } = usePermissions(token);
     const hasUserPermission = hasPermission("SETTING", "TAXMANAGEMENTSETTING", "READ");
     const handleAuthError = useAuthError();

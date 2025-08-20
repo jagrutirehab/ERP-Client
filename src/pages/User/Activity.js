@@ -12,7 +12,8 @@ const Activity = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector((state) => state.User.microLogin?.token);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const [loading, setLoading] = useState(false);
   const [activityData, setActivityData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);

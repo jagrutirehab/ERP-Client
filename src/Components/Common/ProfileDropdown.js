@@ -11,7 +11,7 @@ import {
 import avatar1 from "../../assets/images/users/user-dummy-img.jpg";
 import { logoutUser } from "../../store/actions";
 import { useNavigate } from "react-router-dom";
-import { usePermissions } from "../Hooks/useRoles";
+import { resetRolesCache } from "../Hooks/useRoles";
 
 
 const ProfileDropdown = ({ user }) => {
@@ -26,7 +26,9 @@ const ProfileDropdown = ({ user }) => {
   // }, [userName]);
 
   const dispatch = useDispatch();
-  const token = useSelector((state) => state.User?.microLogin?.token);
+  // const token = useSelector((state) => state.User?.microLogin?.token);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const { isUserLogout } = useSelector((state) => ({
     isUserLogout: state.User.isUserLogout,
   }));
@@ -35,12 +37,14 @@ const ProfileDropdown = ({ user }) => {
   const toggleProfileDropdown = () => {
     setIsProfileDropdown(!isProfileDropdown);
   };
-  const {resetRolesCache}=usePermissions();
+;
 
   const handleLogout = async () => {
     try {
       if (!token) return;
       await dispatch(logoutUser(token)).unwrap();
+      localStorage.clear();
+      sessionStorage.clear();
       resetRolesCache();
     } catch (error) {
       console.log("logout error", error.messge);

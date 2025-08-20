@@ -20,7 +20,8 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const RolesManagement = () => {
   const navigate = useNavigate();
-  const token = useSelector((state) => state.User?.microLogin?.token);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);

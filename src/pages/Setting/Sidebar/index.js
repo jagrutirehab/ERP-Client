@@ -13,7 +13,8 @@ import { connect, useSelector } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Sidebar = () => {
-  const token = useSelector((state) => state.User?.microLogin?.token);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
 const {  hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");

@@ -76,7 +76,9 @@ UserCenterList.propTypes = {
 const Main = ({ user, form, centerAccess }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector((state) => state.User?.microLogin?.token);
+  // const authUser = localStorage.getItem("authUser");
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const dataLoader = useSelector((state) => state.User.dataLoader);
   const centers = useSelector((state) => state.Center.allCenters || []);
   const userDataa = useSelector((state) => state.User.data || []);

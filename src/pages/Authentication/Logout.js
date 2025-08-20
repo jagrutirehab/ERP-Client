@@ -11,7 +11,8 @@ import { useSelector, useDispatch } from "react-redux";
 const Logout = (props) => {
   const dispatch = useDispatch();
 
-  const token = useSelector((state) => state.User.microLogin.token);
+  const authUser = localStorage.getItem("authUser");
+  const token = authUser ? JSON.parse(authUser).token : null;
   const { isUserLogout } = useSelector((state) => ({
     isUserLogout: state.User.isUserLogout,
   }));

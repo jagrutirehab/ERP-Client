@@ -21,8 +21,8 @@ const Main = ({ alertModal, alertData, data, loading }) => {
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [flag, setFlag] = useState("");
   const limit = 12;
-  const token = useSelector((state) => state.User?.microLogin?.token);
-
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const {
     loading: permissionLoader,
     hasPermission,

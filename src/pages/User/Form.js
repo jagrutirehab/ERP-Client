@@ -40,7 +40,8 @@ const UserForm = ({
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
-  const token = useSelector((state) => state.User?.microLogin?.token || null);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const loader = useSelector((state) => state.User.loading);
   const [faqs, setFaqs] = useState(userData?.faqs?.length ? userData.faqs : []);
   const [signature, setSignature] = useState(null);

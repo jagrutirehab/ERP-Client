@@ -68,6 +68,11 @@ export const addUserProfilePicture = createAsyncThunk(
           message: "User Profile Pictrue Uploaded Successfully",
         })
       );
+      const authUser = JSON.parse(localStorage.getItem("authUser"));
+      localStorage.setItem(
+        "authUser",
+        JSON.stringify({ ...authUser, data: response.payload })
+      );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -272,6 +277,7 @@ export const logoutUser = createAsyncThunk(
       const response = await postLogoutService(token);
       return response;
     } catch (error) {
+      console.log(error);
       return rejectWithValue(error);
     }
   }
@@ -516,10 +522,8 @@ const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(logoutUser.fulfilled, (state, { payload }) => {
+         state.loading = false;
         state.isUserLogout = true;
-        state.loading = false;
-        state.microLogin = null;
-        state.user=null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;

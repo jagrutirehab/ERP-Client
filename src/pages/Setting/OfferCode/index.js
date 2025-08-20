@@ -42,7 +42,8 @@ const OfferCode = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [tempSearch, setTempSearch] = useState("");
     const data = useSelector((state) => state.Offers.data);
-    const token = useSelector((state) => state.User?.microLogin?.token);
+   const microUser = localStorage.getItem("micrologin");
+   const token = microUser ? JSON.parse(microUser).token : null;
     const totalCount = useSelector((state) => state.Offers.totalCount);
     const totalPages = useSelector((state) => state.Offers.totalPages);
     const { loading: permissionLoader, hasPermission, roles:userRoles } = usePermissions(token);

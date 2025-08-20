@@ -40,6 +40,7 @@ function* loginUser({ payload: { values, navigate } }) {
 
       if (microLoginRes?.statusCode === 200) {
         const microdata = microLoginRes.data;
+        localStorage.setItem("micrologin", JSON.stringify(microdata));
         yield put(setMicroLogin(microLoginRes.data));
       } else if (microLoginRes) {
         toast.dismiss();
@@ -47,12 +48,19 @@ function* loginUser({ payload: { values, navigate } }) {
       }
     }
 
+    localStorage.setItem("loginResponse", JSON.stringify(mainLoginRes));
+
     if (mainLoginRes.success === true) {
       const authUser = {
         data: mainLoginRes.payload,
         token: mainLoginRes.token,
         status: "success",
       };
+       localStorage.setItem("authUser", JSON.stringify(authUser));
+      localStorage.setItem(
+        "userCenters",
+        JSON.stringify(mainLoginRes.userCenters)
+      );
 
       yield put(setUser(authUser));
       yield put(setUserCenters(mainLoginRes.userCenters));

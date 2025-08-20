@@ -14,9 +14,11 @@ const AuthProtected = (props) => {
       setAuthorization(token);
     } else if (!userProfile && loading && !token) {
       dispatch(logoutUser());
+      localStorage.clear();
+      sessionStorage.clear();
     }
   }, [token, userProfile, loading, dispatch]);
-  if (!userProfile && !loading && !token) {
+  if (!userProfile && loading && !token) {
     return <Navigate to="/login" state={{ from: props.location }} />;
   }
   return <>{props.children}</>;
