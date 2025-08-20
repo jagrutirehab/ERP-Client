@@ -27,6 +27,23 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
     }
   }, [dispatch, id]);
 
+  const highlightText = (text) => {
+  const keywords = ["extreme", "severe withdrawal risk", "high risk (Suicidal Behavior/Plan)", "obsessivecompulsive", "Severe mania with marked functional impairment"];
+  const parts = text.split(
+    new RegExp(`(${keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})`, "gi")
+  );
+
+  return parts.map((part, idx) =>
+    keywords.some((kw) => kw.toLowerCase() === part.toLowerCase()) ? (
+      <span key={idx} className="bg-danger text-white px-1">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
+
   return (
     <React.Fragment>
       <div>
@@ -90,7 +107,7 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
                       key={test._id}
                       style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}
                     >
-                      <strong>{test.name}:</strong> {test.severeReason}
+                      <strong>{test.name}:</strong> {highlightText(test.severeReason)}
                     </li>
                   ))}
                 </ul>

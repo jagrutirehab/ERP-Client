@@ -54,7 +54,7 @@ const Activities = () => {
   return (
     <div>
       <Row className="timeline-right" style={{ rowGap: "2rem" }}>
-        <GeneralCard data="Medication Management">
+        <GeneralCard data="Daily Medication Record">
           <div style={{ padding: "1rem" }}>
             <Nav tabs className="mb-4">
               <NavItem>
@@ -68,7 +68,7 @@ const Activities = () => {
                     <Clock size={16} />
                     Pending
                     <Badge color="warning" pill className="ms-2">
-                      {medicines.pending.length}
+                      {!medicineLoading && medicines.pending.length}
                     </Badge>
                   </div>
                 </NavLink>
@@ -84,7 +84,7 @@ const Activities = () => {
                     <CheckCheck size={16} />
                     Completed
                     <Badge color="success" pill className="ms-2">
-                      {medicines.completed.length}
+                      {!medicineLoading && medicines.completed.length}
                     </Badge>
                   </div>
                 </NavLink>
@@ -142,7 +142,7 @@ const Activities = () => {
                         <Button
                           color="success"
                           size="sm"
-                          className="ms-3 d-flex align-items-center gap-1"
+                          className="ms-3 d-flex align-items-center gap-1 text-white"
                           onClick={() =>
                             handleMarkAsGiven({
                               medicineId: med._id,
