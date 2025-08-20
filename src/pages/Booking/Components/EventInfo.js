@@ -222,7 +222,11 @@ const EventInfo = ({
                       modal: true,
                       patient: data.patient,
                       center: data.center,
-                      doctor: data.doctor,
+                      doctor: {
+                        ...data.doctor,
+                        profilePicture: null,
+                        signature: null
+                      },
                     })
                   );
                 }}
@@ -272,7 +276,11 @@ const EventInfo = ({
                       data: data.chart,
                       patient: data.patient,
                       center: data.center?._id,
-                      doctor: data.doctor,
+                      doctor: {
+                        ...data.doctor,
+                        profilePicture: null,
+                        signature: null
+                      },
                       appointment: data,
                       shouldPrintAfterSave: true,
                       populatePreviousAppointment: false,
@@ -294,7 +302,11 @@ const EventInfo = ({
                       modal: true,
                       patient: data.patient,
                       center: data.center,
-                      doctor: data.doctor,
+                      doctor: {
+                        ...data.doctor,
+                        profilePicture: null,
+                        signature: null
+                      },
                     })
                   );
                 }}
@@ -341,7 +353,11 @@ const EventInfo = ({
                     modal: true,
                     patient: data.patient,
                     center: data.center?._id,
-                    doctor: data.doctor,
+                    doctor: {
+                        ...data.doctor,
+                        profilePicture: null,
+                        signature: null
+                      },
                     appointment: data._id,
                   })
                 );
