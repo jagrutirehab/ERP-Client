@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import history from "../../../../Routes/HistoryRoute";
+import Cookies from "js-cookie";
 import {
   deleteUser,
   postUser,
@@ -278,7 +280,12 @@ export const logoutUser = createAsyncThunk(
       const response = await postLogoutService(token);
       return response;
     } catch (error) {
-      console.log(error);
+      localStorage.clear();
+      Cookies.remove("__cf_bm");
+      Cookies.remove("jajantarammamantaram");
+      Cookies.remove("token");
+      Cookies.remove("XSRF-TOKEN");
+      history.replace("/logout");
       return rejectWithValue(error);
     }
   }
