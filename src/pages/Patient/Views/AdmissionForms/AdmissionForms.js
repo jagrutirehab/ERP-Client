@@ -12,6 +12,8 @@ import DischargeIndependentAdult from "./DischargeIndependentAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
 import IndipendentOpinion1 from "./IndipendentOpinion1";
 import IndipendentOpinion2 from "./IndipendentOpinion2";
+import IndipendentOpinion3 from "./IndipendentOpinion3";
+import ECTConsentForm from "./ECTConsentForm";
 
 const AddmissionForms = () => {
   const { register, handleSubmit } = useForm();
@@ -35,6 +37,8 @@ const AddmissionForms = () => {
       <DischargeIndependentMinor register={register} />
       <IndipendentOpinion1 register={register} />
       <IndipendentOpinion2 register={register} />
+      <IndipendentOpinion3 register={register} />
+      <ECTConsentForm register={register} />
       <div style={{ textAlign: "center", margin: "20px" }}>
         <button type="submit">Submit All</button>
       </div>

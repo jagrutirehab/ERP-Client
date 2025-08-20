@@ -277,6 +277,15 @@ const IndipendentOpinion2 = ({ register }) => {
           style={fullLine}
         />
       </p>
+      <p>
+        SOCIAL SUPPORT
+        <textarea
+          rows={6}
+          type="text"
+          {...register("personality")}
+          style={fullLine}
+        />
+      </p>
     </div>
   );
 };
