@@ -681,6 +681,7 @@ const Schedule = ({
         </div>
       </Form>
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
     handleScheduleChange,

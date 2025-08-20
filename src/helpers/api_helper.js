@@ -1,6 +1,7 @@
 import axios from "axios";
 import { api } from "../config";
 import history from "../Routes/HistoryRoute";
+import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 
 // ✅ Main Axios setup (unchanged)
@@ -28,6 +29,18 @@ if (token) {
   delete axios.defaults.headers.common["Authorization"];
 }
 
+function handleLogout() {
+  try {
+    localStorage.clear();
+    Cookies.remove("__cf_bm");
+    Cookies.remove("jajantarammamantaram");
+    Cookies.remove("token");
+    Cookies.remove("XSRF-TOKEN");
+    history.replace("/logout");
+  } catch (err) {
+    console.error("Error during logout:", err);
+  }
+}
 // ✅ Main API response interceptor
 axios.interceptors.response.use(
   function (response) {
@@ -41,7 +54,7 @@ axios.interceptors.response.use(
       logout: error?.response?.data?.logout,
     });
     if (error?.response?.data?.logout) {
-      history.replace("/logout");
+      handleLogout();
     }
     return Promise.reject(
       error?.response?.data || { message: "Something went wrong!" }
