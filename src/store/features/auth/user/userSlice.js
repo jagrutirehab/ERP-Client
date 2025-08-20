@@ -285,7 +285,6 @@ export const logoutUser = createAsyncThunk(
       Cookies.remove("jajantarammamantaram");
       Cookies.remove("token");
       Cookies.remove("XSRF-TOKEN");
-      history.replace("/logout");
       return rejectWithValue(error);
     }
   }
