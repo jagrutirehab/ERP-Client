@@ -37,7 +37,6 @@ import {
 import {
   addDays,
   eachDayOfInterval,
-  eachMinuteOfInterval,
   endOfDay,
   format,
   setHours,
@@ -131,7 +130,7 @@ export const TimeSelect = memo(
   }
 );
 
-// Create a separate ScheduleRow component
+// ScheduleRow — single slot row
 const ScheduleRow = memo(
   ({
     sch,
@@ -234,11 +233,11 @@ const ScheduleRow = memo(
                 handleScheduleChange(i, idx, "type", e.target.value)
               }
             >
-              <option value="" selected disabled hidden>
+              <option value="" disabled hidden>
                 Choose here
               </option>
-              {(["ONLINE", "OFFLINE"] || []).map((option, idx) => (
-                <option key={idx} id={option} value={option}>
+              {(["ONLINE", "OFFLINE"] || []).map((option, oi) => (
+                <option key={oi} id={option} value={option}>
                   {option}
                 </option>
               ))}
@@ -259,11 +258,11 @@ const ScheduleRow = memo(
                   handleScheduleChange(i, idx, "center", id);
                 }}
               >
-                <option value="" selected disabled hidden>
+                <option value="" disabled hidden>
                   Choose here
                 </option>
-                {(userCenters || []).map((option, idx) => (
-                  <option key={idx} id={option._id} value={option._id}>
+                {(userCenters || []).map((option, oi) => (
+                  <option key={oi} id={option._id} value={option._id}>
                     {option.title}
                   </option>
                 ))}
@@ -292,7 +291,7 @@ const ScheduleRow = memo(
   }
 );
 
-// Create a separate DateRow component
+// DateRow — receives onDeleteDate from parent
 const DateRow = memo(
   ({
     date,
@@ -303,6 +302,7 @@ const DateRow = memo(
     addSchedule,
     removeSchedule,
     userCenters,
+    onDeleteDate,
   }) => {
     return (
       <div
@@ -338,13 +338,24 @@ const DateRow = memo(
           ))}
         </div>
 
-        <button
-          onClick={() => addSchedule(i)}
-          type="button"
-          className="btn d-block btn-primary btn-sm"
-        >
-          Add
-        </button>
+        <div className="d-flex flex-column gap-2">
+          <button
+            onClick={() => addSchedule(i)}
+            type="button"
+            className="btn d-block btn-primary btn-sm"
+          >
+            Add
+          </button>
+
+          <button
+            onClick={() => onDeleteDate && onDeleteDate(i)}
+            type="button"
+            className="btn d-block btn-outline-danger btn-sm"
+            title="Delete full date"
+          >
+            <i className="ri-delete-bin-line" />
+          </button>
+        </div>
       </div>
     );
   }
@@ -377,6 +388,11 @@ const Schedule = ({
       },
     ],
   });
+
+  // track ids to delete
+  const [deleteScheduleIds, setDeleteScheduleIds] = useState([]);
+  const [deleteSlotIds, setDeleteSlotIds] = useState([]);
+  console.log(deleteSlotIds)
 
   useEffect(() => {
     if (sessionPricing) {
@@ -450,32 +466,62 @@ const Schedule = ({
     );
   }, []);
 
+  // remove slot (slot-level) and collect deleteSlotIds if slot had server _id
   const removeSchedule = useCallback((dateIndex, scheduleIndex) => {
     setSchedule((prevDates) =>
-      prevDates.map((date, i) =>
-        i === dateIndex
-          ? {
-              ...date,
-              workingSchedule:
-                scheduleIndex === 0
-                  ? date.workingSchedule.map((_, idx) =>
-                      idx === scheduleIndex
-                        ? {
-                            id: uuid(),
-                            type: "",
-                            startTime: "",
-                            endTime: "",
-                            center: "",
-                          }
-                        : _
-                    )
-                  : date.workingSchedule.filter(
-                      (_, idx) => idx !== scheduleIndex
-                    ),
-            }
-          : date
-      )
+      prevDates.map((dateItem, i) => {
+        if (i !== dateIndex) return dateItem;
+
+        const toRemove = dateItem.workingSchedule[scheduleIndex];
+
+        if (toRemove && toRemove._id) {
+          setDeleteSlotIds((prev) => {
+            const idStr = toRemove._id.toString();
+            if (prev.includes(idStr)) return prev;
+            return [...prev, idStr];
+          });
+        }
+
+        if (scheduleIndex === 0) {
+          return {
+            ...dateItem,
+            workingSchedule: dateItem.workingSchedule.map((_, idx) =>
+              idx === scheduleIndex
+                ? {
+                    id: uuid(),
+                    type: "",
+                    startTime: "",
+                    endTime: "",
+                    center: "",
+                  }
+                : _
+            ),
+          };
+        }
+
+        return {
+          ...dateItem,
+          workingSchedule: dateItem.workingSchedule.filter(
+            (_, idx) => idx !== scheduleIndex
+          ),
+        };
+      })
     );
+  }, []);
+
+  // delete whole date: mark schedule _id (if present) and remove from UI
+  const handleDeleteDate = useCallback((dateIndex) => {
+    setSchedule((prev) => {
+      const item = prev[dateIndex];
+      if (item && item._id) {
+        setDeleteScheduleIds((prevIds) => {
+          const idStr = item._id.toString();
+          if (prevIds.includes(idStr)) return prevIds;
+          return [...prevIds, idStr];
+        });
+      }
+      return prev.filter((_, idx) => idx !== dateIndex);
+    });
   }, []);
 
   const bulkEditSchedule = useCallback((values) => {
@@ -493,37 +539,44 @@ const Schedule = ({
     async (values) => {
       function cleanData(data) {
         return data
-          .map((item) => ({
-            date: item.date,
-            workingSchedule: item.workingSchedule
+          .map((item) => {
+            const workingSchedule = item.workingSchedule
               .filter(
                 (schedule) =>
                   schedule.startTime !== "" && schedule.endTime !== ""
               )
-              .map(({ id, ...rest }) => rest),
-          }))
-          .filter((item) => item.workingSchedule.length > 0);
+              .map(({ id, ...rest }) => rest); // remove UI id, keep _id if present
+
+            if (workingSchedule.length === 0) return null;
+
+            const base = { date: item.date, workingSchedule };
+            if (item._id) base._id = item._id;
+            return base;
+          })
+          .filter(Boolean);
       }
 
       const payload = {
         userId: values.user,
         workingSchedulesData: cleanData(values.workingSchedule),
+        deleteScheduleIds,
+        deleteSlotIds,
       };
 
-      dispatch(addUserIncrementalSchedule(payload));
+      await dispatch(addUserIncrementalSchedule(payload));
+
+      // clear delete ids after submit
+      setDeleteScheduleIds([]);
+      setDeleteSlotIds([]);
+
       toggle();
     },
-    [dispatch, toggle]
+    [dispatch, toggle, deleteScheduleIds, deleteSlotIds]
   );
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
-    initialValues: {
-      user: doctor?._id,
-      workingSchedule: schedule,
-    },
+    initialValues: { user: doctor?._id, workingSchedule: schedule },
     validationSchema: Yup.object({
       user: Yup.string().required("User ID is required"),
     }),
@@ -532,43 +585,63 @@ const Schedule = ({
 
   const getDoctorSchedule = useCallback(() => {
     if (userSchedule?.length > 0) {
-      let scheduleCopy = schedule;
-      scheduleCopy = scheduleCopy.map((sch) => {
-        //new Date(sch.date).toISOString().split("T")[0];
+      const scheduleCopy = eachDayOfInterval({
+        start: date,
+        end: addDays(date, 29),
+      }).map((dt) => ({
+        id: uuid(),
+        date: new Date(dt.setHours(12, 12, 12, 12)),
+        workingSchedule: [
+          { id: uuid(), type: "", startTime: "", endTime: "", center: null },
+        ],
+      }));
 
-        const matchedSchedule = userSchedule.find(
-          (val) => {
-            return (
-              val.date &&
-              format(new Date(val.date), "dd MMM yyyy") ===
-                format(new Date(sch.date), "dd MMM yyyy")
-            );
-          } //new Date(val.date).toISOString().split("T")[0] === schDate
-        );
+      const merged = scheduleCopy.map((slotDate) => {
+        const matched = userSchedule.find((val) => {
+          return (
+            val.date &&
+            format(new Date(val.date), "dd MMM yyyy") ===
+              format(new Date(slotDate.date), "dd MMM yyyy")
+          );
+        });
 
-        if (matchedSchedule) {
-          return {
-            ...matchedSchedule,
-            id: uuid(),
-            date: sch.date,
-          };
-        }
-        return sch;
+        if (!matched) return slotDate;
+
+        return {
+          _id: matched._id,
+          id: uuid(),
+          date: slotDate.date,
+          workingSchedule: (matched.workingSchedule || []).map((s) => ({
+            id: s._id ? `${s._id}_ui` : uuid(),
+            _id: s._id ? s._id : undefined,
+            type: s.type || "",
+            startTime: s.startTime || "",
+            endTime: s.endTime || "",
+            center: s.center || null,
+            maxAppointments: s.maxAppointments || 0,
+            status: s.status || undefined,
+          })),
+        };
       });
 
-      setSchedule(scheduleCopy);
+      setSchedule(merged);
     } else {
       setSchedule(
-        eachDayOfInterval({
-          start: date,
-          end: addDays(date, 29),
-        }).map((dt) => ({
-          id: uuid(),
-          date: new Date(dt.setHours(12, 12, 12, 12)),
-          workingSchedule: [
-            { id: uuid(), type: "", startTime: "", endTime: "", center: null },
-          ],
-        }))
+        eachDayOfInterval({ start: date, end: addDays(date, 29) }).map(
+          (dt) => ({
+            id: uuid(),
+            date: new Date(dt.setHours(12, 12, 12, 12)),
+            workingSchedule: [
+              {
+                id: uuid(),
+                type: "",
+                startTime: "",
+                endTime: "",
+                center: null,
+              },
+            ],
+          })
+        )
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -586,31 +659,22 @@ const Schedule = ({
         setToggled(resultAction?.payload?.user?.isHideFromSearch);
       }
     };
-
     fetchSchedule();
   }, [dispatch, doctor?._id, apiFlag]);
 
-  const components = {
-    Option: Option,
-  };
-
   useEffect(() => {
-    if (doctor) {
-      setToggled(doctor?.isHideFromSearch);
-    }
+    if (doctor) setToggled(doctor?.isHideFromSearch);
   }, [doctor]);
+
   const handleUserHide = async (e) => {
     if (!doctor) return;
     const newStatus = e.target.checked;
     setToggled(newStatus);
-
     try {
       await dispatch(
-        markedUserActiveOrInactive({
-          userId: doctor._id,
-        })
+        markedUserActiveOrInactive({ userId: doctor._id })
       ).unwrap();
-      setApiFlag(!apiFlag); // or show a toast/snackbar here
+      setApiFlag((f) => !f);
     } catch (err) {
       console.error("Update failed:", err);
     }
@@ -640,6 +704,7 @@ const Schedule = ({
                 addSchedule={addSchedule}
                 removeSchedule={removeSchedule}
                 userCenters={userCenters}
+                onDeleteDate={handleDeleteDate}
               />
             ))}
           </div>
@@ -675,6 +740,7 @@ const Schedule = ({
         </div>
       </Form>
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
     handleScheduleChange,
@@ -682,18 +748,11 @@ const Schedule = ({
     removeSchedule,
     userCenters,
     validation,
+    handleDeleteDate,
   ]);
 
   return (
     <React.Fragment>
-      {/* <CustomModal
-        title={"User Schedule"}
-        centered
-        isOpen={isOpen}
-        toggle={toggle}
-        size={"lg"}
-      > */}
-
       <Nav pills className="mb-4 justify-content-center">
         <NavItem onClick={() => setTab(0)}>
           <NavLink active={tab === 0} href="#">
@@ -741,15 +800,13 @@ const Schedule = ({
           )}
         </div>
       )}
-      {/* </CustomModal> */}
     </React.Fragment>
   );
 };
 
 const mapStateToProps = (state) => ({
   appointments: state.Booking.data,
-  // user: state.User.user,
-  userSchedule: state.User.incrementalSchedule, //state.Setting.doctorAvailableSlots,
+  userSchedule: state.User.incrementalSchedule,
   weeklySchedule: state.User.weeklySchedule,
   userCenters: state.User.userCenters,
   sessionPricing: state.User.sessionPricing,
