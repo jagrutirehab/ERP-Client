@@ -68,7 +68,7 @@ const Activities = () => {
                     <Clock size={16} />
                     Pending
                     <Badge color="warning" pill className="ms-2">
-                      {!medicineLoading && medicines.pending.length}
+                     {!medicineLoading && (medicines?.pending?.length || 0)}
                     </Badge>
                   </div>
                 </NavLink>
@@ -84,7 +84,7 @@ const Activities = () => {
                     <CheckCheck size={16} />
                     Completed
                     <Badge color="success" pill className="ms-2">
-                      {!medicineLoading && medicines.completed.length}
+                     {!medicineLoading && (medicines?.completed?.length || 0)}
                     </Badge>
                   </div>
                 </NavLink>
