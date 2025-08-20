@@ -49,7 +49,8 @@ import {
 } from "date-fns";
 import Pricing from "./Pricing";
 import WeeklySchedule from "../../Setting/Calender/Components/DoctorSchedule";
-// import { markedUserActiveOrInactive } from "../../../store/features/auth/user/userSlice";
+// import { markedUserActiveOrInactive } from "../../../store/actions";
+import { markedUserActiveOrInactive } from "../../../store/features/auth/user/userSlice";
 
 export const generateTimes = ({
   date,
@@ -580,9 +581,11 @@ const Schedule = ({
   }, [isOpen, userSchedule]);
 
   useEffect(() => {
+    console.log(doctor, "run change listing");
     const fetchSchedule = async () => {
       if (doctor?._id) {
         const resultAction = await dispatch(fetchUserSchedule(doctor._id));
+        console.log(resultAction, "resultAction of listing");
         setToggled(resultAction?.payload?.user?.isHideFromSearch);
       }
     };
@@ -601,16 +604,18 @@ const Schedule = ({
   }, [doctor]);
 
   const handleUserHide = async (e) => {
+    console.log(e, "website listing");
     if (!doctor) return;
     const newStatus = e.target.checked;
     setToggled(newStatus);
 
+    console.log(newStatus, "newStatus");
     try {
-      // await dispatch(
-      //   markedUserActiveOrInactive({
-      //     userId: doctor._id,
-      //   })
-      // ).unwrap();
+      await dispatch(
+        markedUserActiveOrInactive({
+          userId: doctor._id,
+        })
+      ).unwrap();
       setApiFlag(!apiFlag); // or show a toast/snackbar here
     } catch (err) {
       console.error("Update failed:", err);

@@ -40,6 +40,8 @@ export const editUser = (data) =>
   api.put(url.EDIT_USER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+export const markUserActiveInactive = (data) =>
+  api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
 
 export const getCiwaTest = (data) =>
   api.get(`${url.GET_CIWA_TEST}?patientId=${data}`);
@@ -296,12 +298,11 @@ export const removePatient = (data) =>
 export const deletePatientPermanently = (data) =>
   api.delete(`${url.DELETE_PATIENT_PERMANENTLY}/${data}`);
 export const assignNurseToPatient = (data) => {
-  return api.update(`${url.ASSIGN_NURSE_TO_PATIENT}`,data);
+  return api.update(`${url.ASSIGN_NURSE_TO_PATIENT}`, data);
 };
 export const unAssignNurseToPatient = (patientId) => {
   return api.update(`${url.UNASSIGN_NURSE_TO_PATIENT}?patientId=${patientId}`);
 };
-
 
 //Timeline
 export const getPatientTimeline = (data) =>
@@ -712,11 +713,15 @@ export const getPatientOverview = (patientId) => {
 };
 
 export const getPatientPrescription = (patientId) => {
-  return api.get(`${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`);
+  return api.get(
+    `${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`
+  );
 };
 
 export const getClinicalTestSummary = (patientId) => {
-  return api.get(`${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`);
+  return api.get(
+    `${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`
+  );
 };
 
 export const getNursesListByPatientCenter = ({ patientId, search } = {}) => {
@@ -725,13 +730,13 @@ export const getNursesListByPatientCenter = ({ patientId, search } = {}) => {
   );
 };
 
-export const getAlertsByPatient=(patientId) => {
+export const getAlertsByPatient = (patientId) => {
   return api.get(`${url.GET_ALERTS_BY_PATIENT}?patientId=${patientId}`);
-}
+};
 
-export const getNotesByPatient = (patientId)=>{
+export const getNotesByPatient = (patientId) => {
   return api.get(`${url.NOTES}?patientId=${patientId}`);
-}
+};
 
 export const createNote = (data) => {
   return api.create(url.NOTES, data, {
@@ -740,12 +745,14 @@ export const createNote = (data) => {
 };
 
 export const getPendingActiveMedicines = (patientId) => {
-    return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
-}
+  return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
+};
 
 export const getCompletedActiveMedicines = (patientId) => {
-    return api.get(`${url.GET_COMPLETED_ACTIVE_MEDICINES}?patientId=${patientId}`);
-}
+  return api.get(
+    `${url.GET_COMPLETED_ACTIVE_MEDICINES}?patientId=${patientId}`
+  );
+};
 
 export const markMedicineAsGiven = (data) => {
   return api.create(url.MARK_MEDICINE_AS_GIVEN, data, {
@@ -767,12 +774,16 @@ export const getAllRoles = ({ page = 1, limit = 10, token }) => {
   });
 };
 
-export const postLogoutService = (token)=>{
-  return userService.post(url.MICRO_LOGOUT,{},{
-    headers:{
-      Authorization: `Bearer ${token}`,
+export const postLogoutService = (token) => {
+  return userService.post(
+    url.MICRO_LOGOUT,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
-  })
+  );
 };
 
 export const getAllRoleslist = ({ token, search = "" }) => {
@@ -872,30 +883,42 @@ export const editUserDetails = (data, id, token) => {
 };
 
 export const deleteUser = (id, token) => {
-  return userService.put(`${url.MOVE_TO_BIN}/${id}`, {}, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return userService.put(
+    `${url.MOVE_TO_BIN}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 };
 
-export const suspendUser=(id, token)=>{
-  return userService.patch(`${url.ACTIVATE_DEACTIVATE_USER}/${id}`,{}, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
+export const suspendUser = (id, token) => {
+  return userService.patch(
+    `${url.ACTIVATE_DEACTIVATE_USER}/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
 
-export const editUserPassword=(id,newPassword, token)=>{
-  return userService.post(`${url.CHANGE_USER_PASSWORD}/${id}`, {newPassword},{
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-}
+export const editUserPassword = (id, newPassword, token) => {
+  return userService.post(
+    `${url.CHANGE_USER_PASSWORD}/${id}`,
+    { newPassword },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
 
-export const getUserActivityById = ({id, page=1, limit=12, token}) => {
+export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
     `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,
     {
@@ -906,15 +929,16 @@ export const getUserActivityById = ({id, page=1, limit=12, token}) => {
   );
 };
 
-export const editSelf = (data, token) =>{
+export const editSelf = (data, token) => {
   return userService.put(url.EDIT_SELF, data, {
-    headers: { 
+    headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "multipart/form-data" },
-    });
-}
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
-export const getRoles= (token) => {
+export const getRoles = (token) => {
   return userService.get(url.GET_USER_ROLES, {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -11,7 +11,7 @@ import {
   getDoctorsScheduleNew,
   postDoctorSchedule,
   editDoctorSchedule,
-  // markUserActiveInactive,
+  markUserActiveInactive,
   addUser,
   editUserDetails,
   postLogoutService,
@@ -20,7 +20,7 @@ import { setAlert } from "../../alert/alertSlice";
 
 const initialState = {
   data: [],
-  dataLoader:false,
+  dataLoader: false,
   user: null,
   microLogin: null,
   schedule: null,
@@ -189,7 +189,9 @@ export const removeUser = createAsyncThunk(
   async ({ id, token }, { dispatch, rejectWithValue }) => {
     try {
       const response = await deleteUser(id, token);
-      dispatch(setAlert({ type: "success", message: "User Deleted Successfully" }));
+      dispatch(
+        setAlert({ type: "success", message: "User Deleted Successfully" })
+      );
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -199,9 +201,9 @@ export const removeUser = createAsyncThunk(
 
 export const suspendStaff = createAsyncThunk(
   "suspendUser",
-  async ({id, token}, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
     try {
-      const response = await suspendUser(id,token);
+      const response = await suspendUser(id, token);
       dispatch(
         setAlert({
           type: "success",
@@ -221,7 +223,7 @@ export const suspendStaff = createAsyncThunk(
 
 export const addNewUser = createAsyncThunk(
   "addUser",
-  async ({data, token}, { dispatch, rejectWithValue }) => {
+  async ({ data, token }, { dispatch, rejectWithValue }) => {
     try {
       const response = await addUser(data, token);
       dispatch(setUserForm({ isOpen: false, data: null }));
@@ -237,7 +239,7 @@ export const addNewUser = createAsyncThunk(
 
 export const updateUser = createAsyncThunk(
   "editUser",
-  async ({data,id,token}, { dispatch, rejectWithValue }) => {
+  async ({ data, id, token }, { dispatch, rejectWithValue }) => {
     try {
       const response = await editUserDetails(data, id, token);
       dispatch(
@@ -246,15 +248,14 @@ export const updateUser = createAsyncThunk(
       dispatch(setUserForm({ isOpen: false, data: null }));
       return response;
     } catch (error) {
-       return rejectWithValue(error);
+      return rejectWithValue(error);
     }
   }
 );
 
-
 export const updateUserPassword = createAsyncThunk(
   "editUserPassword",
-  async ({id, newPassword, token}, { dispatch, rejectWithValue }) => {
+  async ({ id, newPassword, token }, { dispatch, rejectWithValue }) => {
     try {
       const response = await editUserPassword(id, newPassword, token);
       dispatch(
@@ -283,17 +284,39 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+export const markedUserActiveOrInactive = createAsyncThunk(
+  "markedActiveOrInactive",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await markUserActiveInactive(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: response.payload.isHideFromSearch
+            ? "User Mask Successfully!"
+            : "User Unmask Successfully!",
+        })
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
     clearUser: (state) => {
-      state.loading=false
+      state.loading = false;
       state.isUserLogout = true;
       state.microLogin = null;
       state.user = null;
     },
-    setdataLoader: (state, {payload}) => {
+    setdataLoader: (state, { payload }) => {
       state.dataLoader = payload;
     },
     setMicroLogin: (state, action) => {
@@ -522,7 +545,7 @@ const userSlice = createSlice({
         state.loading = true;
       })
       .addCase(logoutUser.fulfilled, (state, { payload }) => {
-         state.loading = false;
+        state.loading = false;
         state.isUserLogout = true;
       })
       .addCase(logoutUser.rejected, (state, action) => {
@@ -564,7 +587,7 @@ export const {
   setAddNewUser,
   setLoading,
   clearUser,
-  setdataLoader
+  setdataLoader,
 } = userSlice.actions;
 
 export default userSlice.reducer;
