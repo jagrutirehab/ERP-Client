@@ -23,9 +23,9 @@ const MedicinesForm = ({ toggle }) => {
   const addMedicines = () => {
     const newMed = {
       name: "",
-      type: "TAB",
+      type: "",
       strength: "",
-      unit: "MG",
+      unit: "",
       instruction: "",
       composition: "",
       quantity: "",
@@ -133,9 +133,9 @@ const MedicinesForm = ({ toggle }) => {
                     />
                   </div>
                 </Col>
-                <Col xs={2} md={1}>
-                  <div className="mb-3">
-                    <div class="form-group">
+                <Col xs={3} md={2}>
+                  <div className="mb-3 w-5">
+                    {/* <div class="form-group">
                       <input
                         list="type-options"
                         className="form-control form-control-sm"
@@ -143,7 +143,7 @@ const MedicinesForm = ({ toggle }) => {
                         onChange={handleChange}
                         name="type"
                         value={medicine.type}
-                        placeholder="Type or select an option"
+                        placeholder="select an type"
                       />
                       <datalist id="type-options">
                         {(medicineTypes || []).map((item, idx) => (
@@ -154,8 +154,8 @@ const MedicinesForm = ({ toggle }) => {
                           ></option>
                         ))}
                       </datalist>
-                    </div>
-                    {/* <Input
+                    </div> */}
+                    <Input
                       bsSize="sm"
                       id={idx}
                       onChange={handleChange}
@@ -176,7 +176,7 @@ const MedicinesForm = ({ toggle }) => {
                           {item}
                         </option>
                       ))}
-                    </Input> */}
+                    </Input>
                   </div>
                 </Col>
                 <Col xs={2} md={1}>
@@ -192,7 +192,7 @@ const MedicinesForm = ({ toggle }) => {
                     />
                   </div>
                 </Col>
-                <Col xs={2} md={1}>
+                <Col xs={3} md={2}>
                   <div className="mb-3">
                     {/* <Select
                       options={options}
@@ -211,7 +211,7 @@ const MedicinesForm = ({ toggle }) => {
                       }}
                     /> */}
                     <div class="form-group">
-                      <input
+                      {/* <input
                         list="unit-options"
                         className="form-control form-control-sm"
                         id={idx}
@@ -226,7 +226,23 @@ const MedicinesForm = ({ toggle }) => {
                         name="unit"
                         value={medicine.unit}
                         placeholder="Type or select an option"
-                      />
+                      /> */}
+                      <Input
+                        bsSize="sm"
+                        id={idx}
+                        onChange={handleChange}
+                        name="unit"
+                        value={medicine.unit}
+                        type="select"
+                        className="form-control"
+                      >
+                        <option value="" selected disabled hidden>
+                          Choose Unit
+                        </option>
+                        {(medicineUnits || []).map((item, idx) => (
+                          <option key={idx + item}>{item}</option>
+                        ))}
+                      </Input>
                       <datalist id="unit-options">
                         {(medicineUnits || []).map((item, idx) => (
                           <option
