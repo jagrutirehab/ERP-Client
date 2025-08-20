@@ -32,7 +32,6 @@ if (token) {
 function handleLogout() {
   try {
     localStorage.clear();
-    Cookies.remove("__cf_bm");
     Cookies.remove("jajantarammamantaram");
     Cookies.remove("token");
     Cookies.remove("XSRF-TOKEN");

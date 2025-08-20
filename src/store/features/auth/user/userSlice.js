@@ -278,10 +278,13 @@ export const logoutUser = createAsyncThunk(
   async (token, { dispatch, rejectWithValue }) => {
     try {
       const response = await postLogoutService(token);
+      localStorage.clear();
+      Cookies.remove("jajantarammamantaram");
+      Cookies.remove("token");
+      Cookies.remove("XSRF-TOKEN");
       return response;
     } catch (error) {
       localStorage.clear();
-      Cookies.remove("__cf_bm");
       Cookies.remove("jajantarammamantaram");
       Cookies.remove("token");
       Cookies.remove("XSRF-TOKEN");
