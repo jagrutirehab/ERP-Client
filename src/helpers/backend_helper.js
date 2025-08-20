@@ -72,7 +72,7 @@ export const postYmrsTest = (data) => {
 export const postYBOCSTest = (data) =>
   api.create(url.POST_YBOCS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-});
+  });
 
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
@@ -590,6 +590,13 @@ export const getLeadAnalytics = (data) =>
   });
 export const getOPDAnalytics = (data) =>
   api.get(url.GET_OPD_ANALYTICS, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getBookingAnalytics = (data) =>
+  api.get(url.GET_BOOKING_ANALYTICS, {
     params: data,
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });

@@ -1,26 +1,26 @@
 const authRoles = [
   {
-    label: "ADMIN",
+    name: "ADMIN",
     value: "ADMIN",
   },
   {
-    label: "DOCTOR",
+    name: "DOCTOR",
     value: "DOCTOR",
   },
   {
-    label: "ACCOUNTANT",
+    name: "ACCOUNTANT",
     value: "ACCOUNTANT",
   },
   {
-    label: "MANAGER",
+    name: "MANAGER",
     value: "MANAGER",
   },
   {
-    label: "NURSE",
+    name: "NURSE",
     value: "NURSE",
   },
   {
-    label: "ONLINE SUPPORT ADMIN",
+    name: "ONLINE SUPPORT ADMIN",
     value: "ONLINE_SUPPORT_ADMIN",
   },
 ];

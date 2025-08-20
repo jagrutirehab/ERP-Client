@@ -14,7 +14,7 @@ import {
   getRemovedCharts,
   removeChartPermanently,
 } from "../../../store/actions";
-import { Button } from "reactstrap";
+import { Button, Spinner } from "reactstrap";
 
 const Chart = ({ centerAccess, charts }) => {
   const dispatch = useDispatch();
@@ -23,6 +23,7 @@ const Chart = ({ centerAccess, charts }) => {
     data: null,
     isOpen: false,
   });
+  const [loading, setLoading]=useState(false);
 
   const [deleteCharts, setDeleteCharts] = useState({
     data: null,
@@ -30,7 +31,17 @@ const Chart = ({ centerAccess, charts }) => {
   });
 
   useEffect(() => {
-    dispatch(getRemovedCharts());
+    if(charts && charts.length > 0) return;
+    const loadDeletedCharts = async () => {
+      try {
+        setLoading(true);
+        await dispatch(getRemovedCharts()).unwrap();
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+      }
+    };
+    loadDeletedCharts();
   }, [dispatch]);
 
   const onCloseClick = () => {
@@ -51,7 +62,15 @@ const Chart = ({ centerAccess, charts }) => {
   };
 
   const renderList = useMemo(() => {
-    return (
+
+  if (loading) {
+        return (
+          <div className="d-flex justify-content-center align-items-center p-3">
+            <Spinner color="primary" />
+          </div>
+        );
+      }
+    return  (
       <div className="">
         <PerfectScrollbar className="chat-room-list">
           <List
@@ -62,7 +81,7 @@ const Chart = ({ centerAccess, charts }) => {
         </PerfectScrollbar>
       </div>
     );
-  }, [charts]);
+  }, [charts,loading]);
 
   return (
     <React.Fragment>

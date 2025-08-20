@@ -199,6 +199,7 @@ export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_PATIENT_ANALYTICS_WP = "/report/patient-csv";
 export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
+export const GET_BOOKING_ANALYTICS = "/report/booking";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
@@ -244,7 +245,8 @@ export const ROLES = "/role";
 
 // nurse
 export const GET_NURSE_ASSIGNED_PATIENTS = "/nurse/patients";
-export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE= "/nurse/clinical-test-summary";
+export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE =
+  "/nurse/clinical-test-summary";
 export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
 export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
 export const GET_NURSES_BY_PATIENT_CENTER="/nurse/list";

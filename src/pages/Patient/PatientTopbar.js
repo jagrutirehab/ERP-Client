@@ -538,7 +538,7 @@ const PatientTopbar = ({
                       </DropdownItem> */}
                       <DropdownItem
                         disabled={
-                          !patient.isAdmit || user.role === "COUNSELLOR"
+                          !patient.isAdmit || user?.role === "COUNSELLOR"
                         }
                         onClick={() =>
                           dispatch(
@@ -664,9 +664,9 @@ PatientTopbar.propTypes = {
 
 const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
-  user: state.User.user,
-  doctors: state.User.doctor,
-  psychologists: state.User.counsellors,
+  user: state.User?.user,
+  doctors: state.User?.doctor,
+  psychologists: state.User?.counsellors,
   admissions: state.Chart.data,
   loading: state.Patient.admissionLoading,
   nurseLoading: state.Patient.nurseLoading,

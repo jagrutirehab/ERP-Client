@@ -96,6 +96,14 @@ const pages = [
         },
       },
       {
+        name: "Forms",
+        permissions: {
+          create: true,
+          edit: true,
+          delete: true,
+        },
+      },
+      {
         name: "OPD",
         permissions: {
           create: true,

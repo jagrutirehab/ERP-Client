@@ -200,6 +200,7 @@ const Billing = ({
                     isTrue={
                       (user?.email === "rijutarafder000@gmail.com" ||
                         user?.email === "owais@gmail.com" ||
+                        user?.email === "bishal@gmail.com" ||
                         user?.email === "hemanthshinde@gmail.com" ||
                         user?.email === "surjeet.parida@gmail.com") &&
                       addmission.dischargeDate
@@ -247,6 +248,7 @@ const Billing = ({
                 <div className="d-flex align-items-center gap-4">
                   {(user?.email === "rijutarafder000@gmail.com" ||
                     user?.email === "owais@gmail.com" ||
+                    user?.email === "bishal@gmail.com" ||
                     user?.email === "hemanthshinde@gmail.com") && (
                     <div className="d-flex align-items-center">
                       <UncontrolledTooltip

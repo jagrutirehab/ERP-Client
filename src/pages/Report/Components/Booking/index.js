@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { differenceInYears, endOfDay, format, startOfDay } from "date-fns";
-import { connect } from "react-redux";
+import {
+  differenceInMinutes,
+  differenceInYears,
+  endOfDay,
+  format,
+  startOfDay,
+} from "date-fns";
+import { connect, useDispatch } from "react-redux";
 import Header from "../Header";
 import Divider from "../../../../Components/Common/Divider";
 import DataTable from "react-data-table-component";
@@ -12,23 +18,36 @@ import {
   GET_PATIENT_ANALYTICS_WP,
 } from "../../../../helpers/url_helper";
 import axios from "axios";
+import { fetchBookingAnalytics } from "../../../../store/actions";
 
-const Patient = ({ centerAccess }) => {
+const Booking = ({
+  centerAccess,
+  data,
+  totalPages,
+  currentPage,
+  limit: limitProp,
+  total,
+}) => {
+  const dispatch = useDispatch();
+
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
   const [filter, setFilter] = useState("");
   const [val, setVal] = useState("");
-  const [data, setData] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totaldata, setTotaldata] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10);
+  //   const [data, setData] = useState([]);
+  const [page, setPage] = useState(currentPage || 1);
+  // const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(limitProp || 10);
 
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
+
+  useEffect(() => {
+    setPage(currentPage || 1);
+  }, [currentPage]);
 
   const fetchFullData = async () => {
     try {
@@ -95,33 +114,27 @@ const Patient = ({ centerAccess }) => {
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const res = await axios.get(GET_PATIENT_ANALYTICS, {
-        params: {
-          page,
-          limit,
-          startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString(),
-          filter,
-          val,
-          centerAccess,
-        },
-      });
+  console.log(page, "page");
 
-      if (res.success) {
-        setData(res.payload || []);
-        setTotalPages(res.pagination?.totalPages || 1);
-        setTotaldata(res?.pagination?.total);
-      }
-    } catch (err) {
-      console.error("Failed to fetch patient analytics", err);
-    }
+  const fetchData = async () => {
+    dispatch(
+      fetchBookingAnalytics({
+        page,
+        limit,
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        filter,
+        val,
+        centerAccess,
+      })
+    );
   };
 
   useEffect(() => {
     fetchData();
   }, [page, reportDate, filter, limit, centerAccess, val]);
+
+  console.log(data, "data");
 
   const generalColumns = [
     {
@@ -136,6 +149,9 @@ const Patient = ({ centerAccess }) => {
       name: "Patient",
       selector: (row) => row.patient?.name,
       wrap: true,
+      style: {
+        textTransform: "capitalize",
+      },
     },
     {
       name: "UID",
@@ -143,72 +159,19 @@ const Patient = ({ centerAccess }) => {
     },
     {
       name: "Doctor",
-      selector: (row) => {
-        const doctorsFromArray =
-          row?.doctors?.length > 0
-            ? row.doctors
-                .map((d) =>
-                  d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
-                )
-                .filter(Boolean)
-                .join(", ")
-            : null;
-
-        const doctorsFromAdmission =
-          row?.addmission?.doctors?.length > 0
-            ? row.addmission.doctors
-                .map((d) => d?.name || "")
-                .filter(Boolean)
-                .join(", ")
-            : null;
-
-        const fallbackDoctor =
-          row?.addmission?.doctor?.name ||
-          row?.doctor?.name ||
-          row?.patient?.doctor?.name ||
-          "-";
-
-        return doctorsFromArray || doctorsFromAdmission || fallbackDoctor;
-      },
+      selector: (row) => row.doctor?.name,
       wrap: true,
     },
     {
-      name: "Psychologist",
-      selector: (row) => {
-        const psychologistsFromArray =
-          row?.psychologists?.length > 0
-            ? row.psychologists
-                .map((p) =>
-                  p?.name
-                    ? p.name
-                    : p?.psychologist?.name
-                    ? p.psychologist.name
-                    : ""
-                )
-                .filter(Boolean)
-                .join(", ")
-            : null;
-
-        const psychologistsFromAdmission =
-          row?.addmission?.psychologists?.length > 0
-            ? row.addmission.psychologists
-                .map((p) => p?.name || "")
-                .filter(Boolean)
-                .join(", ")
-            : null;
-
-        const fallbackPsychologist =
-          row?.addmission?.psychologist?.name ||
-          row?.psychologist?.name ||
-          row?.patient?.psychologist?.name ||
-          "-";
-
-        return (
-          psychologistsFromArray ||
-          psychologistsFromAdmission ||
-          fallbackPsychologist
-        );
-      },
+      name: "Date",
+      selector: (row) =>
+        `${format(
+          new Date(row.startDate),
+          "d MMM yyyy hh:mm a"
+        )} for ${differenceInMinutes(
+          new Date(row.endDate),
+          new Date(row.startDate)
+        )} minutes`,
       wrap: true,
     },
     {
@@ -216,74 +179,29 @@ const Patient = ({ centerAccess }) => {
       selector: (row) => row.patient?.gender,
     },
     {
-      name: "Referred By",
-      selector: (row) => row.patient?.referredBy,
-      wrap: true,
-    },
-    {
       name: "Phone No",
-      selector: (row) => row.patient?.phoneNumber,
+      selector: (row) => row.patient?.dialCode + row.patient?.mobile || "",
     },
     {
-      name: "Age",
+      name: "Booking Price",
       selector: (row) =>
-        differenceInYears(new Date(), new Date(row.patient?.dateOfBirth)) +
-        " years",
+        row.transactionId?.booking_price ||
+        row.bill?.receiptInvoice?.paymentModes
+          ?.reduce((sum, m) => sum + (m.amount || 0), 0)
+          .toFixed(2),
     },
     {
-      name: "Guardian",
-      selector: (row) => row.patient?.guardianName,
-      wrap: true,
-    },
-    {
-      name: "Guardian Number",
-      selector: (row) => row.patient?.guardianPhoneNumber,
-      wrap: true,
-    },
-    {
-      name: "Admission Date",
+      name: "Payment Method",
       selector: (row) =>
-        row.addmissionDate
-          ? format(new Date(row.addmissionDate), "d MMM yyyy hh:mm a")
-          : "",
-      wrap: true,
+        row.transactionId?.payment_method?.toUpperCase() ||
+        row.bill?.receiptInvoice?.paymentModes?.map((m) => m.type).join(", "),
     },
     {
-      name: "Discharge Date",
+      name: "Payment Status",
       selector: (row) =>
-        row.dischargeDate
-          ? format(new Date(row.dischargeDate), "d MMM yyyy hh:mm a")
-          : "",
-      wrap: true,
+        row.transactionId?.payment_Status || row.bill ? "Completed" : "Unpaid",
     },
   ];
-
-  const billCycleDate = {
-    name: "Bill Cycle Date",
-    selector: (row) =>
-      row.addmission?.addmissionDate
-        ? format(new Date(row.addmission.addmissionDate), "d")
-        : "",
-    wrap: true,
-  };
-
-  const addmissionDate = {
-    name: "Admission Date",
-    selector: (row) =>
-      row.addmission?.addmissionDate
-        ? format(new Date(row.addmission.addmissionDate), "d MMM yyyy hh:mm a")
-        : "",
-    wrap: true,
-  };
-
-  const dischargeDate = {
-    name: "Discharge Date",
-    selector: (row) =>
-      row.addmission?.dischargeDate
-        ? format(new Date(row.addmission.dischargeDate), "d MMM yyyy hh:mm a")
-        : "",
-    wrap: true,
-  };
 
   const patientRow = [
     {
@@ -365,8 +283,8 @@ const Patient = ({ centerAccess }) => {
     },
   ];
 
-  const admittedColumns = [...patientRow, addmissionDate, billCycleDate];
-  const dischargeColumns = [...patientRow, addmissionDate, dischargeDate];
+  const admittedColumns = [...patientRow];
+  const dischargeColumns = [...patientRow];
 
   const patientColumns = patientRow;
 
@@ -374,17 +292,12 @@ const Patient = ({ centerAccess }) => {
     { label: "#", key: "id" },
     { label: "Center", key: "center.title" },
     { label: "Patient", key: "patient.name" },
-    { label: "UID", key: "uid" },
+    { label: "UID", key: "patient.id.value" },
     { label: "Gender", key: "patient.gender" },
     { label: "Referred By", key: "patient.referredBy" },
     { label: "Phone No", key: "patient.phoneNumber" },
     { label: "Doctor", key: "doctor" },
-    { label: "Psychologist", key: "psychologist" },
-    { label: "Age", key: "age" },
-    { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
-    { label: "Addmission Date", key: "addmissionDate" },
-    { label: "Discharge Date", key: "dischargeDate" },
+    { label: "Date", key: "date" },
   ];
 
   const admittedHeaders = [
@@ -423,29 +336,13 @@ const Patient = ({ centerAccess }) => {
     { label: "Discharge Date", key: "dischargeDate" },
   ];
 
-  const patientHeaders = [
-    { label: "#", key: "id" },
-    { label: "Center", key: "center.title" },
-    { label: "Patient", key: "name" },
-    { label: "UID", key: "uid" },
-    { label: "Gender", key: "gender" },
-    { label: "Phone No", key: "phoneNumber" },
-    { label: "Doctor", key: "doctor" },
-    { label: "Psychologist", key: "psychologist" },
-    { label: "Age", key: "age" },
-    { label: "Referred By", key: "referredBy" },
-    { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
-    { label: "IPD File No", key: "ipdFileNumber" },
-  ];
-
   return (
     <React.Fragment>
       <div className="pt-4">
         <div className="bg-white p-2 m-n3">
           <div className="">
             <h6 className="display-6 fs-6 my-3">
-              Total Patients:- {totaldata}
+              Total Appointments:- {total}
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
@@ -458,12 +355,14 @@ const Patient = ({ centerAccess }) => {
                   setFilter(e.target.value);
                 }}
               >
-                <option value={""}>General</option>
-                <option value={"ADMITTED_PATIENTS"}>Admitted Patients</option>
-                <option value={"DISCHARGED_PATIENTS"}>
-                  Discharged Patients
+                <option value={""}>All Appointments</option>
+                <option value={"PRESCRIBED_APPOINTMENTS"}>
+                  Prescribed Appointments
                 </option>
-                <option value={"ALL_PATIENTS"}>All Patients</option>
+                <option value={"PAID_APPOINTMENTS"}>Paid Appointments</option>
+                <option value={"CANCELLED_APPOINTMENTS"}>
+                  Cancelled Appointments
+                </option>
               </Input>
 
               <Input
@@ -483,8 +382,8 @@ const Patient = ({ centerAccess }) => {
               </Input>
             </div>
             <div>
-              {filter === "ADMITTED_PATIENTS" &&
-                (val === "ALL_ADMITTED" ? (
+              {/* {filter === "PRESCRIBED_APPOINTMENTS" &&
+                (val === "ALL_PRESCRIBED" ? (
                   <Button
                     color="info"
                     onClick={() => setVal("")}
@@ -500,7 +399,7 @@ const Patient = ({ centerAccess }) => {
                   >
                     Show All Admitted Patients
                   </Button>
-                ))}
+                ))} */}
 
               <Button
                 color="info"
@@ -514,12 +413,10 @@ const Patient = ({ centerAccess }) => {
                 data={csvData || []}
                 filename="reports.csv"
                 headers={
-                  filter === "ADMITTED_PATIENTS"
+                  filter === "PRESCRIBED_APPOINTMENTS"
                     ? admittedHeaders
-                    : filter === "DISCHARGED_PATIENTS"
+                    : filter === "CANCELLED_APPOINTMENTS"
                     ? discahrgeHeaders
-                    : filter === "ALL_PATIENTS"
-                    ? patientHeaders
                     : generalHeaders
                 }
                 className="d-none"
@@ -531,15 +428,26 @@ const Patient = ({ centerAccess }) => {
           <DataTable
             fixedHeader
             columns={
-              filter === "ADMITTED_PATIENTS"
-                ? admittedColumns
-                : filter === "ALL_PATIENTS"
-                ? patientColumns
-                : filter === "DISCHARGED_PATIENTS"
-                ? dischargeColumns
-                : generalColumns
+              // filter === "PRESCRIBED_APPOINTMENTS"
+              //   ? admittedColumns
+              //   : filter === "CANCELLED_APPOINTMENTS"
+              //   ? patientColumns
+              //   :
+              generalColumns
             }
-            data={data?.map((d) => ({ ...d, uid: d.id, id: d._id })) || []}
+            data={
+              data?.map((d) => ({
+                ...d,
+                id: d._id,
+                date: `${format(
+                  new Date(d.startDate),
+                  "d MMM yyyy hh:mm a"
+                )} for ${differenceInMinutes(
+                  new Date(d.endDate),
+                  new Date(d.startDate)
+                )} minutes`,
+              })) || []
+            }
             highlightOnHover
           />
           <div className="d-flex justify-content-between align-items-center mt-3">
@@ -565,13 +473,17 @@ const Patient = ({ centerAccess }) => {
   );
 };
 
-Patient.propTypes = {
+Booking.propTypes = {
   data: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
-  data: state.Report.patient,
   centerAccess: state.User.centerAccess,
+  data: state.Report.booking,
+  totalPages: state.Report.totalPages,
+  currentPage: state.Report.currentPage,
+  limit: state.Report.limit,
+  total: state.Report.total,
 });
 
-export default connect(mapStateToProps)(Patient);
+export default connect(mapStateToProps)(Booking);

@@ -13,7 +13,7 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 import Offcanvas from "./Offcanvas";
 import List from "./List";
 import DeleteModal from "../../../Components/Common/DeleteModal";
-import { Button } from "reactstrap";
+import { Button, Spinner } from "reactstrap";
 
 const Patient = ({ centerAccess, patients }) => {
   const dispatch = useDispatch();
@@ -23,9 +23,21 @@ const Patient = ({ centerAccess, patients }) => {
     data: null,
     isOpen: false,
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    dispatch(getRemovedPatients(centerAccess));
+     if (patients && patients.length > 0) return;
+    const loadDeletedUser = async () => {
+      try {
+        setLoading(true);
+        await dispatch(getRemovedPatients(centerAccess)).unwrap();
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+      }
+    };
+
+    loadDeletedUser();
   }, [dispatch, centerAccess]);
 
   const onCloseClick = () => {
@@ -46,6 +58,13 @@ const Patient = ({ centerAccess, patients }) => {
   };
 
   const renderPatients = useMemo(() => {
+    if (loading) {
+          return (
+            <div className="d-flex justify-content-center align-items-center p-3">
+              <Spinner color="primary" />
+            </div>
+          );
+        }
     return (
       <div className="">
         <PerfectScrollbar className="chat-room-list">
@@ -57,7 +76,7 @@ const Patient = ({ centerAccess, patients }) => {
         </PerfectScrollbar>
       </div>
     );
-  }, [patients]);
+  }, [patients, loading]);
 
   return (
     <React.Fragment>

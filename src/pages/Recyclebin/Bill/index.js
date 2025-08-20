@@ -11,7 +11,7 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 //redux
 import { connect, useDispatch } from "react-redux";
 import { getRemovedBills, removeBillPermanently } from "../../../store/actions";
-import { Button } from "reactstrap";
+import { Button, Spinner } from "reactstrap";
 
 const Bill = ({ centerAccess, bills }) => {
   const dispatch = useDispatch();
@@ -20,6 +20,7 @@ const Bill = ({ centerAccess, bills }) => {
     data: null,
     isOpen: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const [deleteBills, setDeleteBills] = useState({
     data: null,
@@ -27,7 +28,17 @@ const Bill = ({ centerAccess, bills }) => {
   });
 
   useEffect(() => {
-    dispatch(getRemovedBills());
+    if(bills && bills.length > 0) return;
+    const loadDeletedBills = async () => {
+      try {
+        setLoading(true);
+        await dispatch(getRemovedBills()).unwrap();
+      } catch (error) {
+        setLoading(false);
+      }
+    };
+
+    loadDeletedBills();
   }, [dispatch]);
 
   const onCloseClick = () => {
@@ -50,6 +61,13 @@ const Bill = ({ centerAccess, bills }) => {
   };
 
   const renderList = useMemo(() => {
+    if (loading) {
+      return (
+        <div className="d-flex justify-content-center align-items-center p-3">
+          <Spinner color="primary" />
+        </div>
+      );
+    }
     return (
       <div className="">
         <PerfectScrollbar className="chat-room-list">
@@ -57,7 +75,7 @@ const Bill = ({ centerAccess, bills }) => {
         </PerfectScrollbar>
       </div>
     );
-  }, [bills]);
+  }, [bills, loading]);
 
   return (
     <React.Fragment>

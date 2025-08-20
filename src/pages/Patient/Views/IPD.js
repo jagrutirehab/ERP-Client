@@ -82,6 +82,7 @@ const IPDComponent = ({
               <div className="d-flex align-items-center gap-4">
                 {(user?.email === "rijutarafder000@gmail.com" ||
                   user?.email === "owais@gmail.com" ||
+                  user?.email === "bishal@gmail.com" ||
                   user?.email === "hemanthshinde@gmail.com") && (
                   <div className="d-flex align-items-center">
                     <UncontrolledTooltip

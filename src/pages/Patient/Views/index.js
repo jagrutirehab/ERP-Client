@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { ButtonGroup, Button } from "reactstrap";
 //constants
 import {
@@ -6,11 +6,14 @@ import {
   CHARTING_VIEW,
   TIMELINE_VIEW,
   OPD_VIEW,
+  FORMS_VIEW,
 } from "../../../Components/constants/patient";
+
 //components
 import Charting from "./Charting";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
+import AddmissionForms from "./AdmissionForms/AdmissionForms";
 import { connect, useSelector } from "react-redux";
 import CiwaQuestion from "./Components/CiwaQuestion";
 import SsrsQuestion from "./Components/SsrsQuestion";
@@ -34,16 +37,15 @@ const Views = (props) => {
     Timeline: TIMELINE_VIEW,
   };
 
-  const patientPage = props.pageAccess.find((pg) => pg.name === "Patient");
+  const patientPage = props?.pageAccess?.find((pg) => pg.name === "Patient");
   const [view, setView] = useState(
-    patientPage?.subAccess.find(
-      (sub) => sub.name.toUpperCase() === CHARTING_VIEW
-    )
-      ? CHARTING_VIEW
-      : patientPage.subAccess[0]?.name
-      ? vws[patientPage.subAccess[0]?.name]
-      : ""
-  );
+  patientPage?.subAccess?.find(sub => sub?.name.toUpperCase() === CHARTING_VIEW)
+    ? CHARTING_VIEW
+    : patientPage?.subAccess[0]?.name
+    ? vws[patientPage?.subAccess[0]?.name]
+    : ""
+);
+
 
   const handleView = (v) => setView(v);
 
@@ -58,15 +60,17 @@ const Views = (props) => {
           <div className="patient-content postion-relative overflow-auto bg-white mt-1 px-3 py-3">
             <div className="d-flex justify-content-between flex-wrap">
               <ButtonGroup size="sm">
-                {props.pageAccess
-                  .find((pg) => pg.name === "Patient")
-                  ?.subAccess.filter((s) => s.name !== "OPD")
+                {props?.pageAccess
+                  ?.find((pg) => pg.name === "Patient")
+                  ?.subAccess?.filter((s) => s.name !== "OPD")
                   .map((sub) => {
                     const vw =
-                      sub.name.toUpperCase() === CHARTING_VIEW
+                      sub?.name.toUpperCase() === CHARTING_VIEW
                         ? CHARTING_VIEW
-                        : sub.name.toUpperCase() === BILLING_VIEW
+                        : sub?.name.toUpperCase() === BILLING_VIEW
                         ? BILLING_VIEW
+                        : sub.name.toUpperCase() === FORMS_VIEW
+                        ? FORMS_VIEW
                         : sub.name.toUpperCase() === TIMELINE_VIEW
                         ? TIMELINE_VIEW
                         : "";
@@ -87,6 +91,7 @@ const Views = (props) => {
               )}
               {view === BILLING_VIEW && <Billing view={view} />}
               {view === TIMELINE_VIEW && <Timeline view={view} />}
+              {view === FORMS_VIEW && <AddmissionForms view={view} />}
             </div>
           </div>
         ) : (
