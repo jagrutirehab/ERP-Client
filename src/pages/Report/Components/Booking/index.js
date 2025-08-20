@@ -14,11 +14,13 @@ import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
 import { Button, Input } from "reactstrap";
 import {
+  GET_BOOKING_ANALYTICS,
   GET_PATIENT_ANALYTICS,
   GET_PATIENT_ANALYTICS_WP,
 } from "../../../../helpers/url_helper";
 import axios from "axios";
 import { fetchBookingAnalytics } from "../../../../store/actions";
+import { getBookingAnalytics } from "../../../../helpers/backend_helper";
 
 const Booking = ({
   centerAccess,
@@ -52,52 +54,56 @@ const Booking = ({
   const fetchFullData = async () => {
     try {
       setCsvLoading(true);
-      const res = await axios.get(GET_PATIENT_ANALYTICS_WP, {
-        params: {
-          startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString(),
-          filter,
-          val,
-          centerAccess,
-        },
+      const res = await getBookingAnalytics({
+        page: 1,
+        limit: 10000,
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        filter,
+        val,
+        centerAccess,
       });
 
       if (res.success) {
+        console.log(res.payload, "payload");
         const fullData = res.payload || [];
         const formatted = fullData.map((d, i) => ({
           ...d,
           id: i + 1,
-          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${
-            d?.id?.value || d?.patient?.id?.value || ""
-          }`,
-          age: d?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
-            : d?.patient?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
-            : "",
-          doctor: d?.addmission?.doctors?.length
-            ? d.addmission.doctors.map((doc) => doc?.name || "").pop() || ""
-            : d?.doctor?.name || d?.addmission?.doctor?.name || "",
-          psychologist: d?.addmission?.psychologists?.length
-            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop() ||
-              ""
-            : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
-          addmissionDate: d?.addmission?.addmissionDate
-            ? format(
-                new Date(d.addmission.addmissionDate),
-                "d MMM yyyy hh:mm a"
-              )
-            : d?.addmissionDate
-            ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
-            : "",
-          dischargeDate: d?.addmission?.dischargeDate
-            ? format(new Date(d.addmission.dischargeDate), "d MMM yyyy hh:mm a")
-            : d?.dischargeDate
-            ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
-            : "",
-          billCycleDate: d?.addmission?.addmissionDate
-            ? format(new Date(d.addmission.addmissionDate), "d")
-            : "",
+          patientName: d?.patient?.name
+            .split(" ")
+            .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
+            .join(" "),
+          doctorName: d?.doctor?.name
+            .split(" ")
+            .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
+            .join(" "),
+          centerName: d?.center?.title
+            .split(" ")
+            .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
+            .join(" "),
+          date: `${format(
+            new Date(d.startDate),
+            "d MMM yyyy hh:mm a"
+          )} for ${differenceInMinutes(
+            new Date(d.endDate),
+            new Date(d.startDate)
+          )} minutes`,
+          phoneNumber: d?.patient?.dialCode + d?.patient?.mobile,
+          paymentStatus:
+            d?.transactionId?.payment_Status || d?.bill
+              ? "Completed"
+              : "Unpaid",
+          paymentMethod:
+            d?.transactionId?.payment_method?.toUpperCase() ||
+            d?.bill?.receiptInvoice?.paymentModes
+              ?.map((m) => m.type)
+              .join(", "),
+          bookingPrice:
+            d?.transactionId?.booking_price ||
+            d?.bill?.receiptInvoice?.paymentModes
+              ?.reduce((sum, m) => sum + (m.amount || 0), 0)
+              .toFixed(2),
         }));
 
         setCsvData(formatted);
@@ -203,137 +209,30 @@ const Booking = ({
     },
   ];
 
-  const patientRow = [
-    {
-      name: "#",
-      selector: (row, idx) => idx + 1,
-    },
-    {
-      name: "Center",
-      selector: (row) => row.center?.title,
-    },
-    {
-      name: "Patient",
-      selector: (row) => row?.name,
-      wrap: true,
-    },
-    {
-      name: "UID",
-      selector: (row) => `${row?.uid?.prefix}${row?.uid?.value}`,
-    },
-    {
-      name: "Gender",
-      selector: (row) => row?.gender,
-    },
-    {
-      name: "Referred By",
-      selector: (row) => row?.referredBy,
-      wrap: true,
-    },
-    {
-      name: "Doctor",
-      selector: (row) =>
-        row?.addmission?.doctors?.length > 0
-          ? row.addmission.doctors
-              .map((d) => d?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
-          : row?.addmission?.doctor?.name || row?.doctor?.name || "—",
-      wrap: true,
-    },
-    {
-      name: "Psychologist",
-      selector: (row) =>
-        row?.addmission?.psychologists?.length > 0
-          ? row.addmission.psychologists
-              .map((p) => p?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
-          : row?.addmission?.psychologist?.name ||
-            row?.psychologist?.name ||
-            "—",
-      wrap: true,
-    },
-
-    {
-      name: "Phone No",
-      selector: (row) => row?.phoneNumber,
-    },
-    //
-    {
-      name: "Age",
-      selector: (row) =>
-        row?.dateOfBirth
-          ? differenceInYears(new Date(), new Date(row?.dateOfBirth)) + " years"
-          : "",
-    },
-    {
-      name: "Guardian",
-      selector: (row) => row?.guardianName,
-      wrap: true,
-    },
-    {
-      name: "Guardian Number",
-      selector: (row) => row?.guardianPhoneNumber,
-      wrap: true,
-    },
-    {
-      name: "IPD File NUmber",
-      selector: (row) => row.ipdFileNumber,
-    },
-  ];
-
-  const admittedColumns = [...patientRow];
-  const dischargeColumns = [...patientRow];
-
-  const patientColumns = patientRow;
-
   const generalHeaders = [
     { label: "#", key: "id" },
-    { label: "Center", key: "center.title" },
-    { label: "Patient", key: "patient.name" },
+    {
+      label: "Center",
+      key: "centerName",
+      style: { textTransform: "capitalize" },
+    },
+    {
+      label: "Patient",
+      key: "patientName",
+      style: { textTransform: "capitalize" },
+    },
     { label: "UID", key: "patient.id.value" },
     { label: "Gender", key: "patient.gender" },
-    { label: "Referred By", key: "patient.referredBy" },
-    { label: "Phone No", key: "patient.phoneNumber" },
-    { label: "Doctor", key: "doctor" },
+    { label: "Phone No", key: "phoneNumber" },
+    {
+      label: "Doctor",
+      key: "doctorName",
+      style: { textTransform: "capitalize" },
+    },
     { label: "Date", key: "date" },
-  ];
-
-  const admittedHeaders = [
-    { label: "#", key: "id" },
-    { label: "Center", key: "center.title" },
-    { label: "Patient", key: "name" },
-    { label: "UID", key: "uid" },
-    { label: "Gender", key: "gender" },
-    { label: "Referred By", key: "referredBy" },
-    { label: "Phone No", key: "phoneNumber" },
-    { label: "Doctor", key: "doctor" },
-    { label: "Psychologist", key: "psychologist" },
-    { label: "Age", key: "age" },
-    { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
-    { label: "IPD File No", key: "ipdFileNumber" },
-    { label: "Addmission Date", key: "addmissionDate" },
-    { label: "Bill Cycle Date", key: "billCycleDate" },
-  ];
-
-  const discahrgeHeaders = [
-    { label: "#", key: "id" },
-    { label: "Center", key: "center.title" },
-    { label: "Patient", key: "name" },
-    { label: "UID", key: "uid" },
-    { label: "Gender", key: "gender" },
-    { label: "Referred By", key: "referredBy" },
-    { label: "Phone No", key: "phoneNumber" },
-    { label: "Doctor", key: "doctor" },
-    { label: "Psychologist", key: "psychologist" },
-    { label: "Age", key: "age" },
-    { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
-    { label: "IPD File No", key: "ipdFileNumber" },
-    { label: "Addmission Date", key: "addmissionDate" },
-    { label: "Discharge Date", key: "dischargeDate" },
+    { label: "Booking Price", key: "bookingPrice" },
+    { label: "Payment Method", key: "paymentMethod" },
+    { label: "Payment Status", key: "paymentStatus" },
   ];
 
   return (
@@ -412,13 +311,7 @@ const Booking = ({
               <CSVLink
                 data={csvData || []}
                 filename="reports.csv"
-                headers={
-                  filter === "PRESCRIBED_APPOINTMENTS"
-                    ? admittedHeaders
-                    : filter === "CANCELLED_APPOINTMENTS"
-                    ? discahrgeHeaders
-                    : generalHeaders
-                }
+                headers={generalHeaders}
                 className="d-none"
                 ref={csvRef}
               />

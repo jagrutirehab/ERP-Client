@@ -5,6 +5,7 @@ import history from "../Routes/HistoryRoute";
 // ✅ Main Axios setup (unchanged)
 axios.defaults.baseURL = api.API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.headers.post["credentials"] = "include";
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
@@ -57,6 +58,7 @@ const authAxios = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
+  credentials: "include",
 });
 
 // ✅ Automatically set token for authAxios
