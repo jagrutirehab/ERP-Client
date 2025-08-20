@@ -107,7 +107,7 @@ const Views = (props) => {
 Views.propTypes = {};
 
 const mapStateToProps = (state) => ({
-  pageAccess: state.User.user.pageAccess.pages,
+  pageAccess: state.User?.user?.pageAccess?.pages,
 });
 
 export default connect(mapStateToProps)(Views);

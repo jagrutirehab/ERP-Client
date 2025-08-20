@@ -1,2 +1,4 @@
 export const OVERVIEW_VIEW = "OVERVIEW";
 export const MEDICATION_VIEW = "MEDICATION_VIEW";
+export const ACTIVITY_VIEW = "ACTIVITY_VIEW";
+export const NOTES_VIEW = "NOTES_VIEW";

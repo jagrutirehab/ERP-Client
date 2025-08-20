@@ -87,6 +87,8 @@ export const DELETE_PATIENT = "/patient";
 export const DELETE_PATIENT_PERMANENTLY = "/patient/delete-permanently";
 export const UPDATE_ADMISSION_ASSIGNMENT =
   "/patient/update-admission-assignment";
+export const ASSIGN_NURSE_TO_PATIENT="/patient/assign-nurse";
+export const UNASSIGN_NURSE_TO_PATIENT="/patient/unassign-nurse";
 
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
@@ -245,9 +247,18 @@ export const GET_NURSE_ASSIGNED_PATIENTS = "/nurse/patients";
 export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE= "/nurse/clinical-test-summary";
 export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
 export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
+export const GET_NURSES_BY_PATIENT_CENTER="/nurse/list";
+export const GET_PENDING_ACTIVE_MEDICINES = "/nurse/due-medicine";
+export const GET_COMPLETED_ACTIVE_MEDICINES = "/nurse/completed-medicine";
+export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark-as-given";
+
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
+
+// notes
+export const NOTES = "/notes";
+
 //New Microservice APIS
 export const CSRF = "/csrf-token"
 export const MICRO_SIGN_IN = "/userauths/signin"

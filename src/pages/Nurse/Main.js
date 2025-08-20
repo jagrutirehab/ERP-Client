@@ -2,67 +2,57 @@ import React, { useEffect, useState } from "react";
 import { Button, Col, Row, Spinner } from "reactstrap";
 import NurseBar from "./Views/Components/NurseBar";
 import PatientCard from "./Views/Components/PatientCard";
-import {
-  setAlertData,
-  setAlertModal,
-  setNotesData,
-  setNotesModal,
-} from "../../store/actions";
+import { setAlertData, setAlertModal } from "../../store/actions";
 import PropTypes from "prop-types";
-import { useDispatch, connect } from "react-redux";
+import { useDispatch, connect, useSelector } from "react-redux";
 import InfoModal from "./Views/Components/InfoModal";
 import {
   allNurseAssignedPatients,
   getAlertsByPatientId,
 } from "../../store/features/nurse/nurseSlice";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
-const Main = ({
-  alertModal,
-  alertData,
-  notesModal,
-  notesData,
-  data,
-  loading,
-}) => {
+const Main = ({ alertModal, alertData, data, loading }) => {
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [flag, setFlag] = useState("");
   const limit = 12;
+  const token = useSelector((state) => state.User?.microLogin?.token);
+
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles,
+  } = usePermissions(token);
+  const hasUserPermission = hasPermission("NURSE", null, "READ");
 
   useEffect(() => {
+    if (!hasPermission) return;
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [search]);
+  }, [search, roles]);
 
   useEffect(() => {
+    if (!hasPermission) return;
     dispatch(
       allNurseAssignedPatients({ page, limit, search: debouncedSearch, flag })
     );
-  }, [dispatch, page, limit, flag, debouncedSearch]);
+  }, [dispatch, page, limit, flag, debouncedSearch, roles]);
 
   const toggleAlertsModal = (patientId) => {
     dispatch(getAlertsByPatientId(patientId));
     dispatch(setAlertModal());
   };
 
-  const toggleNotesModal = (notes) => {
-    dispatch(setNotesData(notes));
-    dispatch(setNotesModal());
-  };
-
   const closeAlertModal = () => {
     dispatch(setAlertModal());
-  };
-
-  const closeNotesModal = () => {
-    dispatch(setNotesData([]));
-    dispatch(setNotesModal());
   };
 
   const handlePrev = () => {
@@ -75,7 +65,22 @@ const Main = ({
 
   document.title = "Nurse | Your App Name";
 
-  console.log(data);
+  if (permissionLoader) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner
+          color="primary"
+          className="d-block"
+          style={{ width: "3rem", height: "3rem" }}
+        />
+      </div>
+    );
+  }
+
+  if (!hasUserPermission) {
+    navigate("/unauthorized");
+    return null;
+  }
 
   return (
     <React.Fragment>
@@ -101,10 +106,6 @@ const Main = ({
                 <PatientCard
                   toggleAlertsModal={() => {
                     toggleAlertsModal(patient._id);
-                  }}
-                  toggleNotesModal={() => {
-                    toggleNotesModal(patient.notes ?? []);
-                    dispatch(setNotesData(patient.notes));
                   }}
                   patient={{
                     ...patient,
@@ -158,12 +159,6 @@ const Main = ({
         onCloseClick={closeAlertModal}
         content={alertData}
       />
-      <InfoModal
-        show={notesModal}
-        title={"Notes"}
-        onCloseClick={closeNotesModal}
-        content={notesData}
-      />
     </React.Fragment>
   );
 };
@@ -171,16 +166,12 @@ const Main = ({
 Main.propTypes = {
   alertModal: PropTypes.bool,
   alertData: PropTypes.array,
-  notesModal: PropTypes.bool,
-  notesData: PropTypes.array,
   data: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
   alertModal: state.Nurse.alertModal,
   alertData: state.Nurse.alertData,
-  notesModal: state.Nurse.notesModal,
-  notesData: state.Nurse.notesData,
   data: state.Nurse.data,
   loading: state.Nurse.loading,
 });

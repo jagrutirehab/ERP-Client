@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Badge, Button, Col, Row, UncontrolledTooltip } from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
@@ -8,10 +8,9 @@ import { connect, useDispatch } from "react-redux";
 import {
   setAlertData,
   setAlertModal,
-  setNotesData,
-  setNotesModal,
 } from "../../../../store/actions";
 import PropTypes from "prop-types";
+import AddNoteModal from "./AddNoteModal";
 
 const statusColors = {
   Urgent: { color: "danger", border: "#ff4d4f" },
@@ -23,12 +22,12 @@ const PatientTopBar = ({
   profile,
   alertModal,
   alertData,
-  notesModal,
-  notesData,
   loading,
 }) => {
+  const {id}=useParams();
   const dispatch = useDispatch();
   const [viewPicture, setViewPicture] = useState();
+  const [notesModal, setNotesModal] = useState(false);
 
   // const { color, border } = statusColors[patient.flag] || {
   //   color: "secondary",
@@ -39,16 +38,8 @@ const PatientTopBar = ({
     dispatch(setAlertModal());
   };
 
-  const toggleNotesModal = (notes) => {
-    dispatch(setNotesModal());
-  };
-
   const closeAlertModal = () => {
     toggleAlertsModal();
-  };
-
-  const closeNotesModal = () => {
-    toggleNotesModal();
   };
 
   const SkeletonLoader = ({ width, height, circle = false }) => (
@@ -148,7 +139,7 @@ const PatientTopBar = ({
                   <Badge
                     pill
                     className={`fw-bold d-flex align-items-center ${
-                      alertData.length > 0
+                      alertData?.length > 0
                         ? `bg-#52c41a bg-opacity-25 text-black`
                         : "bg-secondary bg-opacity-25 text-secondary"
                     }`}
@@ -172,52 +163,7 @@ const PatientTopBar = ({
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    {alertData.length} Alerts
-                  </Badge>
-                </Button>
-              </li>
-              <li
-                id="notes"
-                className="list-inline-item ms-2 d-none d-md-inline"
-              >
-                <Button
-                  type="button"
-                  onClick={() => toggleNotesModal(notesData)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    marginTop: "2px",
-                  }}
-                >
-                  <Badge
-                    pill
-                    className={`fw-bold d-flex align-items-center ${
-                      notesData.length > 0
-                        ? "bg-primary bg-opacity-25 text-primary"
-                        : "bg-secondary bg-opacity-25 text-secondary"
-                    }`}
-                    style={{
-                      fontSize: "0.9rem",
-                      padding: "5px 10px",
-                      gap: "6px",
-                    }}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                      />
-                    </svg>
-                    {notesData.length} Notes
+                    {alertData?.length} Alerts
                   </Badge>
                 </Button>
               </li>
@@ -281,7 +227,7 @@ const PatientTopBar = ({
                 style={{ cursor: "pointer" }}
               >
                 {loading ? (
-                   <SkeletonLoader width="30px" height="10px" />
+                  <SkeletonLoader width="30px" height="10px" />
                 ) : (
                   <>
                     <svg
@@ -407,7 +353,9 @@ const PatientTopBar = ({
                 id="add-note"
                 className="list-inline-item ms-2 d-none d-md-inline"
               >
-                <Button color="primary">Add a Note</Button>
+                <Button color="primary" onClick={() => setNotesModal(true)}>
+                  Add Note
+                </Button>
               </li>
               <li
                 id="call-doctor"
@@ -439,11 +387,10 @@ const PatientTopBar = ({
         onCloseClick={closeAlertModal}
         content={alertData}
       />
-      <InfoModal
-        show={notesModal}
-        title={"Notes"}
-        onCloseClick={closeNotesModal}
-        content={notesData}
+      <AddNoteModal
+        isOpen={notesModal}
+        toggle={() => setNotesModal(false)}
+        patientId={id}
       />
     </React.Fragment>
   );
@@ -452,15 +399,11 @@ const PatientTopBar = ({
 PatientTopBar.prototype = {
   alertModal: PropTypes.bool,
   alertData: PropTypes.array,
-  notesModal: PropTypes.bool,
-  notesData: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
   alertModal: state.Nurse.alertModal,
   alertData: state.Nurse.alertData,
-  notesModal: state.Nurse.notesModal,
-  notesData: state.Nurse.notesData,
   profile: state.Nurse.profile,
   loading: state.Nurse.loading,
 });

@@ -35,7 +35,8 @@ import {
   IPD,
   GENERAL,
   OPD,
-  CLINIC_TEST
+  CLINIC_TEST,
+  NOTES,
 } from "../../../Components/constants/patient";
 import OPDView from "./OPD";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -43,7 +44,7 @@ import GeneralCard from "./Components/GeneralCard";
 import General from "./General";
 import IPDComponent from "./IPD";
 import ClinicalTest from "./ClinicalTest";
-
+import Notes from "../../Nurse/Views/Notes";
 
 const Charting = ({
   patient,
@@ -56,18 +57,20 @@ const Charting = ({
 }) => {
   const dispatch = useDispatch();
 
-  const isClinincalTab = useSelector((state)=> state.ClinicalTest.isClinincalTab)
-  const [tab, setTab] = useState( isClinincalTab? CLINIC_TEST : IPD);
+  const isClinincalTab = useSelector(
+    (state) => state.ClinicalTest.isClinincalTab
+  );
+  const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
   const [testModal, setTestModal] = useState(false);
   const [chartType, setChartType] = useState("");
   // const [toggleGeneral, setToggleGeneral] = useState("0");
   const toggleModal = () => setDateModal(!dateModal);
-  
+
   const toggleTestModal = () => {
-    setTestModal(!testModal)
-    setChartType("")
-  }
+    setTestModal(!testModal);
+    setChartType("");
+  };
 
   const handleAdmitPatient = () => {
     // if (!patient.isAdmit && !patient.isDischarge) {
@@ -115,7 +118,6 @@ const Charting = ({
       dispatch(fetchCharts(addmissionId));
     }
   }, [dispatch, patient, addmissionId]);
-
 
   //fixes accordian open close issue when switch patients
   // useEffect(() => {
@@ -194,8 +196,6 @@ const Charting = ({
     }
   };
 
-
-
   const ipdComponent = useMemo(() => {
     return (
       tab === IPD && (
@@ -225,7 +225,7 @@ const Charting = ({
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
           setAddmissionId={setAddmissionId}
-        // chartType = {chartType}
+          // chartType = {chartType}
         />
       )
     );
@@ -243,8 +243,6 @@ const Charting = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charts, generalLoading]);
 
-
-
   return (
     <div className="mt-3">
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
@@ -252,27 +250,29 @@ const Charting = ({
           {pageAccess
             .find((pg) => pg.name === "Patient")
             ?.subAccess.find((s) => s.name === "OPD") && (
-              <li className="nav-item">
-                <button
-                  onClick={() => setTab(OPD)}
-                  className={`nav-link rounded-0 ${tab === OPD
+            <li className="nav-item">
+              <button
+                onClick={() => setTab(OPD)}
+                className={`nav-link rounded-0 ${
+                  tab === OPD
                     ? "border-0 border-2 border-top border-primary"
                     : "active"
-                    }`}
-                  aria-current="page"
-                >
-                  OPD
-                </button>
-              </li>
-            )}
+                }`}
+                aria-current="page"
+              >
+                OPD
+              </button>
+            </li>
+          )}
 
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(IPD)}
-              className={`nav-link rounded-0 ${tab === IPD
-                ? "border-0 border-2 border-top border-primary"
-                : "active"
-                }`}
+              className={`nav-link rounded-0 ${
+                tab === IPD
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
             >
               IPD
             </button>
@@ -280,10 +280,11 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(CLINIC_TEST)}
-              className={`nav-link rounded-0 ${tab === CLINIC_TEST
-                ? "border-0 border-2 border-top border-primary"
-                : "active"
-                }`}
+              className={`nav-link rounded-0 ${
+                tab === CLINIC_TEST
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
             >
               Clinical Test
             </button>
@@ -291,15 +292,27 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(GENERAL)}
-              className={`nav-link rounded-0 ${tab === GENERAL
-                ? "border-0 border-2 border-top border-primary"
-                : "active"
-                }`}
+              className={`nav-link rounded-0 ${
+                tab === GENERAL
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
             >
               History
             </button>
           </li>
-
+          <li className="nav-item rounded-0">
+            <button
+              onClick={() => setTab(NOTES)}
+              className={`nav-link rounded-0 ${
+                tab === NOTES
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
+            >
+              Notes
+            </button>
+          </li>
         </ul>
       </div>
       <div className="mb-2">
@@ -334,7 +347,9 @@ const Charting = ({
       {tab === IPD ? (
         ipdComponent
       ) :  */}
-      {tab === GENERAL ? (
+      {tab === NOTES ? (
+        <Notes />
+      ) : tab === GENERAL ? (
         generalComponent
       ) : tab === OPD ? (
         <OPDView charts={charts} toggleModal={toggleModal} />
@@ -345,11 +360,8 @@ const Charting = ({
       )}
       {ipdComponent}
 
-
-
       <ChartDate type={chartType} isOpen={dateModal} toggle={toggleModal} />
       <ChartForm type={chartType} onSubmitClinicalForm={onSubmitClinicalForm} />
-
     </div>
   );
 };

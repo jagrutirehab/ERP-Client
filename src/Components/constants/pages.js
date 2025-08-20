@@ -7,6 +7,13 @@ const pages = [
     icon: "ri-delete-bin-6-line",
   },
   {
+    id: "nurse",
+    label: "Nurse",
+    name: "Nurse",
+    link: "/nurse",
+    icon: "bx bx-user",
+  },
+  {
     id: "users",
     label: "User",
     name: "User",

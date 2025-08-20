@@ -16,6 +16,7 @@ const OPD = "OPD";
 const IPD = "IPD";
 const CLINIC_TEST = "CLINICTEST";
 export const GENERAL = "GENERAL";
+export const NOTES = "NOTES";
 //Admit Discharge
 const ADMIT_PATIENT = "ADMIT_PATIENT";
 const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";

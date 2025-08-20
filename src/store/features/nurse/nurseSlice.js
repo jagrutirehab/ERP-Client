@@ -1,17 +1,30 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  assignNurseToPatient,
+  createNote,
   getAlertsByPatient,
   getClinicalTestSummary,
+  getCompletedActiveMedicines,
+  getNotesByPatient,
   getNurseAssignedPatients,
+  getNursesListByPatientCenter,
   getPatientOverview,
   getPatientPrescription,
+  getPendingActiveMedicines,
+  markMedicineAsGiven,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
 const initialState = {
   loading: false,
   testLoading: false,
-  modalLoading:false,
+  modalLoading: false,
+  notesLoading: false,
+  medicineLoading: false,
+  medicines: {
+    pending: [],
+    completed: [],
+  },
   data: [],
   profile: null,
   vitals: null,
@@ -86,6 +99,89 @@ export const getAlertsByPatientId = createAsyncThunk(
       console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch patient alerts");
+    }
+  }
+);
+
+export const getNotesByPatientId = createAsyncThunk(
+  "nurse/getNotesByPatient",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getNotesByPatient(patientId);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch patient notes");
+    }
+  }
+);
+
+export const getNursesListByPatient = createAsyncThunk(
+  "nurse/getNursesListByPatientCenter",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getNursesListByPatientCenter(data);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch nurse list");
+    }
+  }
+);
+
+export const addNotes = createAsyncThunk(
+  "nurse/createNote",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await createNote(data);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to create patient notes");
+    }
+  }
+);
+
+export const getRemainigActiveMedicines = createAsyncThunk(
+  "nurse/getPendingActiveMedicines",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getPendingActiveMedicines(patientId);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch pending active medicines");
+    }
+  }
+);
+
+export const getTodayCompletedActiveMedicines = createAsyncThunk(
+  "nurse/getCompletedActiveMedicines",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getCompletedActiveMedicines(patientId);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch completed active medicines");
+    }
+  }
+);
+
+export const markPendingMedicineAsGiven = createAsyncThunk(
+  "nurse/markMedicineAsGiven",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await markMedicineAsGiven(data);
+      return response;
+    } catch (error) {
+      console.log(error);
+      return rejectWithValue("Failed to mark medicine as given");
     }
   }
 );
@@ -171,6 +267,78 @@ export const NurseSlice = createSlice({
       })
       .addCase(getAlertsByPatientId.rejected, (state) => {
         state.modalLoading = false;
+      });
+    builder
+      .addCase(getNotesByPatientId.pending, (state) => {
+        state.notesLoading = true;
+      })
+      .addCase(getNotesByPatientId.fulfilled, (state, { payload }) => {
+        state.notesData = payload.data;
+        state.notesLoading = false;
+      })
+      .addCase(getNotesByPatientId.rejected, (state) => {
+        state.notesLoading = false;
+      });
+    builder
+      .addCase(addNotes.pending, (state) => {
+        state.notesLoading = true;
+      })
+      .addCase(addNotes.fulfilled, (state, { payload }) => {
+        state.notesData.unshift(payload.data);
+        state.notesLoading = false;
+      })
+      .addCase(addNotes.rejected, (state) => {
+        state.notesLoading = false;
+      });
+    builder
+      .addCase(getNursesListByPatient.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getNursesListByPatient.fulfilled, (state, { payload }) => {
+        state.data = payload.data;
+        state.loading = false;
+      })
+      .addCase(getNursesListByPatient.rejected, (state) => {
+        state.loading = false;
+      });
+    builder
+      .addCase(getRemainigActiveMedicines.pending, (state) => {
+        state.testLoading = true;
+      })
+      .addCase(getRemainigActiveMedicines.fulfilled, (state, { payload }) => {
+        state.medicines.pending = payload.data;
+        state.testLoading = false;
+      })
+      .addCase(getRemainigActiveMedicines.rejected, (state) => {
+        state.testLoading = false;
+      });
+    builder
+      .addCase(getTodayCompletedActiveMedicines.pending, (state) => {
+        state.testLoading = true;
+      })
+      .addCase(
+        getTodayCompletedActiveMedicines.fulfilled,
+        (state, { payload }) => {
+          state.medicines.completed = payload.data;
+          state.testLoading = false;
+        }
+      )
+      .addCase(getTodayCompletedActiveMedicines.rejected, (state) => {
+        state.testLoading = false;
+      });
+    builder
+      .addCase(markPendingMedicineAsGiven.pending, (state) => {
+        state.medicineLoading = true;
+      })
+      .addCase(markPendingMedicineAsGiven.fulfilled, (state, { payload }) => {
+        state.medicines.pending = state.medicines.pending.filter(
+          (medicine) => medicine._id !== payload.data._id
+        );
+        state.medicines.completed.unshift(payload);
+        state.medicineLoading = false;
+      })
+      .addCase(markPendingMedicineAsGiven.rejected, (state) => {
+        state.medicineLoading = false;
       });
   },
 });

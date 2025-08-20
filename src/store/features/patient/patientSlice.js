@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAlert } from "../alert/alertSlice";
 import {
+  assignNurseToPatient,
   deletePatientAadhaarCard,
   editPatient,
   getAllPatients,
@@ -14,6 +15,7 @@ import {
   postPatientCenterSwitch,
   postUndischargePatient,
   removePatient,
+  unAssignNurseToPatient,
   updateAdmissionAssignment,
   updatePatientAdmission,
 } from "../../../helpers/backend_helper";
@@ -51,6 +53,7 @@ const initialState = {
   searchLoading: false,
   phoneNumberLoading: false,
   patientRefLoading: false,
+  nurseLoading:false,
 };
 
 export const fetchPatients = createAsyncThunk(
@@ -304,6 +307,32 @@ export const deletePatient = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const assignNurse = createAsyncThunk(
+  "assignNurseToPatient",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await assignNurseToPatient(data);
+      return response;
+    } catch (error) {
+      console.log(error);
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to assign nurse");
+    }
+  }
+);
+
+export const unAssignNurse = createAsyncThunk(
+  "unAssignNurseToPatient",
+  async (patientId, { _, rejectWithValue }) => {
+    try {
+      const response = await unAssignNurseToPatient(patientId);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -598,6 +627,37 @@ export const patientSlice = createSlice({
       .addCase(deletePatient.rejected, (state) => {
         state.loading = false;
       });
+    
+    builder
+      .addCase(assignNurse.pending, (state) => {
+        state.nurseLoading = true;
+      })
+      .addCase(assignNurse.fulfilled, (state, { payload }) => {
+        state.patient = {
+          ...state.patient,
+          assignedNurse: payload.payload,
+        };
+        state.nurseLoading = false;
+      })
+      .addCase(assignNurse.rejected, (state) => {
+        state.nurseLoading = false;
+      });
+
+    builder
+      .addCase(unAssignNurse.pending, (state) => {
+        state.nurseLoading = true;
+      })
+      .addCase(unAssignNurse.fulfilled, (state, { payload }) => {
+        state.patient = {
+          ...state.patient,
+          assignedNurse: null,
+        };
+        state.nurseLoading = false;
+      })
+      .addCase(unAssignNurse.rejected, (state) => {
+        state.nurseLoading = false;
+      });
+      
   },
 });
 

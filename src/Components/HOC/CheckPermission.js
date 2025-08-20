@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Children } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -23,6 +23,8 @@ const CheckPermission = ({
   pages,
   accessRolePermission,
   children,
+  allowedRoles,
+  userRole
 }) => {
   //page,
   const location = useLocation();
@@ -30,6 +32,11 @@ const CheckPermission = ({
   const page = `${currentLocation[0].toUpperCase()}${currentLocation.slice(1)}`;
 
   let pg = pages?.find((p) => p.name === page);
+
+  if (allowedRoles) {
+    if (!allowedRoles.includes(userRole)) return <></>;
+    return children;
+  }
 
   if (accessRolePermission) {
     let permissions = accessRolePermission.find(
@@ -82,6 +89,8 @@ CheckPermission.propTypes = {
   pages: PropTypes.array,
   children: PropTypes.node,
   accessRolePermission: PropTypes.array,
+  allowedRoles:PropTypes.array,
+  userRole:PropTypes.string
 };
 
 const mapStateToProps = (state) => ({

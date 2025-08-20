@@ -3,17 +3,22 @@ import { Button, ButtonGroup } from "reactstrap";
 import {
   OVERVIEW_VIEW,
   MEDICATION_VIEW,
+  NOTES_VIEW,
+  ACTIVITY_VIEW,
 } from "../../../Components/constants/nurse";
 import Overview from "./Overview";
 import Medications from "./Medications";
+import Notes from "./Notes";
+import Activities from "./Activities";
 
 const Views = () => {
   const vws = {
     Overview: OVERVIEW_VIEW,
     Medication: MEDICATION_VIEW,
+    Activities: ACTIVITY_VIEW,
+    Notes: NOTES_VIEW,
   };
 
-  const [open, setOpen] = useState("");
   const [view, setView] = useState(OVERVIEW_VIEW);
 
   const tabs = Object.keys(vws);
@@ -40,6 +45,8 @@ const Views = () => {
       <div className="mt-3 overflowx-hidden">
         {view === OVERVIEW_VIEW && <Overview />}
         {view === MEDICATION_VIEW && <Medications />}
+        {view === NOTES_VIEW && <Notes />}
+        {view === ACTIVITY_VIEW && <Activities />}
       </div>
     </div>
   );

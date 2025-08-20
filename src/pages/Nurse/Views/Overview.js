@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Row, Col } from "reactstrap"; 
+import { Row, Col } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
@@ -32,7 +32,7 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
       <div>
         <Row className="timeline-right" style={{ rowGap: "2rem" }}>
           <GeneralCard data="Overview">
-            <div style={{ marginTop: "1rem" }}>
+            <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
               <h5 className="mb-2">Vital Signs</h5>
               {loading ? (
                 <Placeholder />
@@ -79,39 +79,27 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
               )}
             </div>
 
-            <div className="d-flex flex-column gap-1 pt-4">
+            <div className="pt-4 ps-3">
               <h5>Clinical Test Results</h5>
               {testLoading ? (
                 <Placeholder />
               ) : Array.isArray(testSummary) && testSummary.length > 0 ? (
-                testSummary.map((test) => (
-                  <div
-                    key={test._id}
-                    className="p-3 bg-light border border-danger rounded shadow-sm bg-white mb-2"
-                  >
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h2 className="fs-6 fw-semibold text-danger mb-0">
-                        {test.name} Test Result
-                      </h2>
-                      <small className="text-muted fst-italic">
-                        {new Date(test.createdAt).toLocaleString()}
-                      </small>
-                    </div>
-                    <p
-                      className="text-dark lh-sm mb-0 me-2"
-                      style={{ fontSize: "15px" }}
+                <ul style={{ paddingLeft: "1rem", margin: "0" }}>
+                  {testSummary.map((test) => (
+                    <li
+                      key={test._id}
+                      style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}
                     >
-                      <span className="fw-bold me-2">Condition:</span>{" "}
-                      {test.severeReason}
-                    </p>
-                  </div>
-                ))
+                      <strong>{test.name}:</strong> {test.severeReason}
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <p
                   style={{
                     color: "#888",
                     fontStyle: "italic",
-                    margin: "1rem",
+                    margin: "1rem 0",
                     fontSize: "0.85rem",
                   }}
                 >

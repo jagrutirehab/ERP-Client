@@ -8,7 +8,7 @@ const statusColors = {
   stable: { color: "success", border: "#52c41a" },
 };
 
-const PatientCard = ({ patient, toggleAlertsModal, toggleNotesModal }) => {
+const PatientCard = ({ patient, toggleAlertsModal }) => {
   const [showAllMedicines, setShowAllMedicines] = useState(false);
 
   const { color, border } = statusColors[patient.flag] || {
@@ -51,7 +51,7 @@ const PatientCard = ({ patient, toggleAlertsModal, toggleNotesModal }) => {
               <span className="text-danger me-2">❤️</span>
               <span>
                 <strong>HR:</strong>{" "}
-                {vitals?.pulse.trim() !== "" ? vitals.pulse : "N/A"}
+                {vitals?.pulse?.trim() !== "" ? vitals?.pulse : "N/A"}
               </span>
               <span className="ms-3">
                 <strong>BP:</strong>{" "}
@@ -67,7 +67,10 @@ const PatientCard = ({ patient, toggleAlertsModal, toggleNotesModal }) => {
             <div className="d-flex align-items-center mb-2 text-body-secondary">
               <span className="me-2">🌡️</span>
               <span>
-                <strong>Temp:</strong> {vitals?.temprature.trim()!=="" ? `${vitals.temprature} \u00B0F` : "N/A"}
+                <strong>Temp:</strong>{" "}
+                {vitals?.temprature?.trim() !== ""
+                  ? `${vitals?.temprature} \u00B0F`
+                  : "N/A"}
               </span>
             </div>
 
@@ -144,23 +147,6 @@ const PatientCard = ({ patient, toggleAlertsModal, toggleNotesModal }) => {
                 style={{ fontSize: "0.8rem", padding: "4px 8px" }}
               >
                 {patient.alertCount} Alerts
-              </Badge>
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleNotesModal(patient.notes)}
-              style={{ background: "none", border: "none", padding: 0 }}
-            >
-              <Badge
-                pill
-                className={`fw-bold ${
-                  patient.notes.length > 0
-                    ? "bg-primary bg-opacity-25 text-primary"
-                    : "bg-secondary bg-opacity-25 text-secondary"
-                }`}
-                style={{ fontSize: "0.8rem", padding: "4px 8px" }}
-              >
-                {patient.notes.length} Notes
               </Badge>
             </button>
           </div>

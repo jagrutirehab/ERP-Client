@@ -2,11 +2,20 @@ import React from "react";
 import PropTypes from "prop-types";
 import MedicineChart from "../Tables/MedicineChart";
 import Divider from "../../../Components/Common/Divider";
+import moment from "moment";
 
-const Prescription = ({ data }) => {
+const Prescription = ({ data, date }) => {
   return (
     <React.Fragment>
       <div>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div></div>
+          {date && (
+            <i className="mb-0 text-muted" style={{ fontSize: "13px" }}>
+              {moment(date).format("MMM D, YYYY • h:mm A")}
+            </i>
+          )}
+        </div>
         {data?.drNotes && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
