@@ -37,6 +37,11 @@ function handleLogout() {
     Cookies.remove("XSRF-TOKEN");
     history.replace("/logout");
   } catch (err) {
+    localStorage.clear();
+    Cookies.remove("jajantarammamantaram");
+    Cookies.remove("token");
+    Cookies.remove("XSRF-TOKEN");
+    history.replace("/logout");
     console.error("Error during logout:", err);
   }
 }
@@ -78,7 +83,7 @@ const authAxios = axios.create({
 
 // ✅ Automatically set token for authAxios
 const microUser = localStorage.getItem("micrologin");
-  const microToken = microUser ? JSON.parse(microUser).token : null;
+const microToken = microUser ? JSON.parse(microUser).token : null;
 if (microToken) {
   authAxios.defaults.headers.common["Authorization"] = "Bearer " + microToken;
 }

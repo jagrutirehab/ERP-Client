@@ -273,22 +273,43 @@ export const updateUserPassword = createAsyncThunk(
   }
 );
 
+// export const logoutUser = createAsyncThunk(
+//   "logoutUser",
+//   async (token, { dispatch, rejectWithValue }) => {
+//     try {
+//       const response = await postLogoutService(token);
+//       localStorage.clear();
+//       Cookies.remove("jajantarammamantaram");
+//       Cookies.remove("token");
+//       Cookies.remove("XSRF-TOKEN");
+//       return response;
+//     } catch (error) {
+//       localStorage.clear();
+//       Cookies.remove("jajantarammamantaram");
+//       Cookies.remove("token");
+//       Cookies.remove("XSRF-TOKEN");
+//       return rejectWithValue(error);
+//     }
+//   }
+// );
+
 export const logoutUser = createAsyncThunk(
-  "logoutUser",
-  async (token, { dispatch, rejectWithValue }) => {
+  "auth/logoutUser",
+  async (token, { rejectWithValue }) => {
+    const clearAuthData = () => {
+      localStorage.clear();
+      Cookies.remove("jajantarammamantaram");
+      Cookies.remove("token");
+      Cookies.remove("XSRF-TOKEN");
+    };
+
     try {
       const response = await postLogoutService(token);
-      localStorage.clear();
-      Cookies.remove("jajantarammamantaram");
-      Cookies.remove("token");
-      Cookies.remove("XSRF-TOKEN");
+      clearAuthData();
       return response;
     } catch (error) {
-      localStorage.clear();
-      Cookies.remove("jajantarammamantaram");
-      Cookies.remove("token");
-      Cookies.remove("XSRF-TOKEN");
-      return rejectWithValue(error);
+      clearAuthData();
+      return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
