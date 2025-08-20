@@ -87,12 +87,6 @@ const Billing = ({
     dispatch(fetchDraftBills({ patient: patient._id }));
   }, [dispatch, patient]);
 
-  console.log(
-    addmissionsBills.map((addmission) => addmission._id),
-    "addmissionsBills",
-    admission
-  );
-
   return (
     <div className="mt-3">
       <div className="d-flex align-items-center justify-content-between">
