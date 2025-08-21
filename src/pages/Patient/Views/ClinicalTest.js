@@ -19,6 +19,7 @@ import YmscResult from "./Components/YmscResult";
 import MPQ9ResultComponent from "./Components/MPQ9Result";
 import MMSEResultComponent from "./Components/MMSEResult";
 import YBOCSResultComponent from "./Components/YBOCSResult";
+import ACDSResultComponent from "./Components/ACDSResult";
 
 const ClinicalTest = ({
   // addmissionsCharts,
@@ -134,7 +135,8 @@ const ClinicalTest = ({
                                         {test?.testType === 6 && <CIWAResultComponent resultData={test} />}
                                         {test?.testType === 9 && <MPQ9ResultComponent resultData={test} />}
                                         {test?.testType === 10 && <MMSEResultComponent resultData={test} />}
-                                         {test?.testType === 11 && <YBOCSResultComponent resultData={test} />}
+                                        {test?.testType === 11 && <YBOCSResultComponent resultData={test} />}
+                                        {test?.testType === 12 && <ACDSResultComponent resultData={test} />}
                                       </Wrapper>
                                     </div>
                                   );

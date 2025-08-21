@@ -74,7 +74,12 @@ export const postYmrsTest = (data) => {
 export const postYBOCSTest = (data) =>
   api.create(url.POST_YBOCS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-  });
+});
+
+export const postACDSTest = (data) =>
+  api.create(url.POST_ACDS_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+});
 
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);

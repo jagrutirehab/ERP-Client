@@ -9,6 +9,7 @@ import {
   postMPQtest,
   postMMSEtest,
   postYBOCSTest,
+  postACDSTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -114,6 +115,20 @@ export const createYBOCSTest = createAsyncThunk(
     }
   }
 );
+
+export const createACDSTest = createAsyncThunk(
+  "createACDSTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postACDSTest(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 
 
 
@@ -224,7 +239,18 @@ export const clinicalTestSlice = createSlice({
       })
       .addCase(createYBOCSTest.rejected, (state) => {
         state.isLoading = false;
-      });
+      }); 
+    // create ACDS Test
+    builder
+      .addCase(createACDSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createACDSTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createACDSTest.rejected, (state) => {
+        state.isLoading = false;
+    });
     // fetchClinicalTest
     builder
       .addCase(fetchClinicalTest.pending, (state) => {
