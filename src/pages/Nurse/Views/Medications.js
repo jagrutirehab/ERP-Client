@@ -36,7 +36,7 @@ const Medications = ({ profile, testLoading, prescription }) => {
               }}
             >
               {prescription ? (
-                <Prescription data={prescription.prescription} date={prescription.date} />
+                <Prescription data={prescription.prescription} startDate={prescription.prescriptionStartDate} endDate={prescription.prescriptionEndDate} />
               ) : (
                 <p style={{ color: "#888", fontStyle: "italic" }}>
                   No medication data available

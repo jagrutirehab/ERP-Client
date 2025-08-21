@@ -16,7 +16,6 @@ const Activities = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { medicineLoading, medicines } = useSelector((state) => state.Nurse);
-  const userId = useSelector((state) => state.User?.microLogin?.user?._id);
   const [activeTab, setActiveTab] = useState("PENDING");
   const [markingId, setMarkingId] = useState(null);
 
@@ -38,7 +37,6 @@ const Activities = () => {
     try {
       await dispatch(
         markPendingMedicineAsGiven({
-          nurseId: userId,
           medicineId: medicineId,
           timeSlot,
         })
@@ -67,9 +65,9 @@ const Activities = () => {
                   <div className="d-flex align-items-center gap-2">
                     <Clock size={16} />
                     Pending
-                    <Badge color="warning" pill className="ms-2">
+                    {/* <Badge color="warning" pill className="ms-2">
                      {!medicineLoading && (medicines?.pending?.length || 0)}
-                    </Badge>
+                    </Badge> */}
                   </div>
                 </NavLink>
               </NavItem>
@@ -83,9 +81,9 @@ const Activities = () => {
                   <div className="d-flex align-items-center gap-2">
                     <CheckCheck size={16} />
                     Completed
-                    <Badge color="success" pill className="ms-2">
+                    {/* <Badge color="success" pill className="ms-2">
                      {!medicineLoading && (medicines?.completed?.length || 0)}
-                    </Badge>
+                    </Badge> */}
                   </div>
                 </NavLink>
               </NavItem>
@@ -174,7 +172,7 @@ const Activities = () => {
                   </p>
                 </div>
               )
-            ) : medicines.completed.length > 0 ? (
+            ) : medicines?.completed.length > 0 ? (
               <div className="space-y-3">
                 {medicines?.completed?.map((med) => (
                   <div

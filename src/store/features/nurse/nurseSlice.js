@@ -303,42 +303,35 @@ export const NurseSlice = createSlice({
       });
     builder
       .addCase(getRemainigActiveMedicines.pending, (state) => {
-        state.testLoading = true;
+        state.medicineLoading = true;
       })
       .addCase(getRemainigActiveMedicines.fulfilled, (state, { payload }) => {
         state.medicines.pending = payload.data;
-        state.testLoading = false;
+        state.medicineLoading = false;
       })
       .addCase(getRemainigActiveMedicines.rejected, (state) => {
-        state.testLoading = false;
+        state.medicineLoading = false;
       });
     builder
       .addCase(getTodayCompletedActiveMedicines.pending, (state) => {
-        state.testLoading = true;
+        state.medicineLoading = true;
       })
       .addCase(
         getTodayCompletedActiveMedicines.fulfilled,
         (state, { payload }) => {
           state.medicines.completed = payload.data;
-          state.testLoading = false;
+          state.medicineLoading = false;
         }
       )
       .addCase(getTodayCompletedActiveMedicines.rejected, (state) => {
-        state.testLoading = false;
-      });
+        state.medicineLoading = false;
+    });
     builder
-      .addCase(markPendingMedicineAsGiven.pending, (state) => {
-        state.medicineLoading = true;
-      })
       .addCase(markPendingMedicineAsGiven.fulfilled, (state, { payload }) => {
         state.medicines.pending = state.medicines.pending.filter(
           (medicine) => medicine._id !== payload.data._id
         );
         state.medicines.completed.unshift(payload);
-        state.medicineLoading = false;
-      })
-      .addCase(markPendingMedicineAsGiven.rejected, (state) => {
-        state.medicineLoading = false;
       });
   },
 });

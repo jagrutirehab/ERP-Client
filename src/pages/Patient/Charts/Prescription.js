@@ -4,15 +4,15 @@ import MedicineChart from "../Tables/MedicineChart";
 import Divider from "../../../Components/Common/Divider";
 import moment from "moment";
 
-const Prescription = ({ data, date }) => {
+const Prescription = ({ data, startDate, endDate }) => {
   return (
     <React.Fragment>
       <div>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div></div>
-          {date && (
+          {startDate && endDate && (
             <i className="mb-0 text-muted" style={{ fontSize: "13px" }}>
-              {moment(date).format("MMM D, YYYY • h:mm A")}
+              {moment(startDate).format("MMM D, YYYY")} - {moment(endDate).format("MMM D, YYYY")}
             </i>
           )}
         </div>

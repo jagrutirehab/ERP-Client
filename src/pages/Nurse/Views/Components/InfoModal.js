@@ -111,12 +111,6 @@ const InfoModal = ({
                           }}
                         />
                         <div style={{ flexGrow: 1 }}>
-                          <p
-                            className="mb-0 lh-sm text-dark"
-                            style={{ fontSize: "0.85rem" }}
-                          >
-                            {item.message}
-                          </p>
                           <small
                             style={{
                               color: getSeverityColor(item.flag),
@@ -124,8 +118,14 @@ const InfoModal = ({
                               fontSize: "0.75rem",
                             }}
                           >
-                            MEDICINE - {item.flag.toUpperCase()}
+                            {item.flag.toUpperCase()}
                           </small>
+                          <p
+                            className="mb-0 lh-sm text-dark"
+                            style={{ fontSize: "0.85rem" }}
+                          >
+                            {item.message}
+                          </p>
                         </div>
                       </CardBody>
                     </Card>
@@ -160,15 +160,15 @@ const InfoModal = ({
                         }}
                       />
                       <div style={{ flexGrow: 1 }}>
+                        <small style={{ color: getSeverityColor("attention") }}>
+                          ATTENTION
+                        </small>
                         <p
                           className="mb-0 text-dark"
                           style={{ fontSize: "0.9rem" }}
                         >
                           {item.message}
                         </p>
-                        <small style={{ color: getSeverityColor("attention") }}>
-                          TEST - ATTENTION
-                        </small>
                       </div>
                     </CardBody>
                   </Card>
@@ -179,14 +179,6 @@ const InfoModal = ({
             )}
           </ModalBody>
         )}
-
-        <ModalFooter className="bg-light border-0 rounded-bottom py-2">
-          <div className="d-flex justify-content-end w-100">
-            <Button color="secondary" size="sm" onClick={onCloseClick}>
-              Close
-            </Button>
-          </div>
-        </ModalFooter>
       </Modal>
 
       <style>{`
