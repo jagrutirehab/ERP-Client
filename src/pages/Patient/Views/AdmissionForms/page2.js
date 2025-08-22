@@ -70,6 +70,7 @@ const Page2 = ({ register }) => {
         Date:
         <input
           type="date"
+          defaultValue={new Date().toISOString().split("T")[0]}
           {...register("page2_date")}
           style={{
             border: "none",
@@ -86,10 +87,7 @@ const Page2 = ({ register }) => {
       <ul style={checkboxList}>
         {relevantEvents.map((event, index) => (
           <li key={index} style={li}>
-            <input
-              type="checkbox"
-              {...register(`relevantEvents_${index}`)}
-            />
+            <input type="checkbox" {...register(`relevantEvents_${index}`)} />
             <span style={label}>{event}</span>
           </li>
         ))}
@@ -120,10 +118,7 @@ const Page2 = ({ register }) => {
           <li key={index} style={li}>
             <label>
               {String(index + 1).padStart(2, "0")} {symptom}{" "}
-              <input
-                type="checkbox"
-                {...register(`targetSymptoms_${index}`)}
-              />
+              <input type="checkbox" {...register(`targetSymptoms_${index}`)} />
             </label>
           </li>
         ))}

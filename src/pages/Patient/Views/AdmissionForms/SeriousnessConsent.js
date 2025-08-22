@@ -1,4 +1,4 @@
-const SeriousnessConsent = ({ register }) => {
+const SeriousnessConsent = ({ register, patient}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -38,6 +38,7 @@ const SeriousnessConsent = ({ register }) => {
         Date:
         <input
           type="date"
+          defaultValue={new Date().toISOString().split("T")[0]}
           {...register("page3_date")}
           style={{
             border: "none",
@@ -137,6 +138,7 @@ const SeriousnessConsent = ({ register }) => {
           Name of Patient:
           <input
             type="text"
+            defaultValue={patient?.name}
             {...register("consent_patientName")}
             style={inputLine}
           />

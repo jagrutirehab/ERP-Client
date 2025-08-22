@@ -1,4 +1,4 @@
-const MediactionConcent = ({ register }) => {
+const MediactionConcent = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -56,6 +56,7 @@ const MediactionConcent = ({ register }) => {
         Date:
         <input
           type="date"
+          defaultValue={new Date().toISOString().split("T")[0]}
           {...register("page4_date")}
           style={{
             border: "none",
@@ -105,6 +106,7 @@ const MediactionConcent = ({ register }) => {
         of
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("medicationConsent_patientName")}
           style={inputLine}
         />
@@ -130,6 +132,7 @@ const MediactionConcent = ({ register }) => {
           <span style={bold}>Name of Patient</span>:
           <input
             type="text"
+            defaultValue={patient?.name}
             {...register("medicationConsent_patientName2")}
             style={inputLine}
           />

@@ -35,13 +35,13 @@ function handleLogout() {
     Cookies.remove("jajantarammamantaram");
     Cookies.remove("token");
     Cookies.remove("XSRF-TOKEN");
-    history.replace("/logout");
+    history.replace("/login");
   } catch (err) {
     localStorage.clear();
     Cookies.remove("jajantarammamantaram");
     Cookies.remove("token");
     Cookies.remove("XSRF-TOKEN");
-    history.replace("/logout");
+    history.replace("/login");
     console.error("Error during logout:", err);
   }
 }
