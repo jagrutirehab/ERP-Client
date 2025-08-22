@@ -195,7 +195,7 @@ const PatientTopbar = ({
             </Col>
             <Col sm={9} xs={12}>
               <ul className="list-inline user-chat-nav text-end mb-0">
-                <li
+                {/* <li
                   id="assign-nurse"
                   className="list-inline-item m-0 d-none d-md-inline me-2"
                 >
@@ -242,8 +242,8 @@ const PatientTopbar = ({
                   <UncontrolledTooltip target={"assign-nurse"}>
                     Assigned Nurse
                   </UncontrolledTooltip>
-                </li>
-             <CheckPermission allowedRoles={["ADMIN","MANAGER"]} userRole={user?.role}>
+                </li> */}
+             {/* <CheckPermission allowedRoles={["ADMIN","MANAGER"]} userRole={user?.role}>
                  <li
                   id="assign/unassign-nurse"
                   className="list-inline-item m-0 d-none d-md-inline me-2"
@@ -271,7 +271,7 @@ const PatientTopbar = ({
                     </Button>
                   )}
                 </li>
-             </CheckPermission>
+             </CheckPermission> */}
                 <li
                   id="add-note"
                   className="list-inline-item m-0 d-none d-md-inline me-2"

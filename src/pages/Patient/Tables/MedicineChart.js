@@ -18,11 +18,11 @@ const MedicineChart = ({ medicines }) => {
         `${row.dosageAndFrequency?.morning} - ${row.dosageAndFrequency?.evening} - ${row.dosageAndFrequency?.night}`,
     },
     {
-      name: "Intake",
+      name: "Duration",
       selector: (row, idx) => `${row?.duration} ${row?.unit}`,
     },
     {
-      name: "Duration",
+      name: "Intake",
       cell: (row) => (
         <div style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
           {row?.instructions ? `${row?.instructions}, ` : ""}

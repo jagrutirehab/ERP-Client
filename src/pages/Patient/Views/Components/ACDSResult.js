@@ -59,7 +59,7 @@ const ACDSResultComponent = ({ resultData }) => {
           <p className="h6 fw-semibold text-indigo">
             Total ACDS Score:{" "}
             <span className="display-6 fw-bold">{systemTotalScore || 0}</span> /
-            75
+            54
           </p>
         </div>
 

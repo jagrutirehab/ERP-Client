@@ -8,6 +8,10 @@ const statusColors = {
   stable: { color: "success", border: "#52c41a" },
 };
 
+const toTitleCase = (text) => {
+  return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const PatientCard = ({ patient, toggleAlertsModal }) => {
   const [showAllMedicines, setShowAllMedicines] = useState(false);
 
@@ -34,7 +38,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           className="position-absolute top-0 end-0 rounded-0 rounded-bottom-start fw-bold"
           style={{ padding: "4px 10px", fontSize: "0.8rem" }}
         >
-          {patient.flag}
+          {toTitleCase(patient.flag)}
         </Badge>
 
         <CardBody className="d-flex flex-column h-100">
@@ -43,7 +47,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
             className="text-decoration-none text-body-secondary flex-grow-1"
           >
             <CardTitle tag="h5" className="mb-2 fw-semibold">
-              {patient.name}
+              {toTitleCase(patient.name)}
             </CardTitle>
             <CardText className="text-muted mb-3">Room {30}</CardText>
 
@@ -68,9 +72,9 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
               <span className="me-2">🌡️</span>
               <span>
                 <strong>Temp:</strong>{" "}
-                {vitals?.temprature?.trim() !== ""
+                {vitals?.temprature ? vitals.temprature.trim() !== ""
                   ? `${vitals?.temprature} \u00B0F`
-                  : "N/A"}
+                  : "N/A":"N/A"}
               </span>
             </div>
 
