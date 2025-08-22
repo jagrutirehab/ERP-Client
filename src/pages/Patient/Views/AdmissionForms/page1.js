@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 
-const Page1 = () => {
+const Page1 = ({ admissions, patient }) => {
   const { register, handleSubmit, watch } = useForm();
   const onSubmit = (data) => {
     console.log("Form Submitted:", data);
@@ -101,6 +101,7 @@ const Page1 = () => {
           <label style={label}>Name of the Patient’s Name :</label>
           <input
             type="text"
+            defaultValue={patient?.name}
             {...register("patientName")}
             style={{
               border: "none",
@@ -113,6 +114,7 @@ const Page1 = () => {
           <label style={label}>Date :</label>
           <input
             type="date"
+            defaultValue={new Date().toISOString().split("T")[0]} // today's date
             {...register("date")}
             style={{ border: "none", borderBottom: "1px solid #000" }}
           />
@@ -123,6 +125,7 @@ const Page1 = () => {
         <label style={label}>D.O.A. :</label>
         <input
           type="text"
+          defaultValue={new Date(admissions[0]?.addmissionDate).toLocaleDateString("en-GB")}
           {...register("doa")}
           style={{
             border: "none",
@@ -189,6 +192,7 @@ const Page1 = () => {
           <label style={label}>D.O.A. :</label>
           <input
             type="text"
+            defaultValue={new Date(admissions[0]?.addmissionDate).toLocaleDateString("en-GB")}
             {...register("doa2")}
             style={{
               border: "none",

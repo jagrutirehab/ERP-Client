@@ -40,13 +40,14 @@ const Views = (props) => {
 
   const patientPage = props?.pageAccess?.find((pg) => pg.name === "Patient");
   const [view, setView] = useState(
-  patientPage?.subAccess?.find(sub => sub?.name.toUpperCase() === CHARTING_VIEW)
-    ? CHARTING_VIEW
-    : patientPage?.subAccess[0]?.name
-    ? vws[patientPage?.subAccess[0]?.name]
-    : ""
-);
-
+    patientPage?.subAccess?.find(
+      (sub) => sub?.name.toUpperCase() === CHARTING_VIEW
+    )
+      ? CHARTING_VIEW
+      : patientPage?.subAccess[0]?.name
+      ? vws[patientPage?.subAccess[0]?.name]
+      : ""
+  );
 
   const handleView = (v) => setView(v);
 
@@ -64,16 +65,23 @@ const Views = (props) => {
                 {props?.pageAccess
                   ?.find((pg) => pg.name === "Patient")
                   ?.subAccess?.filter((s) => s.name !== "OPD")
+                  .sort((a, b) =>
+                    a.name.toUpperCase() === "FORMS"
+                      ? 1
+                      : b.name.toUpperCase() === "FORMS"
+                      ? -1
+                      : 0
+                  )
                   .map((sub) => {
                     const vw =
                       sub?.name.toUpperCase() === CHARTING_VIEW
                         ? CHARTING_VIEW
                         : sub?.name.toUpperCase() === BILLING_VIEW
                         ? BILLING_VIEW
-                        : sub.name.toUpperCase() === FORMS_VIEW
-                        ? FORMS_VIEW
                         : sub.name.toUpperCase() === TIMELINE_VIEW
                         ? TIMELINE_VIEW
+                        : sub.name.toUpperCase() === FORMS_VIEW
+                        ? FORMS_VIEW
                         : "";
                     return (
                       <Button
@@ -103,7 +111,7 @@ const Views = (props) => {
             {data === "MPQ-9" && <MPQQuestion />}
             {data === "MMSE" && <MMSEQuestion />}
             {data === "Y-BOCS" && <YBOCSQuestion />}
-            {data === "ACDS" && <ACDSQuestion/>}
+            {data === "ACDS" && <ACDSQuestion />}
           </div>
         )}
       </div>

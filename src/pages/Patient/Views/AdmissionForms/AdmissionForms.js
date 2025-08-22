@@ -25,16 +25,18 @@ import {
 } from "reactstrap";
 import GeneralCard from "../Components/GeneralCard";
 import { useState } from "react";
-import { useSelector } from "react-redux";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
-const AddmissionForms = () => {
-  const patient = useSelector((state) => state.Patient.patient);
-  const [admission, setAdmission] = useState(null);
+const AddmissionForms = ({ patient, admissions }) => {
   const [dateModal, setDateModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
   const [addmissionId, setAddmissionId] = useState();
+  const [admissiontype, setAdmissiontype] = useState("");
+  const [adultationype, setAdultationtype] = useState("");
+  const [supporttype, setSupporttype] = useState("");
 
   const [open, setOpen] = useState("0");
   const toggleAccordian = (id) => {
@@ -138,33 +140,81 @@ const AddmissionForms = () => {
           ))}
         </Row>
       </div>
-      {/* <form onSubmit={handleSubmit(onSubmit)}>
-        <Page1 register={register} />
-        <Page2 register={register} />
-        <SeriousnessConsent register={register} />
-        <MediactionConcent register={register} />
-        <Admissionpage1 register={register} />
-        <Admissionpage2 register={register} />
-        <IndependentAdmAdult register={register} />
-        <IndependentAdmMinor register={register} />
-        <AdmWithHighSupport register={register} />
-        <DischargeIndependentAdult register={register} />
-        <DischargeIndependentMinor register={register} />
-        <IndipendentOpinion1 register={register} />
-        <IndipendentOpinion2 register={register} />
-        <IndipendentOpinion3 register={register} />
-        <ECTConsentForm register={register} />
-        <div style={{ textAlign: "center", margin: "20px" }}>
-          <button type="submit">Submit All</button>
-        </div>
-      </form> */}
+      {admissiontype !== "" || adultationype !== "" || supporttype !== "" ? (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {/* common start */}
+          <Page1 register={register} admissions={admissions} patient={patient}/>
+          <Page2 register={register} />
+          <SeriousnessConsent register={register} patient={patient}/>
+          <MediactionConcent register={register} patient={patient}/>
+          <Admissionpage1 register={register} admissions={admissions} patient={patient}/>
+          <Admissionpage2 register={register} />
+          {/* common end */}
+          {/* for adult */}
+          {admissiontype === "INDEPENDENT_ADMISSION" &&
+            adultationype === "ADULT" && (
+              <IndependentAdmAdult register={register} />
+            )}
+          {/* for minor */}
+          {admissiontype === "INDEPENDENT_ADMISSION" &&
+            adultationype === "MINOR" && (
+              <IndependentAdmMinor register={register} />
+            )}
+          {/* support form */}
+          {admissiontype === "SUPPORTIVE_ADMISSION" &&
+            (supporttype === "UPTO30DAYS" ||
+              supporttype === "BEYOND30DAYS") && (
+              <AdmWithHighSupport register={register} />
+            )}
+          {/* for adult */}
+          {admissiontype === "INDEPENDENT_ADMISSION" &&
+            adultationype === "ADULT" && (
+              <DischargeIndependentAdult register={register} />
+            )}
+          {/* for minor */}
+          {admissiontype === "INDEPENDENT_ADMISSION" &&
+            adultationype === "MINOR" && (
+              <DischargeIndependentMinor register={register} />
+            )}
+          {/* common start */}
+          <IndipendentOpinion1 register={register} />
+          <IndipendentOpinion2 register={register} />
+          <IndipendentOpinion3 register={register} />
+          <ECTConsentForm register={register} />
+          {/* common end */}
+          <div style={{ textAlign: "center", margin: "20px" }}>
+            <button type="submit">Submit All</button>
+          </div>
+        </form>
+      ) : (
+        ""
+      )}
+
       <AdmissionformModal
         isOpen={dateModal}
         toggle={toggleModal}
-        admission={admission}
+        admissiontype={admissiontype}
+        setAdmissiontype={setAdmissiontype}
+        adultationype={adultationype}
+        setAdultationtype={setAdultationtype}
+        supporttype={supporttype}
+        setSupporttype={setSupporttype}
+        onSubmit={onSubmit}
       />
     </>
   );
 };
 
-export default AddmissionForms;
+AddmissionForms.propTypes = {
+  patient: PropTypes.object,
+};
+
+const mapStateToProps = (state) => ({
+  chartDate: state.Chart.chartDate,
+  patient: state.Patient.patient,
+  doctors: state.User?.doctor,
+  psychologists: state.User?.counsellors,
+  admissions: state.Chart.data,
+});
+
+export default connect(mapStateToProps)(AddmissionForms);

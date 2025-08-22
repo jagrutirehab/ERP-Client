@@ -1,4 +1,5 @@
-const Admissionpage1 = ({ register }) => {
+const Admissionpage1 = ({ register, admissions, patient }) => {
+  console.log(admissions);
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -63,13 +64,19 @@ const Admissionpage1 = ({ register }) => {
           <span style={label}>Patient’s Name :</span>
           <input
             type="text"
+            defaultValue={patient?.name}
             {...register("page5_patientName")}
             style={inputLine}
           />
         </div>
         <div>
           <span style={label}>UID :</span>
-          <input type="text" {...register("page5_uid")} style={inputLine} />
+          <input
+            type="text"
+            defaultValue={patient?.id?.value}
+            {...register("page5_uid")}
+            style={inputLine}
+          />
         </div>
         <div>
           <span style={label}>Age :</span>
@@ -86,6 +93,7 @@ const Admissionpage1 = ({ register }) => {
           <span style={label}>Sex :</span>
           <input
             type="text"
+            defaultValue={patient?.gender}
             {...register("page5_sex")}
             style={{ ...inputLine, width: "60px" }}
           />
@@ -104,6 +112,7 @@ const Admissionpage1 = ({ register }) => {
         <span style={label}>Address :</span>
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page5_address")}
           style={fullWidthInput}
         />
@@ -122,6 +131,7 @@ const Admissionpage1 = ({ register }) => {
           <span style={label}>Admitted Under Dr. :</span>
           <input
             type="text"
+            defaultValue={admissions[0]?.doctor?.name}
             {...register("page5_admittedUnder")}
             style={inputLine}
           />
@@ -133,6 +143,9 @@ const Admissionpage1 = ({ register }) => {
           <span style={label}>Date of Admission :</span>
           <input
             type="date"
+            defaultValue={new Date(
+              admissions[0]?.addmissionDate
+            ).toLocaleDateString("en-GB")}
             {...register("page5_dateAdmission")}
             style={inputLine}
           />
@@ -141,6 +154,13 @@ const Admissionpage1 = ({ register }) => {
           <span style={label}>Time :</span>
           <input
             type="text"
+            defaultValue={new Date(
+              admissions[0]?.addmissionDate
+            ).toLocaleString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}
             {...register("page5_timeAdmission")}
             style={{ ...inputLine, width: "80px" }}
           />{" "}
