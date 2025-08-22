@@ -8,6 +8,10 @@ const authRoles = [
     value: "DOCTOR",
   },
   {
+    name: "COUNSELLOR",
+    value: "COUNSELLOR",
+  },
+  {
     name: "ACCOUNTANT",
     value: "ACCOUNTANT",
   },
