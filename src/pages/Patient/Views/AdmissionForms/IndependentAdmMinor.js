@@ -1,4 +1,6 @@
-const IndependentAdmMinor = ({ register }) => {
+import { useEffect, useState } from "react";
+
+const IndependentAdmMinor = ({ register, patient, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -35,6 +37,27 @@ const IndependentAdmMinor = ({ register }) => {
     marginTop: "3px",
   };
 
+  const [age, setAge] = useState("");
+
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  useEffect(() => {
+    if (patient?.dateOfBirth) {
+      const calculatedAge = calculateAge(patient.dateOfBirth);
+      setAge(calculatedAge.toString());
+    }
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       <div style={heading}>Request For Admission of A Minor</div>
@@ -53,6 +76,7 @@ const IndependentAdmMinor = ({ register }) => {
           Date:
           <input
             type="date"
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("page8_date")}
             style={{
               border: "none",
@@ -65,23 +89,53 @@ const IndependentAdmMinor = ({ register }) => {
       <p>Sir/Madam,</p>
       <p>
         I, Mr./Mrs./Ms.
-        <input type="text" {...register("page8_name")} style={fullLine} />{" "}
+        <input
+          type="text"
+          defaultValue={patient?.name}
+          {...register("page8_name")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
+        />{" "}
         residing at
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page8_address")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />{" "}
         who is the Parent/Care taker being legal guardian of Master/Ms.
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("page8_patientName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         IPD No.
-        <input type="text" {...register("page8_ipd")} style={inputLine} /> aged
         <input
           type="text"
+          defaultValue={details?.IPDnum}
+          {...register("page8_ipd")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />{" "}
+        age
+        <input
+          type="text"
+          defaultValue={age}
           {...register("page8_age")}
           style={{
             border: "none",
@@ -89,13 +143,20 @@ const IndependentAdmMinor = ({ register }) => {
             width: "60px",
             marginLeft: "5px",
             marginRight: "5px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
           }}
         />{" "}
         son/daughter of
         <input
           type="text"
+          defaultValue={patient?.guardianName}
           {...register("page8_parentName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         request for his/her admission in your establishment for treatment of
         mental illness.
@@ -104,8 +165,13 @@ const IndependentAdmMinor = ({ register }) => {
         Master/Ms.
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("page8_patientName2")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         has been having following Symptoms since
         <input
@@ -166,16 +232,26 @@ const IndependentAdmMinor = ({ register }) => {
         Address
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page8_fullAddress")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />
       </p>
       <p>
         Mob.
         <input
           type="text"
+          defaultValue={patient?.guardianPhoneNumber}
           {...register("page8_mobile")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         Alternate Mob./Landline No.
         <input
@@ -211,6 +287,7 @@ const IndependentAdmMinor = ({ register }) => {
           Date & Time
           <input
             type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("page8_staffDateTime")}
             style={fullLine}
           />
@@ -226,13 +303,19 @@ const IndependentAdmMinor = ({ register }) => {
           Name
           <input
             type="text"
+            defaultValue={patient?.guardianName}
             {...register("page8_guardianName")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
           <br />
           Date & Time
           <input
             type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("page8_guardianDateTime")}
             style={fullLine}
           />

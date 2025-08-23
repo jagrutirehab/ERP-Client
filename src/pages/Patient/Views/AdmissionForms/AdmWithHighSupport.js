@@ -1,4 +1,6 @@
-const AdmWithHighSupport = ({ register }) => {
+import { useEffect, useState } from "react";
+
+const AdmWithHighSupport = ({ register, patient, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -35,6 +37,27 @@ const AdmWithHighSupport = ({ register }) => {
     marginTop: "3px",
   };
 
+  const [age, setAge] = useState("");
+
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  useEffect(() => {
+    if (patient?.dateOfBirth) {
+      const calculatedAge = calculateAge(patient.dateOfBirth);
+      setAge(calculatedAge.toString());
+    }
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       <div style={heading}>Request For Admissions With High Support Needs</div>
@@ -58,6 +81,7 @@ const AdmWithHighSupport = ({ register }) => {
           Date:
           <input
             type="date"
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("page9_date")}
             style={{
               border: "none",
@@ -70,12 +94,26 @@ const AdmWithHighSupport = ({ register }) => {
       <p>Sir/Madam,</p>
       <p>
         I Mr./Mrs./Ms.
-        <input type="text" {...register("page9_name")} style={fullLine} />{" "}
+        <input
+          type="text"
+          defaultValue={patient?.name}
+          {...register("page9_name")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
+        />{" "}
         residing at
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page9_address")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />{" "}
         Nominated representative Mr./Mrs./Ms.
         <input
@@ -84,9 +122,20 @@ const AdmWithHighSupport = ({ register }) => {
           style={inputLine}
         />{" "}
         of IPD No.
-        <input type="text" {...register("page9_ipd")} style={inputLine} /> aged
         <input
           type="text"
+          defaultValue={details?.IPDnum}
+          {...register("page9_ipd")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />{" "}
+        age
+        <input
+          type="text"
+          defaultValue={age}
           {...register("page9_age")}
           style={{
             border: "none",
@@ -94,13 +143,20 @@ const AdmWithHighSupport = ({ register }) => {
             width: "60px",
             marginLeft: "5px",
             marginRight: "5px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
           }}
         />{" "}
         son/daughter of
         <input
           type="text"
+          defaultValue={patient?.guardianRelation}
           {...register("page9_parentName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         request for his/her admission in your establishment for treatment of
         mental illness.
@@ -117,8 +173,13 @@ const AdmWithHighSupport = ({ register }) => {
         Mr./Mrs./Ms.
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("page9_patientName2")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         has been having the following symptoms since
         <input
@@ -182,16 +243,26 @@ const AdmWithHighSupport = ({ register }) => {
         Address
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page9_fullAddress")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />
       </p>
       <p>
         Mob.
         <input
           type="text"
+          defaultValue={patient?.guardianPhoneNumber}
           {...register("page9_mobile")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         Alternate Mob./Landline No.
         <input
@@ -220,12 +291,22 @@ const AdmWithHighSupport = ({ register }) => {
           Name
           <input
             type="text"
+            defaultValue={patient?.guardianName}
             {...register("page9_guardianName")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
           <br />
           Date & Time
-          <input type="text" {...register("page9_dateTime")} style={fullLine} />
+          <input
+            type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
+            {...register("page9_dateTime")}
+            style={fullLine}
+          />
         </div>
       </div>
       <p style={{ marginTop: "20px", fontSize: "11px" }}>

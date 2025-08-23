@@ -105,6 +105,8 @@ const Page1 = ({ admissions, patient }) => {
             {...register("patientName")}
             style={{
               border: "none",
+              fontWeight: "bold",
+              textTransform: "uppercase",
               borderBottom: "1px solid #000",
               width: "200px",
             }}
@@ -125,7 +127,9 @@ const Page1 = ({ admissions, patient }) => {
         <label style={label}>D.O.A. :</label>
         <input
           type="text"
-          defaultValue={new Date(admissions[0]?.addmissionDate).toLocaleDateString("en-GB")}
+          defaultValue={new Date(
+            admissions[0]?.addmissionDate
+          ).toLocaleDateString("en-GB")}
           {...register("doa")}
           style={{
             border: "none",
@@ -192,7 +196,9 @@ const Page1 = ({ admissions, patient }) => {
           <label style={label}>D.O.A. :</label>
           <input
             type="text"
-            defaultValue={new Date(admissions[0]?.addmissionDate).toLocaleDateString("en-GB")}
+            defaultValue={new Date(
+              admissions[0]?.addmissionDate
+            ).toLocaleDateString("en-GB")}
             {...register("doa2")}
             style={{
               border: "none",

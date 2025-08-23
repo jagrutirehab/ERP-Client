@@ -1,4 +1,4 @@
-const ECTConsentForm = ({ register }) => {
+const ECTConsentForm = ({ register, patient, admissions }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -42,11 +42,40 @@ const ECTConsentForm = ({ register }) => {
       <p>
         I hereby consent to the administration of a course of electro-convulsive
         therapy to myself / my relation. (name of the patient
-        <input type="text" style={inputInline} {...register("patientName")} />)
-        relation
-        <input type="text" style={inputInline} {...register("relation")} /> by
-        Dr.
-        <input type="text" style={inputInline} {...register("doctorName")} />
+        <input
+          type="text"
+          defaultValue={patient?.name}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputInline,
+          }}
+          {...register("patientName")}
+        />
+        ) relation
+        <input
+          type="text"
+          defaultValue={patient?.guardianRelation}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputInline,
+          }}
+          {...register("relation")}
+        />{" "}
+        by Dr.
+        <input
+          type="text"
+          defaultValue={
+            admissions?.length > 0 ? admissions[0].doctor?.name : ""
+          }
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputInline,
+          }}
+          {...register("doctorName")}
+        />
         (or any other suitably trained doctor deputed by him).
       </p>
 
@@ -58,7 +87,18 @@ const ECTConsentForm = ({ register }) => {
       <p>
         I have been explained the nature and the purpose of the treatment, as
         also, its side effects and possible complications by Dr.
-        <input type="text" style={inputInline} {...register("doctorExplain")} />
+        <input
+          type="text"
+          defaultValue={
+            admissions?.length > 0 ? admissions[0].doctor?.name : ""
+          }
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputInline,
+          }}
+          {...register("doctorExplain")}
+        />
         in a language which I understand and to my satisfaction. I have read the
         accompanying information sheet.
       </p>
@@ -118,6 +158,7 @@ const ECTConsentForm = ({ register }) => {
             Date / Time / Place :
             <input
               type="text"
+              defaultValue={new Date().toISOString().split("T")[0]}
               style={inputInline}
               {...register("witnessDate")}
             />
@@ -131,13 +172,23 @@ const ECTConsentForm = ({ register }) => {
           <p>Name & Address :</p>
           <input
             type="text"
-            style={inputInline}
+            defaultValue={patient?.guardianName}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("patientRelativeName")}
           />
           <br />
           <input
             type="text"
-            style={inputInline}
+            defaultValue={patient?.guardianRelation}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("patientRelativeAddress1")}
           />
           <br />
@@ -155,19 +206,38 @@ const ECTConsentForm = ({ register }) => {
         <p>
           I confirm that I have explained to the patient / relative the nature,
           purpose and likely effects of this treatment to Shri / Smt.:
-          <input type="text" style={inputInline} {...register("treatmentTo")} />
+          <input
+            type="text"
+            defaultValue={patient?.name}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
+            {...register("treatmentTo")}
+          />
         </p>
         <p>
           The nearest relative available was
           <input
             type="text"
-            style={inputInline}
+            defaultValue={patient?.guardianName}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("nearestRelative")}
           />
         </p>
         <p>
           Date / Time / Place :{" "}
-          <input type="text" style={inputInline} {...register("doctorDate")} />
+          <input
+            type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
+            style={inputInline}
+            {...register("doctorDate")}
+          />
         </p>
         <p style={{ textAlign: "right" }}>Signature of Doctor</p>
       </div>
@@ -179,18 +249,39 @@ const ECTConsentForm = ({ register }) => {
           I (name){" "}
           <input
             type="text"
-            style={inputInline}
+            defaultValue={patient?.guardianRelation}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("relativeName")}
           />
           (the closest available relative of){" "}
-          <input type="text" style={inputInline} {...register("relativeOf")} />
+          <input
+            type="text"
+            defaultValue={patient?.name}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
+            {...register("relativeOf")}
+          />
         </p>
         <p>
           Confirm that an explanation of the nature, purpose, and likely effects
           of ECT has been given to me by Dr.
           <input
             type="text"
-            style={inputInline}
+            defaultValue={
+              admissions?.length > 0 ? admissions[0].doctor?.name : ""
+            }
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("relativeDoctor")}
           />
           and that I approve of the treatment being given to the patient.
@@ -199,6 +290,7 @@ const ECTConsentForm = ({ register }) => {
           Date / Time / Place :{" "}
           <input
             type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
             style={inputInline}
             {...register("relativeDate")}
           />
@@ -207,7 +299,12 @@ const ECTConsentForm = ({ register }) => {
           Contact No.:{" "}
           <input
             type="text"
-            style={inputInline}
+            defaultValue={patient?.guardianPhoneNumber}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputInline,
+            }}
             {...register("relativeContact")}
           />
         </p>

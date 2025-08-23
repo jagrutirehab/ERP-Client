@@ -1,4 +1,6 @@
-const IndependentAdmAdult = ({ register }) => {
+import { useEffect, useState } from "react";
+
+const IndependentAdmAdult = ({ register, patient, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -39,6 +41,27 @@ const IndependentAdmAdult = ({ register }) => {
     marginTop: "3px",
   };
 
+  const [age, setAge] = useState("");
+
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  useEffect(() => {
+    if (patient?.dateOfBirth) {
+      const calculatedAge = calculateAge(patient.dateOfBirth);
+      setAge(calculatedAge.toString());
+    }
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       {/* Headings */}
@@ -65,6 +88,7 @@ const IndependentAdmAdult = ({ register }) => {
           Date:
           <input
             type="date"
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("page7_date")}
             style={{
               border: "none",
@@ -81,11 +105,31 @@ const IndependentAdmAdult = ({ register }) => {
       {/* First Paragraph */}
       <p>
         I Mr./ Mrs./ Ms.
-        <input type="text" {...register("page7_name")} style={fullLine} /> IPD
-        No.
-        <input type="text" {...register("page7_ipd")} style={inputLine} /> age
         <input
           type="text"
+          defaultValue={patient?.name}
+          {...register("page7_name")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
+        />{" "}
+        IPD No.
+        <input
+          type="text"
+          defaultValue={details?.IPDnum}
+          {...register("page7_ipd")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />{" "}
+        age
+        <input
+          type="text"
+          defaultValue={age}
           {...register("page7_age")}
           style={{
             border: "none",
@@ -93,19 +137,31 @@ const IndependentAdmAdult = ({ register }) => {
             width: "60px",
             marginLeft: "5px",
             marginRight: "5px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
           }}
         />{" "}
         son/daughter of
         <input
           type="text"
+          defaultValue={patient?.guardianRelation}
           {...register("page7_parentName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         residing at
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page7_address")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />{" "}
         have mental illness with following Symptoms since
         <input
@@ -155,14 +211,24 @@ const IndependentAdmAdult = ({ register }) => {
         Mr./Mrs/Ms.
         <input
           type="text"
+          defaultValue={patient?.guardianName}
           {...register("page7_guardianName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         who is my
         <input
           type="text"
+          defaultValue={patient?.guardianRelation}
           {...register("page7_guardianRelation")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         (specify relationship) will be supporting me financially during my
         admission period to help in the treatment process.
@@ -176,16 +242,26 @@ const IndependentAdmAdult = ({ register }) => {
         Address
         <input
           type="text"
+          defaultValue={patient?.address}
           {...register("page7_fullAddress")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />
       </p>
       <p>
         Mobile no
         <input
           type="text"
+          defaultValue={patient?.guardianPhoneNumber}
           {...register("page7_mobile")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         Alternative Mobile/Land Line no
         <input
@@ -228,12 +304,22 @@ const IndependentAdmAdult = ({ register }) => {
           Name:
           <input
             type="text"
+            defaultValue={patient?.guardianName}
             {...register("page7_guardianName2")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
           <br />
           Date & Time:
-          <input type="text" {...register("page7_dateTime")} style={fullLine} />
+          <input
+            type="text"
+            defaultValue={new Date().toISOString().split("T")[0]}
+            {...register("page7_dateTime")}
+            style={fullLine}
+          />
         </div>
       </div>
 

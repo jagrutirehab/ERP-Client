@@ -1,4 +1,4 @@
-const Admissionpage2 = ({ register }) => {
+const Admissionpage2 = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -41,30 +41,42 @@ const Admissionpage2 = ({ register }) => {
       {/* Points 10-19 */}
       <div style={consentPara}>
         10) I am informed and I am willing to pay Rs
-        <input type="text" {...register("page6_semiPrivate")} style={inputLine} />{" "}
+        <input
+          type="text"
+          {...register("page6_semiPrivate")}
+          style={inputLine}
+        />{" "}
         for semi private &{" "}
         <input type="text" {...register("page6_private")} style={inputLine} />{" "}
         for private room as residential charges, a refundable advance deposit of{" "}
-        <input type="text" {...register("page6_advanceDeposit")} style={inputLine} />{" "}
-        and a non refundable admission fees of Rs. 500/- at the time of admission.
+        <input
+          type="text"
+          {...register("page6_advanceDeposit")}
+          style={inputLine}
+        />{" "}
+        and a non refundable admission fees of Rs. 500/- at the time of
+        admission.
       </div>
 
       <div style={consentPara}>
-        11) The monthly fee will cover the cost of accommodation, food & other necessary psycho
-        Social Interventions such as Individual Counseling, Group Therapy, Personal Hygiene
-        Supervision, Gym Fee, Yoga Therapy, Music Therapy, Play Therapy, Art Therapy, Mediation And
-        Spiritual Techniques, Vocational Training etc. However Following Expenses Would Be Charged
-        Extra
+        11) The monthly fee will cover the cost of accommodation, food & other
+        necessary psycho Social Interventions such as Individual Counseling,
+        Group Therapy, Personal Hygiene Supervision, Gym Fee, Yoga Therapy,
+        Music Therapy, Play Therapy, Art Therapy, Mediation And Spiritual
+        Techniques, Vocational Training etc. However Following Expenses Would Be
+        Charged Extra
         <br />
         <br />
-        A) Psychiatric Consultation &nbsp; B) Psychiatric Medicine &nbsp; C) General Consultation If
-        Any <br />
-        D) General Medicines &nbsp; E) Family Member Counseling & Education <br />
+        A) Psychiatric Consultation &nbsp; B) Psychiatric Medicine &nbsp; C)
+        General Consultation If Any <br />
+        D) General Medicines &nbsp; E) Family Member Counseling & Education{" "}
+        <br />
         F) Pathological Tests, X-Ray Etc. <br />
-        G) All Personal Expenditure Such As Soaps, Toothbrush, Oil Or Any Personal Article Bought{" "}
-        <br />
+        G) All Personal Expenditure Such As Soaps, Toothbrush, Oil Or Any
+        Personal Article Bought <br />
         H) Washing Of Clothes And Ironing, If Any <br />
-        I) Any Eatable Or A Special Diet Given Other Then Common Food Provide <br />
+        I) Any Eatable Or A Special Diet Given Other Then Common Food Provide{" "}
+        <br />
         J) Picnic, Movie, Lunch Out Etc. &nbsp; K) Special Attendant
       </div>
 
@@ -100,22 +112,37 @@ const Admissionpage2 = ({ register }) => {
             Name of Patient / Representative:
             <input
               type="text"
+              defaultValue={patient?.name}
               {...register("page6_patientRep")}
-              style={{ border: "none", width: "100%", marginTop: "5px" }}
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: "5px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
             />
           </div>
           <div>
             Relation:
             <input
               type="text"
+              defaultValue={patient?.guardianRelation}
               {...register("page6_relation")}
-              style={{ border: "none", width: "100%", marginTop: "5px" }}
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: "5px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
             />
           </div>
           <div>
             Date:
             <input
               type="date"
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("page6_dateRep")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
@@ -123,7 +150,13 @@ const Admissionpage2 = ({ register }) => {
             <input
               type="text"
               {...register("page6_signatureRep")}
-              style={{ border: "none", width: "40%", marginLeft: "5px" }}
+              style={{
+                border: "none",
+                width: "40%",
+                marginLeft: "5px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
             />
           </div>
         </div>
@@ -141,6 +174,7 @@ const Admissionpage2 = ({ register }) => {
             Date:
             <input
               type="date"
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("page6_dateStaff")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
@@ -148,7 +182,13 @@ const Admissionpage2 = ({ register }) => {
             <input
               type="text"
               {...register("page6_signatureStaff")}
-              style={{ border: "none", width: "40%", marginLeft: "5px" }}
+              style={{
+                border: "none",
+                width: "40%",
+                marginLeft: "5px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
             />
           </div>
         </div>
@@ -156,21 +196,36 @@ const Admissionpage2 = ({ register }) => {
           Witness’s Name:
           <input
             type="text"
+            defaultValue={patient?.guardianName}
             {...register("page6_witnessName")}
-            style={{ border: "none", width: "100%", marginTop: "5px" }}
+            style={{
+              border: "none",
+              width: "100%",
+              marginTop: "5px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
           />
           <div>
             Relation:
             <input
               type="text"
+              defaultValue={patient?.guardianRelation}
               {...register("page6_relationWitness")}
-              style={{ border: "none", width: "100%", marginTop: "5px" }}
+              style={{
+                border: "none",
+                width: "100%",
+                marginTop: "5px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
             />
           </div>
           <div>
             Date:
             <input
               type="date"
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("page6_dateWitness")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
