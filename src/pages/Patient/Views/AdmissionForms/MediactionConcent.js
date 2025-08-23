@@ -94,27 +94,46 @@ const MediactionConcent = ({ register, patient }) => {
         I,
         <input
           type="text"
+          defaultValue={patient?.guardianName}
           {...register("medicationConsent_name")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />
         Father/Mother/Son/Daughter/Husband/Wife/NR/NOK
         <input
           type="text"
+          defaultValue={patient?.guardianRelation}
           {...register("medicationConsent_relation")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />
         of
         <input
           type="text"
           defaultValue={patient?.name}
           {...register("medicationConsent_patientName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />
         Mr/Mrs/Miss/Smt
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("medicationConsent_patientFull")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />
         give my full and informed consent for starting any/all of the above
         medication on him/her/other.
@@ -134,15 +153,24 @@ const MediactionConcent = ({ register, patient }) => {
             type="text"
             defaultValue={patient?.name}
             {...register("medicationConsent_patientName2")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>
           <span style={bold}>Relation with the Patient</span>:
           <input
             type="text"
+            defaultValue={patient?.guardianRelation}
             {...register("medicationConsent_relation2")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>

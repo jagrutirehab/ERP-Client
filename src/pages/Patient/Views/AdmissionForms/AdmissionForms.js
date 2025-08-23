@@ -8,11 +8,11 @@ import Admissionpage2 from "./Admissionpage2";
 import IndependentAdmAdult from "./IndependentAdmAdult";
 import IndependentAdmMinor from "./IndependentAdmMinor";
 import AdmWithHighSupport from "./AdmWithHighSupport";
-import DischargeIndependentAdult from "./DischargeIndependentAdult";
-import DischargeIndependentMinor from "./DischargeIndependentMinor";
-import IndipendentOpinion1 from "./IndipendentOpinion1";
-import IndipendentOpinion2 from "./IndipendentOpinion2";
-import IndipendentOpinion3 from "./IndipendentOpinion3";
+// import DischargeIndependentAdult from "./DischargeIndependentAdult";
+// import DischargeIndependentMinor from "./DischargeIndependentMinor";
+// import IndipendentOpinion1 from "./IndipendentOpinion1";
+// import IndipendentOpinion2 from "./IndipendentOpinion2";
+// import IndipendentOpinion3 from "./IndipendentOpinion3";
 import ECTConsentForm from "./ECTConsentForm";
 import {
   Accordion,
@@ -37,6 +37,13 @@ const AddmissionForms = ({ patient, admissions }) => {
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
   const [supporttype, setSupporttype] = useState("");
+  const [details , setDetails] = useState({
+  IPDnum: "",
+  bed: "",
+  ward: ""
+});
+  
+  const [openform, setOpenform] = useState(false)
 
   const [open, setOpen] = useState("0");
   const toggleAccordian = (id) => {
@@ -140,47 +147,60 @@ const AddmissionForms = ({ patient, admissions }) => {
           ))}
         </Row>
       </div>
-      {admissiontype !== "" || adultationype !== "" || supporttype !== "" ? (
+      {openform === true ? (
         <form onSubmit={handleSubmit(onSubmit)}>
           {/* common start */}
-          <Page1 register={register} admissions={admissions} patient={patient}/>
+          <Page1
+            register={register}
+            admissions={admissions}
+            patient={patient}
+          />
           <Page2 register={register} />
-          <SeriousnessConsent register={register} patient={patient}/>
-          <MediactionConcent register={register} patient={patient}/>
-          <Admissionpage1 register={register} admissions={admissions} patient={patient}/>
-          <Admissionpage2 register={register} />
+          <SeriousnessConsent register={register} patient={patient} />
+          <MediactionConcent register={register} patient={patient} />
+          <ECTConsentForm
+            register={register}
+            patient={patient}
+            admissions={admissions}
+          />
+          <Admissionpage1
+            register={register}
+            admissions={admissions}
+            patient={patient}
+            details={details}
+          />
+          <Admissionpage2 register={register} patient={patient} />
           {/* common end */}
           {/* for adult */}
           {admissiontype === "INDEPENDENT_ADMISSION" &&
             adultationype === "ADULT" && (
-              <IndependentAdmAdult register={register} />
+              <IndependentAdmAdult register={register} patient={patient} details={details}/>
             )}
           {/* for minor */}
           {admissiontype === "INDEPENDENT_ADMISSION" &&
             adultationype === "MINOR" && (
-              <IndependentAdmMinor register={register} />
+              <IndependentAdmMinor register={register} patient={patient} details={details}/>
             )}
           {/* support form */}
           {admissiontype === "SUPPORTIVE_ADMISSION" &&
             (supporttype === "UPTO30DAYS" ||
               supporttype === "BEYOND30DAYS") && (
-              <AdmWithHighSupport register={register} />
+              <AdmWithHighSupport register={register} patient={patient} details={details}/>
             )}
           {/* for adult */}
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
+          {/* {admissiontype === "INDEPENDENT_ADMISSION" &&
             adultationype === "ADULT" && (
               <DischargeIndependentAdult register={register} />
-            )}
+            )} */}
           {/* for minor */}
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
+          {/* {admissiontype === "INDEPENDENT_ADMISSION" &&
             adultationype === "MINOR" && (
               <DischargeIndependentMinor register={register} />
-            )}
+            )} */}
           {/* common start */}
-          <IndipendentOpinion1 register={register} />
+          {/* <IndipendentOpinion1 register={register} />
           <IndipendentOpinion2 register={register} />
-          <IndipendentOpinion3 register={register} />
-          <ECTConsentForm register={register} />
+          <IndipendentOpinion3 register={register} /> */}
           {/* common end */}
           <div style={{ textAlign: "center", margin: "20px" }}>
             <button type="submit">Submit All</button>
@@ -199,6 +219,10 @@ const AddmissionForms = ({ patient, admissions }) => {
         setAdultationtype={setAdultationtype}
         supporttype={supporttype}
         setSupporttype={setSupporttype}
+        details={details}
+        setDetails={setDetails}
+        setOpenform={setOpenform}
+        openform={openform}
         onSubmit={onSubmit}
       />
     </>

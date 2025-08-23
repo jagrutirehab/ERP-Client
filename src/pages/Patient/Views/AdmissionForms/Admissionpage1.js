@@ -1,5 +1,11 @@
-const Admissionpage1 = ({ register, admissions, patient }) => {
-  console.log(admissions);
+import { useEffect, useState } from "react";
+
+const Admissionpage1 = ({
+  register,
+  admissions,
+  patient,
+  details,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -53,6 +59,27 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
     textAlign: "justify",
   };
 
+  const [age, setAge] = useState("");
+
+  const calculateAge = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  useEffect(() => {
+    if (patient?.dateOfBirth) {
+      const calculatedAge = calculateAge(patient.dateOfBirth);
+      setAge(calculatedAge.toString());
+    }
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       {/* Heading */}
@@ -66,7 +93,11 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
             type="text"
             defaultValue={patient?.name}
             {...register("page5_patientName")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>
@@ -75,15 +106,25 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
             type="text"
             defaultValue={patient?.id?.value}
             {...register("page5_uid")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>
           <span style={label}>Age :</span>
           <input
             type="text"
+            defaultValue={age}
             {...register("page5_age")}
-            style={{ ...inputLine, width: "50px" }}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+              width: "50px",
+            }}
           />
         </div>
       </div>
@@ -95,16 +136,39 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
             type="text"
             defaultValue={patient?.gender}
             {...register("page5_sex")}
-            style={{ ...inputLine, width: "60px" }}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+              width: "60px",
+            }}
           />
         </div>
         <div>
           <span style={label}>IPD No. :</span>
-          <input type="text" {...register("page5_ipd")} style={inputLine} />
+          <input
+            type="text"
+            defaultValue={details?.IPDnum}
+            {...register("IPDnum")}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
+          />
         </div>
         <div>
           <span style={label}>Ward / Bed :</span>
-          <input type="text" {...register("page5_wardBed")} style={inputLine} />
+          <input
+            type="text"
+            defaultValue={`${details?.ward}/ ${details?.bed}`}
+            {...register("page5_wardBed")}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
+          />
         </div>
       </div>
 
@@ -114,7 +178,11 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
           type="text"
           defaultValue={patient?.address}
           {...register("page5_address")}
-          style={fullWidthInput}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullWidthInput,
+          }}
         />
       </div>
 
@@ -124,7 +192,11 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
           <input
             type="text"
             {...register("page5_referredBy")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>
@@ -133,7 +205,11 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
             type="text"
             defaultValue={admissions[0]?.doctor?.name}
             {...register("page5_admittedUnder")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
       </div>
@@ -143,9 +219,13 @@ const Admissionpage1 = ({ register, admissions, patient }) => {
           <span style={label}>Date of Admission :</span>
           <input
             type="date"
-            defaultValue={new Date(
-              admissions[0]?.addmissionDate
-            ).toLocaleDateString("en-GB")}
+            defaultValue={
+              admissions?.[0]?.addmissionDate
+                ? new Date(admissions[0].addmissionDate)
+                    .toISOString()
+                    .split("T")[0]
+                : ""
+            }
             {...register("page5_dateAdmission")}
             style={inputLine}
           />

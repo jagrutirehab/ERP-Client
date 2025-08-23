@@ -1,4 +1,4 @@
-const SeriousnessConsent = ({ register, patient}) => {
+const SeriousnessConsent = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -56,12 +56,26 @@ const SeriousnessConsent = ({ register, patient}) => {
       {/* A) Seriousness */}
       <div style={section}>
         <span style={bold}>A) Seriousness</span> I,
-        <input type="text" {...register("seriousness_name")} style={inputLine} />,
-        aware of the Serious Condition of our patient, Mr/Mrs/Miss/Smt.
         <input
           type="text"
+          defaultValue={patient?.guardianName}
+          {...register("seriousness_name")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />
+        , aware of the Serious Condition of our patient, Mr/Mrs/Miss/Smt.
+        <input
+          type="text"
+          defaultValue={patient?.name}
           {...register("seriousness_patientName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />
         , who is critical & might deteriorate further leading to medical
         complications including death.
@@ -73,9 +87,10 @@ const SeriousnessConsent = ({ register, patient}) => {
         give my full, complete, and irrevocable written consent to administer
         any/all Emergency Oral/Injectable Medication (both intramuscular and/or
         intravenous) as required to be given to the patient by doctors, nursing,
-        and care staffs of <span style={bold}>Jagruti Rehabilitation Centre Pvt. Ltd.</span> I understand
-        that emergency medicines are “NOT” optional and are necessary for
-        appropriate management in case of non-psychiatric emergency. I
+        and care staffs of{" "}
+        <span style={bold}>Jagruti Rehabilitation Centre Pvt. Ltd.</span> I
+        understand that emergency medicines are “NOT” optional and are necessary
+        for appropriate management in case of non-psychiatric emergency. I
         understand that all the medication whatsoever are useful but may have
         side effect/s. The same have been clearly explained to me.
       </div>
@@ -84,12 +99,17 @@ const SeriousnessConsent = ({ register, patient}) => {
       <div style={section}>
         <span style={bold}>C) Transfer to Other Hospital</span> I, do hereby
         willfully give my full, complete and irrevocable written consent to{" "}
-        <span style={bold}>Jagruti Rehab Centre Pvt. Ltd.</span> to act in capacity
-        of a legal guardian of Mr/Mrs/Smt/Miss
+        <span style={bold}>Jagruti Rehab Centre Pvt. Ltd.</span> to act in
+        capacity of a legal guardian of Mr/Mrs/Smt/Miss
         <input
           type="text"
+          defaultValue={patient?.name}
           {...register("transfer_patientName")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         to take any/all medical decisions deemed necessary for providing medical
         treatment in case of any medical emergency which may include
@@ -98,15 +118,17 @@ const SeriousnessConsent = ({ register, patient}) => {
         to our preferred Hospital
       </div>
 
-      <div style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}>
+      <div
+        style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}
+      >
         OR
       </div>
 
       {/* D) In-house Treatment */}
       <div style={section}>
-        <span style={bold}>D) In-house Treatment</span> I do not want to shift my
-        patient to higher centre, looking at the age & condition of the patient.
-        Also, we are satisfied with the facilities of{" "}
+        <span style={bold}>D) In-house Treatment</span> I do not want to shift
+        my patient to higher centre, looking at the age & condition of the
+        patient. Also, we are satisfied with the facilities of{" "}
         <span style={bold}>Jagruti Rehab Centre Pvt. Ltd.</span> & would like to
         continue the management of the patient here only.
       </div>
@@ -119,7 +141,9 @@ const SeriousnessConsent = ({ register, patient}) => {
         expenses of this extraordinary situation.
       </div>
 
-      <div style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}>
+      <div
+        style={{ textAlign: "center", fontWeight: "bold", margin: "10px 0" }}
+      >
         AND
       </div>
 
@@ -140,15 +164,24 @@ const SeriousnessConsent = ({ register, patient}) => {
             type="text"
             defaultValue={patient?.name}
             {...register("consent_patientName")}
-            style={inputLine}
+            style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
           />
         </div>
         <div>
           Relation with the Patient:
           <input
             type="text"
+            defaultValue={patient?.guardianRelation}
             {...register("consent_relation")}
-            style={inputLine}
+            style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
           />
         </div>
         <div>
