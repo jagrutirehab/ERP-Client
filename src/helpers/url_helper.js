@@ -254,6 +254,7 @@ export const GET_NURSES_BY_PATIENT_CENTER="/nurse/list";
 export const GET_PENDING_ACTIVE_MEDICINES = "/nurse/due-medicine";
 export const GET_COMPLETED_ACTIVE_MEDICINES = "/nurse/completed-medicine";
 export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark-as-given";
+export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES = "/nurse/next-day-medicines";
 
 
 // alerts

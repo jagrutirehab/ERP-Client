@@ -6,6 +6,7 @@ const ACDSResultComponent = ({ resultData }) => {
     systemInterpretation,
     systemRecommendation,
     observation,
+    systemSeverity
   } = resultData;
 
   const formatRecommendations = (text) => {
@@ -61,6 +62,21 @@ const ACDSResultComponent = ({ resultData }) => {
             <span className="display-6 fw-bold">{systemTotalScore || 0}</span> /
             54
           </p>
+        </div>
+
+        <div className="mb-4 p-4 border border-primary-subtle rounded-3 bg-light shadow-sm">
+          <div className="row g-3">
+            <div className="col-12 col-sm-6 col-lg-4">
+              <div className="bg-white border border-info-subtle rounded-3 p-3 shadow-sm h-100">
+                <p className="mb-0 text-secondary fw-medium">
+                  Severity:{" "}
+                  <span className="fw-bold text-primary">
+                    {systemSeverity ?? 0}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <p className="text-dark fs-6 lh-lg mb-4">

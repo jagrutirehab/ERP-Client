@@ -753,9 +753,9 @@ export const getPendingActiveMedicines = (patientId) => {
   return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
 };
 
-export const getCompletedActiveMedicines = (patientId) => {
+export const getCompletedActiveMedicines = ({patientId, status}) => {
   return api.get(
-    `${url.GET_COMPLETED_ACTIVE_MEDICINES}?patientId=${patientId}`
+    `${url.GET_COMPLETED_ACTIVE_MEDICINES}?patientId=${patientId}&status=${status}`
   );
 };
 
@@ -763,6 +763,12 @@ export const markMedicineAsGiven = (data) => {
   return api.create(url.MARK_MEDICINE_AS_GIVEN, data, {
     headers: { "Content-Type": "application/json" },
   });
+};
+
+export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
+  return api.get(
+    `${url.GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES}?patientId=${patientId}`
+  );
 };
 
 //  User Microservices

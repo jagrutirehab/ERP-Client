@@ -344,30 +344,42 @@ export const calculateScores = (answers) => {
 export const getInterpretationAndRecommendations = (subscaleScores) => {
   let interpretation = "";
   let recommendations = "";
+  let severity = "";
 
   if (subscaleScores.totalScore >= 0 && subscaleScores.totalScore <= 9) {
+    severity = "Minimal";
     interpretation =
       "Few to no indicators of ADHD based on this scale. If concerns persist, consider other differential diagnoses.";
     recommendations =
       "No specific ADHD intervention recommended at this time. Focus on general well-being and life skills. Educate on normal variations in attention and activity.";
-  } else if (subscaleScores.totalScore >= 10 && subscaleScores.totalScore <= 19) {
+  } else if (
+    subscaleScores.totalScore >= 10 &&
+    subscaleScores.totalScore <= 19
+  ) {
+    severity ="Mild";
     interpretation =
-      "Some indicators of ADHD traits, but not severe. Monitoring and supportive strategies may be beneficial.";
+      "Mild indicators of ADHD traits. Monitoring and supportive strategies may be beneficial.";
     recommendations =
       "Psychoeducation on attention and focus strategies. Development of organizational and time management skills. Lifestyle modifications (sleep, diet, exercise). Follow-up to monitor any progression of symptoms.";
-  } else if (subscaleScores.totalScore >= 20 && subscaleScores.totalScore <= 34) {
+  } else if (
+    subscaleScores.totalScore >= 20 &&
+    subscaleScores.totalScore <= 34
+  ) {
+    severity="Moderate";
     interpretation =
       "Moderate indicators of ADHD. A detailed clinical assessment is advisable to determine diagnostic criteria.";
     recommendations =
       "Detailed clinical interview and differential diagnosis. Trial of behavioral strategies and coaching. Psychoeducation for patient and family. Monitor symptoms and consider re-evaluation if symptoms worsen.";
   } else if (subscaleScores.totalScore >= 35) {
+    severity = "Extreme";
     interpretation =
-      "Significant indicators of ADHD. Further comprehensive evaluation and intervention are highly recommended.";
+      "Extreme indicators of ADHD. Further comprehensive evaluation and intervention are highly recommended.";
     recommendations =
       "Referral for a comprehensive psychiatric evaluation. Consider pharmacological interventions as per clinical guidelines. Behavioral therapy, including psychoeducation and skill training. Environmental modifications and support in academic/occupational settings.";
   }
 
   return {
+    severity,
     interpretation,
     recommendations,
   };

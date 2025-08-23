@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Badge, Button, Col, Row, UncontrolledTooltip } from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";

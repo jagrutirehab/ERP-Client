@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, ButtonGroup } from "reactstrap";
 import {
   OVERVIEW_VIEW,
@@ -10,8 +10,17 @@ import Overview from "./Overview";
 import Medications from "./Medications";
 import Notes from "./Notes";
 import Activities from "./Activities";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Views = () => {
+  // const { id } = useParams();
+  // const navigate = useNavigate();
+
+  // const patients = useSelector((state) => state.Nurse.data.data) || [];
+  const [currentUserIndex, setCurrentUserIndex] = useState(0);
+  const [view, setView] = useState(OVERVIEW_VIEW);
+
   const vws = {
     Overview: OVERVIEW_VIEW,
     Medication: MEDICATION_VIEW,
@@ -19,7 +28,19 @@ const Views = () => {
     Notes: NOTES_VIEW,
   };
 
-  const [view, setView] = useState(OVERVIEW_VIEW);
+  // useEffect(() => {
+  //   if (!Array.isArray(patients) || patients.length === 0) return;
+  //   const index = patients.findIndex((patient) => patient._id === id);
+  //   setCurrentUserIndex(index >= 0 ? index : 0); 
+  // }, [id, patients]);
+
+  // const prevPatient = patients[currentUserIndex - 1];
+  // const nextPatient = patients[currentUserIndex + 1];
+
+  // const navigateTo = (index) => {
+  //   if (index < 0 || index >= patients.length) return; 
+  //   navigate(`/nurse/p/${patients[index]._id}`);
+  // };
 
   const tabs = Object.keys(vws);
 
@@ -40,6 +61,23 @@ const Views = () => {
             );
           })}
         </ButtonGroup>
+        {/* <div className="gap-2 d-flex">
+          <Button
+            outline
+            disabled={!prevPatient}
+            onClick={() => navigateTo(currentUserIndex - 1)}
+          >
+            &larr; Previous
+          </Button>
+
+          <Button
+            outline
+            disabled={!nextPatient}
+            onClick={() => navigateTo(currentUserIndex + 1)}
+          >
+            Next &rarr;
+          </Button>
+        </div> */}
       </div>
 
       <div className="mt-3 overflowx-hidden">

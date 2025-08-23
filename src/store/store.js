@@ -24,6 +24,7 @@ import {
 } from "./actions";
 import { setPaymentAccounts } from "./features/setting/settingSlice";
 import { setUserCenters } from "./features/auth/user/userSlice";
+import { setPatients } from "./features/nurse/nurseSlice";
 
 const sagaMiddleware = createSagaMiddleware();
 const middleware = [sagaMiddleware];
@@ -77,6 +78,7 @@ const persistedCenters =
   localStorage.getItem("centers") &&
   localStorage.getItem("centers") !== "undefined" &&
   JSON.parse(localStorage.getItem("centers"));
+// const persistedNursePatients = localStorage.getItem("nursePatients") && localStorage.getItem("nursePatients")!=="undefined" && JSON.parse(localStorage.getItem("nursePatients"))
 if (persistedUser) {
   store.dispatch(setUser(persistedUser.data));
 }
@@ -98,6 +100,9 @@ if (persistedBillItems) {
 if (persistedPaymentAccounts) {
   store.dispatch(setPaymentAccounts(persistedPaymentAccounts));
 }
+// if(persistedNursePatients){
+//   store.dispatch(setPatients(persistedNursePatients))
+// }
 
 // Dispatch the action to update the state
 // store.dispatch(updateState({ /* update state here */ }));

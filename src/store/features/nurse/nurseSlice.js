@@ -5,6 +5,7 @@ import {
   getAlertsByPatient,
   getClinicalTestSummary,
   getCompletedActiveMedicines,
+  getNextDayMedicineBoxFillingMedicines,
   getNotesByPatient,
   getNurseAssignedPatients,
   getNursesListByPatientCenter,
@@ -24,7 +25,9 @@ const initialState = {
   medicines: {
     pending: [],
     completed: [],
+    nextDay: [],
   },
+  pagination: null,
   data: [],
   profile: null,
   vitals: null,
@@ -161,9 +164,9 @@ export const getRemainigActiveMedicines = createAsyncThunk(
 
 export const getTodayCompletedActiveMedicines = createAsyncThunk(
   "nurse/getCompletedActiveMedicines",
-  async (patientId, { dispatch, rejectWithValue }) => {
+  async (data, { dispatch, rejectWithValue }) => {
     try {
-      const response = await getCompletedActiveMedicines(patientId);
+      const response = await getCompletedActiveMedicines(data);
       return response;
     } catch (error) {
       console.log(error);
@@ -182,6 +185,21 @@ export const markPendingMedicineAsGiven = createAsyncThunk(
     } catch (error) {
       console.log(error);
       return rejectWithValue("Failed to mark medicine as given");
+    }
+  }
+);
+
+export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
+  "nurse/getNextDayMedicineBoxFillingMedicines",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getNextDayMedicineBoxFillingMedicines(patientId);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        "Failed to fetch next day medicine box filling medicine activities"
+      );
     }
   }
 );
@@ -206,6 +224,10 @@ export const NurseSlice = createSlice({
       state.patient = null;
       state.testSummary = null;
     },
+    setPatients: (state, { payload }) => {
+      state.data = payload.data;
+      state.pagination = payload.pagination;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -214,7 +236,26 @@ export const NurseSlice = createSlice({
       })
       .addCase(allNurseAssignedPatients.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.data = payload;
+        // const updatedData = [...state.data, ...payload.data];
+        // const unique = Array.from(
+        //   new Map(updatedData.map((p) => [p._id, p])).values()
+        // );
+        // state.data = unique;
+        // state.pagination = {
+        //   ...state.pagination,
+        //   page: payload.pagination.page,
+        //   limit: payload.pagination.limit, 
+        //   totalDocs: payload.pagination.totalDocs,
+        //   totalPages: payload.pagination.totalPages,
+        // };
+        // localStorage.setItem(
+        //   "nursePatients",
+        //   JSON.stringify({
+        //     data: unique,
+        //     pagination: state.pagination,
+        //   })
+        // );
+        state.data=payload;
       })
       .addCase(allNurseAssignedPatients.rejected, (state) => {
         state.loading = false;
@@ -325,13 +366,29 @@ export const NurseSlice = createSlice({
       )
       .addCase(getTodayCompletedActiveMedicines.rejected, (state) => {
         state.medicineLoading = false;
-    });
-    builder
-      .addCase(markPendingMedicineAsGiven.fulfilled, (state, { payload }) => {
+      });
+    builder.addCase(
+      markPendingMedicineAsGiven.fulfilled,
+      (state, { payload }) => {
         state.medicines.pending = state.medicines.pending.filter(
           (medicine) => medicine._id !== payload.data._id
         );
-        state.medicines.completed.unshift(payload);
+        // state.medicines.completed.unshift(payload);
+      }
+    );
+    builder
+      .addCase(getNextDayMedicineBoxFillingActivities.pending, (state) => {
+        state.medicineLoading = true;
+      })
+      .addCase(
+        getNextDayMedicineBoxFillingActivities.fulfilled,
+        (state, { payload }) => {
+          state.medicines.nextDay = payload.data;
+          state.medicineLoading = false;
+        }
+      )
+      .addCase(getNextDayMedicineBoxFillingActivities.rejected, (state) => {
+        state.medicineLoading = false;
       });
   },
 });
@@ -342,5 +399,6 @@ export const {
   setAlertData,
   setNotesData,
   clearData,
+  setPatients,
 } = NurseSlice.actions;
 export default NurseSlice.reducer;

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Row, Col } from "reactstrap";
+import { Row, Col, Badge } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
@@ -7,10 +7,19 @@ import { useParams } from "react-router-dom";
 import {
   getAlertsByPatientId,
   getClinicalTestSummaryById,
+  getNextDayMedicineBoxFillingActivities,
   getPatientOverviewById,
 } from "../../../store/features/nurse/nurseSlice";
 
-const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
+const Overview = ({
+  vitals,
+  loading,
+  testSummary,
+  profile,
+  testLoading,
+  medicineBoxFillingActivities,
+  medicineLoading,
+}) => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
@@ -21,6 +30,7 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
       dispatch(getPatientOverviewById(id));
       dispatch(getClinicalTestSummaryById(id));
       dispatch(getAlertsByPatientId(id));
+      dispatch(getNextDayMedicineBoxFillingActivities(id));
     };
     if (id !== profile?._id) {
       fetchPatientOverview();
@@ -39,7 +49,7 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
       "Somatizationanxiety",
       "Hysteria",
       "Severe",
-      "Depression"
+      "Depression",
     ];
     const parts = text.split(
       new RegExp(
@@ -60,6 +70,8 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
       )
     );
   };
+
+  console.log(medicineBoxFillingActivities);
 
   return (
     <React.Fragment>
@@ -124,7 +136,8 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
                       key={test._id}
                       style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}
                     >
-                      <strong>{test.name}:</strong> {highlightSeverity(test.severeReason)}
+                      <strong>{test.name}:</strong>{" "}
+                      {highlightSeverity(test.severeReason)}
                     </li>
                   ))}
                 </ul>
@@ -141,7 +154,67 @@ const Overview = ({ vitals, loading, testSummary, profile, testLoading }) => {
                 </p>
               )}
             </div>
-          </GeneralCard>
+            <div className="pt-4 ps-3">
+              <h5>Activity - Medicine Box Filing</h5>
+              {medicineLoading ? (
+                <Placeholder />
+              ) : (
+                medicineBoxFillingActivities?.medicines && (
+                  <Row className="gap-3">
+                    {Object.entries(medicineBoxFillingActivities.medicines).map(
+                      ([timeSlot, meds]) => (
+                        <div key={timeSlot}  style={{ flex: "1 1 30%", minWidth: "250px" }}>
+                          <h6 className=" text-capitalize mb-3">
+                            {timeSlot}
+                          </h6>
+                          <div className="d-flex flex-column gap-3">
+                            {Array.isArray(meds) && meds.length > 0 ? (
+                              meds.map((med) => (
+                                <div
+                                  key={med._id}
+                                  className="border rounded-lg p-3 bg-white shadow-sm"
+                                >
+                                  <h6 className="fw-bold text-dark mb-1">
+                                    {med.medicineName}
+                                  </h6>
+                                  <small className="text-muted d-flex flex-wrap align-items-center gap-2">
+                                    <span>
+                                      <strong>Dosage:</strong> x{med.dosage}
+                                    </span>
+                                    <span>
+                                      <strong>Intake:</strong> {med.intake}
+                                    </span>
+                                    <span>
+                                      <strong>Time:</strong>
+                                      <Badge
+                                        color="light"
+                                        className="ms-1 border text-primary"
+                                        style={{
+                                          fontSize: "0.6rem",
+                                          fontWeight: "600",
+                                          padding: "0.15rem 0.4rem",
+                                        }}
+                                      >
+                                        {timeSlot.toUpperCase()}
+                                      </Badge>
+                                    </span>
+                                  </small>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-muted">
+                                No medicines for {timeSlot}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </Row>
+                )
+              )}
+            </div>
+          </GeneralCard>{" "}
         </Row>
       </div>
 
@@ -164,6 +237,8 @@ const mapStateToProps = (state) => ({
   testLoading: state.Nurse.testLoading,
   testSummary: state.Nurse.testSummary,
   profile: state.Nurse.profile,
+  medicineBoxFillingActivities: state.Nurse.medicines.nextDay,
+  medicineLoading: state.Nurse.medicineLoading,
 });
 
 export default connect(mapStateToProps)(Overview);

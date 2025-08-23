@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
-import { Row, Nav, NavItem, NavLink, Button, Badge, Spinner } from "reactstrap";
+import { Row, Nav, NavItem, NavLink, Button, Badge, Spinner, Collapse } from "reactstrap";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,7 +9,7 @@ import {
   markPendingMedicineAsGiven,
 } from "../../../store/features/nurse/nurseSlice";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
-import { CheckCircle, Clock, CheckCheck } from "lucide-react";
+import { CheckCircle, Clock, CheckCheck, ChevronDown, ChevronUp, Calendar, XCircle } from "lucide-react";
 import { toast } from "react-toastify";
 
 const Activities = () => {
@@ -18,9 +18,17 @@ const Activities = () => {
   const { medicineLoading, medicines } = useSelector((state) => state.Nurse);
   const [activeTab, setActiveTab] = useState("PENDING");
   const [markingId, setMarkingId] = useState(null);
+  const [expandedDates, setExpandedDates] = useState({});
 
   const toggle = (tab) => {
     if (activeTab !== tab) setActiveTab(tab);
+  };
+
+  const toggleDate = (date) => {
+    setExpandedDates(prev => ({
+      ...prev,
+      [date]: !prev[date]
+    }));
   };
 
   useEffect(() => {
@@ -28,8 +36,15 @@ const Activities = () => {
     if (activeTab === "PENDING") {
       dispatch(getRemainigActiveMedicines(id));
     } else if (activeTab === "COMPLETED") {
-      dispatch(getTodayCompletedActiveMedicines(id));
+      dispatch(
+        getTodayCompletedActiveMedicines({ patientId: id, status: "COMPLETED" })
+      );
     }
+    //  else if (activeTab === "MISSED") {
+    //   dispatch(
+    //     getTodayCompletedActiveMedicines({ patientId: id, status: "MISSED" })
+    //   );
+    // }
   }, [activeTab, id, dispatch]);
 
   const handleMarkAsGiven = async ({ medicineId, timeSlot }) => {
@@ -49,6 +64,16 @@ const Activities = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div>
       <Row className="timeline-right" style={{ rowGap: "2rem" }}>
@@ -65,9 +90,6 @@ const Activities = () => {
                   <div className="d-flex align-items-center gap-2">
                     <Clock size={16} />
                     Pending
-                    {/* <Badge color="warning" pill className="ms-2">
-                     {!medicineLoading && (medicines?.pending?.length || 0)}
-                    </Badge> */}
                   </div>
                 </NavLink>
               </NavItem>
@@ -81,9 +103,18 @@ const Activities = () => {
                   <div className="d-flex align-items-center gap-2">
                     <CheckCheck size={16} />
                     Completed
-                    {/* <Badge color="success" pill className="ms-2">
-                     {!medicineLoading && (medicines?.completed?.length || 0)}
-                    </Badge> */}
+                  </div>
+                </NavLink>
+              </NavItem> <NavItem>
+                <NavLink
+                  className={`cursor-pointer ${
+                    activeTab === "MISSED" ? "active" : ""
+                  }`}
+                  onClick={() => toggle("MISSED")}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <XCircle size={16} />
+                    Missed
                   </div>
                 </NavLink>
               </NavItem>
@@ -92,7 +123,7 @@ const Activities = () => {
             {medicineLoading ? (
               <Placeholder />
             ) : activeTab === "PENDING" ? (
-              medicines?.pending.length > 0 ? (
+              medicines?.pending?.length > 0 ? (
                 <div className="space-y-3">
                   {medicines?.pending.map((med) => (
                     <div
@@ -172,67 +203,99 @@ const Activities = () => {
                   </p>
                 </div>
               )
-            ) : medicines?.completed.length > 0 ? (
-              <div className="space-y-3">
-                {medicines?.completed?.map((med) => (
-                  <div
-                    key={med._id}
-                    className="border rounded-lg p-3 bg-white shadow-sm"
-                  >
-                    <div className="d-flex justify-content-between align-items-start">
-                      <div className="flex-grow-1">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <CheckCheck size={16} className="text-success" />
-                          <h6 className="fw-bold text-dark mb-0">
-                            {med?.medicineName}
-                          </h6>
-                        </div>
-
-                        <small className="text-muted d-flex flex-wrap align-items-center gap-2">
-                          <span>
-                            <strong>Dosage:</strong> x{med?.dosage}
-                          </span>
-                          <span>
-                            <strong>Intake:</strong> {med?.intake}
-                          </span>
-                          <span>
-                            <strong>Time:</strong>
-                            <Badge
-                              color="light"
-                              className="ms-1 border text-primary"
-                              style={{
-                                fontSize: "0.6rem",
-                                fontWeight: "600",
-                                padding: "0.15rem 0.4rem",
-                              }}
-                            >
-                              {med?.timeSlot?.toUpperCase() || ""}
-                            </Badge>
-                          </span>
-                        </small>
-
-                        {med.instructions && (
-                          <div className="mt-2 p-2 bg-light border rounded">
-                            <small className="text-muted">
-                              <strong>Note:</strong> {med.instructions}
-                            </small>
-                          </div>
+            ) : activeTab==="COMPLETED"? medicines?.completed?.length > 0 ? (
+              <div className="space-y-4">
+                {medicines.completed.map((dateGroup) => (
+                  <div key={dateGroup.date} className="border rounded-lg overflow-hidden">
+                    <div 
+                      className="d-flex justify-content-between align-items-center p-3 bg-light cursor-pointer"
+                      onClick={() => toggleDate(dateGroup.date)}
+                    >
+                      <div className="d-flex align-items-center gap-2">
+                        <Calendar size={18} className="text-primary" />
+                        <h6 className="mb-0 fw-bold">{formatDate(dateGroup.date)}</h6>
+                      </div>
+                      <div className="d-flex align-items-center gap-2">
+                        <Badge color="primary" pill>
+                          {dateGroup.medicines.length} medication(s)
+                        </Badge>
+                        {expandedDates[dateGroup.date] ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
                         )}
                       </div>
-
-                      <Badge
-                        color="success"
-                        pill
-                        className="ms-3 d-flex align-items-center gap-1"
-                        style={{
-                          padding: "0.5rem 0.75rem",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        <CheckCircle size={14} />
-                        Given
-                      </Badge>
                     </div>
+                    
+                    <Collapse isOpen={expandedDates[dateGroup.date]}>
+                      <div className="p-3 space-y-3">
+                        {dateGroup.medicines.map((med) => (
+                          <div
+                            key={med._id}
+                            className="border rounded-lg p-3 bg-white shadow-sm"
+                          >
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div className="flex-grow-1">
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                  <CheckCheck size={16} className="text-success" />
+                                  <h6 className="fw-bold text-dark mb-0">
+                                    {med?.medicineName}
+                                  </h6>
+                                </div>
+
+                                <small className="text-muted d-flex flex-wrap align-items-center gap-2">
+                                  <span>
+                                    <strong>Dosage:</strong> x{med?.dosage}
+                                  </span>
+                                  <span>
+                                    <strong>Intake:</strong> {med?.intake}
+                                  </span>
+                                  <span>
+                                    <strong>Time:</strong>
+                                    <Badge
+                                      color="light"
+                                      className="ms-1 border text-primary"
+                                      style={{
+                                        fontSize: "0.6rem",
+                                        fontWeight: "600",
+                                        padding: "0.15rem 0.4rem",
+                                      }}
+                                    >
+                                      {med?.timeSlot?.toUpperCase() || ""}
+                                    </Badge>
+                                  </span>
+                                  <span>
+                                    <strong>Given at:</strong>{" "}
+                                    {new Date(med.dateTime).toLocaleTimeString()}
+                                  </span>
+                                </small>
+
+                                {med.instructions && (
+                                  <div className="mt-2 p-2 bg-light border rounded">
+                                    <small className="text-muted">
+                                      <strong>Note:</strong> {med.instructions}
+                                    </small>
+                                  </div>
+                                )}
+                              </div>
+
+                              <Badge
+                                color="success"
+                                pill
+                                className="ms-3 d-flex align-items-center gap-1"
+                                style={{
+                                  padding: "0.5rem 0.75rem",
+                                  fontSize: "0.75rem",
+                                }}
+                              >
+                                <CheckCircle size={14} />
+                                Given
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Collapse>
                   </div>
                 ))}
               </div>
@@ -244,6 +307,17 @@ const Activities = () => {
                   Medications will appear here once marked as given
                 </p>
               </div>
+            ):(
+              <div className="text-center py-4">
+                  <CheckCircle
+                    size={48}
+                    className="text-success mb-2 opacity-75"
+                  />
+                  <h6 className="text-muted">No Missed medications</h6>
+                  <p className="text-muted small">
+                    All medications have been administered
+                  </p>
+                </div>
             )}
           </div>
         </GeneralCard>
@@ -268,6 +342,10 @@ const Activities = () => {
         .space-y-3 > * + * {
           margin-top: 0.75rem;
         }
+        
+        .space-y-4 > * + * {
+          margin-top: 1rem;
+        }
 
         .nav-tabs .nav-link.active {
           background-color: #fff;
@@ -287,6 +365,10 @@ const Activities = () => {
         .nav-tabs .nav-link:hover {
           border-color: #e9ecef #e9ecef #dee2e6;
           isolation: isolate;
+        }
+        
+        .cursor-pointer {
+          cursor: pointer;
         }
       `}</style>
     </div>

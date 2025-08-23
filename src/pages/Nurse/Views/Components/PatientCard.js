@@ -9,10 +9,11 @@ const statusColors = {
 };
 
 const toTitleCase = (text) => {
+  if(!text) return;
   return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const PatientCard = ({ patient, toggleAlertsModal }) => {
+const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId }) => {
   const [showAllMedicines, setShowAllMedicines] = useState(false);
 
   const { color, border } = statusColors[patient.flag] || {
@@ -43,7 +44,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
 
         <CardBody className="d-flex flex-column h-100">
           <Link
-            to={`/nurse/p/${patient._id}`}
+            to={`/nurse/p/${patient._id}&pid=${prevPatientId}&nid=${nextPatientId}`}
             className="text-decoration-none text-body-secondary flex-grow-1"
           >
             <CardTitle tag="h5" className="mb-2 fw-semibold">

@@ -83,9 +83,11 @@ const ACDSAssesment = () => {
         }
     
         const scores = calculateScores(answers);
-        console.log(scores)
-        const { interpretation, recommendations } =
+        // console.log(scores)
+        const { severity, interpretation, recommendations } =
           getInterpretationAndRecommendations(scores);
+          console.log(severity)
+
     
         const formattedQuestions = acdsQuestions.map((q) => ({
           questionId: q.id,
@@ -99,6 +101,7 @@ const ACDSAssesment = () => {
         formData.append("doctorId", selectedDoctor.id);
         formData.append("observation", observations);
         formData.append("systemTotalScore", scores.totalScore);
+        formData.append("systemSeverity", severity);
         formData.append("systemInterpretation", interpretation);
         formData.append("systemRecommendation", recommendations);
         formData.append("questions", JSON.stringify(formattedQuestions));
