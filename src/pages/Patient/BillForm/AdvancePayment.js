@@ -60,9 +60,9 @@ const AdvancePayment = ({
     setPaymentModes(newPaymentModes);
 
     // Trigger fetchPaymentAccounts if BANK is selected
-    if (value === BANK) {
-      dispatch(fetchPaymentAccounts({ centerIds: userCenters }));
-    }
+    // if (value === BANK) {
+    //   dispatch(fetchPaymentAccounts({ centerIds: userCenters }));
+    // }
   };
 
   useEffect(() => {
@@ -126,6 +126,14 @@ const AdvancePayment = ({
       setPaymentModes(advancePayment?.paymentModes || []);
     }
   }, [editBillData]);
+
+  useEffect(() => {
+    if (userCenters) {
+      dispatch(
+        fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+      );
+    }
+  }, [dispatch, userCenters]);
 
   return (
     <React.Fragment>
