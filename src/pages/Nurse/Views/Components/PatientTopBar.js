@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Badge, Button, Col, Row, UncontrolledTooltip } from "reactstrap";
+import {
+  Badge,
+  Button,
+  Col,
+  Row,
+  UncontrolledTooltip,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import InfoModal from "./InfoModal";
@@ -8,6 +18,7 @@ import { connect, useDispatch } from "react-redux";
 import { setAlertData, setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
+import { Check, Copy } from "lucide-react";
 
 const statusColors = {
   Urgent: { color: "danger", border: "#ff4d4f" },
@@ -20,6 +31,16 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const dispatch = useDispatch();
   const [viewPicture, setViewPicture] = useState();
   const [notesModal, setNotesModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const toggle = () => setOpen(!open);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(profile?.doctorNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const toggleAlertsModal = (alerts) => {
     dispatch(setAlertModal());
@@ -345,13 +366,47 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                   Add Note
                 </Button>
               </li>
-              <li
-                id="call-doctor"
-                className="list-inline-item ms-2 d-none d-md-inline"
-              >
-                <Button>Call Doctor</Button>
-              </li>
-              <li
+              {profile?.doctorName && profile?.doctorNumber && (
+                <>
+                  <li
+                    id="call-doctor"
+                    className="list-inline-item ms-2 d-none d-md-inline"
+                  >
+                    <Button color="primary" onClick={toggle}>
+                      Call Doctor
+                    </Button>
+                  </li>
+
+                  <Modal isOpen={open} toggle={toggle} centered>
+                    <ModalHeader toggle={toggle} style={{ fontSize: "0.9rem" }}>
+                      <h5>Contact {profile?.doctorName}</h5>
+                    </ModalHeader>
+                    <ModalBody className="d-flex flex-column align-items-center">
+                      <div className="d-flex align-items-center mb-3">
+                        <h6 className="mb-0 me-2">{profile?.doctorNumber}</h6>{" "}
+                        <Button
+                          color="secondary"
+                          size="sm"
+                          onClick={handleCopy}
+                          className="d-flex align-items-center"
+                          style={{ fontSize: "0.8rem" }} 
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="me-1" size={14} /> Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="me-1" size={14} /> Copy
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </ModalBody>
+                  </Modal>
+                </>
+              )}
+              {/* <li
                 id="print"
                 className="list-inline-item ms-2 d-none d-md-inline"
               >
@@ -363,7 +418,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                 >
                   <i className="ri-printer-line align-bottom text-dark"></i>
                 </Button>
-              </li>
+              </li> */}
             </ul>
           </Col>
         </Row>

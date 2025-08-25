@@ -270,6 +270,7 @@ export const NurseSlice = createSlice({
           ...payload.payload.patient,
           doctorName: payload.payload.doctorName,
           psychologistName: payload.payload.psychologistName,
+          doctorNumber:payload.payload.doctorNumber
         };
         state.loading = false;
       })
