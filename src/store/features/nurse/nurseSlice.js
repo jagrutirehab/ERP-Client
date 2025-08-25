@@ -9,6 +9,7 @@ import {
   getNotesByPatient,
   getNurseAssignedPatients,
   getNursesListByPatientCenter,
+  getPatientDetails,
   getPatientOverview,
   getPatientPrescription,
   getPendingActiveMedicines,
@@ -27,6 +28,7 @@ const initialState = {
     completed: [],
     nextDay: [],
   },
+  searchMode:false,
   pagination: null,
   data: [],
   profile: null,
@@ -37,6 +39,8 @@ const initialState = {
   alertData: [],
   notesModal: false,
   notesData: [],
+  patientIds: [],
+  index:0,
 };
 
 export const allNurseAssignedPatients = createAsyncThunk(
@@ -48,6 +52,19 @@ export const allNurseAssignedPatients = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const getPatientDetailsById = createAsyncThunk(
+  "nurse/getPatientDetails",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getPatientDetails(patientId);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch patient details");
     }
   }
 );
@@ -224,10 +241,15 @@ export const NurseSlice = createSlice({
       state.patient = null;
       state.testSummary = null;
     },
-    setPatients: (state, { payload }) => {
-      state.data = payload.data;
-      state.pagination = payload.pagination;
+    setPatientIds: (state, { payload }) => {
+      state.patientIds = payload;
     },
+    setIndex:(state,{payload})=>{
+      state.index = payload;
+    },
+    setSearchMode:(state, { payload })=>{
+      state.searchMode = payload
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -244,7 +266,7 @@ export const NurseSlice = createSlice({
         // state.pagination = {
         //   ...state.pagination,
         //   page: payload.pagination.page,
-        //   limit: payload.pagination.limit, 
+        //   limit: payload.pagination.limit,
         //   totalDocs: payload.pagination.totalDocs,
         //   totalPages: payload.pagination.totalPages,
         // };
@@ -255,23 +277,45 @@ export const NurseSlice = createSlice({
         //     pagination: state.pagination,
         //   })
         // );
-        state.data=payload;
+        state.data = payload;
+        const newIds = payload.data.map((p) => p._id);
+
+        if (state.searchMode) {
+          state.patientIds = newIds;
+        } else {
+          const updatedPatients = Array.from(
+            new Set([...state.patientIds, ...newIds])
+          );
+          state.patientIds = updatedPatients;
+        }
+        localStorage.setItem("nursePatients", JSON.stringify(state.patientIds));
       })
       .addCase(allNurseAssignedPatients.rejected, (state) => {
         state.loading = false;
       });
     builder
+      .addCase(getPatientDetailsById.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getPatientDetailsById.fulfilled, (state, { payload }) => {
+        state.profile = payload.payload;
+        state.loading = false;
+      })
+      .addCase(getPatientDetailsById.rejected, (state) => {
+        state.loading = false;
+    });
+    builder
       .addCase(getPatientOverviewById.pending, (state) => {
         state.loading = true;
       })
       .addCase(getPatientOverviewById.fulfilled, (state, { payload }) => {
-        state.vitals = payload.payload.vitalSign;
-        state.profile = {
-          ...payload.payload.patient,
-          doctorName: payload.payload.doctorName,
-          psychologistName: payload.payload.psychologistName,
-          doctorNumber:payload.payload.doctorNumber
-        };
+        state.vitals = payload.payload;
+        // state.profile = {
+        //   ...payload.payload.patient,
+        //   doctorName: payload.payload.doctorName,
+        //   psychologistName: payload.payload.psychologistName,
+        //   doctorNumber:payload.payload.doctorNumber
+        // };
         state.loading = false;
       })
       .addCase(getPatientOverviewById.rejected, (state) => {
@@ -401,5 +445,8 @@ export const {
   setNotesData,
   clearData,
   setPatients,
+  setPatientIds,
+  setIndex,
+  setSearchMode
 } = NurseSlice.actions;
 export default NurseSlice.reducer;

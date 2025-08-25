@@ -249,6 +249,7 @@ export const GET_NURSE_ASSIGNED_PATIENTS = "/nurse/patients";
 export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE =
   "/nurse/clinical-test-summary";
 export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
+export const GET_PATIENT_DETAILS_BY_NURSE = "/nurse/patient";
 export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
 export const GET_NURSES_BY_PATIENT_CENTER="/nurse/list";
 export const GET_PENDING_ACTIVE_MEDICINES = "/nurse/due-medicine";

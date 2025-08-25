@@ -16,7 +16,7 @@ const Activities = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { medicineLoading, medicines } = useSelector((state) => state.Nurse);
-  const [activeTab, setActiveTab] = useState("PENDING");
+  const [activeTab, setActiveTab] = useState("COMPLETED");
   const [markingId, setMarkingId] = useState(null);
   const [expandedDates, setExpandedDates] = useState({});
 

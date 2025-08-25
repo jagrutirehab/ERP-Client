@@ -22,7 +22,7 @@ const YBOCSQuestion = () => {
         <div className="text-center mb-4">
           <h1 className="text-primary fw-bold display-5">
             <i className="fas fa-stethoscope me-2"></i>
-            Y-BOCS (The Yale-Brown Obsessive-Compulsive Scale)
+            The Yale-Brown Obsessive-Compulsive Scale (Y-BOCS)
           </h1>
         </div>
 
