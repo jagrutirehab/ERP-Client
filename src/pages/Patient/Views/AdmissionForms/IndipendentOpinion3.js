@@ -1,4 +1,6 @@
-const IndipendentOpinion3 = ({ register }) => {
+import PrintHeader from "./printheader";
+
+const IndipendentOpinion3 = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -54,6 +56,9 @@ const IndipendentOpinion3 = ({ register }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <p>
         Practical
         <input

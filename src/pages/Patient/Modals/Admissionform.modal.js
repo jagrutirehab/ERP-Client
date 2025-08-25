@@ -182,7 +182,7 @@ const AdmissionFormModal = ({
         {step === 2 && (
           <>
             <div className="mt-3">
-              <Label className="text-muted mb-1">Ward</Label>
+              <Label className="text-muted mb-1">Ward / Room</Label>
               <Input
                 type="number"
                 value={details?.ward}
@@ -212,6 +212,48 @@ const AdmissionFormModal = ({
                   setDetails((prev) => ({ ...prev, IPDnum: e.target.value }))
                 }
                 placeholder="Enter IPD Number"
+              />
+            </div>
+
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Willing To Pay Rs</Label>
+              <Input
+                type="text"
+                value={details?.toPay}
+                onChange={(e) =>
+                  setDetails((prev) => ({ ...prev, toPay: e.target.value }))
+                }
+                placeholder="Willing To Pay Rs"
+              />
+            </div>
+
+            <div className="mt-3">
+              <Label className="text-muted mb-1">For Semi Private &</Label>
+              <Input
+                type="text"
+                value={details?.semiprivate}
+                onChange={(e) =>
+                  setDetails((prev) => ({
+                    ...prev,
+                    semiprivate: e.target.value,
+                  }))
+                }
+                placeholder="For Semi Private &"
+              />
+            </div>
+
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Advance Deposit Of</Label>
+              <Input
+                type="text"
+                value={details?.advDeposit}
+                onChange={(e) =>
+                  setDetails((prev) => ({
+                    ...prev,
+                    advDeposit: e.target.value,
+                  }))
+                }
+                placeholder="Advance Deposit Of"
               />
             </div>
 

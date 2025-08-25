@@ -1,3 +1,5 @@
+import PrintHeader from "./printheader";
+
 const ECTConsentForm = ({ register, patient, admissions }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -27,6 +29,9 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       {/* Title */}
       <h3
         style={{

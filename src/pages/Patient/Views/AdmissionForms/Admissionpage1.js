@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PrintHeader from "./printheader";
 
 const Admissionpage1 = ({
   register,
@@ -82,6 +83,9 @@ const Admissionpage1 = ({
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       {/* Heading */}
       <div style={heading}>ADMISSION FORM</div>
 
@@ -272,8 +276,13 @@ const Admissionpage1 = ({
         <span style={label}>Provisional Diagnosis :</span>
         <input
           type="text"
+          defaultValue={patient?.addmission?.provisionalDiagnosis}
           {...register("page5_provisionalDiagnosis")}
-          style={fullWidthInput}
+          style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullWidthInput,
+            }}
         />
       </div>
 

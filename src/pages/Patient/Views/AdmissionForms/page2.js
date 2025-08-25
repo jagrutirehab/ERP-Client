@@ -1,4 +1,6 @@
-const Page2 = ({ register }) => {
+import PrintHeader from "./printheader";
+
+const Page2 = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -66,6 +68,9 @@ const Page2 = ({ register }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <div style={{ textAlign: "right", marginBottom: "5px" }}>
         Date:
         <input

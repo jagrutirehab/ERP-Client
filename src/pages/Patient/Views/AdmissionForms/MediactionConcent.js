@@ -1,3 +1,5 @@
+import PrintHeader from "./printheader";
+
 const MediactionConcent = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -51,6 +53,9 @@ const MediactionConcent = ({ register, patient }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       {/* Date */}
       <div style={{ textAlign: "right", marginBottom: "5px" }}>
         Date:

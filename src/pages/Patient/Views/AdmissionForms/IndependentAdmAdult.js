@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PrintHeader from "./printheader";
 
 const IndependentAdmAdult = ({ register, patient, details }) => {
   const pageContainer = {
@@ -64,6 +65,9 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       {/* Headings */}
       <div style={heading}>Request For Independent Admission</div>
       <div style={subHeading}>
