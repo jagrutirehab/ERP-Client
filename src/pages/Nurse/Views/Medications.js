@@ -35,8 +35,16 @@ const Medications = ({ profile, testLoading, prescription }) => {
                 paddingRight: "1rem",
               }}
             >
-              {prescription ? (
-                <Prescription data={prescription.prescription} startDate={prescription.prescriptionStartDate} endDate={prescription.prescriptionEndDate} />
+              {prescription && !prescription.deleted ? (
+                <Prescription
+                  data={prescription.prescription}
+                  startDate={prescription.prescriptionStartDate}
+                  endDate={prescription.prescriptionEndDate}
+                />
+              ) : prescription && prescription.deleted ? (
+                <p style={{ color: "#888", fontStyle: "italic" }}>
+                  Prescription Removed. No Prescription available
+                </p>
               ) : (
                 <p style={{ color: "#888", fontStyle: "italic" }}>
                   No medication data available

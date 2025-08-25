@@ -159,7 +159,7 @@ const Overview = ({
               {medicineLoading ? (
                 <Placeholder />
               ) : (
-                medicineBoxFillingActivities?.medicines && (
+                medicineBoxFillingActivities?.medicines ? (
                   <Row className="gap-3">
                     {Object.entries(medicineBoxFillingActivities.medicines).map(
                       ([timeSlot, meds]) => (
@@ -211,6 +211,17 @@ const Overview = ({
                       )
                     )}
                   </Row>
+                ):(
+                  <p
+                  style={{
+                    color: "#888",
+                    fontStyle: "italic",
+                    margin: "1rem 0",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  No Medicines found
+                </p>
                 )
               )}
             </div>
