@@ -44,7 +44,7 @@ const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId 
 
         <CardBody className="d-flex flex-column h-100">
           <Link
-            to={`/nurse/p/${patient._id}&pid=${prevPatientId}&nid=${nextPatientId}`}
+            to={`/nurse/p/${patient._id}`}
             className="text-decoration-none text-body-secondary flex-grow-1"
           >
             <CardTitle tag="h5" className="mb-2 fw-semibold">

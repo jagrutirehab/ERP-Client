@@ -95,6 +95,9 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                       ) : (
                         <span className="text-reset text-capitalize username">
                           {profile?.name}
+                          <span className="ms-2 text-muted fs-14">
+                            ({`${profile?.uid}`})
+                          </span>
                         </span>
                       )}
                     </h5>
