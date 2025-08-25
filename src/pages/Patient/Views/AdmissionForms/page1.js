@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import PrintHeader from "./printheader";
 
 const Page1 = ({ admissions, patient }) => {
   const { register, handleSubmit, watch } = useForm();
@@ -94,6 +95,9 @@ const Page1 = ({ admissions, patient }) => {
 
   return (
     <div style={pageContainer} onSubmit={handleSubmit(onSubmit)}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <div style={heading}>ADMISSION CHECKLIST</div>
 
       <div style={row}>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PrintHeader from "./printheader";
 
 const IndependentAdmMinor = ({ register, patient, details }) => {
   const pageContainer = {
@@ -60,6 +61,9 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <div style={heading}>Request For Admission of A Minor</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 87)

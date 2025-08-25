@@ -4,7 +4,7 @@ import "./assets/scss/themes.scss";
 import Route from "./Routes";
 import { connect } from "react-redux";
 
-function App({ patients }) {
+function App() {
   return (
     <React.Fragment>
       <Route />

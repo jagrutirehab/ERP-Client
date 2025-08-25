@@ -1,22 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { Button, UncontrolledTooltip } from "reactstrap";
-// import { useInView } from "react-hook-inview";
-
-//Import Scrollbar
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import Tabs from "./Tabs";
-
-//redux
 import { connect, useDispatch } from "react-redux";
 import {
   fetchMorePatients,
-  fetchPatients,
   setTotalAmount,
   togglePatientForm,
-  viewPatient,
 } from "../../../store/actions";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import { useInView } from "react-hook-inview";
@@ -26,19 +19,14 @@ import { setTestPageOpen } from "../../../store/features/clinicalTest/clinicalTe
 const Sidebar = ({
   patients,
   patient,
-  user,
   customActiveTab,
   toggleCustom,
   centerAccess,
 }) => {
   const dispatch = useDispatch();
-  // const loadMoreRef = useRef();
-  // const isVisible = useViewportSpy(loadMoreRef, { threshold: 0 });
   const [loadMoreRef, isVisible] = useInView({
-    // threshold: 1,
     defaultInView: false,
   });
-  //fetch patients
   useEffect(() => {
     if (isVisible)
       dispatch(
@@ -111,14 +99,6 @@ const Sidebar = ({
               customActiveTab={customActiveTab}
               toggleCustom={toggleCustom}
             />
-            {/* <input
-            //   onKeyUp={["owais", "ahmad"]}
-              id="search-user"
-              type="text"
-              className="form-control bg-light border-light"
-              placeholder="Search here..."
-            />
-            <i className="ri-search-2-line search-icon"></i> */}
           </div>
         </div>
 
@@ -132,34 +112,16 @@ const Sidebar = ({
                 <li
                   key={pt._id}
                   className={patient?._id === pt._id ? "active" : ""}
-                > 
-                  {/* <Link
-                    onClick={() => {
-                      dispatch(viewPatient(pt));
-                      dispatch(
-                        setTotalAmount({
-                          totalPayable: 0,
-                          totalAdvance: 0,
-                        })
-                      );
-                      toggleDataSidebar();
-                    }}
-                    to={`/patient/${pt?._id}`}
-                  > */}
+                >
                   <Link
                     onClick={() => {
-                      // Instead of dispatching the sidebar patient data
-                      // dispatch(viewPatient(pt));
-
-                      // We'll just navigate to the patient route
-                      // The actual data fetch will happen in the patient view
                       dispatch(
                         setTotalAmount({
                           totalPayable: 0,
                           totalAdvance: 0,
                         })
                       );
-                     dispatch(setTestPageOpen(false));
+                      dispatch(setTestPageOpen(false));
                       toggleDataSidebar();
                     }}
                     to={`/patient/${pt?._id}`}
@@ -252,7 +214,6 @@ const Sidebar = ({
                       </div>
                     </div>
                   </Link>
-                  
                 </li>
               ))}
               <RenderWhen isTrue={patients.length >= 20}>

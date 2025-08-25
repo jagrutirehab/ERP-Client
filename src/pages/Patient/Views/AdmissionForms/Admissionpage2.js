@@ -1,4 +1,6 @@
-const Admissionpage2 = ({ register, patient }) => {
+import PrintHeader from "./printheader";
+
+const Admissionpage2 = ({ register, patient, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -38,21 +40,43 @@ const Admissionpage2 = ({ register, patient }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       {/* Points 10-19 */}
       <div style={consentPara}>
         10) I am informed and I am willing to pay Rs
         <input
           type="text"
+          defaultValue={details?.toPay}
           {...register("page6_semiPrivate")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         for semi private &{" "}
-        <input type="text" {...register("page6_private")} style={inputLine} />{" "}
+        <input
+          type="text"
+          defaultValue={details?.semiprivate}
+          {...register("page6_private")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />{" "}
         for private room as residential charges, a refundable advance deposit of{" "}
         <input
           type="text"
+          defaultValue={details?.advDeposit}
           {...register("page6_advanceDeposit")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         and a non refundable admission fees of Rs. 500/- at the time of
         admission.

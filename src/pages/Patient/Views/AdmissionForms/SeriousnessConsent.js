@@ -1,3 +1,5 @@
+import PrintHeader from "./printheader";
+
 const SeriousnessConsent = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -34,6 +36,9 @@ const SeriousnessConsent = ({ register, patient }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <div style={{ textAlign: "right", marginBottom: "5px" }}>
         Date:
         <input
@@ -165,10 +170,10 @@ const SeriousnessConsent = ({ register, patient }) => {
             defaultValue={patient?.name}
             {...register("consent_patientName")}
             style={{
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            ...inputLine,
-          }}
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>
@@ -178,10 +183,10 @@ const SeriousnessConsent = ({ register, patient }) => {
             defaultValue={patient?.guardianRelation}
             {...register("consent_relation")}
             style={{
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            ...inputLine,
-          }}
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
         </div>
         <div>

@@ -1,4 +1,6 @@
-const IndipendentOpinion1 = ({ register }) => {
+import PrintHeader from "./printheader";
+
+const IndipendentOpinion1 = ({ register,patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -37,6 +39,9 @@ const IndipendentOpinion1 = ({ register }) => {
 
   return (
     <div style={pageContainer}>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} />
+      </div>
       <div style={heading}>
         Independent Opinion of a Psychiatrist / Medical Practitioner / Medical
         Officer in charge for Admission
