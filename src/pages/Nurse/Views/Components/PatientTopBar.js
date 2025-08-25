@@ -36,10 +36,10 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
 
   const toggle = () => setOpen(!open);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(profile?.doctorNumber);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = (number) => {
+    navigator.clipboard.writeText(number);
+    setCopied(number);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const toggleAlertsModal = (alerts) => {
@@ -366,7 +366,8 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                   Add Note
                 </Button>
               </li>
-              {profile?.doctorName && profile?.doctorNumber && (
+              {((profile?.doctorName && profile?.doctorNumber) ||
+                (profile?.psychologistName && profile?.psychologistNumber)) && (
                 <>
                   <li
                     id="call-doctor"
@@ -379,29 +380,64 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
 
                   <Modal isOpen={open} toggle={toggle} centered>
                     <ModalHeader toggle={toggle} style={{ fontSize: "0.9rem" }}>
-                      <h5>Contact {profile?.doctorName}</h5>
+                      Call
                     </ModalHeader>
-                    <ModalBody className="d-flex flex-column align-items-center">
-                      <div className="d-flex align-items-center mb-3">
-                        <h6 className="mb-0 me-2">{profile?.doctorNumber}</h6>{" "}
-                        <Button
-                          color="secondary"
-                          size="sm"
-                          onClick={handleCopy}
-                          className="d-flex align-items-center"
-                          style={{ fontSize: "0.8rem" }} 
-                        >
-                          {copied ? (
-                            <>
-                              <Check className="me-1" size={14} /> Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="me-1" size={14} /> Copy
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                    <ModalBody className="d-flex flex-column">
+                      {profile?.doctorName && profile?.doctorNumber && (
+                        <div className="d-flex align-items-center justify-content-between mb-3">
+                          <div>
+                            <h6 className="mb-1">{profile?.doctorName}</h6>
+                            <small>{profile?.doctorNumber}</small>
+                          </div>
+                          <Button
+                            color="secondary"
+                            size="sm"
+                            onClick={() => handleCopy(profile?.doctorNumber)}
+                            className="d-flex align-items-center"
+                            style={{ fontSize: "0.8rem" }}
+                          >
+                            {copied === profile?.doctorNumber ? (
+                              <>
+                                <Check className="me-1" size={14} /> Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="me-1" size={14} /> Copy
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                      {profile?.psychologistName &&
+                        profile?.psychologistNumber && (
+                          <div className="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                              <h6 className="mb-1">
+                                {profile?.psychologistName}
+                              </h6>
+                              <small>{profile?.psychologistNumber}</small>
+                            </div>
+                            <Button
+                              color="secondary"
+                              size="sm"
+                              onClick={() =>
+                                handleCopy(profile?.psychologistNumber)
+                              }
+                              className="d-flex align-items-center"
+                              style={{ fontSize: "0.8rem" }}
+                            >
+                              {copied === profile?.psychologistNumber ? (
+                                <>
+                                  <Check className="me-1" size={14} /> Copied
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="me-1" size={14} /> Copy
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
                     </ModalBody>
                   </Modal>
                 </>
