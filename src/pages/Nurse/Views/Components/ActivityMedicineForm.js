@@ -94,7 +94,7 @@ const ActivityMedicineForm = ({
       ).unwrap();
       setSubmissionSuccess(true);
       toast.success("Medicines marked successfully!");
-      
+
       // Close modal if submission was from modal
       if (fromModal) {
         toggleModal();
@@ -279,24 +279,26 @@ const ActivityMedicineForm = ({
                 {!Object.values(medicineBoxFillingActivities?.medicines).every(
                   (slotMeds) => slotMeds.length === 0
                 ) && (
-                  <Button
-                    color="primary"
-                    type="button"
-                    className="mt-3"
-                    onClick={handleSubmit}
-                    disabled={submissionSuccess || isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Spinner size="sm" className="me-2" />
-                        Submitting...
-                      </>
-                    ) : submissionSuccess ? (
-                      "Submitted"
-                    ) : (
-                      "Submit"
-                    )}
-                  </Button>
+                  <div className="d-flex justify-content-end mt-3">
+                    <Button
+                      color="primary"
+                      type="button"
+                      className="mt-3"
+                      onClick={handleSubmit}
+                      disabled={submissionSuccess || isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Spinner size="sm" className="me-2" />
+                          Submitting...
+                        </>
+                      ) : submissionSuccess ? (
+                        "Submitted"
+                      ) : (
+                        "Submit"
+                      )}
+                    </Button>
+                  </div>
                 )}
 
                 <Modal isOpen={modalOpen} toggle={toggleModal}>
