@@ -3,15 +3,18 @@ import { ButtonGroup, Button } from "reactstrap";
 import {
   BILLING_VIEW,
   TIMELINE_VIEW,
+  FORMS_VIEW,
 } from "../../../Components/constants/intern";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
 import { connect } from "react-redux";
+import InternAddmissionForms from "./AdmissionForms/AdmissionForm"
 
 const Views = (props) => {
   const vws = {
     Billing: BILLING_VIEW,
     Timeline: TIMELINE_VIEW,
+    Forms: FORMS_VIEW,
   };
   const internPage = props?.pageAccess?.find((pg) => pg.name === "Intern");
   const [view, setView] = useState(
@@ -38,9 +41,13 @@ const Views = (props) => {
                       ? BILLING_VIEW
                       : sub.name.toUpperCase() === TIMELINE_VIEW
                       ? TIMELINE_VIEW
+                      : sub.name.toUpperCase() === FORMS_VIEW
+                      ? FORMS_VIEW
                       : "";
+
                   return (
                     <Button
+                      key={sub.name}
                       outline={view !== vw}
                       onClick={() => handleView(vw)}
                     >
@@ -53,6 +60,7 @@ const Views = (props) => {
           <div>
             {view === BILLING_VIEW && <Billing view={view} />}
             {view === TIMELINE_VIEW && <Timeline view={view} />}
+            {view === FORMS_VIEW && <InternAddmissionForms view={view} />}
           </div>
         </div>
       </div>

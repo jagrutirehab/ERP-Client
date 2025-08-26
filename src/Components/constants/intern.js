@@ -1,6 +1,7 @@
 export const GENERAL = "GENERAL";
 export const BILLING_VIEW = "BILLING";
 export const TIMELINE_VIEW = "TIMELINE";
+export const FORMS_VIEW = "FORMS";
 const RECEIPT = "RECEIPT";
 const DEPOSIT = "DEPOSIT";
 export const DRAFT_INVOICE = "DRAFT_INVOICE";

@@ -18,7 +18,7 @@ const General = ({ generalLoading, toggleModal, charts }) => {
 
 export default General;
 
-{
+// {
   /* <div className="">
 <GeneralCard>
   <div className="d-flex align-items-center ">
@@ -65,4 +65,4 @@ export default General;
   </Accordion>
 </GeneralCard>
 </div> */
-}
+// }

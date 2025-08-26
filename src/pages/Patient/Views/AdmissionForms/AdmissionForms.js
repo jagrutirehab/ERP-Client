@@ -30,13 +30,16 @@ import {
 import GeneralCard from "../Components/GeneralCard";
 import { useState, useRef, useEffect } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { fetchPatientById } from "../../../../store/actions";
 
 const AddmissionForms = ({ patient, admissions }) => {
+  const dispatch = useDispatch();
   const [dateModal, setDateModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
@@ -109,6 +112,7 @@ const AddmissionForms = ({ patient, admissions }) => {
 
   // ===== PDF Preview States =====
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating2, setIsGenerating2] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
 
@@ -187,9 +191,45 @@ const AddmissionForms = ({ patient, admissions }) => {
   }, [patient?._id]);
 
   const onSubmit = async (data) => {
-    // console.log("Full form data:", data);
+    setIsGenerating2(true);
     try {
-      await axios.patch(`/patient/admission-submit/${admissions[0]?._id}`);
+      const pdf = new jsPDF("p", "pt", "a4");
+      await captureSection(page1Ref, pdf, true);
+      await captureSection(page2Ref, pdf);
+      await captureSection(seriousnessRef, pdf);
+      await captureSection(medicationRef, pdf);
+      await captureSection(ectRef, pdf);
+      await captureSection(admission1Ref, pdf);
+      await captureSection(admission2Ref, pdf);
+
+      if (adultRef.current) await captureSection(adultRef, pdf);
+      if (minorRef.current) await captureSection(minorRef, pdf);
+      if (supportRef.current) await captureSection(supportRef, pdf);
+
+      await captureSection(indipendentref1, pdf);
+      await captureSection(indipendentref2, pdf);
+      await captureSection(indipendentref3, pdf);
+      const pdfBlob = pdf.output("blob");
+      const formData = new FormData();
+      formData.append(
+        "addmissionfromRaw",
+        pdfBlob,
+        `${patient?.id?.value}-${patient?.name}-admission-form.pdf`
+      );
+
+      await axios.patch(
+        `/patient/admission-submit/${admissions[0]?._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Admission form submitted successfully!");
+
+      // Reset state
       setOpenform(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -203,40 +243,47 @@ const AddmissionForms = ({ patient, admissions }) => {
         advDeposit: "",
       });
     } catch (error) {
-      console.error("Failed to fetch timeline", error);
+      toast.error("Failed to submit admission form");
+    } finally {
+      setIsGenerating2(false);
     }
   };
-
   const handleUploadClick = () => {
     fileInputRef.current.click();
   };
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    setIsGenerating2(true);
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
       return;
     }
 
     try {
       const formData = new FormData();
       formData.append("addmissionformURL", file);
-      formData.append("id", admissions[0]?._id); // attach admission id
-
+      formData.append("id", admissions[0]?._id);
       await axios.patch("/patient/admission-submit-file", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      alert("Signed PDF uploaded successfully!");
+      toast.success("Signed PDF uploaded successfully!");
+      setIsGenerating2(false);
     } catch (err) {
-      console.error("Failed to upload PDF", err);
-      alert("Upload failed");
+      toast.error("Upload failed");
+      setIsGenerating2(false);
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchPatientById(patient?._id));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, isGenerating]);
 
   return (
     <>
@@ -272,44 +319,68 @@ const AddmissionForms = ({ patient, admissions }) => {
                       </Button>
                     )}
 
-                  {/* ✅ Show upload button only if form exists but no signed copy */}
-                  {patient.isAdmit === true &&
-                    admissions[0]?.addmissionform &&
-                    !admissions[0]?.addmissionformURL?.url && (
-                      <>
-                        <Button
-                          onClick={handleUploadClick}
-                          size="sm"
-                          color="primary"
-                          className="mr-10"
-                        >
-                          Upload Signed Copy
-                        </Button>
+                  <Button
+                    onClick={handleUploadClick}
+                    size="sm"
+                    color="primary"
+                    className="mr-10"
+                    disabled={isGenerating2}
+                  >
+                    {isGenerating2 ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      "Upload Signed Copy"
+                    )}
+                  </Button>
 
-                        {/* hidden input */}
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          ref={fileInputRef}
-                          style={{ display: "none" }}
-                          onChange={handleFileChange}
-                        />
-                      </>
+                  {patient.isAdmit === true &&
+                    admissions[0]?.addmissionform && (
+                      <div style={{ width: "100%", textAlign: "center" }}>
+                        <div className="mt-2">
+                          <a
+                            href={admissions[0]?.addmissionfromRaw?.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline-primary btn-sm"
+                          >
+                            Download Draft Admission Form{" "}
+                            {admissions[0]?.addmissionfromRaw
+                              ? `(${new Date(
+                                  admissions[0]?.addmissionfromRaw?.uploadedAt
+                                ).toLocaleDateString()})`
+                              : ""}
+                          </a>
+                        </div>
+                      </div>
                     )}
 
-                  {/* ✅ PDF Preview if URL exists */}
-                  {admissions[0]?.addmissionformURL?.url && (
+                  {/* hidden input */}
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+                  {admissions[0]?.addmissionformURL?.length > 0 && (
                     <div style={{ width: "100%", textAlign: "center" }}>
-                      <div className="mt-2">
-                        <a
-                          href={admissions[0]?.addmissionformURL?.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-outline-primary btn-sm"
-                        >
-                          Download Admission Form
-                        </a>
-                      </div>
+                      {admissions[0].addmissionformURL.map((file, index) => (
+                        <div key={index} className="mt-2">
+                          <a
+                            href={file?.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline-primary btn-sm"
+                          >
+                            Download Signed Admission Form {index + 1}{" "}
+                            {file?.uploadedAt
+                              ? `(${new Date(
+                                  file.uploadedAt
+                                ).toLocaleDateString()})`
+                              : ""}
+                          </a>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -461,18 +532,23 @@ const AddmissionForms = ({ patient, admissions }) => {
             }}
           >
             <div ref={indipendentref1}>
-              <IndipendentOpinion1 register={register} patient={patient} />
+              <IndipendentOpinion1 register={register} patient={patient} details={details}/>
             </div>
             <div ref={indipendentref2}>
-              <IndipendentOpinion2 register={register} patient={patient} />
+              <IndipendentOpinion2 register={register} patient={patient} details={details}/>
             </div>
             <div ref={indipendentref3}>
-              <IndipendentOpinion3 register={register} patient={patient} />
+              <IndipendentOpinion3 register={register} patient={patient} details={details}/>
             </div>
           </div>
           <div style={{ textAlign: "center", margin: "20px" }}>
-            <Button color="secondary" type="submit" className="me-2">
-              Submit
+            <Button
+              color="secondary"
+              type="submit"
+              className="me-2"
+              disabled={isGenerating2}
+            >
+              {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
             </Button>
             <Button
               type="button"

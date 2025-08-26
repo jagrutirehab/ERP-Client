@@ -1,6 +1,6 @@
 import PrintHeader from "./printheader";
 
-const IndipendentOpinion1 = ({ register,patient }) => {
+const IndipendentOpinion1 = ({ register, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",

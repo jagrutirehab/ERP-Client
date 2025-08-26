@@ -92,19 +92,23 @@ const AdmissionFormModal = ({
             <div className="mt-3">
               <p className="text-muted mb-0">Patient Name:</p>
               <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
-                {patient?.name || "Patient Name"}
+                {(patient?.name || "Patient Name").toUpperCase()}
               </p>
             </div>
+
             <div className="mt-3">
               <p className="text-muted mb-0">Doctor Name:</p>
               <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
-                {admissions[0]?.doctor?.name || "Doctor Name"}
+                {(admissions[0]?.doctor?.name || "Doctor Name").toUpperCase()}
               </p>
             </div>
+
             <div className="mt-3">
               <p className="text-muted mb-0">Psychologist Name:</p>
               <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
-                {admissions[0]?.psychologist?.name || "Psychologist Name"}
+                {(
+                  admissions[0]?.psychologist?.name || "Psychologist Name"
+                ).toUpperCase()}
               </p>
             </div>
 
@@ -189,7 +193,7 @@ const AdmissionFormModal = ({
                 onChange={(e) =>
                   setDetails((prev) => ({ ...prev, ward: e.target.value }))
                 }
-                placeholder="Enter Ward"
+                placeholder="Enter Ward / Room"
               />
             </div>
             <div className="mt-3">
@@ -216,21 +220,25 @@ const AdmissionFormModal = ({
             </div>
 
             <div className="mt-3">
-              <Label className="text-muted mb-1">Willing To Pay Rs</Label>
+              <Label className="text-muted mb-1">
+                Willing To Pay Rs For Private
+              </Label>
               <Input
-                type="text"
+                type="number"
                 value={details?.toPay}
                 onChange={(e) =>
                   setDetails((prev) => ({ ...prev, toPay: e.target.value }))
                 }
-                placeholder="Willing To Pay Rs"
+                placeholder="Willing To Pay Rs For Private"
               />
             </div>
 
             <div className="mt-3">
-              <Label className="text-muted mb-1">For Semi Private &</Label>
+              <Label className="text-muted mb-1">
+                Willing To Pay Rs For Semi Private
+              </Label>
               <Input
-                type="text"
+                type="number"
                 value={details?.semiprivate}
                 onChange={(e) =>
                   setDetails((prev) => ({
@@ -238,14 +246,16 @@ const AdmissionFormModal = ({
                     semiprivate: e.target.value,
                   }))
                 }
-                placeholder="For Semi Private &"
+                placeholder="Willing To Pay Rs For Semi Private"
               />
             </div>
 
             <div className="mt-3">
-              <Label className="text-muted mb-1">Advance Deposit Of</Label>
+              <Label className="text-muted mb-1">
+                Willing To Pay Rs. as Refundable Advance Deposit
+              </Label>
               <Input
-                type="text"
+                type="number"
                 value={details?.advDeposit}
                 onChange={(e) =>
                   setDetails((prev) => ({
@@ -253,7 +263,7 @@ const AdmissionFormModal = ({
                     advDeposit: e.target.value,
                   }))
                 }
-                placeholder="Advance Deposit Of"
+                placeholder="Willing To Pay Rs. as Refundable Advance Deposit"
               />
             </div>
 

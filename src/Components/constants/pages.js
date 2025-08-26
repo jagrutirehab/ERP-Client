@@ -53,6 +53,14 @@ const pages = [
           delete: true,
         },
       },
+      {
+        name: "Forms",
+        permissions: {
+          create: true,
+          edit: true,
+          delete: true,
+        },
+      },
     ],
   },
   {
