@@ -10,6 +10,7 @@ import {
   getNextDayMedicineBoxFillingActivities,
   getPatientOverviewById,
 } from "../../../store/features/nurse/nurseSlice";
+import ActivityMedicineForm from "./Components/ActivityMedicineForm";
 
 const Overview = ({
   vitals,
@@ -152,89 +153,10 @@ const Overview = ({
                 </p>
               )}
             </div>
-            <div className="pt-4 ps-3">
-              <h5>Activity - Medicine Box Filing</h5>
-              {medicineLoading ? (
-                <Placeholder />
-              ) : medicineBoxFillingActivities?.medicines ? (
-                <Row className="gap-3">
-                  {Object.entries(medicineBoxFillingActivities.medicines).map(
-                    ([timeSlot, meds]) => (
-                      <div
-                        key={timeSlot}
-                        style={{ flex: "1 1 30%", minWidth: "250px" }}
-                      >
-                        <h6 className=" text-capitalize mb-3">{timeSlot}</h6>
-                        <div className="d-flex flex-column gap-3">
-                          {Array.isArray(meds) && meds.length > 0 ? (
-                            meds.map((med) => (
-                              <div
-                                key={med._id}
-                                className="border rounded-lg p-3 bg-white shadow-sm"
-                              >
-                                <h6 className="fw-bold text-dark mb-1">
-                                  {med.medicineName}
-                                </h6>
-                                <small className="text-muted d-flex flex-wrap align-items-center gap-2">
-                                  <span>
-                                    <strong>Dosage:</strong> x{med.dosage}
-                                  </span>
-                                  <span>
-                                    <strong>Intake:</strong> {med.intake}
-                                  </span>
-                                  <span>
-                                    <strong>Time:</strong>
-                                    <Badge
-                                      color="light"
-                                      className="ms-1 border text-primary"
-                                      style={{
-                                        fontSize: "0.6rem",
-                                        fontWeight: "600",
-                                        padding: "0.15rem 0.4rem",
-                                      }}
-                                    >
-                                      {timeSlot.toUpperCase()}
-                                    </Badge>
-                                  </span>
-                                </small>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-muted">
-                              No medicines for {timeSlot}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </Row>
-              ) : (
-                <p
-                  style={{
-                    color: "#888",
-                    fontStyle: "italic",
-                    margin: "1rem 0",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  No medicines found
-                </p>
-              )}
-            </div>
+            <ActivityMedicineForm />
           </GeneralCard>{" "}
         </Row>
       </div>
-
-      <style jsx>{`
-        .vital-sign-item {
-          padding: 0.5rem 0;
-          border-bottom: 1px solid #eee;
-        }
-        .vital-sign-item:last-child {
-          border-bottom: none;
-        }
-      `}</style>
     </React.Fragment>
   );
 };

@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
-  assignNurseToPatient,
   createNote,
+  getActivitiesByStatus,
   getAlertsByPatient,
   getClinicalTestSummary,
   getCompletedActiveMedicines,
@@ -13,7 +13,7 @@ import {
   getPatientOverview,
   getPatientPrescription,
   getPendingActiveMedicines,
-  markMedicineAsGiven,
+  markTomorrowMedicines,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -24,11 +24,10 @@ const initialState = {
   notesLoading: false,
   medicineLoading: false,
   medicines: {
-    pending: [],
-    completed: [],
+    activities: [],
     nextDay: [],
   },
-  searchMode:false,
+  searchMode: false,
   pagination: null,
   data: [],
   profile: null,
@@ -40,7 +39,7 @@ const initialState = {
   notesModal: false,
   notesData: [],
   patientIds: [],
-  index:0,
+  index: 0,
 };
 
 export const allNurseAssignedPatients = createAsyncThunk(
@@ -179,11 +178,11 @@ export const getRemainigActiveMedicines = createAsyncThunk(
   }
 );
 
-export const getTodayCompletedActiveMedicines = createAsyncThunk(
-  "nurse/getCompletedActiveMedicines",
+export const getMedicineActivitiesByStatus = createAsyncThunk(
+  "nurse/getActivitiesByStatus",
   async (data, { dispatch, rejectWithValue }) => {
     try {
-      const response = await getCompletedActiveMedicines(data);
+      const response = await getActivitiesByStatus(data);
       return response;
     } catch (error) {
       console.log(error);
@@ -193,15 +192,15 @@ export const getTodayCompletedActiveMedicines = createAsyncThunk(
   }
 );
 
-export const markPendingMedicineAsGiven = createAsyncThunk(
-  "nurse/markMedicineAsGiven",
+export const markTomorrowActivityMedicines = createAsyncThunk(
+  "nurse/markTomorrowMedicines",
   async (data, { dispatch, rejectWithValue }) => {
     try {
-      const response = await markMedicineAsGiven(data);
+      const response = await markTomorrowMedicines(data);
       return response;
     } catch (error) {
       console.log(error);
-      return rejectWithValue("Failed to mark medicine as given");
+      return rejectWithValue("Failed to mark medicine activity");
     }
   }
 );
@@ -244,12 +243,12 @@ export const NurseSlice = createSlice({
     setPatientIds: (state, { payload }) => {
       state.patientIds = payload;
     },
-    setIndex:(state,{payload})=>{
+    setIndex: (state, { payload }) => {
       state.index = payload;
     },
-    setSearchMode:(state, { payload })=>{
-      state.searchMode = payload
-    }
+    setSearchMode: (state, { payload }) => {
+      state.searchMode = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -303,7 +302,7 @@ export const NurseSlice = createSlice({
       })
       .addCase(getPatientDetailsById.rejected, (state) => {
         state.loading = false;
-    });
+      });
     builder
       .addCase(getPatientOverviewById.pending, (state) => {
         state.loading = true;
@@ -399,28 +398,30 @@ export const NurseSlice = createSlice({
         state.medicineLoading = false;
       });
     builder
-      .addCase(getTodayCompletedActiveMedicines.pending, (state) => {
+      .addCase(getMedicineActivitiesByStatus.pending, (state) => {
         state.medicineLoading = true;
       })
       .addCase(
-        getTodayCompletedActiveMedicines.fulfilled,
+        getMedicineActivitiesByStatus.fulfilled,
         (state, { payload }) => {
-          state.medicines.completed = payload.data;
+          state.medicines.activities = payload.data;
           state.medicineLoading = false;
         }
       )
-      .addCase(getTodayCompletedActiveMedicines.rejected, (state) => {
+      .addCase(getMedicineActivitiesByStatus.rejected, (state) => {
         state.medicineLoading = false;
       });
-    builder.addCase(
-      markPendingMedicineAsGiven.fulfilled,
-      (state, { payload }) => {
-        state.medicines.pending = state.medicines.pending.filter(
-          (medicine) => medicine._id !== payload.data._id
-        );
-        // state.medicines.completed.unshift(payload);
-      }
-    );
+    builder.addCase(markTomorrowActivityMedicines.fulfilled, (state) => {
+      state.medicines.nextDay = {
+        ...state.medicines.nextDay,
+        medicines: {
+          morning: [],
+          evening: [],
+          night: [],
+        },
+      };
+      // state.medicines.completed.unshift(payload);
+    });
     builder
       .addCase(getNextDayMedicineBoxFillingActivities.pending, (state) => {
         state.medicineLoading = true;
@@ -447,6 +448,6 @@ export const {
   setPatients,
   setPatientIds,
   setIndex,
-  setSearchMode
+  setSearchMode,
 } = NurseSlice.actions;
 export default NurseSlice.reducer;
