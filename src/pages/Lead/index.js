@@ -24,6 +24,7 @@ import { connect, useDispatch } from "react-redux";
 import {
   createEditLead,
   fetchAllCenters,
+  fetchCenters,
   removeLead,
   searchLead,
 } from "../../store/actions";
@@ -39,7 +40,7 @@ import Merge from "./Merge";
 import UnMerge from "./UnMerge";
 import LeadDashboard from "../Report/Components/Hubspot";
 
-const Lead = ({ searchLoading, leads, centerAccess }) => {
+const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   const dispatch = useDispatch();
 
   const [date, setDate] = useState({
@@ -69,6 +70,12 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
   useEffect(() => {
     dispatch(fetchAllCenters());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log(user, "user");
+    dispatch(fetchCenters(user?.centerAccess));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, user?.centerAccess]);
 
   //delete lead
   const onCloseClick = () => {
@@ -253,6 +260,7 @@ const mapStateToProps = (state) => ({
   leads: state.Lead.data,
   searchLoading: state.Lead.searchLoading,
   centerAccess: state.User.centerAccess,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(Lead);

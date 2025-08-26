@@ -10,12 +10,13 @@ import {
 
 import "flatpickr/dist/themes/material_green.css";
 import Flatpickr from "react-flatpickr";
+import { endOfDay, startOfDay } from "date-fns";
 
 const Header = ({ reportDate, setReportDate }) => {
   const changeDate = (days) => {
     const date = new Date();
     if (days) date.setDate(date.getDate() - days);
-    setReportDate({ start: date, end: new Date() });
+    setReportDate({ start: startOfDay(date), end: endOfDay(date) });
   };
 
   const changeToMonth = () => {
@@ -23,7 +24,7 @@ const Header = ({ reportDate, setReportDate }) => {
       y = date.getFullYear(),
       m = date.getMonth();
     const firstDay = new Date(y, m, 1);
-    setReportDate({ start: firstDay, end: new Date() });
+    setReportDate({ start: startOfDay(firstDay), end: endOfDay(new Date()) });
   };
 
   // const ref = useRef();
