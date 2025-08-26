@@ -7,7 +7,7 @@ import Placeholder from "../../Patient/Views/Components/Placeholder";
 import { getPatientPrescriptionById } from "../../../store/features/nurse/nurseSlice";
 import { useParams } from "react-router-dom";
 
-const Medications = ({ profile, testLoading, prescription }) => {
+const Medications = ({ testLoading, prescription }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
@@ -18,8 +18,6 @@ const Medications = ({ profile, testLoading, prescription }) => {
     };
     fetchPatientPrescription();
   }, [dispatch, id]);
-
-  console.log(prescription);
 
   return (
     <div>
@@ -35,8 +33,16 @@ const Medications = ({ profile, testLoading, prescription }) => {
                 paddingRight: "1rem",
               }}
             >
-              {prescription ? (
-                <Prescription data={prescription.prescription} startDate={prescription.prescriptionStartDate} endDate={prescription.prescriptionEndDate} />
+              {prescription && !prescription.deleted ? (
+                <Prescription
+                  data={prescription.prescription}
+                  startDate={prescription.prescriptionStartDate}
+                  endDate={prescription.prescriptionEndDate}
+                />
+              ) : prescription && prescription.deleted ? (
+                <p style={{ color: "#888", fontStyle: "italic" }}>
+                  Prescription Removed. No Prescription available
+                </p>
               ) : (
                 <p style={{ color: "#888", fontStyle: "italic" }}>
                   No medication data available
@@ -54,6 +60,7 @@ const mapStateToProps = (state) => ({
   prescription: state.Nurse.prescription,
   testLoading: state.Nurse.testLoading,
   profile: state.Nurse.profile,
+  currentPatientIndex:state.Nurse.index
 });
 
 export default connect(mapStateToProps)(Medications);

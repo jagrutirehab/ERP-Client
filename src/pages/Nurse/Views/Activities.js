@@ -16,7 +16,7 @@ const Activities = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { medicineLoading, medicines } = useSelector((state) => state.Nurse);
-  const [activeTab, setActiveTab] = useState("PENDING");
+  const [activeTab, setActiveTab] = useState("COMPLETED");
   const [markingId, setMarkingId] = useState(null);
   const [expandedDates, setExpandedDates] = useState({});
 
@@ -33,9 +33,10 @@ const Activities = () => {
 
   useEffect(() => {
     if (!id || id === "*") return;
-    if (activeTab === "PENDING") {
-      dispatch(getRemainigActiveMedicines(id));
-    } else if (activeTab === "COMPLETED") {
+    // if (activeTab === "PENDING") {
+    //   dispatch(getRemainigActiveMedicines(id));
+    // } else
+       if (activeTab === "COMPLETED") {
       dispatch(
         getTodayCompletedActiveMedicines({ patientId: id, status: "COMPLETED" })
       );
@@ -80,7 +81,7 @@ const Activities = () => {
         <GeneralCard data="Daily Medication Record">
           <div style={{ padding: "1rem" }}>
             <Nav tabs className="mb-4">
-              <NavItem>
+              {/* <NavItem>
                 <NavLink
                   className={`cursor-pointer ${
                     activeTab === "PENDING" ? "active" : ""
@@ -92,7 +93,7 @@ const Activities = () => {
                     Pending
                   </div>
                 </NavLink>
-              </NavItem>
+              </NavItem> */}
               <NavItem>
                 <NavLink
                   className={`cursor-pointer ${
@@ -122,88 +123,92 @@ const Activities = () => {
 
             {medicineLoading ? (
               <Placeholder />
-            ) : activeTab === "PENDING" ? (
-              medicines?.pending?.length > 0 ? (
-                <div className="space-y-3">
-                  {medicines?.pending.map((med) => (
-                    <div
-                      key={med?._id}
-                      className="border rounded-lg p-3 bg-white shadow-sm"
-                    >
-                      <div className="d-flex justify-content-between align-items-start">
-                        <div className="flex-grow-1">
-                          <h6 className="fw-bold text-dark mb-1">
-                            {med?.medicineName}
-                          </h6>
+            ) 
+            // : activeTab === "PENDING" ?
+            //  (
+            //   medicines?.pending?.length > 0 ? (
+            //     <div className="space-y-3">
+            //       {medicines?.pending.map((med) => (
+            //         <div
+            //           key={med?._id}
+            //           className="border rounded-lg p-3 bg-white shadow-sm"
+            //         >
+            //           <div className="d-flex justify-content-between align-items-start">
+            //             <div className="flex-grow-1">
+            //               <h6 className="fw-bold text-dark mb-1">
+            //                 {med?.medicineName}
+            //               </h6>
 
-                          <small className="text-muted d-flex flex-wrap align-items-center gap-2">
-                            <span>
-                              <strong>Dosage:</strong> x{med?.dosage}
-                            </span>
-                            <span>
-                              <strong>Intake:</strong> {med?.intake}
-                            </span>
-                            <span>
-                              <strong>Time:</strong>
-                              <Badge
-                                color="light"
-                                className="ms-1 border text-primary"
-                                style={{
-                                  fontSize: "0.6rem",
-                                  fontWeight: "600",
-                                  padding: "0.15rem 0.4rem",
-                                }}
-                              >
-                                {med?.timeSlot?.toUpperCase() || ""}
-                              </Badge>
-                            </span>
-                          </small>
+            //               <small className="text-muted d-flex flex-wrap align-items-center gap-2">
+            //                 <span>
+            //                   <strong>Dosage:</strong> x{med?.dosage}
+            //                 </span>
+            //                 <span>
+            //                   <strong>Intake:</strong> {med?.intake}
+            //                 </span>
+            //                 <span>
+            //                   <strong>Time:</strong>
+            //                   <Badge
+            //                     color="light"
+            //                     className="ms-1 border text-primary"
+            //                     style={{
+            //                       fontSize: "0.6rem",
+            //                       fontWeight: "600",
+            //                       padding: "0.15rem 0.4rem",
+            //                     }}
+            //                   >
+            //                     {med?.timeSlot?.toUpperCase() || ""}
+            //                   </Badge>
+            //                 </span>
+            //               </small>
 
-                          {med.instructions && (
-                            <div className="mt-2 p-2 bg-light border rounded">
-                              <small className="text-muted">
-                                <strong>Note:</strong> {med.instructions}
-                              </small>
-                            </div>
-                          )}
-                        </div>
+            //               {med.instructions && (
+            //                 <div className="mt-2 p-2 bg-light border rounded">
+            //                   <small className="text-muted">
+            //                     <strong>Note:</strong> {med.instructions}
+            //                   </small>
+            //                 </div>
+            //               )}
+            //             </div>
 
-                        <Button
-                          color="success"
-                          size="sm"
-                          className="ms-3 d-flex align-items-center gap-1 text-white"
-                          onClick={() =>
-                            handleMarkAsGiven({
-                              medicineId: med._id,
-                              timeSlot: med.timeSlot,
-                            })
-                          }
-                          disabled={markingId === med._id}
-                        >
-                          {markingId === med._id ? (
-                            <Spinner size="sm">Loading...</Spinner>
-                          ) : (
-                            <CheckCircle size={16} />
-                          )}
-                          Mark Given
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <CheckCircle
-                    size={48}
-                    className="text-success mb-2 opacity-75"
-                  />
-                  <h6 className="text-muted">No pending medications</h6>
-                  <p className="text-muted small">
-                    All medications have been administered
-                  </p>
-                </div>
-              )
-            ) : activeTab==="COMPLETED"? medicines?.completed?.length > 0 ? (
+            //             <Button
+            //               color="success"
+            //               size="sm"
+            //               className="ms-3 d-flex align-items-center gap-1 text-white"
+            //               onClick={() =>
+            //                 handleMarkAsGiven({
+            //                   medicineId: med._id,
+            //                   timeSlot: med.timeSlot,
+            //                 })
+            //               }
+            //               disabled={markingId === med._id}
+            //             >
+            //               {markingId === med._id ? (
+            //                 <Spinner size="sm">Loading...</Spinner>
+            //               ) : (
+            //                 <CheckCircle size={16} />
+            //               )}
+            //               Mark Given
+            //             </Button>
+            //           </div>
+            //         </div>
+            //       ))}
+            //     </div>
+            //   ) : (
+            //     <div className="text-center py-4">
+            //       <CheckCircle
+            //         size={48}
+            //         className="text-success mb-2 opacity-75"
+            //       />
+            //       <h6 className="text-muted">No pending medications</h6>
+            //       <p className="text-muted small">
+            //         All medications have been administered
+            //       </p>
+            //     </div>
+            //   )
+            // ) 
+            :
+             activeTab==="COMPLETED"? medicines?.completed?.length > 0 ? (
               <div className="space-y-4">
                 {medicines.completed.map((dateGroup) => (
                   <div key={dateGroup.date} className="border rounded-lg overflow-hidden">

@@ -9,6 +9,11 @@ import {
   Input,
   Row,
   Spinner,
+  Nav,
+  NavItem,
+  NavLink,
+  TabContent,
+  TabPane,
 } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import RenderWhen from "../../Components/Common/RenderWhen";
@@ -19,6 +24,7 @@ import { connect, useDispatch } from "react-redux";
 import {
   createEditLead,
   fetchAllCenters,
+  fetchCenters,
   removeLead,
   searchLead,
 } from "../../store/actions";
@@ -32,9 +38,9 @@ import { CSVLink } from "react-csv";
 import { endOfDay, format, startOfDay } from "date-fns";
 import Merge from "./Merge";
 import UnMerge from "./UnMerge";
-import HubspotContacts from "../Report/Components/Hubspot";
+import LeadDashboard from "../Report/Components/Hubspot";
 
-const Lead = ({ searchLoading, leads, centerAccess }) => {
+const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   const dispatch = useDispatch();
 
   const [date, setDate] = useState({
@@ -48,6 +54,7 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
     id: null,
     isOpen: false,
   });
+  const [activeTab, setActiveTab] = useState("1");
 
   useEffect(() => {
     dispatch(
@@ -63,6 +70,12 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
   useEffect(() => {
     dispatch(fetchAllCenters());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log(user, "user");
+    dispatch(fetchCenters(user?.centerAccess));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, user?.centerAccess]);
 
   //delete lead
   const onCloseClick = () => {
@@ -116,65 +129,110 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
       <div className="page-content">
         <Container fluid>
           <BreadCrumb title="Leads" pageTitle="Leads" />
+
+          {/* Tab Navigation */}
           <Card className="mb-0">
-            <CardBody className="bg-white">
-              <Row className="g-2">
-                <Col sm={4}>
-                  <div className="search-box">
-                    <Input
-                      type="text"
-                      value={leadQuery}
-                      onChange={
-                        (e) => setLeadQuery(e.target.value)
-                        // dispatch(searchLead({ phoneNumber: e.target.value }))
-                      }
-                      className="form-control"
-                      placeholder="Search for title, address"
-                    />
-                    <i className="ri-search-line search-icon"></i>
-                    <RenderWhen isTrue={searchLoading}>
-                      <Spinner
-                        className="position-absolute"
-                        style={{ right: 10, top: 10 }}
-                        color="success"
-                        size={"sm"}
-                      />
-                    </RenderWhen>
-                  </div>
-                </Col>
-                <Col className="col-sm-auto ms-auto d-flex gap-3">
-                  <Header reportDate={date} setReportDate={setDate} />
-
-                  <div className="list-grid-nav hstack gap-1">
-                    <Button
-                      color="success"
-                      onClick={() =>
-                        dispatch(createEditLead({ isOpen: true, data: null }))
-                      }
-                    >
-                      <i className="ri-add-fill me-1 align-bottom"></i> Add New
-                      Lead
-                    </Button>
-                  </div>
-
-                  <div className="list-grid-nav hstack gap-1">
-                    <CSVLink
-                      data={documents() || []}
-                      title="CSV Download"
-                      filename={"leads.csv"}
-                      headers={headers}
-                      className="btn btn-info px-2 ms-3"
-                    >
-                      <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
-                    </CSVLink>
-                  </div>
-                </Col>
-              </Row>
+            <CardBody className="bg-white p-0">
+              <Nav tabs className="nav-tabs-custom">
+                <NavItem>
+                  <NavLink
+                    className={activeTab === "1" ? "active" : ""}
+                    onClick={() => setActiveTab("1")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <i className="ri-user-line me-1 align-bottom"></i>
+                    General Leads
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={activeTab === "2" ? "active" : ""}
+                    onClick={() => setActiveTab("2")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <i className="ri-hubspot-line me-1 align-bottom"></i>
+                    HubSpot Contacts
+                  </NavLink>
+                </NavItem>
+              </Nav>
             </CardBody>
           </Card>
+
+          {/* Tab Content */}
+          <TabContent activeTab={activeTab}>
+            <TabPane tabId="1">
+              <Card className="mb-0">
+                <CardBody className="bg-white">
+                  <Row className="g-2">
+                    <Col sm={4}>
+                      <div className="search-box">
+                        <Input
+                          type="text"
+                          value={leadQuery}
+                          onChange={
+                            (e) => setLeadQuery(e.target.value)
+                            // dispatch(searchLead({ phoneNumber: e.target.value }))
+                          }
+                          className="form-control"
+                          placeholder="Search for title, address"
+                        />
+                        <i className="ri-search-line search-icon"></i>
+                        <RenderWhen isTrue={searchLoading}>
+                          <Spinner
+                            className="position-absolute"
+                            style={{ right: 10, top: 10 }}
+                            color="success"
+                            size={"sm"}
+                          />
+                        </RenderWhen>
+                      </div>
+                    </Col>
+                    <Col className="col-sm-auto ms-auto d-flex gap-3">
+                      <Header reportDate={date} setReportDate={setDate} />
+                      <div className="list-grid-nav hstack gap-1">
+                        <Button
+                          color="success"
+                          onClick={() =>
+                            dispatch(
+                              createEditLead({ isOpen: true, data: null })
+                            )
+                          }
+                        >
+                          <i className="ri-add-fill me-1 align-bottom"></i> Add
+                          New Lead
+                        </Button>
+                      </div>
+
+                      <div className="list-grid-nav hstack gap-1">
+                        <CSVLink
+                          data={documents() || []}
+                          title="CSV Download"
+                          filename={"leads.csv"}
+                          headers={headers}
+                          className="btn btn-info px-2 ms-3"
+                        >
+                          <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
+                        </CSVLink>
+                      </div>
+                    </Col>
+                  </Row>
+                </CardBody>
+              </Card>
+              <LeadList
+                leads={leads}
+                leadQuery={leadQuery}
+                setDeleteLead={setDeleteLead}
+                setMergeLead={setMergeLead}
+                setUnMergeLead={setUnMergeLead}
+              />
+            </TabPane>
+            <TabPane tabId="2">
+              <LeadDashboard leadDate={date} />
+            </TabPane>
+          </TabContent>
+
           {/* Create Edit Lead */}
           <PatientForm />
-          {/* <HubspotContacts leadDate={date} /> */}
           <LeadForm date={date} />
           <Merge date={date} lead={mergeLead} setLead={setMergeLead} />
           <UnMerge
@@ -186,13 +244,6 @@ const Lead = ({ searchLoading, leads, centerAccess }) => {
             show={deleteLead?.isOpen}
             onCloseClick={onCloseClick}
             onDeleteClick={onDeleteClick}
-          />
-          <LeadList
-            leads={leads}
-            leadQuery={leadQuery}
-            setDeleteLead={setDeleteLead}
-            setMergeLead={setMergeLead}
-            setUnMergeLead={setUnMergeLead}
           />
         </Container>
       </div>
@@ -209,6 +260,7 @@ const mapStateToProps = (state) => ({
   leads: state.Lead.data,
   searchLoading: state.Lead.searchLoading,
   centerAccess: state.User.centerAccess,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(Lead);

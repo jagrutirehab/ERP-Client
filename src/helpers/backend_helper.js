@@ -716,6 +716,9 @@ export const getNurseAssignedPatients = ({
 export const getPatientOverview = (patientId) => {
   return api.get(`${url.GET_PATIENT_OVERVIEW_BY_NURSE}?patientId=${patientId}`);
 };
+export const getPatientDetails = (patientId) => {
+  return api.get(`${url.GET_PATIENT_DETAILS_BY_NURSE}?patientId=${patientId}`);
+};
 
 export const getPatientPrescription = (patientId) => {
   return api.get(

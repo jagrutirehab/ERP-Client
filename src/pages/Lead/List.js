@@ -292,7 +292,10 @@ const List = ({
                                 dispatch(
                                   togglePatientForm({
                                     data: null,
-                                    leadData: lead,
+                                    leadData: {
+                                      ...lead,
+                                      leadOrigin: "generic",
+                                    },
                                     isOpen: true,
                                   })
                                 )

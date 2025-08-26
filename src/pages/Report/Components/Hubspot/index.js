@@ -1,7 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchHubspotContacts } from "../../../../store/actions";
+import {
+  fetchHubspotContacts,
+  togglePatientForm,
+} from "../../../../store/actions";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { Button, Tooltip } from "reactstrap";
 
 const statusBadge = {
   Planned: "bg-blue-100 text-blue-700 border-blue-300",
@@ -37,6 +41,8 @@ const LeadDashboard = ({ leadDate }) => {
   const [visitDateFilter, setVisitDateFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [tooltipOpen, setTooltipOpen] = useState(null);
+  const buttonRefs = useRef({});
 
   // Fetch contacts when visitDateFilter, currentPage, or itemsPerPage changes
   useEffect(() => {
@@ -55,6 +61,20 @@ const LeadDashboard = ({ leadDate }) => {
     console.log(params, "params");
     dispatch(fetchHubspotContacts(params));
   }, [visitDateFilter, currentPage, itemsPerPage, dispatch]);
+
+  // Reset tooltip state and cleanup refs when data changes or component unmounts
+  useEffect(() => {
+    // Reset tooltip state when data changes
+    setTooltipOpen(null);
+    // Clear refs to prevent stale references
+    buttonRefs.current = {};
+
+    // Cleanup function for unmount
+    return () => {
+      buttonRefs.current = {};
+      setTooltipOpen(null);
+    };
+  }, [contacts, currentPage, visitDateFilter]);
 
   // Filtering (client-side for visitType, status, assignedTo)
   const filteredContacts = useMemo(() => {
@@ -129,6 +149,7 @@ const LeadDashboard = ({ leadDate }) => {
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Lifecycle Stage
               </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider"></th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
@@ -151,9 +172,9 @@ const LeadDashboard = ({ leadDate }) => {
                 </td>
               </tr>
             ) : (
-              filteredContacts.map((contact) => (
+              filteredContacts.map((contact, index) => (
                 <tr
-                  key={contact.id}
+                  key={index}
                   className="hover:bg-blue-50 transition-colors group"
                 >
                   <td className="px-4 py-3 font-bold whitespace-nowrap font-semibold text-gray-900 flex items-center gap-2">
@@ -190,8 +211,45 @@ const LeadDashboard = ({ leadDate }) => {
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.contactOwner}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                  <td className="px-4 py-3 text-capitalize whitespace-nowrap text-gray-700">
                     {contact.lifecyclestage}
+                  </td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap text-gray-700">
+                    <div>
+                      <Button
+                        ref={(el) => (buttonRefs.current[index] = el)}
+                        onClick={() =>
+                          dispatch(
+                            togglePatientForm({
+                              data: null,
+                              leadData: {
+                                leadOrigin: "hubspot",
+                                patient: {
+                                  name: `${contact.firstname} ${contact.lastname}`?.trim(),
+                                  phoneNumber: contact.phone,
+                                  email: contact.email,
+                                },
+                              },
+                              isOpen: true,
+                            })
+                          )
+                        }
+                        onMouseEnter={() => setTooltipOpen(index)}
+                        onMouseLeave={() => setTooltipOpen(null)}
+                      >
+                        <i className="ri-user-add-line align-bottom text-white text-muted me-2"></i>{" "}
+                      </Button>
+                      {tooltipOpen === index && buttonRefs.current[index] && (
+                        <Tooltip
+                          isOpen={true}
+                          target={buttonRefs.current[index]}
+                          placement="top"
+                          delay={{ show: 100, hide: 100 }}
+                        >
+                          Register this HubSpot contact as a new patient
+                        </Tooltip>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

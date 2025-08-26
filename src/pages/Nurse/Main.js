@@ -9,6 +9,7 @@ import InfoModal from "./Views/Components/InfoModal";
 import {
   allNurseAssignedPatients,
   getAlertsByPatientId,
+  setSearchMode,
 } from "../../store/features/nurse/nurseSlice";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
@@ -34,10 +35,16 @@ const Main = ({ alertModal, alertData, data, loading }) => {
     if (!hasPermission) return;
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
+
+      if (search && search.trim() !== "") {
+        dispatch(setSearchMode(true));
+      } else {
+        dispatch(setSearchMode(false));
+      }
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [search, roles]);
+  }, [search, roles, dispatch]);
 
   useEffect(() => {
     if (!hasPermission) return;

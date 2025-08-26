@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Badge, Button, Col, Row, UncontrolledTooltip } from "reactstrap";
+import {
+  Badge,
+  Button,
+  Col,
+  Row,
+  UncontrolledTooltip,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import InfoModal from "./InfoModal";
@@ -8,6 +18,7 @@ import { connect, useDispatch } from "react-redux";
 import { setAlertData, setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
+import { Check, Copy } from "lucide-react";
 
 const statusColors = {
   Urgent: { color: "danger", border: "#ff4d4f" },
@@ -20,6 +31,16 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const dispatch = useDispatch();
   const [viewPicture, setViewPicture] = useState();
   const [notesModal, setNotesModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const toggle = () => setOpen(!open);
+
+  const handleCopy = (number) => {
+    navigator.clipboard.writeText(number);
+    setCopied(number);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   const toggleAlertsModal = (alerts) => {
     dispatch(setAlertModal());
@@ -95,6 +116,9 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                       ) : (
                         <span className="text-reset text-capitalize username">
                           {profile?.name}
+                          <span className="ms-2 text-muted fs-14">
+                            ({`${profile?.uid}`})
+                          </span>
                         </span>
                       )}
                     </h5>
@@ -342,13 +366,83 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                   Add Note
                 </Button>
               </li>
-              <li
-                id="call-doctor"
-                className="list-inline-item ms-2 d-none d-md-inline"
-              >
-                <Button>Call Doctor</Button>
-              </li>
-              <li
+              {((profile?.doctorName && profile?.doctorNumber) ||
+                (profile?.psychologistName && profile?.psychologistNumber)) && (
+                <>
+                  <li
+                    id="call-doctor"
+                    className="list-inline-item ms-2 d-none d-md-inline"
+                  >
+                    <Button color="primary" onClick={toggle}>
+                      Call Doctor
+                    </Button>
+                  </li>
+
+                  <Modal isOpen={open} toggle={toggle} centered>
+                    <ModalHeader toggle={toggle} style={{ fontSize: "0.9rem" }}>
+                      Call
+                    </ModalHeader>
+                    <ModalBody className="d-flex flex-column">
+                      {profile?.doctorName && profile?.doctorNumber && (
+                        <div className="d-flex align-items-center justify-content-between mb-3">
+                          <div>
+                            <h6 className="mb-1">{profile?.doctorName}</h6>
+                            <small>{profile?.doctorNumber}</small>
+                          </div>
+                          <Button
+                            color="secondary"
+                            size="sm"
+                            onClick={() => handleCopy(profile?.doctorNumber)}
+                            className="d-flex align-items-center"
+                            style={{ fontSize: "0.8rem" }}
+                          >
+                            {copied === profile?.doctorNumber ? (
+                              <>
+                                <Check className="me-1" size={14} /> Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="me-1" size={14} /> Copy
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                      {profile?.psychologistName &&
+                        profile?.psychologistNumber && (
+                          <div className="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                              <h6 className="mb-1">
+                                {profile?.psychologistName}
+                              </h6>
+                              <small>{profile?.psychologistNumber}</small>
+                            </div>
+                            <Button
+                              color="secondary"
+                              size="sm"
+                              onClick={() =>
+                                handleCopy(profile?.psychologistNumber)
+                              }
+                              className="d-flex align-items-center"
+                              style={{ fontSize: "0.8rem" }}
+                            >
+                              {copied === profile?.psychologistNumber ? (
+                                <>
+                                  <Check className="me-1" size={14} /> Copied
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="me-1" size={14} /> Copy
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                    </ModalBody>
+                  </Modal>
+                </>
+              )}
+              {/* <li
                 id="print"
                 className="list-inline-item ms-2 d-none d-md-inline"
               >
@@ -360,7 +454,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                 >
                   <i className="ri-printer-line align-bottom text-dark"></i>
                 </Button>
-              </li>
+              </li> */}
             </ul>
           </Col>
         </Row>
