@@ -49,6 +49,7 @@ const Overview = ({
       "Hysteria",
       "Severe",
       "Depression",
+      "Moderate"
     ];
     const parts = text.split(
       new RegExp(
