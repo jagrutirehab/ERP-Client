@@ -52,6 +52,12 @@ const AddPatient = ({
     : leadData
     ? leadData.patient.phoneNumber
     : "";
+  const email = editData
+    ? editData.email
+    : leadData
+    ? leadData.patient.email
+    : "";
+
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : "";
@@ -69,7 +75,7 @@ const AddPatient = ({
       name,
       phoneNumber,
       dateOfBirth,
-      email: editData ? editData.email : "",
+      email,
       address: editData ? editData.address : "",
       doctor: editData ? editData.doctor?._id : "",
       psychologist: editData ? editData.psychologist?._id : "",
@@ -131,6 +137,7 @@ const AddPatient = ({
         );
       } else if (leadData) {
         formData.append("lead", leadData._id);
+        formData.append("leadOrigin", leadData.leadOrigin);
         dispatch(addLeadPatient(formData));
         dispatch(
           togglePatientForm({ data: null, leadData: null, isOpen: false })
@@ -339,7 +346,7 @@ const AddPatient = ({
           <Row style={{ marginBottom: "1.5rem" }}>
             {/* Patient ID */}
             {/* <Col xs={12} md={6}> */}
-              <PatientId validation={validation} editData={editData} />
+            <PatientId validation={validation} editData={editData} />
             {/* </Col> */}
 
             {/* Center Dropdown */}
