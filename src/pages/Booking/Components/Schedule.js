@@ -244,6 +244,7 @@ const ScheduleRow = memo(
             </Input>
           </div>
         </Col>
+
         {sch.type === "OFFLINE" && (
           <Col xs={2}>
             <div className="">
@@ -258,11 +259,11 @@ const ScheduleRow = memo(
                   handleScheduleChange(i, idx, "center", id);
                 }}
               >
-                <option value="" disabled hidden>
+                <option value="" selected disabled hidden>
                   Choose here
                 </option>
-                {(userCenters || []).map((option, oi) => (
-                  <option key={oi} id={option._id} value={option._id}>
+                {(userCenters || []).map((option, idx) => (
+                  <option key={idx} id={option._id} value={option._id}>
                     {option.title}
                   </option>
                 ))}
@@ -270,6 +271,7 @@ const ScheduleRow = memo(
             </div>
           </Col>
         )}
+
         <Col xs={1} className="d-flex flex-col">
           <Button
             size="sm"
@@ -392,7 +394,7 @@ const Schedule = ({
   // track ids to delete
   const [deleteScheduleIds, setDeleteScheduleIds] = useState([]);
   const [deleteSlotIds, setDeleteSlotIds] = useState([]);
-  console.log(deleteSlotIds)
+  console.log(deleteSlotIds);
 
   useEffect(() => {
     if (sessionPricing) {
@@ -740,7 +742,7 @@ const Schedule = ({
         </div>
       </Form>
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
     handleScheduleChange,
