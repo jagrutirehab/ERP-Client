@@ -246,6 +246,7 @@ const ScheduleRow = memo(
             </Input>
           </div>
         </Col>
+
         {sch.type === "OFFLINE" && (
           <Col xs={2}>
             <div className="">
@@ -272,6 +273,7 @@ const ScheduleRow = memo(
             </div>
           </Col>
         )}
+
         <Col xs={1} className="d-flex flex-col">
           <Button
             size="sm"
@@ -378,6 +380,11 @@ const Schedule = ({
       },
     ],
   });
+
+  // track ids to delete
+  const [deleteScheduleIds, setDeleteScheduleIds] = useState([]);
+  const [deleteSlotIds, setDeleteSlotIds] = useState([]);
+  console.log(deleteSlotIds);
 
   useEffect(() => {
     if (sessionPricing) {
@@ -681,7 +688,7 @@ const Schedule = ({
         </div>
       </Form>
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
     handleScheduleChange,
