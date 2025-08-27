@@ -282,8 +282,8 @@ const AddmissionForms = ({ patient, admissions }) => {
 
   useEffect(() => {
     dispatch(fetchPatientById(patient?._id));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, isGenerating]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, isGenerating2, isGenerating]);
 
   return (
     <>
@@ -532,13 +532,25 @@ const AddmissionForms = ({ patient, admissions }) => {
             }}
           >
             <div ref={indipendentref1}>
-              <IndipendentOpinion1 register={register} patient={patient} details={details}/>
+              <IndipendentOpinion1
+                register={register}
+                patient={patient}
+                details={details}
+              />
             </div>
             <div ref={indipendentref2}>
-              <IndipendentOpinion2 register={register} patient={patient} details={details}/>
+              <IndipendentOpinion2
+                register={register}
+                patient={patient}
+                details={details}
+              />
             </div>
             <div ref={indipendentref3}>
-              <IndipendentOpinion3 register={register} patient={patient} details={details}/>
+              <IndipendentOpinion3
+                register={register}
+                patient={patient}
+                details={details}
+              />
             </div>
           </div>
           <div style={{ textAlign: "center", margin: "20px" }}>

@@ -1,4 +1,6 @@
-const InternUndertakingFormPage3 = ({ register, intern }) => {
+import PrintHeader from "./printheader";
+
+const InternUndertakingFormPage3 = ({ register, intern, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -49,9 +51,9 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
   return (
     <div style={pageContainer}>
       {/* Header (optional) */}
-      {/* <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
-      </div> */}
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader intern={intern} />
+      </div>
 
       {/* Title */}
       <div style={heading}>Intern’s Undertaking Form</div>
@@ -66,7 +68,13 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
           defaultValue={intern?.name}
           {...(register ? register("ack_intern_name") : {})}
           placeholder="(name of intern)"
-          style={{ ...inputLine, width: "460px", marginLeft: "8px" }}
+          style={{
+            ...inputLine,
+            width: "460px",
+            marginLeft: "8px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
         , have read, understood, and agree to the terms of this Undertaking and
         Consent Form. I confirm that I will uphold professional boundaries and
@@ -89,7 +97,12 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
           type="date"
           {...(register ? register("ack_date") : {})}
           defaultValue={new Date().toISOString().split("T")[0]}
-          style={{ ...smallInput, marginLeft: "55px" }}
+          style={{
+            ...smallInput,
+            marginLeft: "55px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
 
@@ -103,7 +116,13 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
           defaultValue={intern?.name}
           {...(register ? register("rep_name") : {})}
           placeholder="(representative name)"
-          style={{ ...inputLine, width: "460px", marginLeft: "8px" }}
+          style={{
+            ...inputLine,
+            width: "460px",
+            marginLeft: "8px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
         , confirm that the terms of this Form have been explained to the intern,
         and they have agreed to comply with the protocol.
@@ -122,8 +141,14 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
         Designation:
         <input
           type="text"
+          defaultValue={details?.position}
           {...(register ? register("rep_designation") : {})}
-          style={{ ...smallInput, marginLeft: "22px" }}
+          style={{
+            ...smallInput,
+            marginLeft: "22px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
 
@@ -133,7 +158,12 @@ const InternUndertakingFormPage3 = ({ register, intern }) => {
           type="date"
           {...(register ? register("rep_date") : {})}
           defaultValue={new Date().toISOString().split("T")[0]}
-          style={{ ...smallInput, marginLeft: "75px" }}
+          style={{
+            ...smallInput,
+            marginLeft: "75px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
 

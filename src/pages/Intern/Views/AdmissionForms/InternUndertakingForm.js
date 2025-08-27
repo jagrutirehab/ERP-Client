@@ -1,4 +1,6 @@
-const InternUndertakingForm = ({ register, intern }) => {
+import PrintHeader from "./printheader";
+
+const InternUndertakingForm = ({ register, intern, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -38,9 +40,9 @@ const InternUndertakingForm = ({ register, intern }) => {
   return (
     <div style={pageContainer}>
       {/* Header */}
-      {/* <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
-      </div> */}
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader intern={intern} />
+      </div>
 
       {/* Title */}
       <div style={heading}>Intern’s Undertaking Form</div>
@@ -53,7 +55,11 @@ const InternUndertakingForm = ({ register, intern }) => {
           type="text"
           defaultValue={intern?.name}
           {...register("intern_name")}
-          style={inputLine}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
       <div style={{ marginBottom: "8px" }}>
@@ -62,7 +68,11 @@ const InternUndertakingForm = ({ register, intern }) => {
           type="text"
           defaultValue={intern?.contactNumber}
           {...register("intern_contact")}
-          style={inputLine}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
       <div style={{ marginBottom: "8px" }}>
@@ -71,7 +81,11 @@ const InternUndertakingForm = ({ register, intern }) => {
           type="text"
           defaultValue={intern?.emailAddress}
           {...register("intern_email")}
-          style={inputLine}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
       <div style={{ marginBottom: "8px" }}>
@@ -80,18 +94,49 @@ const InternUndertakingForm = ({ register, intern }) => {
           type="text"
           defaultValue={intern?.educationalInstitution}
           {...register("intern_institution")}
-          style={inputLine}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
         />
       </div>
       <div style={{ marginBottom: "8px" }}>
         Internship Period: From
-        <input type="date" {...register("internship_from")} style={inputLine} />
+        <input
+          type="date"
+          defaultValue={details?.from}
+          {...register("internship_from")}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
+        />
         To
-        <input type="date" {...register("internship_to")} style={inputLine} />
+        <input
+          type="date"
+          defaultValue={details?.to}
+          {...register("internship_to")}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
+        />
       </div>
       <div style={{ marginBottom: "12px" }}>
         Centre Location:
-        <input type="text" defaultValue={intern?.center?.title} {...register("centre_location")} style={inputLine} />
+        <input
+          type="text"
+          defaultValue={intern?.center?.title}
+          {...register("centre_location")}
+          style={{
+            ...inputLine,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+          }}
+        />
       </div>
 
       {/* Purpose */}
@@ -165,7 +210,12 @@ const InternUndertakingForm = ({ register, intern }) => {
             type="text"
             defaultValue={intern?.name}
             {...register("sign_name")}
-            style={{ ...inputLine, width: "250px" }}
+            style={{
+              ...inputLine,
+              width: "250px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
           />
         </div>
         <div>
@@ -173,7 +223,12 @@ const InternUndertakingForm = ({ register, intern }) => {
           <input
             type="text"
             {...register("sign_signature")}
-            style={{ ...inputLine, width: "250px" }}
+            style={{
+              ...inputLine,
+              width: "250px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
           />
         </div>
       </div>

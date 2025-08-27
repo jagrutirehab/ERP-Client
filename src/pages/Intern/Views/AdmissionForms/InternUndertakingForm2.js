@@ -1,3 +1,5 @@
+import PrintHeader from "./printheader";
+
 const InternUndertakingFormPage2 = ({ register, intern }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -38,9 +40,9 @@ const InternUndertakingFormPage2 = ({ register, intern }) => {
   return (
     <div style={pageContainer}>
       {/* Header (optional) */}
-      {/* <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
-      </div> */}
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader intern={intern} />
+      </div>
 
       {/* Title */}
       <div style={heading}>Intern’s Undertaking Form</div>
@@ -132,7 +134,13 @@ const InternUndertakingFormPage2 = ({ register, intern }) => {
             type="text"
             {...(register ? register("page2_sign_name") : {})}
             defaultValue={intern?.name || ""}
-            style={{ ...inputLine, width: "300px", marginLeft: "8px" }}
+            style={{
+              ...inputLine,
+              width: "300px",
+              marginLeft: "8px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
           />
         </div>
 
