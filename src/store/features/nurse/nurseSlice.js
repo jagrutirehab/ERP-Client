@@ -411,16 +411,11 @@ export const NurseSlice = createSlice({
       .addCase(getMedicineActivitiesByStatus.rejected, (state) => {
         state.medicineLoading = false;
       });
-    builder.addCase(markTomorrowActivityMedicines.fulfilled, (state) => {
+    builder.addCase(markTomorrowActivityMedicines.fulfilled, (state, { payload }) => {
       state.medicines.nextDay = {
         ...state.medicines.nextDay,
-        medicines: {
-          morning: [],
-          evening: [],
-          night: [],
-        },
+        completed:true
       };
-      // state.medicines.completed.unshift(payload);
     });
     builder
       .addCase(getNextDayMedicineBoxFillingActivities.pending, (state) => {

@@ -53,7 +53,7 @@ const Activities = () => {
                   onClick={() => toggle("COMPLETED")}
                 >
                   <div className="d-flex align-items-center gap-2">
-                    <CheckCheck size={16} />
+                    <CheckCheck size={16} className="text-success" />
                     Completed
                   </div>
                 </NavLink>
@@ -66,7 +66,7 @@ const Activities = () => {
                   onClick={() => toggle("MISSED")}
                 >
                   <div className="d-flex align-items-center gap-2">
-                    <XCircle size={16} />
+                    <XCircle size={16} className="text-danger"/>
                     Missed
                   </div>
                 </NavLink>
