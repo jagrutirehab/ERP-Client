@@ -41,7 +41,7 @@ const ProfileDropdown = ({ user }) => {
 
   const handleLogout = async () => {
     try {
-      if (!token) return;
+      // if (!token) return;
       await dispatch(logoutUser(token)).unwrap();
       localStorage.clear();
       sessionStorage.clear();
