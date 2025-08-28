@@ -138,8 +138,17 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
     billType !== DUE_AMOUNT && billType !== ADVANCE_PAYMENT
       ? {
           name: "Invoiced Amount",
-          selector: (row) =>
-            row.invoice?.payable || row.receiptInvoice?.payable || "",
+          selector: (row) => {
+            if (row.intern && row.receipt) {
+              return (
+                row.receipt.totalAmount ??
+                row.invoice?.payable ??
+                row.receiptInvoice?.payable ??
+                ""
+              );
+            }
+            return row.invoice?.payable ?? row.receiptInvoice?.payable ?? "";
+          },
         }
       : null,
     billType !== DUE_AMOUNT && billType !== INVOICE
