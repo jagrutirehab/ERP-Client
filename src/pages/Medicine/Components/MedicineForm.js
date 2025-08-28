@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Form, Row, Col, Input, Button, FormFeedback } from "reactstrap";
 import PropTypes from "prop-types";
 import Select from "react-select";
@@ -14,11 +14,62 @@ import {
   medicineTypes,
   medicineUnits,
 } from "../../../Components/constants/medicine";
-// import { postMedicines } from "../../../store/actions";
+import { duplicateMedicineValidator } from "../../../store/features/medicine/medicineSlice";
+
+function useDebounce(callback, delay) {
+  const timer = useRef(null);
+  function debouncedFn(...args) {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  }
+  return debouncedFn;
+}
 
 const MedicinesForm = ({ toggle }) => {
   const dispatch = useDispatch();
   const [medicines, setMedicines] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [hasErrors, setHasErrors] = useState(false);
+
+  useEffect(() => {
+    setHasErrors(Object.keys(errors).length > 0);
+  }, [errors]);
+
+  const checkStrength = async (idx, name, strength) => {
+    if (!name || !strength) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[idx];
+        return copy;
+      });
+      return;
+    }
+
+    try {
+      const response = await dispatch(
+        duplicateMedicineValidator({ name, strength })
+      ).unwrap();
+
+      if (response.exists) {
+        setErrors((prev) => ({
+          ...prev,
+          [idx]: response.message,
+        }));
+      } else {
+        setErrors((prev) => {
+          const copy = { ...prev };
+          delete copy[idx];
+          return copy;
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const debouncedCheck = useDebounce(checkStrength, 500);
 
   const addMedicines = () => {
     const newMed = {
@@ -38,32 +89,35 @@ const MedicinesForm = ({ toggle }) => {
     const medList = [...medicines];
     const prop = e.target.name;
     const value = e.target.value;
-    const idx = e.target.id;
+    const idx = parseInt(e.target.id, 10);
 
     medList[idx][prop] = value;
     setMedicines(medList);
+
+    if (prop === "strength") {
+      debouncedCheck(idx, medList[idx].name, value);
+    } else if (prop === "name") {
+      if (medList[idx].strength) {
+        debouncedCheck(idx, value, medList[idx].strength);
+      }
+    }
   };
 
   const validation = useFormik({
-    // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
-
-    initialValues: {
-      medicines: medicines,
-    },
+    initialValues: { medicines },
     validationSchema: Yup.object({
       medicines: Yup.array().test(
         "notEmpty",
-        "Atleas one medicine is required",
-        (value) => {
-          if (!value || value.length === 0) {
-            return false;
-          }
-          return true;
-        }
+        "At least one medicine is required",
+        (value) => !!(value && value.length)
       ),
     }),
-    onSubmit: (values) => {
+    onSubmit: () => {
+      if (hasErrors) {
+        alert("Fix duplicate strengths before submitting");
+        return;
+      }
       dispatch(addMedicine(medicines));
       setMedicines([]);
       toggle();
@@ -75,67 +129,69 @@ const MedicinesForm = ({ toggle }) => {
     const medList = [...medicines];
     medList.splice(idx, 1);
     setMedicines(medList);
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[idx];
+      return copy;
+    });
   };
 
-  const options = medicineUnits.map((unit) => ({ value: unit, label: unit }));
   return (
-    <React.Fragment>
-      <div>
-        <Form
-          onSubmit={(e) => {
-            e.preventDefault();
-            validation.handleSubmit();
-            // toggle();
-            return false;
-          }}
-          className="needs-validation"
-          action="#"
-        >
-          <Row className="ps-3 pe-3">
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
-              Name<span className="text-danger">*</span>
+    <Form
+      onSubmit={(e) => {
+        e.preventDefault();
+        validation.handleSubmit();
+        return false;
+      }}
+      className="needs-validation"
+    >
+      <Row className="ps-3 pe-3">
+        <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
+          Name<span className="text-danger">*</span>
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
+          Type<span className="text-danger">*</span>
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
+          Strength
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
+          Unit
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
+          Instruction
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
+          Composition
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
+          Quantity
+        </Col>
+        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
+          Unit price
+        </Col>
+
+        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}></Col>
+        {(medicines || []).map((medicine, idx) => (
+          <React.Fragment key={idx}>
+            <Col xs={2} md={2}>
+              <div className="mb-3 w-5">
+                <Input
+                  required
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="name"
+                  value={medicine.name}
+                  type="text"
+                  className="form-control"
+                />
+              </div>
             </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-              Type<span className="text-danger">*</span>
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-              Strength
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-              Unit
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
-              Instruction
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
-              Composition
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
-              Quantity
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
-              Unit price
-            </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}></Col>
-            {(medicines || []).map((medicine, idx) => (
-              <React.Fragment key={idx}>
-                <Col xs={2} md={2}>
-                  <div className="mb-3">
-                    <Input
-                      required
-                      bsSize="sm"
-                      id={idx}
-                      onChange={handleChange}
-                      name="name"
-                      value={medicine.name}
-                      type="text"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={3} md={2}>
-                  <div className="mb-3 w-5">
-                    {/* <div class="form-group">
+
+            <Col xs={3} md={2}>
+              <div className="mb-3 w-5">
+                {/* <div class="form-group">
                       <input
                         list="type-options"
                         className="form-control form-control-sm"
@@ -155,46 +211,44 @@ const MedicinesForm = ({ toggle }) => {
                         ))}
                       </datalist>
                     </div> */}
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      onChange={handleChange}
-                      name="type"
-                      value={medicine.type}
-                      type="select"
-                      className="form-control"
-                    >
-                      <option value="" selected disabled hidden>
-                        Choose Type
-                      </option>
-                      {(medicineTypes || []).map((item, idx) => (
-                        <option
-                          key={idx + item}
-                          value={item}
-                          className="text-cap"
-                        >
-                          {item}
-                        </option>
-                      ))}
-                    </Input>
-                  </div>
-                </Col>
-                <Col xs={2} md={1}>
-                  <div className="mb-3">
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      onChange={handleChange}
-                      name="strength"
-                      value={medicine.strength}
-                      type="text"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={3} md={2}>
-                  <div className="mb-3">
-                    {/* <Select
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="type"
+                  value={medicine.type}
+                  type="select"
+                  className="form-control"
+                >
+                  <option value="" selected disabled hidden>
+                    Choose Type
+                  </option>
+                  {(medicineTypes || []).map((item, idx) => (
+                    <option key={idx + item} value={item} className="text-cap">
+                      {item}
+                    </option>
+                  ))}
+                </Input>
+              </div>
+            </Col>
+
+            <Col xs={2} md={1}>
+              <div className="mb-3">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="strength"
+                  value={medicine.strength}
+                  type="text"
+                  invalid={!!errors[idx]}
+                />
+                {/* {errors[idx] && <FormFeedback>{errors[idx]}</FormFeedback>} */}
+              </div>
+            </Col>
+            <Col xs={3} md={2}>
+              <div className="mb-3">
+                {/* <Select
                       options={options}
                       placeholder="Type or select an option"
                       isClearable
@@ -210,8 +264,8 @@ const MedicinesForm = ({ toggle }) => {
                         });
                       }}
                     /> */}
-                    <div class="form-group">
-                      {/* <input
+                <div class="form-group">
+                  {/* <input
                         list="unit-options"
                         className="form-control form-control-sm"
                         id={idx}
@@ -227,33 +281,33 @@ const MedicinesForm = ({ toggle }) => {
                         value={medicine.unit}
                         placeholder="Type or select an option"
                       /> */}
-                      <Input
-                        bsSize="sm"
-                        id={idx}
-                        onChange={handleChange}
-                        name="unit"
-                        value={medicine.unit}
-                        type="select"
-                        className="form-control"
-                      >
-                        <option value="" selected disabled hidden>
-                          Choose Unit
-                        </option>
-                        {(medicineUnits || []).map((item, idx) => (
-                          <option key={idx + item}>{item}</option>
-                        ))}
-                      </Input>
-                      <datalist id="unit-options">
-                        {(medicineUnits || []).map((item, idx) => (
-                          <option
-                            key={idx + item}
-                            value={item}
-                            className="text-cap"
-                          ></option>
-                        ))}
-                      </datalist>
-                    </div>
-                    {/* <Input
+                  <Input
+                    bsSize="sm"
+                    id={idx}
+                    onChange={handleChange}
+                    name="unit"
+                    value={medicine.unit}
+                    type="select"
+                    className="form-control"
+                  >
+                    <option value="" selected disabled hidden>
+                      Choose Unit
+                    </option>
+                    {(medicineUnits || []).map((item, idx) => (
+                      <option key={idx + item}>{item}</option>
+                    ))}
+                  </Input>
+                  <datalist id="unit-options">
+                    {(medicineUnits || []).map((item, idx) => (
+                      <option
+                        key={idx + item}
+                        value={item}
+                        className="text-cap"
+                      ></option>
+                    ))}
+                  </datalist>
+                </div>
+                {/* <Input
                       bsSize="sm"
                       id={idx}
                       onChange={handleChange}
@@ -269,105 +323,110 @@ const MedicinesForm = ({ toggle }) => {
                         <option key={idx + item}>{item}</option>
                       ))}
                     </Input> */}
-                  </div>
-                </Col>
-                <Col xs={3} md={2}>
-                  <div className="mb-3">
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      onChange={handleChange}
-                      name="instruction"
-                      value={medicine.instruction}
-                      type="textarea"
-                      rows="1"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={3} md={2}>
-                  <div className="mb-3">
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      required
-                      onChange={handleChange}
-                      name="composition"
-                      value={medicine.composition}
-                      type="textarea"
-                      rows="1"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={3} md={1}>
-                  <div className="mb-3">
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      required
-                      onChange={handleChange}
-                      name="quantity"
-                      value={medicine.quantity}
-                      type="number"
-                      rows="1"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={3} md={1}>
-                  <div className="mb-3">
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      required
-                      onChange={handleChange}
-                      name="unitPrice"
-                      value={medicine.unitPrice}
-                      type="number"
-                      rows="1"
-                      className="form-control"
-                    />
-                  </div>
-                </Col>
-                <Col xs={1} md={1}>
-                  <Button
-                    size="sm"
-                    onClick={() => removeMedicine(idx)}
-                    color="danger"
-                  >
-                    <i className="ri-delete-bin-6-line fs-14 text-white"></i>
-                  </Button>
-                </Col>
-              </React.Fragment>
-            ))}
-            <Col xs={12} className="mb-3">
-              {validation.touched.medicines && validation.errors.medicines ? (
-                <FormFeedback type="invalid" className="d-block">
-                  {validation.errors.medicines}
-                </FormFeedback>
-              ) : null}
-            </Col>
-            <Col>
-              <div className="d-flex justify-content-between">
-                <Button
-                  size="sm"
-                  type="button"
-                  color="secondary"
-                  outline
-                  onClick={addMedicines}
-                >
-                  Add
-                </Button>
-                <Button size="sm" type="submit" color="primary" outline>
-                  Save
-                </Button>
               </div>
             </Col>
-          </Row>
-        </Form>
-      </div>
-    </React.Fragment>
+            <Col xs={3} md={2}>
+              <div className="mb-3">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="instruction"
+                  value={medicine.instruction}
+                  type="textarea"
+                  rows="1"
+                  className="form-control"
+                />
+              </div>
+            </Col>
+            <Col xs={3} md={2}>
+              <div className="mb-3">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  required
+                  onChange={handleChange}
+                  name="composition"
+                  value={medicine.composition}
+                  type="textarea"
+                  rows="1"
+                  className="form-control"
+                />
+              </div>
+            </Col>
+            <Col xs={3} md={1}>
+              <div className="mb-3">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  required
+                  onChange={handleChange}
+                  name="quantity"
+                  value={medicine.quantity}
+                  type="number"
+                  rows="1"
+                  className="form-control"
+                />
+              </div>
+            </Col>
+            <Col xs={3} md={1}>
+              <div className="mb-3">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  required
+                  onChange={handleChange}
+                  name="unitPrice"
+                  value={medicine.unitPrice}
+                  type="number"
+                  rows="1"
+                  className="form-control"
+                />
+              </div>
+            </Col>
+            <Col xs={1} md={1}>
+              <Button
+                size="sm"
+                onClick={() => removeMedicine(idx)}
+                color="danger"
+              >
+                <i className="ri-delete-bin-6-line fs-14 text-white"></i>
+              </Button>
+            </Col>
+          </React.Fragment>
+        ))}
+
+        <Col xs={12} className="mb-3">
+          {validation.touched.medicines && validation.errors.medicines ? (
+            <FormFeedback type="invalid" className="d-block">
+              {validation.errors.medicines}
+            </FormFeedback>
+          ) : null}
+        </Col>
+        <Col>
+          <div className="d-flex justify-content-between">
+            <Button
+              size="sm"
+              type="button"
+              color="secondary"
+              outline
+              onClick={addMedicines}
+            >
+              Add
+            </Button>
+            <Button
+              size="sm"
+              type="submit"
+              color="primary"
+              outline
+              disabled={hasErrors || medicines.length === 0}
+            >
+              Save
+            </Button>
+          </div>
+        </Col>
+      </Row>
+    </Form>
   );
 };
 

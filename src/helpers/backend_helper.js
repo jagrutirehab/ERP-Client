@@ -154,6 +154,13 @@ export const deleteMedicinePermanently = (param) =>
   api.delete(`${url.DELETE_MEDICINE_PERMANENTLY}/${param}`);
 export const postRestoreMedicine = (data) =>
   api.update(url.POST_RESTORE_MEDICINE, data);
+export const validateDuplicateMedicine = ({ name, strength,id }) => {
+  return api.get(
+    `${url.VALIDATE_DUPLICATE_MEDICINE}?name=${encodeURIComponent(
+      name
+    )}&strength=${encodeURIComponent(strength)}&id=${id}`
+  );
+};
 
 // Billing Setting Method
 //invoice

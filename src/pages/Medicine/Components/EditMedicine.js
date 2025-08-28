@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Col, Button, Input, FormFeedback, Form, Row } from "reactstrap";
 import PropTypes from "prop-types";
 
@@ -13,10 +13,42 @@ import {
   medicineTypes,
   medicineUnits,
 } from "../../../Components/constants/medicine";
+import { duplicateMedicineValidator } from "../../../store/features/medicine/medicineSlice";
+import { toast } from "react-toastify";
+
+function useDebounce(callback, delay) {
+  const timer = useRef(null);
+  return (...args) => {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      callback(...args);
+    }, delay);
+  };
+}
 
 const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
   const dispatch = useDispatch();
   const data = updateMedicine?.formData;
+
+  const [dupError, setDupError] = useState("");
+
+  const checkDuplicate = async (name, strength, id) => {
+    if (!name || !strength) return;
+
+    try {
+      const response = await dispatch(duplicateMedicineValidator({name, strength, id:data?._id})).unwrap();
+
+      if (response.exists) {
+        setDupError(response.message);
+      } else {
+        setDupError("");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const debouncedCheck = useDebounce(checkDuplicate, 500);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -37,6 +69,11 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
       name: Yup.string().required("Please Enter Medicine Name"),
     }),
     onSubmit: (values) => {
+      if (dupError) {
+        toast.errror("Fix duplicate strength before saving");
+        return;
+      }
+
       dispatch(updMedicine(values));
       setUpdateMedicine({
         isForm: false,
@@ -61,18 +98,24 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
         <Row className="align-items-center">
           <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
             <Input
-              onChange={validation.handleChange}
+              onChange={(e) => {
+                validation.handleChange(e);
+                if (validation.values.strength) {
+                  debouncedCheck(e.target.value, validation.values.strength, validation.values.id);
+                }
+              }}
               name="name"
               onBlur={validation.handleBlur}
               value={validation.values.name || ""}
               bsSize={"sm"}
             />
             {validation.touched.name && validation.errors.name ? (
-              <FormFeedback type="invalid">
-                <div className="font-size-14">{validation.errors.name}</div>
+              <FormFeedback type="invalid" className="d-block">
+                {validation.errors.name}
               </FormFeedback>
             ) : null}
           </Col>
+
           <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
             <Input
               className="bg-white"
@@ -93,14 +136,26 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
               ))}
             </Input>
           </Col>
+
           <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
             <Input
-              onChange={validation.handleChange}
+              onChange={(e) => {
+                validation.handleChange(e);
+                debouncedCheck(
+                  validation.values.name,
+                  e.target.value,
+                  validation.values.id
+                );
+              }}
               name="strength"
               onBlur={validation.handleBlur}
               value={validation.values.strength || ""}
               bsSize={"sm"}
+              invalid={!!dupError}
             />
+            {dupError && (
+              <FormFeedback className="d-block">{dupError}</FormFeedback>
+            )}
           </Col>
           <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
             <Input
@@ -172,7 +227,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
             <Button
               type="button"
               onClick={() => {
-                setUpdateMedicine({
+                    setUpdateMedicine({
                   isForm: false,
                   formIndex: undefined,
                   formData: undefined,
@@ -185,7 +240,12 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
             >
               <i className="ri-close-circle-line fs-5"></i>
             </Button>
-            <Button type="submit" size="sm" color="success">
+            <Button
+              type="submit"
+              size="sm"
+              color="success"
+              disabled={!!dupError} 
+            >
               <i className="ri-check-line fs-5"></i>
             </Button>
           </Col>

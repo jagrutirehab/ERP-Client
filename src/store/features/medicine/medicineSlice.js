@@ -6,6 +6,7 @@ import {
   getMedicines,
   postCSVMedicine,
   postMedicine,
+  validateDuplicateMedicine,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -42,6 +43,19 @@ export const addCSVMedicine = createAsyncThunk(
       dispatch(
         setAlert({ type: "success", message: "Medicine Saved Successfully" })
       );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const duplicateMedicineValidator = createAsyncThunk(
+  "validateDuplicate",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await validateDuplicateMedicine(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
