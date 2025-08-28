@@ -48,7 +48,7 @@ const Banner = ({ data, billType }) => {
     <React.Fragment>
       <div className="p-4 mt-3 shadow bg-body rounded">
         <div className="d-flex flex-wrap justify-content-between justify-content-md-around">
-          <RenderWhen isTrue={billType === INVOICE && billType !== INTERN}>
+         <RenderWhen isTrue={billType === INVOICE && billType !== INTERN}>
             <div className="d-flex align-items-center">
               <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
               <h5 className="display-5 ms-2 fs-17 font-semi-bold">
