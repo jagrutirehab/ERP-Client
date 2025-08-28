@@ -13,6 +13,7 @@ import {
   getPatientOverview,
   getPatientPrescription,
   getPendingActiveMedicines,
+  markAlertAsRead,
   markTomorrowMedicines,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
@@ -219,6 +220,27 @@ export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
     }
   }
 );
+export const markUnreadAlert = createAsyncThunk(
+  "nurse/markAlertAsRead",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await markAlertAsRead(patientId);
+      dispatch(setAlert({ 
+        type: "success", 
+        message: "Alert marked as read successfully" 
+      }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ 
+        type: "error", 
+        message: error.message || "Failed to mark alert as read" 
+      }));
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+
 
 export const NurseSlice = createSlice({
   name: "nurse",
@@ -431,6 +453,28 @@ export const NurseSlice = createSlice({
       .addCase(getNextDayMedicineBoxFillingActivities.rejected, (state) => {
         state.medicineLoading = false;
       });
+    builder.addCase(markUnreadAlert.fulfilled, (state, { payload }) => {
+      // const alertIndex = state.alertData.findIndex(
+      //   (alert) => alert._id === payload.data._id
+      // );
+
+      // if (alertIndex !== -1) {
+      //   state.alertData[alertIndex] = {
+      //     ...state.alertData[alertIndex],
+      //     read: true,
+      //   };
+      // }
+      const patientIndex = state.data.data.findIndex(
+        (patient) => patient._id === payload.data.patientId
+      );
+      if (patientIndex !== -1) {
+        state.data.data[patientIndex] = {
+          ...state.data.data[patientIndex],
+          isPrescriptionUpdated: false,
+          alertCount: state.data.data[patientIndex].alertCount - 1,
+        };
+      }
+    });
   },
 });
 

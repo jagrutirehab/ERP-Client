@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import {
   Modal,
   ModalHeader,
@@ -12,6 +12,8 @@ import {
   NavItem,
   NavLink,
 } from "reactstrap";
+import { Check } from "lucide-react";
+import { markUnreadAlert } from "../../../../store/features/nurse/nurseSlice";
 
 const InfoModal = ({
   title,
@@ -21,9 +23,12 @@ const InfoModal = ({
   modalLoading,
 }) => {
   const [activeTab, setActiveTab] = useState("medicine");
-
-  const medicineAlerts = content.filter((item) => item.type === "medicine");
+  const dispatch = useDispatch();
+  const medicineAlerts = content.filter(
+    (item) => item.type === "medicine" || item.flag === "other"
+  );
   const testAlerts = content.filter((item) => item.type === "test");
+  const otherAlerts = content.filter((item) => item.flag === "other");
 
   const getSeverityColor = (flag) => {
     switch (flag) {
@@ -32,8 +37,12 @@ const InfoModal = ({
       case "attention":
         return "#fd7e14";
       default:
-        return "#6c757d";
+        return "#808080";
     }
+  };
+
+  const handleMarkAlertAsRead = (alertId) => {
+    dispatch(markUnreadAlert(alertId));
   };
 
   return (
@@ -56,7 +65,7 @@ const InfoModal = ({
               onClick={() => setActiveTab("medicine")}
               style={{ cursor: "pointer" }}
             >
-              Medicines ({medicineAlerts.length})
+              Activities ({medicineAlerts.length})
             </NavLink>
           </NavItem>
           <NavItem>
@@ -105,7 +114,7 @@ const InfoModal = ({
                           style={{
                             width: "6px",
                             height: "6px",
-                            backgroundColor: getSeverityColor("urgent"),
+                            backgroundColor: getSeverityColor(item.flag),
                             borderRadius: "50%",
                             flexShrink: 0,
                           }}
@@ -118,7 +127,9 @@ const InfoModal = ({
                               fontSize: "0.75rem",
                             }}
                           >
-                            {item.flag.toUpperCase()}
+                            {item.flag === "other"
+                              ? item.type.toUpperCase()
+                              : "ACTIVITY"}
                           </small>
                           <p
                             className="mb-0 lh-sm text-dark"
@@ -127,12 +138,20 @@ const InfoModal = ({
                             {item.message}
                           </p>
                         </div>
+                        {item.type === "prescription-update" && (
+                          <Check
+                            size={18}
+                            color="#28a745"
+                            style={{ cursor: "pointer", flexShrink: 0 }}
+                            onClick={() => handleMarkAlertAsRead(item._id)}
+                          />
+                        )}
                       </CardBody>
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4">No medicine alerts</div>
+                <div className="text-center py-4">No activity alerts</div>
               )
             ) : testAlerts.length > 0 ? (
               <div className="d-flex flex-column">

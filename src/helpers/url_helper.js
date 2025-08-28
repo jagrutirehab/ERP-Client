@@ -260,6 +260,7 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES = "/nurse/next-day-medici
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
+export const MARK_ALERT_AS_READ = "/alerts/read";
 
 // notes
 export const NOTES = "/notes";

@@ -9,11 +9,16 @@ const statusColors = {
 };
 
 const toTitleCase = (text) => {
-  if(!text) return;
+  if (!text) return;
   return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId }) => {
+const PatientCard = ({
+  patient,
+  toggleAlertsModal,
+  prevPatientId,
+  nextPatientId,
+}) => {
   const [showAllMedicines, setShowAllMedicines] = useState(false);
 
   const { color, border } = statusColors[patient.flag] || {
@@ -34,15 +39,26 @@ const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId 
           minHeight: "200px",
         }}
       >
-        <Badge
-          color={color}
-          className="position-absolute top-0 end-0 rounded-0 rounded-bottom-start fw-bold"
-          style={{ padding: "4px 10px", fontSize: "0.8rem" }}
-        >
-          {toTitleCase(patient.flag)}
-        </Badge>
+        <div className="position-absolute top-0 end-0 d-flex">
+          {patient.isPrescriptionUpdated && (
+            <Badge
+              color="warning"
+              className="rounded-0 rounded-bottom-start fw-bold me-1"
+              style={{ padding: "4px 8px", fontSize: "0.7rem", zIndex: 10 }}
+            >
+              Prescription Updated
+            </Badge>
+          )}
+          <Badge
+            color={color}
+            className="rounded-0 rounded-bottom-start fw-bold"
+            style={{ padding: "4px 10px", fontSize: "0.8rem" }}
+          >
+            {toTitleCase(patient.flag)}
+          </Badge>
+        </div>
 
-        <CardBody className="d-flex flex-column h-100">
+        <CardBody className="d-flex flex-column h-100 mt-2">
           <Link
             to={`/nurse/p/${patient._id}`}
             className="text-decoration-none text-body-secondary flex-grow-1"
@@ -73,9 +89,11 @@ const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId 
               <span className="me-2">🌡️</span>
               <span>
                 <strong>Temp:</strong>{" "}
-                {vitals?.temprature ? vitals.temprature.trim() !== ""
-                  ? `${vitals?.temprature} \u00B0F`
-                  : "N/A":"N/A"}
+                {vitals?.temprature
+                  ? vitals.temprature.trim() !== ""
+                    ? `${vitals?.temprature} \u00B0F`
+                    : "N/A"
+                  : "N/A"}
               </span>
             </div>
 
@@ -87,7 +105,7 @@ const PatientCard = ({ patient, toggleAlertsModal, prevPatientId, nextPatientId 
                     <div className="d-flex align-items-center">
                       <span className="me-2 fs-6">💊</span>
                       <small className="text-info fw-bold">
-                        MEDICATIONS DUE
+                        MEDICINE BOX FILLING DUE
                       </small>
                     </div>
                     {patient.medicinesToTakeNow.length > 2 && (

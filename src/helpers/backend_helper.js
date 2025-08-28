@@ -742,6 +742,10 @@ export const getAlertsByPatient = (patientId) => {
   return api.get(`${url.GET_ALERTS_BY_PATIENT}?patientId=${patientId}`);
 };
 
+export const markAlertAsRead = (alertId) => {
+  return api.update(`${url.MARK_ALERT_AS_READ}?alertId=${alertId}`);
+};
+
 export const getNotesByPatient = (patientId) => {
   return api.get(`${url.NOTES}?patientId=${patientId}`);
 };
