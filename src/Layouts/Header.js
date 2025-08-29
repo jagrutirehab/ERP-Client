@@ -16,7 +16,7 @@ import NotificationDropdown from "../Components/Common/NotificationDropdown";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
 import LightDark from "../Components/Common/LightDark";
 import { connect, useDispatch, useSelector } from "react-redux";
-import { searchPatient, viewPatient } from "../store/actions";
+import { fetchCenters, searchPatient, viewPatient } from "../store/actions";
 import Highlighter from "react-highlight-words";
 import RenderWhen from "../Components/Common/RenderWhen";
 import PatientPlaceholder from "../Components/Common/PatientPlaceholder";
@@ -29,10 +29,13 @@ const Header = ({
   loading,
   patients,
   centerAccess,
+  user,
 }) => {
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
-  const { loading : globalLoader, dataLoader } = useSelector((state) => state.User);
+  const { loading: globalLoader, dataLoader } = useSelector(
+    (state) => state.User
+  );
   const onChangeData = (e) => {
     var dropdown = document.getElementById("mb-search-dropdown");
     var searchInput = document.getElementById("mb-search-options");
@@ -133,6 +136,10 @@ const Header = ({
       }
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchCenters(user.centerAccess));
+  }, [dispatch, user]);
 
   useEffect(() => {
     if (value) dispatch(searchPatient({ name: value, centerAccess }));
@@ -315,12 +322,14 @@ Header.prototype = {
   loading: PropTypes.bool,
   patients: PropTypes.array,
   centerAccess: PropTypes.array,
+  user: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
   loading: state.Patient.searchLoading,
   patients: state.Patient.searchedPatients,
   centerAccess: state.User.centerAccess,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(Header);
