@@ -1,11 +1,20 @@
 import React from "react";
+import { useDispatch } from "react-redux";
 import { Input, Label, Row, Col } from "reactstrap";
+import { setPatientIdsFromSearch } from "../../../../store/features/nurse/nurseSlice";
 
 const NurseFilters = ({ flag, setFlag }) => {
+  const dispatch = useDispatch();
   const handleNameChange = (e) => {
     const selectedOption = e.target.value;
     console.log(selectedOption);
   };
+
+  const handleFlagChange = (e) => {
+    setFlag(e.target.value);
+    dispatch(setPatientIdsFromSearch(true));
+  };
+
 
   const name = "";
 
@@ -16,7 +25,7 @@ const NurseFilters = ({ flag, setFlag }) => {
           <Label>Filter by Status</Label>
           <Input
             className="form-control"
-            onChange={(e) => setFlag(e.target.value)}
+            onChange={handleFlagChange}
             value={flag}
             bsSize="sm"
             type="select"

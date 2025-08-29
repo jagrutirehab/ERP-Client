@@ -277,6 +277,9 @@ export const NurseSlice = createSlice({
     setSearchMode: (state, { payload }) => {
       state.searchMode = payload;
     },
+    setPatientIdsFromSearch:(state, {payload})=>{
+      state.patientIdsFromSearch=payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -513,5 +516,6 @@ export const {
   setPatientIds,
   setIndex,
   setSearchMode,
+  setPatientIdsFromSearch
 } = NurseSlice.actions;
 export default NurseSlice.reducer;

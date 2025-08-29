@@ -163,6 +163,7 @@ const mapStateToProps = (state) => ({
   patientIds: state.Nurse.patientIds,
   currentPatientIndex: state.Nurse.index,
   searchMode: state.Nurse.searchMode,
+  patientIdsFromSearch:state.patientIdsFromSearch
 });
 
 export default connect(mapStateToProps)(Views);
