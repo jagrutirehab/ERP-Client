@@ -55,7 +55,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       : null,
     {
       name: "Center",
-      selector: (row) => row.center?.title || "",
+      selector: (row) => row.center?.title || row?.patient?.center?.title || "",
       maxWidth: "130px",
       minWidth: "130px",
     },
