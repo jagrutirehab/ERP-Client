@@ -30,7 +30,10 @@ const initialState = {
   },
   searchMode: false,
   pagination: null,
-  data: [],
+  data: {
+    data: [],
+    pagination: {},
+  },
   profile: null,
   vitals: null,
   prescription: null,
@@ -222,25 +225,27 @@ export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
 );
 export const markUnreadAlert = createAsyncThunk(
   "nurse/markAlertAsRead",
-  async (patientId, { dispatch, rejectWithValue }) => {
+  async (data, { dispatch, rejectWithValue }) => {
     try {
-      const response = await markAlertAsRead(patientId);
-      dispatch(setAlert({ 
-        type: "success", 
-        message: "Alert marked as read successfully" 
-      }));
+      const response = await markAlertAsRead(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Alert marked as read successfully",
+        })
+      );
       return response;
     } catch (error) {
-      dispatch(setAlert({ 
-        type: "error", 
-        message: error.message || "Failed to mark alert as read" 
-      }));
+      dispatch(
+        setAlert({
+          type: "error",
+          message: error.message || "Failed to mark alert as read",
+        })
+      );
       return rejectWithValue(error.message);
     }
   }
 );
-
-
 
 export const NurseSlice = createSlice({
   name: "nurse",
@@ -433,12 +438,18 @@ export const NurseSlice = createSlice({
       .addCase(getMedicineActivitiesByStatus.rejected, (state) => {
         state.medicineLoading = false;
       });
-    builder.addCase(markTomorrowActivityMedicines.fulfilled, (state, { payload }) => {
-      state.medicines.nextDay = {
-        ...state.medicines.nextDay,
-        completed:true
-      };
-    });
+    builder.addCase(
+      markTomorrowActivityMedicines.fulfilled,
+      (state, { payload }) => {
+        state.medicines.nextDay = {
+          ...state.medicines.nextDay,
+          completed: true,
+        };
+        state.alertData = state.alertData.filter(
+          (alert) => alert.type !== "medicine"
+        );
+      }
+    );
     builder
       .addCase(getNextDayMedicineBoxFillingActivities.pending, (state) => {
         state.medicineLoading = true;
@@ -464,15 +475,25 @@ export const NurseSlice = createSlice({
       //     read: true,
       //   };
       // }
-      const patientIndex = state.data.data.findIndex(
-        (patient) => patient._id === payload.data.patientId
+      state.alertData = state.alertData.filter(
+        (alert) => alert.type !== "prescription-update"
       );
-      if (patientIndex !== -1) {
-        state.data.data[patientIndex] = {
-          ...state.data.data[patientIndex],
-          isPrescriptionUpdated: false,
-          alertCount: state.data.data[patientIndex].alertCount - 1,
-        };
+
+      if (state.data.data.length > 0) {
+        const patientIndex = state.data.data.findIndex(
+          (patient) => patient._id === payload.data.patientId
+        );
+
+        if (patientIndex !== -1) {
+          state.data.data[patientIndex] = {
+            ...state.data.data[patientIndex],
+            isPrescriptionUpdated: false,
+            alertCount: Math.max(
+              0,
+              (state.data.data[patientIndex]?.alertCount || 1) - 1
+            ),
+          };
+        }
       }
     });
   },

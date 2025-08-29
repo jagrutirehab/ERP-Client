@@ -461,6 +461,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
       </div>
 
       <InfoModal
+        patientId={id}
         show={alertModal}
         title={"Alerts"}
         onCloseClick={closeAlertModal}

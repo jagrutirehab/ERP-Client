@@ -19,6 +19,7 @@ const Main = ({ alertModal, alertData, data, loading }) => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [flag, setFlag] = useState("");
   const limit = 12;
@@ -54,6 +55,7 @@ const Main = ({ alertModal, alertData, data, loading }) => {
   }, [dispatch, page, limit, flag, debouncedSearch, roles]);
 
   const toggleAlertsModal = (patientId) => {
+    setSelectedPatient(patientId);
     dispatch(getAlertsByPatientId(patientId));
     dispatch(setAlertModal());
   };
@@ -161,6 +163,7 @@ const Main = ({ alertModal, alertData, data, loading }) => {
       </div>
 
       <InfoModal
+        patientId={selectedPatient}
         show={alertModal}
         title={"Alerts"}
         onCloseClick={closeAlertModal}

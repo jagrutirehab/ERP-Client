@@ -14,14 +14,17 @@ import {
 } from "reactstrap";
 import { Check } from "lucide-react";
 import { markUnreadAlert } from "../../../../store/features/nurse/nurseSlice";
+import { useParams } from "react-router-dom";
 
 const InfoModal = ({
+  patientId,
   title,
   show,
   onCloseClick,
   content = [],
   modalLoading,
 }) => {
+
   const [activeTab, setActiveTab] = useState("medicine");
   const dispatch = useDispatch();
   const medicineAlerts = content.filter(
@@ -41,8 +44,8 @@ const InfoModal = ({
     }
   };
 
-  const handleMarkAlertAsRead = (alertId) => {
-    dispatch(markUnreadAlert(alertId));
+  const handleMarkAlertAsRead = (alertType) => {
+    dispatch(markUnreadAlert({ alertType, patientId }));
   };
 
   return (
@@ -143,7 +146,7 @@ const InfoModal = ({
                             size={18}
                             color="#28a745"
                             style={{ cursor: "pointer", flexShrink: 0 }}
-                            onClick={() => handleMarkAlertAsRead(item._id)}
+                            onClick={() => handleMarkAlertAsRead(item.type, )}
                           />
                         )}
                       </CardBody>

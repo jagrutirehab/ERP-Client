@@ -74,12 +74,12 @@ export const postYmrsTest = (data) => {
 export const postYBOCSTest = (data) =>
   api.create(url.POST_YBOCS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-});
+  });
 
 export const postACDSTest = (data) =>
   api.create(url.POST_ACDS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
-});
+  });
 
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
@@ -154,7 +154,7 @@ export const deleteMedicinePermanently = (param) =>
   api.delete(`${url.DELETE_MEDICINE_PERMANENTLY}/${param}`);
 export const postRestoreMedicine = (data) =>
   api.update(url.POST_RESTORE_MEDICINE, data);
-export const validateDuplicateMedicine = ({ name, strength,id }) => {
+export const validateDuplicateMedicine = ({ name, strength, id }) => {
   return api.get(
     `${url.VALIDATE_DUPLICATE_MEDICINE}?name=${encodeURIComponent(
       name
@@ -749,8 +749,10 @@ export const getAlertsByPatient = (patientId) => {
   return api.get(`${url.GET_ALERTS_BY_PATIENT}?patientId=${patientId}`);
 };
 
-export const markAlertAsRead = (alertId) => {
-  return api.update(`${url.MARK_ALERT_AS_READ}?alertId=${alertId}`);
+export const markAlertAsRead = ({ alertType, patientId }) => {
+  return api.update(
+    `${url.MARK_ALERT_AS_READ}?alertType=${alertType}&patientId=${patientId}`
+  );
 };
 
 export const getNotesByPatient = (patientId) => {
@@ -767,7 +769,7 @@ export const getPendingActiveMedicines = (patientId) => {
   return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
 };
 
-export const getActivitiesByStatus = ({patientId, status}) => {
+export const getActivitiesByStatus = ({ patientId, status }) => {
   return api.get(
     `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
   );
