@@ -23,18 +23,44 @@ const Banner = ({ data, billType }) => {
     return amount;
   };
 
+  // const totalPayable = (dt) => {
+  //   let amount = 0;
+  //   dt?.forEach((item) => {
+  //     console.log(item);
+  //     if (billType === DUE_AMOUNT) {
+  //       amount += item?.totalPayable || 0;
+  //     } else {
+  //       amount += item?.invoice?.payable || 0;
+  //     }
+  //     if (billType === OPD_BILL && !item.intern) {
+  //       amount += item?.receiptInvoice?.payable || 0;
+  //     }
+  //   });
+  //   return amount;
+  // };
+
   const totalPayable = (dt) => {
     let amount = 0;
+
     dt?.forEach((item) => {
       if (billType === DUE_AMOUNT) {
+        // Due bills: use totalPayable directly
         amount += item?.totalPayable || 0;
+      } else if (billType === OPD_BILL) {
+        if (item.intern && item.receipt) {
+          // Intern OPD → use receipt.totalAmount (same as CSV puts in advancePayment)
+          amount += item?.receipt?.totalAmount || 0;
+        } else {
+          // Non-intern OPD → check invoice first, else receiptInvoice
+          amount +=
+            item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
+        }
       } else {
-        amount += item?.invoice?.payable || 0;
-      }
-      if (billType === OPD_BILL && !item.intern) {
-        amount += item?.receiptInvoice?.payable || 0;
+        // All other bills (IPD, etc.) → invoice or receiptInvoice
+        amount += item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
       }
     });
+
     return amount;
   };
 
@@ -48,13 +74,13 @@ const Banner = ({ data, billType }) => {
     <React.Fragment>
       <div className="p-4 mt-3 shadow bg-body rounded">
         <div className="d-flex flex-wrap justify-content-between justify-content-md-around">
-         {/* <RenderWhen isTrue={billType !== INTERN}> */}
-            <div className="d-flex align-items-center">
-              <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
-              <h5 className="display-5 ms-2 fs-17 font-semi-bold">
-                {totalPayable(data) || totalAdvancePayment(data) || 0.0}
-              </h5>
-            </div>
+          {/* <RenderWhen isTrue={billType !== INTERN}> */}
+          <div className="d-flex align-items-center">
+            <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
+            <h5 className="display-5 ms-2 fs-17 font-semi-bold">
+              {totalPayable(data) || totalAdvancePayment(data) || 0.0}
+            </h5>
+          </div>
           {/* </RenderWhen> */}
           <RenderWhen isTrue={billType !== INVOICE}>
             <div className="d-flex align-items-center">
