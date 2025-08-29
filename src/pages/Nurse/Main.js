@@ -47,6 +47,11 @@ const Main = ({ alertModal, alertData, data, loading }) => {
     return () => clearTimeout(handler);
   }, [search, roles, dispatch]);
 
+
+  useEffect(() => {
+  setPage(1);
+}, [debouncedSearch, flag]);
+
   useEffect(() => {
     if (!hasPermission) return;
     dispatch(
