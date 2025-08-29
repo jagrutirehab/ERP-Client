@@ -787,6 +787,12 @@ export const getCompletedActiveMedicines = ({ patientId, status }) => {
   );
 };
 
+export const getActivitiesByStatus = ({ patientId, status }) => {
+  return api.get(
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
+  );
+};
+
 export const markTomorrowMedicines = (data) => {
   return api.create(url.MARK_MEDICINE_AS_GIVEN, data, {
     headers: { "Content-Type": "application/json" },
