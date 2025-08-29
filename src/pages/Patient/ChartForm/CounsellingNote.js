@@ -190,8 +190,9 @@ const CounsellingNote = ({
       conclusion: noteSource?.conclusion || "",
       endGoalAchieved: noteSource?.endGoalAchieved || "",
       nextEndGoal: noteSource?.nextEndGoal || "",
-      nextSessionDate:
-        format(new Date(noteSource?.nextSessionDate), "yyyy-MM-dd") || "",
+      nextSessionDate: noteSource?.nextSessionDate
+        ? format(new Date(noteSource?.nextSessionDate), "yyyy-MM-dd")
+        : "",
       type,
       date: chartDate,
       shouldPrintAfterSave,
