@@ -6,6 +6,7 @@ import { connect, useDispatch } from "react-redux";
 //constants
 import {
   CLINICAL_NOTE,
+  COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
   LAB_REPORT,
@@ -27,6 +28,7 @@ import {
 } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
+import CounsellingNote from "./CounsellingNote";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -36,6 +38,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
 
   const isPrescription = chart.chart === PRESCRIPTION;
   const isClinicalNotes = chart.chart === CLINICAL_NOTE;
+  const isCounsellingNotes = chart.chart === COUNSELLING_NOTE;
   const isVitalSigns = chart.chart === VITAL_SIGN;
   const isLabReports = chart.chart === LAB_REPORT;
   const isRelativeVisit = chart.chart === RELATIVE_VISIT;
@@ -46,6 +49,8 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
     ? "Prescription"
     : isClinicalNotes
     ? "Clinical Notes"
+    : isCounsellingNotes
+    ? "Counselling Notes"
     : isVitalSigns
     ? "Vital Signs"
     : isLabReports
@@ -68,6 +73,12 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isPrescription && <Prescription {...rest} />}
         {isClinicalNotes && (
           <ClinicalNote onSubmitClinicalForm={onSubmitClinicalForm} {...rest} />
+        )}
+        {isCounsellingNotes && (
+          <CounsellingNote
+            onSubmitClinicalForm={onSubmitClinicalForm}
+            {...rest}
+          />
         )}
         {isVitalSigns && <VitalSign {...rest} />}
         {isLabReports && <LabReport {...rest} />}

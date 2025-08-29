@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Document, Page, StyleSheet } from "@react-pdf/renderer";
 import {
   CLINICAL_NOTE,
+  COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
   GENERAL,
@@ -24,6 +25,7 @@ import LabReport from "./LabReport";
 import RenderWhen from "../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
+import CounsellingNote from "./CounsellingNote";
 
 const styles = StyleSheet.create({
   page: {
@@ -108,6 +110,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
               }
             >
               <VitalSign
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+              />
+            </RenderWhen>
+
+            <RenderWhen
+              isTrue={
+                chart?.chart === COUNSELLING_NOTE &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
+            >
+              <CounsellingNote
                 chart={chart}
                 center={chart.center}
                 patient={patient}

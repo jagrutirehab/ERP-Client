@@ -87,8 +87,8 @@ export const DELETE_PATIENT = "/patient";
 export const DELETE_PATIENT_PERMANENTLY = "/patient/delete-permanently";
 export const UPDATE_ADMISSION_ASSIGNMENT =
   "/patient/update-admission-assignment";
-export const ASSIGN_NURSE_TO_PATIENT="/patient/assign-nurse";
-export const UNASSIGN_NURSE_TO_PATIENT="/patient/unassign-nurse";
+export const ASSIGN_NURSE_TO_PATIENT = "/patient/assign-nurse";
+export const UNASSIGN_NURSE_TO_PATIENT = "/patient/unassign-nurse";
 
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
@@ -115,6 +115,10 @@ export const EDIT_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
+export const POST_COUNSELLING_NOTE = "/chart/counselling-note";
+export const EDIT_COUNSELLING_NOTE = "/chart/counselling-note";
+export const GET_COUNSELLING_NOTE = "/chart/counselling-note";
+export const DELETE_COUNSELLING_NOTE_FILE = "/chart/counselling-note";
 export const POST_GENERAL_CLINICAL_NOTE = "/chart/clinical-note/general";
 export const EDIT_GENERAL_CLINICAL_NOTE = "/chart/clinical-note/general";
 export const DELETE_CLINICAL_NOTE_FILE = "/chart/clinical-note";
@@ -164,7 +168,6 @@ export const EDIT_MEDICINE = "/medicine";
 export const DELETE_MEDICINE = "/medicine";
 export const POST_RESTORE_MEDICINE = "/medicine/restore";
 export const DELETE_MEDICINE_PERMANENTLY = "/medicine/delete-permanently";
-export const VALIDATE_DUPLICATE_MEDICINE ="/medicine/validate";
 
 //BILL SETTING
 //invoice
@@ -252,12 +255,12 @@ export const GET_CLININCAL_TEST_SUMMARY_BY_NURSE =
 export const GET_PATIENT_OVERVIEW_BY_NURSE = "/nurse/patient-overview";
 export const GET_PATIENT_DETAILS_BY_NURSE = "/nurse/patient";
 export const GET_PATIENT_PRESCRIPTION_BY_NURSE = "/nurse/prescription";
-export const GET_NURSES_BY_PATIENT_CENTER="/nurse/list";
+export const GET_NURSES_BY_PATIENT_CENTER = "/nurse/list";
 export const GET_PENDING_ACTIVE_MEDICINES = "/nurse/due-medicine";
-export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
-export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark";
-export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES = "/nurse/next-day-medicines";
-
+export const GET_COMPLETED_ACTIVE_MEDICINES = "/nurse/completed-medicine";
+export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark-as-given";
+export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
+  "/nurse/next-day-medicines";
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -267,16 +270,16 @@ export const MARK_ALERT_AS_READ = "/alerts/read";
 export const NOTES = "/notes";
 
 //New Microservice APIS
-export const CSRF = "/csrf-token"
-export const MICRO_SIGN_IN = "/userauths/signin"
+export const CSRF = "/csrf-token";
+export const MICRO_SIGN_IN = "/userauths/signin";
 export const MICRO_SIGN_UP = "/userauths/signup";
 export const MICRO_FORGOTT = "/userauths/forgott-password";
-export const MICRO_LOGOUT="/userauths/logout";
-export const CHANGE_PASSWORD="/userauths/forgott-password"
-export const USER = "/user"
-export const MOVE_TO_BIN="/user/move-recyclebin"
-export const ACTIVATE_DEACTIVATE_USER="/user/deactive"
-export const CHANGE_USER_PASSWORD="/user/change-password"
-export const EDIT_SELF="/user/edit-self";
-export const USER_ACTIVITY="/activity";
-export const GET_USER_ROLES="/user/roles";
+export const MICRO_LOGOUT = "/userauths/logout";
+export const CHANGE_PASSWORD = "/userauths/forgott-password";
+export const USER = "/user";
+export const MOVE_TO_BIN = "/user/move-recyclebin";
+export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
+export const CHANGE_USER_PASSWORD = "/user/change-password";
+export const EDIT_SELF = "/user/edit-self";
+export const USER_ACTIVITY = "/activity";
+export const GET_USER_ROLES = "/user/roles";

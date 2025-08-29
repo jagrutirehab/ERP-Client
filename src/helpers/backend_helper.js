@@ -355,6 +355,18 @@ export const editClinicalNote = (data) =>
   api.put(url.EDIT_CLINICAL_NOTE, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+export const postCounsellingNote = (data) =>
+  api.create(url.POST_COUNSELLING_NOTE, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editCounsellingNote = (data) =>
+  api.put(url.EDIT_COUNSELLING_NOTE, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteCounsellingNoteFile = (data) =>
+  api.update(url.DELETE_COUNSELLING_NOTE_FILE, data);
+export const getCounsellingNote = (data) =>
+  api.get(url.GET_COUNSELLING_NOTE, data);
 export const postGeneralClinicalNote = (data) =>
   api.create(url.POST_GENERAL_CLINICAL_NOTE, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -769,7 +781,7 @@ export const getPendingActiveMedicines = (patientId) => {
   return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
 };
 
-export const getActivitiesByStatus = ({ patientId, status }) => {
+export const getCompletedActiveMedicines = ({ patientId, status }) => {
   return api.get(
     `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
   );

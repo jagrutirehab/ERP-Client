@@ -2,9 +2,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   deleteChart,
   deleteClinicalNoteFile,
+  deleteCounsellingNoteFile,
   deleteDetailAdmissionFile,
   deleteLabReportFile,
   editClinicalNote,
+  editCounsellingNote,
   editDetailAdmission,
   editDischargeSummary,
   editLabReport,
@@ -13,9 +15,11 @@ import {
   editVitalSign,
   getCharts,
   getChartsAddmissions,
+  getCounsellingNote,
   getGeneralCharts,
   getOPDPrescription,
   postClinicalNote,
+  postCounsellingNote,
   postDetailAdmission,
   postDischargeSummary,
   postGeneralDetailAdmission,
@@ -93,6 +97,19 @@ export const fetchOPDPrescription = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getOPDPrescription(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchCounsellingNote = createAsyncThunk(
+  "getCounsellingNote",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getCounsellingNote(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -396,6 +413,65 @@ export const updateClinicalNote = createAsyncThunk(
       }
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const addCounsellingNote = createAsyncThunk(
+  "postCounsellingNote",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postCounsellingNote(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Counselling Note Saved Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const updateCounsellingNote = createAsyncThunk(
+  "editCounsellingNote",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editCounsellingNote(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Counselling Note Updated Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removeCounsellingNoteFile = createAsyncThunk(
+  "deleteCounsellingNoteFile",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteCounsellingNoteFile(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "File Deleted Successfully",
+        })
+      );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -764,6 +840,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchCounsellingNote.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCounsellingNote.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestCounsellingNote = payload.payload;
+      })
+      .addCase(fetchCounsellingNote.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(fetchCharts.pending, (state) => {
         state.chartLoading = true;
       })
@@ -1016,6 +1104,66 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateClinicalNote.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addCounsellingNote.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addCounsellingNote.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addCounsellingNote.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateCounsellingNote.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateCounsellingNote.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload.addmission
+        );
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id
+        );
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+      })
+      .addCase(updateCounsellingNote.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeCounsellingNoteFile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeCounsellingNoteFile.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload.addmission
+        );
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id
+        );
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+        state.chartForm.data = payload.payload;
+      })
+      .addCase(removeCounsellingNoteFile.rejected, (state) => {
         state.loading = false;
       });
 

@@ -4,6 +4,7 @@ import { Row } from "reactstrap";
 import Wrapper from "../Components/Wrapper";
 import {
   CLINICAL_NOTE,
+  COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
   LAB_REPORT,
@@ -28,6 +29,7 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import LabReport from "./LabReport";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
+import CounsellingNote from "./CounsellingNote";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
   const dispatch = useDispatch();
@@ -70,6 +72,8 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     );
   };
 
+  console.log(charts);
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -101,6 +105,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === CLINICAL_NOTE && (
                   <ClinicalNote data={chart.clinicalNote} />
+                )}
+                {chart.chart === COUNSELLING_NOTE && (
+                  <CounsellingNote data={chart.counsellingNote} />
                 )}
                 {chart.chart === LAB_REPORT && (
                   <LabReport data={chart.labReport?.reports} />

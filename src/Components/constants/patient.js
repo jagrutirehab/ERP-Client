@@ -7,6 +7,7 @@ const OPD_VIEW = "OPD";
 const PRESCRIPTION = "PRESCRIPTION";
 const VITAL_SIGN = "VITAL_SIGN";
 const CLINICAL_NOTE = "CLINICAL_NOTE";
+const COUNSELLING_NOTE = "COUNSELLING_NOTE";
 const LAB_REPORT = "LAB_REPORT";
 const PROCEDURE = "PROCEDURE";
 const RELATIVE_VISIT = "RELATIVE_VISIT";
@@ -59,6 +60,10 @@ const records = [
     category: CLINICAL_NOTE,
   },
   {
+    name: "Counselling Notes",
+    category: COUNSELLING_NOTE,
+  },
+  {
     name: "Lab Reports",
     category: LAB_REPORT,
   },
@@ -79,13 +84,13 @@ const records = [
 const testRecord = [
   // { name : "ROR" },
   // { name : "NIMHAS" },
-  { name : "YMRS" },
+  { name: "YMRS" },
   { name: "CIWA-AR" },
   { name: "C-SSRS" },
   { name: "MPQ-9" },
   { name: "MMSE" },
   { name: "Y-BOCS" },
-  { name: "ACDS" }
+  { name: "ACDS" },
 ];
 
 const prescriptionFormFields = [
@@ -179,6 +184,29 @@ const clinicalNoteFields = [
     label: "Notes",
     name: "notes",
     type: "textarea",
+  },
+];
+
+const counsellingNoteFields = [
+  {
+    label: "Conclusion",
+    name: "conclusion",
+    type: "textarea",
+  },
+  {
+    label: "End goal achieved",
+    name: "endGoalAchieved",
+    type: "textarea",
+  },
+  {
+    label: "End goal for next session",
+    name: "nextEndGoal",
+    type: "textarea",
+  },
+  {
+    label: "Next session date",
+    name: "nextSessionDate",
+    type: "date",
   },
 ];
 
@@ -740,7 +768,7 @@ const InternTimelineFilter = [
   {
     label: "InternReceipt",
     name: "INTERN_RECEIPT",
-  }
+  },
 ];
 
 const categoryUnitOptions = {
@@ -836,6 +864,7 @@ export {
   PRESCRIPTION,
   VITAL_SIGN,
   CLINICAL_NOTE,
+  COUNSELLING_NOTE,
   LAB_REPORT,
   PROCEDURE,
   RELATIVE_VISIT,
@@ -864,6 +893,7 @@ export {
   prescriptionFormFields,
   vitalSignFields,
   clinicalNoteFields,
+  counsellingNoteFields,
   relativeVisitFields,
   dischargeSummaryFields,
   //PATIENT FIELDS
@@ -884,5 +914,5 @@ export {
   //TIMELINE FILTER
   timelineFilters,
   INTERN,
-  InternTimelineFilter
+  InternTimelineFilter,
 };
