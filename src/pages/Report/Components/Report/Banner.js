@@ -1,6 +1,6 @@
 import React from "react";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
-import { ADVANCE_PAYMENT, DUE_AMOUNT, INTERN, INVOICE, OPD_BILL } from "./data";
+import { ADVANCE_PAYMENT, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
   console.log(billType);
@@ -23,25 +23,8 @@ const Banner = ({ data, billType }) => {
     return amount;
   };
 
-  // const totalPayable = (dt) => {
-  //   let amount = 0;
-  //   dt?.forEach((item) => {
-  //     console.log(item);
-  //     if (billType === DUE_AMOUNT) {
-  //       amount += item?.totalPayable || 0;
-  //     } else {
-  //       amount += item?.invoice?.payable || 0;
-  //     }
-  //     if (billType === OPD_BILL && !item.intern) {
-  //       amount += item?.receiptInvoice?.payable || 0;
-  //     }
-  //   });
-  //   return amount;
-  // };
-
   const totalPayable = (dt) => {
     let amount = 0;
-
     dt?.forEach((item) => {
       if (billType === DUE_AMOUNT) {
         amount += item?.totalPayable || 0;
@@ -50,13 +33,18 @@ const Banner = ({ data, billType }) => {
           amount += item?.receipt?.totalAmount || 0;
         } else {
           amount +=
-            item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
+            (item?.invoice?.payable || 0) +
+            (item?.receiptInvoice?.payable || 0);
         }
       } else {
-        amount += item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
+        amount +=
+          (item?.invoice?.payable || 0) + (item?.receiptInvoice?.payable || 0);
+        // Only add receipt.totalAmount if intern is truthy and receipt exists
+        if (item.intern && item.receipt) {
+          amount += item?.receipt?.totalAmount || 0;
+        }
       }
     });
-
     return amount;
   };
 
