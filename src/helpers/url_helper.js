@@ -168,6 +168,7 @@ export const EDIT_MEDICINE = "/medicine";
 export const DELETE_MEDICINE = "/medicine";
 export const POST_RESTORE_MEDICINE = "/medicine/restore";
 export const DELETE_MEDICINE_PERMANENTLY = "/medicine/delete-permanently";
+export const VALIDATE_DUPLICATE_MEDICINE = "/medicine/validate";
 
 //BILL SETTING
 //invoice
