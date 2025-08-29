@@ -146,7 +146,7 @@ const InternAddmissionForms = (intern) => {
         }
       );
 
-      toast.success("Admission form submitted successfully!");
+      toast.success("Undertaking form submitted successfully!");
       setOpenform(false);
       setDetails({
         from: "",
@@ -202,7 +202,7 @@ const InternAddmissionForms = (intern) => {
       <div style={{ marginTop: "4rem" }}>
         <Row className="timeline-right row-gap-5">
           {[1].map((test, idx) => (
-            <GeneralCard key={idx} data="Intern Admission Form">
+            <GeneralCard key={idx} data="Intern Undertaking Form">
               <div
                 style={{ width: "100%" }}
                 className="d-flex align-items-center justify-content-between"
@@ -225,7 +225,7 @@ const InternAddmissionForms = (intern) => {
                       color="primary"
                       className="mr-10"
                     >
-                      Create new Intern Admission
+                      Create new Intern Undertaking
                     </Button>
                   )}
 
@@ -259,7 +259,7 @@ const InternAddmissionForms = (intern) => {
                             rel="noopener noreferrer"
                             className="btn btn-outline-primary btn-sm"
                           >
-                            Download Draft Intern Admission Form{" "}
+                            Download Draft Intern Undertaking Form{" "}
                             {intern?.intern?.addmissionfromRaw
                               ? `(${new Date(
                                   intern?.intern?.addmissionfromRaw?.uploadedAt
@@ -280,7 +280,7 @@ const InternAddmissionForms = (intern) => {
                             rel="noopener noreferrer"
                             className="btn btn-outline-primary btn-sm"
                           >
-                            Download Signed Intern Admission Form {index + 1}{" "}
+                            Download Signed Intern Undertaking Form {index + 1}{" "}
                             {file?.uploadedAt
                               ? `(${new Date(
                                   file.uploadedAt
