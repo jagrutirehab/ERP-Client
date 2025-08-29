@@ -1,6 +1,6 @@
 import React from "react";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
-import { DUE_AMOUNT, INTERN, INVOICE, OPD_BILL } from "./data";
+import { ADVANCE_PAYMENT, DUE_AMOUNT, INTERN, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
   console.log(billType);
@@ -44,19 +44,15 @@ const Banner = ({ data, billType }) => {
 
     dt?.forEach((item) => {
       if (billType === DUE_AMOUNT) {
-        // Due bills: use totalPayable directly
         amount += item?.totalPayable || 0;
       } else if (billType === OPD_BILL) {
         if (item.intern && item.receipt) {
-          // Intern OPD → use receipt.totalAmount (same as CSV puts in advancePayment)
           amount += item?.receipt?.totalAmount || 0;
         } else {
-          // Non-intern OPD → check invoice first, else receiptInvoice
           amount +=
             item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
         }
       } else {
-        // All other bills (IPD, etc.) → invoice or receiptInvoice
         amount += item?.invoice?.payable || item?.receiptInvoice?.payable || 0;
       }
     });
@@ -74,14 +70,14 @@ const Banner = ({ data, billType }) => {
     <React.Fragment>
       <div className="p-4 mt-3 shadow bg-body rounded">
         <div className="d-flex flex-wrap justify-content-between justify-content-md-around">
-          {/* <RenderWhen isTrue={billType !== INTERN}> */}
-          <div className="d-flex align-items-center">
-            <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
-            <h5 className="display-5 ms-2 fs-17 font-semi-bold">
-              {totalPayable(data) || totalAdvancePayment(data) || 0.0}
-            </h5>
-          </div>
-          {/* </RenderWhen> */}
+          <RenderWhen isTrue={billType !== ADVANCE_PAYMENT}>
+            <div className="d-flex align-items-center">
+              <h6 className="display-6 fs-6">TOTAL INVOICED AMOUNT (₹): </h6>
+              <h5 className="display-5 ms-2 fs-17 font-semi-bold">
+                {totalPayable(data) || totalAdvancePayment(data) || 0.0}
+              </h5>
+            </div>
+          </RenderWhen>
           <RenderWhen isTrue={billType !== INVOICE}>
             <div className="d-flex align-items-center">
               <h6 className="display-6 fs-6">TOTAL PAID AMOUNT (₹): </h6>
