@@ -12,9 +12,9 @@ export const INTERN = "INTERN";
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
-  { label: "Advance Payment", value: ADVANCE_PAYMENT },
-  { label: "Invoice", value: INVOICE },
-  { label: "Due Amount", value: DUE_AMOUNT },
+  { label: "IPD Payment", value: ADVANCE_PAYMENT },
+  { label: "IPD Invoice", value: INVOICE },
+  { label: "IPD Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },
   { label: "Interns", value: INTERN },
 ];

@@ -68,10 +68,16 @@ const Menu = ({
       dateOfDischarge: row.patient?.addmission?.dischargeDate
         ? format(new Date(row.patient.addmission.dischargeDate), "dd MMM yyyy")
         : "",
+        type:
+   billType === ALL_TRANSACTIONS
+     ? row.type && row.type.trim() !== "" 
+       ? row.type 
+       : "INTERN"
+     : row.type || "",
       invoice: {
         payable:
           row.intern && row.receipt
-            ? ""
+            ? row.receipt.totalAmount || 0
             : row.invoice?.payable || row.receiptInvoice?.payable || 0,
       },
       advancePayment: {
