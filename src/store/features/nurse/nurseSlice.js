@@ -29,6 +29,7 @@ const initialState = {
     nextDay: [],
   },
   searchMode: false,
+  patientIdsFromSearch: false,
   pagination: null,
   data: {
     data: [],
@@ -305,14 +306,17 @@ export const NurseSlice = createSlice({
         // );
         state.data = payload;
         const newIds = payload.data.map((p) => p._id);
-
         if (state.searchMode) {
           state.patientIds = newIds;
+          state.patientIdsFromSearch = true;
         } else {
-          const updatedPatients = Array.from(
+          if (state.patientIdsFromSearch) {
+            state.patientIds = [];
+            state.patientIdsFromSearch = false; 
+          }
+          state.patientIds = Array.from(
             new Set([...state.patientIds, ...newIds])
           );
-          state.patientIds = updatedPatients;
         }
         localStorage.setItem("nursePatients", JSON.stringify(state.patientIds));
       })
