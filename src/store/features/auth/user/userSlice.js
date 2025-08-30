@@ -367,7 +367,7 @@ const userSlice = createSlice({
     },
     loginSuccess: (state, { payload }) => {
       state.user = payload.payload;
-      state.centerAccess = payload.payload.centerAccess;
+      state.centerAccess = payload.payload?.centerAccess;
       state.userCenters = payload.userCenters;
       state.isUserLogout = false;
     },
@@ -389,7 +389,7 @@ const userSlice = createSlice({
     },
     setUser: (state, { payload }) => {
       state.user = payload;
-      state.centerAccess = payload.centerAccess;
+      state.centerAccess = payload?.centerAccess;
     },
     setUserForm: (state, { payload }) => {
       state.form = payload;
@@ -511,7 +511,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.incrementalSchedule = payload.payload || [];
         state.weeklySchedule = payload.weeklySchedules || [];
-        state.userCenters = payload.centerAccess || [];
+        state.userCenters = payload?.centerAccess || [];
         state.sessionPricing = payload.sessionPricing;
       })
       .addCase(fetchUserSchedule.rejected, (state, action) => {

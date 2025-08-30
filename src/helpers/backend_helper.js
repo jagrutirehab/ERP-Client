@@ -882,9 +882,15 @@ export const deleteRole = ({ id, token }) => {
   });
 };
 // Users
-export const getAllUsers = ({ page = 1, limit = 10, search = "", token }) => {
+export const getAllUsers = ({
+  page = 1,
+  limit = 10,
+  search = "",
+  role = "",
+  token,
+}) => {
   return userService.get(url.USER, {
-    params: { page, limit, search },
+    params: { page, limit, search, role },
     headers: {
       Authorization: `Bearer ${token}`,
     },

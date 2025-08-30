@@ -214,7 +214,7 @@ const PatientInfo = ({ data, loading, centerAccess }) => {
 };
 
 const mapStateToProps = (state) => ({
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   data: state.Dashboard.data,
   loading: state.Dashboard.loading,
 });

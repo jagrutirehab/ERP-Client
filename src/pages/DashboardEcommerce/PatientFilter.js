@@ -43,7 +43,7 @@ const mapStateToProps = (state) => ({
   users:
     state.User.data?.map((user) => ({ value: user._id, label: user.name })) ||
     [],
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(PatientFilter);

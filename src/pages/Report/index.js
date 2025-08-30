@@ -114,7 +114,7 @@ Report.propTypes = {
 
 const mapStateToProps = (state) => ({
   data: state.Report.data,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Report);

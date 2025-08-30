@@ -24,7 +24,7 @@ const Inovice = ({
   setCategories,
 }) => {
   const dispatch = useDispatch();
-  const centers = useSelector((state) => state.User.centerAccess);
+  const centers = useSelector((state) => state.User?.centerAccess);
   const [searchItem, setSearchItem] = useState("");
 
   useEffect(() => {

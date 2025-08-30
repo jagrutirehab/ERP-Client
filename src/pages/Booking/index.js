@@ -63,7 +63,7 @@ const Booking = ({
   useEffect(() => {
     dispatch(
       fetchAllDoctorSchedule({
-        centerAccess: JSON.stringify(user.centerAccess),
+        centerAccess: JSON.stringify(user?.centerAccess),
       })
     );
     dispatch(
@@ -73,7 +73,7 @@ const Booking = ({
         end: endOfDay(new Date()),
       })
     );
-    dispatch(fetchCenters(user.centerAccess));
+    dispatch(fetchCenters(user?.centerAccess));
   }, [dispatch, user, centerAccess, patients]);
 
   useEffect(() => {

@@ -328,7 +328,7 @@ const mapStateToProps = (state) => ({
   isOpen: state.Lead.createEditLead?.isOpen,
   lead: state.Lead.createEditLead?.data,
   centers: state.Center.allCenters,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(LeadForm);

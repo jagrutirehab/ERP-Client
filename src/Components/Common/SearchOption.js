@@ -217,7 +217,7 @@ SearchOption.prototype = {
 const mapStateToProps = (state) => ({
   loading: state.Patient.searchLoading,
   patients: state.Patient.searchedPatients,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(SearchOption);

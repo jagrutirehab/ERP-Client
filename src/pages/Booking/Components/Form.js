@@ -290,11 +290,11 @@ const EventForm = ({
 
     const docCenters = docs.map((doc) => ({
       ...doc,
-      centerAccess: doc.centerAccess.map((center) => center._id),
+      centerAccess: doc?.centerAccess.map((center) => center._id),
     }));
 
     return (docCenters || []).filter((doc) =>
-      doc.centerAccess?.includes(validation.values.center)
+      doc?.centerAccess?.includes(validation.values.center)
     );
   };
 
@@ -1098,7 +1098,7 @@ EventForm.propTypes = {};
 const mapStateToProps = (state) => ({
   eventDate: state.Booking.eventDate,
   centers: state.Center.data,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   doctors: state.Setting.doctorSchedule,
   slotsLoading: state.Setting.loading,
   doctorAvailableSlots: state.Setting.doctorAvailableSlots,

@@ -38,6 +38,7 @@ import {
 } from "../../store/features/auth/user/userSlice";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
+import authRoles from "../../Components/constants/authRoles";
 
 const UserCenterList = ({ centers }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -83,6 +84,7 @@ const Main = ({ user, form, centerAccess }) => {
   const centers = useSelector((state) => state.Center.allCenters || []);
   const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -117,6 +119,7 @@ const Main = ({ user, form, centerAccess }) => {
             page: currentPage,
             limit,
             search: query,
+            role: selectedFilter,
             token,
             centerAccess: JSON.stringify(centerAccess),
           });
@@ -128,7 +131,7 @@ const Main = ({ user, form, centerAccess }) => {
           ) {
             users = users.map((user) => ({
               ...user,
-              centerAccess: (user.centerAccess || []).map(
+              centerAccess: (user?.centerAccess || []).map(
                 (centerId) =>
                   centers.find((center) => center._id === centerId) || {
                     _id: centerId,
@@ -139,7 +142,7 @@ const Main = ({ user, form, centerAccess }) => {
           } else {
             users = users.map((user) => ({
               ...user,
-              centerAccess: (user.centerAccess || []).map((centerId) => ({
+              centerAccess: (user?.centerAccess || []).map((centerId) => ({
                 _id: centerId,
                 title: "Unknown Center",
               })),
@@ -164,7 +167,7 @@ const Main = ({ user, form, centerAccess }) => {
 
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, currentPage, token, centerAccess, centers, roles]);
+  }, [query, currentPage, token, centerAccess, centers, roles, selectedFilter]);
 
   document.title = "Users | Your App Name";
 
@@ -261,14 +264,31 @@ const Main = ({ user, form, centerAccess }) => {
           <Row className="g-3 align-items-center">
             <Col md={4}>
               <div className="search-box position-relative">
-                <Input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="form-control"
-                  placeholder="Search by name or email..."
-                />
-                <i className="ri-search-line search-icon" />
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <Input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="form-control"
+                    placeholder="Search by name or email..."
+                  />
+                  <i className="ri-search-line search-icon" />
+
+                  <Input
+                    type="select"
+                    value={selectedFilter}
+                    onChange={(e) => setSelectedFilter(e.target.value)}
+                    className="form-select"
+                    style={{ border: "1px solid black" }}
+                  >
+                    <option value="">Please Select Role</option>
+                    {authRoles.map((role) => (
+                      <option key={role?.value} value={role?.value}>
+                        {role?.name}
+                      </option>
+                    ))}
+                  </Input>
+                </div>
                 <RenderWhen isTrue={dataLoader}>
                   <Spinner
                     className="position-absolute end-0 top-50 translate-middle-y me-2"
@@ -439,20 +459,20 @@ const Main = ({ user, form, centerAccess }) => {
                     </h6>
                   </div>
                   {/* {item?.phoneNumber && ( */}
-                    <div className="mb-4">
-                      <p className="text-muted mb-1">Contact Number</p>
-                      <h6 className="mb-0">
-                        <Highlighter
-                          searchWords={[query]}
-                          autoEscape
-                          textToHighlight={item?.phoneNumber || "-"}
-                        />
-                      </h6>
-                    </div>
+                  <div className="mb-4">
+                    <p className="text-muted mb-1">Contact Number</p>
+                    <h6 className="mb-0">
+                      <Highlighter
+                        searchWords={[query]}
+                        autoEscape
+                        textToHighlight={item?.phoneNumber || "-"}
+                      />
+                    </h6>
+                  </div>
                   {/* )} */}
                   <div className="mb-4">
                     <p className="text-muted mb-1">Assigned Centers</p>
-                    <UserCenterList centers={item.centerAccess || []} />
+                    <UserCenterList centers={item?.centerAccess || []} />
                   </div>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
@@ -511,7 +531,7 @@ const Main = ({ user, form, centerAccess }) => {
 const mapStateToProps = (state) => ({
   user: state.User.user,
   form: state.User.form,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 Main.propTypes = {

@@ -813,7 +813,7 @@ const mapStateToProps = (state) => ({
   centers: state.Center.data,
   currentEvent: state.Booking.event,
   patients: state.Patient.allPatients,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Schedule);

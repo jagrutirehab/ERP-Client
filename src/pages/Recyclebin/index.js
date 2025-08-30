@@ -62,7 +62,7 @@ Recyclebin.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Recyclebin);

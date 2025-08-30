@@ -571,7 +571,7 @@ Patient.propTypes = {
 
 const mapStateToProps = (state) => ({
   data: state.Report.patient,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Patient);

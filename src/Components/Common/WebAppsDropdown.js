@@ -293,7 +293,7 @@ WebAppsDropdown.prototype = {
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(WebAppsDropdown);

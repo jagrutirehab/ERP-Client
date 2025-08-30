@@ -76,7 +76,7 @@ const BookingBar = ({ loading, centerAccess }) => {
 
 const mapStateToProps = (state) => ({
   loading: state.Setting.loading,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 BookingBar.prototype = {

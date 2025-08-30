@@ -193,7 +193,7 @@ Sidebar.propTypes = {
 const mapStateToProps = (state) => ({
   interns: state.Intern.data,
   intern: state.Intern.intern,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   hasMore: state.Intern.hasMore,
 });
 

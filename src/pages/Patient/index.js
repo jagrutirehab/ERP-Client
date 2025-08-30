@@ -122,7 +122,7 @@ Patient.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   user: state.User.user,
   patients: state.Patient.data,
 });

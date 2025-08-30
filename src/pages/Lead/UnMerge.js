@@ -65,7 +65,7 @@ const UnMerge = ({ lead, setUnMergeLead, centerAccess, date }) => {
 UnMerge.propTypes = {};
 
 const mapStateToProps = (state) => ({
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(UnMerge);

@@ -259,7 +259,7 @@ Lead.propTypes = {
 const mapStateToProps = (state) => ({
   leads: state.Lead.data,
   searchLoading: state.Lead.searchLoading,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   user: state.User.user,
 });
 

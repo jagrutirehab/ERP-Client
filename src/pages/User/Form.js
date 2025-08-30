@@ -163,7 +163,7 @@ const UserForm = ({
         : userData?.registrationNo || "",
 
       centerAccess: userData?.centerAccess
-        ? userData.centerAccess.map((cn) => cn._id)
+        ? userData?.centerAccess.map((cn) => cn._id)
         : [],
       pageAccess: userData ? userData.pageAccess?.pages : [],
       confirm_password: "",
@@ -232,7 +232,7 @@ const UserForm = ({
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
-      formData.append("centerAccess", values.centerAccess.join(","));
+      formData.append("centerAccess", values?.centerAccess.join(","));
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
@@ -1475,7 +1475,7 @@ const UserForm = ({
                     type="checkbox"
                     name="centerAccess"
                     value={item._id}
-                    checked={validation.values.centerAccess?.includes(item._id)}
+                    checked={validation.values?.centerAccess?.includes(item._id)}
                     onChange={validation.handleChange}
                     style={{
                       marginRight: "10px",
@@ -1493,8 +1493,8 @@ const UserForm = ({
                   </label>
                 </div>
               ))}
-              {validation.touched.centerAccess &&
-                validation.errors.centerAccess && (
+              {validation.touched?.centerAccess &&
+                validation.errors?.centerAccess && (
                   <p
                     style={{
                       color: "#ef4444",
@@ -1503,7 +1503,7 @@ const UserForm = ({
                       gridColumn: "1 / -1",
                     }}
                   >
-                    {validation.errors.centerAccess}
+                    {validation.errors?.centerAccess}
                   </p>
                 )}
             </div>

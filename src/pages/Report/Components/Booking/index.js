@@ -371,7 +371,7 @@ Booking.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   data: state.Report.booking,
   totalPages: state.Report.totalPages,
   currentPage: state.Report.currentPage,

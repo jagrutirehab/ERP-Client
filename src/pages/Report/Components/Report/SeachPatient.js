@@ -86,7 +86,7 @@ SearchPatient.propTypes = {
 const mapStateToProps = (state) => ({
   patients: state.Patient.searchedPatients,
   searchLoading: state.Patient.searchLoading,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(SearchPatient);

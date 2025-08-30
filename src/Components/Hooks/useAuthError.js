@@ -15,7 +15,7 @@ export const useAuthError = () => {
       dispatch(clearUser());
       navigate("/login");
       resetRolesCache();
-      toast.error("Session expired, please relogin");
+      toast.warn("Session expired, please relogin");
       return true;
     }
     return false;

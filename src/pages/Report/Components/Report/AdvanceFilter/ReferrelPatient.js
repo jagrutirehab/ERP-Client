@@ -87,7 +87,7 @@ ReferrelPatient.propTypes = {
 const mapStateToProps = (state) => ({
   referrels: state.Patient.patientReferrel,
   searchLoading: state.Patient.patientRefLoading,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(ReferrelPatient);

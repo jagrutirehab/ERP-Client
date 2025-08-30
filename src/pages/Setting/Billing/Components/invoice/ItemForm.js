@@ -281,7 +281,7 @@ MedicinesForm.propTypes = {
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
-  userCenters: state.User.centerAccess,
+  userCenters: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(MedicinesForm);

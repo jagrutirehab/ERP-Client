@@ -236,7 +236,7 @@ Sidebar.propTypes = {
 const mapStateToProps = (state) => ({
   patients: state.Patient.data,
   patient: state.Patient.patient,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
   user: state.User.user,
 });
 

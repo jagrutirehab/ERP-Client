@@ -89,7 +89,7 @@ SearchLead.propTypes = {
 const mapStateToProps = (state) => ({
   leads: state.Lead.unGroupLeads,
   searchLoading: state.Lead.searchLoading,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(SearchLead);

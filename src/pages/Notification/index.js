@@ -227,7 +227,7 @@ const Notification = ({ bill, userCenters }) => {
 
 const mapStateToProps = (state) => ({
   bill: state.Notification?.bill,
-  userCenters: state.User.centerAccess,
+  userCenters: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Notification);

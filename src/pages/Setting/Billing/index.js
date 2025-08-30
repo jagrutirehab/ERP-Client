@@ -168,7 +168,7 @@ const Billing = ({
 
 const mapStateToProps = (state) => {
   return {
-    centers: state.User.centerAccess,
+    centers: state.User?.centerAccess,
     billItems: state.Setting?.invoiceProcedures || [],
     totalCount: state.Setting?.totalCount || 0,
     totalPages: state.Setting?.totalPages || 1,

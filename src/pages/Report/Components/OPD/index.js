@@ -176,7 +176,7 @@ OPDAnalytics.propTypes = {
 
 const mapStateToProps = (state) => ({
   data: state.Report.opd,
-  centerAccess: state.User.centerAccess,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(OPDAnalytics);

@@ -41,7 +41,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 
 const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const dispatch = useDispatch();
-  const centerAccess = useSelector((state) => state.User.centerAccess);
+  const centerAccess = useSelector((state) => state.User?.centerAccess);
 
   //Modal
   // const [formModal, setFormModal] = useState(false);
@@ -57,7 +57,7 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const [centerData, setCenterData] = useState();
 
   useEffect(() => {
-    dispatch(fetchCenters(user.centerAccess));
+    dispatch(fetchCenters(user?.centerAccess));
   }, [dispatch, user]);
 
   useEffect(() => {
@@ -266,7 +266,7 @@ const mapStateToProps = (state) => ({
   user: state.User.user,
   centers: state.Center.data,
   isFormOpen: state.Center.createEditCenter?.isOpen,
-  userCenter: state.User.centerAccess,
+  userCenter: state.User?.centerAccess,
 });
 
 Centers.prototype = {

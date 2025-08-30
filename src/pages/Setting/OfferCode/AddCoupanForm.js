@@ -102,7 +102,7 @@ const CouponForm = ({ toggle, apiFlag, setApiFlag }) => {
     useEffect(() => {
         dispatch(fetchAllCenters());
     }, [dispatch]);
-    const centerAccess = useSelector((state) => state.User.centerAccess);
+    const centerAccess = useSelector((state) => state.User?.centerAccess);
     useEffect(() => {
         setTimeout(() => {
             dispatch(

@@ -150,7 +150,7 @@ const mapStateToProps = (state) => {
     user: state.User.user,
     pageAccess: state.User.user?.pageAccess?.pages || [],
     users: state.User.data,
-    userCenters: state.User.centerAccess,
+    userCenters: state.User?.centerAccess,
     logs: state.Log.user,
     patients: state.Patient.allPatients,
     loading: state.Log.loading,
