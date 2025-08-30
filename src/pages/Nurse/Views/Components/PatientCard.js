@@ -26,10 +26,10 @@ const PatientCard = ({
     border: "#d9d9d9",
   };
 
-  const vitals =
-    Array.isArray(patient.vitals) && patient.vitals.length > 0
-      ? patient.vitals[0]
-      : null;
+  // const vitals =
+  //   Array.isArray(patient.vitals) && patient.vitals.length > 0
+  //     ? patient.vitals[0]
+  //     : null;
   return (
     <>
       <Card
@@ -72,14 +72,14 @@ const PatientCard = ({
               <span className="text-danger me-2">❤️</span>
               <span>
                 <strong>HR:</strong>{" "}
-                {vitals?.pulse?.trim() !== "" ? vitals?.pulse : "N/A"}
+                {patient?.vitals?.pulse?.trim() !== "" ? patient?.vitals?.pulse : "N/A"}
               </span>
               <span className="ms-3">
                 <strong>BP:</strong>{" "}
-                {vitals?.bloodPressure
-                  ? vitals.bloodPressure.systolic?.trim() &&
-                    vitals.bloodPressure.diastolic?.trim()
-                    ? `${vitals.bloodPressure.systolic}/${vitals.bloodPressure.diastolic}`
+                {patient?.vitals?.bloodPressure
+                  ? patient?.vitals.bloodPressure.systolic?.trim() &&
+                    patient?.vitals.bloodPressure.diastolic?.trim()
+                    ? `${patient.vitals.bloodPressure.systolic}/${patient?.vitals.bloodPressure.diastolic}`
                     : "N/A"
                   : "N/A"}
               </span>
@@ -89,9 +89,9 @@ const PatientCard = ({
               <span className="me-2">🌡️</span>
               <span>
                 <strong>Temp:</strong>{" "}
-                {vitals?.temprature
-                  ? vitals.temprature.trim() !== ""
-                    ? `${vitals?.temprature} \u00B0F`
+                {patient?.vitals?.temprature
+                  ? patient.vitals.temprature.trim() !== ""
+                    ? `${patient?.vitals?.temprature} \u00B0F`
                     : "N/A"
                   : "N/A"}
               </span>
