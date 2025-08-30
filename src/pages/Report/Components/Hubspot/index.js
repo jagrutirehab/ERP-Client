@@ -11,7 +11,6 @@ const statusBadge = {
   Planned: "bg-blue-100 text-blue-700 border-blue-300",
   Completed: "bg-green-100 text-green-700 border-green-300",
   Missed: "bg-red-100 text-red-700 border-red-300",
-  Admitted: "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold",
 };
 
 const visitTypes = ["First", "Follow-up"];
@@ -135,41 +134,20 @@ const LeadDashboard = ({ leadDate }) => {
                 Name
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Center
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Email
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Phone
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Gender
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Age
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Visit Date
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Amount
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Relation with pat
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Issues
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Comments
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Lead Status
               </th>
-              {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Contact Owner
-              </th> */}
+              </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Lifecycle Stage
               </th>
@@ -199,19 +177,19 @@ const LeadDashboard = ({ leadDate }) => {
               filteredContacts.map((contact, index) => (
                 <tr
                   key={index}
-                  className={`transition-colors group ${
-                    contact.leadStatus === "Admitted"
-                      ? "bg-emerald-50 hover:bg-emerald-100 border-l-4 border-emerald-500"
-                      : "hover:bg-blue-50"
-                  }`}
+                  className="hover:bg-blue-50 transition-colors group"
                 >
                   <td className="px-4 py-3 font-bold whitespace-nowrap font-semibold text-gray-900 flex items-center gap-2">
+                    {/* <span
+                      role="img"
+                      aria-label="user"
+                      className="text-blue-400"
+                    >
+                      👤
+                    </span>{" "} */}
                     {capitalizeWords(
                       `${contact.firstname || ""} ${contact.lastname || ""}`
                     ) || "N/A"}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.center}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.email}
@@ -220,29 +198,7 @@ const LeadDashboard = ({ leadDate }) => {
                     {contact.phone}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.gender === "Option 1"
-                      ? "Male"
-                      : contact.gender === "Option 2"
-                      ? "Female"
-                      : "Other"}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.patient_age} Years
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.visitDate}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.amount}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.relation_with_patient}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.issues}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.comments}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
@@ -254,9 +210,9 @@ const LeadDashboard = ({ leadDate }) => {
                       {contact.leadStatus}
                     </span>
                   </td>
-                  {/* <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.contactOwner}
-                  </td> */}
+                  </td>
                   <td className="px-4 py-3 text-capitalize whitespace-nowrap text-gray-700">
                     {contact.lifecyclestage}
                   </td>
