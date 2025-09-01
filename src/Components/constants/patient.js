@@ -81,6 +81,16 @@ const records = [
   },
 ];
 
+const Forms = [
+  {
+    name: "Consent Form",
+    category: "CONSENT FORM",
+  },
+  {
+    name: "Admission Form",
+    category: "ADMISSION FORM",
+  },
+]
 const testRecord = [
   // { name : "ROR" },
   // { name : "NIMHAS" },
@@ -915,4 +925,5 @@ export {
   timelineFilters,
   INTERN,
   InternTimelineFilter,
+  Forms
 };

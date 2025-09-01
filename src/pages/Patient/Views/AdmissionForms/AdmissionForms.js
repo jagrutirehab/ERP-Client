@@ -27,7 +27,6 @@ import {
   Spinner,
   UncontrolledTooltip,
 } from "reactstrap";
-import GeneralCard from "../Components/GeneralCard";
 import { useState, useRef, useEffect } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch } from "react-redux";
@@ -37,12 +36,18 @@ import html2canvas from "html2canvas";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { fetchPatientById } from "../../../../store/actions";
+import AddmissionCard from "../Components/AddmissionCard";
+import IPD from "../IPD";
+import AdmissionChartModal from "../../Modals/AdmissionChart.modal";
 
-const AddmissionForms = ({ patient, admissions }) => {
+const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const dispatch = useDispatch();
   const [dateModal, setDateModal] = useState(false);
+  const [dateModal2, setDateModal2] = useState(false);
+  const [chartType, setChartType] = useState("");
   const [loading, setLoading] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
+  const toggleModal2 = () => setDateModal2(!dateModal2);
   const [addmissionId, setAddmissionId] = useState();
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
@@ -72,14 +77,27 @@ const AddmissionForms = ({ patient, admissions }) => {
   const indipendentref2 = useRef(null);
   const indipendentref3 = useRef(null);
 
-  const [open, setOpen] = useState("0");
+  const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
+    // setToggleGeneral("0");
     if (open === id) {
       setOpen();
     } else {
       setOpen(id);
     }
   };
+
+  useEffect(() => {
+    if (
+      addmissionsCharts.length &&
+      !addmissionsCharts.find((ch) => ch._id === addmissionId)
+    ) {
+      setOpen("0");
+      setAddmissionId(addmissionsCharts[0]?._id);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patient, addmissionsCharts]);
 
   const { register, handleSubmit } = useForm();
 
@@ -289,129 +307,49 @@ const AddmissionForms = ({ patient, admissions }) => {
     <>
       <div style={{ marginTop: "4rem" }}>
         <Row className="timeline-right row-gap-5">
-          {[1].map((test, idx) => (
-            <GeneralCard key={idx} data="Admission Form">
-              <div
-                style={{ width: "100%" }}
-                className="d-flex align-items-center justify-content-between"
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "1rem",
+          {(addmissionsCharts || []).map((test, idx) => (
+            <AddmissionCard
+              key={idx}
+              id={idx}
+              data={test}
+              toggleModal={toggleModal}
+            >
+              {test?.addmissionform === false && (
+                <Button
+                  onClick={() => {
+                    toggleModal2();
+                    setChartType(IPD);
                   }}
+                  size="sm"
                 >
-                  {/* ✅ Create new admission */}
-                  {patient.isAdmit === true &&
-                    !admissions[0]?.addmissionform && (
-                      <Button
-                        onClick={() => {
-                          toggleModal();
-                        }}
-                        size="sm"
-                        color="primary"
-                        className="mr-10"
-                      >
-                        Create new Admission
-                      </Button>
-                    )}
-
-                  <Button
-                    onClick={handleUploadClick}
-                    size="sm"
-                    color="primary"
-                    className="mr-10"
-                    disabled={isGenerating2}
-                  >
-                    {isGenerating2 ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      "Upload Signed Copy"
-                    )}
-                  </Button>
-
-                  {patient.isAdmit === true &&
-                    admissions[0]?.addmissionform && (
-                      <div style={{ width: "100%", textAlign: "center" }}>
-                        <div className="mt-2">
-                          <a
-                            href={admissions[0]?.addmissionfromRaw?.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-outline-primary btn-sm"
-                          >
-                            Download Draft Admission Form{" "}
-                            {admissions[0]?.addmissionfromRaw
-                              ? `(${new Date(
-                                  admissions[0]?.addmissionfromRaw?.uploadedAt
-                                ).toLocaleDateString()})`
-                              : ""}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-
-                  {/* hidden input */}
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    ref={fileInputRef}
-                    style={{ display: "none" }}
-                    onChange={handleFileChange}
-                  />
-                  {admissions[0]?.addmissionformURL?.length > 0 && (
-                    <div style={{ width: "100%", textAlign: "center" }}>
-                      {admissions[0].addmissionformURL.map((file, index) => (
-                        <div key={index} className="mt-2">
-                          <a
-                            href={file?.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-outline-primary btn-sm"
-                          >
-                            Download Signed Admission Form {index + 1}{" "}
-                            {file?.uploadedAt
-                              ? `(${new Date(
-                                  file.uploadedAt
-                                ).toLocaleDateString()})`
-                              : ""}
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="d-flex align-items-center">
-                  <UncontrolledTooltip
-                    placement="bottom"
-                    target={`expand-test-${idx}`}
-                  >
-                    Expand/Collapse
-                  </UncontrolledTooltip>
-                  <Button
-                    id={`expand-test-${idx}`}
-                    onClick={() => {
-                      toggleAccordian(idx.toString());
-                      setAddmissionId(test?._id);
-                    }}
-                    size="sm"
-                    outline
-                  >
-                    <i
-                      className={`${
-                        open === idx.toString()
-                          ? "ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
-                      } fs-6`}
-                    ></i>
-                  </Button>
-                </div>
+                  Create new Chart
+                </Button>
+              )}
+              <div className="d-flex align-items-center">
+                <UncontrolledTooltip
+                  placement="bottom"
+                  target={`expand-test-${idx}`}
+                >
+                  Expand/Collapse
+                </UncontrolledTooltip>
+                <Button
+                  id={`expand-test-${idx}`}
+                  onClick={() => {
+                    toggleAccordian(idx.toString());
+                    setAddmissionId(test?._id);
+                  }}
+                  size="sm"
+                  outline
+                >
+                  <i
+                    className={`${
+                      open === idx.toString()
+                        ? "ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
+                    } fs-6`}
+                  ></i>
+                </Button>
               </div>
-
               {/* ACCORDION */}
               <Accordion
                 className="timeline-date w-100"
@@ -427,17 +365,119 @@ const AddmissionForms = ({ patient, admissions }) => {
                       <Placeholder />
                     ) : (
                       <div>
-                        <div className="timeline-2">
-                          <div className="timeline-continue">
-                            <Row className="timeline-right"></Row>
+                        {/* <div className="timeline-2"> */}
+                        {/* <div className="timeline-continue"> */}
+                        <div
+                          style={{ width: "100%" }}
+                          className="d-flex align-items-center justify-content-between"
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "1rem",
+                            }}
+                          >
+                            {/* ✅ Create new admission */}
+                            {test?.addmissionform === false && (
+                              <Button
+                                onClick={() => {
+                                  toggleModal();
+                                }}
+                                size="sm"
+                                color="primary"
+                                className="mr-10"
+                              >
+                                Create new Admission
+                              </Button>
+                            )}
+
+                            <Button
+                              onClick={handleUploadClick}
+                              size="sm"
+                              color="primary"
+                              className="mr-10"
+                              disabled={isGenerating2}
+                            >
+                              {isGenerating2 ? (
+                                <Spinner size="sm" />
+                              ) : (
+                                "Upload Signed Copy"
+                              )}
+                            </Button>
+
+                            {patient.isAdmit === true &&
+                              test?.addmissionform && (
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  <div className="mt-2">
+                                    <a
+                                      href={test?.addmissionfromRaw?.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-outline-primary btn-sm"
+                                    >
+                                      Download Draft Admission Form{" "}
+                                      {test?.addmissionfromRaw
+                                        ? `(${new Date(
+                                            test?.addmissionfromRaw?.uploadedAt
+                                          ).toLocaleDateString()})`
+                                        : ""}
+                                    </a>
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* hidden input */}
+                            <input
+                              type="file"
+                              accept="application/pdf"
+                              ref={fileInputRef}
+                              style={{ display: "none" }}
+                              onChange={handleFileChange}
+                            />
+                            {test?.addmissionformURL?.length > 0 && (
+                              <div
+                                style={{
+                                  width: "100%",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {test.addmissionformURL.map((file, index) => (
+                                  <div key={index} className="mt-2">
+                                    <a
+                                      href={file?.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-outline-primary btn-sm"
+                                    >
+                                      Download Signed Admission Form {index + 1}{" "}
+                                      {file?.uploadedAt
+                                        ? `(${new Date(
+                                            file.uploadedAt
+                                          ).toLocaleDateString()})`
+                                        : ""}
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
+                        {/* </div> */}
                       </div>
+                      // </div>
                     )}
                   </AccordionBody>
                 </AccordionItem>
               </Accordion>
-            </GeneralCard>
+            </AddmissionCard>
           ))}
         </Row>
       </div>
@@ -608,7 +648,12 @@ const AddmissionForms = ({ patient, admissions }) => {
           </Button>
         </div>
       </Modal>
-
+      <AdmissionChartModal
+        type={chartType}
+        isOpen={dateModal2}
+        toggle={toggleModal2}
+        patient={patient}
+      />
       <AdmissionformModal
         isOpen={dateModal}
         toggle={toggleModal}
@@ -630,11 +675,13 @@ const AddmissionForms = ({ patient, admissions }) => {
 
 AddmissionForms.propTypes = {
   patient: PropTypes.object,
+  addmissionsCharts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   patient: state.Patient.patient,
+  addmissionsCharts: state.Chart.data,
   doctors: state.User?.doctor,
   psychologists: state.User?.counsellors,
   admissions: state.Chart.data,

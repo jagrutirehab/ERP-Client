@@ -352,7 +352,7 @@ const Charting = ({
         generalComponent
       ) : tab === OPD ? (
         <OPDView charts={charts} toggleModal={toggleModal} />
-      ) : tab == CLINIC_TEST ? (
+      ) : tab === CLINIC_TEST ? (
         clinicalTestComponent
       ) : (
         ""
