@@ -277,9 +277,9 @@ export const NurseSlice = createSlice({
     setSearchMode: (state, { payload }) => {
       state.searchMode = payload;
     },
-    setPatientIdsFromSearch:(state, {payload})=>{
-      state.patientIdsFromSearch=payload;
-    }
+    setPatientIdsFromSearch: (state, { payload }) => {
+      state.patientIdsFromSearch = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -315,7 +315,7 @@ export const NurseSlice = createSlice({
         } else {
           if (state.patientIdsFromSearch) {
             state.patientIds = [];
-            state.patientIdsFromSearch = false; 
+            state.patientIdsFromSearch = false;
           }
           state.patientIds = Array.from(
             new Set([...state.patientIds, ...newIds])
@@ -448,13 +448,22 @@ export const NurseSlice = createSlice({
     builder.addCase(
       markTomorrowActivityMedicines.fulfilled,
       (state, { payload }) => {
-        state.medicines.nextDay = {
-          ...state.medicines.nextDay,
-          completed: true,
-        };
+        const patientIndex = state.data.data.findIndex(
+          (patient) => patient._id === payload.data.patient
+        );
+        state.medicines.nextDay = payload.data;
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
+        state.data.data[patientIndex] = {
+          ...state.data.data[patientIndex],
+          alertCount: state.data.data[patientIndex].alertCount - 1,
+          flag:
+            state.data.data[patientIndex].flag === "urgent" &&
+            state.data.data[patientIndex].alertCount > 1
+              ? "attention"
+              : "stable",
+        };
       }
     );
     builder
@@ -516,6 +525,6 @@ export const {
   setPatientIds,
   setIndex,
   setSearchMode,
-  setPatientIdsFromSearch
+  setPatientIdsFromSearch,
 } = NurseSlice.actions;
 export default NurseSlice.reducer;

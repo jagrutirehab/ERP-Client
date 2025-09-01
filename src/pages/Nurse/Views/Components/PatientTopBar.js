@@ -119,10 +119,17 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                           <span className="ms-2 text-muted fs-14">
                             ({`${profile?.uid}`})
                           </span>
+                          <Link to={`/patient/${id}`} className="ms-2">
+                            <button
+                              type="button"
+                              className="btn btn-outline-primary btn-sm"
+                            >
+                              Go to Patient
+                            </button>
+                          </Link>
                         </span>
                       )}
                     </h5>
-                    <p className="text-truncate text-muted fs-14 mb-0 userStatus"></p>
                   </div>
                 </div>
               </div>

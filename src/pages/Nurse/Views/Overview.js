@@ -11,6 +11,7 @@ import {
   getPatientOverviewById,
 } from "../../../store/features/nurse/nurseSlice";
 import ActivityMedicineForm from "./Components/ActivityMedicineForm";
+import userDummayImage from "../../../assets/images/users/user-dummy-img.jpg";
 
 const Overview = ({
   vitals,
@@ -35,7 +36,7 @@ const Overview = ({
     if (id !== profile?._id) {
       fetchPatientOverview();
     }
-  }, [dispatch, id, currentPatientIndex]);
+  }, [dispatch, id]);
 
   const highlightSeverity = (text) => {
     const keywords = [
@@ -50,7 +51,7 @@ const Overview = ({
       "Hysteria",
       "Severe",
       "Depression",
-      "Moderate"
+      "Moderate",
     ];
     const parts = text.split(
       new RegExp(
@@ -72,87 +73,128 @@ const Overview = ({
     );
   };
 
+
   return (
     <React.Fragment>
       <div>
         <Row className="timeline-right" style={{ rowGap: "2rem" }}>
           <GeneralCard data="Overview">
-            <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
-              <h5 className="mb-2">Vital Signs</h5>
-              {loading ? (
-                <Placeholder />
-              ) : vitals ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "1.5rem",
-                    alignItems: "center",
-                    fontSize: "15px",
-                  }}
-                >
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "5px" }}>•</span>
-                    <strong>Weight:</strong>&nbsp;{vitals.weight || "N/A"} kg
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "5px" }}>•</span>
-                    <strong>BP:</strong>&nbsp;
-                    {vitals.bloodPressure?.systolic || "N/A"}/
-                    {vitals.bloodPressure?.diastolic || "N/A"} mmHg
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "5px" }}>•</span>
-                    <strong>Pulse:</strong>&nbsp;{vitals.pulse || "N/A"} bpm
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "5px" }}>•</span>
-                    <strong>Temp:</strong>&nbsp;{vitals.temprature || "N/A"}°C
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "5px" }}>•</span>
-                    <strong>RR:</strong>&nbsp;{vitals.respirationRate || "N/A"}
-                    /min
-                  </span>
+            <div className="row align-items-start">
+              <div className="col-md-3 mb-3 mt-3 mb-md-0 text-center text-md-start">
+                {loading ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      maxWidth: "300px",
+                      aspectRatio: "1 / 1",
+                      borderRadius: "0.5rem",
+                      backgroundColor: "#e0e0e0",
+                      animation: "pulse 1.5s infinite",
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={profile?.profilePicture?.url ?? userDummayImage}
+                    alt="Patient"
+                    className="img-fluid rounded"
+                    style={{
+                      objectFit: "cover",
+                      objectPosition: "top",
+                      width: "100%",
+                      maxWidth: "300px",
+                      height: "auto",
+                      aspectRatio: "1 / 1",
+                    }}
+                  />
+                )}
+              </div>
+              <div className="col-md-9">
+                <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
+                  <h5 className="mb-2">Vital Signs</h5>
+                  {loading ? (
+                    <Placeholder />
+                  ) : vitals ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "1.5rem",
+                        alignItems: "center",
+                        fontSize: "15px",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ marginRight: "5px" }}>•</span>
+                        <strong>Weight:</strong>&nbsp;{vitals.weight || "N/A"}{" "}
+                        kg
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ marginRight: "5px" }}>•</span>
+                        <strong>BP:</strong>&nbsp;
+                        {vitals.bloodPressure?.systolic || "N/A"}/
+                        {vitals.bloodPressure?.diastolic || "N/A"} mmHg
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ marginRight: "5px" }}>•</span>
+                        <strong>Pulse:</strong>&nbsp;{vitals.pulse || "N/A"} bpm
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ marginRight: "5px" }}>•</span>
+                        <strong>Temp:</strong>&nbsp;{vitals.temprature || "N/A"}
+                        °C
+                      </span>
+                      <span style={{ display: "flex", alignItems: "center" }}>
+                        <span style={{ marginRight: "5px" }}>•</span>
+                        <strong>RR:</strong>&nbsp;
+                        {vitals.respirationRate || "N/A"}
+                        /min
+                      </span>
+                    </div>
+                  ) : (
+                    <p
+                      style={{
+                        color: "#888",
+                        fontStyle: "italic",
+                        margin: "1rem",
+                      }}
+                    >
+                      No vital signs available
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <p
-                  style={{ color: "#888", fontStyle: "italic", margin: "1rem" }}
-                >
-                  No vital signs available
-                </p>
-              )}
+
+                <div className="pt-4 ps-3">
+                  <h5>Clinical Test Results</h5>
+                  {testLoading ? (
+                    <Placeholder />
+                  ) : Array.isArray(testSummary) && testSummary.length > 0 ? (
+                    <ul style={{ paddingLeft: "1rem", margin: "0" }}>
+                      {testSummary.map((test) => (
+                        <li
+                          key={test._id}
+                          style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}
+                        >
+                          <strong>{test.name}:</strong>{" "}
+                          {highlightSeverity(test.severeReason)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p
+                      style={{
+                        color: "#888",
+                        fontStyle: "italic",
+                        margin: "1rem 0",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      No clinical tests available
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="pt-4 ps-3">
-              <h5>Clinical Test Results</h5>
-              {testLoading ? (
-                <Placeholder />
-              ) : Array.isArray(testSummary) && testSummary.length > 0 ? (
-                <ul style={{ paddingLeft: "1rem", margin: "0" }}>
-                  {testSummary.map((test) => (
-                    <li
-                      key={test._id}
-                      style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}
-                    >
-                      <strong>{test.name}:</strong>{" "}
-                      {highlightSeverity(test.severeReason)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p
-                  style={{
-                    color: "#888",
-                    fontStyle: "italic",
-                    margin: "1rem 0",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  No clinical tests available
-                </p>
-              )}
-            </div>
             <ActivityMedicineForm />
           </GeneralCard>{" "}
         </Row>
@@ -169,8 +211,8 @@ const mapStateToProps = (state) => ({
   profile: state.Nurse.profile,
   medicineBoxFillingActivities: state.Nurse.medicines.nextDay,
   medicineLoading: state.Nurse.medicineLoading,
-
   currentPatientIndex: state.Nurse.index,
+  profile: state.Nurse.profile,
 });
 
 export default connect(mapStateToProps)(Overview);

@@ -10,7 +10,7 @@ const PatientDetails = ({ currentPatientIndex }) => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getPatientDetailsById(id));
-  }, [dispatch, id, currentPatientIndex]);
+  }, [dispatch, id]);
   
   return (
     <React.Fragment>
