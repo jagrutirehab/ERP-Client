@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Card, CardBody, CardTitle, CardText, Badge, Button, Spinner } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  CardTitle,
+  CardText,
+  Badge,
+  Button,
+  Spinner,
+} from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import { medicineSchema } from "./ActivityMedicineForm";
 import { Formik, Form, Field } from "formik";
@@ -162,10 +170,12 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                       (i) => values.medicines[i].status === "completed"
                     )
                 );
-
                 return (
                   <Form>
-                    <div className="mt-2 mb-2">
+                    <div
+                      className="mt-2 mb-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="bg-info bg-opacity-10 border border-info border-opacity-25 rounded p-2">
                         <div className="d-flex align-items-center justify-content-between mb-1">
                           <div className="d-flex align-items-center">

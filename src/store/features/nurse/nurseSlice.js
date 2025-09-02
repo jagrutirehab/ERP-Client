@@ -455,14 +455,20 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
+        state.data.data[patientIndex].medicinesToTakeNow=[];
         state.data.data[patientIndex] = {
           ...state.data.data[patientIndex],
           alertCount: state.data.data[patientIndex].alertCount - 1,
-          flag:
-            state.data.data[patientIndex].flag === "urgent" &&
-            state.data.data[patientIndex].alertCount > 1
+          // flag:
+          //   state.data.data[patientIndex].flag === "urgent" &&
+          //   state.data.data[patientIndex].alertCount > 1
+          //     ? "attention"
+          //     : "stable",
+          flag: payload.data.allCompleted
+            ? state.data.data[patientIndex].alertCount > 1
               ? "attention"
-              : "stable",
+              : "stable"
+            : state.data.data[patientIndex].flag,
         };
       }
     );
