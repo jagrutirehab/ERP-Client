@@ -83,13 +83,18 @@ const records = [
 
 const Forms = [
   {
+    name: "Admission Form",
+    category: "ADMISSION FORM",
+  },
+  {
     name: "Consent Form",
     category: "CONSENT FORM",
   },
   {
-    name: "Admission Form",
-    category: "ADMISSION FORM",
+    name: "Discharge Form",
+    category: "DISCHARGE FORM",
   },
+  
 ]
 const testRecord = [
   // { name : "ROR" },

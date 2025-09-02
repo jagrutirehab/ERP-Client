@@ -1,12 +1,6 @@
-import { useForm } from "react-hook-form";
 import PrintHeader from "./printheader";
 
-const Page1 = ({ admissions, patient }) => {
-  const { register, handleSubmit, watch } = useForm();
-  const onSubmit = (data) => {
-    console.log("Form Submitted:", data);
-  };
-
+const Page1 = ({ register, admissions, patient }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -62,39 +56,63 @@ const Page1 = ({ admissions, patient }) => {
   };
 
   const admissionChecklist = [
-    "Insurance",
-    "Referred By",
-    "Adhar Card of the Patient",
-    "2 Passport Size Photographs of the Patient",
-    "Adhar Card of the Relative/Friend/NR",
-    "Protocol for Admission explained to family",
-    "Information Exchange/Calls explained to family",
-    "Explanation on minimum advance monthly payments",
-    "Family members responsible for the payments",
-    "Documents signed by Patient & NR/Relatives",
-    "Seriousness Content",
-    "Restraint Consent",
-    "Suicidal/DSH/Sudden Death risk explanation",
-    "Preferred Hospital to shift I/C/O emergencies",
-    "Expensive things / Gold Returned?",
-    "Old Medical document received?",
+    { key: "insurance", label: "Insurance" },
+    { key: "referredBy", label: "Referred By" },
+    { key: "patientAadhar", label: "Adhar Card of the Patient" },
+    {
+      key: "patientPhoto",
+      label: "2 Passport Size Photographs of the Patient",
+    },
+    { key: "relativeAadhar", label: "Adhar Card of the Relative/Friend/NR" },
+    {
+      key: "protocolExplained",
+      label: "Protocol for Admission explained to family",
+    },
+    {
+      key: "callsExplained",
+      label: "Information Exchange/Calls explained to family",
+    },
+    {
+      key: "advancePayment",
+      label: "Explanation on minimum advance monthly payments",
+    },
+    {
+      key: "responsibleFamily",
+      label: "Family members responsible for the payments",
+    },
+    {
+      key: "documentsSigned",
+      label: "Documents signed by Patient & NR/Relatives",
+    },
+    { key: "seriousnessConsent", label: "Seriousness Content" },
+    { key: "restraintConsent", label: "Restraint Consent" },
+    {
+      key: "riskExplanation",
+      label: "Suicidal/DSH/Sudden Death risk explanation",
+    },
+    {
+      key: "preferredHospital",
+      label: "Preferred Hospital to shift I/C/O emergencies",
+    },
+    { key: "goldReturned", label: "Expensive things / Gold Returned?" },
+    { key: "oldMedicalDocs", label: "Old Medical document received?" },
   ];
 
   const dischargeChecklist = [
-    "Discharge card given?",
-    "Laboratory reports given?",
-    "Referral doctor informed?",
-    "Handover of old documents?",
-    "Bills break up?",
-    "Signs of patients?",
-    "Signs of relatives?",
-    "Patients condition in writing?",
-    "Higher centre reference?",
-    "All the payments done?",
+    { key: "dischargeCard", label: "Discharge card given?" },
+    { key: "labReports", label: "Laboratory reports given?" },
+    { key: "referralDoctor", label: "Referral doctor informed?" },
+    { key: "handoverDocs", label: "Handover of old documents?" },
+    { key: "billBreakup", label: "Bills break up?" },
+    { key: "patientSigns", label: "Signs of patients?" },
+    { key: "relativeSigns", label: "Signs of relatives?" },
+    { key: "patientCondition", label: "Patients condition in writing?" },
+    { key: "higherCentreRef", label: "Higher centre reference?" },
+    { key: "allPaymentsDone", label: "All the payments done?" },
   ];
 
   return (
-    <div style={pageContainer} onSubmit={handleSubmit(onSubmit)}>
+    <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
         <PrintHeader patient={patient} />
       </div>
@@ -106,7 +124,7 @@ const Page1 = ({ admissions, patient }) => {
           <input
             type="text"
             defaultValue={patient?.name}
-            {...register("patientName")}
+            {...register("Admission_Checklist_PatientName")}
             style={{
               border: "none",
               fontWeight: "bold",
@@ -121,7 +139,7 @@ const Page1 = ({ admissions, patient }) => {
           <input
             type="date"
             defaultValue={new Date().toISOString().split("T")[0]} // today's date
-            {...register("date")}
+            {...register("Admission_Checklist_DOA")}
             style={{ border: "none", borderBottom: "1px solid #000" }}
           />
         </div>
@@ -134,7 +152,7 @@ const Page1 = ({ admissions, patient }) => {
           defaultValue={new Date(
             admissions[0]?.addmissionDate
           ).toLocaleDateString("en-GB")}
-          {...register("doa")}
+          {...register("Admission_Checklist_DOA")}
           style={{
             border: "none",
             borderBottom: "1px solid #000",
@@ -147,16 +165,16 @@ const Page1 = ({ admissions, patient }) => {
       <table style={checklistTable}>
         <tbody>
           {admissionChecklist.map((item, index) => (
-            <tr key={index}>
+            <tr key={item.key}>
               <td style={tdItem}>
-                {String(index + 1).padStart(2, "0")} {item}
+                {String(index + 1).padStart(2, "0")} {item.label}
               </td>
               <td style={tdYN}>
                 <label>
                   <input
                     type="radio"
                     value="YES"
-                    {...register(`admission_${index}`)}
+                    {...register(`Admission_Checklist_${item.key}`)}
                   />{" "}
                   YES
                 </label>
@@ -166,7 +184,7 @@ const Page1 = ({ admissions, patient }) => {
                   <input
                     type="radio"
                     value="NO"
-                    {...register(`admission_${index}`)}
+                    {...register(`Admission_Checklist_${item.key}`)}
                   />{" "}
                   NO
                 </label>
@@ -203,7 +221,7 @@ const Page1 = ({ admissions, patient }) => {
             defaultValue={new Date(
               admissions[0]?.addmissionDate
             ).toLocaleDateString("en-GB")}
-            {...register("doa2")}
+            {...register("Discharge_Checklist_DOA")}
             style={{
               border: "none",
               borderBottom: "1px solid #000",
@@ -215,7 +233,7 @@ const Page1 = ({ admissions, patient }) => {
           <label style={label}>D.O.D. :</label>
           <input
             type="text"
-            {...register("dod")}
+            {...register("Discharge_Checklist_DOD")}
             style={{
               border: "none",
               borderBottom: "1px solid #000",
@@ -229,16 +247,16 @@ const Page1 = ({ admissions, patient }) => {
       <table style={checklistTable}>
         <tbody>
           {dischargeChecklist.map((item, index) => (
-            <tr key={index}>
+            <tr key={item.key}>
               <td style={tdItem}>
-                {String(index + 1).padStart(2, "0")} {item}
+                {String(index + 1).padStart(2, "0")} {item.label}
               </td>
               <td style={tdYN}>
                 <label>
                   <input
                     type="radio"
                     value="YES"
-                    {...register(`discharge_${index}`)}
+                    {...register(`Discharge_Checklist_${item.key}`)}
                   />{" "}
                   YES
                 </label>
@@ -248,7 +266,7 @@ const Page1 = ({ admissions, patient }) => {
                   <input
                     type="radio"
                     value="NO"
-                    {...register(`discharge_${index}`)}
+                    {...register(`Discharge_Checklist_${item.key}`)}
                   />{" "}
                   NO
                 </label>

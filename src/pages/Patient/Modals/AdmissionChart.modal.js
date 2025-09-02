@@ -9,26 +9,21 @@ import {
   Button,
 } from "reactstrap";
 import { set } from "date-fns";
-
-//flatpicker
 import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-
 import CustomModal from "../../../Components/Common/Modal";
-
-//data
 import {
   DISCHARGE_SUMMARY,
   Forms,
   PRESCRIPTION,
-  records,
-  testRecord
+  testRecord,
 } from "../../../Components/constants/patient";
-
-//redux
 import { connect, useDispatch } from "react-redux";
 import { createEditChart, setChartDate } from "../../../store/actions";
-import { setTestName, setTestPageOpen } from "../../../store/features/clinicalTest/clinicalTestSlice";
+import {
+  setTestName,
+  setTestPageOpen,
+} from "../../../store/features/clinicalTest/clinicalTestSlice";
 
 const AdmissionChart = ({
   isOpen,
@@ -39,7 +34,6 @@ const AdmissionChart = ({
   patient,
 }) => {
   const dispatch = useDispatch();
-  //popover dropdown
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
   const [selectedTest, setSelectedTest] = useState("Add test");
@@ -79,11 +73,6 @@ const AdmissionChart = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
-                    // enable: [
-                    //   function (date) {
-                    //     return date.getDate() === new Date().getDate();
-                    //   },
-                    // ],
                   }}
                   className="form-control shadow-none bg-light "
                   id="dateOfAdmission"
@@ -109,7 +98,6 @@ const AdmissionChart = ({
                     noCalendar: true,
                     dateFormat: "G:i:S K",
                     time_24hr: false,
-                    // defaultDate: moment().format('LT'),
                   }}
                   className="form-control shadow-none bg-light"
                   id="dateOfAdmission"
@@ -125,81 +113,90 @@ const AdmissionChart = ({
           </Form>
         </div>
         <div>
-          {type !== "CLINICTEST" ? <Dropdown
-            className="text-end border-top pt-2 mt-2"
-            size="sm"
-            isOpen={dropdownOpen}
-            toggle={toggle2}
-            direction={"down"}
-          >
-            <DropdownToggle caret={true} outline color="primary">
-              Add Records
-            </DropdownToggle>
-            <DropdownMenu flip={false} color="warning">
-              {(Forms || []).map((item, idx) => {
-                return (
-                  <DropdownItem
-                    disabled={
-                      editChartData.data &&
-                        editChartData.data.chart !== item.category
-                        ? true
-                        : type === "GENERAL" &&
-                          item.category === DISCHARGE_SUMMARY
-                          ? true
-                          : false
-                    }
-                    key={idx + item.category}
-                    onClick={() => {
-                      dispatch(
-                        createEditChart({
-                          ...editChartData,
-                          chart: item.category,
-                          patient,
-                          isOpen: true,
-                          ...(item.category === PRESCRIPTION && {
-                            populatePreviousAppointment: true,
-                          }),
-                        })
-                      );
-                      toggle();
-                    }}
-                  >
-                    {item.name}
-                  </DropdownItem>
-                );
-              })}
-            </DropdownMenu>
-          </Dropdown> : <div className="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+          {type !== "CLINICTEST" ? (
             <Dropdown
+              className="text-end border-top pt-2 mt-2"
               size="sm"
               isOpen={dropdownOpen}
               toggle={toggle2}
-              direction="down"
+              direction={"down"}
             >
-              <DropdownToggle caret outline color="primary">
-                {selectedTest}
+              <DropdownToggle caret={true} outline color="primary">
+                Add Records
               </DropdownToggle>
-              <DropdownMenu flip={false}>
-                {testRecord.map((item, idx) => (
-                  <DropdownItem
-                    key={idx}
-                    onClick={() => {
-                      setSelectedTest(item.name)
-                      dispatch(setTestName(item.name))
-                    }}
-                  >
-                    {item.name}
-                  </DropdownItem>
-                ))}
+              <DropdownMenu flip={false} color="warning">
+                {(Forms || []).map((item, idx) => {
+                  return (
+                    <DropdownItem
+                      disabled={
+                        editChartData.data &&
+                        editChartData.data.chart !== item.category
+                          ? true
+                          : type === "GENERAL" &&
+                            item.category === DISCHARGE_SUMMARY
+                          ? true
+                          : false
+                      }
+                      key={idx + item.category}
+                      onClick={() => {
+                        dispatch(
+                          createEditChart({
+                            ...editChartData,
+                            chart: item.category,
+                            patient,
+                            isOpen: true,
+                            ...(item.category === PRESCRIPTION && {
+                              populatePreviousAppointment: true,
+                            }),
+                          })
+                        );
+                        toggle();
+                      }}
+                    >
+                      {item.name}
+                    </DropdownItem>
+                  );
+                })}
               </DropdownMenu>
             </Dropdown>
+          ) : (
+            <div className="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+              <Dropdown
+                size="sm"
+                isOpen={dropdownOpen}
+                toggle={toggle2}
+                direction="down"
+              >
+                <DropdownToggle caret outline color="primary">
+                  {selectedTest}
+                </DropdownToggle>
+                <DropdownMenu flip={false}>
+                  {testRecord.map((item, idx) => (
+                    <DropdownItem
+                      key={idx}
+                      onClick={() => {
+                        setSelectedTest(item.name);
+                        dispatch(setTestName(item.name));
+                      }}
+                    >
+                      {item.name}
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              </Dropdown>
 
-            <Button onClick={() => {
-              dispatch(setTestPageOpen(true));
-              toggle()
-            }} color="primary" disabled={selectedTest==="Add test"}>Start</Button>
-          </div>}
-
+              <Button
+                onClick={() => {
+                  dispatch(setTestPageOpen(true));
+                  toggle();
+                }}
+                color="primary"
+                disabled={selectedTest === "Add test"}
+              >
+                Start
+              </Button>
+            </div>
+          )}
         </div>
       </CustomModal>
     </React.Fragment>

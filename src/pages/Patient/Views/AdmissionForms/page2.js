@@ -41,29 +41,39 @@ const Page2 = ({ register, patient }) => {
   };
 
   const relevantEvents = [
-    "Self – Harm/Attempted Suicide.",
-    "Violence/ Aggressiveness",
-    "Running Away from Home/ Risk of Absconding",
-    "Lack of Insight",
-    "Indulging in Anti – social activities.",
-    "Unwillingness to take the medication.",
-    "Has there ever been a Police case against the patient?",
-    "Has the patient ever served a prison sentence or is there any criminal case pending in the court of Law against the patients?",
+    { key: "selfHarm", label: "Self – Harm/Attempted Suicide." },
+    { key: "violence", label: "Violence/ Aggressiveness" },
+    { key: "runningAway", label: "Running Away from Home/ Risk of Absconding" },
+    { key: "lackInsight", label: "Lack of Insight" },
+    { key: "antiSocial", label: "Indulging in Anti – social activities." },
+    {
+      key: "unwillingMedication",
+      label: "Unwillingness to take the medication.",
+    },
+    {
+      key: "policeCase",
+      label: "Has there ever been a Police case against the patient?",
+    },
+    {
+      key: "criminalCase",
+      label:
+        "Has the patient ever served a prison sentence or is there any criminal case pending in the court of Law against the patients?",
+    },
   ];
 
   const targetSymptoms = [
-    "Personal Hygiene",
-    "Interpersonal Relationships",
-    "Social Skills",
-    "Money Managements",
-    "Work habits",
-    "Leisure Activities",
-    "Time Management",
-    "Family Therapy",
-    "Marital Therapy",
-    "Home Management Skills",
-    "Crisis Management",
-    "Any Other",
+    { key: "personalHygiene", label: "Personal Hygiene" },
+    { key: "interpersonalRelationships", label: "Interpersonal Relationships" },
+    { key: "socialSkills", label: "Social Skills" },
+    { key: "moneyManagement", label: "Money Managements" },
+    { key: "workHabits", label: "Work habits" },
+    { key: "leisureActivities", label: "Leisure Activities" },
+    { key: "timeManagement", label: "Time Management" },
+    { key: "familyTherapy", label: "Family Therapy" },
+    { key: "maritalTherapy", label: "Marital Therapy" },
+    { key: "homeManagement", label: "Home Management Skills" },
+    { key: "crisisManagement", label: "Crisis Management" },
+    { key: "anyOther", label: "Any Other" },
   ];
 
   return (
@@ -76,7 +86,7 @@ const Page2 = ({ register, patient }) => {
         <input
           type="date"
           defaultValue={new Date().toISOString().split("T")[0]}
-          {...register("page2_date")}
+          {...register("Relevent_checklist_date")}
           style={{
             border: "none",
             borderBottom: "1px solid #000",
@@ -90,18 +100,23 @@ const Page2 = ({ register, patient }) => {
         TICK MARK ANY RELEVANT EVENTS IN THE PATIENT’S HISTORY
       </div>
       <ul style={checkboxList}>
-        {relevantEvents.map((event, index) => (
-          <li key={index} style={li}>
-            <input type="checkbox" {...register(`relevantEvents_${index}`)} />
-            <span style={label}>{event}</span>
-          </li>
-        ))}
+        <ul>
+          {relevantEvents.map((event) => (
+            <li key={event.key} style={li}>
+              <input
+                type="checkbox"
+                {...register(`Relevant_Checklist_${event.key}`)}
+              />
+              <span style={label}>{event.label}</span>
+            </li>
+          ))}
+        </ul>
         <li style={li}>
-          <input type="checkbox" {...register("relevantEvents_ifYes")} />{" "}
+          <input type="checkbox" {...register("Relevant_Checklist_ifYes")} />{" "}
           <span style={label}>If yes</span>{" "}
           <input
             type="text"
-            {...register("relevantEvents_ifYesText")}
+            {...register("Relevant_Checklist_ifYes_text")}
             style={{
               border: "none",
               borderBottom: "1px solid #000",
@@ -120,10 +135,13 @@ const Page2 = ({ register, patient }) => {
       </p>
       <ul style={checkboxList}>
         {targetSymptoms.map((symptom, index) => (
-          <li key={index} style={li}>
+          <li key={symptom.key} style={li}>
             <label>
-              {String(index + 1).padStart(2, "0")} {symptom}{" "}
-              <input type="checkbox" {...register(`targetSymptoms_${index}`)} />
+              {String(index + 1).padStart(2, "0")} {symptom.label}{" "}
+              <input
+                type="checkbox"
+                {...register(`Relevant_Checklist_${symptom.key}`)}
+              />
             </label>
           </li>
         ))}
@@ -133,9 +151,21 @@ const Page2 = ({ register, patient }) => {
       <div style={{ fontWeight: "bold", marginTop: "10px" }}>
         Specific Comments:
       </div>
-      <textarea {...register("specificComments")} style={textarea} rows={2} />
-      <textarea {...register("specificComments2")} style={textarea} rows={2} />
-      <textarea {...register("specificComments3")} style={textarea} rows={2} />
+      <textarea
+        {...register("Relevant_Checklist_specificComments")}
+        style={textarea}
+        rows={2}
+      />
+      <textarea
+        {...register("Relevant_Checklist_specificComments2")}
+        style={textarea}
+        rows={2}
+      />
+      <textarea
+        {...register("Relevant_Checklist_specificComments3")}
+        style={textarea}
+        rows={2}
+      />
     </div>
   );
 };

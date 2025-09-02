@@ -38,7 +38,6 @@ const ChartDate = ({
   patient,
 }) => {
   const dispatch = useDispatch();
-  //popover dropdown
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
   const [selectedTest, setSelectedTest] = useState("Add test");

@@ -49,7 +49,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={details?.toPay}
-          {...register("page6_semiPrivate")}
+          {...register("Basic_Admission_Form_semiPrivate")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -60,7 +60,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={details?.semiprivate}
-          {...register("page6_private")}
+          {...register("Basic_Admission_Form_private")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -71,7 +71,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={details?.advDeposit}
-          {...register("page6_advanceDeposit")}
+          {...register("Basic_Admission_Form_advanceDeposit")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -126,7 +126,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Any Comments:
             <input
               type="text"
-              {...register("page6_comments")}
+              {...register("Basic_Admission_Form_comments")}
               style={{ border: "none", width: "100%", marginTop: "5px" }}
             />
           </div>
@@ -137,7 +137,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="text"
               defaultValue={patient?.name}
-              {...register("page6_patientRep")}
+              {...register("Basic_Admission_Form_patientRep")}
               style={{
                 border: "none",
                 width: "100%",
@@ -152,7 +152,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="text"
               defaultValue={patient?.guardianRelation}
-              {...register("page6_relation")}
+              {...register("Basic_Admission_Form_relation")}
               style={{
                 border: "none",
                 width: "100%",
@@ -167,21 +167,10 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("page6_dateRep")}
+              {...register("Basic_Admission_Form_dateRep")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:
-            <input
-              type="text"
-              {...register("page6_signatureRep")}
-              style={{
-                border: "none",
-                width: "40%",
-                marginLeft: "5px",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-              }}
-            />
           </div>
         </div>
       </div>
@@ -191,7 +180,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
           Staff Name:
           <input
             type="text"
-            {...register("page6_staffName")}
+            {...register("Basic_Admission_Form_staffName")}
             style={{ border: "none", width: "100%", marginTop: "5px" }}
           />
           <div>
@@ -199,21 +188,10 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("page6_dateStaff")}
+              {...register("Basic_Admission_Form_dateStaff")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:
-            <input
-              type="text"
-              {...register("page6_signatureStaff")}
-              style={{
-                border: "none",
-                width: "40%",
-                marginLeft: "5px",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-              }}
-            />
           </div>
         </div>
         <div style={signatureBox}>
@@ -221,7 +199,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
           <input
             type="text"
             defaultValue={patient?.guardianName}
-            {...register("page6_witnessName")}
+            {...register("Basic_Admission_Form_witnessName")}
             style={{
               border: "none",
               width: "100%",
@@ -235,7 +213,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="text"
               defaultValue={patient?.guardianRelation}
-              {...register("page6_relationWitness")}
+              {...register("Basic_Admission_Form_relationWitness")}
               style={{
                 border: "none",
                 width: "100%",
@@ -250,15 +228,10 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("page6_dateWitness")}
+              {...register("Basic_Admission_Form_dateWitness")}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:
-            <input
-              type="text"
-              {...register("page6_signatureWitness")}
-              style={{ border: "none", width: "40%", marginLeft: "5px" }}
-            />
           </div>
         </div>
       </div>

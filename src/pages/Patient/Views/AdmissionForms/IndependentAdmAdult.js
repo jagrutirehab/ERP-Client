@@ -69,7 +69,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <PrintHeader patient={patient} />
       </div>
       {/* Headings */}
-      <div style={heading}>Request For Independent Admission</div>
+      <div style={heading}>Request For Independent Admission Adult</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 86)
       </div>
@@ -82,7 +82,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Unit
           <input
             type="text"
-            {...register("page7_unit")}
+            {...register("Indipendent_Admission_adult_unit")}
             style={inputLine}
           />{" "}
           Department of Psychiatry <br />
@@ -93,7 +93,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           <input
             type="date"
             defaultValue={new Date().toISOString().split("T")[0]}
-            {...register("page7_date")}
+            {...register("Indipendent_Admission_adult_date")}
             style={{
               border: "none",
               borderBottom: "1px solid #000",
@@ -112,7 +112,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.name}
-          {...register("page7_name")}
+          {...register("Indipendent_Admission_adult_name")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -123,7 +123,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={details?.IPDnum}
-          {...register("page7_ipd")}
+          {...register("Indipendent_Admission_adult_ipd")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -134,7 +134,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={age}
-          {...register("page7_age")}
+          {...register("Indipendent_Admission_adult_age")}
           style={{
             border: "none",
             borderBottom: "1px solid #000",
@@ -149,7 +149,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.guardianRelation}
-          {...register("page7_parentName")}
+          {...register("Indipendent_Admission_adult_parentName")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -160,7 +160,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.address}
-          {...register("page7_address")}
+          {...register("Indipendent_Admission_adult_address")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -170,7 +170,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         have mental illness with following Symptoms since
         <input
           type="text"
-          {...register("page7_symptomSince")}
+          {...register("Indipendent_Admission_adult_symptomSince")}
           style={inputLine}
         />
       </p>
@@ -178,13 +178,25 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
       {/* Symptoms List */}
       <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
         <li>
-          <input type="text" {...register("page7_symptom1")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_symptom1")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("page7_symptom2")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_symptom2")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("page7_symptom3")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_symptom3")}
+            style={fullLine}
+          />
         </li>
       </ol>
 
@@ -195,13 +207,25 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
       </p>
       <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
         <li>
-          <input type="text" {...register("page7_paper1")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_paper1")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("page7_paper2")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_paper2")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("page7_paper3")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_paper3")}
+            style={fullLine}
+          />
         </li>
       </ol>
 
@@ -216,7 +240,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.guardianName}
-          {...register("page7_guardianName")}
+          {...register("Indipendent_Admission_adult_guardianName")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -227,7 +251,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.guardianRelation}
-          {...register("page7_guardianRelation")}
+          {...register("Indipendent_Admission_adult_guardianRelation")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -247,7 +271,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.address}
-          {...register("page7_fullAddress")}
+          {...register("Indipendent_Admission_adult_fullAddress")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -260,7 +284,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <input
           type="text"
           defaultValue={patient?.guardianPhoneNumber}
-          {...register("page7_mobile")}
+          {...register("Indipendent_Admission_adult_mobile")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -270,11 +294,15 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         Alternative Mobile/Land Line no
         <input
           type="text"
-          {...register("page7_altMobile")}
+          {...register("Indipendent_Admission_adult_altMobile")}
           style={inputLine}
         />{" "}
         Email
-        <input type="text" {...register("page7_email")} style={inputLine} />
+        <input
+          type="text"
+          {...register("Indipendent_Admission_adult_email")}
+          style={inputLine}
+        />
       </p>
 
       {/* List of Enclosures */}
@@ -282,7 +310,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         List of enclosures:
         <input
           type="text"
-          {...register("page7_listEnclosures")}
+          {...register("Indipendent_Admission_adult_listEnclosures")}
           style={fullLine}
         />
       </p>
@@ -295,21 +323,13 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           marginTop: "20px",
         }}
       >
-        <div>
-          ........................................................... <br />
-          Signature of Guardian:
-          <input
-            type="text"
-            {...register("page7_guardianSignature")}
-            style={fullLine}
-          />
-        </div>
+        <div>Signature of Guardian:</div>
         <div>
           Name:
           <input
             type="text"
             defaultValue={patient?.guardianName}
-            {...register("page7_guardianName2")}
+            {...register("Indipendent_Admission_adult_guardianName2")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -321,7 +341,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           <input
             type="text"
             defaultValue={new Date().toISOString().split("T")[0]}
-            {...register("page7_dateTime")}
+            {...register("Indipendent_Admission_adult_dateTime")}
             style={fullLine}
           />
         </div>

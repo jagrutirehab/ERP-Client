@@ -1,16 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import {
-  Accordion,
-  AccordionBody,
-  AccordionItem,
-  Alert,
-  Button,
-  Row,
-  UncontrolledTooltip,
-} from "reactstrap";
-
-//redux
+import { Alert, Button } from "reactstrap";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addClinicalNote,
@@ -18,18 +8,12 @@ import {
   admitDischargePatient,
   fetchCharts,
   fetchGeneralCharts,
-  togglePatientForm,
-  togglePrint,
   updateClinicalNote,
 } from "../../../store/actions";
-
-import Placeholder from "./Components/Placeholder";
 import ChartDate from "../Modals/ChartDate";
 import ChartForm from "../ChartForm";
-import Charts from "../Charts";
 
 import RenderWhen from "../../../Components/Common/RenderWhen";
-import AddmissionCard from "./Components/AddmissionCard";
 import {
   ADMIT_PATIENT,
   IPD,
@@ -40,7 +24,6 @@ import {
 } from "../../../Components/constants/patient";
 import OPDView from "./OPD";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
-import GeneralCard from "./Components/GeneralCard";
 import General from "./General";
 import IPDComponent from "./IPD";
 import ClinicalTest from "./ClinicalTest";
@@ -56,26 +39,15 @@ const Charting = ({
   view,
 }) => {
   const dispatch = useDispatch();
-
   const isClinincalTab = useSelector(
     (state) => state.ClinicalTest.isClinincalTab
   );
   const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
-  const [testModal, setTestModal] = useState(false);
   const [chartType, setChartType] = useState("");
-  // const [toggleGeneral, setToggleGeneral] = useState("0");
   const toggleModal = () => setDateModal(!dateModal);
 
-  const toggleTestModal = () => {
-    setTestModal(!testModal);
-    setChartType("");
-  };
-
   const handleAdmitPatient = () => {
-    // if (!patient.isAdmit && !patient.isDischarge) {
-    //   dispatch(togglePatientForm({ data: patient, isOpen: true }));
-    // } else
     dispatch(admitDischargePatient({ data: null, isOpen: ADMIT_PATIENT }));
   };
 
@@ -83,7 +55,6 @@ const Charting = ({
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
-    // setToggleGeneral("0");
     if (open === id) {
       setOpen();
     } else {
@@ -112,43 +83,11 @@ const Charting = ({
       dispatch(fetchGeneralCharts({ patient: patient._id, type: CLINIC_TEST }));
   }, [dispatch, tab, patient]);
 
-  //fetch addmission Charts
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       dispatch(fetchCharts(addmissionId));
     }
   }, [dispatch, patient, addmissionId]);
-
-  //fixes accordian open close issue when switch patients
-  // useEffect(() => {
-  //   setOpen("");
-  //   setAddmissionId("");
-  // }, [patient]);
-
-  /* ----------------------------- DOWNLOAD DATA IN JSON ------------------------------ */
-  // function downloadJson(data, filename) {
-  //   // Convert the array of objects to a JSON string
-  //   const jsonString = JSON.stringify(data, null, 2);
-  //   // Create a Blob containing the JSON data
-  //   const blob = new Blob([jsonString], { type: "application/json" });
-  //   // Create a download link
-  //   const downloadLink = document.createElement("a");
-  //   downloadLink.href = URL.createObjectURL(blob);
-  //   downloadLink.download = filename || "data.json";
-  //   // Append the link to the document body
-  //   document.body.appendChild(downloadLink);
-  //   // Trigger the click event to start the download
-  //   downloadLink.click();
-  //   // Remove the link from the document body
-  //   document.body.removeChild(downloadLink);
-  // }
-
-  // useEffect(() => {
-  //   if (addmissionsCharts && addmissionsCharts[0]?.charts?.length > 0) {
-  //     downloadJson(addmissionsCharts[0]?.charts, "chennai.new.charts.json");
-  //   }
-  // }, [addmissionsCharts]);
-  /* ----------------------------- DOWNLOAD DATA IN JSON ------------------------------ */
 
   const onSubmitClinicalForm = (
     values,
@@ -225,7 +164,6 @@ const Charting = ({
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
           setAddmissionId={setAddmissionId}
-          // chartType = {chartType}
         />
       )
     );
@@ -250,10 +188,11 @@ const Charting = ({
           {pageAccess
             ?.find((pg) => pg.name === "Patient")
             ?.subAccess?.find((s) => s.name === "OPD") && (
-              <li className="nav-item">
-                <button
-                  onClick={() => setTab(OPD)}
-                  className={`nav-link rounded-0 ${tab === OPD
+            <li className="nav-item">
+              <button
+                onClick={() => setTab(OPD)}
+                className={`nav-link rounded-0 ${
+                  tab === OPD
                     ? "border-0 border-2 border-top border-primary"
                     : "active"
                 }`}
@@ -341,11 +280,6 @@ const Charting = ({
           </RenderWhen>
         </CheckPermission>
       </div>
-
-      {/* 
-      {tab === IPD ? (
-        ipdComponent
-      ) :  */}
       {tab === NOTES ? (
         <Notes />
       ) : tab === GENERAL ? (

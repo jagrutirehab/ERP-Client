@@ -96,7 +96,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={patient?.name}
-            {...register("page5_patientName")}
+            {...register("Basic_Admission_Form_patientName")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -109,7 +109,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={patient?.id?.value}
-            {...register("page5_uid")}
+            {...register("Basic_Admission_Form_uid")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -122,7 +122,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={age}
-            {...register("page5_age")}
+            {...register("Basic_Admission_Form_age")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -139,7 +139,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={patient?.gender}
-            {...register("page5_sex")}
+            {...register("Basic_Admission_Form_sex")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -153,7 +153,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={details?.IPDnum}
-            {...register("IPDnum")}
+            {...register("Basic_Admission_Form_IPDnum")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -166,7 +166,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={`${details?.ward}/ ${details?.bed}`}
-            {...register("page5_wardBed")}
+            {...register("Basic_Admission_Form_wardBed")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -181,7 +181,7 @@ const Admissionpage1 = ({
         <input
           type="text"
           defaultValue={patient?.address}
-          {...register("page5_address")}
+          {...register("Basic_Admission_Form_address")}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -195,7 +195,7 @@ const Admissionpage1 = ({
           <span style={label}>Referred by Dr. :</span>
           <input
             type="text"
-            {...register("page5_referredBy")}
+            {...register("Basic_Admission_Form_referredBy")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -208,7 +208,7 @@ const Admissionpage1 = ({
           <input
             type="text"
             defaultValue={admissions[0]?.doctor?.name}
-            {...register("page5_admittedUnder")}
+            {...register("Basic_Admission_Form_admittedUnder")}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -230,7 +230,7 @@ const Admissionpage1 = ({
                     .split("T")[0]
                 : ""
             }
-            {...register("page5_dateAdmission")}
+            {...register("Basic_Admission_Form_dateAdmission")}
             style={inputLine}
           />
         </div>
@@ -245,7 +245,7 @@ const Admissionpage1 = ({
               minute: "2-digit",
               hour12: true,
             })}
-            {...register("page5_timeAdmission")}
+            {...register("Basic_Admission_Form_timeAdmission")}
             style={{ ...inputLine, width: "80px" }}
           />{" "}
           AM / PM
@@ -257,7 +257,7 @@ const Admissionpage1 = ({
           <span style={label}>Date of Discharge :</span>
           <input
             type="date"
-            {...register("page5_dateDischarge")}
+            {...register("Basic_Admission_Form_dateDischarge")}
             style={inputLine}
           />
         </div>
@@ -265,7 +265,7 @@ const Admissionpage1 = ({
           <span style={label}>Time :</span>
           <input
             type="text"
-            {...register("page5_timeDischarge")}
+            {...register("Basic_Admission_Form_timeDischarge")}
             style={{ ...inputLine, width: "80px" }}
           />{" "}
           AM / PM
@@ -277,7 +277,7 @@ const Admissionpage1 = ({
         <input
           type="text"
           defaultValue={patient?.addmission?.provisionalDiagnosis}
-          {...register("page5_provisionalDiagnosis")}
+          {...register("Basic_Admission_Form_provisionalDiagnosis")}
           style={{
               fontWeight: "bold",
               textTransform: "uppercase",

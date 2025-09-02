@@ -229,7 +229,7 @@ const AdmissionFormModal = ({
                 onChange={(e) =>
                   setDetails((prev) => ({ ...prev, toPay: e.target.value }))
                 }
-                placeholder="Willing To Pay Rs For Private"
+                placeholder="₹ ************ /-"
               />
             </div>
 
@@ -246,7 +246,7 @@ const AdmissionFormModal = ({
                     semiprivate: e.target.value,
                   }))
                 }
-                placeholder="Willing To Pay Rs For Semi Private"
+                placeholder="₹ ************ /-"
               />
             </div>
 
@@ -263,7 +263,7 @@ const AdmissionFormModal = ({
                     advDeposit: e.target.value,
                   }))
                 }
-                placeholder="Willing To Pay Rs. as Refundable Advance Deposit"
+                placeholder="₹ ************ /-"
               />
             </div>
 
