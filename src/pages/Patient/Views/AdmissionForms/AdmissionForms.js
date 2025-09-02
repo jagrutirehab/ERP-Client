@@ -300,6 +300,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   useEffect(() => {
     if (formType === "ADMISSION FORM") {
+      setFormtype("")
       toggleModal();
     }
 
@@ -308,6 +309,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
 
     if (formType === "DISCHARGE FORM") {
+      setFormtype("")
       toggleModal3();
     }
 
