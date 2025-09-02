@@ -229,6 +229,7 @@ const ScheduleRow = memo(
               bsSize="sm"
               type="select"
               value={sch.type}
+              // required
               onChange={(e) =>
                 handleScheduleChange(i, idx, "type", e.target.value)
               }
@@ -252,13 +253,14 @@ const ScheduleRow = memo(
                 bsSize="sm"
                 type="select"
                 value={sch.center}
+                // required
                 onChange={(e) => {
                   const id =
                     e.target.options[e.target.selectedIndex].getAttribute("id");
                   handleScheduleChange(i, idx, "center", id);
                 }}
               >
-                <option value="" disabled hidden>
+                <option value="" disabled selected hidden>
                   Choose here
                 </option>
                 {(userCenters || []).map((option, oi) => (
