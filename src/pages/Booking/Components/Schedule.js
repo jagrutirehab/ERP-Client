@@ -229,7 +229,7 @@ const ScheduleRow = memo(
               bsSize="sm"
               type="select"
               value={sch.type}
-              required
+              // required
               onChange={(e) =>
                 handleScheduleChange(i, idx, "type", e.target.value)
               }
@@ -253,7 +253,7 @@ const ScheduleRow = memo(
                 bsSize="sm"
                 type="select"
                 value={sch.center}
-                required
+                // required
                 onChange={(e) => {
                   const id =
                     e.target.options[e.target.selectedIndex].getAttribute("id");
