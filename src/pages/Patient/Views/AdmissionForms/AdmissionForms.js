@@ -318,7 +318,6 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       dateModal3 === false ||
       dateModal === false
     ) {
-      setFormtype("")
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
