@@ -141,12 +141,12 @@ const InfoModal = ({
                             {item.message}
                           </p>
                         </div>
-                        {item.type === "prescription-update" && (
+                        {item.type === "prescription-update" || item.type==="medicine-missed" && (
                           <Check
                             size={18}
                             color="#28a745"
                             style={{ cursor: "pointer", flexShrink: 0 }}
-                            onClick={() => handleMarkAlertAsRead(item.type, )}
+                            onClick={() => handleMarkAlertAsRead(item.type)}
                           />
                         )}
                       </CardBody>

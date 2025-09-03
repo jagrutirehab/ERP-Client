@@ -455,10 +455,14 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
-        state.data.data[patientIndex].medicinesToTakeNow=[];
+        state.data.data[patientIndex].missedMedsCount =
+          payload.data.missedCount;
+        state.data.data[patientIndex].medicinesToTakeNow = [];
         state.data.data[patientIndex] = {
           ...state.data.data[patientIndex],
-          alertCount: state.data.data[patientIndex].alertCount - 1,
+          alertCount: payload.data.allCompleted
+            ? state.data.data[patientIndex].alertCount - 1
+            : state.data.data[patientIndex].alertCount,
           // flag:
           //   state.data.data[patientIndex].flag === "urgent" &&
           //   state.data.data[patientIndex].alertCount > 1
@@ -498,7 +502,7 @@ export const NurseSlice = createSlice({
       //   };
       // }
       state.alertData = state.alertData.filter(
-        (alert) => alert.type !== "prescription-update"
+        (alert) => alert.type !== payload.data.type
       );
 
       if (state.data.data.length > 0) {
@@ -509,7 +513,9 @@ export const NurseSlice = createSlice({
         if (patientIndex !== -1) {
           state.data.data[patientIndex] = {
             ...state.data.data[patientIndex],
-            isPrescriptionUpdated: false,
+            ...(payload.data.type === "prescription-update" && {
+              isPrescriptionUpdated: false,
+            }),
             alertCount: Math.max(
               0,
               (state.data.data[patientIndex]?.alertCount || 1) - 1
