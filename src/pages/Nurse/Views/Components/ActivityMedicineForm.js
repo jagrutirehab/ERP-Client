@@ -648,11 +648,14 @@ const ActivityMedicineForm = ({
                                         </Badge>
                                       </span>
                                     </small>
-                                    <div className="text-muted">
-                                      <span>
-                                        <strong>Instructions:</strong> {med.instructions}
-                                      </span>
-                                    </div>
+                                    {med.instructions && (
+                                      <div className="text-muted">
+                                        <span>
+                                          <strong>Instructions:</strong>{" "}
+                                          {med.instructions}
+                                        </span>
+                                      </div>
+                                    )}
                                   </div>
                                   <div>
                                     {submissionSuccess ? (

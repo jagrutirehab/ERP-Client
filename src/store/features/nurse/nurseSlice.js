@@ -455,7 +455,7 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
-        state.data.data[patientIndex].missedMedsCount =
+        state.data.data[patientIndex]?.missedMedsCount =
           payload.data.missedCount;
         state.data.data[patientIndex].medicinesToTakeNow = [];
         state.data.data[patientIndex] = {
