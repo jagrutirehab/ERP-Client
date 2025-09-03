@@ -17,7 +17,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
     border: "none",
     borderBottom: "1px solid #000",
     outline: "none",
-    minWidth: "150px",
+    minWidth: "300px",
     margin: "0 5px",
   };
 

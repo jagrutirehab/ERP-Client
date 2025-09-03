@@ -27,7 +27,7 @@ const AdmWithHighSupport = ({ register, patient, details }) => {
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "150px",
+    width: "300px",
     marginLeft: "5px",
     marginRight: "5px",
   };
@@ -66,7 +66,7 @@ const AdmWithHighSupport = ({ register, patient, details }) => {
       </div>
       <div style={heading}>Request For Admissions With High Support Needs</div>
       <div style={subHeading}>
-        Jagruti Rehabilitation Centre (MHCA 2017 Section 90)
+        Jagruti Rehabilitation Centre (MHCA 2017 Section 89)
       </div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div>

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useForm } from "react-hook-form";
 // import Page1 from "./page1";
 // import Page2 from "./page2";
@@ -111,16 +112,16 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
 
-    // const originalStyle = ref.current.getAttribute("style") || "";
+    const originalStyle = ref.current.getAttribute("style") || "";
 
-    // ref.current.setAttribute(
-    //   "style",
-    //   `
-    //   ${originalStyle};
-    //   font-size: 25px !important;
-    //   line-height: 2 !important;
-    // `
-    // );
+    ref.current.setAttribute(
+      "style",
+      `
+      ${originalStyle};
+      font-size: 25px !important;
+      line-height: 2 !important;
+    `
+    );
 
     await new Promise((resolve) => setTimeout(resolve, 50));
     const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
@@ -138,9 +139,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerating2, setIsGenerating2] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfUrl2, setPdfUrl2] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
+  const [previewModal2, setPreviewModal2] = useState(false);
 
   const togglePreview = () => setPreviewModal(!previewModal);
+  const togglePreview2 = () => setPreviewModal2(!previewModal2);
 
   useEffect(() => {
     return () => {
@@ -159,14 +163,22 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       await captureSection(ectRef, pdf);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(url);
-      setPreviewModal(true);
+      if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
+      setPdfUrl2(url);
+      setPreviewModal2(true);
     } catch (err) {
       console.error("PDF generation failed:", err);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadConsent = () => {
+    if (!pdfUrl2) return;
+    const link = document.createElement("a");
+    link.href = pdfUrl2;
+    link.download = `${patient?.id?.value}-${patient?.name}-consent-form.pdf`;
+    link.click();
   };
 
   const handlePrintDischarge = async () => {
@@ -262,15 +274,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         `${patient?.id?.value}-${patient?.name}-admission-form.pdf`
       );
 
-      await axios.patch(
-        `/patient/admission-submit/${admissions[0]?._id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axios.patch(`/patient/admission-submit/${addmissionId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       toast.success("Admission form submitted successfully!");
       setOpenform(false);
@@ -309,7 +317,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("addmissionformURL", file);
-      formData.append("id", admissions[0]?._id);
+      formData.append("id", addmissionId);
       await axios.patch("/patient/admission-submit-file", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -323,32 +331,105 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
   };
 
+  const handleFileChangeConsent = async (e) => {
+    const file = e.target.files[0];
+    setIsGenerating2(true);
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("consentformURL", file);
+      formData.append("id", addmissionId);
+      await axios.patch("/patient/consent-submit", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Signed PDF uploaded successfully!");
+      setIsGenerating2(false);
+    } catch (err) {
+      toast.error("Upload failed");
+      setIsGenerating2(false);
+    }
+  };
+
+  const onSubmitConsent = async (data) => {
+    setIsGenerating2(true);
+    try {
+      const pdf = new jsPDF("p", "pt", "a4");
+      await captureSection(admission1Ref, pdf, true);
+      await captureSection(admission2Ref, pdf);
+      await captureSection(seriousnessRef, pdf);
+      await captureSection(medicationRef, pdf);
+      await captureSection(ectRef, pdf);
+      const pdfBlob = pdf.output("blob");
+      const formData = new FormData();
+      formData.append(
+        "consentfromRaw",
+        pdfBlob,
+        `${patient?.id?.value}-${patient?.name}-consent-form.pdf`
+      );
+
+      await axios.patch(
+        `/patient/consent-submit-file/${addmissionId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Consent form submitted successfully!");
+      setOpenform4(false);
+      setAdmissiontype("");
+      setAdultationtype("");
+      setSupporttype("");
+      setDetails({
+        IPDnum: "",
+        bed: "",
+        ward: "",
+        toPay: "",
+        semiprivate: "",
+        advDeposit: "",
+      });
+    } catch (error) {
+      toast.error("Failed to submit Consent form");
+    } finally {
+      setIsGenerating2(false);
+    }
+  };
   useEffect(() => {
     dispatch(fetchPatientById(patient?._id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, isGenerating2, isGenerating]);
 
   useEffect(() => {
     if (formType === "ADMISSION FORM") {
       if (!dateModal) toggleModal();
-      if (dateModal4) toggleModal4();
-      if (dateModal3) toggleModal3();
+      setDateModal4(false);
+      setDateModal3(false);
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return;
     }
 
     if (formType === "CONSENT FORM") {
       if (!dateModal4) toggleModal4();
-      if (dateModal) toggleModal();
-      if (dateModal3) toggleModal3();
+      setDateModal(false);
+      setDateModal3(false);
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return;
     }
 
     if (formType === "DISCHARGE FORM") {
       if (!dateModal3) toggleModal3();
-      if (dateModal) toggleModal();
-      if (dateModal4) toggleModal4();
+      setDateModal4(false);
+      setDateModal(false);
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return;
     }
@@ -380,7 +461,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                 <div style={{ flex: 1 }}></div>
 
                 {/* Centered button */}
-                {test?.addmissionform === false && (
+                {(!test?.addmissionform || !test?.consentform) && (
                   <div style={{ flex: 1, textAlign: "center" }}>
                     <Button
                       onClick={() => {
@@ -479,31 +560,30 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   "Upload Signed Copy Of Admission Form"
                                 )}
                               </Button>
-                              {patient.isAdmit === true &&
-                                test?.addmissionform && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    <div className="mt-2">
-                                      <a
-                                        href={test?.addmissionfromRaw?.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-primary btn-sm"
-                                      >
-                                        Download Draft Admission Form{" "}
-                                        {test?.addmissionfromRaw
-                                          ? `(${new Date(
-                                              test?.addmissionfromRaw?.uploadedAt
-                                            ).toLocaleDateString()})`
-                                          : ""}
-                                      </a>
-                                    </div>
+                              {test?.addmissionform && (
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  <div className="mt-2">
+                                    <a
+                                      href={test?.addmissionfromRaw?.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-outline-primary btn-sm"
+                                    >
+                                      Download Draft Admission Form{" "}
+                                      {test?.addmissionfromRaw
+                                        ? `(${new Date(
+                                            test?.addmissionfromRaw?.uploadedAt
+                                          ).toLocaleDateString()})`
+                                        : ""}
+                                    </a>
                                   </div>
-                                )}
+                                </div>
+                              )}
                               <input
                                 type="file"
                                 accept="application/pdf"
@@ -540,19 +620,87 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                               )}
                             </div>
                             <div>
-                              <Button
-                                onClick={handleUploadClick}
-                                size="sm"
-                                color="primary"
-                                className="mr-10"
-                                disabled={isGenerating2}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
                               >
-                                {isGenerating2 ? (
-                                  <Spinner size="sm" />
-                                ) : (
-                                  "Upload Signed Copy Of Consent Form"
+                                <Button
+                                  onClick={handleUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Consent Form"
+                                  )}
+                                </Button>
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={fileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeConsent}
+                                />
+                                {test?.consentform && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    <div className="mt-2">
+                                      <a
+                                        href={test?.consentfromRaw?.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-outline-primary btn-sm"
+                                      >
+                                        Download Draft Consent Form{" "}
+                                        {test?.consentfromRaw
+                                          ? `(${new Date(
+                                              test?.consentfromRaw?.uploadedAt
+                                            ).toLocaleDateString()})`
+                                          : ""}
+                                      </a>
+                                    </div>
+                                  </div>
                                 )}
-                              </Button>
+                                {test?.consentformURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.consentformURL.map((file, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={file?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-primary btn-sm"
+                                        >
+                                          Download Signed Consent Form{" "}
+                                          {index + 1}{" "}
+                                          {file?.uploadedAt
+                                            ? `(${new Date(
+                                                file.uploadedAt
+                                              ).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             {/* <div>
                               <Button
@@ -694,7 +842,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       )}
 
       {openform4 === true ? (
-        <form>
+        <form onSubmit={handleSubmit(onSubmitConsent)}>
           <div ref={admission1Ref}>
             <Admissionpage1
               register={register}
@@ -808,6 +956,37 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
             Close
           </Button>
           <Button color="primary" onClick={handleDownloadAdmission}>
+            Download
+          </Button>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={previewModal2}
+        toggle={togglePreview2}
+        size="xl"
+        style={{ maxWidth: "90%" }}
+      >
+        <ModalHeader toggle={togglePreview2}>PDF Previeweeee</ModalHeader>
+        <ModalBody style={{ height: "80vh" }}>
+          {pdfUrl2 ? (
+            <iframe
+              src={pdfUrl2}
+              title="PDF Preview"
+              width="100%"
+              height="100%"
+              style={{ border: "none" }}
+            />
+          ) : (
+            <div className="d-flex justify-content-center align-items-center h-100">
+              <Spinner />
+            </div>
+          )}
+        </ModalBody>
+        <div className="d-flex justify-content-end p-3">
+          <Button color="secondary" onClick={togglePreview2} className="me-2">
+            Close
+          </Button>
+          <Button color="primary" onClick={handleDownloadConsent}>
             Download
           </Button>
         </div>

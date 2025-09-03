@@ -27,7 +27,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "150px",
+    width: "300px",
     marginLeft: "5px",
     marginRight: "5px",
   };
