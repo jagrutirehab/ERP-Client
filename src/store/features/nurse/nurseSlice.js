@@ -455,24 +455,23 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
-        state.data.data[patientIndex].missedMedsCount = payload?.data?.missedCount ?? 0;
-        state.data.data[patientIndex].medicinesToTakeNow = [];
-        state.data.data[patientIndex] = {
-          ...state.data.data[patientIndex],
-          alertCount: payload.data.allCompleted
-            ? state.data.data[patientIndex].alertCount - 1
-            : state.data.data[patientIndex].alertCount,
-          // flag:
-          //   state.data.data[patientIndex].flag === "urgent" &&
-          //   state.data.data[patientIndex].alertCount > 1
-          //     ? "attention"
-          //     : "stable",
-          flag: payload.data.allCompleted
-            ? state.data.data[patientIndex].alertCount > 1
-              ? "attention"
-              : "stable"
-            : "attention",
-        };
+        // console.log(patientIndex)
+        if (patientIndex !== -1) {
+          state.data.data[patientIndex].missedMedsCount =
+            payload?.data?.missedCount ?? 0;
+          state.data.data[patientIndex].medicinesToTakeNow = [];
+          state.data.data[patientIndex] = {
+            ...state.data.data[patientIndex],
+            alertCount: payload.data.allCompleted
+              ? state.data.data[patientIndex].alertCount - 1
+              : state.data.data[patientIndex].alertCount,
+            flag: payload.data.allCompleted
+              ? state.data.data[patientIndex].alertCount > 1
+                ? "attention"
+                : "stable"
+              : "attention",
+          };
+        }
       }
     );
     builder

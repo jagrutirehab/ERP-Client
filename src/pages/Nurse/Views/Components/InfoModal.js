@@ -24,7 +24,6 @@ const InfoModal = ({
   content = [],
   modalLoading,
 }) => {
-
   const [activeTab, setActiveTab] = useState("medicine");
   const dispatch = useDispatch();
   const medicineAlerts = content.filter(
@@ -141,7 +140,8 @@ const InfoModal = ({
                             {item.message}
                           </p>
                         </div>
-                        {item.type === "prescription-update" || item.type==="medicine-missed" && (
+                        {(item.type === "prescription-update" ||
+                          item.type === "medicine-missed") && (
                           <Check
                             size={18}
                             color="#28a745"
