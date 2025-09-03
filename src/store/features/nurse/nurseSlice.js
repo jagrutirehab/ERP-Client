@@ -455,21 +455,23 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
-        state.data.data[patientIndex].medicinesToTakeNow=[];
-        state.data.data[patientIndex] = {
-          ...state.data.data[patientIndex],
-          alertCount: state.data.data[patientIndex].alertCount - 1,
-          // flag:
-          //   state.data.data[patientIndex].flag === "urgent" &&
-          //   state.data.data[patientIndex].alertCount > 1
-          //     ? "attention"
-          //     : "stable",
-          flag: payload.data.allCompleted
-            ? state.data.data[patientIndex].alertCount > 1
-              ? "attention"
-              : "stable"
-            : state.data.data[patientIndex].flag,
-        };
+        // console.log(patientIndex)
+        if (patientIndex !== -1) {
+          state.data.data[patientIndex].missedMedsCount =
+            payload?.data?.missedCount ?? 0;
+          state.data.data[patientIndex].medicinesToTakeNow = [];
+          state.data.data[patientIndex] = {
+            ...state.data.data[patientIndex],
+            alertCount: payload.data.allCompleted
+              ? state.data.data[patientIndex].alertCount - 1
+              : state.data.data[patientIndex].alertCount,
+            flag: payload.data.allCompleted
+              ? state.data.data[patientIndex].alertCount > 1
+                ? "attention"
+                : "stable"
+              : "attention",
+          };
+        }
       }
     );
     builder
@@ -498,7 +500,7 @@ export const NurseSlice = createSlice({
       //   };
       // }
       state.alertData = state.alertData.filter(
-        (alert) => alert.type !== "prescription-update"
+        (alert) => alert.type !== payload.data.type
       );
 
       if (state.data.data.length > 0) {
@@ -509,7 +511,9 @@ export const NurseSlice = createSlice({
         if (patientIndex !== -1) {
           state.data.data[patientIndex] = {
             ...state.data.data[patientIndex],
-            isPrescriptionUpdated: false,
+            ...(payload.data.type === "prescription-update" && {
+              isPrescriptionUpdated: false,
+            }),
             alertCount: Math.max(
               0,
               (state.data.data[patientIndex]?.alertCount || 1) - 1

@@ -14,6 +14,7 @@ import { Formik, Form, Field } from "formik";
 import { useDispatch } from "react-redux";
 import { markTomorrowActivityMedicines } from "../../../../store/features/nurse/nurseSlice";
 import { toast } from "react-toastify";
+import { Check, TriangleAlert } from "lucide-react";
 
 const statusColors = {
   urgent: { color: "danger", border: "#ff4d4f" },
@@ -73,7 +74,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
       setIsSubmitting(false);
       toast.success("Medicines marked successfully!");
     } catch (error) {
-      // console.error(error);
+      console.error(error);
       toast.error("Failed to mark medicines. Please try again.");
     }
   };
@@ -307,9 +308,15 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
             <div className="mt-2 mb-2">
               <div className="bg-light-green border border-success border-opacity-10 rounded p-2">
                 <div className="d-flex align-items-center justify-content-center">
-                  <span className="text-success me-2">✓</span>
+                  {patient.missedMedsCount > 0 ? (
+                    <TriangleAlert className="me-2" />
+                  ) : (
+                    <Check className="me-2 text-success" />
+                  )}
                   <small className="text-muted">
-                    No medications due at this time
+                    {patient.missedMedsCount > 0
+                      ? `${patient.missedMedsCount} medicines got missed`
+                      : "No medications due at this time"}
                   </small>
                 </div>
               </div>
