@@ -7,18 +7,12 @@ import { useDispatch, connect } from "react-redux";
 import { Button, Input, Label } from "reactstrap";
 import { setChartDate } from "../../../store/actions";
 
-const AdmissionFormModal = ({
+const ConsentFormModal = ({
   isOpen,
   toggle,
   patient,
   chartDate,
   admissions,
-  admissiontype,
-  setAdmissiontype,
-  adultationype,
-  setAdultationtype,
-  supporttype,
-  setSupporttype,
   details,
   setDetails,
   setOpenform,
@@ -84,6 +78,7 @@ const AdmissionFormModal = ({
             id="timeOfAdmission"
           />
         </div>
+
         <>
           <div
             className="mt-3"
@@ -113,7 +108,28 @@ const AdmissionFormModal = ({
             </p>
           </div>
 
-          {/* Admission Type */}
+          <div className="mt-3">
+            <Label className="text-muted mb-1">Ward / Room</Label>
+            <Input
+              type="number"
+              value={details?.ward}
+              onChange={(e) =>
+                setDetails((prev) => ({ ...prev, ward: e.target.value }))
+              }
+              placeholder="Enter Ward / Room"
+            />
+          </div>
+          <div className="mt-3">
+            <Label className="text-muted mb-1">Bed</Label>
+            <Input
+              type="text"
+              value={details?.bed}
+              onChange={(e) =>
+                setDetails((prev) => ({ ...prev, bed: e.target.value }))
+              }
+              placeholder="Enter Bed"
+            />
+          </div>
           <div className="mt-3">
             <Label className="text-muted mb-1">IPD Number</Label>
             <Input
@@ -125,64 +141,60 @@ const AdmissionFormModal = ({
               placeholder="Enter IPD Number"
             />
           </div>
+
           <div className="mt-3">
-            <Label className="text-muted mb-1">Admission Type</Label>
+            <Label className="text-muted mb-1">
+              Willing To Pay Rs For Private
+            </Label>
             <Input
-              type="select"
-              value={admissiontype}
-              onChange={(e) => setAdmissiontype(e.target.value)}
-            >
-              <option value="">Select Admission Type</option>
-              <option value="INDEPENDENT_ADMISSION">
-                Independent Admission
-              </option>
-              <option value="SUPPORTIVE_ADMISSION">Supportive Admission</option>
-            </Input>
+              type="number"
+              value={details?.toPay}
+              onChange={(e) =>
+                setDetails((prev) => ({ ...prev, toPay: e.target.value }))
+              }
+              placeholder="₹ ************ /-"
+            />
           </div>
 
-          {/* Conditional fields */}
-          {admissiontype === "INDEPENDENT_ADMISSION" && (
-            <div className="mt-3">
-              <Label className="text-muted mb-1">Adultation Type</Label>
-              <Input
-                type="select"
-                value={adultationype}
-                onChange={(e) => setAdultationtype(e.target.value)}
-              >
-                <option value="">Select Adultation</option>
-                <option value="ADULT">Adult (18+)</option>
-                <option value="MINOR">Minor (below 18)</option>
-              </Input>
-            </div>
-          )}
+          <div className="mt-3">
+            <Label className="text-muted mb-1">
+              Willing To Pay Rs For Semi Private
+            </Label>
+            <Input
+              type="number"
+              value={details?.semiprivate}
+              onChange={(e) =>
+                setDetails((prev) => ({
+                  ...prev,
+                  semiprivate: e.target.value,
+                }))
+              }
+              placeholder="₹ ************ /-"
+            />
+          </div>
 
-          {admissiontype === "SUPPORTIVE_ADMISSION" && (
-            <div className="mt-3">
-              <Label className="text-muted mb-1">Support Type</Label>
-              <Input
-                type="select"
-                value={supporttype}
-                onChange={(e) => setSupporttype(e.target.value)}
-              >
-                <option value="">Select Support Type</option>
-                <option value="UPTO30DAYS">Upto 30 days</option>
-                <option value="BEYOND30DAYS">
-                  Beyond 30 days Upto 90 days
-                </option>
-              </Input>
-            </div>
-          )}
+          <div className="mt-3">
+            <Label className="text-muted mb-1">
+              Willing To Pay Rs. as Refundable Advance Deposit
+            </Label>
+            <Input
+              type="number"
+              value={details?.advDeposit}
+              onChange={(e) =>
+                setDetails((prev) => ({
+                  ...prev,
+                  advDeposit: e.target.value,
+                }))
+              }
+              placeholder="₹ ************ /-"
+            />
+          </div>
 
           {/* Next Button */}
           <div className="text-center mt-4">
             <Button
               type="button"
               color="success"
-              disabled={
-                !admissiontype ||
-                (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype) ||
-                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype)
-              }
               onClick={() => {
                 toggle();
                 setOpenform(true);
@@ -197,7 +209,7 @@ const AdmissionFormModal = ({
   );
 };
 
-AdmissionFormModal.propTypes = {
+ConsentFormModal.propTypes = {
   isOpen: PropTypes.bool,
   toggle: PropTypes.func,
   patient: PropTypes.object,
@@ -212,4 +224,4 @@ const mapStateToProps = (state) => ({
   admissions: state.Chart.data,
 });
 
-export default connect(mapStateToProps)(AdmissionFormModal);
+export default connect(mapStateToProps)(ConsentFormModal);
