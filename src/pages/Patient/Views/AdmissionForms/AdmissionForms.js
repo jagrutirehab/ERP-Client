@@ -461,19 +461,19 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                 <div style={{ flex: 1 }}></div>
 
                 {/* Centered button */}
-                {(!test?.addmissionform || !test?.consentform) && (
-                  <div style={{ flex: 1, textAlign: "center" }}>
-                    <Button
-                      onClick={() => {
-                        toggleModal2();
-                        setChartType(IPD);
-                      }}
-                      size="sm"
-                    >
-                      Create New Form
-                    </Button>
-                  </div>
-                )}
+                {/* {(!test?.addmissionform || !test?.consentform) && ( */}
+                <div style={{ flex: 1, textAlign: "center" }}>
+                  <Button
+                    onClick={() => {
+                      toggleModal2();
+                      setChartType(IPD);
+                    }}
+                    size="sm"
+                  >
+                    Create New Form
+                  </Button>
+                </div>
+                {/* )} */}
 
                 {/* Right side (expand/collapse) */}
                 <div
@@ -560,28 +560,31 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   "Upload Signed Copy Of Admission Form"
                                 )}
                               </Button>
-                              {test?.addmissionform && (
+                              {test?.addmissionfromRaw?.length > 0 && (
                                 <div
                                   style={{
                                     width: "100%",
                                     textAlign: "center",
                                   }}
                                 >
-                                  <div className="mt-2">
-                                    <a
-                                      href={test?.addmissionfromRaw?.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="btn btn-outline-primary btn-sm"
-                                    >
-                                      Download Draft Admission Form{" "}
-                                      {test?.addmissionfromRaw
-                                        ? `(${new Date(
-                                            test?.addmissionfromRaw?.uploadedAt
-                                          ).toLocaleDateString()})`
-                                        : ""}
-                                    </a>
-                                  </div>
+                                  {test.addmissionfromRaw.map((file, index) => (
+                                    <div key={index} className="mt-2">
+                                      <a
+                                        href={file?.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-outline-primary btn-sm"
+                                      >
+                                        Download Draft Admission Form{" "}
+                                        {index + 1}{" "}
+                                        {file?.uploadedAt
+                                          ? `(${new Date(
+                                              file.uploadedAt
+                                            ).toLocaleDateString()})`
+                                          : ""}
+                                      </a>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                               <input
@@ -649,28 +652,31 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   style={{ display: "none" }}
                                   onChange={handleFileChangeConsent}
                                 />
-                                {test?.consentform && (
+                                {test?.consentfromRaw?.length > 0 && (
                                   <div
                                     style={{
                                       width: "100%",
                                       textAlign: "center",
                                     }}
                                   >
-                                    <div className="mt-2">
-                                      <a
-                                        href={test?.consentfromRaw?.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-primary btn-sm"
-                                      >
-                                        Download Draft Consent Form{" "}
-                                        {test?.consentfromRaw
-                                          ? `(${new Date(
-                                              test?.consentfromRaw?.uploadedAt
-                                            ).toLocaleDateString()})`
-                                          : ""}
-                                      </a>
-                                    </div>
+                                    {test?.consentfromRaw.map((file, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={file?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-primary btn-sm"
+                                        >
+                                          Download Draft Consent Form{" "}
+                                          {index + 1}{" "}
+                                          {file?.uploadedAt
+                                            ? `(${new Date(
+                                                file.uploadedAt
+                                              ).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                                 {test?.consentformURL?.length > 0 && (
@@ -729,10 +735,25 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         </Row>
       </div>
 
-      {openform === true ? (
-        <form onSubmit={handleSubmit(onSubmitAdmission)}>
-          {/* common start */}
-          {/* <div ref={page1Ref}>
+      <Modal
+        isOpen={openform}
+        toggle={() => {
+          setOpenform(false);
+        }}
+        size="xl"
+      >
+        <ModalHeader
+          toggle={() => {
+            setOpenform(false);
+          }}
+        >
+          Admission Form
+        </ModalHeader>
+        <ModalBody style={{ height: "80vh", overflow: "auto" }}>
+          {openform === true ? (
+            <form onSubmit={handleSubmit(onSubmitAdmission)}>
+              {/* common start */}
+              {/* <div ref={page1Ref}>
             <Page1
               register={register}
               admissions={admissions}
@@ -743,157 +764,196 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
             <Page2 register={register} patient={patient} />
           </div>
           {/* common end */}
-          {/* for adult */}
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
-            adultationype === "ADULT" && (
-              <div ref={adultRef}>
-                <IndependentAdmAdult
+              {/* for adult */}
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "ADULT" && (
+                  <div ref={adultRef}>
+                    <IndependentAdmAdult
+                      register={register}
+                      patient={patient}
+                      details={details}
+                    />
+                  </div>
+                )}
+              {/* for minor */}
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "MINOR" && (
+                  <div ref={minorRef}>
+                    <IndependentAdmMinor
+                      register={register}
+                      patient={patient}
+                      details={details}
+                    />
+                  </div>
+                )}
+              {/* support form */}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "UPTO30DAYS" && (
+                  <div ref={supportRef}>
+                    <AdmWithHighSupport
+                      register={register}
+                      patient={patient}
+                      details={details}
+                    />
+                  </div>
+                )}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "BEYOND30DAYS" && (
+                  <div ref={supportRef}>
+                    <AdmWithHighSupport2
+                      register={register}
+                      patient={patient}
+                      details={details}
+                    />
+                  </div>
+                )}
+              {/* hidden opinions */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-9999px",
+                  left: "0",
+                  visibility: "visible",
+                  pointerEvents: "none",
+                }}
+              >
+                <div ref={indipendentref1}>
+                  <IndipendentOpinion1
+                    register={register}
+                    patient={patient}
+                    details={details}
+                  />
+                </div>
+                <div ref={indipendentref2}>
+                  <IndipendentOpinion2
+                    register={register}
+                    patient={patient}
+                    details={details}
+                  />
+                </div>
+                <div ref={indipendentref3}>
+                  <IndipendentOpinion3
+                    register={register}
+                    patient={patient}
+                    details={details}
+                  />
+                </div>
+              </div>
+              <div style={{ textAlign: "center", margin: "20px" }}>
+                <Button
+                  color="secondary"
+                  type="submit"
+                  className="me-2"
+                  disabled={isGenerating2}
+                >
+                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
+                </Button>
+                <Button
+                  type="button"
+                  color="primary"
+                  onClick={handlePrintAdmission}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                </Button>
+                <Button
+                  style={{ marginLeft: "8px" }}
+                  color="secondary"
+                  className="me-2"
+                  disabled={isGenerating2}
+                  onClick={() => {
+                    setOpenform(false);
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            </form>
+          ) : (
+            ""
+          )}
+        </ModalBody>
+      </Modal>
+      <Modal
+        isOpen={openform4}
+        toggle={() => {
+          setOpenform4(false);
+        }}
+        size="xl"
+      >
+        <ModalHeader
+          toggle={() => {
+            setOpenform4(false);
+          }}
+        >
+          Consent Form
+        </ModalHeader>
+        <ModalBody style={{ height: "80vh", overflow: "auto" }}>
+          {openform4 === true ? (
+            <form onSubmit={handleSubmit(onSubmitConsent)}>
+              <div ref={admission1Ref}>
+                <Admissionpage1
+                  register={register}
+                  admissions={admissions}
+                  patient={patient}
+                  details={details}
+                />
+              </div>
+              <div ref={admission2Ref}>
+                <Admissionpage2
                   register={register}
                   patient={patient}
                   details={details}
                 />
               </div>
-            )}
-          {/* for minor */}
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
-            adultationype === "MINOR" && (
-              <div ref={minorRef}>
-                <IndependentAdmMinor
+              <div ref={seriousnessRef}>
+                <SeriousnessConsent register={register} patient={patient} />
+              </div>
+              <div ref={medicationRef}>
+                <MediactionConcent register={register} patient={patient} />
+              </div>
+              <div ref={ectRef}>
+                <ECTConsentForm
                   register={register}
                   patient={patient}
-                  details={details}
+                  admissions={admissions}
                 />
               </div>
-            )}
-          {/* support form */}
-          {admissiontype === "SUPPORTIVE_ADMISSION" &&
-            supporttype === "UPTO30DAYS" && (
-              <div ref={supportRef}>
-                <AdmWithHighSupport
-                  register={register}
-                  patient={patient}
-                  details={details}
-                />
+              <div style={{ textAlign: "center", margin: "20px" }}>
+                <Button
+                  color="secondary"
+                  type="submit"
+                  className="me-2"
+                  disabled={isGenerating2}
+                >
+                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
+                </Button>
+                <Button
+                  type="button"
+                  color="primary"
+                  onClick={handlePrintConsent}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                </Button>
+                <Button
+                  style={{ marginLeft: "8px" }}
+                  color="secondary"
+                  className="me-2"
+                  disabled={isGenerating2}
+                  onClick={() => {
+                    setOpenform4(false);
+                  }}
+                >
+                  Close
+                </Button>
               </div>
-            )}
-          {admissiontype === "SUPPORTIVE_ADMISSION" &&
-            supporttype === "BEYOND30DAYS" && (
-              <div ref={supportRef}>
-                <AdmWithHighSupport2
-                  register={register}
-                  patient={patient}
-                  details={details}
-                />
-              </div>
-            )}
-          {/* hidden opinions */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-9999px",
-              left: "0",
-              visibility: "visible",
-              pointerEvents: "none",
-            }}
-          >
-            <div ref={indipendentref1}>
-              <IndipendentOpinion1
-                register={register}
-                patient={patient}
-                details={details}
-              />
-            </div>
-            <div ref={indipendentref2}>
-              <IndipendentOpinion2
-                register={register}
-                patient={patient}
-                details={details}
-              />
-            </div>
-            <div ref={indipendentref3}>
-              <IndipendentOpinion3
-                register={register}
-                patient={patient}
-                details={details}
-              />
-            </div>
-          </div>
-          <div style={{ textAlign: "center", margin: "20px" }}>
-            <Button
-              color="secondary"
-              type="submit"
-              className="me-2"
-              disabled={isGenerating2}
-            >
-              {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-            </Button>
-            <Button
-              type="button"
-              color="primary"
-              onClick={handlePrintAdmission}
-              disabled={isGenerating}
-            >
-              {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        ""
-      )}
-
-      {openform4 === true ? (
-        <form onSubmit={handleSubmit(onSubmitConsent)}>
-          <div ref={admission1Ref}>
-            <Admissionpage1
-              register={register}
-              admissions={admissions}
-              patient={patient}
-              details={details}
-            />
-          </div>
-          <div ref={admission2Ref}>
-            <Admissionpage2
-              register={register}
-              patient={patient}
-              details={details}
-            />
-          </div>
-          <div ref={seriousnessRef}>
-            <SeriousnessConsent register={register} patient={patient} />
-          </div>
-          <div ref={medicationRef}>
-            <MediactionConcent register={register} patient={patient} />
-          </div>
-          <div ref={ectRef}>
-            <ECTConsentForm
-              register={register}
-              patient={patient}
-              admissions={admissions}
-            />
-          </div>
-          <div style={{ textAlign: "center", margin: "20px" }}>
-            <Button
-              color="secondary"
-              type="submit"
-              className="me-2"
-              disabled={isGenerating2}
-            >
-              {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-            </Button>
-            <Button
-              type="button"
-              color="primary"
-              onClick={handlePrintConsent}
-              disabled={isGenerating}
-            >
-              {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        ""
-      )}
-
+            </form>
+          ) : (
+            ""
+          )}
+        </ModalBody>
+      </Modal>
       {openform3 === true ? (
         <form>
           {admissiontype === "INDEPENDENT_ADMISSION" &&
