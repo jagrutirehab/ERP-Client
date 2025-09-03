@@ -472,7 +472,7 @@ export const NurseSlice = createSlice({
             ? state.data.data[patientIndex].alertCount > 1
               ? "attention"
               : "stable"
-            : state.data.data[patientIndex].flag,
+            : "attention",
         };
       }
     );
