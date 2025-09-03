@@ -741,6 +741,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           setOpenform(false);
         }}
         size="xl"
+        backdrop="static"
+        keyboard={false}
       >
         <ModalHeader
           toggle={() => {
@@ -880,6 +882,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           setOpenform4(false);
         }}
         size="xl"
+        backdrop="static"
+        keyboard={false}
       >
         <ModalHeader
           toggle={() => {
