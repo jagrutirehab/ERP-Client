@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Accordion,
   AccordionBody,
   AccordionItem,
+  Input,
+  Label,
   Row,
   UncontrolledTooltip,
 } from "reactstrap";
@@ -16,6 +18,10 @@ import Charts from "../Charts";
 import { admitDischargePatient, togglePrint } from "../../../store/actions";
 import { EDIT_ADMISSION, IPD } from "../../../Components/constants/patient";
 
+import { toast } from "react-toastify";
+import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
+
+
 const IPDComponent = ({
   addmissionsCharts,
   open,
@@ -28,6 +34,17 @@ const IPDComponent = ({
   user,
 }) => {
   const dispatch = useDispatch();
+  const handlePatientTypeChange = async (patientId, patientType) => {
+    try {
+      await dispatch(
+        assignEmergencyPatientType({ patientId, patientType })
+      ).unwrap();
+      toast.success("Category assigned successfully");
+    } catch (error) {
+      toast.warn(error.message);
+    }
+  };
+
   return (
     <React.Fragment>
       <div className="">
@@ -39,7 +56,40 @@ const IPDComponent = ({
               data={addmission}
               toggleModal={toggleModal}
             >
-              <div className="d-flex align-items-center">
+              <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-1">
+                  <RenderWhen isTrue={!addmission.dischargeDate}>
+                    <Label className="mb-0 text-nowrap">
+                      Patient Category:
+                    </Label>
+                    <Input
+                      className="form-control"
+                      bsSize="sm"
+                      type="select"
+                      value={addmission.patientType || ""}
+                      onChange={(e) =>
+                        handlePatientTypeChange(
+                          addmission.patient,
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value={"suicidal"}>Suicidal</option>
+                      <option value={"runaway"}>Runaway</option>
+                      <option value={"serious"}>Medically Serious</option>
+                      <option value={"aggresive"}>Aggresive</option>
+                      <option value={"normal"}>Normal</option>
+                    </Input>
+                  </RenderWhen>
+                  <RenderWhen
+                    isTrue={addmission.dischargeDate && addmission.patientType}
+                  >
+                    <Label className="mb-0 text-nowrap">
+                      Patient Category:
+                    </Label>
+                    <p>{addmission.patientType}</p>
+                  </RenderWhen>
+                </div>
                 <CheckPermission permission={"create"} subAccess={"Charting"}>
                   <RenderWhen isTrue={!addmission.dischargeDate}>
                     <Button

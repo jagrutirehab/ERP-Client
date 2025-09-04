@@ -3,9 +3,15 @@ export const permissionList = [
     key: "CENTER",
     label: "Center",
     subModules: [],
-  },{
+  },
+  {
     key: "NURSE",
     label: "Nurse",
+    subModules: [],
+  },
+  {
+    key: "EMERGENCY",
+    label: "Emergency",
     subModules: [],
   },
   {
