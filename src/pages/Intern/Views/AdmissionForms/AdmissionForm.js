@@ -63,29 +63,96 @@ const InternAddmissionForms = (intern) => {
     });
   }, [intern?.intern?._id]);
 
+  // const captureSection = async (ref, pdf, isFirstPage = false) => {
+  //   if (!ref?.current) return pdf;
+
+  //   const originalStyle = ref.current.getAttribute("style") || "";
+
+  //   ref.current.setAttribute(
+  //     "style",
+  //     `
+  //       ${originalStyle};
+  //       font-size: 50px !important;
+  //       line-height: 5 !important;
+  //     `
+  //   );
+
+  //   await new Promise((resolve) => setTimeout(resolve, 50));
+  //   const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
+  //   const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  //   if (!isFirstPage) pdf.addPage();
+  //   pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+  //   return pdf;
+  // };
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
 
     const originalStyle = ref.current.getAttribute("style") || "";
 
+    // Apply global section styles
     ref.current.setAttribute(
       "style",
       `
-        ${originalStyle};
-        font-size: 50px !important;
-        line-height: 5 !important;
-      `
+      ${originalStyle};
+      font-size: 25px !important;
+      line-height: 2 !important;
+    `
     );
 
+    // 🔑 Fix for inputs: replace them with styled spans temporarily
+    const inputs = ref.current.querySelectorAll("input");
+    const replacedNodes = [];
+
+    inputs.forEach((input) => {
+      const span = document.createElement("span");
+
+      let value = "";
+      if (input.type === "date" && input.value) {
+        value = new Date(input.value).toLocaleDateString("en-GB"); // DD/MM/YYYY
+      } else {
+        value = input.value?.toUpperCase() || "";
+      }
+
+      // If empty → use non-breaking space
+      span.innerText = value || "\u00A0";
+
+      // Apply consistent styles
+      span.style.fontWeight = "bold";
+      span.style.textTransform = "uppercase";
+      span.style.borderBottom = "1px solid #000";
+      span.style.marginLeft = "5px";
+
+      // Preserve width of the original input
+      span.style.display = "inline-block";
+      span.style.minWidth = input.clientWidth + "px";
+
+      // Save for restoring later
+      replacedNodes.push({ input, span });
+      input.parentNode.replaceChild(span, input);
+    });
+
+    // Wait for DOM update
     await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Capture screenshot
     const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const imgData = canvas.toDataURL("image/jpeg");
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+    // 🔄 Restore original inputs back after capture
+    replacedNodes.forEach(({ input, span }) => {
+      span.parentNode.replaceChild(input, span);
+    });
 
     return pdf;
   };

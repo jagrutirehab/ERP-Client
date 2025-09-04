@@ -12,9 +12,9 @@ import MediactionConcent from "./MediactionConcent";
 import ECTConsentForm from "./ECTConsentForm";
 import DischargeIndependentAdult from "./DischargeIndependentAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
-import IndipendentOpinion1 from "./IndipendentOpinion1";
-import IndipendentOpinion2 from "./IndipendentOpinion2";
-import IndipendentOpinion3 from "./IndipendentOpinion3";
+// import IndipendentOpinion1 from "./IndipendentOpinion1";
+// import IndipendentOpinion2 from "./IndipendentOpinion2";
+// import IndipendentOpinion3 from "./IndipendentOpinion3";
 import {
   Accordion,
   AccordionBody,
@@ -82,9 +82,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const adultRef = useRef(null);
   const minorRef = useRef(null);
   const supportRef = useRef(null);
-  const indipendentref1 = useRef(null);
-  const indipendentref2 = useRef(null);
-  const indipendentref3 = useRef(null);
+  // const indipendentref1 = useRef(null);
+  // const indipendentref2 = useRef(null);
+  // const indipendentref3 = useRef(null);
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -109,11 +109,39 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const { register, handleSubmit } = useForm();
 
+  // const captureSection = async (ref, pdf, isFirstPage = false) => {
+  //   if (!ref?.current) return pdf;
+
+  //   const originalStyle = ref.current.getAttribute("style") || "";
+
+  //   ref.current.setAttribute(
+  //     "style",
+  //     `
+  //     ${originalStyle};
+  //     font-size: 25px !important;
+  //     line-height: 2 !important;
+  //   `
+  //   );
+
+  //   await new Promise((resolve) => setTimeout(resolve, 50));
+  //   const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
+  //   const imgData = canvas.toDataURL("image/jpeg");
+
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  //   if (!isFirstPage) pdf.addPage();
+  //   pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+  //   return pdf;
+  // };
+
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
 
     const originalStyle = ref.current.getAttribute("style") || "";
 
+    // Apply global section styles
     ref.current.setAttribute(
       "style",
       `
@@ -123,7 +151,42 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     `
     );
 
+    // 🔑 Fix for inputs: replace them with styled spans temporarily
+    const inputs = ref.current.querySelectorAll("input");
+    const replacedNodes = [];
+
+    inputs.forEach((input) => {
+      const span = document.createElement("span");
+
+      let value = "";
+      if (input.type === "date" && input.value) {
+        value = new Date(input.value).toLocaleDateString("en-GB"); // DD/MM/YYYY
+      } else {
+        value = input.value?.toUpperCase() || "";
+      }
+
+      // If empty → use non-breaking space
+      span.innerText = value || "\u00A0";
+
+      // Apply consistent styles
+      span.style.fontWeight = "bold";
+      span.style.textTransform = "uppercase";
+      span.style.borderBottom = "1px solid #000";
+      span.style.marginLeft = "5px";
+
+      // Preserve width of the original input
+      span.style.display = "inline-block";
+      span.style.minWidth = input.clientWidth + "px";
+
+      // Save for restoring later
+      replacedNodes.push({ input, span });
+      input.parentNode.replaceChild(span, input);
+    });
+
+    // Wait for DOM update
     await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Capture screenshot
     const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL("image/jpeg");
 
@@ -132,6 +195,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
     if (!isFirstPage) pdf.addPage();
     pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+    // 🔄 Restore original inputs back after capture
+    replacedNodes.forEach(({ input, span }) => {
+      span.parentNode.replaceChild(input, span);
+    });
 
     return pdf;
   };
@@ -810,7 +878,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   </div>
                 )}
               {/* hidden opinions */}
-              <div
+              {/* <div
                 style={{
                   position: "absolute",
                   top: "-9999px",
@@ -840,7 +908,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                     details={details}
                   />
                 </div>
-              </div>
+              </div> */}
               <div style={{ textAlign: "center", margin: "20px" }}>
                 <Button
                   color="secondary"
@@ -1030,7 +1098,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         size="xl"
         style={{ maxWidth: "90%" }}
       >
-        <ModalHeader toggle={togglePreview2}>PDF Previeweeee</ModalHeader>
+        <ModalHeader toggle={togglePreview2}>PDF Preview</ModalHeader>
         <ModalBody style={{ height: "80vh" }}>
           {pdfUrl2 ? (
             <iframe
