@@ -86,7 +86,13 @@ const Page2 = ({ register, patient }) => {
         <input
           type="date"
           defaultValue={new Date().toISOString().split("T")[0]}
-          {...register("Relevent_checklist_date")}
+          {...register("Relevent_checklist_date", {
+            setValueAs: (val) => {
+              if (!val) return "";
+              const [year, month, day] = val.split("-");
+              return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+            },
+          })}
           style={{
             border: "none",
             borderBottom: "1px solid #000",

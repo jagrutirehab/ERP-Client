@@ -32,6 +32,8 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
+  // console.log(addmission, "this is data");
+
   const dispatch = useDispatch();
 
   const [chart, setChart] = useState({
@@ -68,11 +70,15 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
 
   const printChart = (chart, patient) => {
     dispatch(
-      togglePrint({ data: chart, admission: addmission, modal: true, patient })
+      togglePrint({
+        data: chart,
+        admission: addmission,
+        modal: true,
+        patient,
+        doctor: addmission?.doctor,
+      })
     );
   };
-
-  console.log(charts);
 
   return (
     <React.Fragment>

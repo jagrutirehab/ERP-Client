@@ -93,7 +93,13 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           <input
             type="date"
             defaultValue={new Date().toISOString().split("T")[0]}
-            {...register("Indipendent_Admission_adult_date")}
+            {...register("Indipendent_Admission_adult_date", {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+              },
+            })}
             style={{
               border: "none",
               borderBottom: "1px solid #000",

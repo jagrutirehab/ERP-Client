@@ -167,7 +167,13 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("Basic_Admission_Form_dateRep")}
+              {...register("Basic_Admission_Form_dateRep", {
+                setValueAs: (val) => {
+                  if (!val) return "";
+                  const [year, month, day] = val.split("-");
+                  return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+                },
+              })}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:
@@ -188,7 +194,13 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("Basic_Admission_Form_dateStaff")}
+              {...register("Basic_Admission_Form_dateStaff", {
+                setValueAs: (val) => {
+                  if (!val) return "";
+                  const [year, month, day] = val.split("-");
+                  return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+                },
+              })}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:
@@ -228,7 +240,13 @@ const Admissionpage2 = ({ register, patient, details }) => {
             <input
               type="date"
               defaultValue={new Date().toISOString().split("T")[0]}
-              {...register("Basic_Admission_Form_dateWitness")}
+              {...register("Basic_Admission_Form_dateWitness", {
+                setValueAs: (val) => {
+                  if (!val) return "";
+                  const [year, month, day] = val.split("-");
+                  return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+                },
+              })}
               style={{ border: "none", marginTop: "5px" }}
             />{" "}
             Signature:

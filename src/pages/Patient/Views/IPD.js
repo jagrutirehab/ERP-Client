@@ -28,7 +28,6 @@ const IPDComponent = ({
   user,
 }) => {
   const dispatch = useDispatch();
-
   return (
     <React.Fragment>
       <div className="">
@@ -55,7 +54,7 @@ const IPDComponent = ({
                   </RenderWhen>
                 </CheckPermission>
                 <h6 className={`display-6 fs-6 mb-0`}>
-                  Total Charts: 
+                  Total Charts:
                   {/* {addmission.totalCharts} */}
                 </h6>
                 <Button
@@ -153,6 +152,7 @@ const IPDComponent = ({
                         toggleDateModal={toggleModal}
                         charts={addmission.charts ?? []}
                         addmission={addmission}
+                        doctor={addmission?.doctor}
                       />
                     )}
                   </AccordionBody>

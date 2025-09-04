@@ -95,7 +95,14 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
         Date:
         <input
           type="date"
-          {...(register ? register("ack_date") : {})}
+          {...(register ? register("ack_date") : {},
+          {
+            setValueAs: (val) => {
+              if (!val) return "";
+              const [year, month, day] = val.split("-");
+              return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+            },
+          })}
           defaultValue={new Date().toISOString().split("T")[0]}
           style={{
             ...smallInput,
@@ -156,7 +163,14 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
         Date:
         <input
           type="date"
-          {...(register ? register("rep_date") : {})}
+          {...(register ? register("rep_date") : {},
+          {
+            setValueAs: (val) => {
+              if (!val) return "";
+              const [year, month, day] = val.split("-");
+              return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+            },
+          })}
           defaultValue={new Date().toISOString().split("T")[0]}
           style={{
             ...smallInput,

@@ -344,48 +344,67 @@ const InternAddmissionForms = (intern) => {
           ))}
         </Row>
       </div>
-      {openform && (
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div ref={internundertakingform}>
-            <InternUndertakingForm
-              register={register}
-              intern={intern?.intern}
-              details={details}
-            />
-          </div>
-          <div ref={internundertakingform2}>
-            <InternUndertakingFormPage2
-              register={register}
-              intern={intern?.intern}
-            />
-          </div>
-          <div ref={internundertakingform3}>
-            <InternUndertakingFormPage3
-              register={register}
-              intern={intern?.intern}
-              details={details}
-            />
-          </div>
-          <div style={{ textAlign: "center", margin: "20px" }}>
-            <Button
-              color="secondary"
-              type="submit"
-              className="me-2"
-              disabled={isGenerating2}
-            >
-              {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-            </Button>
-            <Button
-              type="button"
-              color="primary"
-              onClick={handlePrint}
-              disabled={isGenerating}
-            >
-              {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
-            </Button>
-          </div>
-        </form>
-      )}
+      <Modal
+        isOpen={openform}
+        toggle={() => {
+          setOpenform(false);
+        }}
+        size="xl"
+        backdrop="static"
+        keyboard={false}
+      >
+        <ModalHeader
+          toggle={() => {
+            setOpenform(false);
+          }}
+        >
+          Intern Undertaking Form
+        </ModalHeader>
+        <ModalBody style={{ height: "80vh", overflow: "auto" }}>
+          {openform && (
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div ref={internundertakingform}>
+                <InternUndertakingForm
+                  register={register}
+                  intern={intern?.intern}
+                  details={details}
+                />
+              </div>
+              <div ref={internundertakingform2}>
+                <InternUndertakingFormPage2
+                  register={register}
+                  intern={intern?.intern}
+                />
+              </div>
+              <div ref={internundertakingform3}>
+                <InternUndertakingFormPage3
+                  register={register}
+                  intern={intern?.intern}
+                  details={details}
+                />
+              </div>
+              <div style={{ textAlign: "center", margin: "20px" }}>
+                <Button
+                  color="secondary"
+                  type="submit"
+                  className="me-2"
+                  disabled={isGenerating2}
+                >
+                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
+                </Button>
+                <Button
+                  type="button"
+                  color="primary"
+                  onClick={handlePrint}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </ModalBody>
+      </Modal>
       <Modal
         isOpen={previewModal}
         toggle={togglePreview}

@@ -139,7 +139,13 @@ const Page1 = ({ register, admissions, patient }) => {
           <input
             type="date"
             defaultValue={new Date().toISOString().split("T")[0]} // today's date
-            {...register("Admission_Checklist_DOA")}
+            {...register("Admission_Checklist_DOA", {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+              },
+            })}
             style={{ border: "none", borderBottom: "1px solid #000" }}
           />
         </div>
