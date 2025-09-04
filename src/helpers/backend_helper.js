@@ -805,6 +805,19 @@ export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   );
 };
 
+// emergency
+export const assignPatientType = ({ patientId, patientType }) => {
+  return api.update(
+    `${url.ASSIGN_TYPE_TO_PATIENT}?patientId=${patientId}&patientType=${patientType}`
+  );
+};
+
+export const getAllEmergencyPatients = ({ page, limit, flag, search } = {}) => {
+  return api.get(
+    `${url.GET_EMERGENCY_PATIENTS}?page=${page}&limit=${limit}&search=${search}&flag=${flag}`
+  );
+};
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
