@@ -31,6 +31,13 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     marginLeft: "5px",
     marginRight: "5px",
   };
+  const inputLine2 = {
+    border: "none",
+    borderBottom: "1px solid #000",
+    width: "270px",
+    marginLeft: "5px",
+    marginRight: "5px",
+  };
   const fullLine = {
     border: "none",
     borderBottom: "1px solid #000",
@@ -133,7 +140,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
-            ...inputLine,
+            ...inputLine2,
           }}
         />{" "}
         age
@@ -311,12 +318,14 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           {...register("Indipendent_Admission_minor_altMobile")}
           style={inputLine}
         />{" "}
-        Email
-        <input
-          type="text"
-          {...register("Indipendent_Admission_minor_email")}
-          style={inputLine}
-        />
+        <div>
+          Email
+          <input
+            type="text"
+            {...register("Indipendent_Admission_minor_email")}
+            style={inputLine}
+          />
+        </div>
       </p>
       <div
         style={{
@@ -338,7 +347,10 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             {...register("Indipendent_Admission_minor_staffDateTime")}
             style={fullLine}
           />
@@ -361,7 +373,10 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             {...register("Indipendent_Admission_minor_guardianDateTime")}
             style={fullLine}
           />

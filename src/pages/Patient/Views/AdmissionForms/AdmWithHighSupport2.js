@@ -194,22 +194,46 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
       </p>
       <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom1")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom1")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom2")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom2")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom3")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom3")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom4")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom4")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom5")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom5")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_symptom6")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_symptom6")}
+            style={fullLine}
+          />
         </li>
       </ol>
       <p>
@@ -219,22 +243,46 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
       </p>
       <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper1")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper1")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper2")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper2")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper3")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper3")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper4")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper4")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper5")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper5")}
+            style={fullLine}
+          />
         </li>
         <li>
-          <input type="text" {...register("Indipendent_Admission_Support_paper6")} style={fullLine} />
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_paper6")}
+            style={fullLine}
+          />
         </li>
       </ol>
       <p>
@@ -274,8 +322,14 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
           {...register("Indipendent_Admission_Support_altMobile")}
           style={inputLine}
         />{" "}
-        Email
-        <input type="text" {...register("Indipendent_Admission_Support_email")} style={inputLine} />
+        <div>
+          Email
+          <input
+            type="text"
+            {...register("Indipendent_Admission_Support_email")}
+            style={inputLine}
+          />
+        </div>
       </p>
       <div
         style={{
@@ -286,7 +340,6 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
       >
         <div>
           Signature of Guardian:
-          
           <br />
           Name
           <input
@@ -303,7 +356,10 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             {...register("Indipendent_Admission_Support_dateTime")}
             style={fullLine}
           />

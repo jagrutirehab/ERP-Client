@@ -163,7 +163,10 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
             Date / Time / Place :
             <input
               type="text"
-              defaultValue={new Date().toISOString().split("T")[0]}
+              defaultValue={new Date()
+                .toLocaleDateString("en-GB")
+                .split("/")
+                .join("/")}
               style={inputInline}
               {...register("witnessDate")}
             />
@@ -239,7 +242,10 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           Date / Time / Place :{" "}
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             style={inputInline}
             {...register("doctorDate")}
           />
@@ -295,7 +301,10 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           Date / Time / Place :{" "}
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             style={inputInline}
             {...register("relativeDate")}
           />

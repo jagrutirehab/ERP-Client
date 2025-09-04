@@ -155,7 +155,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
             textTransform: "uppercase",
             ...inputLine,
           }}
-        />{" "}
+        />
         residing at
         <input
           type="text"
@@ -297,12 +297,14 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           {...register("Indipendent_Admission_adult_altMobile")}
           style={inputLine}
         />{" "}
-        Email
-        <input
-          type="text"
-          {...register("Indipendent_Admission_adult_email")}
-          style={inputLine}
-        />
+        <div>
+          Email
+          <input
+            type="text"
+            {...register("Indipendent_Admission_adult_email")}
+            style={inputLine}
+          />
+        </div>
       </p>
 
       {/* List of Enclosures */}
@@ -340,7 +342,10 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Date & Time:
           <input
             type="text"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date()
+              .toLocaleDateString("en-GB")
+              .split("/")
+              .join("/")}
             {...register("Indipendent_Admission_adult_dateTime")}
             style={fullLine}
           />
