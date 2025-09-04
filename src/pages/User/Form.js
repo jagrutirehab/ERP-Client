@@ -193,11 +193,11 @@ const UserForm = ({
           "Confirm Password Doesn't Match"
         ),
       }),
-      phoneNumber: Yup.string()
-        .required("Please Enter Phone Number")
-        .test("is-valid-phone", "Invalid phone number", function (value) {
-          return isValidPhoneNumber(value || "");
-        }),
+      // phoneNumber: Yup.string()
+      //   .required("Please Enter Phone Number")
+      //   .test("is-valid-phone", "Invalid phone number", function (value) {
+      //     return isValidPhoneNumber(value || "");
+      //   }),
       centerAccess: Yup.array().test(
         "notEmpty",
         "Center Access is required",
@@ -800,7 +800,7 @@ const UserForm = ({
                         placeholder="Enter phone number"
                         name={field.name}
                         value={validation.values[field.name]}
-                        onBlur={validation.handleBlur}
+                        // onBlur={validation.handleBlur}
                         onChange={(value) =>
                           field.handleChange({
                             target: {
