@@ -14,6 +14,13 @@ const pages = [
     icon: "bx bx-user",
   },
   {
+    id: "emergency",
+    label: "Emergency",
+    name: "Emergency",
+    link: "/emergency",
+   icon: "bx bxs-error" 
+  },
+  {
     id: "users",
     label: "User",
     name: "User",

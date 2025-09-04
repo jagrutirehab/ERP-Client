@@ -18,6 +18,7 @@ const Navdata = () => {
   const sortPages = (routes) => {
     const sortOrder = [
       "nurse",
+      "emergency",
       "lead",
       "booking",
       "intern",

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAlert } from "../alert/alertSlice";
 import {
   assignNurseToPatient,
+  assignPatientType,
   deletePatientAadhaarCard,
   editPatient,
   getAllPatients,
@@ -337,6 +338,21 @@ export const unAssignNurse = createAsyncThunk(
   }
 );
 
+
+export const assignEmergencyPatientType = createAsyncThunk(
+  "assignPatientType",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await assignPatientType(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to assign patient type");
+    }
+  }
+);
+
+
 export const patientSlice = createSlice({
   name: "Patient",
   initialState,
@@ -657,7 +673,13 @@ export const patientSlice = createSlice({
       .addCase(unAssignNurse.rejected, (state) => {
         state.nurseLoading = false;
       });
-      
+     builder.addCase(
+       assignEmergencyPatientType.fulfilled,
+       (state, { payload }) => {
+         state.patient.addmission.patientType =
+           payload.data.patientType;
+       }
+     ); 
   },
 });
 

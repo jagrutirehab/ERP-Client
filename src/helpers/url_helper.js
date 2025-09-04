@@ -271,6 +271,10 @@ export const MARK_ALERT_AS_READ = "/alerts/read";
 // notes
 export const NOTES = "/notes";
 
+// emergency
+export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
+export const GET_EMERGENCY_PATIENTS = "/emergency";
+
 //New Microservice APIS
 export const CSRF = "/csrf-token";
 export const MICRO_SIGN_IN = "/userauths/signin";
