@@ -67,7 +67,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        for
+        for Daily
         <input
           type="text"
           defaultValue={details?.roomtype}
