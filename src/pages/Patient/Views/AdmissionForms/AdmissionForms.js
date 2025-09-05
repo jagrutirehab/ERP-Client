@@ -63,6 +63,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const [adultationype, setAdultationtype] = useState("");
   const [supporttype, setSupporttype] = useState("");
   const [details, setDetails] = useState({
+    roomtype: "",
     IPDnum: "",
     bed: "",
     ward: "",

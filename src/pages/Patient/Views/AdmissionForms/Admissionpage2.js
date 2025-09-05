@@ -45,7 +45,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
       </div>
       {/* Points 10-19 */}
       <div style={consentPara}>
-        10) I am informed and I am willing to pay Rs
+        10) I am informed and I am willing to pay Rs for
         <input
           type="text"
           defaultValue={details?.toPay}
@@ -56,7 +56,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        for semi private &{" "}
+        Monthly and
         <input
           type="text"
           defaultValue={details?.semiprivate}
@@ -67,7 +67,19 @@ const Admissionpage2 = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        for private room as residential charges, a refundable advance deposit of{" "}
+        for
+        <input
+          type="text"
+          defaultValue={details?.roomtype}
+          {...register("Basic_Admission_Form_roomtype")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />
+        & for private room as residential charges, a refundable advance deposit
+        of
         <input
           type="text"
           defaultValue={details?.advDeposit}
@@ -78,8 +90,8 @@ const Admissionpage2 = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        and a non refundable admission fees of Rs. 500/- at the time of
-        admission.
+        and a non refundable admission fees of Rs. 1000/- at the time of
+        admission. Also, minimum of 5 days of initial fees is compulsory.
       </div>
 
       <div style={consentPara}>

@@ -143,8 +143,19 @@ const ConsentFormModal = ({
           </div>
 
           <div className="mt-3">
+            <Label className="text-muted mb-1">Room Type</Label>
+            <Input
+              type="text"
+              value={details?.roomtype}
+              onChange={(e) =>
+                setDetails((prev) => ({ ...prev, roomtype: e.target.value }))
+              }
+              placeholder="Monthly / Daily"
+            />
+          </div>
+          <div className="mt-3">
             <Label className="text-muted mb-1">
-              Willing To Pay Rs For Private
+              Price for selected Room type (Monthly)
             </Label>
             <Input
               type="number"
@@ -152,13 +163,13 @@ const ConsentFormModal = ({
               onChange={(e) =>
                 setDetails((prev) => ({ ...prev, toPay: e.target.value }))
               }
-              placeholder="₹ ************ /-"
+              placeholder="₹ ************"
             />
           </div>
 
           <div className="mt-3">
             <Label className="text-muted mb-1">
-              Willing To Pay Rs For Semi Private
+              Price for selected Room type (daily)
             </Label>
             <Input
               type="number"
@@ -169,7 +180,7 @@ const ConsentFormModal = ({
                   semiprivate: e.target.value,
                 }))
               }
-              placeholder="₹ ************ /-"
+              placeholder="₹ ************"
             />
           </div>
 
@@ -186,7 +197,7 @@ const ConsentFormModal = ({
                   advDeposit: e.target.value,
                 }))
               }
-              placeholder="₹ ************ /-"
+              placeholder="₹ ************"
             />
           </div>
 
