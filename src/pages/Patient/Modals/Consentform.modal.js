@@ -155,7 +155,7 @@ const ConsentFormModal = ({
           </div>
           <div className="mt-3">
             <Label className="text-muted mb-1">
-              Price for selected Room type (Monthly)
+              Price for selected Room Type (Monthly)
             </Label>
             <Input
               type="number"
@@ -169,7 +169,7 @@ const ConsentFormModal = ({
 
           <div className="mt-3">
             <Label className="text-muted mb-1">
-              Price for selected Room type (daily)
+              Price for selected Room Type (daily)
             </Label>
             <Input
               type="number"
