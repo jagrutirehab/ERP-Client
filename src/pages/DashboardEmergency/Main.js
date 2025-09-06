@@ -8,7 +8,7 @@ import PatientCard from "./components/PatientCard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 
-const Main = ({ loading, data }) => {
+const Main = ({ loading, data, centerAccess }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [page, setPage] = useState(1);
@@ -39,8 +39,16 @@ const Main = ({ loading, data }) => {
 
   useEffect(() => {
     if (!hasPermission) return;
-    dispatch(getAllPatients({ page, limit, search: debouncedSearch, flag }));
-  }, [page, limit, debouncedSearch, flag, roles, dispatch]);
+    dispatch(
+      getAllPatients({
+        page,
+        limit,
+        search: debouncedSearch,
+        flag,
+        centerAccess,
+      })
+    );
+  }, [page, limit, debouncedSearch, flag, roles, centerAccess, dispatch]);
 
   const handlePrev = () => {
     if (page > 1) setPage(page - 1);
@@ -135,11 +143,13 @@ const Main = ({ loading, data }) => {
 Main.propTypes = {
   loading: PropTypes.bool,
   data: PropTypes.array,
+  centerAccess: PropTypes.array.isRequired
 };
 
 const mapStateToProps = (state) => ({
   loading: state.Emergency.loading,
   data: state.Emergency.data,
+  centerAccess: state.User?.centerAccess
 });
 
 export default connect(mapStateToProps)(Main);

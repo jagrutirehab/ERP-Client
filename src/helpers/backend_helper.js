@@ -812,10 +812,10 @@ export const assignPatientType = ({ patientId, patientType }) => {
   );
 };
 
-export const getAllEmergencyPatients = ({ page, limit, flag, search } = {}) => {
-  return api.get(
-    `${url.GET_EMERGENCY_PATIENTS}?page=${page}&limit=${limit}&search=${search}&flag=${flag}`
-  );
+export const getAllEmergencyPatients = (params = {}) => {
+  return api.create(url.GET_EMERGENCY_PATIENTS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
 };
 
 //  User Microservices
