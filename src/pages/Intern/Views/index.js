@@ -4,17 +4,20 @@ import {
   BILLING_VIEW,
   TIMELINE_VIEW,
   FORMS_VIEW,
+  CERTIFICATE_VIEW,
 } from "../../../Components/constants/intern";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
 import { connect } from "react-redux";
 import InternAddmissionForms from "./AdmissionForms/AdmissionForm"
+import Certificate from "./Certificate";
 
 const Views = (props) => {
   const vws = {
     Billing: BILLING_VIEW,
     Timeline: TIMELINE_VIEW,
     Forms: FORMS_VIEW,
+    Certificate: CERTIFICATE_VIEW
   };
   const internPage = props?.pageAccess?.find((pg) => pg.name === "Intern");
   const [view, setView] = useState(
@@ -43,6 +46,8 @@ const Views = (props) => {
                       ? TIMELINE_VIEW
                       : sub.name.toUpperCase() === FORMS_VIEW
                       ? FORMS_VIEW
+                      : sub.name.toUpperCase() === CERTIFICATE_VIEW
+                      ? CERTIFICATE_VIEW
                       : "";
 
                   return (
@@ -61,6 +66,7 @@ const Views = (props) => {
             {view === BILLING_VIEW && <Billing view={view} />}
             {view === TIMELINE_VIEW && <Timeline view={view} />}
             {view === FORMS_VIEW && <InternAddmissionForms view={view} />}
+            {view === CERTIFICATE_VIEW && <Certificate view={view} />}
           </div>
         </div>
       </div>
