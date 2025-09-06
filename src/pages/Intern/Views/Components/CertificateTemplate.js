@@ -56,20 +56,20 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
     pronoun3 = "the intern";
   }
 
-  const psychologistName = psychologist?.name || "Psychologist";
+  const psychologistName = toTitleCase(psychologist?.name) || "Psychologist";
   const internshipDuration = intern?.internshipDuration
     ? `${intern.internshipDuration * 30} days`
     : "the internship period";
 
-  let nameWithPronoun = intern?.name || "______";
+  let nameWithPronoun = toTitleCase(intern?.name) || "______";
   if (gender !== "OTHERS" && pronoun1) {
     nameWithPronoun = `${pronoun1} ${nameWithPronoun}`;
   }
 
   const paragraph1 = `This is to certify that ${nameWithPronoun}, a student of ${
-    intern?.educationalInstitution || "______"
-  }, ${intern?.state || "______"}, pursuing ${
-    intern?.courseProgram || "______"
+    toTitleCase(intern?.educationalInstitution) || "______"
+  }, ${toTitleCase(intern?.state) || "______"}, pursuing ${
+    toTitleCase(intern?.courseProgram) || "______"
   }${
     type === "ONGOING"
       ? `, is currently undergoing ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistName}.`

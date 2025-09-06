@@ -61,7 +61,7 @@ const Certificate = ({ intern, psychologists }) => {
     const cert = intern.certificate;
 
     if (!needsRegeneration(cert, type)) {
-      downloadPDF(cert.originalName);
+      downloadPDF(cert.url);
       return;
     }
 
