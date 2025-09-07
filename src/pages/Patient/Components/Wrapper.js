@@ -134,7 +134,7 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    <CheckPermission permission={"edit"} subAccess={name}>
+                    { !disableEdit &&  <CheckPermission permission={"edit"} subAccess={name}>
                       <DropdownItem
                         disabled={disableEdit}
                         onClick={() => {
@@ -145,8 +145,9 @@ const Wrapper = ({
                         <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>{" "}
                         Edit
                       </DropdownItem>
-                    </CheckPermission>
-                    <CheckPermission permission={"delete"} subAccess={name}>
+                    </CheckPermission> }
+
+                     { !disableEdit &&   <CheckPermission permission={"delete"} subAccess={name}>
                       <DropdownItem
                         disabled={disableDelete}
                         onClick={() => deleteItem(item)}
@@ -156,7 +157,9 @@ const Wrapper = ({
                         <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
                         Delete
                       </DropdownItem>
-                    </CheckPermission>
+                    </CheckPermission> }
+                   
+                  
                     <RenderWhen
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
