@@ -295,7 +295,9 @@ const Bills = ({
                     bill.bill === ADVANCE_PAYMENT &&
                     user?.email !== "bishal@gmail.com" &&
                     user?.email !== "rijutarafder000@gmail.com" &&
-                    user?.email !== "surjeet.parida@gmail.com"
+                    user?.email !== "surjeet.parida@gmail.com" &&
+                    user?.email !== "hemanthshinde@gmail.com" &&
+                    user?.email !== "vikash@jagrutirehab.org"
                       ? true
                       : false
                   }
