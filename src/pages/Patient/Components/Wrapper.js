@@ -38,26 +38,27 @@ const Wrapper = ({
   patient,
   itemId,
   extraOptions,
-  clinicalTest
+  clinicalTest,
 }) => {
-
   const dispatch = useDispatch();
   const chart = item?.chart;
   const bill = item?.bill;
 
   const chartName = chart
     ? chart
-      .toLowerCase()
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-    : bill
-      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
-      : "";
+    : bill
+    ? bill
+        .toLowerCase()
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    : "";
+
+  console.log({ disableEdit, disableDelete, bill: item.bill });
 
   return (
     <motion.div
@@ -66,11 +67,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-    // transition={{
-    //   layout: {
-    //     duration: 1.5,
-    //   },
-    // }}
+      // transition={{
+      //   layout: {
+      //     duration: 1.5,
+      //   },
+      // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -121,9 +122,16 @@ const Wrapper = ({
                   direction="start"
                   className="col text-end"
                 >
-                  {!item.clinicalTest && item.clinicalTest != "ClinicalTest" && <DropdownToggle tag="a" id="dropdownMenuLink14" role="button">
-                    <i className="bx bx-dots-vertical-rounded fs-4"></i>
-                  </DropdownToggle>}
+                  {!item.clinicalTest &&
+                    item.clinicalTest != "ClinicalTest" && (
+                      <DropdownToggle
+                        tag="a"
+                        id="dropdownMenuLink14"
+                        role="button"
+                      >
+                        <i className="bx bx-dots-vertical-rounded fs-4"></i>
+                      </DropdownToggle>
+                    )}
                   <DropdownMenu>
                     <RenderWhen isTrue={showPrint}>
                       <DropdownItem
@@ -134,29 +142,39 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    <CheckPermission permission={"edit"} subAccess={name}>
-                      <DropdownItem
-                        disabled={disableEdit}
-                        onClick={() => {
-                          editItem(item, patient);
-                        }}
-                        href="#"
-                      >
-                        <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>{" "}
-                        Edit
-                      </DropdownItem>
-                    </CheckPermission>
-                    <CheckPermission permission={"delete"} subAccess={name}>
-                      <DropdownItem
-                        disabled={disableDelete}
-                        onClick={() => deleteItem(item)}
-                        href="#"
-                      >
-                        {" "}
-                        <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
-                        Delete
-                      </DropdownItem>
-                    </CheckPermission>
+                    {disableEdit ? (
+                      ""
+                    ) : (
+                      <CheckPermission permission={"edit"} subAccess={name}>
+                        <DropdownItem
+                          disabled={disableEdit}
+                          onClick={() => {
+                            editItem(item, patient);
+                          }}
+                          href="#"
+                        >
+                          <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>{" "}
+                          Edit
+                        </DropdownItem>
+                      </CheckPermission>
+                    )}
+
+                    {disableEdit ? (
+                      ""
+                    ) : (
+                      <CheckPermission permission={"delete"} subAccess={name}>
+                        <DropdownItem
+                          disabled={disableDelete}
+                          onClick={() => deleteItem(item)}
+                          href="#"
+                        >
+                          {" "}
+                          <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
+                          Delete
+                        </DropdownItem>
+                      </CheckPermission>
+                    )}
+
                     <RenderWhen
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
