@@ -27,6 +27,7 @@ const Patient = ({ centerAccess }) => {
   const [limit, setLimit] = useState(10);
 
   const [csvData, setCsvData] = useState([]);
+  console.log(csvData, "this is data");
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
 
@@ -51,18 +52,33 @@ const Patient = ({ centerAccess }) => {
           uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${
             d?.id?.value || d?.patient?.id?.value || ""
           }`,
+
+          // Age
           age: d?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d?.dateOfBirth))
+            ? differenceInYears(new Date(), new Date(d.dateOfBirth))
             : d?.patient?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d.patient?.dateOfBirth))
+            ? differenceInYears(new Date(), new Date(d.patient.dateOfBirth))
             : "",
-          doctor: d?.addmission?.doctors?.length
-            ? d.addmission.doctors.map((doc) => doc?.name || "").pop() || ""
+
+          // Doctor name (from doctors[] or nested addmission)
+          doctor: d?.doctors?.length
+            ? d.doctors.map((doc) => doc?.name || "").pop()
+            : d?.addmission?.doctors?.length
+            ? d.addmission.doctors.map((doc) => doc?.name || "").pop()
             : d?.doctor?.name || d?.addmission?.doctor?.name || "",
-          psychologist: d?.addmission?.psychologists?.length
-            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop() ||
-              ""
+
+          // Psychologist name (from psychologists[] or nested addmission)
+          psychologist: d?.psychologists?.length
+            ? d.psychologists.map((psy) => psy?.name || "").pop()
+            : d?.addmission?.psychologists?.length
+            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop()
             : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
+
+          // Guardian info (always inside patient)
+          guardianName: d?.patient?.guardianName || "",
+          guardianPhoneNumber: d?.patient?.guardianPhoneNumber || "",
+
+          // Dates
           addmissionDate: d?.addmission?.addmissionDate
             ? format(
                 new Date(d.addmission.addmissionDate),
@@ -71,11 +87,13 @@ const Patient = ({ centerAccess }) => {
             : d?.addmissionDate
             ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
             : "",
+
           dischargeDate: d?.addmission?.dischargeDate
             ? format(new Date(d.addmission.dischargeDate), "d MMM yyyy hh:mm a")
             : d?.dischargeDate
             ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
             : "",
+
           billCycleDate: d?.addmission?.addmissionDate
             ? format(new Date(d.addmission.addmissionDate), "d")
             : "",
