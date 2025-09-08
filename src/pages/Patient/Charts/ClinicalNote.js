@@ -41,6 +41,26 @@ const ClinicalNote = ({ data }) => {
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.notes}</p>
           </div>
         )}
+
+        {/* 🎙️ Render Audio File if present */}
+        {data?.audioFile?.url && (
+          <div className="mt-3">
+            <h6 className="display-6 fs-5 fs-xs-12">Audio Note</h6>
+            <audio
+              controls
+              className="w-100 mt-2"
+              src={data.audioFile.url}
+              type={data.audioFile.type || "audio/webm"}
+            >
+              Your browser does not support the audio element.
+            </audio>
+            {/* <p className="text-muted small mt-1">
+              {data.audioFile.originalName}
+            </p> */}
+          </div>
+        )}
+
+        {/* Render other files */}
         {data?.files?.length > 0 && (
           <div className="mt-3">
             <h6 className="display-6 fs-5 fs-xs-12">Files</h6>
@@ -53,6 +73,7 @@ const ClinicalNote = ({ data }) => {
             </Row>
           </div>
         )}
+
         <PreviewFile
           file={fileModal.img}
           isOpen={fileModal.isOpen}
