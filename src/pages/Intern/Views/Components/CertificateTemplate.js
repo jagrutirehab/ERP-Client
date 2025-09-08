@@ -56,10 +56,32 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
     pronoun3 = "the intern";
   }
 
+  const calculateInternshipDuration = (duration) => {
+    if (!duration) return null;
+
+    const str = String(duration).toLowerCase().trim();
+
+    // case: only number like "90"
+    if (/^\d+$/.test(str)) {
+      return `${parseInt(str, 10)} days`;
+    }
+
+    // case: "90 days" or "90 day"
+    if (/^\d+\s*day(s)?$/.test(str)) {
+      const days = parseInt(str, 10);
+      return `${days} days`;
+    }
+
+    // case: "3 months" or "1 month"
+    if (/^\d+\s*month(s)?$/.test(str)) {
+      const months = parseInt(str, 10);
+      return `${months * 30} days`;
+    }
+    return str;
+  };
+
   const psychologistName = toTitleCase(psychologist?.name) || "Psychologist";
-  const internshipDuration = intern?.internshipDuration
-    ? `${intern.internshipDuration * 30} days`
-    : "the internship period";
+  const internshipDuration = calculateInternshipDuration(intern?.internshipDuration) || "the internship period";
 
   let nameWithPronoun = toTitleCase(intern?.name) || "______";
   if (gender !== "OTHERS" && pronoun1) {
@@ -138,11 +160,13 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
             marginBottom: "40px",
             fontSize: "18px",
             fontWeight: "bold",
-            textDecoration: "underline",
-            textUnderlineOffset: "8px",
           }}
         >
-          Subject: Internship Certificate
+          <span
+            style={{ borderBottom: "1px solid black", paddingBottom: "2px" }}
+          >
+            Subject: Internship Certificate
+          </span>
         </div>
 
         <div style={{ textAlign: "justify", lineHeight: 1.6, fontSize: 15 }}>

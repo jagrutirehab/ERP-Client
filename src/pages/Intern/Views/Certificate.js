@@ -9,6 +9,7 @@ import {
   ModalHeader,
   Row,
   Col,
+  Spinner,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import Select from "react-select";
@@ -19,8 +20,10 @@ import dayjs from "dayjs";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import CertificateTemplate from "./Components/CertificateTemplate";
 import { editInternForm, fetchDoctors } from "../../../store/actions";
+import { useParams } from "react-router-dom";
 
 const Certificate = ({ intern, psychologists }) => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const [modal, setModal] = useState(false);
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
@@ -32,7 +35,7 @@ const Certificate = ({ intern, psychologists }) => {
 
   useEffect(() => {
     dispatch(fetchDoctors({ center: intern.center._id }));
-  }, []);
+  }, [id, dispatch, intern.center._id]);
 
   const needsRegeneration = (cert, type) => {
     if (!cert) return true;
@@ -176,9 +179,14 @@ const Certificate = ({ intern, psychologists }) => {
                   isGenerating || loading || intern.internStatus === "completed"
                 }
               >
-                {isGenerating && certificateType === "ONGOING"
-                  ? "Generating..."
-                  : "Download Ongoing Certificate"}
+                {isGenerating && certificateType === "ONGOING" ? (
+                  <>
+                    <Spinner color="primary" size="sm" className="me-2" />
+                    Download Ongoing Certificate
+                  </>
+                ) : (
+                  "Download Ongoing Certificate"
+                )}
               </Button>
               <Button
                 onClick={() => handler("COMPLETED")}
@@ -189,9 +197,14 @@ const Certificate = ({ intern, psychologists }) => {
                   intern.internStatus !== "completed" || isGenerating || loading
                 }
               >
-                {isGenerating && certificateType === "COMPLETED"
-                  ? "Generating..."
-                  : "Download Completion Certificate"}
+                {isGenerating && certificateType === "COMPLETED" ? (
+                  <>
+                    <Spinner color="primary" size="sm" className="me-2" />
+                    Download Completion Certificate
+                  </>
+                ) : (
+                  "Download Completion Certificate"
+                )}
               </Button>
             </div>
           </GeneralCard>
@@ -224,7 +237,7 @@ const Certificate = ({ intern, psychologists }) => {
 
       <Modal isOpen={modal} toggle={() => setModal(!modal)}>
         <ModalHeader toggle={() => setModal(!modal)}>
-          Assign Psychologist
+          Assign Supervisor
         </ModalHeader>
         <ModalBody>
           <Form>
@@ -234,10 +247,13 @@ const Certificate = ({ intern, psychologists }) => {
                 <Select
                   value={selectedPsychologist}
                   onChange={setSelectedPsychologist}
-                  options={psychologists?.map((psych) => ({
-                    value: psych._id,
-                    label: psych.name,
-                  }))}
+                  options={[
+                    { value: "", label: "Choose here", isDisabled: true },
+                    ...(psychologists?.map((psych) => ({
+                      value: psych._id,
+                      label: psych.name,
+                    })) || []),
+                  ]}
                   placeholder="Select psychologist"
                   isLoading={!psychologists?.length}
                 />
@@ -256,7 +272,13 @@ const Certificate = ({ intern, psychologists }) => {
                 onClick={handleSavePsychologist}
                 disabled={loading || !selectedPsychologist}
               >
-                {loading ? "Processing..." : "Save & Generate Certificate"}
+                {loading ? (
+                  <Spinner color="light" size="sm">
+                    Loading...
+                  </Spinner>
+                ) : (
+                  "Save & Generate Certificate"
+                )}
               </Button>
             </div>
           </Form>

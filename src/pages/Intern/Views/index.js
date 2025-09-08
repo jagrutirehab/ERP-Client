@@ -12,6 +12,8 @@ import { connect } from "react-redux";
 import InternAddmissionForms from "./AdmissionForms/AdmissionForm"
 import Certificate from "./Certificate";
 
+const pageOrder = ["Forms", "Timeline", "Billing", "Certificate"];
+
 const Views = (props) => {
   const vws = {
     Billing: BILLING_VIEW,
@@ -38,6 +40,10 @@ const Views = (props) => {
               {props?.pageAccess
                 ?.find((pg) => pg.name === "Intern")
                 ?.subAccess?.filter((s) => s.name !== "OPD")
+                .sort(
+                  (a, b) =>
+                    pageOrder.indexOf(a.name) - pageOrder.indexOf(b.name)
+                )
                 .map((sub) => {
                   const vw =
                     sub.name.toUpperCase() === BILLING_VIEW
