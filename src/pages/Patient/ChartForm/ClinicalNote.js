@@ -32,6 +32,7 @@ import {
 } from "../../../store/actions";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import axios from "axios";
+import AudioRecorder from "./AaudioRecorder";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -101,6 +102,7 @@ const ClinicalNote = ({
 }) => {
   const dispatch = useDispatch();
   const [files, setFiles] = useState([]);
+  const [audioFile, setAudioFile] = useState(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
   const editClinicalNote = editChartData?.clinicalNote;
@@ -148,7 +150,12 @@ const ClinicalNote = ({
     },
     validationSchema: Yup.object({}),
     onSubmit: (values) => {
-      onSubmitClinicalForm(values, files, editChartData, editClinicalNote);
+      const allFiles = [...files];
+      if (audioFile) {
+        allFiles.push(audioFile);
+      }
+      // console.log("Submitting files:", allFiles);
+      onSubmitClinicalForm(values, allFiles, editChartData, editClinicalNote);
     },
   });
 
@@ -226,6 +233,13 @@ const ClinicalNote = ({
             </Card>
           </Col>
         ))}
+        {type === "IPD" && (
+          <Col xs={12} className="mt-3">
+            <h5>Audio Recording</h5>
+            <AudioRecorder onReady={(file) => setAudioFile(file)} />
+          </Col>
+        )}
+
         <Col xs={12} className="mt-3 mb-4">
           {clinicalFiles}
         </Col>

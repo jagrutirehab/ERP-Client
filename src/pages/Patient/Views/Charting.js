@@ -122,7 +122,16 @@ const Charting = ({
     formData.append("observations", observations);
     formData.append("diagnosis", diagnosis);
     formData.append("notes", notes);
-    files.forEach((file) => formData.append("file", file.file));
+    files.forEach((file) => {
+      if (file?.file) {
+        // FilePond wrapper object
+        formData.append("file", file.file);
+      } else {
+        // Plain File (like from AudioRecorder)
+        formData.append("file", file);
+      }
+    });
+    // files.forEach((file) => formData.append("file", file.file));
 
     if (editClinicalNote) {
       formData.append("id", editChartData._id);
