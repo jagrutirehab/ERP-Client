@@ -30,23 +30,22 @@ const AudioRecorder = ({ onReady }) => {
             autoGainControl: true,
           },
         });
+
         mediaRecorderRef.current = new MediaRecorder(stream);
+
         mediaRecorderRef.current.ondataavailable = (event) => {
           if (event.data.size > 0) audioChunksRef.current.push(event.data);
         };
+
+        // create File when stopped
         mediaRecorderRef.current.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: "audio/webm",
-          });
-          audioChunksRef.current = [];
-          const audioFile = new File([audioBlob], "recording.webm", {
-            type: "audio/webm",
-          });
-          if (onReady) onReady(audioFile);
+          buildAndSendFile();
         };
+
         audioContextRef.current = new (window.AudioContext ||
           window.webkitAudioContext)();
         const source = audioContextRef.current.createMediaStreamSource(stream);
+
         const highpass = audioContextRef.current.createBiquadFilter();
         highpass.type = "highpass";
         highpass.frequency.value = 100;
@@ -103,6 +102,22 @@ const AudioRecorder = ({ onReady }) => {
     };
   }, []);
 
+  const buildAndSendFile = () => {
+    if (audioChunksRef.current.length === 0) return;
+
+    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+    const file = new File([audioBlob], "recording.webm", {
+      type: "audio/webm",
+    });
+
+    // update preview
+    const url = URL.createObjectURL(audioBlob);
+    setPreviewUrl(url);
+
+    // send file to parent
+    if (onReady) onReady(file);
+  };
+
   const drawVisualizer = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -143,14 +158,9 @@ const AudioRecorder = ({ onReady }) => {
       setIsRecording(false);
       mediaRecorderRef.current.requestData();
 
+      // immediately build file on pause
       setTimeout(() => {
-        if (audioChunksRef.current.length > 0) {
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: "audio/webm",
-          });
-          const url = URL.createObjectURL(audioBlob);
-          setPreviewUrl(url);
-        }
+        buildAndSendFile();
       }, 200);
     }
   };
@@ -164,6 +174,7 @@ const AudioRecorder = ({ onReady }) => {
       setIsRecording(true);
     }
   };
+
   return (
     <div className="my-3">
       {error && <Alert color="danger">{error}</Alert>}
@@ -184,6 +195,7 @@ const AudioRecorder = ({ onReady }) => {
           Resume
         </Button>
       </div>
+
       <canvas
         ref={canvasRef}
         width={400}
@@ -195,6 +207,7 @@ const AudioRecorder = ({ onReady }) => {
           display: isRecording ? "block" : "none",
         }}
       />
+
       {previewUrl && !isRecording && (
         <audio
           controls

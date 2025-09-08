@@ -154,7 +154,8 @@ const ClinicalNote = ({
       if (audioFile) {
         allFiles.push(audioFile);
       }
-      onSubmitClinicalForm(values, files, editChartData, editClinicalNote);
+      console.log("Submitting files:", allFiles);
+      onSubmitClinicalForm(values, allFiles, editChartData, editClinicalNote);
     },
   });
 
