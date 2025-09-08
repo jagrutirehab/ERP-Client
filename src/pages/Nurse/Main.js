@@ -9,12 +9,13 @@ import InfoModal from "./Views/Components/InfoModal";
 import {
   allNurseAssignedPatients,
   getAlertsByPatientId,
+  setPatientIds,
   setSearchMode,
 } from "../../store/features/nurse/nurseSlice";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 
-const Main = ({ alertModal, alertData, data, loading }) => {
+const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -47,17 +48,29 @@ const Main = ({ alertModal, alertData, data, loading }) => {
     return () => clearTimeout(handler);
   }, [search, roles, dispatch]);
 
+  useEffect(() => {
+    if (centerAccess && centerAccess.length > 0) {
+      dispatch(setPatientIds([]));
+      localStorage.removeItem("nursePatients");
+    }
+  }, [JSON.stringify(centerAccess)]);
 
   useEffect(() => {
-  setPage(1);
-}, [debouncedSearch, flag]);
+    setPage(1);
+  }, [debouncedSearch, flag]);
 
   useEffect(() => {
     if (!hasPermission) return;
     dispatch(
-      allNurseAssignedPatients({ page, limit, search: debouncedSearch, flag })
+      allNurseAssignedPatients({
+        page,
+        limit,
+        search: debouncedSearch,
+        flag,
+        centerAccess,
+      })
     );
-  }, [dispatch, page, limit, flag, debouncedSearch, roles]);
+  }, [dispatch, page, limit, flag, debouncedSearch, centerAccess, roles]);
 
   const toggleAlertsModal = (patientId) => {
     setSelectedPatient(patientId);
@@ -182,6 +195,7 @@ Main.propTypes = {
   alertModal: PropTypes.bool,
   alertData: PropTypes.array,
   data: PropTypes.array,
+  centerAccess: PropTypes.array.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -189,6 +203,7 @@ const mapStateToProps = (state) => ({
   alertData: state.Nurse.alertData,
   data: state.Nurse.data,
   loading: state.Nurse.loading,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Main);

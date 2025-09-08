@@ -18,7 +18,7 @@ import {
   setPatientIds,
 } from "../../../store/features/nurse/nurseSlice";
 
-const Views = ({ patients, patientIds, currentPatientIndex, searchMode }) => {
+const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAccess }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -53,7 +53,7 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode }) => {
         dispatch(setPatientIds(merged));
       }
     }
-  }, [patients, searchMode]);
+  }, [patients, searchMode, centerAccess]);
 
   const handleNext = async () => {
     if (nextPatientId) {
@@ -69,6 +69,7 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode }) => {
             page: currentPage + 1,
             limit:12,
             flag: "",
+            centerAccess
           })
         ).unwrap();
 
@@ -84,7 +85,7 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode }) => {
         if (currentPage >= totalPages) return;
 
         const result = await dispatch(
-          allNurseAssignedPatients({ page:currentPage + 1, limit: 12, flag: "" })
+          allNurseAssignedPatients({ page:currentPage + 1, limit: 12, flag: "", centerAccess })
         ).unwrap();
 
         if (result?.data?.length > 0) {
@@ -163,7 +164,8 @@ const mapStateToProps = (state) => ({
   patientIds: state.Nurse.patientIds,
   currentPatientIndex: state.Nurse.index,
   searchMode: state.Nurse.searchMode,
-  patientIdsFromSearch:state.patientIdsFromSearch
+  patientIdsFromSearch:state.patientIdsFromSearch,
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Views);

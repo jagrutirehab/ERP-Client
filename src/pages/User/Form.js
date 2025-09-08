@@ -368,14 +368,14 @@ const UserForm = ({
       },
       checkPermission: (a, b, c) => {
         const result = validation.values.pageAccess?.find((tm) => {
-          if (c) {
-            if (tm.name === a)
-              return tm.subAccess?.find((sub) => sub.name === c)?.permissions[
-                b
-              ];
-            return false;
+          if (tm.name === a) {
+            if (c) {
+              const subAccess = tm.subAccess?.find((sub) => sub.name === c);
+              return subAccess?.permissions?.[b] === true; 
+            } else {
+              return tm.permissions?.[b] === true; 
+            }
           }
-          if (tm.name === a) return tm.permissions[b];
           return false;
         });
         return !!result;
@@ -465,15 +465,18 @@ const UserForm = ({
         return pg;
       });
     } else {
-      currentPageAccess = currentPageAccess.map((pg) => {
-        if (item.name === pg.name) {
-          return {
-            ...pg,
-            permissions: { ...pg.permissions, [perm]: !pg.permissions[perm] },
-          };
-        }
-        return pg;
-      });
+     currentPageAccess = currentPageAccess.map((pg) => {
+       if (item.name === pg.name) {
+         return {
+           ...pg,
+           permissions: {
+             ...(pg.permissions || {}),
+             [perm]: !pg.permissions?.[perm],
+           },
+         };
+       }
+       return pg;
+     });
     }
     validation.setFieldValue("pageAccess", currentPageAccess);
   };

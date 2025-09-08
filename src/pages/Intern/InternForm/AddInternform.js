@@ -13,6 +13,7 @@ import {
   toggleInternForm,
   editInternForm,
   postInternData,
+  fetchDoctors,
 } from "../../../store/actions";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -23,7 +24,7 @@ import UploadedFiles from "../../../Components/Common/UploadedFiles";
 import InternId from "./InternId";
 import FormField from "../../../Components/Common/FormField";
 
-const AddIntern = ({ intern, user, centers }) => {
+const AddIntern = ({ intern, user, centers, psychologists }) => {
   const dispatch = useDispatch();
   const cropperRef = useRef(null);
 
@@ -43,6 +44,16 @@ const AddIntern = ({ intern, user, centers }) => {
       setPreviewImage(editData.profilePicture.url);
     }
   }, [editData]);
+
+  useEffect(() => {
+    if (intern.isOpen) {
+      dispatch(
+        fetchDoctors({
+          center: editData?.center?._id || editData?.center,
+        })
+      );
+    }
+  }, [intern.isOpen, intern, dispatch]);
 
   const dataURLtoBlob = (dataURL) => {
     const byteString = atob(dataURL.split(",")[1]);
@@ -84,6 +95,7 @@ const AddIntern = ({ intern, user, centers }) => {
       emergencyContactPhoneNumber: editData?.emergencyContactPhoneNumber || "",
       emergencyContactEmail: editData?.emergencyContactEmail || "",
       internStatus: editData?.internStatus || "active",
+      psychologist: editData?.psychologist?._id ||  "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Intern Name is required"),
@@ -295,6 +307,7 @@ const AddIntern = ({ intern, user, centers }) => {
           />
 
           {editData && (
+            <>
             <Col md={6}>
               <div className="mb-3">
                 <Label className="form-label d-block">
@@ -328,7 +341,38 @@ const AddIntern = ({ intern, user, centers }) => {
                 </FormFeedback>
               </div>
             </Col>
+               <Col md={6}>
+            <div className="mb-3">
+              <Label htmlFor="supervisor">Supervisor</Label>
+              <Input
+                type="select"
+                name="psychologist"
+                id="supervisor"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.psychologist}
+                invalid={
+                  validation.touched.psychologist &&
+                  !!validation.errors.psychologist
+                }
+              >
+                <option value="" disabled>
+                  Choose here
+                </option>
+                {(psychologists || []).map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Input>
+              <FormFeedback>{validation.errors.psychologist}</FormFeedback>
+            </div>
+          </Col>
+            </>
+
           )}
+
+       
 
           <Col xs={12} className="d-flex justify-content-end gap-3 mt-4">
             <Button type="button" color="danger" onClick={cancelForm}>
@@ -348,12 +392,14 @@ const mapStateToProps = (state) => ({
   intern: state.Intern.internForm,
   centers: state.Center.data,
   user: state.User.user,
+  psychologists: state.User?.counsellors,
 });
 
 AddIntern.propTypes = {
   intern: PropTypes.object,
   user: PropTypes.object,
   centers: PropTypes.array,
+  psychologists: PropTypes.array,
 };
 
 export default connect(mapStateToProps)(AddIntern);

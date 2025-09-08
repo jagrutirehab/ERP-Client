@@ -67,6 +67,13 @@ const pages = [
           edit: true,
           delete: true,
         },
+      },{
+        name: "Certificate",
+        permissions: {
+          create: true,
+          edit: true,
+          delete: true,
+        },
       },
     ],
   },

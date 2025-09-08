@@ -721,15 +721,10 @@ export const getHubspotContacts = ({
   });
 };
 
-export const getNurseAssignedPatients = ({
-  page = 1,
-  limit = 10,
-  search = "",
-  flag,
-} = {}) => {
-  return api.get(
-    `${url.GET_NURSE_ASSIGNED_PATIENTS}?page=${page}&limit=${limit}&flag=${flag}&search=${search}`
-  );
+export const getNurseAssignedPatients = (params = {}) => {
+  return api.create(url.GET_NURSE_ASSIGNED_PATIENTS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
 };
 
 export const getPatientOverview = (patientId) => {
@@ -812,10 +807,10 @@ export const assignPatientType = ({ patientId, patientType }) => {
   );
 };
 
-export const getAllEmergencyPatients = ({ page, limit, flag, search } = {}) => {
-  return api.get(
-    `${url.GET_EMERGENCY_PATIENTS}?page=${page}&limit=${limit}&search=${search}&flag=${flag}`
-  );
+export const getAllEmergencyPatients = (params = {}) => {
+  return api.create(url.GET_EMERGENCY_PATIENTS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
 };
 
 //  User Microservices
