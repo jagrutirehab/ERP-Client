@@ -15,7 +15,7 @@ import {
   Form,
   Label,
   Button,
-  Spinner,
+  // Spinner,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import Select from "react-select";
@@ -40,7 +40,7 @@ import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
-import RenderWhen from "../../Components/Common/RenderWhen";
+// import RenderWhen from "../../Components/Common/RenderWhen";
 
 const PatientTopbar = ({
   patient,
@@ -272,7 +272,7 @@ const PatientTopbar = ({
                   )}
                 </li>
              </CheckPermission> */}
-                <li
+                {/* <li
                   id="add-note"
                   className="list-inline-item m-0 d-none d-md-inline me-2"
                 >
@@ -283,7 +283,7 @@ const PatientTopbar = ({
                   >
                     Add Note
                   </Button>
-                </li>
+                </li> */}
                 <li
                   id="patient-psychologist"
                   className="list-inline-item m-0 d-none d-md-inline"
