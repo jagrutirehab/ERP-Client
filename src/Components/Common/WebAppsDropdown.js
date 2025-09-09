@@ -15,9 +15,9 @@ import { Link } from "react-router-dom";
 import { connect, useDispatch } from "react-redux";
 import { changeUserAccess } from "../../store/actions";
 
-const WebAppsDropdown = ({ centers, centerAccess }) => {
+const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
   const dispatch = useDispatch();
-  const [access, setAccess] = useState(centerAccess);
+  const [access, setAccess] = useState(centerAccess || []);
   const [isWebAppDropdown, setIsWebAppDropdown] = useState(false);
   const [ctrlCmdPressed, setCtrlCmdPressed] = useState(false);
   const toggleWebAppDropdown = () => {
@@ -25,14 +25,17 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   };
 
   const changeAccess = (centerId) => {
-    let updateAccess = [...access];
-    const checkCenter = access.includes(centerId);
-    if (checkCenter) {
-      updateAccess = updateAccess.filter((id) => id !== centerId);
-    } else {
-      updateAccess = [centerId, ...access];
-    }
-    setAccess(updateAccess);
+    setAccess((prev) => {
+      const newAccess = prev.includes(centerId)
+        ? prev.filter((id) => id !== centerId)
+        : [centerId, ...prev];
+
+      if (!onApply) {
+        dispatch(changeUserAccess(newAccess));
+      }
+
+      return newAccess;
+    });
   };
 
   // Event handler function for key down event
@@ -65,6 +68,12 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   // useEffect(() => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
+
+  useEffect(() => {
+    if (!onApply) {
+      setAccess(centerAccess || []);
+    }
+  }, [centerAccess, onApply]);
 
   return (
     <React.Fragment>
@@ -101,7 +110,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                   onClick={() => {
                     const cns = centers.map((cn) => cn._id);
                     setAccess(cns);
-                    dispatch(changeUserAccess(cns));
+                    if (!onApply) dispatch(changeUserAccess(cns));
                   }}
                   id="select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -156,7 +165,9 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                 <button
                   onClick={() => {
                     setAccess([]);
-                    dispatch(changeUserAccess([]));
+                    if (!onApply) {
+                      dispatch(changeUserAccess([]));
+                    }
                   }}
                   id="un-select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -209,8 +220,12 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                 <button
                   id="apply"
                   onClick={() => {
-                    dispatch(changeUserAccess(access));
-                    toggleWebAppDropdown()
+                    if (onApply) {
+                      onApply(access);
+                    } else {
+                      dispatch(changeUserAccess(access));
+                    }
+                    toggleWebAppDropdown();
                   }}
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
                 >
@@ -256,16 +271,17 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
             <Row className="row-gap-3">
               {(centers || []).map((center) => (
                 <Col key={center._id} xs={4}>
-                  <div className="form-check card-radio">
+                  <div
+                    className="form-check card-radio"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       id={center.title + center._id}
                       name="data-layout"
                       type="checkbox"
                       value={center["_id"]}
-                      checked={access.includes(center["_id"])}
-                      onChange={() => {
-                        changeAccess(center["_id"]);
-                      }}
+                      checked={access.includes(center["_id"].toString())}
+                      onChange={() => changeAccess(center["_id"].toString())}
                       className="form-check-input"
                     />
                     <label
@@ -291,9 +307,4 @@ WebAppsDropdown.prototype = {
   centerAccess: PropTypes.array,
 };
 
-const mapStateToProps = (state) => ({
-  centers: state.Center.data,
-  centerAccess: state.User?.centerAccess,
-});
-
-export default connect(mapStateToProps)(WebAppsDropdown);
+export default WebAppsDropdown;

@@ -28,6 +28,7 @@ const Header = ({
   headerClass,
   loading,
   patients,
+  centers,
   centerAccess,
   user,
 }) => {
@@ -294,7 +295,7 @@ const Header = ({
                 </div>
               </RenderWhen>
               {/* WebAppsDropdown */}
-              <WebAppsDropdown />
+              <WebAppsDropdown centerAccess={centerAccess} centers={centers}/>
 
               {/* FullScreenDropdown */}
               <FullScreenDropdown />
@@ -328,6 +329,7 @@ Header.prototype = {
 const mapStateToProps = (state) => ({
   loading: state.Patient.searchLoading,
   patients: state.Patient.searchedPatients,
+  centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   user: state.User.user,
 });

@@ -12,6 +12,7 @@ import {
   PATIENT_ANALYTICS,
   REPORT,
   BOOKING,
+  DOCTOR_ANALYTICS,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -59,6 +60,12 @@ const Report = ({}) => {
               onClick={() => handleView(PATIENT_ANALYTICS)}
             >
               Patient Analytics
+            </Button>
+            <Button
+              outline={view !== DOCTOR_ANALYTICS}
+              onClick={() => handleView(DOCTOR_ANALYTICS)}
+            >
+              Doctor Analytics
             </Button>
             <Button
               outline={view !== DB_LOGS}

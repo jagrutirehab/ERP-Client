@@ -627,6 +627,11 @@ export const getBookingAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const getDoctorAnalytics = (params = {}) => {
+  return api.create(url.GET_DOCTOR_ANALYTICS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 //Notification
 export const getBillNotification = (data) =>

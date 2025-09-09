@@ -1,276 +1,163 @@
 import React, { useEffect, useState } from "react";
-import { connect, useDispatch } from "react-redux";
-import {
-  Card,
-  CardBody,
-  Row,
-  Col,
-  Input,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
-  Alert,
-} from "reactstrap";
-import { fetchDBLogs } from "../../../../store/actions";
-import DBLogsHeader from "./components/DBLogsHeader";
-import DBLogsFilters from "./components/DBLogsFilters";
-import DBLogsTable from "./components/DBLogsTable";
+import DataTable from "react-data-table-component";
+import { Button, Col, Row, Input, Spinner } from "reactstrap";
+import { getDoctorAnalytics } from "../../../../helpers/backend_helper";
+import Divider from "../../../../Components/Common/Divider";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import WebAppsDropdown from "../../../../Components/Common/WebAppsDropdown";
 
-const DBLogs = ({ data, loading, pagination }) => {
-  const dispatch = useDispatch();
-  const [error, setError] = useState(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [currentPage, setCurrentPage] = useState(1);
-  // const [totalItems] = useState(150);
-  const [localFilters, setLocalFilters] = useState({
-    action: "",
-    collectionName: "",
-    startDate: "",
-    endDate: "",
-    search: "",
+const Doctor = ({ centers, centerAccess }) => {
+  const [data, setData] = useState({
+    data: [],
+    pagination: { totalPages: 1, totalDocs: 0 },
   });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [loading, setLoading] = useState(false);
+  const [roleFilter, setRoleFilter] = useState("");
+  const [centerFilter, setCenterFilter] = useState([...centerAccess]);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(pagination.totalItems / itemsPerPage);
-  const hasNextPage = currentPage < totalPages;
-  const hasPrevPage = currentPage > 1;
-
-  // Handle filter changes
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setLocalFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Apply filters
-  const handleApplyFilters = () => {
-    setCurrentPage(1); // Reset to first page when applying filters
-    fetchData();
-  };
-
-  // Clear filters
-  const handleClearFilters = () => {
-    setLocalFilters({
-      action: "",
-      collectionName: "",
-      startDate: "",
-      endDate: "",
-      search: "",
-    });
-    setCurrentPage(1);
-  };
-
-  // Handle pagination
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  // Handle items per page change
-  const handleItemsPerPageChange = (e) => {
-    const newItemsPerPage = Number(e.target.value);
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
-  };
-
-  // Fetch data function
-  const fetchData = () => {
-    const params = {
-      page: currentPage,
-      limit: itemsPerPage,
-      sortBy: "date",
-      sortOrder: "desc",
-      ...localFilters,
-    };
-
-    // Remove empty filters
-    Object.keys(params).forEach((key) => {
-      if (
-        params[key] === "" ||
-        params[key] === null ||
-        params[key] === undefined
-      ) {
-        delete params[key];
-      }
-    });
-    dispatch(fetchDBLogs(params));
-  };
-
-  // Refresh data
-  const handleRefresh = () => {
-    fetchData();
-  };
-
-  // Effect to fetch data when pagination or filters change
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage]);
+    const handler = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(handler);
+  }, [search]);
 
-  // Effect to fetch data on initial load
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => setPage(1), [debouncedSearch, limit]);
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
-
-  // Get action badge color and icon
-  const getActionBadge = (action) => {
-    switch (action?.toLowerCase()) {
-      case "delete":
-        return { color: "danger", icon: "🗑️", text: "Delete" };
-      case "update":
-        return { color: "warning", icon: "✏️", text: "Update" };
-      case "create":
-        return { color: "success", icon: "➕", text: "Create" };
-      default:
-        return { color: "secondary", icon: "📝", text: action || "Unknown" };
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await getDoctorAnalytics({
+        page,
+        limit,
+        search: debouncedSearch,
+        centerAccess: centerFilter,
+        role: roleFilter,
+      });
+      setData(res || { data: [], pagination: { totalPages: 1, totalDocs: 0 } });
+    } catch (err) {
+      console.error("Failed to fetch doctor analytics", err);
+      setData({ data: [], pagination: { totalPages: 1, totalDocs: 0 } });
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, [page, debouncedSearch, centerFilter, limit, roleFilter]);
+
+  const columns = [
+    { name: "#", selector: (row, idx) => idx + 1, width: "60px" },
+    { name: "Name", selector: (row) => row.name || "-" },
+    { name: "Role", selector: (row) => row.role || "-" },
+    { name: "Patient", selector: (row) => row.patientName || "-" },
+    { name: "UID", selector: (row) => row.uid || "-" },
+  ];
+
   return (
-    <React.Fragment>
-      <div className="">
-        <div className="row mt-4">
-          <div className="col-12">
-            <Card>
-              <DBLogsHeader
-                onRefresh={handleRefresh}
-                onToggleFilters={() => setShowFilters(!showFilters)}
-                showFilters={showFilters}
-                loading={loading}
-              />
-              <CardBody>
-                {/* Error Alert */}
-                {error && (
-                  <Alert color="danger" className="mb-3">
-                    <strong>Error:</strong> {error}
-                  </Alert>
-                )}
-
-                {/* Items Per Page and Total Count */}
-                <Row className="mb-3">
-                  <Col md={6}>
-                    <Input
-                      type="select"
-                      name="itemsPerPage"
-                      value={itemsPerPage}
-                      onChange={handleItemsPerPageChange}
-                    >
-                      <option value={10}>10 per page</option>
-                      <option value={20}>20 per page</option>
-                      <option value={50}>50 per page</option>
-                      <option value={100}>100 per page</option>
-                    </Input>
-                  </Col>
-                  <Col md={6}>
-                    <div className="text-right">
-                      <small className="text-muted">
-                        Total: {pagination.totalItems} logs
-                      </small>
-                    </div>
-                  </Col>
-                </Row>
-
-                {showFilters && (
-                  <DBLogsFilters
-                    filters={localFilters}
-                    onFilterChange={handleFilterChange}
-                    onApplyFilters={handleApplyFilters}
-                    onClearFilters={handleClearFilters}
-                    loading={loading}
-                  />
-                )}
-
-                <DBLogsTable data={data} loading={loading} />
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="d-flex justify-content-between align-items-center mt-3">
-                    <div>
-                      <small className="text-muted">
-                        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                        {Math.min(
-                          currentPage * itemsPerPage,
-                          pagination.totalItems
-                        )}{" "}
-                        of {pagination.totalItems} entries
-                      </small>
-                    </div>
-                    <Pagination
-                      className="mb-0"
-                      style={{ marginBottom: "0px" }}
-                    >
-                      <PaginationItem disabled={!hasPrevPage}>
-                        <PaginationLink
-                          previous
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={!hasPrevPage}
-                        />
-                      </PaginationItem>
-
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(
-                          (page) =>
-                            page === 1 ||
-                            page === totalPages ||
-                            Math.abs(page - currentPage) <= 2
-                        )
-                        .map((page, index, array) => (
-                          <React.Fragment key={page}>
-                            {index > 0 && array[index - 1] !== page - 1 && (
-                              <PaginationItem disabled>
-                                <PaginationLink>...</PaginationLink>
-                              </PaginationItem>
-                            )}
-                            <PaginationItem active={page === currentPage}>
-                              <PaginationLink
-                                onClick={() => handlePageChange(page)}
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        ))}
-
-                      <PaginationItem disabled={!hasNextPage}>
-                        <PaginationLink
-                          next
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={!hasNextPage}
-                        />
-                      </PaginationItem>
-                    </Pagination>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
+    <>
+      <div className="pt-4">
+        <div className="bg-white p-2 m-n3">
+          <div className="">
+            <h6 className="display-6 fs-6 my-3">
+              Total Patients: {data?.pagination?.totalDocs || 0}
+            </h6>
           </div>
+          <div className="d-flex gap-2 align-items-center mt-3">
+            <Input
+              type="select"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              style={{ width: "100px" }}
+            >
+              {[10, 20, 30, 40, 50].map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </Input>
+            <Input
+              type="select"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              style={{ width: "200px" }}
+            >
+              <option value="">All</option>
+              <option value="doctor">Doctor</option>
+              <option value="psychologist">Psychologist</option>
+            </Input>
+            <WebAppsDropdown
+              centers={centers}
+              centerAccess={centerFilter}
+              onApply={(selectedCenters) => setCenterFilter(selectedCenters)}
+            />
+            <Input
+              type="text"
+              placeholder="Search patient UID, doctor, or psychologist"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: "30%" }}
+            />
+          </div>
+
+          <Divider />
+          {loading ? (
+            <div className="text-center py-4">
+              <Spinner color="primary" />
+            </div>
+          ) : (
+            <DataTable
+              fixedHeader
+              columns={columns}
+              data={data?.data || []}
+              highlightOnHover
+              noHeader
+            />
+          )}
+
+          {!loading && data?.pagination?.totalPages > 1 && (
+            <Row className="mt-4 justify-content-center align-items-center">
+              <Col xs="auto">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  ← Previous
+                </Button>
+              </Col>
+              <Col xs="auto" className="text-center text-muted mx-3">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, data?.pagination?.totalDocs || 0)} of{" "}
+                {data?.pagination?.totalDocs || 0}
+              </Col>
+              <Col xs="auto">
+                <Button
+                  color="secondary"
+                  disabled={page === data?.pagination?.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next →
+                </Button>
+              </Col>
+            </Row>
+          )}
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 };
 
-const mapStateToProps = (state) => ({
-  data: state.DBLogs?.logs,
-  loading: state.DBLogs?.loading,
-  totalItems: state.DBLogs?.totalItems,
-  pagination: state.DBLogs.pagination,
-});
+Doctor.prototype = {
+  centers: PropTypes.array,
+};
 
-export default connect(mapStateToProps)(DBLogs);
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+});
+export default connect(mapStateToProps)(Doctor);
