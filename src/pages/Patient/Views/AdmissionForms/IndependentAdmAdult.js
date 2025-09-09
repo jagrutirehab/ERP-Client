@@ -125,10 +125,11 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
             ...fullLine,
           }}
         />{" "}
-        IPD No.
+        UID No.
         <input
           type="text"
-          defaultValue={details?.IPDnum}
+          // defaultValue={details?.IPDnum}
+          defaultValue={patient?.id?.value}
           {...register("Indipendent_Admission_adult_ipd")}
           style={{
             fontWeight: "bold",
@@ -154,7 +155,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          defaultValue={patient?.guardianRelation}
+          defaultValue={patient?.guardianName}
           {...register("Indipendent_Admission_adult_parentName")}
           style={{
             fontWeight: "bold",
