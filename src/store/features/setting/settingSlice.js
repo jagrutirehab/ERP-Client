@@ -1,21 +1,29 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   deleteBillItem,
+  deleteCondition,
   deletePaymentAccount,
+  deleteTherapy,
   editBillItem,
   editCalenderDuration,
+  editCondition,
   editDoctorSchedule,
+  editTherapy,
   getAllBillItems,
   getAllDoctorSchedule,
   getBillItems,
   getCalenderDuration,
+  getConditions,
   getDoctorSchedule,
   getPaymentAccounts,
+  getTherapies,
   postBillItem,
   postCalenderDuration,
+  postCondition,
   postDoctorSchedule,
   postDoctorScheduleNew,
   postPaymentAccount,
+  postTherapy,
   postUserSessionPricing,
   putUserSessionPricing,
 } from "../../../helpers/backend_helper";
@@ -26,6 +34,8 @@ const initialState = {
   allInvoiceProcedures: [],
   paymentAccounts: [],
   doctorSchedule: [],
+  therapies: [],
+  conditions: [],
   doctor: null,
   doctorAvailableSlots: null,
   appointmentsInRange: [],
@@ -245,6 +255,162 @@ export const removePaymentAccount = createAsyncThunk(
 );
 /* -------------------------------------------------------------------- */
 /* ---------------------------- BILLING ------------------------------- */
+/* -------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- CONDITIONS ---------------------------- */
+/* -------------------------------------------------------------------- */
+
+export const fetchCondition = createAsyncThunk(
+  "getConditions",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getConditions(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const addCondition = createAsyncThunk(
+  "postCondition",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postCondition(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Condition Saved Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const updateCondition = createAsyncThunk(
+  "editCondition",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editCondition(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Condition Updated Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removeCondition = createAsyncThunk(
+  "deleteCondition",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteCondition(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Condition Deleted Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- CONDITIONS ---------------------------- */
+/* -------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- THERAPIES ----------------------------- */
+/* -------------------------------------------------------------------- */
+
+export const fetchTherapy = createAsyncThunk(
+  "getTherapies",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getTherapies(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const addTherapy = createAsyncThunk(
+  "postTherapy",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postTherapy(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Therapy Saved Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const updateTherapy = createAsyncThunk(
+  "editTherapy",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editTherapy(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Therapy Updated Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removeTherapy = createAsyncThunk(
+  "deleteTherapy",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteTherapy(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Therapy Deleted Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- THERAPIES ----------------------------- */
 /* -------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------- */
@@ -537,6 +703,128 @@ const settingSlice = createSlice({
       });
     /* -------------------------------------------------------------------- */
     /* ---------------------------- BILLING ------------------------------- */
+    /* -------------------------------------------------------------------- */
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- CONDTION ------------------------------ */
+    /* -------------------------------------------------------------------- */
+
+    builder
+      .addCase(fetchCondition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCondition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.conditions = payload.payload;
+      })
+      .addCase(fetchCondition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addCondition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addCondition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.conditions = [payload.payload, ...(state.conditions || [])];
+      })
+      .addCase(addCondition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateCondition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateCondition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.conditions.findIndex(
+          (el) => el._id === payload.payload?._id
+        );
+        state.conditions[findIndex] = payload.payload;
+      })
+      .addCase(updateCondition.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeCondition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeCondition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.conditions = state.conditions.filter(
+          (item) => item._id !== payload.payload?._id
+        );
+      })
+      .addCase(removeCondition.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- CONDTION ------------------------------ */
+    /* -------------------------------------------------------------------- */
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- THERAPY ------------------------------- */
+    /* -------------------------------------------------------------------- */
+
+    builder
+      .addCase(fetchTherapy.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTherapy.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.therapies = payload.payload;
+      })
+      .addCase(fetchTherapy.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addTherapy.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addTherapy.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.therapies = [...(state.therapies || []), payload.payload];
+      })
+      .addCase(addTherapy.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateTherapy.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTherapy.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.therapies.findIndex(
+          (el) => el._id === payload.payload?._id
+        );
+        state.therapies[findIndex] = payload.payload;
+      })
+      .addCase(updateTherapy.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeTherapy.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeTherapy.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.therapies = state.therapies.filter(
+          (item) => item._id !== payload.payload?._id
+        );
+      })
+      .addCase(removeTherapy.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- THERAPY ------------------------------- */
     /* -------------------------------------------------------------------- */
 
     /* -------------------------------------------------------------------- */

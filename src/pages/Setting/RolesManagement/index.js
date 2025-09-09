@@ -30,15 +30,19 @@ const RolesManagement = () => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);   
+  const [totalPages, setTotalPages] = useState(1);
 
   const limit = 10;
-  const { loading: permissionLoader, hasPermission, roles:userRoles } = usePermissions(token);
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles: userRoles,
+  } = usePermissions(token);
   const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
-    const handleAuthError = useAuthError();
+  const handleAuthError = useAuthError();
 
   const fetchRoles = async (page = 1) => {
-     if(!token) return;
+    if (!token) return;
     try {
       setLoading(true);
       const response = await getAllRoles({ page, limit, token });
@@ -46,7 +50,7 @@ const RolesManagement = () => {
       setTotalPages(response?.data?.totalPages || 1);
       setCurrentPage(response?.data?.currentPage || page);
     } catch (error) {
-      if(!handleAuthError(error)){
+      if (!handleAuthError(error)) {
         toast.error("Failed to fetch roles.");
       }
     } finally {
@@ -55,7 +59,7 @@ const RolesManagement = () => {
   };
 
   useEffect(() => {
-     if (!hasUserPermission) return;
+    if (!hasUserPermission) return;
     fetchRoles(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, currentPage, hasUserPermission]);
@@ -88,11 +92,11 @@ const RolesManagement = () => {
       setIsModalOpen(false);
       setSelectedRole(null);
     } catch (error) {
-     if(!handleAuthError(error)){
-       toast.error(
-        selectedRole ? "Failed to update role." : "Failed to create role."
-      );
-     }
+      if (!handleAuthError(error)) {
+        toast.error(
+          selectedRole ? "Failed to update role." : "Failed to create role."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -120,7 +124,7 @@ const RolesManagement = () => {
       setIsDeleteModalOpen(false);
       setRoleToDelete(null);
     } catch (error) {
-      if(!handleAuthError(error)){
+      if (!handleAuthError(error)) {
         toast.error("Failed to delete role.");
       }
     } finally {
@@ -141,19 +145,22 @@ const RolesManagement = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
+  if (permissionLoader) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner
+          color="primary"
+          className="d-block"
+          style={{ width: "3rem", height: "3rem" }}
+        />
+      </div>
+    );
+  }
 
- if (permissionLoader) {
-     return (
-       <div className="d-flex justify-content-center align-items-center vh-100">
-         <Spinner color="primary" className="d-block" style={{ width: '3rem', height: '3rem' }} />
-       </div>
-     );
-   }
-
-   if (!hasUserPermission) {
-     navigate("/unauthorized");
-     return null;
-   }
+  if (!hasUserPermission) {
+    navigate("/unauthorized");
+    return null;
+  }
 
   return (
     <div className="container-fluid d-flex flex-column h-100 px-3">
@@ -187,7 +194,10 @@ const RolesManagement = () => {
                     permissions={userRoles?.permissions}
                   />
                 ))}
-                <CheckPermission accessRolePermission={userRoles?.permissions} permission="create">
+                <CheckPermission
+                  accessRolePermission={userRoles?.permissions}
+                  permission="create"
+                >
                   <AddRoleCard onAdd={handleAddClick} />
                 </CheckPermission>
               </>

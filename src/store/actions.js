@@ -262,6 +262,14 @@ export {
   fetchCalenderDuration,
   addCalenderDuration,
   updateCalenderDuration,
+  addCondition,
+  updateCondition,
+  removeCondition,
+  fetchCondition,
+  addTherapy,
+  updateTherapy,
+  removeTherapy,
+  fetchTherapy,
 } from "./features/setting/settingSlice";
 
 //Report

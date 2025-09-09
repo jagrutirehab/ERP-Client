@@ -58,8 +58,6 @@ const Wrapper = ({
         .join(" ")
     : "";
 
-  console.log({ disableEdit, disableDelete, bill: item.bill });
-
   return (
     <motion.div
       whileHover={{
