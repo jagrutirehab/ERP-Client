@@ -152,9 +152,7 @@ const UserForm = ({
       accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
       phoneNumber: userData ? userData.phoneNumber : "",
-      degrees: userData?.education
-        ? userData.education?.degrees
-        : userData?.degrees || "",
+      degrees: userData?.education?.degrees ?? userData?.degrees ?? "",
       speciality: userData?.education
         ? userData.education?.speciality
         : userData?.speciality || "",
