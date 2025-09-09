@@ -114,7 +114,7 @@ const AdmissionFormModal = ({
           </div>
 
           {/* Admission Type */}
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <Label className="text-muted mb-1">IPD Number</Label>
             <Input
               type="text"
@@ -124,7 +124,7 @@ const AdmissionFormModal = ({
               }
               placeholder="Enter IPD Number"
             />
-          </div>
+          </div> */}
           <div className="mt-3">
             <Label className="text-muted mb-1">Admission Type</Label>
             <Input

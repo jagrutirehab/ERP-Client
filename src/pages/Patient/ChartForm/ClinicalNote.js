@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Form,
@@ -103,6 +103,7 @@ const ClinicalNote = ({
   const dispatch = useDispatch();
   const [files, setFiles] = useState([]);
   const [audioFile, setAudioFile] = useState(null);
+  const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
   const editClinicalNote = editChartData?.clinicalNote;
@@ -149,11 +150,21 @@ const ClinicalNote = ({
       shouldPrintAfterSave,
     },
     validationSchema: Yup.object({}),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const allFiles = [...files];
-      if (audioFile) {
+      if (audioFinalizeRef.current) {
+        const finalAudio = await audioFinalizeRef.current();
+        if (finalAudio) {
+          allFiles.push(finalAudio);
+        } else if (audioFile) {
+          allFiles.push(audioFile);
+        }
+      } else if (audioFile) {
         allFiles.push(audioFile);
       }
+      // if (audioFile) {
+      //   allFiles.push(audioFile);
+      // }
       // console.log("Submitting files:", allFiles);
       onSubmitClinicalForm(values, allFiles, editChartData, editClinicalNote);
     },
@@ -236,7 +247,12 @@ const ClinicalNote = ({
         {type === "IPD" && (
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
-            <AudioRecorder onReady={(file) => setAudioFile(file)} />
+            <AudioRecorder
+              onReady={(file, stopFn) => {
+                if (file) setAudioFile(file);
+                if (stopFn) audioFinalizeRef.current = stopFn;
+              }}
+            />
           </Col>
         )}
 

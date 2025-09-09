@@ -131,10 +131,11 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
           {...register("Indipendent_Admission_Support_nominatedRep")}
           style={inputLine}
         />{" "}
-        of IPD No.
+        of UID No.
         <input
           type="text"
-          defaultValue={details?.IPDnum}
+          // defaultValue={details?.IPDnum}
+          defaultValue={patient?.id?.value}
           {...register("Indipendent_Admission_Support_ipd")}
           style={{
             fontWeight: "bold",
@@ -160,7 +161,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          defaultValue={patient?.guardianRelation}
+          defaultValue={patient?.guardianName}
           {...register("Indipendent_Admission_Support_parentName")}
           style={{
             fontWeight: "bold",

@@ -148,7 +148,7 @@ const Admissionpage1 = ({
             }}
           />
         </div>
-        <div>
+        {/* <div>
           <span style={label}>IPD No. :</span>
           <input
             type="text"
@@ -160,7 +160,7 @@ const Admissionpage1 = ({
               ...inputLine,
             }}
           />
-        </div>
+        </div> */}
         <div>
           <span style={label}>Ward / Bed :</span>
           <input

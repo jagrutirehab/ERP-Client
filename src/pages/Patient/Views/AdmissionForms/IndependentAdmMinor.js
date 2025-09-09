@@ -138,10 +138,11 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        IPD No.
+        UID No.
         <input
           type="text"
-          defaultValue={details?.IPDnum}
+          // defaultValue={details?.IPDnum}
+          defaultValue={patient?.id?.value}
           {...register("Indipendent_Admission_minor_ipd")}
           style={{
             fontWeight: "bold",
