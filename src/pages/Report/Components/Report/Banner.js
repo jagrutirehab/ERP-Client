@@ -48,6 +48,12 @@ const Banner = ({ data, billType }) => {
     return amount;
   };
 
+  console.log(
+    data?.reduce((total, item) => total + (item.invoice?.payable || 0), 0),
+    "data",
+    data
+  );
+
   const dueAmount = (dt) => {
     const totalAdPayment = totalAdvancePayment(dt);
     const totalPay = totalPayable(dt);

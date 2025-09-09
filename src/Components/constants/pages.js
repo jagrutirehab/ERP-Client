@@ -208,6 +208,18 @@ export const setting = [
     link: "/setting/rolesmanagment",
     icon: "bx bx-fingerprint",
   },
+  {
+    id: "therapies",
+    label: "Therapies",
+    link: "/setting/therapies",
+    icon: "bx bx-heart",
+  },
+  {
+    id: "conditions",
+    label: "Conditions",
+    link: "/setting/conditions",
+    icon: "bx bx-health",
+  },
 ];
 
 export const recyclebin = [

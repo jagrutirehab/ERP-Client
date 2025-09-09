@@ -577,6 +577,20 @@ export const getCalenderDuration = (data) =>
 export const editCalenderDuration = (data) =>
   api.put(url.EDIT_CALENDER_DURATION, data);
 
+//Therapy
+export const getTherapies = (data) => api.get(url.GET_THERAPIES, data);
+export const postTherapy = (data) => api.create(url.POST_THERAPY, data);
+export const editTherapy = (data) => api.put(url.EDIT_THERAPY, data);
+export const deleteTherapy = (data) =>
+  api.delete(`${url.DELETE_THERAPY}/${data}`);
+
+//Condition
+export const getConditions = (data) => api.get(url.GET_CONDITIONS, data);
+export const postCondition = (data) => api.create(url.POST_CONDITION, data);
+export const editCondition = (data) => api.put(url.EDIT_CONDITION, data);
+export const deleteCondition = (data) =>
+  api.delete(`${url.DELETE_CONDITION}/${data}`);
+
 //Report
 export const getReport = (data) =>
   api.get(url.GET_REPORT, {

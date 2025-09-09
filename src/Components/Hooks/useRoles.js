@@ -27,9 +27,9 @@ export const usePermissions = (token) => {
         rolesCache = response.data;
         setRoles(response.data);
       } catch (error) {
-       if(!handleAuthError(error)){
+        if (!handleAuthError(error)) {
           setError(error);
-       }
+        }
       } finally {
         setLoading(false);
       }
@@ -37,6 +37,8 @@ export const usePermissions = (token) => {
 
     fetchRoles();
   }, [token]);
+
+  console.log(roles, "roles");
 
   const hasPermission = (module, subModule, requiredType = "NONE") => {
     if (!roles) return false;
@@ -55,7 +57,6 @@ export const usePermissions = (token) => {
       return typeRank[perm.type] >= requiredRank;
     });
   };
-
 
   return { roles, loading, error, hasPermission, resetRolesCache };
 };

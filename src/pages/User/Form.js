@@ -54,6 +54,8 @@ const UserForm = ({
   );
   const [options, setOptions] = useState([]);
   const [expertise, setExpertise] = useState([]);
+  const [conditions, setConditions] = useState([]);
+  const [therapies, setTherapies] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
@@ -109,6 +111,36 @@ const UserForm = ({
     ]);
   };
 
+  // CONDITIONS
+  const handleConditionChange = (selectedOptions) => {
+    setExpertise(selectedOptions || []);
+    validation.setFieldValue("expertise", selectedOptions);
+  };
+
+  const handleConditionCreate = (inputValue) => {
+    const newOption = { value: inputValue.toLowerCase(), label: inputValue };
+    setExpertise((prev) => [...prev, newOption]);
+    validation.setFieldValue("expertise", [
+      ...(validation.values.expertise || []),
+      newOption,
+    ]);
+  };
+
+  // THERAPIES
+  const handleTherapiesChange = (selectedOptions) => {
+    setExpertise(selectedOptions || []);
+    validation.setFieldValue("expertise", selectedOptions);
+  };
+
+  const handleTherapiesCreate = (inputValue) => {
+    const newOption = { value: inputValue.toLowerCase(), label: inputValue };
+    setExpertise((prev) => [...prev, newOption]);
+    validation.setFieldValue("expertise", [
+      ...(validation.values.expertise || []),
+      newOption,
+    ]);
+  };
+
   const handleLanChange = (selectedOptions) => {
     setLanguages(selectedOptions || []);
     validation.setFieldValue("languages", selectedOptions);
@@ -131,6 +163,12 @@ const UserForm = ({
     setExpertise(
       userData?.expertise?.map((e) => ({ label: e, value: e })) || []
     );
+    setConditions(
+      userData?.conditions?.map((e) => ({ label: e, value: e })) || []
+    );
+    setTherapies(
+      userData?.therapies?.map((e) => ({ label: e, value: e })) || []
+    );
     setLanguages(
       userData?.languages?.map((e) => ({ label: e, value: e })) || []
     );
@@ -143,6 +181,7 @@ const UserForm = ({
     setSignature(null);
     setProfilePic(null);
   }, [userData]);
+
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -178,6 +217,12 @@ const UserForm = ({
       experience: userData ? userData?.experience : "",
       expertise: userData
         ? userData?.expertise?.map((e) => ({ label: e, value: e }))
+        : [],
+      conditions: userData
+        ? userData?.conditions?.map((e) => ({ label: e, value: e }))
+        : [],
+      therapies: userData
+        ? userData?.therapies?.map((e) => ({ label: e, value: e }))
         : [],
       availabilityMode: userData ? userData?.availabilityMode : [],
     },
@@ -243,6 +288,8 @@ const UserForm = ({
         );
       formData.append("availabilityMode", values.availabilityMode);
       formData.append("experience", values.experience);
+      formData.append("conditions", values.conditions);
+      formData.append("therapies", values.therapies);
       if (options?.length)
         formData.append(
           "patientsConcern",
@@ -371,9 +418,9 @@ const UserForm = ({
           if (tm.name === a) {
             if (c) {
               const subAccess = tm.subAccess?.find((sub) => sub.name === c);
-              return subAccess?.permissions?.[b] === true; 
+              return subAccess?.permissions?.[b] === true;
             } else {
-              return tm.permissions?.[b] === true; 
+              return tm.permissions?.[b] === true;
             }
           }
           return false;
@@ -465,18 +512,18 @@ const UserForm = ({
         return pg;
       });
     } else {
-     currentPageAccess = currentPageAccess.map((pg) => {
-       if (item.name === pg.name) {
-         return {
-           ...pg,
-           permissions: {
-             ...(pg.permissions || {}),
-             [perm]: !pg.permissions?.[perm],
-           },
-         };
-       }
-       return pg;
-     });
+      currentPageAccess = currentPageAccess.map((pg) => {
+        if (item.name === pg.name) {
+          return {
+            ...pg,
+            permissions: {
+              ...(pg.permissions || {}),
+              [perm]: !pg.permissions?.[perm],
+            },
+          };
+        }
+        return pg;
+      });
     }
     validation.setFieldValue("pageAccess", currentPageAccess);
   };
@@ -1478,7 +1525,9 @@ const UserForm = ({
                     type="checkbox"
                     name="centerAccess"
                     value={item._id}
-                    checked={validation.values?.centerAccess?.includes(item._id)}
+                    checked={validation.values?.centerAccess?.includes(
+                      item._id
+                    )}
                     onChange={validation.handleChange}
                     style={{
                       marginRight: "10px",
@@ -2018,6 +2067,84 @@ const UserForm = ({
                       }}
                     >
                       {validation.errors.expertise}
+                    </p>
+                  )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  Conditions
+                </label>
+                <CreatableSelect
+                  isMulti
+                  name="conditions"
+                  options={conditions}
+                  classNamePrefix="react-select"
+                  onChange={handleConditionChange}
+                  onCreateOption={handleConditionCreate}
+                  value={validation.values.conditions || []}
+                />
+                {validation.touched.conditions &&
+                  validation.errors.conditions && (
+                    <p
+                      style={{
+                        color: "#ef4444",
+                        fontSize: "13px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {validation.errors.conditions}
+                    </p>
+                  )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  Therapies
+                </label>
+                <CreatableSelect
+                  isMulti
+                  name="therapies"
+                  options={therapies}
+                  classNamePrefix="react-select"
+                  onChange={handleTherapiesChange}
+                  onCreateOption={handleTherapiesCreate}
+                  value={validation.values.therapies || []}
+                />
+                {validation.touched.therapies &&
+                  validation.errors.therapies && (
+                    <p
+                      style={{
+                        color: "#ef4444",
+                        fontSize: "13px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {validation.errors.therapies}
                     </p>
                   )}
               </div>

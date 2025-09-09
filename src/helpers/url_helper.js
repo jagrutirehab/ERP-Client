@@ -196,6 +196,18 @@ export const GET_CALENDER_DURATION = "/setting/calender";
 export const POST_CALENDER_DURATION = "/setting/calender";
 export const EDIT_CALENDER_DURATION = "/setting/calender";
 
+//THERAPY
+export const GET_THERAPIES = "/therapy";
+export const POST_THERAPY = "/therapy";
+export const EDIT_THERAPY = "/therapy";
+export const DELETE_THERAPY = "/therapy";
+
+//CONDITION
+export const GET_CONDITIONS = "/condition";
+export const POST_CONDITION = "/condition";
+export const EDIT_CONDITION = "/condition";
+export const DELETE_CONDITION = "/condition";
+
 //REPORT
 export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
