@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const Admissionpage2 = ({ register, patient, details }) => {
@@ -38,6 +39,43 @@ const Admissionpage2 = ({ register, patient, details }) => {
     marginTop: "15px",
   };
 
+  useEffect(() => {
+    if (details) {
+      document.querySelector(
+        '[name="Basic_Admission_Form_semiPrivate"]'
+      ).value = details?.toPay || "";
+      document.querySelector('[name="Basic_Admission_Form_private"]').value =
+        details?.semiprivate || "";
+      document.querySelector('[name="Basic_Admission_Form_roomtype"]').value =
+        details?.roomtype || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_advanceDeposit"]'
+      ).value = details?.advDeposit || "";
+    }
+
+    if (patient) {
+      document.querySelector('[name="Basic_Admission_Form_patientRep"]').value =
+        patient?.name || "";
+      document.querySelector('[name="Basic_Admission_Form_relation"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_witnessName"]'
+      ).value = patient?.guardianName || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_relationWitness"]'
+      ).value = patient?.guardianRelation || "";
+    }
+
+    document.querySelector('[name="Basic_Admission_Form_dateWitness"]').value =
+      new Date().toISOString().split("T")[0] || "";
+
+    document.querySelector('[name="Basic_Admission_Form_dateStaff"]').value =
+      new Date().toISOString().split("T")[0] || "";
+
+    document.querySelector('[name="Basic_Admission_Form_dateRep"]').value =
+      new Date().toISOString().split("T")[0] || "";
+  }, [details, patient]);
+
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
@@ -48,7 +86,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         10) I am informed and I am willing to pay Rs
         <input
           type="text"
-          value={details?.toPay}
+          defaultValue={details?.toPay}
           {...register("Basic_Admission_Form_semiPrivate")}
           style={{
             fontWeight: "bold",
@@ -59,7 +97,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Monthly and
         <input
           type="text"
-          value={details?.semiprivate}
+          defaultValue={details?.semiprivate}
           {...register("Basic_Admission_Form_private")}
           style={{
             fontWeight: "bold",
@@ -70,7 +108,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Daily for
         <input
           type="text"
-          value={details?.roomtype}
+          defaultValue={details?.roomtype}
           {...register("Basic_Admission_Form_roomtype")}
           style={{
             fontWeight: "bold",
@@ -81,7 +119,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Room as residential charges, a refundable advance deposit of
         <input
           type="text"
-          value={details?.advDeposit}
+          defaultValue={details?.advDeposit}
           {...register("Basic_Admission_Form_advanceDeposit")}
           style={{
             fontWeight: "bold",
@@ -147,7 +185,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Name of Patient / Representative:
             <input
               type="text"
-              value={patient?.name}
+              defaultValue={patient?.name}
               {...register("Basic_Admission_Form_patientRep")}
               style={{
                 border: "none",
@@ -162,7 +200,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Relation:
             <input
               type="text"
-              value={patient?.guardianRelation}
+              defaultValue={patient?.guardianRelation}
               {...register("Basic_Admission_Form_relation")}
               style={{
                 border: "none",
@@ -177,7 +215,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              value={new Date().toISOString().split("T")[0]}
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateRep", {
                 setValueAs: (val) => {
                   if (!val) return "";
@@ -204,7 +242,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              value={new Date().toISOString().split("T")[0]}
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateStaff", {
                 setValueAs: (val) => {
                   if (!val) return "";
@@ -221,7 +259,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
           Witness’s Name:
           <input
             type="text"
-            value={patient?.guardianName}
+            defaultValue={patient?.guardianName}
             {...register("Basic_Admission_Form_witnessName")}
             style={{
               border: "none",
@@ -235,7 +273,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Relation:
             <input
               type="text"
-              value={patient?.guardianRelation}
+              defaultValue={patient?.guardianRelation}
               {...register("Basic_Admission_Form_relationWitness")}
               style={{
                 border: "none",
@@ -250,7 +288,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              value={new Date().toISOString().split("T")[0]}
+              defaultValue={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateWitness", {
                 setValueAs: (val) => {
                   if (!val) return "";
