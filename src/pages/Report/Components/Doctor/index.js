@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Input, Spinner, Row, Col, Button } from "reactstrap";
-import { getDoctorAnalytics } from "../../../../helpers/backend_helper";
+import { getDoctorAnalytics, getDoctorAnalyticsWP } from "../../../../helpers/backend_helper";
 import Divider from "../../../../Components/Common/Divider";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
@@ -69,7 +69,7 @@ const Doctor = ({ centers, centerAccess }) => {
   const fetchFullData = async () => {
     try {
       setCsvLoading(true);
-      const res = await getDoctorAnalytics({
+      const res = await getDoctorAnalyticsWP({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
         search: debouncedSearch,

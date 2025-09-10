@@ -646,6 +646,11 @@ export const getDoctorAnalytics = (params = {}) => {
     headers: { "Content-Type": "application/json" },
   });
 };
+export const getDoctorAnalyticsWP = (params = {}) => {
+  return api.create(url.GET_DOCTOR_ANALYTICS_WP, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 //Notification
 export const getBillNotification = (data) =>
