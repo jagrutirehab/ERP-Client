@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const SeriousnessConsent = ({ register, patient }) => {
@@ -33,6 +34,25 @@ const SeriousnessConsent = ({ register, patient }) => {
     marginLeft: "5px",
     marginRight: "5px",
   };
+
+  useEffect(() => {
+    if (patient) {
+      document.querySelector('[name="seriousness_name"]').value =
+        patient?.guardianName || "";
+      document.querySelector('[name="seriousness_patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="transfer_patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="consent_patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="consent_relation"]').value =
+        patient?.guardianRelation || "";
+    }
+
+    // auto-fill date
+    const today = new Date().toISOString().split("T")[0];
+    document.querySelector('[name="page3_date"]').value = today;
+  }, [patient]);
 
   return (
     <div style={pageContainer}>
