@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const ECTConsentForm = ({ register, patient, admissions }) => {
@@ -26,6 +27,42 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
     justifyContent: "space-between",
     marginTop: "40px",
   };
+
+  useEffect(() => {
+    if (patient) {
+      document.querySelector('[name="patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="relation"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector('[name="patientRelativeName"]').value =
+        patient?.guardianName || "";
+      document.querySelector('[name="patientRelativeAddress1"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector('[name="patientRelativeAddress2"]').value = ""; // keep empty
+      document.querySelector('[name="treatmentTo"]').value =
+        patient?.name || "";
+      document.querySelector('[name="nearestRelative"]').value =
+        patient?.guardianName || "";
+      document.querySelector('[name="relativeName"]').value =
+        patient?.guardianName || "";
+      document.querySelector('[name="relativeOf"]').value = patient?.name || "";
+      document.querySelector('[name="relativeContact"]').value =
+        patient?.guardianPhoneNumber || "";
+    }
+
+    if (admissions) {
+      const doctorName =
+        admissions?.length > 0 ? admissions[0].doctor?.name : "";
+      document.querySelector('[name="doctorName"]').value = doctorName;
+      document.querySelector('[name="doctorExplain"]').value = doctorName;
+      document.querySelector('[name="relativeDoctor"]').value = doctorName;
+    }
+
+    const today = new Date().toLocaleDateString("en-GB").split("/").join("/");
+    document.querySelector('[name="witnessDate"]').value = today;
+    document.querySelector('[name="doctorDate"]').value = today;
+    document.querySelector('[name="relativeDate"]').value = today;
+  }, [patient, admissions]);
 
   return (
     <div style={pageContainer}>

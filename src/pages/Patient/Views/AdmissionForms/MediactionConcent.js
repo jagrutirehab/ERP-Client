@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const MediactionConcent = ({ register, patient }) => {
@@ -50,6 +51,27 @@ const MediactionConcent = ({ register, patient }) => {
   };
 
   const bold = { fontWeight: "bold" };
+
+  useEffect(() => {
+    if (patient) {
+      document.querySelector('[name="medicationConsent_name"]').value =
+        patient?.guardianName || "";
+      document.querySelector('[name="medicationConsent_relation"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector('[name="medicationConsent_patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="medicationConsent_patientFull"]').value =
+        patient?.name || "";
+      document.querySelector('[name="medicationConsent_patientName2"]').value =
+        patient?.name || "";
+      document.querySelector('[name="medicationConsent_relation2"]').value =
+        patient?.guardianRelation || "";
+    }
+
+    // auto-fill today’s date
+    const today = new Date().toISOString().split("T")[0];
+    document.querySelector('[name="page4_date"]').value = today;
+  }, [patient]);
 
   return (
     <div style={pageContainer}>
