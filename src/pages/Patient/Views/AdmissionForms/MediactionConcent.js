@@ -61,7 +61,7 @@ const MediactionConcent = ({ register, patient }) => {
         Date:
         <input
           type="date"
-          value={new Date().toISOString().split("T")[0]}
+          defaultValue={new Date().toISOString().split("T")[0]}
           {...register("page4_date", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -105,7 +105,7 @@ const MediactionConcent = ({ register, patient }) => {
         I,
         <input
           type="text"
-          value={patient?.guardianName}
+          defaultValue={patient?.guardianName}
           {...register("medicationConsent_name")}
           style={{
             fontWeight: "bold",
@@ -116,7 +116,7 @@ const MediactionConcent = ({ register, patient }) => {
         Father/Mother/Son/Daughter/Husband/Wife/NR/NOK
         <input
           type="text"
-          value={patient?.guardianRelation}
+          defaultValue={patient?.guardianRelation}
           {...register("medicationConsent_relation")}
           style={{
             fontWeight: "bold",
@@ -127,7 +127,7 @@ const MediactionConcent = ({ register, patient }) => {
         of
         <input
           type="text"
-          value={patient?.name}
+          defaultValue={patient?.name}
           {...register("medicationConsent_patientName")}
           style={{
             fontWeight: "bold",
@@ -138,7 +138,7 @@ const MediactionConcent = ({ register, patient }) => {
         Mr/Mrs/Miss/Smt
         <input
           type="text"
-          value={patient?.name}
+          defaultValue={patient?.name}
           {...register("medicationConsent_patientFull")}
           style={{
             fontWeight: "bold",
@@ -162,7 +162,7 @@ const MediactionConcent = ({ register, patient }) => {
           <span style={bold}>Name of Patient</span>:
           <input
             type="text"
-            value={patient?.name}
+            defaultValue={patient?.name}
             {...register("medicationConsent_patientName2")}
             style={{
               fontWeight: "bold",
@@ -175,7 +175,7 @@ const MediactionConcent = ({ register, patient }) => {
           <span style={bold}>Relation with the Patient</span>:
           <input
             type="text"
-            value={patient?.guardianRelation}
+            defaultValue={patient?.guardianRelation}
             {...register("medicationConsent_relation2")}
             style={{
               fontWeight: "bold",
