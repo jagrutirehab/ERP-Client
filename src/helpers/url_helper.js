@@ -213,6 +213,7 @@ export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
+export const GET_DOCTOR_ANALYTICS = "/report/doctor";
 export const GET_PATIENT_ANALYTICS_WP = "/report/patient-csv";
 export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";

@@ -12,6 +12,7 @@ import {
   PATIENT_ANALYTICS,
   REPORT,
   BOOKING,
+  DOCTOR_ANALYTICS,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -23,6 +24,7 @@ import BreadCrumb from "../../Components/Common/BreadCrumb";
 import DBLogs from "./Components/DBLogs";
 import HubspotContacts from "./Components/Hubspot";
 import Booking from "./Components/Booking";
+import Doctor from "./Components/Doctor";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
@@ -61,6 +63,12 @@ const Report = ({}) => {
               Patient Analytics
             </Button>
             <Button
+              outline={view !== DOCTOR_ANALYTICS}
+              onClick={() => handleView(DOCTOR_ANALYTICS)}
+            >
+              Doctor Analytics
+            </Button>
+            <Button
               outline={view !== DB_LOGS}
               onClick={() => handleView(DB_LOGS)}
             >
@@ -96,6 +104,7 @@ const Report = ({}) => {
             {view === REPORT && <ReportAnalytics view={view} />}
             {view === FINANACE && <Finance view={view} />}
             {view === PATIENT_ANALYTICS && <Patient view={view} />}
+            {view === DOCTOR_ANALYTICS && <Doctor view={view} />}
             {view === LEAD_ANALYTICS && <Lead view={view} />}
             {view === OPD_ANALYTICS && <OPD view={view} />}
             {view === DB_LOGS && <DBLogs view={view} />}
