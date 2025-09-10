@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Col,
@@ -16,7 +15,7 @@ import { Link } from "react-router-dom";
 import { connect, useDispatch } from "react-redux";
 import { changeUserAccess } from "../../store/actions";
 
-const WebAppsDropdown = ({ centers, centerAccess, iconColor="white" }) => {
+const WebAppsDropdown = ({ centers, centerAccess }) => {
   const dispatch = useDispatch();
   const [access, setAccess] = useState(centerAccess);
   const [isWebAppDropdown, setIsWebAppDropdown] = useState(false);
@@ -73,14 +72,13 @@ const WebAppsDropdown = ({ centers, centerAccess, iconColor="white" }) => {
         isOpen={isWebAppDropdown}
         toggle={toggleWebAppDropdown}
         className="topbar-head-dropdown ms-1 header-item"
-        
       >
         <DropdownToggle
           tag="button"
           type="button"
           className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
         >
-          <i className={`bx bx-category-alt text-${iconColor} fs-22`}></i>
+          <i className="bx bx-category-alt text-white fs-22"></i>
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-lg p-0 dropdown-menu-end">
           <div className="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
@@ -293,4 +291,9 @@ WebAppsDropdown.prototype = {
   centerAccess: PropTypes.array,
 };
 
-export default WebAppsDropdown;
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+});
+
+export default connect(mapStateToProps)(WebAppsDropdown);

@@ -295,7 +295,7 @@ const Header = ({
                 </div>
               </RenderWhen>
               {/* WebAppsDropdown */}
-              <WebAppsDropdown centerAccess={centerAccess} centers={centers}/>
+              <WebAppsDropdown />
 
               {/* FullScreenDropdown */}
               <FullScreenDropdown />
