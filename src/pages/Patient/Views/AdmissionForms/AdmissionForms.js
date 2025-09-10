@@ -506,6 +506,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formType, dispatch]);
 
+  // useEffect(() => {
+  //   if (openform4) {
+  //     setDetails((prev) => ({ ...prev }));
+  //   }
+  // }, [openform4]);
+
   return (
     <>
       <div style={{ marginTop: "4rem" }}>
@@ -1186,4 +1192,3 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps)(AddmissionForms);
-
