@@ -43,7 +43,7 @@ const SeriousnessConsent = ({ register, patient }) => {
         Date:
         <input
           type="date"
-          defaultValue={new Date().toISOString().split("T")[0]}
+          value={new Date().toISOString().split("T")[0]}
           {...register("page3_date", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -69,7 +69,7 @@ const SeriousnessConsent = ({ register, patient }) => {
         <span style={bold}>A) Seriousness</span> I,
         <input
           type="text"
-          defaultValue={patient?.guardianName}
+          value={patient?.guardianName}
           {...register("seriousness_name")}
           style={{
             fontWeight: "bold",
@@ -80,7 +80,7 @@ const SeriousnessConsent = ({ register, patient }) => {
         , aware of the Serious Condition of our patient, Mr/Mrs/Miss/Smt.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("seriousness_patientName")}
           style={{
             fontWeight: "bold",
@@ -114,7 +114,7 @@ const SeriousnessConsent = ({ register, patient }) => {
         capacity of a legal guardian of Mr/Mrs/Smt/Miss
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("transfer_patientName")}
           style={{
             fontWeight: "bold",
@@ -173,7 +173,7 @@ const SeriousnessConsent = ({ register, patient }) => {
           Name of Patient:
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             {...register("consent_patientName")}
             style={{
               fontWeight: "bold",
@@ -186,7 +186,7 @@ const SeriousnessConsent = ({ register, patient }) => {
           Relation with the Patient:
           <input
             type="text"
-            defaultValue={patient?.guardianRelation}
+            value={patient?.guardianRelation}
             {...register("consent_relation")}
             style={{
               fontWeight: "bold",

@@ -123,7 +123,7 @@ const Page1 = ({ register, admissions, patient }) => {
           <label style={label}>Name of the Patient’s Name :</label>
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             {...register("Admission_Checklist_PatientName")}
             style={{
               border: "none",
@@ -138,7 +138,7 @@ const Page1 = ({ register, admissions, patient }) => {
           <label style={label}>Date :</label>
           <input
             type="date"
-            defaultValue={new Date().toISOString().split("T")[0]} // today's date
+            value={new Date().toISOString().split("T")[0]} // today's date
             {...register("Admission_Checklist_DOA", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -155,7 +155,7 @@ const Page1 = ({ register, admissions, patient }) => {
         <label style={label}>D.O.A. :</label>
         <input
           type="text"
-          defaultValue={new Date(
+          value={new Date(
             admissions[0]?.addmissionDate
           ).toLocaleDateString("en-GB")}
           {...register("Admission_Checklist_DOA")}
@@ -224,7 +224,7 @@ const Page1 = ({ register, admissions, patient }) => {
           <label style={label}>D.O.A. :</label>
           <input
             type="text"
-            defaultValue={new Date(
+            value={new Date(
               admissions[0]?.addmissionDate
             ).toLocaleDateString("en-GB")}
             {...register("Discharge_Checklist_DOA")}

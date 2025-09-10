@@ -74,7 +74,7 @@ const IndipendentOpinion1 = ({ register, patient }) => {
           style={fullLine}
         />{" "}
         UID No.
-        <input type="text" defaultValue={patient?.id?.value} {...register("page12_ipd")} style={inputLine} />{" "}
+        <input type="text" value={patient?.id?.value} {...register("page12_ipd")} style={inputLine} />{" "}
         son/daughter/spouse/others of
         <input
           type="text"

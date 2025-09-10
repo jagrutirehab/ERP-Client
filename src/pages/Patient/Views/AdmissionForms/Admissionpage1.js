@@ -95,7 +95,7 @@ const Admissionpage1 = ({
           <span style={label}>Patient’s Name :</span>
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             {...register("Basic_Admission_Form_patientName")}
             style={{
               fontWeight: "bold",
@@ -108,7 +108,7 @@ const Admissionpage1 = ({
           <span style={label}>UID :</span>
           <input
             type="text"
-            defaultValue={patient?.id?.value}
+            value={patient?.id?.value}
             {...register("Basic_Admission_Form_uid")}
             style={{
               fontWeight: "bold",
@@ -121,7 +121,7 @@ const Admissionpage1 = ({
           <span style={label}>Age :</span>
           <input
             type="text"
-            defaultValue={age}
+            value={age}
             {...register("Basic_Admission_Form_age")}
             style={{
               fontWeight: "bold",
@@ -138,7 +138,7 @@ const Admissionpage1 = ({
           <span style={label}>Sex :</span>
           <input
             type="text"
-            defaultValue={patient?.gender}
+            value={patient?.gender}
             {...register("Basic_Admission_Form_sex")}
             style={{
               fontWeight: "bold",
@@ -152,7 +152,7 @@ const Admissionpage1 = ({
           <span style={label}>IPD No. :</span>
           <input
             type="text"
-            defaultValue={details?.IPDnum}
+            value={details?.IPDnum}
             {...register("Basic_Admission_Form_IPDnum")}
             style={{
               fontWeight: "bold",
@@ -180,7 +180,7 @@ const Admissionpage1 = ({
         <span style={label}>Address :</span>
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Basic_Admission_Form_address")}
           style={{
             fontWeight: "bold",
@@ -207,7 +207,7 @@ const Admissionpage1 = ({
           <span style={label}>Admitted Under Dr. :</span>
           <input
             type="text"
-            defaultValue={admissions[0]?.doctor?.name}
+            value={admissions[0]?.doctor?.name}
             {...register("Basic_Admission_Form_admittedUnder")}
             style={{
               fontWeight: "bold",
@@ -223,7 +223,7 @@ const Admissionpage1 = ({
           <span style={label}>Date of Admission :</span>
           <input
             type="date"
-            defaultValue={
+            value={
               admissions?.[0]?.addmissionDate
                 ? new Date(admissions[0].addmissionDate)
                     .toISOString()
@@ -238,7 +238,7 @@ const Admissionpage1 = ({
           <span style={label}>Time :</span>
           <input
             type="text"
-            defaultValue={new Date(
+            value={new Date(
               admissions[0]?.addmissionDate
             ).toLocaleString("en-GB", {
               hour: "2-digit",
@@ -276,7 +276,7 @@ const Admissionpage1 = ({
         <span style={label}>Provisional Diagnosis :</span>
         <input
           type="text"
-          defaultValue={patient?.addmission?.provisionalDiagnosis}
+          value={patient?.addmission?.provisionalDiagnosis}
           {...register("Basic_Admission_Form_provisionalDiagnosis")}
           style={{
               fontWeight: "bold",

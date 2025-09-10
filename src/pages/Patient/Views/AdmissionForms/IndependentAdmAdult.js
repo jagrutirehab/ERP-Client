@@ -92,7 +92,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Date:
           <input
             type="date"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            value={new Date().toISOString().split("T")[0]}
             {...register("Indipendent_Admission_adult_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -117,7 +117,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         I Mr./ Mrs./ Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("Indipendent_Admission_adult_name")}
           style={{
             fontWeight: "bold",
@@ -128,8 +128,8 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         UID No.
         <input
           type="text"
-          // defaultValue={details?.IPDnum}
-          defaultValue={patient?.id?.value}
+          // value={details?.IPDnum}
+          value={patient?.id?.value}
           {...register("Indipendent_Admission_adult_ipd")}
           style={{
             fontWeight: "bold",
@@ -140,7 +140,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         age
         <input
           type="text"
-          defaultValue={age}
+          value={age}
           {...register("Indipendent_Admission_adult_age")}
           style={{
             border: "none",
@@ -155,7 +155,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          defaultValue={patient?.guardianName}
+          value={patient?.guardianName}
           {...register("Indipendent_Admission_adult_parentName")}
           style={{
             fontWeight: "bold",
@@ -166,7 +166,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         residing at
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_adult_address")}
           style={{
             fontWeight: "bold",
@@ -246,7 +246,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         Mr./Mrs/Ms.
         <input
           type="text"
-          defaultValue={patient?.guardianName}
+          value={patient?.guardianName}
           {...register("Indipendent_Admission_adult_guardianName")}
           style={{
             fontWeight: "bold",
@@ -257,7 +257,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         who is my
         <input
           type="text"
-          defaultValue={patient?.guardianRelation}
+          value={patient?.guardianRelation}
           {...register("Indipendent_Admission_adult_guardianRelation")}
           style={{
             fontWeight: "bold",
@@ -277,7 +277,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         Address
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_adult_fullAddress")}
           style={{
             fontWeight: "bold",
@@ -290,7 +290,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         Mobile no
         <input
           type="text"
-          defaultValue={patient?.guardianPhoneNumber}
+          value={patient?.guardianPhoneNumber}
           {...register("Indipendent_Admission_adult_mobile")}
           style={{
             fontWeight: "bold",
@@ -337,7 +337,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Name:
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.guardianName}
             {...register("Indipendent_Admission_adult_guardianName2")}
             style={{
               fontWeight: "bold",
@@ -349,7 +349,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Date & Time:
           <input
             type="text"
-            defaultValue={new Date()
+            value={new Date()
               .toLocaleDateString("en-GB")
               .split("/")
               .join("/")}

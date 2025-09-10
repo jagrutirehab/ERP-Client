@@ -85,7 +85,7 @@ const Page2 = ({ register, patient }) => {
         Date:
         <input
           type="date"
-          defaultValue={new Date().toISOString().split("T")[0]}
+          value={new Date().toISOString().split("T")[0]}
           {...register("Relevent_checklist_date", {
             setValueAs: (val) => {
               if (!val) return "";

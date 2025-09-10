@@ -225,7 +225,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                     })
                   );
@@ -279,7 +278,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                       appointment: data,
                       shouldPrintAfterSave: true,
@@ -305,7 +303,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                     })
                   );
@@ -356,7 +353,6 @@ const EventInfo = ({
                     doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                     appointment: data._id,
                   })

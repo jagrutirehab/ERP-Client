@@ -49,7 +49,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         therapy to myself / my relation. (name of the patient
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -60,7 +60,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         ) relation
         <input
           type="text"
-          defaultValue={patient?.guardianRelation}
+          value={patient?.guardianRelation}
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
@@ -71,7 +71,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         by Dr.
         <input
           type="text"
-          defaultValue={
+          value={
             admissions?.length > 0 ? admissions[0].doctor?.name : ""
           }
           style={{
@@ -94,7 +94,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         also, its side effects and possible complications by Dr.
         <input
           type="text"
-          defaultValue={
+          value={
             admissions?.length > 0 ? admissions[0].doctor?.name : ""
           }
           style={{
@@ -163,7 +163,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
             Date / Time / Place :
             <input
               type="text"
-              defaultValue={new Date()
+              value={new Date()
                 .toLocaleDateString("en-GB")
                 .split("/")
                 .join("/")}
@@ -180,7 +180,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           <p>Name & Address :</p>
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.guardianName}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -191,7 +191,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           <br />
           <input
             type="text"
-            defaultValue={patient?.guardianRelation}
+            value={patient?.guardianRelation}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -216,7 +216,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           purpose and likely effects of this treatment to Shri / Smt.:
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -229,7 +229,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           The nearest relative available was
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.guardianName}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -242,7 +242,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           Date / Time / Place :{" "}
           <input
             type="text"
-            defaultValue={new Date()
+            value={new Date()
               .toLocaleDateString("en-GB")
               .split("/")
               .join("/")}
@@ -260,7 +260,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           I (name){" "}
           <input
             type="text"
-            defaultValue={patient?.guardianRelation}
+            value={patient?.guardianRelation}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -271,7 +271,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           (the closest available relative of){" "}
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",
@@ -285,7 +285,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           of ECT has been given to me by Dr.
           <input
             type="text"
-            defaultValue={
+            value={
               admissions?.length > 0 ? admissions[0].doctor?.name : ""
             }
             style={{
@@ -301,7 +301,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           Date / Time / Place :{" "}
           <input
             type="text"
-            defaultValue={new Date()
+            value={new Date()
               .toLocaleDateString("en-GB")
               .split("/")
               .join("/")}
@@ -313,7 +313,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
           Contact No.:{" "}
           <input
             type="text"
-            defaultValue={patient?.guardianPhoneNumber}
+            value={patient?.guardianPhoneNumber}
             style={{
               fontWeight: "bold",
               textTransform: "uppercase",

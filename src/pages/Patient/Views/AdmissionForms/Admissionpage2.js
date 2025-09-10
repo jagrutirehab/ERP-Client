@@ -147,7 +147,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Name of Patient / Representative:
             <input
               type="text"
-              defaultValue={patient?.name}
+              value={patient?.name}
               {...register("Basic_Admission_Form_patientRep")}
               style={{
                 border: "none",
@@ -162,7 +162,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Relation:
             <input
               type="text"
-              defaultValue={patient?.guardianRelation}
+              value={patient?.guardianRelation}
               {...register("Basic_Admission_Form_relation")}
               style={{
                 border: "none",
@@ -177,7 +177,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              defaultValue={new Date().toISOString().split("T")[0]}
+              value={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateRep", {
                 setValueAs: (val) => {
                   if (!val) return "";
@@ -204,7 +204,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              defaultValue={new Date().toISOString().split("T")[0]}
+              value={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateStaff", {
                 setValueAs: (val) => {
                   if (!val) return "";
@@ -221,7 +221,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
           Witness’s Name:
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.guardianName}
             {...register("Basic_Admission_Form_witnessName")}
             style={{
               border: "none",
@@ -235,7 +235,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Relation:
             <input
               type="text"
-              defaultValue={patient?.guardianRelation}
+              value={patient?.guardianRelation}
               {...register("Basic_Admission_Form_relationWitness")}
               style={{
                 border: "none",
@@ -250,7 +250,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             Date:
             <input
               type="date"
-              defaultValue={new Date().toISOString().split("T")[0]}
+              value={new Date().toISOString().split("T")[0]}
               {...register("Basic_Admission_Form_dateWitness", {
                 setValueAs: (val) => {
                   if (!val) return "";

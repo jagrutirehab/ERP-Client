@@ -87,7 +87,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date:
           <input
             type="date"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            value={new Date().toISOString().split("T")[0]}
             {...register("Indipendent_Admission_minor_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -108,7 +108,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         I, Mr./Mrs./Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("Indipendent_Admission_minor_name")}
           style={{
             fontWeight: "bold",
@@ -119,7 +119,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         residing at
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_minor_address")}
           style={{
             fontWeight: "bold",
@@ -130,7 +130,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         who is the Parent/Care taker being legal guardian of Master/Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("Indipendent_Admission_minor_patientName")}
           style={{
             fontWeight: "bold",
@@ -141,8 +141,8 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         UID No.
         <input
           type="text"
-          // defaultValue={details?.IPDnum}
-          defaultValue={patient?.id?.value}
+          // value={details?.IPDnum}
+          value={patient?.id?.value}
           {...register("Indipendent_Admission_minor_ipd")}
           style={{
             fontWeight: "bold",
@@ -153,7 +153,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         age
         <input
           type="text"
-          defaultValue={age}
+          value={age}
           {...register("Indipendent_Admission_minor_age")}
           style={{
             border: "none",
@@ -168,7 +168,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          defaultValue={patient?.guardianName}
+          value={patient?.guardianName}
           {...register("Indipendent_Admission_minor_parentName")}
           style={{
             fontWeight: "bold",
@@ -183,7 +183,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         Master/Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("Indipendent_Admission_minor_patientName2")}
           style={{
             fontWeight: "bold",
@@ -298,7 +298,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         Address
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_minor_fullAddress")}
           style={{
             fontWeight: "bold",
@@ -311,7 +311,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         Mob.
         <input
           type="text"
-          defaultValue={patient?.guardianPhoneNumber}
+          value={patient?.guardianPhoneNumber}
           {...register("Indipendent_Admission_minor_mobile")}
           style={{
             fontWeight: "bold",
@@ -354,7 +354,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            defaultValue={new Date()
+            value={new Date()
               .toLocaleDateString("en-GB")
               .split("/")
               .join("/")}
@@ -368,7 +368,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Name
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.guardianName}
             {...register("Indipendent_Admission_minor_guardianName")}
             style={{
               fontWeight: "bold",
@@ -380,7 +380,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            defaultValue={new Date()
+            value={new Date()
               .toLocaleDateString("en-GB")
               .split("/")
               .join("/")}
