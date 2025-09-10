@@ -48,7 +48,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         10) I am informed and I am willing to pay Rs
         <input
           type="text"
-          defaultValue={details?.toPay}
+          value={details?.toPay}
           {...register("Basic_Admission_Form_semiPrivate")}
           style={{
             fontWeight: "bold",
@@ -59,7 +59,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Monthly and
         <input
           type="text"
-          defaultValue={details?.semiprivate}
+          value={details?.semiprivate}
           {...register("Basic_Admission_Form_private")}
           style={{
             fontWeight: "bold",
@@ -70,7 +70,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Daily for
         <input
           type="text"
-          defaultValue={details?.roomtype}
+          value={details?.roomtype}
           {...register("Basic_Admission_Form_roomtype")}
           style={{
             fontWeight: "bold",
@@ -81,7 +81,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Room as residential charges, a refundable advance deposit of
         <input
           type="text"
-          defaultValue={details?.advDeposit}
+          value={details?.advDeposit}
           {...register("Basic_Admission_Form_advanceDeposit")}
           style={{
             fontWeight: "bold",

@@ -165,7 +165,7 @@ const Admissionpage1 = ({
           <span style={label}>Ward / Bed :</span>
           <input
             type="text"
-            defaultValue={`${details?.ward}/ ${details?.bed}`}
+            value={`${details?.ward}/ ${details?.bed}`}
             {...register("Basic_Admission_Form_wardBed")}
             style={{
               fontWeight: "bold",
