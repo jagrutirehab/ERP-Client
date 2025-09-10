@@ -50,7 +50,7 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
         type="button"
         className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
       >
-        <i className="bx bx-category-alt text-white fs-22"></i>
+        <i className="bx bx-category-alt text-blue fs-22"></i>
       </DropdownToggle>
 
       <DropdownMenu className="dropdown-menu-lg p-0 dropdown-menu-end">
