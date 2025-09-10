@@ -174,7 +174,10 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
           >
             <Text style={{ ...styles.fontMd, ...styles.textCaps }}>
               Patient:{" "}
-              {`${capitalizeWords(patient?.name)} - ${patient?.id?.prefix}${
+              {/* {`${capitalizeWords(patient?.name)} - ${patient?.id?.prefix}${
+                patient?.id?.value
+              }` || ""} */}
+              {`${patient?.name} - ${patient?.id?.prefix}${
                 patient?.id?.value
               }` || ""}
             </Text>
@@ -196,7 +199,8 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
                   ...styles.textCaps,
                 }}
               >
-                Address: {capitalizeWords(patient?.address) || ""}
+                {/* Address: {capitalizeWords(patient?.address) || ""} */}
+                Address: {patient?.address || ""}
               </Text>
             )}
             {patient.gender && (

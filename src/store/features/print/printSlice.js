@@ -14,7 +14,12 @@ export const printSlice = createSlice({
     togglePrint: (state, { payload }) => {
       state.data = payload.data;
       state.modal = payload.modal;
-      state.patient = payload.patient;
+      state.patient = payload.patient && {
+        ...payload.patient,
+        name: payload.patient.name?.toUpperCase() || "",
+        address: payload.patient.address?.toUpperCase() || "",
+      };
+
       state.intern = payload.intern;
       state.admission = payload.admission;
       state.doctor = payload.doctor;

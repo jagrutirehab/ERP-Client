@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Col,
@@ -15,9 +16,9 @@ import { Link } from "react-router-dom";
 import { connect, useDispatch } from "react-redux";
 import { changeUserAccess } from "../../store/actions";
 
-const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
+const WebAppsDropdown = ({ centers, centerAccess, iconColor="white" }) => {
   const dispatch = useDispatch();
-  const [access, setAccess] = useState(centerAccess || []);
+  const [access, setAccess] = useState(centerAccess);
   const [isWebAppDropdown, setIsWebAppDropdown] = useState(false);
   const [ctrlCmdPressed, setCtrlCmdPressed] = useState(false);
   const toggleWebAppDropdown = () => {
@@ -25,17 +26,14 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
   };
 
   const changeAccess = (centerId) => {
-    setAccess((prev) => {
-      const newAccess = prev.includes(centerId)
-        ? prev.filter((id) => id !== centerId)
-        : [centerId, ...prev];
-
-      if (!onApply) {
-        dispatch(changeUserAccess(newAccess));
-      }
-
-      return newAccess;
-    });
+    let updateAccess = [...access];
+    const checkCenter = access.includes(centerId);
+    if (checkCenter) {
+      updateAccess = updateAccess.filter((id) => id !== centerId);
+    } else {
+      updateAccess = [centerId, ...access];
+    }
+    setAccess(updateAccess);
   };
 
   // Event handler function for key down event
@@ -69,25 +67,20 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
 
-  useEffect(() => {
-    if (!onApply) {
-      setAccess(centerAccess || []);
-    }
-  }, [centerAccess, onApply]);
-
   return (
     <React.Fragment>
       <Dropdown
         isOpen={isWebAppDropdown}
         toggle={toggleWebAppDropdown}
         className="topbar-head-dropdown ms-1 header-item"
+        
       >
         <DropdownToggle
           tag="button"
           type="button"
           className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
         >
-          <i className="bx bx-category-alt text-white fs-22"></i>
+          <i className={`bx bx-category-alt text-${iconColor} fs-22`}></i>
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-lg p-0 dropdown-menu-end">
           <div className="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
@@ -110,7 +103,7 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
                   onClick={() => {
                     const cns = centers.map((cn) => cn._id);
                     setAccess(cns);
-                    if (!onApply) dispatch(changeUserAccess(cns));
+                    dispatch(changeUserAccess(cns));
                   }}
                   id="select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -165,9 +158,7 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
                 <button
                   onClick={() => {
                     setAccess([]);
-                    if (!onApply) {
-                      dispatch(changeUserAccess([]));
-                    }
+                    dispatch(changeUserAccess([]));
                   }}
                   id="un-select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -220,12 +211,8 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
                 <button
                   id="apply"
                   onClick={() => {
-                    if (onApply) {
-                      onApply(access);
-                    } else {
-                      dispatch(changeUserAccess(access));
-                    }
-                    toggleWebAppDropdown();
+                    dispatch(changeUserAccess(access));
+                    toggleWebAppDropdown()
                   }}
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
                 >
@@ -271,17 +258,16 @@ const WebAppsDropdown = ({ centers, centerAccess, onApply }) => {
             <Row className="row-gap-3">
               {(centers || []).map((center) => (
                 <Col key={center._id} xs={4}>
-                  <div
-                    className="form-check card-radio"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="form-check card-radio">
                     <input
                       id={center.title + center._id}
                       name="data-layout"
                       type="checkbox"
                       value={center["_id"]}
-                      checked={access.includes(center["_id"].toString())}
-                      onChange={() => changeAccess(center["_id"].toString())}
+                      checked={access.includes(center["_id"])}
+                      onChange={() => {
+                        changeAccess(center["_id"]);
+                      }}
                       className="form-check-input"
                     />
                     <label
