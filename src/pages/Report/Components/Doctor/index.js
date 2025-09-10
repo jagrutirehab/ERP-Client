@@ -27,15 +27,17 @@ const Doctor = ({ centers, centerAccess }) => {
   const [roleFilter, setRoleFilter] = useState("");
   const [patientFilter, setPatientFilter] = useState("");
 
-  const centerOptions =
-    centers
-      ?.filter((c) => centerAccess.includes(c._id))
-      .map((c) => ({
-        _id: c._id,
-        title: c.title,
-      })) || [];
+  const centerOptions = centers
+    ?.filter((c) => centerAccess.includes(c._id))
+    .map((c) => ({
+      _id: c._id,
+      title: c.title,
+    }));
 
-  const [centerFilter, setCenterFilter] = useState(centerOptions);
+  const [selectedCenters, setSelectedCenters] = useState(centerOptions);
+  const [selectedCentersIds, setSelectedCentersIds] = useState(
+    centerOptions.map((c) => c._id)
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(search), 500);
@@ -53,7 +55,7 @@ const Doctor = ({ centers, centerAccess }) => {
         page,
         limit,
         search: debouncedSearch,
-        centerAccess: centerFilter,
+        centerAccess: selectedCentersIds,
         role: roleFilter,
         patient: patientFilter,
       });
@@ -71,7 +73,7 @@ const Doctor = ({ centers, centerAccess }) => {
   }, [
     page,
     debouncedSearch,
-    centerFilter,
+    selectedCentersIds,
     limit,
     roleFilter,
     reportDate,
@@ -221,9 +223,12 @@ const Doctor = ({ centers, centerAccess }) => {
             />
             <CenterDropdown
               options={centerOptions}
-              value={centerFilter.map((c) => c._id)}
+              value={selectedCentersIds}
               onChange={(ids) => {
-                setCenterFilter(ids);
+                setSelectedCentersIds(ids);
+                setSelectedCenters(
+                  centerOptions.filter((c) => ids.includes(c._id))
+                );
               }}
             />
           </div>
