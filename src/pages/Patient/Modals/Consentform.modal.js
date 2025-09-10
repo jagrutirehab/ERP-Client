@@ -111,7 +111,7 @@ const ConsentFormModal = ({
           <div className="mt-3">
             <Label className="text-muted mb-1">Ward / Room</Label>
             <Input
-              type="number"
+              type="text"
               value={details?.ward}
               onChange={(e) =>
                 setDetails((prev) => ({ ...prev, ward: e.target.value }))
