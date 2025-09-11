@@ -23,6 +23,8 @@ import html2canvas from "html2canvas";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { fetchInternById } from "../../../../store/actions";
+import CheckPermission from "../../../../Components/HOC/CheckPermission";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const InternAddmissionForms = (intern) => {
   const dispatch = useDispatch();
@@ -46,6 +48,11 @@ const InternAddmissionForms = (intern) => {
   const internundertakingform2 = useRef(null);
   const internundertakingform3 = useRef(null);
   const [open, setOpen] = useState("0");
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
+
   const toggleAccordian = (id) => {
     if (open === id) {
       setOpen();
@@ -298,6 +305,7 @@ const InternAddmissionForms = (intern) => {
 
                   {intern?.intern?.addmissionform && (
                     <>
+                    <CheckPermission accessRolePermission={roles?.permission} subAccess={"INTERNFORMS"} permission={"create"}>
                       <Button
                         onClick={handleUploadClick}
                         size="sm"
@@ -318,6 +326,8 @@ const InternAddmissionForms = (intern) => {
                         style={{ display: "none" }}
                         onChange={handleFileChange}
                       />
+                    </CheckPermission>
+
                       <div style={{ width: "100%", textAlign: "center" }}>
                         <div className="mt-2">
                           <a

@@ -102,11 +102,12 @@ const Main = ({ user, form, centerAccess }) => {
   const hasUserPermission = hasPermission("USER", null, "READ");
   const handleAuthError = useAuthError();
   useEffect(() => {
+    if(!hasUserPermission) return;
     if (token) {
       dispatch(fetchCenters(user?.centerAccess));
       dispatch(fetchAllCenters());
     }
-  }, [dispatch, user, token]);
+  }, [dispatch, user, token, roles]);
 
   useEffect(() => {
     if (!centers || centers.length === 0 || !token) return;
