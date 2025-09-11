@@ -40,18 +40,6 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         patient?.guardianRelation || "";
       document.querySelector('[name="patientRelativeName"]').value =
         patient?.guardianName || "";
-      document.querySelector('[name="patientRelativeAddress1"]').value =
-        patient?.guardianRelation || "";
-      document.querySelector('[name="patientRelativeAddress2"]').value = ""; // keep empty
-      document.querySelector('[name="treatmentTo"]').value =
-        patient?.name || "";
-      document.querySelector('[name="nearestRelative"]').value =
-        patient?.guardianName || "";
-      document.querySelector('[name="relativeName"]').value =
-        patient?.guardianName || "";
-      document.querySelector('[name="relativeOf"]').value = patient?.name || "";
-      document.querySelector('[name="relativeContact"]').value =
-        patient?.guardianPhoneNumber || "";
     }
 
     if (admissions) {
@@ -64,8 +52,6 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
 
     const today = new Date().toLocaleDateString("en-GB").split("/").join("/");
     document.querySelector('[name="witnessDate"]').value = today;
-    document.querySelector('[name="doctorDate"]').value = today;
-    document.querySelector('[name="relativeDate"]').value = today;
   }, [patient, admissions]);
 
   return (
@@ -100,7 +86,7 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       {/* Title */}
       <h3
@@ -278,128 +264,6 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
             {...register("patientRelativeAddress2")}
           />
         </div>
-      </div>
-
-      {/* Doctor’s Explanation */}
-      <div>
-        <div style={{ marginBottom: "20px", marginTop: "80px" }}>
-          <PrintHeader patient={patient} />
-        </div>
-        <div style={{ marginTop: "35px" }}>
-          <p style={bold}>Doctor's Explanation</p>
-          <p>
-            I confirm that I have explained to the patient / relative the
-            nature, purpose and likely effects of this treatment to Shri / Smt.:
-            <input
-              type="text"
-              defaultValue={patient?.name}
-              style={{
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                ...inputInline,
-              }}
-              {...register("treatmentTo")}
-            />
-          </p>
-          <p>
-            The nearest relative available was
-            <input
-              type="text"
-              defaultValue={patient?.guardianName}
-              style={{
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                ...inputInline,
-              }}
-              {...register("nearestRelative")}
-            />
-          </p>
-          <p>
-            Date / Time / Place :{" "}
-            <input
-              type="text"
-              defaultValue={new Date()
-                .toLocaleDateString("en-GB")
-                .split("/")
-                .join("/")}
-              style={inputInline}
-              {...register("doctorDate")}
-            />
-          </p>
-          <p style={{ textAlign: "right" }}>Signature of Doctor</p>
-        </div>
-      </div>
-
-      {/* Relative’s Approval */}
-      <div style={{ marginTop: "30px" }}>
-        <p style={bold}>Relative's Approval (wherever Relevant)</p>
-        <p>
-          I (name){" "}
-          <input
-            type="text"
-            defaultValue={patient?.guardianRelation}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("relativeName")}
-          />
-          (the closest available relative of){" "}
-          <input
-            type="text"
-            defaultValue={patient?.name}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("relativeOf")}
-          />
-        </p>
-        <p>
-          Confirm that an explanation of the nature, purpose, and likely effects
-          of ECT has been given to me by Dr.
-          <input
-            type="text"
-            defaultValue={
-              admissions?.length > 0 ? admissions[0].doctor?.name : ""
-            }
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("relativeDoctor")}
-          />
-          and that I approve of the treatment being given to the patient.
-        </p>
-        <p>
-          Date / Time / Place :{" "}
-          <input
-            type="text"
-            defaultValue={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
-            style={inputInline}
-            {...register("relativeDate")}
-          />
-        </p>
-        <p>
-          Contact No.:{" "}
-          <input
-            type="text"
-            defaultValue={patient?.guardianPhoneNumber}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("relativeContact")}
-          />
-        </p>
-        <p style={{ textAlign: "right" }}>Signature of relative</p>
       </div>
     </div>
   );

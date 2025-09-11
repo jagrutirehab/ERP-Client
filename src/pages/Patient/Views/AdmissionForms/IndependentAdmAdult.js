@@ -102,7 +102,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
 
       {/* Header */}
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
 
       <div style={heading}>Request For Independent Admission Adult</div>

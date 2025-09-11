@@ -42,6 +42,7 @@ import AdmissionChartModal from "../../Modals/AdmissionChart.modal";
 import AdmWithHighSupport2 from "./AdmWithHighSupport2";
 import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
+import ECTConsentForm2 from "./ECTConsentForm2";
 // import { Document, Page, pdfjs } from "react-pdf";
 // import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js";
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -81,6 +82,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const seriousnessRef = useRef(null);
   const medicationRef = useRef(null);
   const ectRef = useRef(null);
+  const ectRef2 = useRef(null);
   const admission1Ref = useRef(null);
   const admission2Ref = useRef(null);
   const adultRef = useRef(null);
@@ -161,7 +163,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       });
     });
 
-    // wrapper for slice capturing
+    // wrapper
     const wrapper = document.createElement("div");
     while (clone.firstChild) wrapper.appendChild(clone.firstChild);
     clone.appendChild(wrapper);
@@ -171,6 +173,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     const pdfH_pts = pdf.internal.pageSize.getHeight();
     const PT_TO_PX = 96 / 72;
     const marginPts = 10;
+    const marginPx = Math.round(marginPts * PT_TO_PX);
     const pdfWidthPx = Math.floor(pdfW_pts * PT_TO_PX);
 
     clone.style.position = "absolute";
@@ -181,13 +184,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     clone.style.background = "#fff";
     clone.style.margin = "0";
     clone.style.overflow = "visible";
-    clone.style.width = pdfWidthPx - marginPts * 2 * PT_TO_PX + "px";
+    clone.style.width = pdfWidthPx - marginPx * 2 + "px";
 
     wrapper.style.display = "block";
     wrapper.style.width = "100%";
     wrapper.style.boxSizing = "border-box";
 
-    // === Improve borders & font scaling ===
+    // improve borders & font scaling
     const BORDER_MULT = 1.3;
     const TEXT_MULT = 1.05;
     const allElems = clone.querySelectorAll("*");
@@ -225,109 +228,45 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     const PREFERRED_SCALE = 2;
     let captureScale = Math.min(Math.max(1.5, DPR), PREFERRED_SCALE);
 
-    const MAX_CANVAS_DIM = 16000;
-
-    // === helper: slice canvas into per-page chunks ===
-    const addCanvasAsPages = (canvas, firstPageFlag) => {
+    // === Always fit whole content into one single PDF page ===
+    const addCanvasAsSinglePage = (canvas, firstPageFlag) => {
       const usableWpts = pdfW_pts - marginPts * 2;
       const usableHpts = pdfH_pts - marginPts * 2;
 
       const cW_px = canvas.width;
       const cH_px = canvas.height;
 
-      const fitScaleWidth = usableWpts / cW_px;
-      const targetW_pts = cW_px * fitScaleWidth;
-      const targetH_pts = cH_px * fitScaleWidth;
+      const fitScale = Math.min(usableWpts / cW_px, usableHpts / cH_px);
 
-      const pageHeight_px = Math.floor(usableHpts / fitScaleWidth);
+      const targetW_pts = cW_px * fitScale;
+      const targetH_pts = cH_px * fitScale;
 
-      let yOffset = 0;
-      let pageIndex = 0;
-
-      while (yOffset < cH_px) {
-        // slice piece of canvas
-        const sliceCanvas = document.createElement("canvas");
-        sliceCanvas.width = cW_px;
-        sliceCanvas.height = Math.min(pageHeight_px, cH_px - yOffset);
-        const ctx = sliceCanvas.getContext("2d");
-        ctx.drawImage(
-          canvas,
-          0,
-          yOffset,
-          cW_px,
-          sliceCanvas.height,
-          0,
-          0,
-          cW_px,
-          sliceCanvas.height
-        );
-
-        const imgData = sliceCanvas.toDataURL("image/jpeg", 1.0);
-
-        if (!(firstPageFlag && pageIndex === 0)) pdf.addPage();
-        pdf.addImage(
-          imgData,
-          "JPEG",
-          marginPts,
-          marginPts,
-          targetW_pts,
-          sliceCanvas.height * fitScaleWidth,
-          undefined,
-          "FAST"
-        );
-
-        yOffset += pageHeight_px;
-        pageIndex++;
-      }
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      if (!firstPageFlag) pdf.addPage();
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        marginPts,
+        marginPts,
+        targetW_pts,
+        targetH_pts,
+        undefined,
+        "FAST"
+      );
     };
 
     try {
-      if (cloneFullHeight * captureScale <= MAX_CANVAS_DIM) {
-        wrapper.style.transform = "translateY(0px)";
-        clone.style.height = cloneFullHeight + "px";
-        const c = await html2canvas(clone, {
-          scale: captureScale,
-          useCORS: true,
-          backgroundColor: "#fff",
-          imageTimeout: 20000,
-          allowTaint: false,
-          windowWidth: document.documentElement.scrollWidth,
-        });
-        addCanvasAsPages(c, isFirstPage);
-      } else {
-        // slicing fallback
-        const sliceHeightPx = Math.floor(MAX_CANVAS_DIM / captureScale);
-        const sliceCount = Math.ceil(cloneFullHeight / sliceHeightPx);
-        clone.style.height = sliceHeightPx + "px";
-        clone.style.overflow = "hidden";
-
-        const canvases = [];
-        for (let i = 0; i < sliceCount; i++) {
-          const translateY = -(i * sliceHeightPx);
-          wrapper.style.transform = `translateY(${translateY}px)`;
-          await new Promise((r) => setTimeout(r, 60));
-          const c = await html2canvas(clone, {
-            scale: captureScale,
-            useCORS: true,
-            backgroundColor: "#fff",
-          });
-          canvases.push(c);
-        }
-
-        // stitch vertically
-        const stitchedWidth = canvases[0].width;
-        const stitchedHeight = canvases.reduce((s, cv) => s + cv.height, 0);
-        const finalCanvas = document.createElement("canvas");
-        finalCanvas.width = stitchedWidth;
-        finalCanvas.height = stitchedHeight;
-        const ctx = finalCanvas.getContext("2d");
-        let offsetY = 0;
-        for (const cv of canvases) {
-          ctx.drawImage(cv, 0, offsetY);
-          offsetY += cv.height;
-        }
-        addCanvasAsPages(finalCanvas, isFirstPage);
-      }
+      wrapper.style.transform = "translateY(0px)";
+      clone.style.height = cloneFullHeight + "px";
+      const c = await html2canvas(clone, {
+        scale: captureScale,
+        useCORS: true,
+        backgroundColor: "#fff",
+        imageTimeout: 20000,
+        allowTaint: false,
+        windowWidth: document.documentElement.scrollWidth,
+      });
+      addCanvasAsSinglePage(c, isFirstPage);
     } catch (err) {
       console.error("captureSection error:", err);
     } finally {
@@ -364,6 +303,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
+      await captureSection(ectRef2, pdf);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
@@ -572,6 +512,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
+      await captureSection(ectRef2, pdf);
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
       formData.append(
@@ -1140,6 +1081,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
               </div>
               <div ref={ectRef}>
                 <ECTConsentForm
+                  register={register}
+                  patient={patient}
+                  admissions={admissions}
+                />
+              </div>
+              <div ref={ectRef2}>
+                <ECTConsentForm2
                   register={register}
                   patient={patient}
                   admissions={admissions}

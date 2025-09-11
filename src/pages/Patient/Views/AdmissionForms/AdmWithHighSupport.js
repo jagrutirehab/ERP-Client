@@ -96,7 +96,7 @@ const AdmWithHighSupport = ({ register, patient, details }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>Request For Admissions With High Support Needs</div>
       <div style={subHeading}>

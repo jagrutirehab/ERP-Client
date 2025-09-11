@@ -9,7 +9,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
     width: "100%",
     maxWidth: "800px",
@@ -17,13 +17,13 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "14px",
+    fontSize: "17px",
     marginBottom: "2px",
   };
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "15px",
     marginBottom: "15px",
   };
   const inputLine = {
@@ -33,7 +33,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     minWidth: "100px",
     maxWidth: "250px",
     margin: "0 5px",
-    fontSize: "12px",
+    fontSize: "14px",
   };
   const inputLine2 = {
     border: "none",
@@ -42,14 +42,14 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     minWidth: "100px",
     maxWidth: "270px",
     margin: "0 5px",
-    fontSize: "12px",
+    fontSize: "14px",
   };
   const fullLine = {
     border: "none",
     borderBottom: "1px solid #000",
     width: "100%",
     marginTop: "3px",
-    fontSize: "12px",
+    fontSize: "14px",
   };
 
   const [age, setAge] = useState("");
@@ -105,7 +105,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>Request For Admission of A Minor</div>
       <div style={subHeading}>

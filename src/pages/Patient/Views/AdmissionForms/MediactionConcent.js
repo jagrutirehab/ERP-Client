@@ -110,7 +110,7 @@ const MediactionConcent = ({ register, patient }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       {/* Date */}
       <div style={{ textAlign: "right", marginBottom: "5px" }}>

@@ -114,7 +114,7 @@ const Page1 = ({ register, admissions, patient }) => {
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>ADMISSION CHECKLIST</div>
 

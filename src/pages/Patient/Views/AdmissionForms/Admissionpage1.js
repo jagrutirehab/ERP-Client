@@ -9,7 +9,7 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "13px",
+    fontSize: "14px",
     width: "100%",
     maxWidth: "800px",
   };
@@ -112,7 +112,7 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        {/* <PrintHeader patient={patient} /> */}
+        {/* <PrintHeader patient={patient} pageWidth={window.innerWidth} /> */}
         <PrintHeader patient={patient} pageWidth={window.innerWidth} />
 
       </div>

@@ -112,7 +112,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       {/* Points 10-19 */}
       <div style={consentPara}>
