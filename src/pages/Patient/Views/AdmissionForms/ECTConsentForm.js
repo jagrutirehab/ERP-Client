@@ -9,17 +9,21 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const bold = { fontWeight: "bold" };
   const inputInline = {
     border: "none",
     borderBottom: "1px solid #000",
-    outline: "none",
-    minWidth: "300px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
     margin: "0 5px",
+    fontSize: "14px",
   };
 
   const signatureRow = {
@@ -66,15 +70,46 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
         <PrintHeader patient={patient} />
       </div>
       {/* Title */}
       <h3
         style={{
+          marginBottom: "25px",
           textAlign: "center",
           textDecoration: "underline",
           fontWeight: "bold",
+          fontSize: "25px",
         }}
       >
         INFORMED CONSENT FOR ELECTRO – CONVULSIVE THERAPY
@@ -246,48 +281,53 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
       </div>
 
       {/* Doctor’s Explanation */}
-      <div style={{ marginTop: "30px" }}>
-        <p style={bold}>Doctor's Explanation</p>
-        <p>
-          I confirm that I have explained to the patient / relative the nature,
-          purpose and likely effects of this treatment to Shri / Smt.:
-          <input
-            type="text"
-            defaultValue={patient?.name}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("treatmentTo")}
-          />
-        </p>
-        <p>
-          The nearest relative available was
-          <input
-            type="text"
-            defaultValue={patient?.guardianName}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...inputInline,
-            }}
-            {...register("nearestRelative")}
-          />
-        </p>
-        <p>
-          Date / Time / Place :{" "}
-          <input
-            type="text"
-            defaultValue={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
-            style={inputInline}
-            {...register("doctorDate")}
-          />
-        </p>
-        <p style={{ textAlign: "right" }}>Signature of Doctor</p>
+      <div>
+        <div style={{ marginBottom: "20px", marginTop: "80px" }}>
+          <PrintHeader patient={patient} />
+        </div>
+        <div style={{ marginTop: "35px" }}>
+          <p style={bold}>Doctor's Explanation</p>
+          <p>
+            I confirm that I have explained to the patient / relative the
+            nature, purpose and likely effects of this treatment to Shri / Smt.:
+            <input
+              type="text"
+              defaultValue={patient?.name}
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                ...inputInline,
+              }}
+              {...register("treatmentTo")}
+            />
+          </p>
+          <p>
+            The nearest relative available was
+            <input
+              type="text"
+              defaultValue={patient?.guardianName}
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                ...inputInline,
+              }}
+              {...register("nearestRelative")}
+            />
+          </p>
+          <p>
+            Date / Time / Place :{" "}
+            <input
+              type="text"
+              defaultValue={new Date()
+                .toLocaleDateString("en-GB")
+                .split("/")
+                .join("/")}
+              style={inputInline}
+              {...register("doctorDate")}
+            />
+          </p>
+          <p style={{ textAlign: "right" }}>Signature of Doctor</p>
+        </div>
       </div>
 
       {/* Relative’s Approval */}
