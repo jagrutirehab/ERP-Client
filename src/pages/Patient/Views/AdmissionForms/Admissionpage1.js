@@ -9,7 +9,7 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "14px",
+    fontSize: "13px",
     width: "100%",
     maxWidth: "800px",
   };
@@ -37,7 +37,7 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
     minWidth: "100px",
     maxWidth: "250px",
     margin: "0 5px",
-    fontSize: "14px",
+    fontSize: "13px",
   };
 
   const fullWidthInput = {
@@ -112,7 +112,9 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
         `}
       </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        {/* <PrintHeader patient={patient} /> */}
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
+
       </div>
       {/* Heading */}
       <div style={heading}>ADMISSION FORM</div>

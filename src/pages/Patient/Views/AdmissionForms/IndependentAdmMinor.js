@@ -9,7 +9,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "14px",
+    fontSize: "12px",
     lineHeight: "1.5",
     width: "100%",
     maxWidth: "800px",
@@ -17,13 +17,13 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "17px",
+    fontSize: "14px",
     marginBottom: "2px",
   };
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "15px",
+    fontSize: "12px",
     marginBottom: "15px",
   };
   const inputLine = {
@@ -33,7 +33,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     minWidth: "100px",
     maxWidth: "250px",
     margin: "0 5px",
-    fontSize: "14px",
+    fontSize: "12px",
   };
   const inputLine2 = {
     border: "none",
@@ -42,7 +42,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     minWidth: "100px",
     maxWidth: "270px",
     margin: "0 5px",
-    fontSize: "14px",
+    fontSize: "12px",
   };
   const fullLine = {
     border: "none",
