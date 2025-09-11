@@ -19,8 +19,10 @@ export const printSlice = createSlice({
         name: payload.patient.name?.toUpperCase() || "",
         address: payload.patient.address?.toUpperCase() || "",
       };
-
-      state.intern = payload.intern;
+      state.intern = payload.intern && {
+        ...payload.intern,
+        name: payload.intern.name.toUpperCase() || "",
+      };
       state.admission = payload.admission;
       state.doctor = payload.doctor;
       state.center = payload.center;
