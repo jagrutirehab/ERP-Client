@@ -46,7 +46,7 @@ const AddIntern = ({ intern, user, centers, psychologists }) => {
   }, [editData]);
 
   useEffect(() => {
-    if (intern.isOpen) {
+    if (intern.isOpen && editData !== null) {
       dispatch(
         fetchDoctors({
           center: editData?.center?._id || editData?.center,
@@ -130,6 +130,10 @@ const AddIntern = ({ intern, user, centers, psychologists }) => {
     }),
     onSubmit: async (values) => {
       const formData = convertToFormData(values);
+
+       if (!values.psychologist) {
+         formData.delete("psychologist");
+       }
 
       if (values.aadhaarCard?.file) {
         formData.append("aadhaarCard", values.aadhaarCard.file);
