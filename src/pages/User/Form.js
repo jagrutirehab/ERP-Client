@@ -113,30 +113,30 @@ const UserForm = ({
 
   // CONDITIONS
   const handleConditionChange = (selectedOptions) => {
-    setExpertise(selectedOptions || []);
-    validation.setFieldValue("expertise", selectedOptions);
+    setConditions(selectedOptions || []);
+    validation.setFieldValue("conditions", selectedOptions);
   };
 
   const handleConditionCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
-    setExpertise((prev) => [...prev, newOption]);
-    validation.setFieldValue("expertise", [
-      ...(validation.values.expertise || []),
+    setConditions((prev) => [...prev, newOption]);
+    validation.setFieldValue("conditions", [
+      ...(validation.values.conditions || []),
       newOption,
     ]);
   };
 
   // THERAPIES
   const handleTherapiesChange = (selectedOptions) => {
-    setExpertise(selectedOptions || []);
-    validation.setFieldValue("expertise", selectedOptions);
+    setTherapies(selectedOptions || []);
+    validation.setFieldValue("therapies", selectedOptions);
   };
 
   const handleTherapiesCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
-    setExpertise((prev) => [...prev, newOption]);
-    validation.setFieldValue("expertise", [
-      ...(validation.values.expertise || []),
+    setTherapies((prev) => [...prev, newOption]);
+    validation.setFieldValue("therapies", [
+      ...(validation.values.therapies || []),
       newOption,
     ]);
   };
@@ -279,15 +279,23 @@ const UserForm = ({
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
+      formData.append("availabilityMode", values.availabilityMode);
+      formData.append("experience", values.experience);
       if (expertise?.length)
         formData.append(
           "expertise",
           JSON.stringify(expertise?.map((o) => o.value))
         );
-      formData.append("availabilityMode", values.availabilityMode);
-      formData.append("experience", values.experience);
-      formData.append("conditions", values.conditions);
-      formData.append("therapies", values.therapies);
+      if (conditions?.length)
+        formData.append(
+          "conditions",
+          JSON.stringify(conditions?.map((o) => o.value))
+        );
+      if (therapies?.length)
+        formData.append(
+          "therapies",
+          JSON.stringify(therapies?.map((o) => o.value))
+        );
       if (options?.length)
         formData.append(
           "patientsConcern",
