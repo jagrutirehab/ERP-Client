@@ -16,6 +16,18 @@ const DetailAdmission = ({ data }) => {
     setFileModal({ img, isOpen: true });
   };
 
+  function convertCamelCaseToTitleCase(str) {
+    return (
+      str
+        // Split the string at each uppercase letter
+        .split(/(?=[A-Z])/)
+        // Capitalize the first letter of each word
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        // Join the words with a space
+        .join(" ")
+    );
+  }
+
   return (
     <React.Fragment>
       <Row>
@@ -28,9 +40,9 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {capitalizeWords(d[0])}:-
+                    {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
-                  {i === 0 ? capitalizeWords(d[1]) : d[1]}
+                  {i === 0 ? d[1].toUpperCase() : d[1]}
                 </p>
               </div>
             </Col>
@@ -45,7 +57,7 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {capitalizeWords(d[0])}:-
+                    {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
                   {d[1]}
                 </p>
@@ -65,7 +77,7 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {capitalizeWords(d[0])}:-
+                    {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
                   {d[1]}
                 </p>
@@ -83,7 +95,7 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {capitalizeWords(d[0])}:-
+                    {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
                   {d[1]}
                 </p>
@@ -101,7 +113,7 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {capitalizeWords(d[0])}:-
+                    {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
                   {d[1]}
                 </p>

@@ -5,7 +5,6 @@ import { Col, Row } from "reactstrap";
 import Medicine from "../Tables/MedicineChart";
 import Divider from "../../../Components/Common/Divider";
 import SummaryMse from "./Components/SummaryMse";
-import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const DischargeSummary = ({ data }) => {
   const topCond =
@@ -422,7 +421,7 @@ const DischargeSummary = ({ data }) => {
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                   Consultant Counsellor's Name:-
                 </span>
-                {capitalizeWords(data.consultantName)}
+                {data.consultantName.toUpperCase()}
               </p>
             </div>
           </Col>
@@ -446,7 +445,7 @@ const DischargeSummary = ({ data }) => {
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                   Consultant Psychologist:-
                 </span>
-                {capitalizeWords(data.consultantPsychologist)}
+                {data.consultantPsychologist.toUpperCase()}
               </p>
             </div>
           </Col>
