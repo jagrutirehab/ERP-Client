@@ -252,16 +252,18 @@ const UserForm = ({
         }
       ),
       accessroles: Yup.string().required("Access Role is required"),
-      pageAccess: Yup.array().test(
-        "notEmpty",
-        "Pages Access is required",
-        (value) => {
-          if (!value || value.length === 0) {
-            return false;
-          }
-          return true;
-        }
-      ),
+      pageAccess: Yup.array()
+      // .test(
+      //   "notEmpty",
+      //   "Pages Access is required",
+      //   (value) => {
+      //     if (!value || value.length === 0) {
+      //       return false;
+      //     }
+      //     return true;
+      //   }
+      // )
+      ,
       role: Yup.string().required("Please Select User Role"),
     }),
     onSubmit: async (values) => {

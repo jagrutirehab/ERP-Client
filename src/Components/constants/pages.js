@@ -18,10 +18,10 @@ const pages = [
     label: "Emergency",
     name: "Emergency",
     link: "/emergency",
-   icon: "bx bxs-error" 
+   icon: "bx bxs-error"
   },
   {
-    id: "users",
+    id: "user",
     label: "User",
     name: "User",
     link: "/user",
@@ -45,6 +45,7 @@ const pages = [
     },
     children: [
       {
+        id:"INTERNTIMELINE",
         name: "Timeline",
         permissions: {
           create: true,
@@ -53,6 +54,7 @@ const pages = [
         },
       },
       {
+        id:"INTERNBILLING",
         name: "Billing",
         permissions: {
           create: true,
@@ -61,13 +63,16 @@ const pages = [
         },
       },
       {
+        id:"INTERNFORMS",
         name: "Forms",
         permissions: {
           create: true,
           edit: true,
           delete: true,
         },
-      },{
+      },
+      {
+        id:"INTERNCERTIFICATE",
         name: "Certificate",
         permissions: {
           create: true,

@@ -34,6 +34,7 @@ export const permissionList = [
     key: "INTERN",
     label: "Intern",
     subModules: [
+      { name: "INTERNFORMS", label: "Intern Forms" },
       { name: "INTERNTIMELINE", label: "Intern Timeline" },
       { name: "INTERNBILLING", label: "Intern Bill" },
       { name: "INTERNCERTIFICATE", label: "Intern Certificate" },

@@ -2,18 +2,48 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import pages from "../Components/constants/pages";
+import { usePermissions } from "../Components/Hooks/useRoles";
 
 const Navdata = () => {
   const history = useNavigate();
-  const  userPages  = useSelector((state) => 
-  state.User.user?.pageAccess?.pages||[]
-);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
-  const dynamicPages = userPages?.map((pg) => {
-    const pageIndex = pages?.findIndex((r) => r.label === pg.name);
-    const page = pages[pageIndex];
-    return page;
-  });
+  const { hasPermission } = usePermissions(token);
+
+  const userPages = useSelector(
+    (state) => state.User.user?.pageAccess?.pages || []
+  );
+
+  const dynamicPages = pages
+    .map((pg) => {
+      const moduleName = pg.id.toUpperCase();
+
+      const roleAllowed = hasPermission(moduleName, null, "READ");
+
+      const pageAllowed = userPages.some((p) => p.name === pg.label);
+
+      if (!roleAllowed && !pageAllowed) return null;
+
+      if (pg.children) {
+        const filteredChildren = pg.children.filter((child) => {
+          const roleSubAccessAllowed = hasPermission(moduleName, child.id, "READ");
+          const pageSubAccessAllowed = userPages.some((p) => p.name === child.name);
+          return roleSubAccessAllowed || pageSubAccessAllowed;
+        });
+
+        return { ...pg, children: filteredChildren };
+      }
+
+      return pg;
+    })
+    .filter(Boolean);
+
+  // const dynamicPages = userPages?.map((pg) => {
+  //   const pageIndex = pages?.findIndex((r) => r.label === pg.name);
+  //   const page = pages[pageIndex];
+  //   return page;
+  // });
 
   const sortPages = (routes) => {
     const sortOrder = [
@@ -23,7 +53,7 @@ const Navdata = () => {
       "booking",
       "intern",
       "patient",
-      "users",
+      "user",
       "setting",
       "recyclebin",
     ];
