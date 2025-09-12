@@ -63,10 +63,10 @@ const Therapies = (props) => {
   const validationSchema = Yup.object({
     title: Yup.string().trim().required("Title is required"),
     description: Yup.string().trim().required("Description is required"),
-    price: Yup.number()
-      .typeError("Price must be a number")
-      .required("Price is required")
-      .min(0, "Price must be >= 0"),
+    // price: Yup.number()
+    //   .typeError("Price must be a number")
+    //   .required("Price is required")
+    //   .min(0, "Price must be >= 0"),
   });
 
   const formik = useFormik({
@@ -74,14 +74,14 @@ const Therapies = (props) => {
     initialValues: {
       title: editingTherapy?.title || "",
       description: editingTherapy?.description || "",
-      price: editingTherapy?.price ?? "",
+      // price: editingTherapy?.price ?? "",
     },
     validationSchema,
     onSubmit: (values, { resetForm }) => {
       const payload = {
         title: values.title.trim(),
         description: values.description.trim(),
-        price: Number(values.price),
+        // price: Number(values.price),
       };
 
       if (editingTherapy?._id) {
