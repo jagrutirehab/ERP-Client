@@ -25,7 +25,7 @@ const fields = [
     type: "text",
   },
   {
-    label: "Effect",
+    label: "Affect",
     name: "effect",
     type: "text",
   },
