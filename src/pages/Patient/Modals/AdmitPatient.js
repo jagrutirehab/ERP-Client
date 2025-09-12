@@ -98,7 +98,7 @@ const AdmitPatient = ({
         "Please select Guardian Phone Number"
       ),
       referredBy: Yup.string().required("Please select Referred By"),
-      ipdFileNumber: Yup.string().required("Please select Ipd File Number"),
+      // ipdFileNumber: Yup.string().required("Please select Ipd File Number"),
       //admission
       addmissionDate: Yup.date().required("Please select addmission date"),
       center: Yup.string().required("Please select center"),
@@ -190,26 +190,31 @@ const AdmitPatient = ({
       label: "Guardian Name",
       name: "guardianName",
       type: "text",
+      required: true,
     },
     {
       label: "Relation",
       name: "guardianRelation",
       type: "text",
+      required: true,
     },
     {
       label: "Phone Number",
       name: "guardianPhoneNumber",
       type: "text",
+      required: true,
     },
     {
       label: "Referred By",
       name: "referredBy",
       type: "text",
+      required: true,
     },
     {
       label: "IPD File Number",
       name: "ipdFileNumber",
       type: "text",
+      requird: false,
     },
   ];
 
@@ -253,7 +258,7 @@ const AdmitPatient = ({
             <div className="mb-3">
               <Label htmlFor={f.name} className="form-label">
                 {f.label}
-                <span className="text-danger">*</span>
+                {f.required && <span className="text-danger">*</span>}
               </Label>
               <Input
                 type={f.type}

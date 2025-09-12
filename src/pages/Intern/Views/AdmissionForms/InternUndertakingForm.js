@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const InternUndertakingForm = ({ register, intern, details }) => {
@@ -10,6 +11,8 @@ const InternUndertakingForm = ({ register, intern, details }) => {
     fontFamily: "Arial, sans-serif",
     fontSize: "12px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const heading = {
@@ -33,15 +36,37 @@ const InternUndertakingForm = ({ register, intern, details }) => {
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "200px",
+    width: "300px",
     margin: "0 5px",
   };
+
+  useEffect(() => {
+    if (intern) {
+      document.querySelector('[name="intern_name"]').value = intern?.name || "";
+      document.querySelector('[name="intern_contact"]').value =
+        intern?.contactNumber || "";
+      document.querySelector('[name="intern_email"]').value =
+        intern?.emailAddress || "";
+      document.querySelector('[name="intern_institution"]').value =
+        intern?.educationalInstitution || "";
+      document.querySelector('[name="centre_location"]').value =
+        intern?.center?.title || "";
+      document.querySelector('[name="sign_name"]').value = intern?.name || "";
+    }
+
+    if (details) {
+      document.querySelector('[name="internship_from"]').value =
+        details?.from || "";
+      document.querySelector('[name="internship_to"]').value =
+        details?.to || "";
+    }
+  }, [intern, details]);
 
   return (
     <div style={pageContainer}>
       {/* Header */}
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader intern={intern} />
+        <PrintHeader intern={intern} pageWidth={window.innerWidth} />
       </div>
 
       {/* Title */}

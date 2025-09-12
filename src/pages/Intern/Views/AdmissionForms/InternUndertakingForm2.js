@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const InternUndertakingFormPage2 = ({ register, intern }) => {
@@ -10,6 +11,8 @@ const InternUndertakingFormPage2 = ({ register, intern }) => {
     fontFamily: "Arial, sans-serif",
     fontSize: "12px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const heading = {
@@ -37,11 +40,18 @@ const InternUndertakingFormPage2 = ({ register, intern }) => {
     margin: "0 6px",
   };
 
+  useEffect(() => {
+    if (intern) {
+      document.querySelector('[name="page2_sign_name"]').value =
+        intern?.name || "";
+    }
+  }, [intern]);
+
   return (
     <div style={pageContainer}>
       {/* Header (optional) */}
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader intern={intern} />
+        <PrintHeader intern={intern} pageWidth={window.innerWidth} />
       </div>
 
       {/* Title */}
