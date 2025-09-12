@@ -58,7 +58,7 @@ const TherapyFormModal = ({
                 />
               </FormGroup>
             </Col>
-            <Col md={12}>
+            {/* <Col md={12}>
               <FormGroup>
                 <Label for="price">Price *</Label>
                 <Input
@@ -71,7 +71,7 @@ const TherapyFormModal = ({
                   required
                 />
               </FormGroup>
-            </Col>
+            </Col> */}
           </Row>
         </ModalBody>
         <ModalFooter>
