@@ -39,7 +39,7 @@ const Diagnosis = ({ data, styles }) => {
         {data?.managmentPlan && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
-              managment plan: (INDOOR - With Reason For Admission)
+              managment plan: (INDOOR - With Reason For Admission):
             </Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.managmentPlan || ""}

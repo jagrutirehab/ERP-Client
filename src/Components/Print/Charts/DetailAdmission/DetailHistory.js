@@ -42,7 +42,7 @@ const DetailHistory = ({ data, styles }) => {
             }}
           >
             <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-              informant{" "}
+              informant:{" "}
             </Text>
           </View>
 

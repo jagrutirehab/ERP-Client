@@ -136,7 +136,7 @@ const PatientTopbar = ({
       <div className="position-relative w-100">
         <div className="p-0 p-md-3 user-chat-topbar">
           <Row className="align-items-center">
-            <Col sm={3} xs={8}>
+            <Col sm={4} xs={6}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0 d-block d-lg-none me-3">
                   <Link to="#" className="user-chat-remove fs-18 p-1">
@@ -166,8 +166,8 @@ const PatientTopbar = ({
                       />
                       <span className="user-status"></span>
                     </div>
-                    <div className="flex-grow-1 overflow-hidden">
-                      <h5 className="text-truncat mb-0 fs-16">
+                    <div className="flex-grow-1">
+                      <h5 className="mb-0 fs-16 text-wrap">
                         <a
                           className="text-reset text-capitalize username"
                           data-bs-toggle="offcanvas"
@@ -193,7 +193,7 @@ const PatientTopbar = ({
                 </div>
               </div>
             </Col>
-            <Col sm={9} xs={12}>
+            <Col sm={8} xs={6}>
               <ul className="list-inline user-chat-nav text-end mb-0">
                 {/* <li
                   id="assign-nurse"
@@ -243,7 +243,7 @@ const PatientTopbar = ({
                     Assigned Nurse
                   </UncontrolledTooltip>
                 </li> */}
-             {/* <CheckPermission allowedRoles={["ADMIN","MANAGER"]} userRole={user?.role}>
+                {/* <CheckPermission allowedRoles={["ADMIN","MANAGER"]} userRole={user?.role}>
                  <li
                   id="assign/unassign-nurse"
                   className="list-inline-item m-0 d-none d-md-inline me-2"
