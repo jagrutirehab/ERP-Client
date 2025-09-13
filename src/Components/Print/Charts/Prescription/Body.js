@@ -137,6 +137,10 @@ const Body = ({ chart, doctor }) => {
                 Dr. {doctor?.name || ""}
               </Text>
               <Text>{doctor?.degrees || ""}</Text>
+              {doctor?.speciality && <Text>{doctor?.speciality}</Text>}
+              {doctor?.registrationNo && (
+                <Text>Reg. No. -{doctor?.registrationNo}</Text>
+              )}
             </View>
           </View>
         )}

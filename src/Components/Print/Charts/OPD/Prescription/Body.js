@@ -255,7 +255,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             {doctor?.name && (
               <Text style={{ lineHeight: 1.2 }}>{doctor.name}</Text>
             )}
-            {doctor?.education?.degrees && (
+            {doctor?.degrees && (
               <Text
                 style={{
                   lineHeight: 1.2,
@@ -263,17 +263,17 @@ const PrescriptionBody = ({ chart, doctor }) => {
                   marginTop: "5px",
                 }}
               >
-                {doctor.education?.degrees}
+                {doctor?.degrees}
               </Text>
             )}
-            {doctor?.education?.speciality && (
+            {doctor?.speciality && (
               <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
-                {doctor.education?.speciality}
+                {doctor?.speciality}
               </Text>
             )}
-            {doctor?.education?.registrationNo && (
+            {doctor?.registrationNo && (
               <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
-                Reg. No. -{doctor.education?.registrationNo}
+                Reg. No. -{doctor?.registrationNo}
               </Text>
             )}
           </View>
