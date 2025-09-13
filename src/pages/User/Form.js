@@ -5,7 +5,7 @@ import CreatableSelect from "react-select/creatable";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser } from "../../store/actions";
+import { fetchCondition, fetchTherapy, updateUser } from "../../store/actions";
 import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
@@ -40,6 +40,19 @@ const UserForm = ({
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
+  const therapyOptions = useSelector((state) => state.Setting.therapies).map(
+    (therapy) => ({
+      value: therapy.title,
+      label: therapy.title,
+    })
+  );
+  const conditionOptions = useSelector((state) => state.Setting.conditions).map(
+    (condition) => ({
+      value: condition.title,
+      label: condition.title,
+    })
+  );
+  const userForm = useSelector((state) => state.User.form);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const loader = useSelector((state) => state.User.loading);
@@ -83,6 +96,23 @@ const UserForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    if (!userForm.isOpen || userForm.data?.role !== "DOCTOR") return;
+
+    if (!therapyOptions || therapyOptions.length === 0) {
+      dispatch(fetchTherapy());
+    }
+    if (!conditionOptions || conditionOptions.length === 0) {
+      dispatch(fetchCondition());
+    }
+  }, [
+    therapyOptions?.length,
+    conditionOptions?.length,
+    dispatch,
+    userForm.isOpen,
+    userForm.data?.role,
+  ]);
+
   const handleChange = (selectedOptions) => {
     setOptions(selectedOptions || []);
     validation.setFieldValue("patientsConcern", selectedOptions);
@@ -117,6 +147,13 @@ const UserForm = ({
     validation.setFieldValue("conditions", selectedOptions);
   };
 
+  const mergedConditionOptions = [
+    ...conditionOptions,
+    ...conditions.filter(
+      (c) => !conditionOptions.some((opt) => opt.value === c.value)
+    ),
+  ];
+
   const handleConditionCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
     setConditions((prev) => [...prev, newOption]);
@@ -131,6 +168,13 @@ const UserForm = ({
     setTherapies(selectedOptions || []);
     validation.setFieldValue("therapies", selectedOptions);
   };
+
+  const mergedTherapyOptions = [
+    ...therapyOptions,
+    ...therapies.filter(
+      (t) => !therapyOptions.some((opt) => opt.value === t.value)
+    ),
+  ];
 
   const handleTherapiesCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
@@ -191,14 +235,9 @@ const UserForm = ({
       accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
       phoneNumber: userData ? userData.phoneNumber : "",
-      degrees: userData?.education?.degrees ?? userData?.degrees ?? "",
-      speciality: userData?.education
-        ? userData.education?.speciality
-        : userData?.speciality || "",
-      registrationNo: userData?.education
-        ? userData.education?.registrationNo
-        : userData?.registrationNo || "",
-
+      degrees: userData ? userData.degrees : "",
+      speciality: userData ? userData?.speciality : "",
+      registrationNo: userData ? userData?.registrationNo : "",
       centerAccess: userData?.centerAccess
         ? userData?.centerAccess.map((cn) => cn._id)
         : [],
@@ -312,8 +351,8 @@ const UserForm = ({
         formData.append("profilePicture", cropProfilePic.file);
       if (userData) {
         formData.append("pageAccessId", userData.pageAccess?._id);
-        if (userData.education?._id)
-          formData.append("educationId", userData.education?._id);
+        // if (userData.education?._id)
+        //   formData.append("educationId", userData.education?._id);
         formData.append("id", userData._id);
 
         try {
@@ -2096,7 +2135,7 @@ const UserForm = ({
                 <CreatableSelect
                   isMulti
                   name="conditions"
-                  options={conditions}
+                  options={mergedConditionOptions}
                   classNamePrefix="react-select"
                   onChange={handleConditionChange}
                   onCreateOption={handleConditionCreate}
@@ -2135,7 +2174,7 @@ const UserForm = ({
                 <CreatableSelect
                   isMulti
                   name="therapies"
-                  options={therapies}
+                  options={mergedTherapyOptions}
                   classNamePrefix="react-select"
                   onChange={handleTherapiesChange}
                   onCreateOption={handleTherapiesCreate}
