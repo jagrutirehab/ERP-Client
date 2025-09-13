@@ -83,41 +83,24 @@ const Header = ({ chart, center, patient }) => {
         <View
           style={{
             flexDirection: "row",
-            // gap: "10px",
             alignItems: "center",
             marginTop: 5,
             paddingBottom: 5,
+            paddingTop: 5,
             borderBottom: border,
             borderTop: border,
-            paddingTop: 5,
-            ...styles.justifyBetween,
+            justifyContent: "space-between",
+            width: "100%",
           }}
         >
-          <View>
+          <View style={{ flex: 1, marginRight: 10 }}>
             <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
               Patient:{" "}
               {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
                 ""}
             </Text>
           </View>
-          <View
-            style={{
-              flexDirection: "row",
-              textTransform: "capitalize",
-              width: "100%",
-              textAlign: "right",
-              justifyContent: "flex-end",
-            }}
-          >
-            {patient.gender && (
-              <Text>Gender : {patient.gender?.toLowerCase()}</Text>
-            )}
-            {patient.dateOfBirth && (
-              <Text style={{ marginLeft: "5px" }}>Age {age()}</Text>
-            )}
-          </View>
-
-          <View>
+          <View style={{ flexShrink: 0, textAlign: "right" }}>
             {patient?.addmission?.addmissionDate && (
               <Text>
                 DOA:{" "}
@@ -127,6 +110,15 @@ const Header = ({ chart, center, patient }) => {
                 )}
               </Text>
             )}
+
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              {patient.gender && (
+                <Text>Gender: {patient.gender.toLowerCase()}</Text>
+              )}
+              {patient.dateOfBirth && (
+                <Text style={{ marginLeft: 6 }}>Age {age()}</Text>
+              )}
+            </View>
           </View>
         </View>
       </View>
