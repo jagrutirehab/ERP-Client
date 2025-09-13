@@ -136,10 +136,18 @@ const Body = ({ chart, doctor }) => {
               <Text style={{ ...styles.textCapitalize, ...styles.instr }}>
                 Dr. {doctor?.name || ""}
               </Text>
-              <Text>{doctor?.degrees || ""}</Text>
-              {doctor?.speciality && <Text>{doctor?.speciality}</Text>}
+              <Text style={{ ...styles.textCapitalize }}>
+                {doctor?.degrees || ""}
+              </Text>
+              {doctor?.speciality && (
+                <Text style={{ ...styles.textCapitalize }}>
+                  {doctor?.speciality}
+                </Text>
+              )}
               {doctor?.registrationNo && (
-                <Text>Reg. No. -{doctor?.registrationNo}</Text>
+                <Text style={{ ...styles.textCapitalize }}>
+                  Reg. No. -{doctor?.registrationNo}
+                </Text>
               )}
             </View>
           </View>

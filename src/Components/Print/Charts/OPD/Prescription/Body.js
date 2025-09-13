@@ -253,7 +253,9 @@ const PrescriptionBody = ({ chart, doctor }) => {
               </View>
             )}
             {doctor?.name && (
-              <Text style={{ lineHeight: 1.2 }}>{doctor.name}</Text>
+              <Text style={{ lineHeight: 1.2, ...styles.textCapitalize }}>
+                {doctor.name}
+              </Text>
             )}
             {doctor?.degrees && (
               <Text
@@ -261,18 +263,31 @@ const PrescriptionBody = ({ chart, doctor }) => {
                   lineHeight: 1.2,
                   ...styles.fontNormal,
                   marginTop: "5px",
+                  ...styles.textCapitalize,
                 }}
               >
                 {doctor?.degrees}
               </Text>
             )}
             {doctor?.speciality && (
-              <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  ...styles.fontNormal,
+                  ...styles.textCapitalize,
+                }}
+              >
                 {doctor?.speciality}
               </Text>
             )}
             {doctor?.registrationNo && (
-              <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  ...styles.fontNormal,
+                  ...styles.textCapitalize,
+                }}
+              >
                 Reg. No. -{doctor?.registrationNo}
               </Text>
             )}
