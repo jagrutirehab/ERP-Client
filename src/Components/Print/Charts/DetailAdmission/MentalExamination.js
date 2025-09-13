@@ -33,7 +33,7 @@ const MentalExamination = ({ data, styles }) => {
             ...styles.fontSize13,
           }}
         >
-          mental status examination
+          mental status examination:
         </Text>
         {Object.entries(data).map((d, i) => (
           <View
@@ -48,7 +48,7 @@ const MentalExamination = ({ data, styles }) => {
             <View
               style={{ ...styles.w30, ...styles.row, ...styles.textCapitalize }}
             >
-              <Text>{separateCamelCase(d[0])}</Text>
+              <Text>{separateCamelCase(d[0])}:</Text>
             </View>
             <Text style={{ ...styles.w70, ...styles.textCapitalize }}>
               {d[1] || ""}

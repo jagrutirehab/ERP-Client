@@ -41,27 +41,27 @@ const DetailInfo = ({ chart, patient, data, styles }) => {
       style={{ ...styles.column, ...styles.mrgnTop10, ...styles.mrgnBottom10 }}
     >
       <Row
-        label="doctor consultant"
+        label="doctor consultant:"
         value={data.doctorConsultant.toUpperCase()}
       />
-      <Row label="name" value={patient?.name} />
-      {data.religion && <Row label="religion" value={data.religion} />}
-      {age() && <Row label="age" value={age()} />}
-      {patient.gender && <Row label="gender" value={patient.gender.toLowerCase()} />}
+      <Row label="name:" value={patient?.name} />
+      {data.religion && <Row label="religion:" value={data.religion} />}
+      {age() && <Row label="age:" value={age()} />}
+      {patient.gender && <Row label="gender:" value={patient.gender.toLowerCase()} />}
       {data.maritalStatus && (
-        <Row label="marital status" value={data.maritalStatus} />
+        <Row label="marital status:" value={data.maritalStatus} />
       )}
-      {data.occupation && <Row label="occupation" value={data.occupation} />}
-      {data.education && <Row label="education" value={data.education} />}
-      {data.address && <Row label="address" value={data.address} />}
+      {data.occupation && <Row label="occupation:" value={data.occupation} />}
+      {data.education && <Row label="education:" value={data.education} />}
+      {data.address && <Row label="address:" value={data.address} />}
       {data.referral && (
-        <Row label="source of referral" value={data.referral} />
+        <Row label="source of referral:" value={data.referral} />
       )}
       {data.provisionalDiagnosis && (
-        <Row label="provisional diagnosis" value={data.provisionalDiagnosis} />
+        <Row label="provisional diagnosis:" value={data.provisionalDiagnosis} />
       )}
       {data.revisedDiagnosis && (
-        <Row label="revised diagnosis" value={data.revisedDiagnosis} />
+        <Row label="revised diagnosis:" value={data.revisedDiagnosis} />
       )}
     </View>
   );
