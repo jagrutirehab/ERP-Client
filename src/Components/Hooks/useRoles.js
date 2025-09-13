@@ -38,7 +38,7 @@ export const usePermissions = (token) => {
     fetchRoles();
   }, [token]);
 
-  console.log(roles, "roles");
+  // console.log(roles, "roles");
 
   const hasPermission = (module, subModule, requiredType = "NONE") => {
     if (!roles) return false;

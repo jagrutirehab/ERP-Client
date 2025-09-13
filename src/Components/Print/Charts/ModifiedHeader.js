@@ -196,7 +196,7 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {doctor?.education?.degrees && (
+            {/* {doctor?.degrees && (
               <Text
                 style={{
                   ...styles.fontSm,
@@ -204,10 +204,10 @@ const Header = ({ chart, center, patient, doctor }) => {
                   whiteSpace: "pre-line",
                 }}
               >
-                {doctor.education?.degrees}
+                {doctor?.degrees}
               </Text>
             )}
-            {doctor?.education?.speciality && (
+            {doctor?.speciality && (
               <Text
                 style={{
                   ...styles.fontSm,
@@ -215,9 +215,9 @@ const Header = ({ chart, center, patient, doctor }) => {
                   whiteSpace: "pre-line",
                 }}
               >
-                {doctor.education?.speciality}
+                {doctor?.speciality}
               </Text>
-            )}
+            )} */}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>
                 {doctor.education?.registrationNo}
@@ -284,16 +284,21 @@ const Header = ({ chart, center, patient, doctor }) => {
                 ...styles.justifyBetween,
               }}
             >
-              <Text>
-                {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
-                  ""}
-                {" - "}
-                {(patient?.age || patient.gender) &&
-                  `(${age()} ${gender(patient?.gender) || ""})`}
-              </Text>
-              <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text>
+                  {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
+                    ""}
+                  {" - "}
+                  {(patient?.age || patient.gender) &&
+                    `(${age()} ${gender(patient?.gender) || ""})`}
+                </Text>
+              </View>
+              <View style={{ flexShrink: 0 }}>
+                <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              </View>
             </View>
           </View>
+
           <View style={{ ...styles.row }}>
             <Text style={{ ...styles.col2 }}>Date:</Text>
             <Text style={{ ...styles.col9 }}>
