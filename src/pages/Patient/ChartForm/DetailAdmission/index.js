@@ -23,10 +23,12 @@ import {
 import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
+import ChiefComplaintsForm from "./ChiefComplaintsForm";
 
 const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
+const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -349,6 +351,12 @@ const DetailAdmission = ({
               Detail History
             </Button>
             <Button
+              outline={formStep !== CHIEF_COMPLAINTS}
+              onClick={() => setFormStep(CHIEF_COMPLAINTS)}
+            >
+              Chief Complaints
+            </Button>
+            <Button
               outline={formStep !== MENTAL_EXAMINATION}
               onClick={() => setFormStep(MENTAL_EXAMINATION)}
             >
@@ -400,6 +408,14 @@ const DetailAdmission = ({
 
               {formStep === DETAIL_HISTORY && (
                 <DetailHistoryForm
+                  validation={validation}
+                  setFormStep={setFormStep}
+                  step={MENTAL_EXAMINATION}
+                />
+              )}
+
+              {formStep === CHIEF_COMPLAINTS && (
+                <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}
