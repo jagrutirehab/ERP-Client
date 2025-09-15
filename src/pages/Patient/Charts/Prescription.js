@@ -19,40 +19,48 @@ const Prescription = ({ data, startDate, endDate }) => {
         {data?.drNotes && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Dr Notes:-
               </span>
+              <span className="fs-xs-9 fs-md-12">
               {data.drNotes}
+              </span>
             </p>
           </div>
         )}
         {data?.diagnosis && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Diagnosis:-
               </span>
+              <span className="fs-xs-9 fs-md-12">
               {data.diagnosis}
+              </span>
             </p>
           </div>
         )}
         {data?.observation && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Observation:-
               </span>
+              <span className="fs-xs-9 fs-md-12"> 
               {data.observation}
+              </span>
             </p>
           </div>
         )}
         {data?.complaints && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Complaints:-
               </span>
+              <span className="fs-xs-9 fs-md-12">
               {data.complaints}
+              </span>
             </p>
           </div>
         )}
@@ -69,20 +77,24 @@ const Prescription = ({ data, startDate, endDate }) => {
         {data?.notes && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Notes:-
               </span>
+              <span className="fs-xs-9 fs-md-12">
               {data.notes}
+              </span>
             </p>
           </div>
         )}
         {data?.investigationPlan && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
-              <span className="display-6 font-semi-bold fs-xs-11 font-size-20 me-3">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Investigation Plan:-
               </span>
+              <span className="fs-xs-9 fs-md-12">
               {data.investigationPlan}
+              </span>
             </p>
           </div>
         )}

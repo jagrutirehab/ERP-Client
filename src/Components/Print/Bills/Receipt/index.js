@@ -279,7 +279,7 @@ const Receipt = ({ bill, center, patient }) => {
               <View style={styles.slot}>
                 <Text>On Account Of:{"\n"}</Text>
                 <Text style={{ marginLeft: 20, marginTop: 10 }}>
-                  {advancePayment?.remarks}
+                  Remarks: {advancePayment?.remarks}
                 </Text>
               </View>
               <Text style={styles.amount}></Text>
