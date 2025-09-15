@@ -24,13 +24,13 @@ const LabReport = ({ chart, center, patient }) => {
     <React.Fragment>
       {/* <Document>
         <Page style={{ ...styles.page }} size="A4" wrap> */}
-      {/* <Header
+      <Header
             chart={chart}
             center={center}
             patient={patient}
-          /> */}
+          />
       <Body chart={chart} />
-      {/* <Footer /> */}
+      <Footer />
       {/* </Page>
       </Document> */}
     </React.Fragment>

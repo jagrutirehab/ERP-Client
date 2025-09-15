@@ -29,54 +29,29 @@ const DetailHistory = ({ data, styles }) => {
           style={{
             ...styles.row,
             ...styles.itemsCenter,
+            ...styles.justifyBetween,
             ...styles.gap10,
-            ...styles.jusitfyBetween,
           }}
         >
-          <View
-            style={{
-              ...styles.row,
-              ...styles.itemsCenter,
-              ...styles.jusitfyBetween,
-              ...styles.w50,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-              informant:{" "}
-            </Text>
-          </View>
+          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
+            Informant:
+          </Text>
 
-          <View style={{ ...styles.w50 }}>
-            <View
-              style={{
-                ...styles.row,
-                ...styles.itemsCenter,
-                gap: 10,
-                ...styles.mrgnBottom5,
-              }}
-            >
-              <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-                Self{" "}
-              </Text>
-              <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-                {data.informant || ""}+
-              </Text>
-            </View>
-            <View
-              style={{
-                ...styles.row,
-                ...styles.itemsCenter,
-                ...styles.justifyBetween,
-              }}
-            >
-              <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-                {data.adequate}
-              </Text>
-              <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-                {data.reliable || ""}
-              </Text>
-            </View>
-          </View>
+          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
+            Self+
+          </Text>
+
+          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
+            {data.informant || ""}
+          </Text>
+
+          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
+            {data.adequate}
+          </Text>
+
+          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
+            {data.reliable || ""}
+          </Text>
         </View>
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>

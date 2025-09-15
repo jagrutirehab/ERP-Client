@@ -139,7 +139,7 @@ const MseAtDischarge = (props) => {
                 ...props?.styles.paddingLeft5,
               }}
             >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+              <View style={{ ...props?.styles.w30, ...props?.styles.row, marginTop:2 }}>
                 <Text style={props?.styles.blackCircle}></Text>
                 <Text>Memory-</Text>
               </View>
