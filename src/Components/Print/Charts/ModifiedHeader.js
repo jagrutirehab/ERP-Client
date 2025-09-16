@@ -196,7 +196,7 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {/* {doctor?.degrees && (
+            {doctor?.degrees && (
               <Text
                 style={{
                   ...styles.fontSm,
@@ -217,7 +217,7 @@ const Header = ({ chart, center, patient, doctor }) => {
               >
                 {doctor?.speciality}
               </Text>
-            )} */}
+            )}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>
                 {doctor.education?.registrationNo}
