@@ -86,8 +86,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionBody = ({ chart, doctor }) => {
-  const renderImage = (src, width) => <Image src={src} style={styles.image} />;
+const PrescriptionBody = ({ chart, doctor, author }) => {
+  const renderImage = (src, width) => {
+    if (!src) return null;
+    return <Image src={src} style={styles.image} />;
+  };
   return (
     <React.Fragment>
       <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
@@ -234,63 +237,52 @@ const PrescriptionBody = ({ chart, doctor }) => {
             style={{
               flexDirection: "column",
               justifyContent: "center",
-              // border: "1px solid green",
             }}
           >
-            {doctor?.signature && (
-              <View
-                style={{
-                  width: "100%",
-                  ...styles.row,
-                  justifyContent: "center",
-                  // border: "1px solid red",
-                  // textAlign: 'center',
-                  // paddingRight: "5rem",
-                }}
-                wrap={false}
-              >
-                {renderImage(doctor.signature, 200)}
-              </View>
-            )}
-            {doctor?.name && (
-              <Text style={{ lineHeight: 1.2, ...styles.textCapitalize }}>
-                {doctor.name}
-              </Text>
-            )}
-            {doctor?.degrees && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  marginTop: "5px",
-                  ...styles.textCapitalize,
-                }}
-              >
-                {doctor?.degrees}
-              </Text>
-            )}
-            {doctor?.speciality && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {doctor?.speciality}
-              </Text>
-            )}
-            {doctor?.registrationNo && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  ...styles.textCapitalize,
-                }}
-              >
-                Reg. No. -{doctor?.registrationNo}
-              </Text>
-            )}
+            <View
+              style={{
+                width: "100%",
+                ...styles.row,
+                justifyContent: "center",
+              }}
+              wrap={false}
+            >
+              {doctor?.signature
+                ? renderImage(doctor.signature, 200)
+                : renderImage(author?.signature, 200)}
+            </View>
+            <Text style={{ lineHeight: 1.2, ...styles.textCapitalize }}>
+              {doctor?.name ?? author?.name ?? ""}
+            </Text>
+            <Text
+              style={{
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                marginTop: 5,
+                ...styles.textCapitalize,
+              }}
+            >
+              {doctor?.degrees ?? author?.degrees ?? ""}
+            </Text>
+            <Text
+              style={{
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              }}
+            >
+              {doctor?.speciality ?? author?.speciality ?? ""}
+            </Text>
+            <Text
+              style={{
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              }}
+            >
+              Reg. No. -{" "}
+              {doctor?.registrationNo ?? author?.registrationNo ?? ""}
+            </Text>
           </View>
         </View>
         {/* {doctor && (

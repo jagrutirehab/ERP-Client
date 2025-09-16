@@ -196,26 +196,50 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {doctor?.degrees && (
+            {doctor?.degrees ? (
               <Text
                 style={{
                   ...styles.fontSm,
                   ...styles.paddingTop1,
                   whiteSpace: "pre-line",
+                  textTransform: "capitalize",
                 }}
               >
                 {doctor?.degrees}
               </Text>
-            )}
-            {doctor?.speciality && (
+            ) : (
               <Text
                 style={{
                   ...styles.fontSm,
                   ...styles.paddingTop1,
                   whiteSpace: "pre-line",
+                  textTransform: "capitalize",
+                }}
+              >
+                {chart?.author?.degrees}
+              </Text>
+            )}
+            {doctor?.speciality ? (
+              <Text
+                style={{
+                  ...styles.fontSm,
+                  ...styles.paddingTop1,
+                  whiteSpace: "pre-line",
+                  textTransform: "capitalize",
                 }}
               >
                 {doctor?.speciality}
+              </Text>
+            ) : (
+              <Text
+                style={{
+                  ...styles.fontSm,
+                  ...styles.paddingTop1,
+                  whiteSpace: "pre-line",
+                  textTransform: "capitalize",
+                }}
+              >
+                {chart?.author?.speciality}
               </Text>
             )}
             {/* {doctor?.education?.regNumber && (
