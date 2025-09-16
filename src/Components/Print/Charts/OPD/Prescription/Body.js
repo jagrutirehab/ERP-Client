@@ -6,6 +6,7 @@ import RXIcon from "../../../../../assets/images/small/rx.jpeg";
 //table
 import PrescriptionTable from "./Table";
 import { format } from "date-fns";
+import { safeText } from "../../../../../utils/safeText";
 
 Font.register({
   family: "Roboto",
@@ -253,7 +254,6 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                   : renderImage(author?.signature, 200)}
               </View>
             )}
-
             {(doctor?.name || author?.name) && (
               <Text
                 style={{
@@ -265,41 +265,35 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 {doctor?.name ?? author?.name}
               </Text>
             )}
-
-            {(doctor?.degrees || author?.degrees) && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {doctor?.degrees ?? author?.degrees}
-              </Text>
+            {safeText(
+              "",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.degrees,
+              author?.degrees
             )}
-
-            {(doctor?.speciality || author?.speciality) && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {doctor?.speciality ?? author?.speciality}
-              </Text>
+            {safeText(
+              "",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.speciality,
+              author?.speciality
             )}
-
-            {(doctor?.registrationNo || author?.registrationNo) && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  ...styles.textCapitalize,
-                }}
-              >
-                Reg. No. - {doctor?.registrationNo ?? author?.registrationNo}
-              </Text>
+            {safeText(
+              "Reg. No.",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.registrationNo,
+              author?.registrationNo
             )}
           </View>
         </View>
