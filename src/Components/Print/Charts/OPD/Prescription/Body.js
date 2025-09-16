@@ -239,50 +239,68 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
               justifyContent: "center",
             }}
           >
-            <View
-              style={{
-                width: "100%",
-                ...styles.row,
-                justifyContent: "center",
-              }}
-              wrap={false}
-            >
-              {doctor?.signature
-                ? renderImage(doctor.signature, 200)
-                : renderImage(author?.signature, 200)}
-            </View>
-            <Text style={{ lineHeight: 1.2, ...styles.textCapitalize }}>
-              {doctor?.name ?? author?.name ?? ""}
-            </Text>
-            <Text
-              style={{
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                marginTop: 5,
-                ...styles.textCapitalize,
-              }}
-            >
-              {doctor?.degrees ?? author?.degrees ?? ""}
-            </Text>
-            <Text
-              style={{
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                ...styles.textCapitalize,
-              }}
-            >
-              {doctor?.speciality ?? author?.speciality ?? ""}
-            </Text>
-            <Text
-              style={{
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                ...styles.textCapitalize,
-              }}
-            >
-              Reg. No. -{" "}
-              {doctor?.registrationNo ?? author?.registrationNo ?? ""}
-            </Text>
+            {(doctor?.signature || author?.signature) && (
+              <View
+                style={{
+                  width: "100%",
+                  ...styles.row,
+                  justifyContent: "center",
+                }}
+                wrap={false}
+              >
+                {doctor?.signature
+                  ? renderImage(doctor.signature, 200)
+                  : renderImage(author?.signature, 200)}
+              </View>
+            )}
+
+            {(doctor?.name || author?.name) && (
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  marginBottom: 3,
+                  ...styles.textCapitalize,
+                }}
+              >
+                {doctor?.name ?? author?.name}
+              </Text>
+            )}
+
+            {(doctor?.degrees || author?.degrees) && (
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  ...styles.fontNormal,
+                  ...styles.textCapitalize,
+                }}
+              >
+                {doctor?.degrees ?? author?.degrees}
+              </Text>
+            )}
+
+            {(doctor?.speciality || author?.speciality) && (
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  ...styles.fontNormal,
+                  ...styles.textCapitalize,
+                }}
+              >
+                {doctor?.speciality ?? author?.speciality}
+              </Text>
+            )}
+
+            {(doctor?.registrationNo || author?.registrationNo) && (
+              <Text
+                style={{
+                  lineHeight: 1.2,
+                  ...styles.fontNormal,
+                  ...styles.textCapitalize,
+                }}
+              >
+                Reg. No. - {doctor?.registrationNo ?? author?.registrationNo}
+              </Text>
+            )}
           </View>
         </View>
         {/* {doctor && (
