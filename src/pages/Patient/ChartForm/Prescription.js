@@ -136,7 +136,7 @@ const Prescription = ({
           })
         );
       } else if (type === "GENERAL") {
-        dispatch(addGeneralPrescription(values));
+        dispatch(addGeneralPrescription({...values, medicines}));
       } else {
         dispatch(
           addPrescription({
