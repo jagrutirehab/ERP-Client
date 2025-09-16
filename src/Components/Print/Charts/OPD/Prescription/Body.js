@@ -240,7 +240,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
               justifyContent: "center",
             }}
           >
-            {(doctor?.signature || author?.signature) && (
+            {author?.signature && (
               <View
                 style={{
                   width: "100%",
@@ -254,7 +254,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                   : renderImage(author?.signature, 200)}
               </View>
             )}
-            {(doctor?.name || author?.name) && (
+            {author?.name && (
               <Text
                 style={{
                   lineHeight: 1.2,
@@ -262,7 +262,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                   ...styles.textCapitalize,
                 }}
               >
-                {doctor?.name ?? author?.name}
+                {author?.name}
               </Text>
             )}
             {safeText(
@@ -272,7 +272,6 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.degrees,
               author?.degrees
             )}
             {safeText(
@@ -282,7 +281,6 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.speciality,
               author?.speciality
             )}
             {safeText(
@@ -292,7 +290,6 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.registrationNo,
               author?.registrationNo
             )}
           </View>
