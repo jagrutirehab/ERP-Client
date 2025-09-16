@@ -25,7 +25,7 @@ const Prescription = ({ chart, center, patient, doctor }) => {
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
       <Header chart={chart} doctor={doctor} center={center} patient={patient} />
-      <PrescriptionBody chart={chart?.prescription} doctor={doctor} />
+      <PrescriptionBody author={chart?.author} chart={chart?.prescription} doctor={doctor} />
       <Footer />
       {/* </Page>
       </Document> */}

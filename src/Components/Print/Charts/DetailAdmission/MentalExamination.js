@@ -48,7 +48,9 @@ const MentalExamination = ({ data, styles }) => {
             <View
               style={{ ...styles.w30, ...styles.row, ...styles.textCapitalize }}
             >
-              <Text>{separateCamelCase(d[0])}:</Text>
+              <Text>
+                {d[0] === "effect" ? "Affect" : separateCamelCase(d[0])}:
+              </Text>
             </View>
             <Text style={{ ...styles.w70, ...styles.textCapitalize }}>
               {d[1] || ""}
