@@ -249,9 +249,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 }}
                 wrap={false}
               >
-                {doctor?.signature
-                  ? renderImage(doctor.signature, 200)
-                  : renderImage(author?.signature, 200)}
+                {renderImage(author.signature, 200)}
               </View>
             )}
             {author?.name && (
