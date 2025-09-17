@@ -19,13 +19,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const RelativeVisit = ({ chart, center, patient, doctor }) => {
+const RelativeVisit = ({ chart, center, patient }) => {
   return (
     <React.Fragment>
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
       <Header chart={chart} center={center} patient={patient} />
-      <Body chart={chart.relativeVisit} doctor={doctor} />
+      <Body chart={chart.relativeVisit} doctor={chart?.author} />
       <Footer />
       {/* </Page>
       </Document> */}

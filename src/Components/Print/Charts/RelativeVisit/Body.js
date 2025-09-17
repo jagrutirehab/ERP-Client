@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const RelativeVisitBody = ({ chart }) => {
+const RelativeVisitBody = ({ chart, doctor }) => {
   const renderImage = (src) => <Image src={src} style={styles.image} />;
   return (
     <React.Fragment>
@@ -164,7 +164,7 @@ const RelativeVisitBody = ({ chart }) => {
           })}
         </View>
       </View>
-      <DoctorSignature doctor={chart?.author} />
+      <DoctorSignature doctor={doctor} />
     </React.Fragment>
   );
 };
