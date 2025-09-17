@@ -79,7 +79,7 @@ const Diagnosis = ({ data, styles }) => {
           </View>
         )}
 
-        <View
+        {/* <View
           wrap={false}
           style={{
             ...styles.mrgnTop30,
@@ -94,7 +94,7 @@ const Diagnosis = ({ data, styles }) => {
               (Doctor Signature)
             </Text>
           </View>
-        </View>
+        </View> */}
       </View>
     </React.Fragment>
   );
