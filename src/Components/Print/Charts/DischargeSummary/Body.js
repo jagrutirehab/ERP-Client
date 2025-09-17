@@ -374,7 +374,6 @@ const SummaryBody = ({ chart }) => {
           </View>
         )}
       </View>
-      <DoctorSignature doctor={chart?.author} />
     </React.Fragment>
   );
 };
