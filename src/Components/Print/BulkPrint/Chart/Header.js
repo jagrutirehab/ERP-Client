@@ -113,10 +113,12 @@ const Header = ({ chart, center, patient }) => {
 
             <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
               {patient.gender && (
-                <Text>Gender: {patient.gender.toLowerCase()}</Text>
+                <Text style={{ textTransform: "capitalize" }}>
+                  Gender: {patient.gender.toLowerCase()}
+                </Text>
               )}
               {patient.dateOfBirth && (
-                <Text style={{ marginLeft: 6 }}>Age {age()}</Text>
+                <Text style={{ marginLeft: 6 }}>Age: {age()}</Text>
               )}
             </View>
           </View>

@@ -3,6 +3,7 @@ import { StyleSheet, View } from "@react-pdf/renderer";
 import Footer from "../Footer";
 import Header from "../Header";
 import Body from "./Body";
+import DoctorSignature from "../DoctorSignature";
 
 const styles = StyleSheet.create({
   page: {
@@ -26,10 +27,11 @@ const LabReport = ({ chart, center, patient }) => {
           {idx === 0 && (
             <Header patient={patient} chart={chart} center={center} />
           )}
-          <Body report={report} key={idx} idx={idx}/>
-          <Footer />
+          <Body report={report} key={idx} idx={idx} />
         </View>
       ))}
+      <DoctorSignature doctor={chart?.author} />
+      <Footer />
     </React.Fragment>
   );
 };

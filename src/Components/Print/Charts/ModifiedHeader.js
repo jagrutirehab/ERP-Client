@@ -4,6 +4,7 @@ import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
 import BrandLogo from "../../../assets/images/jagruti-logo.png";
 import DoctorLogo from "../../../assets/images/doctor-logo.jpg";
 import { differenceInYears, format } from "date-fns";
+import { safeText } from "../../../utils/safeText";
 
 Font.register({
   family: "Roboto",
@@ -196,51 +197,27 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {doctor?.degrees ? (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                  textTransform: "capitalize",
-                }}
-              >
-                {doctor?.degrees}
-              </Text>
-            ) : (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                  textTransform: "capitalize",
-                }}
-              >
-                {chart?.author?.degrees}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.degrees,
+              chart?.author?.degrees
             )}
-            {doctor?.speciality ? (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                  textTransform: "capitalize",
-                }}
-              >
-                {doctor?.speciality}
-              </Text>
-            ) : (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                  textTransform: "capitalize",
-                }}
-              >
-                {chart?.author?.speciality}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.speciality,
+              chart?.author?.speciality
             )}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>

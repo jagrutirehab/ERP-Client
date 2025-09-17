@@ -25,7 +25,7 @@ const RelativeVisit = ({ chart, center, patient }) => {
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
       <Header chart={chart} center={center} patient={patient} />
-      <Body chart={chart.relativeVisit} />
+      <Body chart={chart.relativeVisit} doctor={chart?.author} />
       <Footer />
       {/* </Page>
       </Document> */}
