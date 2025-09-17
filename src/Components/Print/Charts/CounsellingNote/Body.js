@@ -5,6 +5,7 @@ import _ from "lodash";
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
 import { format } from "date-fns";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Hindi",
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const CounsellingBody = ({ chart }) => {
+const CounsellingBody = ({ chart, doctor }) => {
   const renderImage = (src) => <Image src={src} style={styles.image} />;
   return (
     <React.Fragment>
@@ -156,6 +157,7 @@ const CounsellingBody = ({ chart }) => {
           })}
         </View>
       </View>
+      <DoctorSignature doctor={doctor} />
     </React.Fragment>
   );
 };

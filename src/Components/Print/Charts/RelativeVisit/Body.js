@@ -4,6 +4,7 @@ import _ from "lodash";
 
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Hindi",
@@ -163,6 +164,7 @@ const RelativeVisitBody = ({ chart }) => {
           })}
         </View>
       </View>
+      <DoctorSignature doctor={chart?.author} />
     </React.Fragment>
   );
 };

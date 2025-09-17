@@ -8,6 +8,7 @@ import MseAtAddmission from "./Components/MseAtAddmission";
 
 //medicines table
 import PrescriptionTable from "../Prescription/Table";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Roboto",
@@ -373,6 +374,7 @@ const SummaryBody = ({ chart }) => {
           </View>
         )}
       </View>
+      <DoctorSignature doctor={chart?.author} />
     </React.Fragment>
   );
 };
