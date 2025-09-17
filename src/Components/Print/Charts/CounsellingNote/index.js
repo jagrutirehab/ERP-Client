@@ -25,7 +25,7 @@ const CounsellingNote = ({ chart, center, patient }) => {
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
       <Header chart={chart} center={center} patient={patient} />
-      <Body chart={chart.counsellingNote} />
+      <Body chart={chart.counsellingNote} doctor={chart?.author} />
       <Footer />
       {/* </Page>
       </Document> */}

@@ -28,26 +28,30 @@ const Diagnosis = ({ data, styles }) => {
       >
         {data?.diagnosis && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={{ ...styles.fontSize13, ...styles.textUppercase }}>
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
               diagnosis:
             </Text>
-            <Text style={styles.preText}>{data?.diagnosis || ""}</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.diagnosis || ""}
+            </Text>
           </View>
         )}
         {data?.managmentPlan && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={{ ...styles.fontSize13 }}>
-              MANAGMENT PLAN: (INDOOR - with reason for admission)
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
+              managment plan: (INDOOR - With Reason For Admission):
             </Text>
-            <Text style={styles.preText}>{data?.managmentPlan || ""}</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.managmentPlan || ""}
+            </Text>
           </View>
         )}
         {data?.investigation?.length > 0 && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={{ ...styles.fontSize13, ...styles.textUppercase }}>
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
               investigations:
             </Text>
-            <Text style={styles.preText}>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.investigation.join(", ") || ""}
             </Text>
           </View>
@@ -55,23 +59,27 @@ const Diagnosis = ({ data, styles }) => {
 
         {data?.managment && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={{ ...styles.fontSize13, ...styles.textUppercase }}>
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
               special test:
             </Text>
-            <Text style={styles.preText}>{data?.managment || ""}</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.managment || ""}
+            </Text>
           </View>
         )}
 
         {data?.treatment && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={{ ...styles.fontSize13, ...styles.textUppercase }}>
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
               treatment:
             </Text>
-            <Text style={styles.preText}>{data?.treatment || ""}</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.treatment || ""}
+            </Text>
           </View>
         )}
 
-        <View
+        {/* <View
           wrap={false}
           style={{
             ...styles.mrgnTop30,
@@ -86,7 +94,7 @@ const Diagnosis = ({ data, styles }) => {
               (Doctor Signature)
             </Text>
           </View>
-        </View>
+        </View> */}
       </View>
     </React.Fragment>
   );

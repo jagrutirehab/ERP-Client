@@ -8,6 +8,7 @@ import MseAtAddmission from "./Components/MseAtAddmission";
 
 //medicines table
 import PrescriptionTable from "../Prescription/Table";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Roboto",

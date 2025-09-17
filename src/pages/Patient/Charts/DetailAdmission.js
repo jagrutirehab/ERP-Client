@@ -4,6 +4,7 @@ import { Col, Row } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -41,7 +42,7 @@ const DetailAdmission = ({ data }) => {
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                     {convertCamelCaseToTitleCase(d[0])}:-
                   </span>
-                  {d[1]}
+                  {i === 0 ? d[1].toUpperCase() : d[1]}
                 </p>
               </div>
             </Col>
@@ -76,7 +77,7 @@ const DetailAdmission = ({ data }) => {
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {convertCamelCaseToTitleCase(d[0])}:-
+                    {d[0]==="effect"?"Affect":convertCamelCaseToTitleCase(d[0])}:-
                   </span>
                   {d[1]}
                 </p>

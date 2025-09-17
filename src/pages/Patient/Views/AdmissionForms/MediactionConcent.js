@@ -9,19 +9,22 @@ const MediactionConcent = ({ register, patient }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
+    lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const heading = {
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: "17px",
     textAlign: "center",
     marginBottom: "2px",
   };
 
   const subHeading = {
     fontWeight: "bold",
-    fontSize: "12px",
+    fontSize: "14px",
     textAlign: "center",
     marginBottom: "15px",
   };
@@ -45,9 +48,11 @@ const MediactionConcent = ({ register, patient }) => {
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "60%",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "12px",
   };
 
   const bold = { fontWeight: "bold" };
@@ -75,8 +80,37 @@ const MediactionConcent = ({ register, patient }) => {
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       {/* Date */}
       <div style={{ textAlign: "right", marginBottom: "5px" }}>

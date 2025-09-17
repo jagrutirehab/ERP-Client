@@ -256,7 +256,13 @@ const Receipt = ({ bill, center, intern }) => {
         {/* Final Total */}
         <View style={styles.tableRow}>
           <Text style={styles.colLeft}></Text>
-          <Text style={{ ...styles.colRight, fontSize: 13 }}>
+          <Text
+            style={{
+              ...styles.colRight,
+              fontSize: 13,
+              fontFamily: "Roboto",
+            }}
+          >
             ₹ {addComma(amount.toFixed(2))}
           </Text>
         </View>

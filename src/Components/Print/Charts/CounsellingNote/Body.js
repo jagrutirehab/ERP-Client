@@ -5,6 +5,7 @@ import _ from "lodash";
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
 import { format } from "date-fns";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Hindi",
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const CounsellingBody = ({ chart }) => {
+const CounsellingBody = ({ chart, doctor }) => {
   const renderImage = (src) => <Image src={src} style={styles.image} />;
   return (
     <React.Fragment>
@@ -90,7 +91,7 @@ const CounsellingBody = ({ chart }) => {
         <View style={styles.mrgnTop10}>
           {chart.conclusion && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Conclusion</Text>
+              <Text style={styles.col5}>Conclusion:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.conclusion || ""}
               </Text>
@@ -98,7 +99,7 @@ const CounsellingBody = ({ chart }) => {
           )}
           {chart.endGoalAchieved && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>End Goal Achieved</Text>
+              <Text style={styles.col5}>End Goal Achieved:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.endGoalAchieved || ""}
               </Text>
@@ -106,7 +107,7 @@ const CounsellingBody = ({ chart }) => {
           )}
           {chart.nextEndGoal && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>End Goal for Next Session</Text>
+              <Text style={styles.col5}>End Goal for Next Session:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.nextEndGoal || ""}
               </Text>
@@ -114,7 +115,7 @@ const CounsellingBody = ({ chart }) => {
           )}
           {chart.nextSessionDate && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Next Session Date</Text>
+              <Text style={styles.col5}>Next Session Date:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {format(new Date(chart.nextSessionDate), "dd MMM yyyy") || ""}
               </Text>
@@ -124,7 +125,7 @@ const CounsellingBody = ({ chart }) => {
         <View style={{ marginTop: 40 }}>
           {chart.files?.length && (
             <View>
-              <Text style={{ marginBottom: 20 }}>Images</Text>
+              <Text style={{ marginBottom: 20 }}>Images:</Text>
             </View>
           )}
           {_.chunk(chart.files || [], 3).map((chunk) => {
@@ -156,6 +157,7 @@ const CounsellingBody = ({ chart }) => {
           })}
         </View>
       </View>
+      <DoctorSignature doctor={doctor} />
     </React.Fragment>
   );
 };

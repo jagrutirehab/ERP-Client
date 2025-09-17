@@ -9,40 +9,47 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "14px",
+    fontSize: "17px",
     marginBottom: "2px",
   };
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "15px",
     marginBottom: "15px",
   };
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "300px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "14px",
   };
   const inputLine2 = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "270px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "270px",
+    margin: "0 5px",
+    fontSize: "14px",
   };
   const fullLine = {
     border: "none",
     borderBottom: "1px solid #000",
     width: "100%",
     marginTop: "3px",
+    fontSize: "14px",
   };
 
   const [age, setAge] = useState("");
@@ -68,14 +75,50 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>Request For Admission of A Minor</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 87)
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: "10px",
+        }}
+      >
         <div>
           To, <br />
           The Psychiatrist, <br />
@@ -354,10 +397,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            value={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
+            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
             {...register("Indipendent_Admission_minor_staffDateTime")}
             style={fullLine}
           />
@@ -380,10 +420,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date & Time
           <input
             type="text"
-            value={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
+            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
             {...register("Indipendent_Admission_minor_guardianDateTime")}
             style={fullLine}
           />

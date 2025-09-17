@@ -28,7 +28,7 @@ const IndipendentOpinion2 = ({ register, patient }) => {
   return (
     <div style={pageContainer}>
      <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <p>
         DOCTOR CONSULTANT

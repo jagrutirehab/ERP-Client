@@ -421,7 +421,7 @@ const DischargeSummary = ({ data }) => {
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                   Consultant Counsellor's Name:-
                 </span>
-                {data.consultantName}
+                {data.consultantName.toUpperCase()}
               </p>
             </div>
           </Col>
@@ -445,7 +445,7 @@ const DischargeSummary = ({ data }) => {
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                   Consultant Psychologist:-
                 </span>
-                {data.consultantPsychologist}
+                {data.consultantPsychologist.toUpperCase()}
               </p>
             </div>
           </Col>

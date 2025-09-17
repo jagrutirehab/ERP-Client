@@ -15,218 +15,55 @@ Font.register({
     },
   ],
 });
-
 const DetailInfo = ({ chart, patient, data, styles }) => {
   const age = () =>
     differenceInYears(new Date(), new Date(patient?.dateOfBirth));
-  return (
-    <React.Fragment>
-      <View
+
+  const Row = ({ label, value }) => (
+    <View style={{ flexDirection: "row", marginBottom: 6 }}>
+      <Text
         style={{
-          ...styles.column,
-          ...styles.mrgnTop10,
-          ...styles.mrgnBottom10,
+          ...styles.fontMd,
+          textTransform: "capitalize",
+          width: 120,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-            doctor consultant{" "}
-          </Text>
-          <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-            {data.doctorConsultant}
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-          <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-            name{" "}
-          </Text>
-          <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-            {patient?.name}
-          </Text>
-        </View>
-        {data.religion && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              religion{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.religion || ""}
-            </Text>
-          </View>
-        )}
-        <View
-          style={{
-            ...styles.row,
-            ...styles.itemsCenter,
-            ...styles.jusitfyBetween,
-          }}
-        >
-          {age() && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-                age{" "}
-              </Text>
-              <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-                {age() || ""}
-              </Text>
-            </View>
-          )}
-          {patient.gender && (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-                gender{" "}
-              </Text>
-              <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-                {patient.gender.toLowerCase() || ""}
-              </Text>
-            </View>
-          )}
-        </View>
-        {data.maritalStatus && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              marital status{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.maritalStatus || ""}
-            </Text>
-          </View>
-        )}
-        {data.occupation && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              occupation{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.occupation || ""}
-            </Text>
-          </View>
-        )}
-        {data.education && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              education{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.education || ""}
-            </Text>
-          </View>
-        )}
-        {data.address && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              address{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.address || ""}
-            </Text>
-          </View>
-        )}
-        {data.referral && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              source of referral{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.referral || ""}
-            </Text>
-          </View>
-        )}
-        {data.provisionalDiagnosis && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              provisional diagnosis{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.provisionalDiagnosis || ""}
-            </Text>
-          </View>
-        )}
-        {data.revisedDiagnosis && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 10,
-            }}
-          >
-            <Text style={{ ...styles.fontMd, textTransform: "uppercase" }}>
-              revised diagnosis{" "}
-            </Text>
-            <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
-              {data?.revisedDiagnosis || ""}
-            </Text>
-          </View>
-        )}
-        revisedDiagnosis
-      </View>
-    </React.Fragment>
+        {label}
+      </Text>
+      <Text style={{ ...styles.fontMd, flex: 1, textTransform: "capitalize" }}>
+        {value}
+      </Text>
+    </View>
+  );
+
+  return (
+    <View
+      style={{ ...styles.column, ...styles.mrgnTop10, ...styles.mrgnBottom10 }}
+    >
+      <Row
+        label="doctor consultant:"
+        value={data.doctorConsultant.toUpperCase()}
+      />
+      <Row label="name:" value={patient?.name} />
+      {data.religion && <Row label="religion:" value={data.religion} />}
+      {age() && <Row label="age:" value={age()} />}
+      {patient.gender && <Row label="gender:" value={patient.gender.toLowerCase()} />}
+      {data.maritalStatus && (
+        <Row label="marital status:" value={data.maritalStatus} />
+      )}
+      {data.occupation && <Row label="occupation:" value={data.occupation} />}
+      {data.education && <Row label="education:" value={data.education} />}
+      {data.address && <Row label="address:" value={data.address} />}
+      {data.referral && (
+        <Row label="source of referral:" value={data.referral} />
+      )}
+      {data.provisionalDiagnosis && (
+        <Row label="provisional diagnosis:" value={data.provisionalDiagnosis} />
+      )}
+      {data.revisedDiagnosis && (
+        <Row label="revised diagnosis:" value={data.revisedDiagnosis} />
+      )}
+    </View>
   );
 };
 

@@ -9,30 +9,34 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px", // keeps it neat on large screens
   };
 
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "14px",
+    fontSize: "17px",
     marginBottom: "2px",
   };
 
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "15px",
     marginBottom: "15px",
   };
 
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "300px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "14px",
   };
 
   const fullLine = {
@@ -40,6 +44,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
     borderBottom: "1px solid #000",
     width: "100%",
     marginTop: "3px",
+    fontSize: "12px",
   };
 
   const [age, setAge] = useState("");
@@ -65,18 +70,56 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
+
+      {/* Header */}
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
-      {/* Headings */}
+
       <div style={heading}>Request For Independent Admission Adult</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 86)
       </div>
 
-      {/* Address to Psychiatrist */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <div>
+      {/* Example section */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: "10px",
+        }}
+      >
+        <div style={{ flex: "1 1 60%" }}>
           To, <br />
           The Psychiatrist, <br />
           Unit
@@ -84,7 +127,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
             type="text"
             {...register("Indipendent_Admission_adult_unit")}
             style={inputLine}
-          />{" "}
+          />
           Department of Psychiatry <br />
           Jagruti Rehabilitation Centre.
         </div>
@@ -97,14 +140,10 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
               setValueAs: (val) => {
                 if (!val) return "";
                 const [year, month, day] = val.split("-");
-                return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+                return `${day}/${month}/${year}`;
               },
             })}
-            style={{
-              border: "none",
-              borderBottom: "1px solid #000",
-              marginLeft: "5px",
-            }}
+            style={inputLine}
           />
         </div>
       </div>
@@ -349,10 +388,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Date & Time:
           <input
             type="text"
-            value={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
+            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
             {...register("Indipendent_Admission_adult_dateTime")}
             style={fullLine}
           />

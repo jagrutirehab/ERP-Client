@@ -5,6 +5,7 @@ import { Page, Document, StyleSheet } from "@react-pdf/renderer";
 import Header from "../Header";
 import VitalSignsTable from "./Table";
 import Footer from "../Footer";
+import DoctorSignature from "../DoctorSignature";
 
 // const styles = StyleSheet.create({
 //   page: {
@@ -30,6 +31,7 @@ const VitalSign = ({ chart, center, patient }) => {
         patient={patient || {}}
       />
       <VitalSignsTable chart={chart.vitalSign || {}} />
+      <DoctorSignature doctor={chart?.author} />
       <Footer />
       {/* </Page>
       </Document> */}

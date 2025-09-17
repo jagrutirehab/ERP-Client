@@ -40,7 +40,7 @@ const IndipendentOpinion1 = ({ register, patient }) => {
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>
         Independent Opinion of a Psychiatrist / Medical Practitioner / Medical

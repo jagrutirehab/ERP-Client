@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Input, Spinner, Row, Col, Button } from "reactstrap";
-import { getDoctorAnalytics, getDoctorAnalyticsWP } from "../../../../helpers/backend_helper";
+import {
+  getDoctorAnalytics,
+  getDoctorAnalyticsWP,
+} from "../../../../helpers/backend_helper";
 import Divider from "../../../../Components/Common/Divider";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
@@ -43,6 +46,7 @@ const Doctor = ({ centers, centerAccess }) => {
   const [loading, setLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState("");
   const [patientFilter, setPatientFilter] = useState("");
+  const [val, setVal] = useState("");
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
@@ -76,6 +80,7 @@ const Doctor = ({ centers, centerAccess }) => {
         centerAccess: selectedCentersIds,
         role: roleFilter,
         patient: patientFilter,
+        ...(patientFilter === "ADMITTED_PATIENTS" && { val }),
       });
 
       const fullData = res.data || [];
@@ -124,6 +129,7 @@ const Doctor = ({ centers, centerAccess }) => {
         centerAccess: selectedCentersIds,
         role: roleFilter,
         patient: patientFilter,
+        ...(patientFilter === "ADMITTED_PATIENTS" && { val }),
       });
       setData(res || { data: [], pagination: { totalPages: 1, totalDocs: 0 } });
     } catch (err) {
@@ -144,6 +150,7 @@ const Doctor = ({ centers, centerAccess }) => {
     roleFilter,
     reportDate,
     patientFilter,
+    val,
   ]);
 
   const columns = [
@@ -290,7 +297,7 @@ const Doctor = ({ centers, centerAccess }) => {
                 style={{ width: "200px" }}
               >
                 <option value="">All Patients</option>
-                <option value="admitted_patients">Admitted Patients</option>
+                <option value="ADMITTED_PATIENTS">Admitted Patients</option>
               </Input>
 
               <Input
@@ -313,6 +320,24 @@ const Doctor = ({ centers, centerAccess }) => {
             </div>
 
             <div>
+              {patientFilter === "ADMITTED_PATIENTS" &&
+                (val === "ALL_ADMITTED" ? (
+                  <Button
+                    color="info"
+                    onClick={() => setVal("")}
+                    style={{ marginRight: "10px" }}
+                  >
+                    Back to dates
+                  </Button>
+                ) : (
+                  <Button
+                    color="info"
+                    onClick={() => setVal("ALL_ADMITTED")}
+                    style={{ marginRight: "10px" }}
+                  >
+                    Show All Admitted Patients
+                  </Button>
+                ))}
               <Button
                 color="info"
                 onClick={fetchFullData}

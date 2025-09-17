@@ -4,6 +4,7 @@ import _ from "lodash";
 
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
+import DoctorSignature from "../DoctorSignature";
 
 Font.register({
   family: "Hindi",
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const ClinicalBody = ({ chart }) => {
+const ClinicalBody = ({ chart, doctor }) => {
   const renderImage = (src) => <Image src={src} style={styles.image} />;
   return (
     <React.Fragment>
@@ -89,7 +90,7 @@ const ClinicalBody = ({ chart }) => {
         <View style={styles.mrgnTop10}>
           {chart.complaints && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Complaints</Text>
+              <Text style={styles.col5}>Complaints:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.complaints || ""}
               </Text>
@@ -97,7 +98,7 @@ const ClinicalBody = ({ chart }) => {
           )}
           {chart.observations && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Observations</Text>
+              <Text style={styles.col5}>Observations:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.observations || ""}
               </Text>
@@ -105,7 +106,7 @@ const ClinicalBody = ({ chart }) => {
           )}
           {chart.diagnosis && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Diagnosis</Text>
+              <Text style={styles.col5}>Diagnosis:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.diagnosis || ""}
               </Text>
@@ -113,7 +114,7 @@ const ClinicalBody = ({ chart }) => {
           )}
           {chart.notes && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Notes</Text>
+              <Text style={styles.col5}>Notes:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.notes || ""}
               </Text>
@@ -123,7 +124,7 @@ const ClinicalBody = ({ chart }) => {
         <View style={{ marginTop: 40 }}>
           {chart.files?.length && (
             <View>
-              <Text style={{ marginBottom: 20 }}>Images</Text>
+              <Text style={{ marginBottom: 20 }}>Images:</Text>
             </View>
           )}
           {_.chunk(chart.files || [], 3).map((chunk) => {
@@ -155,6 +156,7 @@ const ClinicalBody = ({ chart }) => {
           })}
         </View>
       </View>
+      <DoctorSignature doctor={doctor} />
     </React.Fragment>
   );
 };

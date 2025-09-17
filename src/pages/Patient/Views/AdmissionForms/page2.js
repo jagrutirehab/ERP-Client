@@ -79,7 +79,7 @@ const Page2 = ({ register, patient }) => {
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={{ textAlign: "right", marginBottom: "5px" }}>
         Date:
