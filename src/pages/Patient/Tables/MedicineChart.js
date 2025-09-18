@@ -11,6 +11,7 @@ const MedicineChart = ({ medicines }) => {
       style: {
         textTransform: "capitalize",
       },
+      wrap: true,
     },
     {
       name: "Dosage & Frequency",
@@ -34,7 +35,6 @@ const MedicineChart = ({ medicines }) => {
       //       style: {
       //   whiteSpace: "normal",
       // },
-
     },
   ];
 
