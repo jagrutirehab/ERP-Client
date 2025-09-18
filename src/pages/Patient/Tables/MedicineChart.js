@@ -11,16 +11,18 @@ const MedicineChart = ({ medicines }) => {
       style: {
         textTransform: "capitalize",
       },
-      wrap: true
+      wrap: true,
     },
     {
-      name: "Dosage & Frequency",
+      name: <div>Dosage & Frequency</div>,
       selector: (row) =>
         `${row.dosageAndFrequency?.morning} - ${row.dosageAndFrequency?.evening} - ${row.dosageAndFrequency?.night}`,
+      wrap: true,
     },
     {
       name: "Duration",
       selector: (row, idx) => `${row?.duration} ${row?.unit}`,
+      wrap: true,
     },
     {
       name: "Intake",
@@ -30,12 +32,12 @@ const MedicineChart = ({ medicines }) => {
           {row?.intake || ""}
         </div>
       ),
+      wrap: true,
       // selector: (row, idx) =>
       //   row?.instructions ? `${row?.instructions}, ` : "" + row?.intake || "",
       //       style: {
       //   whiteSpace: "normal",
       // },
-
     },
   ];
 
