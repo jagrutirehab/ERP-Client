@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const Admissionpage1 = ({
-  register,
-  admissions,
-  patient,
-  details,
-}) => {
+const Admissionpage1 = ({ register, admissions, patient, details }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -14,12 +9,14 @@ const Admissionpage1 = ({
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const heading = {
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: "17px",
     textAlign: "center",
     marginBottom: "5px",
     textTransform: "uppercase",
@@ -36,9 +33,11 @@ const Admissionpage1 = ({
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "300px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "13px",
   };
 
   const fullWidthInput = {
@@ -83,8 +82,39 @@ const Admissionpage1 = ({
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        {/* <PrintHeader patient={patient} pageWidth={window.innerWidth} /> */}
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
+
       </div>
       {/* Heading */}
       <div style={heading}>ADMISSION FORM</div>
@@ -95,7 +125,7 @@ const Admissionpage1 = ({
           <span style={label}>Patient’s Name :</span>
           <input
             type="text"
-            defaultValue={patient?.name}
+            value={patient?.name}
             {...register("Basic_Admission_Form_patientName")}
             style={{
               fontWeight: "bold",
@@ -108,7 +138,7 @@ const Admissionpage1 = ({
           <span style={label}>UID :</span>
           <input
             type="text"
-            defaultValue={patient?.id?.value}
+            value={patient?.id?.value}
             {...register("Basic_Admission_Form_uid")}
             style={{
               fontWeight: "bold",
@@ -121,7 +151,7 @@ const Admissionpage1 = ({
           <span style={label}>Age :</span>
           <input
             type="text"
-            defaultValue={age}
+            value={age}
             {...register("Basic_Admission_Form_age")}
             style={{
               fontWeight: "bold",
@@ -138,7 +168,7 @@ const Admissionpage1 = ({
           <span style={label}>Sex :</span>
           <input
             type="text"
-            defaultValue={patient?.gender}
+            value={patient?.gender}
             {...register("Basic_Admission_Form_sex")}
             style={{
               fontWeight: "bold",
@@ -148,11 +178,11 @@ const Admissionpage1 = ({
             }}
           />
         </div>
-        <div>
+        {/* <div>
           <span style={label}>IPD No. :</span>
           <input
             type="text"
-            defaultValue={details?.IPDnum}
+            value={details?.IPDnum}
             {...register("Basic_Admission_Form_IPDnum")}
             style={{
               fontWeight: "bold",
@@ -160,12 +190,12 @@ const Admissionpage1 = ({
               ...inputLine,
             }}
           />
-        </div>
+        </div> */}
         <div>
           <span style={label}>Ward / Bed :</span>
           <input
             type="text"
-            defaultValue={`${details?.ward}/ ${details?.bed}`}
+            value={`${details?.ward}/ ${details?.bed}`}
             {...register("Basic_Admission_Form_wardBed")}
             style={{
               fontWeight: "bold",
@@ -180,7 +210,7 @@ const Admissionpage1 = ({
         <span style={label}>Address :</span>
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Basic_Admission_Form_address")}
           style={{
             fontWeight: "bold",
@@ -207,7 +237,7 @@ const Admissionpage1 = ({
           <span style={label}>Admitted Under Dr. :</span>
           <input
             type="text"
-            defaultValue={admissions[0]?.doctor?.name}
+            value={admissions[0]?.doctor?.name}
             {...register("Basic_Admission_Form_admittedUnder")}
             style={{
               fontWeight: "bold",
@@ -223,7 +253,7 @@ const Admissionpage1 = ({
           <span style={label}>Date of Admission :</span>
           <input
             type="date"
-            defaultValue={
+            value={
               admissions?.[0]?.addmissionDate
                 ? new Date(admissions[0].addmissionDate)
                     .toISOString()
@@ -238,13 +268,14 @@ const Admissionpage1 = ({
           <span style={label}>Time :</span>
           <input
             type="text"
-            defaultValue={new Date(
-              admissions[0]?.addmissionDate
-            ).toLocaleString("en-GB", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
+            value={new Date(admissions[0]?.addmissionDate).toLocaleString(
+              "en-GB",
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }
+            )}
             {...register("Basic_Admission_Form_timeAdmission")}
             style={{ ...inputLine, width: "80px" }}
           />{" "}
@@ -276,13 +307,13 @@ const Admissionpage1 = ({
         <span style={label}>Provisional Diagnosis :</span>
         <input
           type="text"
-          defaultValue={patient?.addmission?.provisionalDiagnosis}
+          value={patient?.addmission?.provisionalDiagnosis}
           {...register("Basic_Admission_Form_provisionalDiagnosis")}
           style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...fullWidthInput,
-            }}
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullWidthInput,
+          }}
         />
       </div>
 

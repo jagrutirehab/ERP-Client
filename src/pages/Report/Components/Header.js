@@ -14,10 +14,10 @@ import { endOfDay, startOfDay } from "date-fns";
 
 const Header = ({ reportDate, setReportDate }) => {
   const changeDate = (days) => {
-    const date = new Date();
-    if (days) date.setDate(date.getDate() - days);
-    setReportDate({ start: startOfDay(date), end: endOfDay(date) });
-  };
+  const today = new Date();
+  const start = days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days) : today;
+  setReportDate({ start: startOfDay(start), end: endOfDay(today) });
+};
 
   const changeToMonth = () => {
     const date = new Date(),

@@ -24,8 +24,8 @@ const Prescription = ({ chart, center, patient, doctor }) => {
     <React.Fragment>
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
-      <Header chart={chart} doctor={doctor} center={center} patient={patient} />
-      <PrescriptionBody chart={chart?.prescription} doctor={doctor} />
+      <Header chart={chart} doctor={chart?.author} center={center} patient={patient} />
+      <PrescriptionBody author={chart?.author} chart={chart?.prescription} doctor={doctor} />
       <Footer />
       {/* </Page>
       </Document> */}

@@ -4,6 +4,7 @@ import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
 import BrandLogo from "../../../assets/images/jagruti-logo.png";
 import DoctorLogo from "../../../assets/images/doctor-logo.jpg";
 import { differenceInYears, format } from "date-fns";
+import { safeText } from "../../../utils/safeText";
 
 Font.register({
   family: "Roboto",
@@ -196,27 +197,27 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {doctor?.education?.degrees && (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {doctor.education?.degrees}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.degrees,
+              chart?.author?.degrees
             )}
-            {doctor?.education?.speciality && (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {doctor.education?.speciality}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.speciality,
+              chart?.author?.speciality
             )}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>
@@ -284,16 +285,21 @@ const Header = ({ chart, center, patient, doctor }) => {
                 ...styles.justifyBetween,
               }}
             >
-              <Text>
-                {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
-                  ""}
-                {" - "}
-                {(patient?.age || patient.gender) &&
-                  `(${age()} ${gender(patient?.gender) || ""})`}
-              </Text>
-              <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text>
+                  {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
+                    ""}
+                  {" - "}
+                  {(patient?.age || patient.gender) &&
+                    `(${age()} ${gender(patient?.gender) || ""})`}
+                </Text>
+              </View>
+              <View style={{ flexShrink: 0 }}>
+                <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              </View>
             </View>
           </View>
+
           <View style={{ ...styles.row }}>
             <Text style={{ ...styles.col2 }}>Date:</Text>
             <Text style={{ ...styles.col9 }}>

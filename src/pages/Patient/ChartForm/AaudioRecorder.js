@@ -102,20 +102,34 @@ const AudioRecorder = ({ onReady }) => {
     };
   }, []);
 
+  // const buildAndSendFile = () => {
+  //   if (audioChunksRef.current.length === 0) return;
+
+  //   const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+  //   const file = new File([audioBlob], "recording.webm", {
+  //     type: "audio/webm",
+  //   });
+
+  //   // update preview
+  //   const url = URL.createObjectURL(audioBlob);
+  //   setPreviewUrl(url);
+
+  //   // send file to parent
+  //   if (onReady) onReady(file);
+  // };
+
   const buildAndSendFile = () => {
-    if (audioChunksRef.current.length === 0) return;
+    if (audioChunksRef.current.length === 0) return null;
 
     const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
     const file = new File([audioBlob], "recording.webm", {
       type: "audio/webm",
     });
 
-    // update preview
     const url = URL.createObjectURL(audioBlob);
     setPreviewUrl(url);
 
-    // send file to parent
-    if (onReady) onReady(file);
+    return file;
   };
 
   const drawVisualizer = () => {
@@ -174,6 +188,29 @@ const AudioRecorder = ({ onReady }) => {
       setIsRecording(true);
     }
   };
+
+  const stopAndFinalize = () => {
+    return new Promise((resolve) => {
+      if (!mediaRecorderRef.current) return resolve(null);
+
+      if (mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.onstop = () => {
+          const file = buildAndSendFile();
+          resolve(file);
+        };
+        mediaRecorderRef.current.stop();
+      } else {
+        resolve(null);
+      }
+    });
+  };
+
+  // expose it to parent
+  useEffect(() => {
+    if (onReady) {
+      onReady(null, stopAndFinalize);
+    }
+  }, []);
 
   return (
     <div className="my-3">

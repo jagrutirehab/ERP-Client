@@ -111,7 +111,7 @@ const ConsentFormModal = ({
           <div className="mt-3">
             <Label className="text-muted mb-1">Ward / Room</Label>
             <Input
-              type="number"
+              type="text"
               value={details?.ward}
               onChange={(e) =>
                 setDetails((prev) => ({ ...prev, ward: e.target.value }))
@@ -130,7 +130,7 @@ const ConsentFormModal = ({
               placeholder="Enter Bed"
             />
           </div>
-          <div className="mt-3">
+          {/* <div className="mt-3">
             <Label className="text-muted mb-1">IPD Number</Label>
             <Input
               type="text"
@@ -140,7 +140,7 @@ const ConsentFormModal = ({
               }
               placeholder="Enter IPD Number"
             />
-          </div>
+          </div> */}
 
           <div className="mt-3">
             <Label className="text-muted mb-1">Room Type</Label>
@@ -150,7 +150,7 @@ const ConsentFormModal = ({
               onChange={(e) =>
                 setDetails((prev) => ({ ...prev, roomtype: e.target.value }))
               }
-              placeholder="Monthly / Daily"
+              placeholder="Normal / Delux / .... etc"
             />
           </div>
           <div className="mt-3">

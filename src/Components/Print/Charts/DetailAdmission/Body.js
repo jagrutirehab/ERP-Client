@@ -6,6 +6,7 @@ import DetailHistory from "./DetailHistory";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
+import DoctorSignature from "../DoctorSignature";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -125,6 +126,7 @@ const Body = ({ chart, patient }) => {
       <MentalExamination data={data.mentalExamination} styles={styles} />
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
+      <DoctorSignature doctor={chart?.author} />
       {/* <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
         {chart.drNotes && (
           <View>

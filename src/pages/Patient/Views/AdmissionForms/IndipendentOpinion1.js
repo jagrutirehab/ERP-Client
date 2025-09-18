@@ -40,7 +40,7 @@ const IndipendentOpinion1 = ({ register, patient }) => {
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>
         Independent Opinion of a Psychiatrist / Medical Practitioner / Medical
@@ -73,8 +73,8 @@ const IndipendentOpinion1 = ({ register, patient }) => {
           {...register("page12_patientName")}
           style={fullLine}
         />{" "}
-        IPD No.
-        <input type="text" {...register("page12_ipd")} style={inputLine} />{" "}
+        UID No.
+        <input type="text" value={patient?.id?.value} {...register("page12_ipd")} style={inputLine} />{" "}
         son/daughter/spouse/others of
         <input
           type="text"

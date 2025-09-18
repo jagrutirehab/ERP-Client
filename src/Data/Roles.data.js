@@ -99,6 +99,7 @@ export const permissionList = [
       { name: "Report", label: "Report" },
       { name: "FINANCE", label: "Finance" },
       { name: "PATIENTANALYTICS", label: "Patient Analytics" },
+      { name: "DOCTORANALYTICS", label: "Doctor Analytics" },
       { name: "DBLOGS", label: "DB Logs" },
       { name: "LEADANALYTICS", label: "Lead Analytics" },
       { name: "OPDANALYTICS", label: "OPD Analytics" },

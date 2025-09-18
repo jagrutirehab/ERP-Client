@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   getBookingAnalytics,
+  getDoctorAnalytics,
   getLeadAnalytics,
   getOPDAnalytics,
   getPatientAnalytics,
@@ -15,6 +16,7 @@ const initialState = {
   lead: null,
   opd: null,
   booking: null,
+  doctor:null,
   loading: false,
   totalPages: 0,
   currentPage: 0,
@@ -39,6 +41,19 @@ export const fetchPatientAnalytics = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getPatientAnalytics(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchDoctorAnalytics = createAsyncThunk(
+  "getDoctorAnalytics",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getDoctorAnalytics(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -152,6 +167,17 @@ const reportSlice = createSlice({
         state.limit = payload.limit;
       })
       .addCase(fetchBookingAnalytics.rejected, (state) => {
+        state.loading = false;
+      });
+    builder
+      .addCase(fetchDoctorAnalytics.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchDoctorAnalytics.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.doctor = payload;
+      })
+      .addCase(fetchDoctorAnalytics.rejected, (state) => {
         state.loading = false;
       });
   },

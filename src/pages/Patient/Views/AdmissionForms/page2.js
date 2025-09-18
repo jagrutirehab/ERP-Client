@@ -79,13 +79,13 @@ const Page2 = ({ register, patient }) => {
   return (
     <div style={pageContainer}>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={{ textAlign: "right", marginBottom: "5px" }}>
         Date:
         <input
           type="date"
-          defaultValue={new Date().toISOString().split("T")[0]}
+          value={new Date().toISOString().split("T")[0]}
           {...register("Relevent_checklist_date", {
             setValueAs: (val) => {
               if (!val) return "";

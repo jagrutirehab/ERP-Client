@@ -28,6 +28,7 @@ const Header = ({
   headerClass,
   loading,
   patients,
+  centers,
   centerAccess,
   user,
 }) => {
@@ -328,6 +329,7 @@ Header.prototype = {
 const mapStateToProps = (state) => ({
   loading: state.Patient.searchLoading,
   patients: state.Patient.searchedPatients,
+  centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   user: state.User.user,
 });
