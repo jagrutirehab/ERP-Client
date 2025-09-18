@@ -103,7 +103,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                     <span className="user-status"></span>
                   </div>
                   <div className="flex-grow-1 overflow-hidden">
-                    <h5 className="text-truncat mb-0 fs-16">
+                    <h5 className="mb-0">
                       {loading ? (
                         <div>
                           <SkeletonLoader width="150px" height="20px" />
@@ -114,20 +114,25 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                           />
                         </div>
                       ) : (
-                        <span className="text-reset text-capitalize username">
-                          {profile?.name}
-                          <span className="ms-2 text-muted fs-14">
-                            ({`${profile?.uid}`})
+                        <div className="d-flex flex-column flex-md-row align-items-md-center">
+                          <span className="text-reset text-capitalize username fs-14 fs-md-16">
+                            {profile?.name}
+                            <span className="ms-2 text-muted fs-12 fs-md-14">
+                              ({`${profile?.uid}`})
+                            </span>
                           </span>
-                          <Link to={`/patient/${id}`} className="ms-2">
+                          <Link
+                            to={`/patient/${id}`}
+                            className="ms-md-2 mt-2 mt-md-0"
+                          >
                             <button
                               type="button"
-                              className="btn btn-outline-primary btn-sm"
+                              className="btn btn-outline-primary btn-sm w-100 w-md-auto"
                             >
                               Go to Patient
                             </button>
                           </Link>
-                        </span>
+                        </div>
                       )}
                     </h5>
                   </div>
