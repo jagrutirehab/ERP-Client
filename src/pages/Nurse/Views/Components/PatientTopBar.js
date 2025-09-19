@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -27,6 +27,7 @@ const statusColors = {
 };
 
 const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useDispatch();
   const [viewPicture, setViewPicture] = useState();
@@ -68,12 +69,15 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
       <div className="position-relative w-100"></div>
       <div className="p-0 p-md-3 user-chat-topbar ">
         <Row className="align-items-center">
-          <Col sm={5} xs={8}>
+          <Col sm={5} md={5} xs={12}>
             <div className="d-flex align-items-center">
               <div className="flex-shrink-0 d-block d-lg-none me-3">
-                <Link to="#" className="user-chat-remove fs-18 p-1">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="user-chat-remove fs-18 p-1 btn"
+                >
                   <i className="ri-arrow-left-s-line align-bottom"></i>
-                </Link>
+                </button>
               </div>
               <div className="flex-grow-1 overflow-hidden">
                 <div className="d-flex align-items-center">
@@ -140,16 +144,17 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
               </div>
             </div>
           </Col>
-          <Col sm={7} xs={4}>
+          <Col sm={7} md={7} xs={12}>
             <ul className="list-inline user-chat-nav text-end mb-0 ">
               <li
                 id="alerts"
-                className="list-inline-item m-0 d-none d-md-inline"
+                className="list-inline-item mt-3 mt-md-0 ms-2 align-self-center"
               >
                 <Button
                   type="button"
                   onClick={(e) => toggleAlertsModal(alertData)}
                   style={{ background: "none", border: "none", padding: 0 }}
+                  className="p-0"
                 >
                   <Badge
                     pill
@@ -171,6 +176,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
+                      className="d-inline-block"
                     >
                       <path
                         strokeLinecap="round"
@@ -178,13 +184,21 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    {alertData?.length} Alerts
+
+                    <span className="d-none d-md-inline">
+                      {alertData?.length} Alerts
+                    </span>
+
+                    <span className="d-inline d-md-none">
+                      {alertData?.length}
+                    </span>
                   </Badge>
                 </Button>
               </li>
+
               <li
                 id="patient-psychologist"
-                className="list-inline-item m-0 d-none d-md-inline"
+                className="list-inline-item mt-3 mt-md-0 ms-2"
                 style={{ cursor: "pointer" }}
               >
                 {loading ? (
@@ -240,7 +254,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
 
               <li
                 id="patient-doctor"
-                className="list-inline-item m-0 ms-4 d-none d-md-inline"
+                className="list-inline-item mt-3 mt-md-0 ms-2 align-self-center"
                 style={{ cursor: "pointer" }}
               >
                 {loading ? (
@@ -372,21 +386,46 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
               </li>
               <li
                 id="add-note"
-                className="list-inline-item ms-2 d-none d-md-inline"
+                className="list-inline-item mt-2 mt-md-0 align-self-center"
               >
-                <Button color="primary" onClick={() => setNotesModal(true)}>
+                <Button
+                  color="primary"
+                  className="d-none d-sm-inline-block"
+                  onClick={() => setNotesModal(true)}
+                >
                   Add Note
                 </Button>
+
+                <Button
+                  color="primary"
+                  className="d-inline-block d-sm-none btn-sm"
+                  onClick={() => setNotesModal(true)}
+                >
+                  <i className="ri-add-line"></i>{" "}
+                </Button>
               </li>
+
               {((profile?.doctorName && profile?.doctorNumber) ||
                 (profile?.psychologistName && profile?.psychologistNumber)) && (
                 <>
                   <li
                     id="call-doctor"
-                    className="list-inline-item ms-2 d-none d-md-inline"
+                    className="list-inline-item mt-2 mt-md-0 align-self-center"
                   >
-                    <Button color="primary" onClick={toggle}>
+                    <Button
+                      color="primary"
+                      className="d-none d-sm-inline-block"
+                      onClick={toggle}
+                    >
                       Call Doctor
+                    </Button>
+
+                    <Button
+                      color="primary"
+                      className="d-inline-block d-sm-none btn-sm"
+                      onClick={toggle}
+                    >
+                      <i className="ri-phone-line"></i>{" "}
                     </Button>
                   </li>
 
