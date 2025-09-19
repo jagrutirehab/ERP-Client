@@ -244,7 +244,7 @@ const LeadDashboard = ({ leadDate }) => {
                     {contact.relation_with_patient}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.issues}
+                    <div style={{ width: "300px" }}>{contact.issues}</div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.amount}
@@ -256,7 +256,7 @@ const LeadDashboard = ({ leadDate }) => {
                     {contact.opd_ipd}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.notes}
+                    <div style={{ width: "300px" }}>{contact.notes}</div>
                   </td>
 
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
