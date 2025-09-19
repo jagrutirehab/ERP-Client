@@ -346,7 +346,11 @@ const UserForm = ({
           JSON.stringify(languages?.map((o) => o.value))
         );
       if (faqs?.length) formData.append("faqs", JSON.stringify(faqs));
-      if (cropSignature?.file) formData.append("signature", cropSignature.file);
+      if (cropSignature?.file) {
+        formData.append("signature", cropSignature.file);
+      } else if (cropSignature === null) {
+        formData.append("clearSignature", "true");
+      }
       if (cropProfilePic?.file)
         formData.append("profilePicture", cropProfilePic.file);
       if (userData) {
