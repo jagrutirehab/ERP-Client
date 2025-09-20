@@ -175,9 +175,9 @@ const LeadDashboard = ({ leadDate }) => {
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Lead Status
               </th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+              {/* <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Contact Owner
-              </th>
+              </th> */}
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Lifecycle Stage
               </th>
@@ -272,9 +272,9 @@ const LeadDashboard = ({ leadDate }) => {
                       {contact.leadStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                  {/* <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.contactOwner}
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3 text-capitalize whitespace-nowrap text-gray-700">
                     {contact.lifecyclestage}
                   </td>
