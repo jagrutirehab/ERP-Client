@@ -141,7 +141,10 @@ const Charts = ({ charts, patient, doctor, admission }) => {
             </RenderWhen>
 
             <RenderWhen
-              isTrue={chart?.chart === DETAIL_ADMISSION && chart.type === IPD}
+              isTrue={
+                chart?.chart === DETAIL_ADMISSION &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
             >
               <DetailAdmission
                 chart={chart}
