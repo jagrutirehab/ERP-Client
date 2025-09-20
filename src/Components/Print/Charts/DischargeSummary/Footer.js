@@ -209,7 +209,7 @@ const SummaryFooter = ({ chart, patient, center }) => {
           <Text style={styles.col6}>Signature</Text>
         </View>
       </View>
-      <DoctorSignature doctor={chart?.author} />
+      {/* <DoctorSignature doctor={chart?.author} /> */}
 
       <View style={{ marginTop: "auto" }} fixed>
         <View style={styles.fixedHeading}>
