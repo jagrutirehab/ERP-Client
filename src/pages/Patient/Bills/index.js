@@ -298,7 +298,7 @@ const Bills = ({
                     user?.email !== "rijutarafder000@gmail.com" &&
                     user?.email !== "surjeet.parida@gmail.com" &&
                     user?.email !== "hemanthshinde@gmail.com" &&
-                    user?.email !== "vikash@jagrutirehab.org"
+                    user?.email !== "vikas@jagrutirehab.org"
                       ? true
                       : false
                   }
