@@ -36,7 +36,7 @@ const formatDate = (isoDateStr) => {
   return `${day} ${month} ${year}`;
 };
 
-const Offcanvas = ({ admissions, profile }) => {
+const Offcanvas = ({ admissions, profile, user }) => {
   const dispatch = useDispatch();
   const [modal, setModal] = useState({
     id: "",
@@ -91,12 +91,16 @@ const Offcanvas = ({ admissions, profile }) => {
                     <i className="ri-more-fill fs-17"></i>
                   </DropdownToggle>
                   <DropdownMenu>
-                    <DropdownItem
-                      onClick={() => setModal({ id: patient._id, open: true })}
-                    >
-                      <i className="ri-eye-line me-2 align-middle" />
-                      Un-discharge
-                    </DropdownItem>
+                    {user?.email !== "rijutarafder000@gmail.com" && (
+                      <DropdownItem
+                        onClick={() =>
+                          setModal({ id: patient._id, open: true })
+                        }
+                      >
+                        <i className="ri-eye-line me-2 align-middle" />
+                        Un-discharge
+                      </DropdownItem>
+                    )}
                     <DropdownItem>
                       <i className="ri-star-line me-2 align-middle" />
                       Favorites
@@ -274,6 +278,7 @@ Offcanvas.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
+  user: state.User.user,
   profile: state.Patient.viewProfile,
   admissions: state.Chart.data,
 });
