@@ -136,7 +136,7 @@ const PatientTopbar = ({
       <div className="position-relative w-100">
         <div className="p-0 p-md-3 user-chat-topbar">
           <Row className="align-items-center">
-            <Col sm={4} xs={6}>
+            <Col sm={4} xs={12}>
               <div className="d-flex align-items-center">
                 <div className="flex-shrink-0 d-block d-lg-none me-3">
                   <Link to="#" className="user-chat-remove fs-18 p-1">
@@ -169,7 +169,7 @@ const PatientTopbar = ({
                     <div className="flex-grow-1">
                       <h5 className="mb-0 fs-16 text-wrap">
                         <a
-                          className="text-reset text-capitalize username"
+                          className="text-reset text-capitalize username d-block"
                           data-bs-toggle="offcanvas"
                           href="#profile"
                           aria-controls="userProfileCanvasExample"
@@ -179,8 +179,10 @@ const PatientTopbar = ({
                             )
                           }
                         >
-                          {patient?.name}
-                          <span className="ms-2 text-muted fs-14">
+                          <span className="d-block d-md-inline">
+                            {patient?.name}
+                          </span>
+                          <span className="d-block d-md-inline ms-md-2 text-muted fs-14">
                             ({`${patient?.id?.prefix}${patient?.id?.value}`})
                           </span>
                         </a>
@@ -193,7 +195,7 @@ const PatientTopbar = ({
                 </div>
               </div>
             </Col>
-            <Col sm={8} xs={6}>
+            <Col sm={8} xs={12}>
               <ul className="list-inline user-chat-nav text-end mb-0">
                 {/* <li
                   id="assign-nurse"

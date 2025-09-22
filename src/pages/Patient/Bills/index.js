@@ -292,12 +292,13 @@ const Bills = ({
                   )}
                   toggleDateModal={toggleDateModal}
                   disableEdit={
-                    (bill.bill === ADVANCE_PAYMENT || bill.bill === DEPOSIT) &&
-                    user?.email !== "bishal@gmail.com" &&
+                    (bill.bill === ADVANCE_PAYMENT ||
+                      bill.bill === DEPOSIT ||
+                      bill.bill === INVOICE) &&
                     user?.email !== "rijutarafder000@gmail.com" &&
                     user?.email !== "surjeet.parida@gmail.com" &&
                     user?.email !== "hemanthshinde@gmail.com" &&
-                    user?.email !== "vikash@jagrutirehab.org"
+                    user?.email !== "vikas@jagrutirehab.org"
                       ? true
                       : false
                   }

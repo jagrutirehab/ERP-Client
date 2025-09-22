@@ -116,12 +116,18 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       bsSize="sm"
                       id={idx}
                       slot={item}
+                      min={1}
                       style={{ height: "9px" }}
                       type="number"
                       name="unit"
                       size={"1"}
                       value={item.unit || ""}
-                      onChange={getValues}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        if (value >= 0 || e.target.value === "") {
+                          getValues(e);
+                        }
+                      }}
                       onKeyDown={(e) => {
                         if (e.which === 38 || e.which === 40) {
                           e.preventDefault();
@@ -137,9 +143,15 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       slot={item}
                       type="number"
                       name="cost"
+                      min={1}
                       size={"1"}
                       value={item.cost || ""}
-                      onChange={getValues}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        if (value >= 0 || e.target.value === "") {
+                          getValues(e);
+                        }
+                      }}
                       onKeyDown={(e) => {
                         if (e.which === 38 || e.which === 40) {
                           e.preventDefault();

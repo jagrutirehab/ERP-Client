@@ -152,31 +152,59 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
         )}
 
         {data?.pagination?.totalPages > 1 && (
-          <Row className="mt-4 justify-content-center align-items-center">
-            <Col xs="auto" className="d-flex justify-content-center">
-              <Button
-                color="secondary"
-                disabled={page === 1}
-                onClick={handlePrev}
-              >
-                ← Previous
-              </Button>
-            </Col>
-            <Col xs="auto" className="text-center text-muted mx-3">
-              Showing {(page - 1) * limit + 1}–
-              {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
-              {data.pagination?.totalDocs || 0}
-            </Col>
-            <Col xs="auto" className="d-flex justify-content-center">
-              <Button
-                color="secondary"
-                disabled={page === data.pagination?.totalPages}
-                onClick={handleNext}
-              >
-                Next →
-              </Button>
-            </Col>
-          </Row>
+          <>
+            {/* Mobile Layout */}
+            <div className="d-block d-md-none text-center mt-3">
+              <div className="text-muted mb-2">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                {data.pagination?.totalDocs || 0}
+              </div>
+              <div className="d-flex justify-content-center gap-2">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={handlePrev}
+                >
+                  ← Previous
+                </Button>
+                <Button
+                  color="secondary"
+                  disabled={page === data.pagination?.totalPages}
+                  onClick={handleNext}
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
+              <Col xs="auto" className="d-flex justify-content-center">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={handlePrev}
+                >
+                  ← Previous
+                </Button>
+              </Col>
+              <Col xs="auto" className="text-center text-muted mx-3">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                {data.pagination?.totalDocs || 0}
+              </Col>
+              <Col xs="auto" className="d-flex justify-content-center">
+                <Button
+                  color="secondary"
+                  disabled={page === data.pagination?.totalPages}
+                  onClick={handleNext}
+                >
+                  Next →
+                </Button>
+              </Col>
+            </Row>
+          </>
         )}
       </div>
 

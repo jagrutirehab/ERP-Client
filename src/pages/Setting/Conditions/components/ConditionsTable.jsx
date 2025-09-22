@@ -25,8 +25,8 @@ const ConditionsTable = ({ conditions, userRoles, onEdit, onDelete }) => {
                 </td>
                 <td>
                   <p className="mb-0 text-muted">
-                    {condition.description.length > 100
-                      ? `${condition.description.substring(0, 100)}...`
+                    {condition.description.length > 90
+                      ? `${condition.description.substring(0, 90)}...`
                       : condition.description}
                   </p>
                 </td>

@@ -140,6 +140,36 @@ const LeadDashboard = ({ leadDate }) => {
                 Phone
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Gender
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Lead Source
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                City
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Center
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Relation with patient
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Issues
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Amount
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Quality of Lead
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                OPD/IPD
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Notes
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Visit Date
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -197,6 +227,38 @@ const LeadDashboard = ({ leadDate }) => {
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.phone}
                   </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.gender}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.lead_source}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.city}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.center}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.relation_with_patient}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    <div style={{ width: "300px" }}>{contact.issues}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.amount}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.quality_of_lead}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.opd_ipd}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    <div style={{ width: "300px" }}>{contact.notes}</div>
+                  </td>
+
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.visitDate}
                   </td>
@@ -211,7 +273,7 @@ const LeadDashboard = ({ leadDate }) => {
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.contactOwner}
+                    {contact.hubspot_owner_id?.name}
                   </td>
                   <td className="px-4 py-3 text-capitalize whitespace-nowrap text-gray-700">
                     {contact.lifecyclestage}

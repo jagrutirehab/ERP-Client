@@ -18,7 +18,13 @@ import {
   setPatientIds,
 } from "../../../store/features/nurse/nurseSlice";
 
-const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAccess }) => {
+const Views = ({
+  patients,
+  patientIds,
+  currentPatientIndex,
+  searchMode,
+  centerAccess,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -67,9 +73,9 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAc
         const result = await dispatch(
           allNurseAssignedPatients({
             page: currentPage + 1,
-            limit:12,
+            limit: 12,
             flag: "",
-            centerAccess
+            centerAccess,
           })
         ).unwrap();
 
@@ -85,7 +91,12 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAc
         if (currentPage >= totalPages) return;
 
         const result = await dispatch(
-          allNurseAssignedPatients({ page:currentPage + 1, limit: 12, flag: "", centerAccess })
+          allNurseAssignedPatients({
+            page: currentPage + 1,
+            limit: 12,
+            flag: "",
+            centerAccess,
+          })
         ).unwrap();
 
         if (result?.data?.length > 0) {
@@ -107,11 +118,11 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAc
     }
   };
 
-
-  const disableNext =
-    searchMode
-      ? index >= (patients?.pagination?.totalDocs || 0) - 1
-      : !nextPatientId && (patients?.pagination?.page || 1) >= (patients?.pagination?.totalPages || 1);
+  const disableNext = searchMode
+    ? index >= (patients?.pagination?.totalDocs || 0) - 1
+    : !nextPatientId &&
+      (patients?.pagination?.page || 1) >=
+        (patients?.pagination?.totalPages || 1);
 
   const vws = {
     Overview: OVERVIEW_VIEW,
@@ -139,7 +150,7 @@ const Views = ({ patients, patientIds, currentPatientIndex, searchMode, centerAc
             );
           })}
         </ButtonGroup>
-        <div className="gap-2 d-flex">
+        <div className="d-flex gap-2 justify-content-between justify-content-md-start mt-2 mt-md-0">
           <Button outline disabled={!prevPatientId} onClick={handlePrev}>
             &larr; Previous
           </Button>
@@ -164,7 +175,7 @@ const mapStateToProps = (state) => ({
   patientIds: state.Nurse.patientIds,
   currentPatientIndex: state.Nurse.index,
   searchMode: state.Nurse.searchMode,
-  patientIdsFromSearch:state.patientIdsFromSearch,
+  patientIdsFromSearch: state.patientIdsFromSearch,
   centerAccess: state.User?.centerAccess,
 });
 
