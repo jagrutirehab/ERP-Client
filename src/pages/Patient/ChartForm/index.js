@@ -21,11 +21,7 @@ import ClinicalNote from "./ClinicalNote";
 import LabReport from "./LabReport";
 import DischargeSummary from "./DischargeSummary";
 import VitalSign from "./VitalSign";
-import {
-  addClinicalNote,
-  createEditChart,
-  updateClinicalNote,
-} from "../../../store/actions";
+import { createEditChart } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";

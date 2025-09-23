@@ -4,7 +4,6 @@ import { Col, Row } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
