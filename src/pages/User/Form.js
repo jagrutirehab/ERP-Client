@@ -22,7 +22,7 @@ import PhoneInputWithCountrySelect, {
   isValidPhoneNumber,
 } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { FormFeedback } from "reactstrap";
+import { FormFeedback, Input, Label } from "reactstrap";
 
 const UserForm = ({
   isOpen,
@@ -234,6 +234,7 @@ const UserForm = ({
       email: userData ? userData.email : "",
       accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
+      gender: userData ? userData.gender : "",
       phoneNumber: userData ? userData.phoneNumber : "",
       degrees: userData ? userData.degrees : "",
       speciality: userData ? userData?.speciality : "",
@@ -266,6 +267,7 @@ const UserForm = ({
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
       name: Yup.string().required("Please Enter Your Username"),
+      gender: Yup.string().required("Please Select Gender"),
       ...(!userData && {
         password: Yup.string().required("Please Enter Your Password"),
       }),
@@ -310,6 +312,7 @@ const UserForm = ({
       formData.append("email", values.email);
       formData.append("accessroles", values.accessroles);
       formData.append("role", values.role);
+      formData.append("gender", values.gender);
       formData.append("phoneNumber", values.phoneNumber);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
@@ -414,6 +417,13 @@ const UserForm = ({
       label: "Phone number",
       name: "phoneNumber",
       type: "phoneNumber",
+      handleChange: (e) => validation.handleChange(e),
+    },
+    {
+      label: "Gender",
+      name: "gender",
+      type: "radio",
+      options: ["MALE", "FEMALE", "OTHERS"],
       handleChange: (e) => validation.handleChange(e),
     },
     !userData && {
@@ -883,6 +893,7 @@ const UserForm = ({
                     flexDirection: "column",
                     gap: "10px",
                   }}
+                  className="justify-end"
                 >
                   <label
                     style={{
@@ -1189,8 +1200,30 @@ const UserForm = ({
                           </p>
                         )}
                     </div>
-                  ) : // hidden input
-                  field.name === "hidden_input" ? (
+                  ) : field.type === "radio" ? (
+                    <>
+                      <div className="d-flex flex-wrap">
+                        {(field.options || []).map((item, idx) => (
+                          <div
+                            key={item + idx}
+                            className="d-flex me-4 align-items-center"
+                          >
+                            <Input
+                              className="me-2 mt-0"
+                              type="radio"
+                              name={field.name}
+                              value={item}
+                              onChange={validation.handleChange}
+                              checked={validation.values[field.name] === item}
+                            />
+                            <Label className="form-label fs-14 mb-0">
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </> // hidden input
+                  ) : field.name === "hidden_input" ? (
                     <>
                       <label style={{ display: "hidden" }}></label>
                       <input type="hidden" name={field.name} />
