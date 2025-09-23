@@ -266,6 +266,8 @@ const Bills = ({
 
   const newDate = new Date();
 
+  console.log({ newBills });
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -305,7 +307,7 @@ const Bills = ({
                       ? true
                       : bill.bill === INVOICE &&
                         bill.createdAt &&
-                        differenceInDays(now, new Date(bill.createdAt)) > 15
+                        differenceInDays(newDate, new Date(bill.createdAt)) > 15
                       ? true
                       : false
                   }
