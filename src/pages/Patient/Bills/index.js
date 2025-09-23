@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import _ from "lodash";
+import _, { now } from "lodash";
 import { connect, useDispatch } from "react-redux";
 import Wrapper from "../Components/Wrapper";
 import {
@@ -23,6 +23,7 @@ import {
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
+import { differenceInDays } from "date-fns";
 
 const Bills = ({
   addmissions,
@@ -262,6 +263,9 @@ const Bills = ({
       togglePrint({ data: chart, modal: true, patient, admission: addmission })
     );
   };
+
+  const newDate = new Date();
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -292,13 +296,16 @@ const Bills = ({
                   )}
                   toggleDateModal={toggleDateModal}
                   disableEdit={
-                    (bill.bill === ADVANCE_PAYMENT ||
-                      bill.bill === DEPOSIT ||
-                      bill.bill === INVOICE) &&
+                    (bill.bill === ADVANCE_PAYMENT || bill.bill === DEPOSIT) &&
+                    // || bill.bill === INVOICE
                     user?.email !== "rijutarafder000@gmail.com" &&
                     user?.email !== "surjeet.parida@gmail.com" &&
                     user?.email !== "hemanthshinde@gmail.com" &&
                     user?.email !== "vikas@jagrutirehab.org"
+                      ? true
+                      : bill.bill === INVOICE &&
+                        bill.createdAt &&
+                        differenceInDays(now, new Date(bill.createdAt)) > 15
                       ? true
                       : false
                   }
