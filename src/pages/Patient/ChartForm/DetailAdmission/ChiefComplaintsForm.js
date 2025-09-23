@@ -1,41 +1,32 @@
 import React from "react";
 import NextButton from "./NextButton";
+import RenderFields from "../../../../Components/Common/RenderFields";
 
-const fullLine = {
-  border: "none",
-  borderBottom: "1px solid #000",
-  width: "100%",
-  marginTop: "3px",
-  fontSize: "12px",
-};
+const fields = [
+  {
+    label: "Complaint 1",
+    name: "line1",
+    type: "text",
+  },
+  {
+    label: "Complaint 2",
+    name: "line2",
+    type: "text",
+  },
+  {
+    label: "Complaint 3",
+    name: "line3",
+    type: "text",
+  },
+];
 
 const ChiefComplaintsForm = ({ validation, setFormStep, step }) => {
   return (
     <React.Fragment>
       <div>
-        <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
-          <li>
-            <input
-              type="text"
-              name="Independent_Admission_adult_symptom1"
-              style={fullLine}
-            />
-          </li>
-          <li>
-            <input
-              type="text"
-              name="Independent_Admission_adult_symptom2"
-              style={fullLine}
-            />
-          </li>
-          <li>
-            <input
-              type="text"
-              name="Independent_Admission_adult_symptom3"
-              style={fullLine}
-            />
-          </li>
-        </ol>
+        <div>
+          <RenderFields fields={fields} validation={validation} />
+        </div>
         <NextButton setFormStep={setFormStep} step={step} />
       </div>
     </React.Fragment>

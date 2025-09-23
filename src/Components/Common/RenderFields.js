@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { Col, FormFeedback, Input, Label, Row } from "reactstrap";
 
 const RenderFields = ({ fields, validation }) => {
