@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import PropTypes from "prop-types";
 import { Button, Col, Form, Row } from "reactstrap";
 import Divider from "../../../../Components/Common/Divider";
 
@@ -23,10 +22,12 @@ import {
 import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
+import ChiefComplaintsForm from "./ChiefComplaintsForm";
 
 const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
+const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -134,6 +135,7 @@ const DetailAdmission = ({
         : patient?.center,
       addmission: patient?.addmission?._id,
       //detail addmission form
+      age: detailAdmissionForm ? detailAdmissionForm.detailAdmission?.age : "",
       doctorConsultant: detailAdmissionForm
         ? detailAdmissionForm.detailAdmission?.doctorConsultant
         : "",
@@ -201,6 +203,18 @@ const DetailAdmission = ({
       socialSupport: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.socialSupport
         : "",
+      // ChiefComplaints
+
+      line1: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.line1
+        : "",
+      line2: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.line2
+        : "",
+      line3: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.line3
+        : "",
+
       //mental status examination
       appearance: detailAdmissionForm
         ? detailAdmissionForm.mentalExamination?.appearance
@@ -298,6 +312,9 @@ const DetailAdmission = ({
       } else if (type === "GENERAL") {
         dispatch(addGeneralDetailAdmission(formData));
       } else {
+        // for (let [key, value] of formData.entries()) {
+        //   console.log(key, value);
+        // }
         dispatch(addDetailAdmission(formData));
       }
     },
@@ -347,6 +364,12 @@ const DetailAdmission = ({
               onClick={() => setFormStep(DETAIL_HISTORY)}
             >
               Detail History
+            </Button>
+            <Button
+              outline={formStep !== CHIEF_COMPLAINTS}
+              onClick={() => setFormStep(CHIEF_COMPLAINTS)}
+            >
+              Chief Complaints
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
@@ -400,6 +423,14 @@ const DetailAdmission = ({
 
               {formStep === DETAIL_HISTORY && (
                 <DetailHistoryForm
+                  validation={validation}
+                  setFormStep={setFormStep}
+                  step={CHIEF_COMPLAINTS}
+                />
+              )}
+
+              {formStep === CHIEF_COMPLAINTS && (
+                <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}

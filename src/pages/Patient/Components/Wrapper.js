@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {
-  Row,
   Col,
   DropdownToggle,
   DropdownMenu,
@@ -121,7 +120,7 @@ const Wrapper = ({
                   className="col text-end"
                 >
                   {!item.clinicalTest &&
-                    item.clinicalTest != "ClinicalTest" && (
+                    item.clinicalTest !== "ClinicalTest" && (
                       <DropdownToggle
                         tag="a"
                         id="dropdownMenuLink14"

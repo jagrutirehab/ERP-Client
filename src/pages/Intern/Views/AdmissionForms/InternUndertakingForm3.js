@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const InternUndertakingFormPage3 = ({ register, intern, details }) => {
@@ -10,6 +11,8 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
     fontFamily: "Arial, sans-serif",
     fontSize: "12px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const heading = {
@@ -48,11 +51,24 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
     verticalAlign: "middle",
   };
 
+  useEffect(() => {
+    if (intern) {
+      document.querySelector('[name="ack_intern_name"]').value =
+        intern?.name || "";
+      document.querySelector('[name="rep_name"]').value = intern?.name || "";
+    }
+
+    if (details) {
+      document.querySelector('[name="rep_designation"]').value =
+        details?.position || "";
+    }
+  }, [intern, details]);
+
   return (
     <div style={pageContainer}>
       {/* Header (optional) */}
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader intern={intern} />
+        <PrintHeader intern={intern} pageWidth={window.innerWidth} />
       </div>
 
       {/* Title */}

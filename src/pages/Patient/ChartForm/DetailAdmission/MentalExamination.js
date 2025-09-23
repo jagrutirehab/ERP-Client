@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import NextButton from "./NextButton";
 

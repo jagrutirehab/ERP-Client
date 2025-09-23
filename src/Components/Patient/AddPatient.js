@@ -456,7 +456,7 @@ const AddPatient = ({
                     }}
                   >
                     {f.label}
-                    <span style={{ color: "#ef4444" }}>*</span>
+                    {f.required && <span className="text-danger">*</span>}
                   </Label>
                   <Input
                     type={f.type}
