@@ -116,7 +116,7 @@ const AdmWithHighSupport2 = ({ register, patient, details, chartData }) => {
           Unit
           <input
             type="text"
-            value={patient?.psychologistData?.unit}
+            value={patient?.doctorData?.unit}
             {...register("Indipendent_Admission_Support_unit")}
             style={{
               fontWeight: "bold",

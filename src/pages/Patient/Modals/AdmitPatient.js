@@ -214,7 +214,7 @@ const AdmitPatient = ({
       label: "IPD File Number",
       name: "ipdFileNumber",
       type: "text",
-      requird: false,
+      required: false,
     },
   ];
 
@@ -290,7 +290,8 @@ const AdmitPatient = ({
             // Get all required fields from step 1 (excluding email)
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields,
+              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              // ...patientGuardianFields,
             ].map((f) => f.name);
 
             // Touch all fields to trigger validation
@@ -461,7 +462,8 @@ const AdmitPatient = ({
             // First validate step 1 fields
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields,
+              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              // ...patientGuardianFields,
             ].map((f) => f.name);
 
             // Touch all step 1 fields
@@ -546,7 +548,8 @@ const AdmitPatient = ({
               // Get all required fields from step 1
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields,
+                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               // Touch all fields to trigger validation
@@ -579,7 +582,8 @@ const AdmitPatient = ({
               // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields,
+                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               const hasErrors = step1Fields.some(
