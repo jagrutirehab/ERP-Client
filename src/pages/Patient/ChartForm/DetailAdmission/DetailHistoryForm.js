@@ -1,10 +1,19 @@
 import React from "react";
-import PropTypes from "prop-types";
 import RenderFields from "../../../../Components/Common/RenderFields";
-import { Button, Col, Input, Label, Row } from "reactstrap";
+import { Col, Input, Label, Row } from "reactstrap";
 import NextButton from "./NextButton";
 
 const fields = [
+  {
+    label: "Counsellor",
+    name: "counsellor",
+    type: "text",
+  },
+  {
+    label: "Referred by",
+    name: "referredby",
+    type: "text",
+  },
   {
     label: "History / Onset Duration & Progress",
     name: "history",

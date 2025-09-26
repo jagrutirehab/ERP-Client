@@ -11,18 +11,13 @@ import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import {
-  addNewUser,
-  clearUser,
-} from "../../store/features/auth/user/userSlice";
+import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { FormFeedback, Input, Label } from "reactstrap";
+import { Input, Label } from "reactstrap";
 
 const UserForm = ({
   isOpen,
@@ -70,24 +65,24 @@ const UserForm = ({
   const [conditions, setConditions] = useState([]);
   const [therapies, setTherapies] = useState([]);
   const [languages, setLanguages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
-  const [search, setSearch] = useState([]);
+  // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
   const fetchRoles = async () => {
     if (!token) return;
     if (!hasUserPermission) return;
     try {
-      setLoading(true);
-      const response = await getAllRoleslist({ token, search });
+      // setLoading(true);
+      const response = await getAllRoleslist({ token });
       setAcccessRoles(response?.data || []);
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error("Failed to fetch access roles.");
       }
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
