@@ -329,9 +329,9 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                     </span>
                   </p>
                   <p className="text-muted small mb-3">
-                    Last updated on{" "}
+                    Date:{" "}
                     <span className="fw-bold">
-                      {moment(lastBaseBalance.date).format("lll")}
+                      {moment(lastBaseBalance.date).format("LL")}
                     </span>
                   </p>
                   <h1 className="fw-bold text-dark display-4">
