@@ -25,6 +25,13 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { differenceInDays } from "date-fns";
 
+const superUser = [
+  // "rijutarafder000@gmail.com",
+  "surjeet.parida@gmail.com",
+  "hemanthshinde@gmail.com",
+  "vikas@jagrutirehab.org",
+];
+
 const Bills = ({
   addmissions,
   addmission,
@@ -305,9 +312,11 @@ const Bills = ({
                     user?.email !== "hemanthshinde@gmail.com" &&
                     user?.email !== "vikas@jagrutirehab.org"
                       ? true
-                      : bill.bill === INVOICE &&
-                        bill.createdAt &&
-                        differenceInDays(newDate, new Date(bill.createdAt)) > 15
+                      : (bill.bill === INVOICE &&
+                          superUser.includes(user.email)) ||
+                        (bill.bill === INVOICE &&
+                          differenceInDays(newDate, new Date(bill.createdAt)) >
+                            30)
                       ? true
                       : false
                   }
