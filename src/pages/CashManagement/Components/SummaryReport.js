@@ -91,6 +91,12 @@ const SummaryReport = ({
                       + {formatCurrency(data.totalAdvancePayments)}
                     </span>
                   </ListGroupItem>
+                  <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
+                    <span className="fw-medium">Deposit - Olive:</span>
+                    <span className="fw-semibold">
+                      + {formatCurrency(data.totalIPDDeposits)}
+                    </span>
+                  </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total Intern Payments:</span>
