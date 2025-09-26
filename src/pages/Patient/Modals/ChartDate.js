@@ -48,7 +48,6 @@ const ChartDate = ({
   useEffect(() => {
     if (isOpen) {
       const d = new Date();
-      console.log("here");
       dispatch(setChartDate(d.toISOString()));
     }
   }, [dispatch, isOpen]);
@@ -71,7 +70,7 @@ const ChartDate = ({
               <span>
                 <Flatpicker
                   name="dateOfAdmission"
-                  disabled={type == "CLINICTEST" ? true : false}
+                  disabled={type === "CLINICTEST" ? true : false}
                   value={chartDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
@@ -98,7 +97,7 @@ const ChartDate = ({
                 <Flatpicker
                   name="dateOfAdmission"
                   value={chartDate || ""}
-                  disabled={type == "CLINICTEST" ? true : false}
+                  disabled={type === "CLINICTEST" ? true : false}
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
                       hours: e.getHours(),
@@ -130,7 +129,7 @@ const ChartDate = ({
           </Form>
         </div>
         <div>
-          {type != "CLINICTEST" ? (
+          {type !== "CLINICTEST" ? (
             <Dropdown
               className="text-end border-top pt-2 mt-2"
               size="sm"

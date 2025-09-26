@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import _, { now } from "lodash";
+import _ from "lodash";
 import { connect, useDispatch } from "react-redux";
 import Wrapper from "../Components/Wrapper";
 import {
@@ -272,8 +272,6 @@ const Bills = ({
   };
 
   const newDate = new Date();
-
-  console.log({ newBills, user });
 
   return (
     <React.Fragment>

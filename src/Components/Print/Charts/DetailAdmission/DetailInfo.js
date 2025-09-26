@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import { differenceInYears } from "date-fns";
+// import { differenceInYears } from "date-fns";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -16,8 +16,8 @@ Font.register({
   ],
 });
 const DetailInfo = ({ chart, patient, data, styles }) => {
-  const age = () =>
-    differenceInYears(new Date(), new Date(patient?.dateOfBirth));
+  // const age = () =>
+  //   differenceInYears(new Date(), new Date(patient?.dateOfBirth));
 
   const Row = ({ label, value }) => (
     <View style={{ flexDirection: "row", marginBottom: 6 }}>
