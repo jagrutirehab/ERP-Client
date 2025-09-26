@@ -29,7 +29,6 @@ const Index = () => {
   }));
 
   const userDynamicRoutes = (userRoutes || []).map((routeLabel) => {
-    console.log("route label", routeLabel.name);
     const pageInfoIndex = pages.findIndex((pg) => pg.label === routeLabel.name);
     const pageInfo = pages[pageInfoIndex];
     const elementIndex = allElements.findIndex(
