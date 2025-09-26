@@ -10,46 +10,20 @@ import Reports from "./Reports";
 import Balance from "./Balance";
 import Deposits from "./Deposits";
 import Spending from "./Spending";
-import { connect } from "react-redux";
-import PropTypes from "prop-types";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
 
-const pageOrder = ["Reports", "Balance", "Deposits", "Spending"];
-
-const Views = ({ pageAccess }) => {
+const Views = () => {
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, roles } = usePermissions(token);
 
-  const vws = {
-    Reports: REPORTS_VIEW,
-    Balance: BASE_BALANCE_VIEW,
-    Deposits: DEPOSITS_VIEW,
-    Spending: SPENDING_VIEW,
-  };
-
-  const hasReportsPermission =
-    hasPermission("CASH", "CASHREPORTS", "READ") ||
-    hasPermission("CASH", "CASHREPORTS", "WRITE") ||
-    hasPermission("CASH", "CASHREPORTS", "DELETE");
-
-  const hasBalancePermission =
-    hasPermission("CASH", "CASHBALANCE", "READ") ||
-    hasPermission("CASH", "CASHBALANCE", "WRITE") ||
-    hasPermission("CASH", "CASHBALANCE", "DELETE");
-
-  const hasDepositsPermission =
-    hasPermission("CASH", "CASHDEPOSITS", "READ") ||
-    hasPermission("CASH", "CASHDEPOSITS", "WRITE") ||
-    hasPermission("CASH", "CASHDEPOSITS", "DELETE");
-
-  const hasSpendingPermission =
-    hasPermission("CASH", "CASHSPENDING", "READ") ||
-    hasPermission("CASH", "CASHSPENDING", "WRITE") ||
-    hasPermission("CASH", "CASHSPENDING", "DELETE");
+  const hasReportsPermission = hasPermission("CASH", "CASHREPORTS", "READ");
+  const hasBalancePermission = hasPermission("CASH", "CASHBALANCE", "READ");
+  const hasDepositsPermission = hasPermission("CASH", "CASHDEPOSITS", "READ");
+  const hasSpendingPermission = hasPermission("CASH", "CASHSPENDING", "READ");
 
   const availableViews = [
     {
@@ -156,7 +130,7 @@ const Views = ({ pageAccess }) => {
               permission={"read"}
               subAccess={"CASHREPORTS"}
             >
-              {view === REPORTS_VIEW && <Reports view={view} />}
+              {view === REPORTS_VIEW && <Reports />}
             </CheckPermission>
 
             <CheckPermission
@@ -164,7 +138,7 @@ const Views = ({ pageAccess }) => {
               permission={"read"}
               subAccess={"CASHBALANCE"}
             >
-              {view === BASE_BALANCE_VIEW && <Balance view={view} />}
+              {view === BASE_BALANCE_VIEW && <Balance />}
             </CheckPermission>
 
             <CheckPermission
@@ -172,7 +146,7 @@ const Views = ({ pageAccess }) => {
               permission={"read"}
               subAccess={"CASHDEPOSITS"}
             >
-              {view === DEPOSITS_VIEW && <Deposits view={view} />}
+              {view === DEPOSITS_VIEW && <Deposits />}
             </CheckPermission>
 
             <CheckPermission
@@ -180,7 +154,7 @@ const Views = ({ pageAccess }) => {
               permission={"read"}
               subAccess={"CASHSPENDING"}
             >
-              {view === SPENDING_VIEW && <Spending view={view} />}
+              {view === SPENDING_VIEW && <Spending />}
             </CheckPermission>
           </div>
         </div>
@@ -189,14 +163,4 @@ const Views = ({ pageAccess }) => {
   );
 };
 
-Views.propTypes = {
-  pageAccess: PropTypes.array,
-};
-
-const mapStateToProps = (state) => {
-  return {
-    pageAccess: state.User?.user?.pageAccess?.pages,
-  };
-};
-
-export default connect(mapStateToProps)(Views);
+export default Views;
