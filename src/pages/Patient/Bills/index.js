@@ -312,8 +312,10 @@ const Bills = ({
                     user?.email !== "hemanthshinde@gmail.com" &&
                     user?.email !== "vikas@jagrutirehab.org"
                       ? true
-                      : (bill.bill === INVOICE &&
-                          !superUser.includes(user.email)) ||
+                      : !(
+                          bill.bill === INVOICE &&
+                          superUser.includes(user.email)
+                        ) ||
                         (bill.bill === INVOICE &&
                           differenceInDays(newDate, new Date(bill.createdAt)) >
                             30)
