@@ -18,7 +18,53 @@ const pages = [
     label: "Emergency",
     name: "Emergency",
     link: "/emergency",
-   icon: "bx bxs-error" 
+    icon: "bx bxs-error",
+  },
+  {
+    id: "cash",
+    label: "Cash",
+    name: "Cash",
+    link: "/cash",
+    icon: "bx bx-rupee",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+    // children: [
+    //   {
+    //     name: "Reports",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Balance",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Deposits",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Spending",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    // ],
   },
   {
     id: "users",
@@ -67,7 +113,8 @@ const pages = [
           edit: true,
           delete: true,
         },
-      },{
+      },
+      {
         name: "Certificate",
         permissions: {
           create: true,

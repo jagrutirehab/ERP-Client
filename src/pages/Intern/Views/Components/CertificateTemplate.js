@@ -80,8 +80,20 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
     return str;
   };
 
+  const getPsychologistTitle = (gender) => {
+    if (gender === "MALE") return "Mr.";
+    if (gender === "FEMALE") return "Mrs.";
+    return "";
+  };
+
+  const psychologistTitle = getPsychologistTitle(psychologist?.gender);
   const psychologistName = toTitleCase(psychologist?.name) || "Psychologist";
-  const internshipDuration = calculateInternshipDuration(intern?.internshipDuration) || "the internship period";
+  const psychologistFullName = psychologistTitle
+    ? `${psychologistTitle} ${psychologistName}`
+    : psychologistName;
+  const internshipDuration =
+    calculateInternshipDuration(intern?.internshipDuration) ||
+    "the internship period";
 
   let nameWithPronoun = toTitleCase(intern?.name) || "______";
   if (gender !== "OTHERS" && pronoun1) {
@@ -94,8 +106,8 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
     toTitleCase(intern?.courseProgram) || "______"
   }${
     type === "ONGOING"
-      ? `, is currently undergoing ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistName}.`
-      : `, has completed ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistName} for ${internshipDuration}.`
+      ? `, is currently undergoing ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistFullName}.`
+      : `, has completed ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistFullName} for ${internshipDuration}.`
   }`;
 
   const paragraph2 =
@@ -183,7 +195,7 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
 
         <div style={{ marginTop: "100px" }}>
           <p style={{ marginBottom: 0, fontWeight: "bold" }}>
-            {psychologistName}
+            {psychologistFullName}
           </p>
           <p style={{ fontWeight: "bold" }}>Senior Psychologist</p>
         </div>

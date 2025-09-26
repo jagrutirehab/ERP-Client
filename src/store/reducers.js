@@ -78,6 +78,9 @@ import Nurse from "./features/nurse/nurseSlice";
 // for emergency
 import Emergency from "./features/emergency/emergencySlice";
 
+// for cash management
+import Cash from "./features/cashManagement/cashSlice";
+
 //for offers
 import Offers from "./features/offer/offerSlice";
 
@@ -113,6 +116,7 @@ const rootReducer = combineReducers({
   Offers,
   Nurse,
   Emergency,
+  Cash,
   Taxes,
   HubspotContacts,
 });
