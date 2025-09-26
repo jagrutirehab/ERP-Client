@@ -29,12 +29,13 @@ const Index = () => {
   }));
 
   const userDynamicRoutes = (userRoutes || []).map((routeLabel) => {
+    console.log("route label", routeLabel.name);
     const pageInfoIndex = pages.findIndex((pg) => pg.label === routeLabel.name);
     const pageInfo = pages[pageInfoIndex];
-  
     const elementIndex = allElements.findIndex(
       (el) => el.label === routeLabel.name
     );
+
     return {
       id: pageInfo.id,
       path: pageInfo.link,

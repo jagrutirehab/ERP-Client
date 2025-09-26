@@ -5,9 +5,9 @@ import pages from "../Components/constants/pages";
 
 const Navdata = () => {
   const history = useNavigate();
-  const  userPages  = useSelector((state) => 
-  state.User.user?.pageAccess?.pages||[]
-);
+  const userPages = useSelector(
+    (state) => state.User.user?.pageAccess?.pages || []
+  );
 
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);
@@ -24,6 +24,7 @@ const Navdata = () => {
       "intern",
       "patient",
       "users",
+      "cash",
       "setting",
       "recyclebin",
     ];

@@ -289,6 +289,16 @@ export const NOTES = "/notes";
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
 
+// cash managemenet
+export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
+export const ADD_SPENDING = "/cash/spending";
+export const ADD_BASE_BALANCE = "/cash/base-balance";
+export const GET_LATEST_BANK_DEPOSITS = "/cash/bank-deposit/list";
+export const GET_LATEST_SPENDING = "/cash/spending/list";
+export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
+export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
+export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
+
 //New Microservice APIS
 export const CSRF = "/csrf-token";
 export const MICRO_SIGN_IN = "/userauths/signin";

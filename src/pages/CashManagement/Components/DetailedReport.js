@@ -1,0 +1,277 @@
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardBody,
+  Row,
+  Col,
+  Input,
+  Spinner,
+  Button,
+  Badge,
+} from "reactstrap";
+import { TabPane } from "reactstrap";
+import DataTable from "react-data-table-component";
+import { downloadFile } from "../../../Components/Common/downloadFile";
+import { connect, useDispatch } from "react-redux";
+import { endOfDay, format, startOfDay } from "date-fns";
+import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
+import Header from "../../Report/Components/Header";
+import { getDetailedReport } from "../../../store/features/cashManagement/cashSlice";
+import { ExpandableText } from "../../../Components/Common/ExpandableText";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import PropTypes from "prop-types";
+
+const DetailedReport = ({
+  centers,
+  centerAccess,
+  detailedReport,
+  loading,
+  activeTab,
+  hasUserPermission,
+  roles,
+}) => {
+  const dispatch = useDispatch();
+
+  const centerOptions = centers
+    ?.filter((c) => centerAccess.includes(c._id))
+    .map((c) => ({
+      _id: c._id,
+      title: c.title,
+    }));
+
+  const [selectedCentersIds, setSelectedCentersIds] = useState([]);
+  const [selectedCenters, setSelectedCenters] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (centerOptions && centerOptions.length > 0 && !isInitialized) {
+      const allCenterIds = centerOptions.map((c) => c._id);
+      setSelectedCentersIds(allCenterIds);
+      setSelectedCenters(centerOptions);
+      setIsInitialized(true);
+    }
+  }, [centerOptions, isInitialized]);
+  const [selectedTransactionType, setSelectedTransactionType] = useState("");
+  const [reportDate, setReportDate] = useState({
+    start: startOfDay(new Date()),
+    end: endOfDay(new Date()),
+  });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  const columns = [
+    {
+      name: "Date",
+      selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
+      wrap: true,
+    },
+    {
+      name: "Center",
+      selector: (row) =>
+        capitalizeWords(row.center?.title || row.center || "-"),
+      wrap: true,
+    },
+    {
+      name: "Type",
+      selector: (row) => {
+        if (row.type === "BASEBALANCE") {
+          return (
+            <Badge color="warning" className="text-dark">
+              BASE BALANCE
+            </Badge>
+          );
+        } else if (row.type === "SPENDING" || row.type === "BANKDEPOSIT") {
+          return (
+            <Badge color="danger">
+              {row.type.charAt(0).toUpperCase() + row.type.slice(1)}
+            </Badge>
+          );
+        } else {
+          return "-";
+        }
+      },
+      wrap: true,
+    },
+    {
+      name: "Attachment",
+      selector: (row) => row.attachment,
+      cell: (row) =>
+        row.attachment ? (
+          <p
+            onClick={() => downloadFile(row.attachment)}
+            className="text-primary text-decoration-underline cursor-pointer"
+          >
+            {row.attachment.originalName}
+          </p>
+        ) : (
+          "-"
+        ),
+      wrap: true,
+    },
+    {
+      name: "Amount",
+
+      cell: (row) => (
+        <span>
+          ₹
+          {row.amount?.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }) || "0.00"}
+        </span>
+      ),
+      wrap: true,
+    },
+    {
+      name: "Summary",
+      selector: (row) => <ExpandableText text={capitalizeWords(row.summary)} />,
+      wrap: true,
+    },
+    {
+      name: "Comments",
+      selector: (row) => (
+        <ExpandableText text={capitalizeWords(row.comments)} />
+      ),
+      wrap: true,
+    },
+  ];
+
+  useEffect(() => setPage(1), [limit]);
+
+  useEffect(() => {
+    if (activeTab === "detail" && hasUserPermission) {
+      dispatch(
+        getDetailedReport({
+          page,
+          limit,
+          transactionType: selectedTransactionType,
+          centers: selectedCentersIds,
+          startDate: reportDate.start.toISOString(),
+          endDate: reportDate.end.toISOString(),
+        })
+      );
+    }
+  }, [
+    page,
+    limit,
+    selectedCentersIds,
+    selectedTransactionType,
+    reportDate,
+    dispatch,
+    activeTab,
+    roles,
+  ]);
+
+  return (
+    <TabPane tabId="detail">
+      <div className="d-flex justify-content-between align-items-center mt-3">
+        <div className="d-flex gap-2 align-items-center">
+          <Input
+            type="select"
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+            style={{ width: "100px" }}
+          >
+            {[10, 20, 30, 40, 50].map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </Input>
+          <Input
+            type="select"
+            value={selectedTransactionType}
+            onChange={(e) => setSelectedTransactionType(e.target.value)}
+            style={{ width: "200px" }}
+          >
+            <option value="">All</option>
+            <option value="BASEBALANCE">Base Balances</option>
+            <option value="BANKDEPOSIT">Bank Deposits</option>
+            <option value="SPENDING">Spendings</option>
+          </Input>
+          <Header reportDate={reportDate} setReportDate={setReportDate} />
+          <CenterDropdown
+            options={centerOptions}
+            value={selectedCentersIds}
+            onChange={(ids) => {
+              setSelectedCentersIds(ids);
+              setSelectedCenters(
+                centerOptions.filter((c) => ids.includes(c._id))
+              );
+            }}
+          />
+        </div>
+      </div>
+
+      <Card className="mt-4">
+        <CardBody>
+          {loading ? (
+            <div className="text-center py-4">
+              <Spinner color="primary" />
+            </div>
+          ) : (
+            <DataTable
+              title="History"
+              columns={columns}
+              data={detailedReport?.data || []}
+              highlightOnHover
+              striped
+              responsive
+              defaultSortFieldId={1}
+              defaultSortAsc={false}
+            />
+          )}
+          {!loading && detailedReport?.pagination?.totalPages > 1 && (
+            <Row className="mt-4 justify-content-center align-items-center">
+              <Col xs="auto">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  ← Previous
+                </Button>
+              </Col>
+              <Col xs="auto" className="text-center text-muted mx-3">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(
+                  page * limit,
+                  detailedReport?.pagination?.totalDocs || 0
+                )}{" "}
+                of {detailedReport?.pagination?.totalDocs || 0}
+              </Col>
+              <Col xs="auto">
+                <Button
+                  color="secondary"
+                  disabled={page === detailedReport?.pagination?.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next →
+                </Button>
+              </Col>
+            </Row>
+          )}
+        </CardBody>
+      </Card>
+    </TabPane>
+  );
+};
+
+DetailedReport.prototype = {
+  centers: PropTypes.array,
+  centerAccess: PropTypes.array,
+  detailedReport: PropTypes.array,
+  loading: PropTypes.bool,
+  activeTab: PropTypes.string,
+  hasUserPermission: PropTypes.bool,
+  roles: PropTypes.array,
+};
+
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+  detailedReport: state.Cash.detailedReport,
+  loading: state.Cash.loading,
+});
+
+export default connect(mapStateToProps)(DetailedReport);

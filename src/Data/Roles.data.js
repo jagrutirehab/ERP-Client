@@ -61,6 +61,16 @@ export const permissionList = [
     ],
   },
   {
+    key: "CASH",
+    label: "Cash",
+    subModules: [
+      { name: "CASHREPORTS", label: "Cash Reports" },
+      { name: "CASHBALANCE", label: "Cash Base Balance" },
+      { name: "CASHDEPOSITS", label: "Cash Deposits" },
+      { name: "CASHSPENDING", label: "Cash Spending" },
+    ],
+  },
+  {
     key: "SETTING",
     label: "Setting",
     subModules: [
