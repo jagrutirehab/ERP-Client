@@ -372,7 +372,6 @@ const SummaryBody = ({ chart, patient }) => {
             <Text style={styles.preText}>{data.note.trim()}</Text>
           </View>
         )}
-        
       </View>
     </React.Fragment>
   );
