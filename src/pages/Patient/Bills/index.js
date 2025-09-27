@@ -281,10 +281,6 @@ const Bills = ({
             {(newBills || [])
               .sort((a, b) => new Date(b.date) - new Date(a.date))
               .map((bill) => {
-                console.log(
-                  bill.bill === INVOICE && superUser.includes(user.email)
-                );
-
                 return (
                   <Wrapper
                     key={bill._id}

@@ -57,8 +57,6 @@ const Wrapper = ({
         .join(" ")
     : "";
 
-  console.log({ disableEdit });
-
   return (
     <motion.div
       whileHover={{

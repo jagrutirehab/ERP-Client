@@ -10,6 +10,7 @@ import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addInvoice,
   createEditBill,
+  fetchBills,
   updateInvoice,
 } from "../../../store/actions";
 import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
@@ -19,6 +20,7 @@ const DuePayment = ({
   author,
   patient,
   center,
+  billData,
   billDate,
   editBillData,
   admission,
@@ -29,8 +31,6 @@ const DuePayment = ({
   ...rest
 }) => {
   const dispatch = useDispatch();
-
-  console.log(admission, "admission");
 
   const editData = editBillData
     ? type === OPD
@@ -128,6 +128,45 @@ const DuePayment = ({
       validation.resetForm();
     },
   });
+
+  useEffect(() => {
+    if (!editBillData) {
+      const admissionId = patient?.addmission?._id;
+
+      if (!admissionId) return;
+
+      (async () => {
+        try {
+          const resultAction = await dispatch(fetchBills(admissionId));
+
+          if (fetchBills.fulfilled.match(resultAction)) {
+            const bills = resultAction.payload?.payload || [];
+
+            // Step 1: filter
+            const invoices = bills.filter(
+              (item) => item.bill === "INVOICE" && item.type === "IPD"
+            );
+
+            // Step 2: sort by createdAt (newest first)
+            invoices.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+
+            // Step 3: pick latest
+            const latestInvoice = invoices[0];
+
+            setInvoiceList(latestInvoice?.invoice?.invoiceList);
+          } else if (fetchBills.rejected.match(resultAction)) {
+            console.log("❌ Rejected error:", resultAction.error);
+          }
+        } catch (err) {
+          console.error("Dispatch error:", err);
+        }
+      })();
+    } else {
+      return;
+    }
+  }, [dispatch, patient?.addmission?._id, editBillData]);
 
   useEffect(() => {
     (() => {
@@ -333,6 +372,7 @@ const mapStateToProps = (state) => ({
   author: state.User.user,
   patient: state.Bill.billForm?.patient,
   center: state.Bill.billForm?.center,
+  billData: state.Bill,
   billDate: state.Bill.billDate,
   editBillData: state.Bill.billForm.data,
   appointment: state.Bill.billForm.appointment,
