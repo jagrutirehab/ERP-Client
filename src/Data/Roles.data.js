@@ -76,6 +76,7 @@ export const permissionList = [
       { name: "ROLESSETTING", label: "Roles" },
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
+      { name: "SYMPTOMSETTING", label: "Symptoms" },
     ],
   },
   {

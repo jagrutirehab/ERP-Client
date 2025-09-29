@@ -202,6 +202,12 @@ export const POST_THERAPY = "/therapy";
 export const EDIT_THERAPY = "/therapy";
 export const DELETE_THERAPY = "/therapy";
 
+//SYMPTOM
+export const GET_SYMPTOMS = "/symptom";
+export const POST_SYMPTOM = "/symptom";
+export const EDIT_SYMPTOM = "/symptom";
+export const DELETE_SYMPTOM = "/symptom";
+
 //CONDITION
 export const GET_CONDITIONS = "/condition";
 export const POST_CONDITION = "/condition";

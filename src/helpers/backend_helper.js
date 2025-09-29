@@ -591,6 +591,13 @@ export const editCondition = (data) => api.put(url.EDIT_CONDITION, data);
 export const deleteCondition = (data) =>
   api.delete(`${url.DELETE_CONDITION}/${data}`);
 
+//Symptom
+export const getSymptoms = (data) => api.get(url.GET_SYMPTOMS, data);
+export const postSymptom = (data) => api.create(url.POST_SYMPTOM, data);
+export const editSymptom = (data) => api.put(url.EDIT_SYMPTOM, data);
+export const deleteSymptom = (data) =>
+  api.delete(`${url.DELETE_SYMPTOM}/${data}`);
+
 //Report
 export const getReport = (data) =>
   api.get(url.GET_REPORT, {

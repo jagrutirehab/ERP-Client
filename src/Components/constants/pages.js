@@ -18,7 +18,7 @@ const pages = [
     label: "Emergency",
     name: "Emergency",
     link: "/emergency",
-   icon: "bx bxs-error" 
+    icon: "bx bxs-error",
   },
   {
     id: "users",
@@ -67,7 +67,8 @@ const pages = [
           edit: true,
           delete: true,
         },
-      },{
+      },
+      {
         name: "Certificate",
         permissions: {
           create: true,
@@ -218,6 +219,12 @@ export const setting = [
     id: "conditions",
     label: "Conditions",
     link: "/setting/conditions",
+    icon: "bx bx-health",
+  },
+  {
+    id: "symptoms",
+    label: "Symptoms",
+    link: "/setting/symptoms",
     icon: "bx bx-health",
   },
 ];
