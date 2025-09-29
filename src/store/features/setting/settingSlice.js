@@ -3,11 +3,13 @@ import {
   deleteBillItem,
   deleteCondition,
   deletePaymentAccount,
+  deleteSymptom,
   deleteTherapy,
   editBillItem,
   editCalenderDuration,
   editCondition,
   editDoctorSchedule,
+  editSymptom,
   editTherapy,
   getAllBillItems,
   getAllDoctorSchedule,
@@ -16,6 +18,7 @@ import {
   getConditions,
   getDoctorSchedule,
   getPaymentAccounts,
+  getSymptoms,
   getTherapies,
   postBillItem,
   postCalenderDuration,
@@ -23,6 +26,7 @@ import {
   postDoctorSchedule,
   postDoctorScheduleNew,
   postPaymentAccount,
+  postSymptom,
   postTherapy,
   postUserSessionPricing,
   putUserSessionPricing,
@@ -36,6 +40,7 @@ const initialState = {
   doctorSchedule: [],
   therapies: [],
   conditions: [],
+  symptoms: [],
   doctor: null,
   doctorAvailableSlots: null,
   appointmentsInRange: [],
@@ -411,6 +416,84 @@ export const removeTherapy = createAsyncThunk(
 
 /* -------------------------------------------------------------------- */
 /* ---------------------------- THERAPIES ----------------------------- */
+/* -------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- SYMPTOMS ----------------------------- */
+/* -------------------------------------------------------------------- */
+
+export const fetchSymptom = createAsyncThunk(
+  "getSymptoms",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getSymptoms(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const addSymptom = createAsyncThunk(
+  "postSymptom",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postSymptom(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Symptom Saved Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const updateSymptom = createAsyncThunk(
+  "editSymptom",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editSymptom(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Symptom Updated Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removeSymptom = createAsyncThunk(
+  "deleteSymptom",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteSymptom(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Symptom Deleted Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+/* -------------------------------------------------------------------- */
+/* ---------------------------- SYMPTOMS ----------------------------- */
 /* -------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------- */
@@ -820,6 +903,67 @@ const settingSlice = createSlice({
         );
       })
       .addCase(removeTherapy.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- THERAPY ------------------------------- */
+    /* -------------------------------------------------------------------- */
+
+    /* -------------------------------------------------------------------- */
+    /* ---------------------------- THERAPY ------------------------------- */
+    /* -------------------------------------------------------------------- */
+
+    builder
+      .addCase(fetchSymptom.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchSymptom.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.symptoms = payload.payload;
+      })
+      .addCase(fetchSymptom.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addSymptom.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addSymptom.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.symptoms = [...(state.symptoms || []), payload.payload];
+      })
+      .addCase(addSymptom.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateSymptom.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateSymptom.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.symptoms.findIndex(
+          (el) => el._id === payload.payload?._id
+        );
+        state.symptoms[findIndex] = payload.payload;
+      })
+      .addCase(updateSymptom.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeSymptom.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeSymptom.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.symptoms = state.symptoms.filter(
+          (item) => item._id !== payload.payload?._id
+        );
+      })
+      .addCase(removeSymptom.rejected, (state, action) => {
         state.loading = false;
       });
 
