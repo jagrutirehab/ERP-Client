@@ -72,7 +72,7 @@ const SummaryReport = ({
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-danger bg-white">
-                    <span className="fw-medium">Total Deposits:</span>
+                    <span className="fw-medium">Total Bank Deposits:</span>
                     <span className="fw-semibold">
                       - {formatCurrency(data.totalDeposits)}
                     </span>
@@ -93,6 +93,13 @@ const SummaryReport = ({
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
+                    <span className="fw-medium">Total OPD Payments:</span>
+                    <span className="fw-semibold">
+                      + {formatCurrency(data.totalOPDPayments)}
+                    </span>
+                  </ListGroupItem>
+
+                  <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total Intern Payments:</span>
                     <span className="fw-semibold">
                       + {formatCurrency(data.totalInternPayments)}
@@ -100,11 +107,12 @@ const SummaryReport = ({
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
-                    <span className="fw-medium">Total OPD Payments:</span>
+                    <span className="fw-medium">Total Deposit - Olive:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalOPDPayments)}
+                      + {formatCurrency(data.totalIPDDeposits)}
                     </span>
                   </ListGroupItem>
+
                   <ListGroupItem className="d-flex justify-content-between align-items-center bg-white">
                     <span className="fw-bold">Ending Balance:</span>
                     <h6>

@@ -111,6 +111,7 @@ const UploadedFiles = ({ id, chartId, files }) => {
 const DetailAdmission = ({
   author,
   patient,
+  patientData,
   center,
   chartDate,
   editChartData,
@@ -169,6 +170,12 @@ const DetailAdmission = ({
       //detail history
       informant: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.informant
+        : "",
+      counsellor: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.counsellor
+        : patientData?.psychologistData?.name,
+      referredby: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.referredby
         : "",
       reliable: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.reliable
@@ -470,6 +477,7 @@ const DetailAdmission = ({
 const mapStateToProps = (state) => ({
   author: state.User.user,
   patient: state.Chart.chartForm?.patient,
+  patientData: state.Patient?.patient,
   center: state.Chart.chartForm?.center,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,

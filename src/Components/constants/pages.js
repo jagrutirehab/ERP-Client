@@ -267,6 +267,12 @@ export const setting = [
     link: "/setting/conditions",
     icon: "bx bx-health",
   },
+  {
+    id: "symptoms",
+    label: "Symptoms",
+    link: "/setting/symptoms",
+    icon: "bx bx-health",
+  },
 ];
 
 export const recyclebin = [

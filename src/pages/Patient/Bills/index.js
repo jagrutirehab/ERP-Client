@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import _, { now } from "lodash";
+import _ from "lodash";
 import { connect, useDispatch } from "react-redux";
 import Wrapper from "../Components/Wrapper";
 import {
@@ -273,8 +273,6 @@ const Bills = ({
 
   const newDate = new Date();
 
-  console.log({ newBills, user });
-
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -283,10 +281,6 @@ const Bills = ({
             {(newBills || [])
               .sort((a, b) => new Date(b.date) - new Date(a.date))
               .map((bill) => {
-                console.log(
-                  bill.bill === INVOICE && superUser.includes(user.email)
-                );
-
                 return (
                   <Wrapper
                     key={bill._id}

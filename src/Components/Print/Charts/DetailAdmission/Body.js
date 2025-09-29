@@ -1,12 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { StyleSheet, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
-import DoctorSignature from "../DoctorSignature";
+import DoctorSignature from "./DoctorSignature";
 import CheifComplaint from "./ChiefComplaint";
 
 //table
@@ -128,7 +128,7 @@ const Body = ({ chart, patient }) => {
       <MentalExamination data={data.mentalExamination} styles={styles} />
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
-      <DoctorSignature doctor={chart?.author}/>
+      <DoctorSignature doctor={patient}/>
       {/* <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
         {chart.drNotes && (
           <View>
