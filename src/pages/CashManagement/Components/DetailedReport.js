@@ -51,6 +51,24 @@ const DetailedReport = ({
       setIsInitialized(true);
     }
   }, [centerOptions, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized && centerOptions) {
+      const availableCenterIds = centerOptions.map((c) => c._id);
+
+      const filteredCenterIds = selectedCentersIds.filter((id) =>
+        availableCenterIds.includes(id)
+      );
+
+      if (filteredCenterIds.length !== selectedCentersIds.length) {
+        setSelectedCentersIds(filteredCenterIds);
+        setSelectedCenters(
+          centerOptions.filter((c) => filteredCenterIds.includes(c._id))
+        );
+      }
+    }
+  }, [centerAccess, centers]);
+
   const [selectedTransactionType, setSelectedTransactionType] = useState("");
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
@@ -136,8 +154,6 @@ const DetailedReport = ({
     },
   ];
 
-  useEffect(() => setPage(1), [limit]);
-
   useEffect(() => {
     if (activeTab === "detail" && hasUserPermission) {
       dispatch(
@@ -162,6 +178,20 @@ const DetailedReport = ({
     roles,
   ]);
 
+  const handleFilterChange = (filterType, value) => {
+    setPage(1);
+    if (filterType === "transactionType") {
+      setSelectedTransactionType(value);
+    } else if (filterType === "limit") {
+      setLimit(value);
+    }
+  };
+
+  const handleDateChange = (newDate) => {
+    setPage(1);
+    setReportDate(newDate);
+  };
+
   return (
     <TabPane tabId="detail">
       <div className="d-flex justify-content-between align-items-center mt-3">
@@ -169,7 +199,9 @@ const DetailedReport = ({
           <Input
             type="select"
             value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
+            onChange={(e) =>
+              handleFilterChange("limit", Number(e.target.value))
+            }
             style={{ width: "100px" }}
           >
             {[10, 20, 30, 40, 50].map((l) => (
@@ -181,7 +213,9 @@ const DetailedReport = ({
           <Input
             type="select"
             value={selectedTransactionType}
-            onChange={(e) => setSelectedTransactionType(e.target.value)}
+            onChange={(e) =>
+              handleFilterChange("transactionType", e.target.value)
+            }
             style={{ width: "200px" }}
           >
             <option value="">All</option>
@@ -189,11 +223,12 @@ const DetailedReport = ({
             <option value="BANKDEPOSIT">Bank Deposits</option>
             <option value="SPENDING">Spendings</option>
           </Input>
-          <Header reportDate={reportDate} setReportDate={setReportDate} />
+          <Header reportDate={reportDate} setReportDate={handleDateChange} />
           <CenterDropdown
             options={centerOptions}
             value={selectedCentersIds}
             onChange={(ids) => {
+              setPage(1);
               setSelectedCentersIds(ids);
               setSelectedCenters(
                 centerOptions.filter((c) => ids.includes(c._id))
