@@ -1,23 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
-// import { Button, UncontrolledTooltip } from "reactstrap";
-
-//Import Scrollbar
-import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
-
-//setting pages
-import { setting } from "../../../Components/constants/pages";
-
-//redux
-import { connect } from "react-redux";
+import { Link, useLocation } from "react-router-dom";
+import PerfectScrollbar from "react-perfect-scrollbar";
+import { Inventory } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Sidebar = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-const {  hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("INVENTORY", "DASHBOARD", "DELETE");
+  const hasUserPermission2 = hasPermission("INVENTORY", "INVENTORYMANAGEMENT", "DELETE");
+  
+  console.log(hasUserPermission)
 
   const location = useLocation();
 
@@ -32,8 +27,11 @@ const {  hasPermission } = usePermissions(token);
     }
   };
 
-   const filteredSettings = (setting || []).filter((page) => {
-    if (page.id === "roles" && !hasUserPermission) {
+  const filteredSettings = (Inventory || []).filter((page) => {
+    if (page.id === "inventory-dashboard" && !hasUserPermission) {
+      return false;
+    }
+    if (page.id === "inventorymanagement" && !hasUserPermission2) {
       return false;
     }
     return true;
@@ -45,7 +43,7 @@ const {  hasPermission } = usePermissions(token);
         <div className="ps-4 pe-3 pt-4 mb-">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">
-              <h5 className="pb-0">Setting</h5>
+              <h5 className="pb-0">Medical Inventory</h5>
               <button
                 onClick={toggleDataSidebar}
                 type="button"
@@ -70,24 +68,13 @@ const {  hasPermission } = usePermissions(token);
             >
               {(filteredSettings || []).map((page, idx) => (
                 <li
-                  className={setting.id === location.pathname ? "active" : ""}
+                  className={Inventory.id === location.pathname ? "active" : ""}
                 >
-                  <Link
-                    // onClick={() => dispatch(viewPatient(pt))}
-                    to={page.link}
-                  >
+                  <Link to={page.link}>
                     <div className="d-flex align-items-center">
                       <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
                         <div className="avatar-xxs">
-                          {/* {chat.image ? (
-          <img
-            src={""}
-            className="rounded-circle img-fluid userprofile"
-            alt=""
-          />
-        ) : ( */}
                           <i className={`${page.icon} fs-4`}></i>
-                          {/* //   )} */}
                         </div>
                         <span className="user-status"></span>
                       </div>
@@ -108,14 +95,4 @@ const {  hasPermission } = usePermissions(token);
   );
 };
 
-Sidebar.propTypes = {
-  //   patients: PropTypes.array,
-  //   patient: PropTypes.object,
-};
-
-const mapStateToProps = (state) => ({
-  //   patients: state.Patient.data,
-  //   patient: state.Patient.patient,
-});
-
-export default connect(mapStateToProps)(Sidebar);
+export default Sidebar;

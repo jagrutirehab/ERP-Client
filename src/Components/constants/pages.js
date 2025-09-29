@@ -216,6 +216,28 @@ const pages = [
     link: "/report",
     icon: "bx bxs-report",
   },
+  {
+    id: "inventory",
+    label: "Inventory",
+    name: "Inventory",
+    link: "/inventory",
+    icon: "bx bx-book",
+  },
+];
+
+export const Inventory = [
+  {
+    id: "inventory-dashboard",
+    label: "Dashboard",
+    link: "/inventory-dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "inventorymanagement",
+    label: "Inventory",
+    link: "/inventory-management",
+    icon: "bx bx-building-house",
+  },
 ];
 
 export const setting = [

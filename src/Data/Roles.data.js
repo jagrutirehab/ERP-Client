@@ -115,6 +115,14 @@ export const permissionList = [
       { name: "OPDANALYTICS", label: "OPD Analytics" },
     ],
   },
+  {
+    key: "INVENTORY",
+    label: "Inventory",
+    subModules: [
+      { name: "DASHBOARD", label: "Dashboard" },
+      { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

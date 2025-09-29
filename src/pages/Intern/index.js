@@ -62,6 +62,7 @@ const Intern = ({ centerAccess }) => {
       isFirstLoad.current = false;
       dispatch(fetchInterns(getFilterParams(page)));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   document.title = "Intern";

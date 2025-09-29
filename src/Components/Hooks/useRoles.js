@@ -36,6 +36,7 @@ export const usePermissions = (token) => {
     };
 
     fetchRoles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // console.log(roles, "roles");
