@@ -6,7 +6,6 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
 import SearchBar from "./components/SearchBar";
 import PaginationControls from "./components/PaginationControls";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
