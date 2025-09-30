@@ -252,8 +252,6 @@ const DetailedReport = ({
               highlightOnHover
               striped
               responsive
-              defaultSortFieldId={1}
-              defaultSortAsc={false}
             />
           )}
           {!loading && detailedReport?.pagination?.totalPages > 1 && (
