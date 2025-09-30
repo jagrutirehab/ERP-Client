@@ -32,8 +32,8 @@ export const hamaQuestions = [
   {
     id: "Q3",
     question: {
-      en: "Fears - Specific fears, panic, feelings of impending doom.",
-      hi: "डर - विशिष्ट डर, आतंक, आसन्न विपत्ति की भावना।",
+      en: "Fears - Of dark, of strangers, of being left alone, of animals, of traffic, ofcrowds..",
+      hi: "डर – अँधेरे का, अजनबियों का, अकेले छूट जाने का, जानवरों का, ट्रैफ़िक का, भीड़ का।",
     },
     type: "multiple",
     score: {
@@ -47,8 +47,8 @@ export const hamaQuestions = [
   {
     id: "Q4",
     question: {
-      en: "Insomnia - Difficulty falling asleep, broken sleep, unsatisfying sleep and fatigue upon waking.",
-      hi: "अनिद्रा - सोने में कठिनाई, टूटा हुआ नींद, असंतोषजनक नींद और जागने पर थकान।",
+      en: "Insomnia - Difficulty in falling asleep, broken sleep, unsatisfying sleep and fatigue on waking, dreams, nightmares, night terrors.",
+      hi: "अनिद्रा – नींद आने में कठिनाई, नींद का बार-बार टूटना, असंतोषजनक नींद और जागने पर थकान, सपने, दुःस्वप्न, रात में भय (नाइट टेरर)।",
     },
     type: "multiple",
     score: {
@@ -62,8 +62,8 @@ export const hamaQuestions = [
   {
     id: "Q5",
     question: {
-      en: "Intellectual difficulties - Poor concentration, poor memory.",
-      hi: "बौद्धिक कठिनाइयाँ - खराब ध्यान, खराब स्मृति।",
+      en: "Intellectual difficulties - Difficulty in concentration, poor memory.",
+      hi: "बौद्धिक कठिनाइयाँ - एकाग्रता में कठिनाई, कमजोर याददाश्त।",
     },
     type: "multiple",
     score: {
@@ -77,8 +77,8 @@ export const hamaQuestions = [
   {
     id: "Q6",
     question: {
-      en: "Depressed mood - Loss of interest, lack of pleasure in hobbies, depression, early wakening, diurnal variation.",
-      hi: "उदास मूड - रुचि की कमी, शौक में आनंद की कमी, अवसाद, जल्दी जागना, दैनिक परिवर्तन।",
+      en: "Depressed mood - Loss of interest, lack of pleasure in hobbies, depression, early waking, diurnal swing.",
+      hi: "उदास मूड - रुचि की हानि, शौक में आनंद की कमी, अवसाद, जल्दी जागना, दिन के दौरान मनोदशा में बदलाव।",
     },
     type: "multiple",
     score: {
@@ -92,8 +92,8 @@ export const hamaQuestions = [
   {
     id: "Q7",
     question: {
-      en: "Muscular symptoms - Pains, stiffness, cramps, twitching.",
-      hi: "मांसपेशियों के लक्षण - दर्द, कठोरता, ऐंठन, झटका।",
+      en: "Somatic (muscular) - Pains and aches, twitching, stiffness, myoclonic jerks, grinding of teeth, unsteady voice, increased muscular tone.",
+      hi: "शारीरिक (स्नायु संबंधी) – दर्द और ऐंठन, मांसपेशियों का झिंझोड़ना, अकड़न, मायोक्लोनिक झटके, दांत पीसना, अस्थिर आवाज़, मांसपेशियों की टोन बढ़ना।",
     },
     type: "multiple",
     score: {
@@ -107,8 +107,8 @@ export const hamaQuestions = [
   {
     id: "Q8",
     question: {
-      en: "Sensory symptoms - Tinnitus, blurred vision, hot/cold sensations, numbness, tingling.",
-      hi: "संवेदनशील लक्षण - टिनिटस, धुंधली दृष्टि, गर्म/ठंडा संवेदीकरण, सुन्नता, झुनझुनी।",
+      en: "Somatic (sensory) -  Tinnitus, blurring of vision, hot and cold flushes, feelings of weakness, pricking sensation.",
+      hi: "शारीरिक (संवेदी) – कान में घंटी बजना (टिनिटस), दृष्टि धुंधली होना, गर्म और ठंडे झोंके, कमजोरी का अनुभव, चुभन जैसी संवेदना।",
     },
     type: "multiple",
     score: {
@@ -122,8 +122,8 @@ export const hamaQuestions = [
   {
     id: "Q9",
     question: {
-      en: "Cardiovascular symptoms - Tachycardia, palpitations, chest pain.",
-      hi: "हृदय संबंधी लक्षण - तेजी से हृदयगति, धड़कन, सीने में दर्द।",
+      en: "Cardiovascular symptoms -  Tachycardia, palpitations, pain in chest, throbbing of vessels, fainting feelings, missing beat.",
+      hi: "हृदय संबंधी लक्षण – तेज़ धड़कन (टैचीकार्डिया), धड़कनों का असामान्य अनुभव (पलपिटेशन), छाती में दर्द, धमनियों में धड़कन, बेहोशी जैसा अनुभव, धड़कन छूटना।",
     },
     type: "multiple",
     score: {
@@ -152,8 +152,8 @@ export const hamaQuestions = [
   {
     id: "Q11",
     question: {
-      en: "Gastrointestinal symptoms - Dry mouth, difficulty swallowing, nausea, abdominal pain, diarrhea.",
-      hi: "पाचन तंत्र के लक्षण - मुँह सूखना, निगलने में कठिनाई, मतली, पेट दर्द, दस्त।",
+      en: "Gastrointestinal symptoms - Difficulty in swallowing, wind abdominal pain, burning sensations, abdominal fullness, nausea, vomiting, borborygmi, looseness of bowels, loss of weight, constipation.",
+      hi: "पाचन तंत्र के लक्षण - गले में खाने की कठिनाई, पेट में गैस और दर्द, जलन की अनुभूति, पेट में भरा हुआ महसूस होना, मितली, उल्टी, पेट में गड़बड़ाहट (बॉरबोरिग्मी), दस्त, वजन घटना, कब्ज।",
     },
     type: "multiple",
     score: {
@@ -167,8 +167,8 @@ export const hamaQuestions = [
   {
     id: "Q12",
     question: {
-      en: "Genitourinary symptoms - Frequency of urination, urgency, menstrual disturbances.",
-      hi: "मूत्र संबंधी लक्षण - मूत्र आवृत्ति, आकस्मिकता, मासिक धर्म में गड़बड़ी।",
+      en: "Genitourinary symptoms - Frequency of micturition, urgency of micturition, amenorrhea, menorrhagia, development of frigidity, premature ejaculation, loss of libido, impotence.",
+      hi: "जनन-मूत्र संबंधी लक्षण – बार-बार पेशाब आना, पेशाब की जल्दी या जोर की आवश्यकता; महिलाओं में – माहवारी का रुकना (अमेनोरिया), अत्यधिक मासिक धर्म (मेनोरहैजिया), कामेच्छा में कमी; पुरुषों में – समय से पहले स्खलन, कामेच्छा की कमी, स्तंभन दोष (अशक्ति)।",
     },
     type: "multiple",
     score: {
@@ -182,8 +182,8 @@ export const hamaQuestions = [
   {
     id: "Q13",
     question: {
-      en: "Autonomic symptoms - Blushing, pallor, sweating, dry mouth, giddiness.",
-      hi: "स्वायत्त लक्षण - लाज, श्वेतता, पसीना, मुँह सूखना, चक्कर आना।",
+      en: "Autonomic symptoms - Dry mouth, flushing, pallor, tendency to sweat, giddiness, tension headache, raising of hair.",
+      hi: "स्वायत्त तंत्र संबंधी लक्षण – मुंह का सूखना, चेहरे का लाल होना या पीला पड़ना, पसीना अधिक आना, चक्कर आना, तनावजनित सिरदर्द, शरीर के बाल खड़े होना।",
     },
     type: "multiple",
     score: {
@@ -197,8 +197,8 @@ export const hamaQuestions = [
   {
     id: "Q14",
     question: {
-      en: "Behavior during interview - Fidgeting, restlessness, pacing, tremor.",
-      hi: "साक्षात्कार के दौरान व्यवहार - बेचैनी, घुमना, कदम उठाना, थरथराना।",
+      en: "Behavior at interview -  Fidgeting, restlessness or pacing, tremor of hands, furrowed brow, strained face, sighing or rapid respiration, facial pallor, swallowing, etc.",
+      hi: "साक्षात्कार में व्यवहार – बेचैनी, इधर-उधर चलना या pacing, हाथों का कांपना, भौंहें सिकुड़ना, चेहरे का तनावपूर्ण रूप, आहें या तेज़ साँस लेना, चेहरे का पीला पड़ना, निगलने की क्रिया आदि।",
     },
     type: "multiple",
     score: {
@@ -237,12 +237,12 @@ export const getInterpretationAndRecommendations = (subscaleScores) => {
     recommendations =
       "Consider non-pharmacological approaches, such as psychoeducation and lifestyle modifications. Monitor symptoms regularly.";
   } else if (subscaleScores >= 18 && subscaleScores <= 24) {
-    severity = "Moderate";
+    severity = "Mild to Moderate";
     interpretation =
       "Moderate anxiety symptoms that may impact daily functioning.";
     recommendations =
       "Evaluate the need for pharmacotherapy and consider cognitive-behavioral therapy. Encourage stress management techniques.";
-  } else if (subscaleScores >= 25) {
+  } else if (subscaleScores >= 25 && subscaleScores <= 30) {
     severity = "Severe";
     interpretation =
       "Severe anxiety symptoms requiring comprehensive clinical intervention.";

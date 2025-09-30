@@ -178,7 +178,7 @@ const HAMAAssesment = () => {
         </h2>
         <ul className="ps-3 text-secondary small fs-6">
           <li className="mb-2 text-black">
-            <strong>Purpose:</strong>This test assists in assessing the severity
+            <strong>Purpose:</strong> This test assists in assessing the severity
             of anxiety symptoms in adults, adolescents, and children.
           </li>
 
