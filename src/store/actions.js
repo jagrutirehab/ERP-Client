@@ -270,6 +270,10 @@ export {
   updateTherapy,
   removeTherapy,
   fetchTherapy,
+  addSymptom,
+  updateSymptom,
+  removeSymptom,
+  fetchSymptom,
 } from "./features/setting/settingSlice";
 
 //Report
