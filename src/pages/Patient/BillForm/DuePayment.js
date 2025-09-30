@@ -275,12 +275,19 @@ const DuePayment = ({
   const addInvoiceItem = (item, data) => {
     if (!item) return;
 
-    const checkItem = data.find((_) => _.slot?.name === (item?.name || item));
+    const invoiceItems = Array.isArray(data) ? data : [];
+
+    const checkItem = invoiceItems.find((currentItem) => {
+      const slotName = currentItem?.slot?.name;
+      const itemName = item?.name || item;
+      return slotName === itemName;
+    });
 
     if (!checkItem) {
       setInvoiceList((prevValue) => {
+        const prevArray = Array.isArray(prevValue) ? prevValue : [];
         return [
-          ...prevValue,
+          ...prevArray,
           {
             slot: item.name ? item.name : item,
             category: item.category ? item.category : "",

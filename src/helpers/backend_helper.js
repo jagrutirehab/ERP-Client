@@ -81,6 +81,15 @@ export const postACDSTest = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const postHAMATest = (data) =>
+  api.create(url.POST_HAMA_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  export const postHAMDTest = (data) =>
+  api.create(url.POST_HAMD_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
@@ -555,7 +564,6 @@ export const deleteAppointmentPermanently = (param) =>
   api.delete(`${url.DELETE_APPOINTMENT_PERMANENTLY}/${param}`);
 export const postRestoreAppointment = (data) =>
   api.update(url.RESTORE_APPOINTMENT, data);
-
 //Setting
 //Doctor schedule
 export const getAllDoctorSchedule = (data) =>

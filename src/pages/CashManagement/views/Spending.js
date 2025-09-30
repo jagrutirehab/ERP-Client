@@ -12,6 +12,7 @@ import {
   Label,
   Input,
   Button,
+  Spinner,
 } from "reactstrap";
 import { Share, History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
@@ -37,18 +38,15 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
     }));
 
   const [attachment, setAttachment] = useState(null);
+  const [attachmentTouched, setAttachmentTouched] = useState(false);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, roles } = usePermissions(token);
   const hasCreatePermission =
-    hasPermission("CASH", "CASHSPENDING", "CREATE") ||
     hasPermission("CASH", "CASHSPENDING", "WRITE") ||
     hasPermission("CASH", "CASHSPENDING", "DELETE");
 
-  const hasReadPermission =
-    hasPermission("CASH", "CASHSPENDING", "READ") ||
-    hasPermission("CASH", "CASHSPENDING", "WRITE") ||
-    hasPermission("CASH", "CASHSPENDING", "DELETE");
+  const hasReadPermission = hasPermission("CASH", "CASHSPENDING", "READ");
 
   const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
@@ -60,6 +58,22 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       .positive("Amount must be positive")
       .min(0.01, "Amount must be greater than 0"),
     comments: Yup.string().max(500, "Comments must not exceed 500 characters"),
+    attachment: Yup.mixed()
+      .required("Attachment is required")
+      .test("fileSize", "File size must be less than 10 MB", (value) => {
+        if (!value) return false;
+        return value && value.size <= 10 * 1024 * 1024;
+      })
+      .test("fileType", "Unsupported file format", (value) => {
+        if (!value) return false;
+        const supportedFormats = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "application/pdf",
+        ];
+        return value && supportedFormats.includes(value.type);
+      }),
   });
 
   const formik = useFormik({
@@ -68,6 +82,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       summary: "",
       amount: 0,
       comments: "",
+      attachment: null,
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -78,13 +93,12 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       if (values.comments) {
         formData.append("comments", values.comments);
       }
-      if (attachment) {
-        formData.append("attachment", attachment);
-      }
+      formData.append("attachment", attachment);
       try {
         await dispatch(addSpending(formData)).unwrap();
         resetForm();
         setAttachment(null);
+        setAttachmentTouched(false);
         toast.success("spending logged successfully");
       } catch (error) {
         toast.error(error.message || "Failed to log spending.");
@@ -93,6 +107,26 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       setAttachment(null);
     },
   });
+
+  useEffect(() => {
+    formik.setFieldValue("attachment", attachment);
+  }, [attachment]);
+
+  useEffect(() => {
+    if (attachmentTouched) {
+      formik.validateField("attachment");
+    }
+  }, [attachment, attachmentTouched]);
+
+  const handleAttachmentChange = (file) => {
+    setAttachment(file);
+    setAttachmentTouched(true);
+  };
+
+  const handleSubmit = (e) => {
+    setAttachmentTouched(true);
+    formik.handleSubmit(e);
+  };
 
   useEffect(() => {
     if (!hasReadPermission) return;
@@ -108,7 +142,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       </div>
     );
   }
-  
+
   return (
     <React.Fragment>
       <h5 className="fw-bold mb-3">Spending</h5>
@@ -124,7 +158,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                 <h5 className="mb-0 fw-semibold">Log New Expense</h5>
               </CardHeader>
               <CardBody>
-                <Form onSubmit={formik.handleSubmit}>
+                <Form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="center" className="fw-medium">
                       Center *
@@ -136,11 +170,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       value={formik.values.center}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`form-select ${
-                        formik.touched.center && formik.errors.center
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-select ${formik.touched.center && formik.errors.center
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     >
                       <option value="" disabled>
                         Select a Center
@@ -170,11 +203,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       placeholder="e.g., Office Supplies, Client Meeting, Equipment Purchase"
-                      className={`form-control ${
-                        formik.touched.summary && formik.errors.summary
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-control ${formik.touched.summary && formik.errors.summary
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     />
                     {formik.touched.summary && formik.errors.summary && (
                       <div className="invalid-feedback d-block">
@@ -197,11 +229,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       placeholder="0.00"
                       step="0.01"
                       min="0"
-                      className={`form-control ${
-                        formik.touched.amount && formik.errors.amount
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-control ${formik.touched.amount && formik.errors.amount
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     />
                     {formik.touched.amount && formik.errors.amount && (
                       <div className="invalid-feedback d-block">
@@ -224,11 +255,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       placeholder="Add extra details, approval information, or notes..."
-                      className={`form-control ${
-                        formik.touched.comments && formik.errors.comments
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-control ${formik.touched.comments && formik.errors.comments
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     />
                     {formik.touched.comments && formik.errors.comments && (
                       <div className="invalid-feedback d-block">
@@ -240,12 +270,18 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
                   <FormGroup>
                     <Label className="fw-medium">
-                      Attachment (Receipt/Invoice)
+                      Attachment (Receipt/Invoice) *
                     </Label>
                     <FileUpload
-                      setAttachment={setAttachment}
+                      setAttachment={handleAttachmentChange}
                       attachment={attachment}
                     />
+                    {attachmentTouched && formik.errors.attachment && (
+                      <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {formik.errors.attachment}
+                      </div>
+                    )}
                   </FormGroup>
 
                   <Button
@@ -254,8 +290,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                     className="w-100"
                     disabled={formik.isSubmitting}
                   >
-                    <Share size={16} className="me-2" />
-                    {formik.isSubmitting ? "Logging..." : "Log Expense"}
+                    {formik.isSubmitting ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <>
+                        <Share size={16} className="me-2" />
+                        Log Expense
+                      </>
+                    )}
                   </Button>
                 </Form>
               </CardBody>
@@ -281,7 +323,17 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                   className="p-3"
                   style={{ maxHeight: "600px", overflowY: "auto" }}
                 >
-                  {spendings?.length === 0 ? (
+                  {loading ? (
+                    <div className="text-center py-5 text-muted">
+                      <div
+                        className="spinner-border text-primary mb-3"
+                        role="status"
+                      >
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="h5">Fetching Spendings...</p>
+                    </div>
+                  ) : spendings?.length === 0 ? (
                     <div className="text-center py-5 text-muted">
                       <Receipt size={48} className="mb-3" />
                       <p className="h5">No spendings recorded yet</p>

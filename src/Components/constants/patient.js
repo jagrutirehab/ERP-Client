@@ -105,6 +105,8 @@ const testRecord = [
   { name: "MMSE" },
   { name: "Y-BOCS" },
   { name: "ACDS" },
+  { name: "HAM-A" },
+  { name: "HAM-D" },
 ];
 
 const prescriptionFormFields = [
