@@ -18,8 +18,8 @@ const SymptomsTable = ({ symptoms, onEdit, onDelete }) => {
           {symptoms.length > 0 ? (
             symptoms.map((symptom) => (
               <tr key={symptom._id || symptom.id}>
-                <td>
-                  <h6 className="mb-0">
+                <td style={{ width: "300px" }}>
+                  <h6 className="mb-0 text-wrap">
                     <span className="text-capitalize">{symptom.title}</span>
                   </h6>
                 </td>
