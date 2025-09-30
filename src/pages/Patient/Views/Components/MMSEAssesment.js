@@ -45,8 +45,9 @@ const MMSEAssessment = () => {
   const [isTextReady, setIsTextReady] = useState(false);
 
   const patient = useSelector((state) => state.Patient.patient);
-  const psychologistDetails = useSelector((state) => state.User.doctor);
-  const counselerDetails = useSelector((state) => state.User.counsellors);
+  const psychologistDetails = useSelector((state) => state.User?.doctor) || [];
+  const counselerDetails =
+    useSelector((state) => state.User?.counsellors) || [];
 
   const allMedicalStaff = [...psychologistDetails, ...counselerDetails];
   const centerId = patient?.center?._id;

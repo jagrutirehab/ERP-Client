@@ -1,10 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  calculateScores,
-  getInterpretationAndRecommendations,
-  acdsQuestions,
-} from "./QuestionData/ACDSQuestions";
 import { fetchDoctors } from "../../../../store/actions";
 import {
   Dropdown,
@@ -12,14 +7,19 @@ import {
   DropdownMenu,
   DropdownToggle,
 } from "reactstrap";
-import { createACDSTest } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import {
+  createHAMATest,
   setIsClinicalTab,
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import {
+  calculateScores,
+  getInterpretationAndRecommendations,
+  hamaQuestions,
+} from "./QuestionData/HAM-AQuestions";
 
-const ACDSAssesment = () => {
+const HAMAAssesment = () => {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -59,7 +59,7 @@ const ACDSAssesment = () => {
   };
 
   const closeModal = () => {
-    const unAnswered = acdsQuestions.filter((q) => !answers[q.id]);
+    const unAnswered = hamaQuestions.filter((q) => !answers[q.id]);
     if (selectedDoctor.id === -1 || unAnswered.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
@@ -79,16 +79,15 @@ const ACDSAssesment = () => {
       return openModal("Please choose a doctor first");
     }
 
-    const unanswered = acdsQuestions.filter((q) => !answers[q.id]);
+    const unanswered = hamaQuestions.filter((q) => !answers[q.id]);
     if (unanswered.length > 0) {
       return openModal("Please answer all the questions");
     }
 
-    const scores = calculateScores(answers);
+    const totalScore = calculateScores(answers);
     const { severity, interpretation, recommendations } =
-      getInterpretationAndRecommendations(scores);
-
-    const formattedQuestions = acdsQuestions.map((q) => ({
+      getInterpretationAndRecommendations(totalScore);
+    const formattedQuestions = hamaQuestions.map((q) => ({
       questionId: q.id,
       question: q.question[language],
       answer: answers[q.id],
@@ -99,7 +98,7 @@ const ACDSAssesment = () => {
     formData.append("patientId", patient._id || patient.id);
     formData.append("doctorId", selectedDoctor.id);
     formData.append("observation", observations);
-    formData.append("systemTotalScore", scores.totalScore);
+    formData.append("systemTotalScore", totalScore);
     formData.append("systemSeverity", severity);
     formData.append("systemInterpretation", interpretation);
     formData.append("systemRecommendation", recommendations);
@@ -110,7 +109,7 @@ const ACDSAssesment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
-    dispatch(createACDSTest(formData));
+    dispatch(createHAMATest(formData));
     openModal(
       "Test submitted! The results are now available on the next page."
     );
@@ -179,11 +178,10 @@ const ACDSAssesment = () => {
         </h2>
         <ul className="ps-3 text-secondary small fs-6">
           <li className="mb-2 text-black">
-            <strong>Purpose:</strong> This test assists in screening and
-            diagnosing symptoms of Attention-Deficit/Hyperactivity Disorder
-            (ADHD) in adults, by assessing patterns of inattention,
-            hyperactivity, and impulsivity based on patient responses.
+            <strong>Purpose:</strong>This test assists in assessing the severity
+            of anxiety symptoms in adults, adolescents, and children.
           </li>
+
           <li className="mb-2 text-black">
             <strong>Administration:</strong> Read each question clearly to the
             patient. Ensure they understand the question before they respond. Do
@@ -208,15 +206,11 @@ const ACDSAssesment = () => {
       </div>
 
       {/* Questions */}
-      {acdsQuestions.map((q, idx) => (
+      {hamaQuestions.map((q, idx) => (
         <div key={q.id} className="mb-4 p-4 bg-white border rounded shadow-sm">
           <h3 className="h6 fw-semibold text-dark mb-2">
             {idx + 1}. {q.question[language]}
           </h3>
-          <p className="text-primary small mb-3 fst-italic">
-            <i className="fas fa-info-circle me-1"></i>
-            {q.guidance[language]}
-          </p>
           <div className="d-flex flex-wrap gap-2">
             {Object.keys(q.score).map((opt) => (
               <label
@@ -318,4 +312,4 @@ const ACDSAssesment = () => {
   );
 };
 
-export default ACDSAssesment;
+export default HAMAAssesment;

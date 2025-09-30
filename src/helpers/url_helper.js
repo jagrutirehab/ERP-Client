@@ -251,6 +251,8 @@ export const POST_MMSE_TEST = "/clinical-test/mmse-test";
 export const POST_YMRS_TEST = "/clinical-test/ymrs-test";
 export const POST_YBOCS_TEST = "/clinical-test/ybocs-test";
 export const POST_ACDS_TEST = "/clinical-test/acds-test";
+export const POST_HAMA_TEST = "/clinical-test/hama-test";
+export const POST_HAMD_TEST = "/clinical-test/hamd-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER
