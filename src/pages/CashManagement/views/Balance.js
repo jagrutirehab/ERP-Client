@@ -40,20 +40,18 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       title: c.title,
     }));
   const [attachment, setAttachment] = useState(null);
+  const [attachmentError, setAttachmentError] = useState("");
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, roles } = usePermissions(token);
 
   const hasCreatePermission =
-    hasPermission("CASH", "CASHBALANCE", "CREATE") ||
     hasPermission("CASH", "CASHBALANCE", "WRITE") ||
     hasPermission("CASH", "CASHBALANCE", "DELETE");
 
   const hasReadPermission =
-    hasPermission("CASH", "CASHBALANCE", "READ") ||
-    hasPermission("CASH", "CASHBALANCE", "WRITE") ||
-    hasPermission("CASH", "CASHBALANCE", "DELETE");
+    hasPermission("CASH", "CASHBALANCE", "READ");
 
   const getHeading = () => {
     if (hasCreatePermission && hasReadPermission) {
@@ -64,6 +62,30 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       return "Check Base Bank Balance";
     }
     return "Base Bank Balance";
+  };
+
+  const validateFile = (file) => {
+    if (!file) return true;
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return "File size must be less than 10MB";
+    }
+    return true;
+  };
+
+  const handleAttachmentChange = (file) => {
+    setAttachmentError("");
+
+    if (file) {
+      const validationResult = validateFile(file);
+      if (validationResult !== true) {
+        setAttachmentError(validationResult);
+        setAttachment(null);
+        return;
+      }
+    }
+    setAttachment(file);
   };
 
   const validationSchema = Yup.object({
@@ -87,6 +109,15 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       if (!hasCreatePermission) {
         toast.error("You don't have permission to set base balance");
         return;
+      }
+
+      if (attachment) {
+        const validationResult = validateFile(attachment);
+        if (validationResult !== true) {
+          setAttachmentError(validationResult);
+          toast.error(validationResult);
+          return;
+        }
       }
 
       const baseBalanceDate = new Date(values.date);
@@ -114,6 +145,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
           },
         });
         setAttachment(null);
+        setAttachmentError("");
       } catch (error) {
         toast.error(error.message || "Failed to add base balance.");
       }
@@ -170,11 +202,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                       value={formik.values.center}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`form-select ${
-                        formik.touched.center && formik.errors.center
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-select ${formik.touched.center && formik.errors.center
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     >
                       <option value="">Select a Center</option>
                       {centerOptions.map((c) => (
@@ -209,11 +240,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                         placeholder="e.g., 25000.00"
                         step="0.01"
                         min="0"
-                        className={`form-control ${
-                          formik.touched.amount && formik.errors.amount
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${formik.touched.amount && formik.errors.amount
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       />
                       {formik.touched.amount && formik.errors.amount && (
                         <div className="invalid-feedback d-block">
@@ -235,11 +265,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         max={format(new Date(), "yyyy-MM-dd")}
-                        className={`form-control ${
-                          formik.touched.date && formik.errors.date
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${formik.touched.date && formik.errors.date
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       />
                       {formik.touched.date && formik.errors.date && (
                         <div className="invalid-feedback d-block">
@@ -253,8 +282,14 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                       <Label className="fw-medium">Attachment</Label>
                       <FileUpload
                         attachment={attachment}
-                        setAttachment={setAttachment}
+                        setAttachment={handleAttachmentChange}
                       />
+                      {attachmentError && (
+                        <div className="invalid-feedback d-block">
+                          <i className="fas fa-exclamation-circle me-1"></i>
+                          {attachmentError}
+                        </div>
+                      )}
                     </FormGroup>
 
                     <div
@@ -284,7 +319,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                     color="primary"
                     type="submit"
                     className="w-100 mt-auto"
-                    disabled={formik.isSubmitting || !formik.isValid}
+                    disabled={formik.isSubmitting}
                   >
                     {formik.isSubmitting ? (
                       <Spinner size="sm" />
