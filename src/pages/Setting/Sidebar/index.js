@@ -1,24 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-// import { Button, UncontrolledTooltip } from "reactstrap";
-
-//Import Scrollbar
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
-
-//setting pages
 import { setting } from "../../../Components/constants/pages";
-
-//redux
-import { connect } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Sidebar = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-
-const {  hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("SETTING", "ROLESSETTING", "READ");
-
   const location = useLocation();
 
   const toggleDataSidebar = () => {
@@ -32,7 +22,7 @@ const {  hasPermission } = usePermissions(token);
     }
   };
 
-   const filteredSettings = (setting || []).filter((page) => {
+  const filteredSettings = (setting || []).filter((page) => {
     if (page.id === "roles" && !hasUserPermission) {
       return false;
     }
@@ -73,21 +63,12 @@ const {  hasPermission } = usePermissions(token);
                   className={setting.id === location.pathname ? "active" : ""}
                 >
                   <Link
-                    // onClick={() => dispatch(viewPatient(pt))}
                     to={page.link}
                   >
                     <div className="d-flex align-items-center">
                       <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
                         <div className="avatar-xxs">
-                          {/* {chat.image ? (
-          <img
-            src={""}
-            className="rounded-circle img-fluid userprofile"
-            alt=""
-          />
-        ) : ( */}
                           <i className={`${page.icon} fs-4`}></i>
-                          {/* //   )} */}
                         </div>
                         <span className="user-status"></span>
                       </div>
@@ -108,14 +89,4 @@ const {  hasPermission } = usePermissions(token);
   );
 };
 
-Sidebar.propTypes = {
-  //   patients: PropTypes.array,
-  //   patient: PropTypes.object,
-};
-
-const mapStateToProps = (state) => ({
-  //   patients: state.Patient.data,
-  //   patient: state.Patient.patient,
-});
-
-export default connect(mapStateToProps)(Sidebar);
+export default Sidebar;

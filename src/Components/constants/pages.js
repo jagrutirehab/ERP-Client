@@ -229,13 +229,13 @@ export const Inventory = [
   {
     id: "inventory-dashboard",
     label: "Dashboard",
-    link: "/inventory-dashboard",
+    link: "/inventory/dashboard",
     icon: "bx bx-home",
   },
   {
     id: "inventorymanagement",
     label: "Inventory",
-    link: "/inventory-management",
+    link: "/inventory/management",
     icon: "bx bx-building-house",
   },
 ];

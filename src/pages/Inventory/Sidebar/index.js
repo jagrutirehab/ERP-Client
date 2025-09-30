@@ -11,8 +11,6 @@ const Sidebar = () => {
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("INVENTORY", "DASHBOARD", "DELETE");
   const hasUserPermission2 = hasPermission("INVENTORY", "INVENTORYMANAGEMENT", "DELETE");
-  
-  console.log(hasUserPermission)
 
   const location = useLocation();
 

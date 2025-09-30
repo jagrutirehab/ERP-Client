@@ -14,8 +14,8 @@ const Inventory = () => {
             <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">
               <Sidebar />
               <Routes>
-                <Route path={`/inventory-dashboard`} element={<InventoryDashboard />} />
-                <Route path={`/inventory-management`} element={<InventoryManagement />} />
+                <Route path={`/dashboard`} element={<InventoryDashboard />} />
+                <Route path={`/management`} element={<InventoryManagement />} />
               </Routes>
             </div>
           </Container>
