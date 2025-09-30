@@ -46,14 +46,11 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   const { hasPermission, roles } = usePermissions(token);
 
   const hasCreatePermission =
-    hasPermission("CASH", "CASHBALANCE", "CREATE") ||
     hasPermission("CASH", "CASHBALANCE", "WRITE") ||
     hasPermission("CASH", "CASHBALANCE", "DELETE");
 
   const hasReadPermission =
-    hasPermission("CASH", "CASHBALANCE", "READ") ||
-    hasPermission("CASH", "CASHBALANCE", "WRITE") ||
-    hasPermission("CASH", "CASHBALANCE", "DELETE");
+    hasPermission("CASH", "CASHBALANCE", "READ");
 
   const getHeading = () => {
     if (hasCreatePermission && hasReadPermission) {
@@ -170,11 +167,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                       value={formik.values.center}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`form-select ${
-                        formik.touched.center && formik.errors.center
-                          ? "is-invalid"
-                          : ""
-                      }`}
+                      className={`form-select ${formik.touched.center && formik.errors.center
+                        ? "is-invalid"
+                        : ""
+                        }`}
                     >
                       <option value="">Select a Center</option>
                       {centerOptions.map((c) => (
@@ -209,11 +205,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                         placeholder="e.g., 25000.00"
                         step="0.01"
                         min="0"
-                        className={`form-control ${
-                          formik.touched.amount && formik.errors.amount
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${formik.touched.amount && formik.errors.amount
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       />
                       {formik.touched.amount && formik.errors.amount && (
                         <div className="invalid-feedback d-block">
@@ -235,11 +230,10 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         max={format(new Date(), "yyyy-MM-dd")}
-                        className={`form-control ${
-                          formik.touched.date && formik.errors.date
-                            ? "is-invalid"
-                            : ""
-                        }`}
+                        className={`form-control ${formik.touched.date && formik.errors.date
+                          ? "is-invalid"
+                          : ""
+                          }`}
                       />
                       {formik.touched.date && formik.errors.date && (
                         <div className="invalid-feedback d-block">

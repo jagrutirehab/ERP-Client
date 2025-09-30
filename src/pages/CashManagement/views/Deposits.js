@@ -12,6 +12,7 @@ import {
   Label,
   Input,
   Button,
+  Spinner,
 } from "reactstrap";
 import { History, Share } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
@@ -37,18 +38,15 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
     }));
 
   const [attachment, setAttachment] = useState(null);
+  const [attachmentTouched, setAttachmentTouched] = useState(false);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, roles } = usePermissions(token);
   const hasCreatePermission =
-    hasPermission("CASH", "CASHDEPOSITS", "CREATE") ||
     hasPermission("CASH", "CASHDEPOSITS", "WRITE") ||
     hasPermission("CASH", "CASHDEPOSITS", "DELETE");
 
-  const hasReadPermission =
-    hasPermission("CASH", "CASHDEPOSITS", "READ") ||
-    hasPermission("CASH", "CASHDEPOSITS", "WRITE") ||
-    hasPermission("CASH", "CASHDEPOSITS", "DELETE");
+  const hasReadPermission = hasPermission("CASH", "CASHDEPOSITS", "READ");
 
   const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
@@ -59,6 +57,22 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
     comments: Yup.string()
       .required("Comments are required")
       .min(2, "Comments must be at least 2 characters"),
+    attachment: Yup.mixed()
+      .required("Attachment is required")
+      .test("fileSize", "File size must be less than 10 MB", (value) => {
+        if (!value) return false;
+        return value && value.size <= 10 * 1024 * 1024;
+      })
+      .test("fileType", "Unsupported file format", (value) => {
+        if (!value) return false;
+        const supportedFormats = [
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "application/pdf",
+        ];
+        return value && supportedFormats.includes(value.type);
+      }),
   });
 
   const formik = useFormik({
@@ -66,6 +80,7 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       center: "",
       amount: 0,
       comments: "",
+      attachment: null,
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -73,19 +88,39 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       formData.append("center", values.center);
       formData.append("amount", Number(values.amount));
       formData.append("comments", values.comments);
-      if (attachment) {
-        formData.append("attachment", attachment);
-      }
+      formData.append("attachment", values.attachment);
+
       try {
         await dispatch(addBankDeposit(formData)).unwrap();
         resetForm();
         setAttachment(null);
+        setAttachmentTouched(false);
         toast.success("Deposit added successfully");
       } catch (error) {
         toast.error(error.message || "Failed to add deposit.");
       }
     },
   });
+
+  useEffect(() => {
+    formik.setFieldValue("attachment", attachment);
+  }, [attachment]);
+
+  useEffect(() => {
+    if (attachmentTouched) {
+      formik.validateField("attachment");
+    }
+  }, [attachment, attachmentTouched]);
+
+  const handleAttachmentChange = (file) => {
+    setAttachment(file);
+    setAttachmentTouched(true);
+  };
+
+  const handleSubmit = (e) => {
+    setAttachmentTouched(true);
+    formik.handleSubmit(e);
+  };
 
   useEffect(() => {
     if (!hasReadPermission) return;
@@ -119,7 +154,7 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                 <h5 className="mb-0 fw-semibold">Add New Deposit</h5>
               </CardHeader>
               <CardBody>
-                <Form onSubmit={formik.handleSubmit}>
+                <Form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="center" className="fw-medium">
                       Center *
@@ -131,11 +166,10 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       value={formik.values.center}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      className={`form-select ${
-                        formik.touched.center && formik.errors.center
+                      className={`form-select ${formik.touched.center && formik.errors.center
                           ? "is-invalid"
                           : ""
-                      }`}
+                        }`}
                     >
                       <option value="" disabled>
                         Select a Center
@@ -168,11 +202,10 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       placeholder="0.00"
                       step="0.01"
                       min="0"
-                      className={`form-control ${
-                        formik.touched.amount && formik.errors.amount
+                      className={`form-control ${formik.touched.amount && formik.errors.amount
                           ? "is-invalid"
                           : ""
-                      }`}
+                        }`}
                     />
                     {formik.touched.amount && formik.errors.amount && (
                       <div className="invalid-feedback d-block">
@@ -195,11 +228,10 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       placeholder="Add a description for this deposit (e.g., Revenue, Client Payment, Investment Return)..."
-                      className={`form-control ${
-                        formik.touched.comments && formik.errors.comments
+                      className={`form-control ${formik.touched.comments && formik.errors.comments
                           ? "is-invalid"
                           : ""
-                      }`}
+                        }`}
                     />
                     {formik.touched.comments && formik.errors.comments && (
                       <div className="invalid-feedback d-block">
@@ -210,11 +242,17 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                   </FormGroup>
 
                   <FormGroup>
-                    <Label className="fw-medium">Attachment</Label>
+                    <Label className="fw-medium">Attachment *</Label>
                     <FileUpload
-                      setAttachment={setAttachment}
+                      setAttachment={handleAttachmentChange}
                       attachment={attachment}
                     />
+                    {attachmentTouched && formik.errors.attachment && (
+                      <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {formik.errors.attachment}
+                      </div>
+                    )}
                   </FormGroup>
 
                   <Button
@@ -223,8 +261,14 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                     className="w-100"
                     disabled={formik.isSubmitting}
                   >
-                    <Share className="icon me-2" size={16} />
-                    {formik.isSubmitting ? "Submitting..." : "Submit Deposit"}
+                    {formik.isSubmitting ? (
+                      <Spinner size="sm" className="me-2" />
+                    ) : (
+                      <>
+                        <Share size={16} className="me-2" />
+                        Submit Deposit
+                      </>
+                    )}
                   </Button>
                 </Form>
               </CardBody>
