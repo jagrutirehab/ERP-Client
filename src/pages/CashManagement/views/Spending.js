@@ -171,8 +171,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       className={`form-select ${formik.touched.center && formik.errors.center
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     >
                       <option value="" disabled>
@@ -204,8 +204,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       onBlur={formik.handleBlur}
                       placeholder="e.g., Office Supplies, Client Meeting, Equipment Purchase"
                       className={`form-control ${formik.touched.summary && formik.errors.summary
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     />
                     {formik.touched.summary && formik.errors.summary && (
@@ -230,8 +230,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       step="0.01"
                       min="0"
                       className={`form-control ${formik.touched.amount && formik.errors.amount
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     />
                     {formik.touched.amount && formik.errors.amount && (
@@ -256,8 +256,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       onBlur={formik.handleBlur}
                       placeholder="Add extra details, approval information, or notes..."
                       className={`form-control ${formik.touched.comments && formik.errors.comments
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     />
                     {formik.touched.comments && formik.errors.comments && (
@@ -270,7 +270,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
                   <FormGroup>
                     <Label className="fw-medium">
-                      Attachment (Receipt/Invoice)
+                      Attachment (Receipt/Invoice) *
                     </Label>
                     <FileUpload
                       setAttachment={handleAttachmentChange}

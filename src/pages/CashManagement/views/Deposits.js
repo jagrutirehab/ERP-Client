@@ -167,8 +167,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       className={`form-select ${formik.touched.center && formik.errors.center
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     >
                       <option value="" disabled>
@@ -203,8 +203,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       step="0.01"
                       min="0"
                       className={`form-control ${formik.touched.amount && formik.errors.amount
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     />
                     {formik.touched.amount && formik.errors.amount && (
@@ -229,8 +229,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       onBlur={formik.handleBlur}
                       placeholder="Add a description for this deposit (e.g., Revenue, Client Payment, Investment Return)..."
                       className={`form-control ${formik.touched.comments && formik.errors.comments
-                          ? "is-invalid"
-                          : ""
+                        ? "is-invalid"
+                        : ""
                         }`}
                     />
                     {formik.touched.comments && formik.errors.comments && (
