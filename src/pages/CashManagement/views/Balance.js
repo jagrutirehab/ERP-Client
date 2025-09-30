@@ -40,6 +40,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       title: c.title,
     }));
   const [attachment, setAttachment] = useState(null);
+  const [attachmentError, setAttachmentError] = useState("");
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -63,6 +64,30 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
     return "Base Bank Balance";
   };
 
+  const validateFile = (file) => {
+    if (!file) return true;
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return "File size must be less than 10MB";
+    }
+    return true;
+  };
+
+  const handleAttachmentChange = (file) => {
+    setAttachmentError("");
+
+    if (file) {
+      const validationResult = validateFile(file);
+      if (validationResult !== true) {
+        setAttachmentError(validationResult);
+        setAttachment(null);
+        return;
+      }
+    }
+    setAttachment(file);
+  };
+
   const validationSchema = Yup.object({
     center: Yup.string().required("Please select a center"),
     amount: Yup.number()
@@ -84,6 +109,15 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
       if (!hasCreatePermission) {
         toast.error("You don't have permission to set base balance");
         return;
+      }
+
+      if (attachment) {
+        const validationResult = validateFile(attachment);
+        if (validationResult !== true) {
+          setAttachmentError(validationResult);
+          toast.error(validationResult);
+          return;
+        }
       }
 
       const baseBalanceDate = new Date(values.date);
@@ -111,6 +145,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
           },
         });
         setAttachment(null);
+        setAttachmentError("");
       } catch (error) {
         toast.error(error.message || "Failed to add base balance.");
       }
@@ -247,8 +282,14 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                       <Label className="fw-medium">Attachment</Label>
                       <FileUpload
                         attachment={attachment}
-                        setAttachment={setAttachment}
+                        setAttachment={handleAttachmentChange}
                       />
+                      {attachmentError && (
+                        <div className="invalid-feedback d-block">
+                          <i className="fas fa-exclamation-circle me-1"></i>
+                          {attachmentError}
+                        </div>
+                      )}
                     </FormGroup>
 
                     <div
@@ -278,7 +319,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                     color="primary"
                     type="submit"
                     className="w-100 mt-auto"
-                    disabled={formik.isSubmitting || !formik.isValid}
+                    disabled={formik.isSubmitting}
                   >
                     {formik.isSubmitting ? (
                       <Spinner size="sm" />
