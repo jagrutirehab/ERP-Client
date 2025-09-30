@@ -20,8 +20,8 @@ const TherapiesTable = ({ therapies, onEdit, onDelete }) => {
           {therapies.length > 0 ? (
             therapies.map((therapy) => (
               <tr key={therapy._id || therapy.id}>
-                <td>
-                  <h6 className="mb-0">{therapy.title}</h6>
+                <td style={{ width: "300px" }}>
+                  <h6 className="mb-0 text-wrap">{therapy.title}</h6>
                 </td>
                 <td>
                   <p className="mb-0 text-muted">
