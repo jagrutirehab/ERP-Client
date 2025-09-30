@@ -273,7 +273,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       Attachment (Receipt/Invoice)
                     </Label>
                     <FileUpload
-                      setAttachment={setAttachment}
+                      setAttachment={handleAttachmentChange}
                       attachment={attachment}
                     />
                     {attachmentTouched && formik.errors.attachment && (
