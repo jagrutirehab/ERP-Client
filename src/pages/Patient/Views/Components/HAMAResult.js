@@ -60,7 +60,7 @@ const HAMAResultComponent = ({ resultData }) => {
           <p className="h6 fw-semibold text-indigo">
             Total HAM-A Score:{" "}
             <span className="display-6 fw-bold">{systemTotalScore || 0}</span> /
-            54
+            56
           </p>
         </div>
 
