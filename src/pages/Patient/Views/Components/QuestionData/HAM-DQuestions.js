@@ -2,141 +2,154 @@ export const hamdQuestions = [
   {
     id: "1",
     question: {
-      en: "Depressed mood - Gloomy attitude, pessimism about the future, feeling of sadness, tendency to weep.",
+      en: "Depressed mood.",
+      hi: "अवसादग्रस्त मनोदशा।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      "Sadness, etc.": 1,
-      "Occasional weeping": 2,
-      "Frequent weeping": 3,
-      "Extreme symptoms": 4,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
     id: "2",
     question: {
-      en: "Feelings of guilt - Self-reproach, feels he/she has let people down, ideas of guilt, punishment, delusions, hallucinations.",
+      en: "Guilt feelings.",
+      hi: "अपराधबोध की भावना।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      "Self-reproach, has let people down": 1,
-      "Ideas of guilt": 2,
-      "Illness is punishment, delusions": 3,
-      "Hallucinations of guilt": 4,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
-    id: "Q3",
+    id: "3",
     question: {
-      en: "Suicide - Feels life is not worth living, wishes dead, suicidal ideas/gestures, attempts at suicide.",
+      en: "Suicide.",
+      hi: "आत्महत्या।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      "Feels life is not worth living": 1,
-      "Wishes he/she were dead": 2,
-      "Suicidal ideas or gestures": 3,
-      "Attempts at suicide": 4,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
-    id: "Q4",
+    id: "4",
     question: {
-      en: "Insomnia - Initial: Difficulty in falling asleep.",
+      en: "Insomnia - early.",
+      hi: "अनिद्रा – प्रारंभिक।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Occasional: 1,
-      Frequent: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
-    id: "Q5",
+    id: "5",
     question: {
-      en: "Insomnia - Middle: Being restless or disturbed at night, waking during night.",
+      en: "Insomnia - middle.",
+      hi: "अनिद्रा – मध्यकालीन।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Occasional: 1,
-      Frequent: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "6",
     question: {
-      en: "Insomnia - Delayed: Waking in early hours and unable to fall asleep again.",
+      en: "Insomnia - late.",
+      hi: "अनिद्रा – उत्तरकालीन।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Occasional: 1,
-      Frequent: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "7",
     question: {
-      en: "Work and interests - Capacity, listlessness, indecision, loss of interest, decreased social activities.",
+      en: "Work and activities.",
+      hi: "कार्य और गतिविधियाँ।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
-      "No difficulty": 0,
-      "Feelings of incapacity, indecision": 1,
-      "Loss of interest, decreased activities": 2,
-      "Productivity decreased": 3,
-      "Unable to work": 4,
+      Absent: 0,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
     id: "8",
     question: {
-      en: "Retardation - Slowness of thought, speech, activity; apathy, stupor.",
+      en: "Retardation - psychomotor.",
+      hi: "स्नायुगत मनोमोटर मंदता।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      "Slight retardation": 1,
-      "Obvious retardation": 2,
-      "Interview difficult": 3,
-      "Complete stupor": 4,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
     id: "9",
     question: {
-      en: "Agitation - Restlessness associated with anxiety.",
+      en: "Agitation.",
+      hi: "उत्तेजना।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Occasional: 1,
-      Frequent: 2,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
     id: "10",
     question: {
-      en: "Anxiety - Psychic: Tension, irritability, worrying, apprehension, fears.",
+      en: "Anxiety - psychological.",
+      hi: "चिंता – मानसिक।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
-      "No difficulty": 0,
-      "Tension and irritability": 1,
-      "Worrying about minor matters": 2,
-      "Apprehensive attitude": 3,
-      Fears: 4,
+      Absent: 0,
+      Mild: 1,
+      moderate: 2,
+      severe: 3,
+      incapacitating: 4,
     },
   },
   {
     id: "11",
     question: {
-      en: "Anxiety - Somatic: Gastrointestinal, headaches, palpitations, respiratory, genito-urinary, etc.",
+      en: "Anxiety - somatic.",
+      hi: "चिंता – शारीरिक।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
       Mild: 1,
@@ -148,75 +161,81 @@ export const hamdQuestions = [
   {
     id: "12",
     question: {
-      en: "Somatic symptoms - Gastrointestinal (loss of appetite, heaviness in abdomen, constipation).",
+      en: "Somatic symptoms GI.",
+      hi: "शारीरिक लक्षण – जठरांत्रीय (GI)।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Mild: 1,
-      Severe: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "13",
     question: {
-      en: "Somatic symptoms - General (heaviness in limbs, loss of energy, fatigue).",
+      en: "Somatic symptoms - General.",
+      hi: "शारीरिक लक्षण – सामान्य।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Mild: 1,
-      Severe: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "14",
     question: {
-      en: "Genital symptoms (loss of libido, menstrual disturbances).",
+      en: "Sexual dysfunction - menstrual disturbance.",
+      hi: "यौन कार्यक्षमता में विकार – मासिक धर्म में विकार।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
       Absent: 0,
-      Mild: 1,
-      Severe: 2,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "15",
     question: {
-      en: "Hypochondriasis (self-absorption, preoccupation with health, delusions).",
+      en: "Hypochondrias.",
+      hi: "स्वास्थ्संवेदनासंबंधी चिंता।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
-      "Not present": 0,
-      "Self-absorption (bodily)": 1,
-      "Preoccupation with health": 2,
-      "Querulous attitude": 3,
-      "Hypochondriacal delusions": 4,
+      Absent: 0,
+      Mild: 1,
+      Moderate: 2,
+      Severe: 3,
+      Incapacitating: 4,
     },
   },
   {
     id: "16",
     question: {
-      en: "Weight loss.",
+      en: "Weight loss by history (According to the patient / According to weekly measurements).",
+      hi: "इतिहास द्वारा वजन में कमी (रोगी के अनुसार / साप्ताहिक माप के अनुसार)।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
-      "No weight loss": 0,
-      Slight: 1,
-      "Obvious or severe": 2,
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
   {
     id: "17",
     question: {
-      en: "Insight - Patient’s awareness of illness.",
+      en: "Insight.",
+      hi: "अवबोधन।"
     },
-    type: "rating",
+    type: "mutiple",
     score: {
-      "No loss": 0,
-      "Partial or doubtful loss": 1,
-      "Loss of insight": 2,
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
     },
   },
 ];

@@ -243,11 +243,17 @@ export const getInterpretationAndRecommendations = (subscaleScores) => {
     recommendations =
       "Evaluate the need for pharmacotherapy and consider cognitive-behavioral therapy. Encourage stress management techniques.";
   } else if (subscaleScores >= 25 && subscaleScores <= 30) {
-    severity = "Severe";
+    severity = "Moderate to Severe";
     interpretation =
       "Severe anxiety symptoms requiring comprehensive clinical intervention.";
     recommendations =
       "Recommend thorough psychiatric evaluation. Pharmacological treatment combined with psychotherapy is advised. Monitor closely for treatment response.";
+  } else if (subscaleScores >= 31 && subscaleScores <= 56) {
+    severity = "Severe to Very Severe";
+    interpretation =
+      "Severe and persistent anxiety symptoms that likely seriously impair daily functioning, with a heightened risk for distress, crisis, or safety concerns.";
+    recommendations =
+      "Urgent psychiatric evaluation is recommended. Intensive pharmacotherapy and psychotherapy should be initiated with close monitoring. Hospitalization may be necessary if risk issues or inability to function are present.";
   }
 
   return {
