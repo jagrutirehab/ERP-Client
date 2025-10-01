@@ -240,7 +240,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
               justifyContent: "center",
             }}
           >
-            {author?.signature && (
+            {(doctor?.signature || author?.signature) && (
               <View
                 style={{
                   width: "100%",
@@ -249,19 +249,18 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 }}
                 wrap={false}
               >
-                {renderImage(author.signature, 200)}
+                {renderImage(doctor?.signature || author?.signature, 200)}
               </View>
             )}
-            {author?.name && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  marginBottom: 3,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {author?.name}
-              </Text>
+            {safeText(
+              "",
+              {
+                lineHeight: 1.2,
+                marginBottom: 3,
+                ...styles.textCapitalize,
+              },
+              doctor?.name,
+              author?.name
             )}
             {safeText(
               "",
@@ -270,6 +269,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
+              doctor?.degrees,
               author?.degrees
             )}
             {safeText(
@@ -279,6 +279,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
+              doctor?.speciality,
               author?.speciality
             )}
             {safeText(
@@ -288,6 +289,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
+              doctor?.registrationNo,
               author?.registrationNo
             )}
           </View>
