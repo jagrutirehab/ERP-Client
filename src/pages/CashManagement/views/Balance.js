@@ -27,7 +27,7 @@ import {
 import { toast } from "react-toastify";
 import moment from "moment";
 import { downloadFile } from "../../../Components/Common/downloadFile";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 
@@ -102,7 +102,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
     initialValues: {
       center: "",
       amount: 0,
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: format(subDays(new Date(), 1), "yyyy-MM-dd"),
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -141,7 +141,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
           values: {
             ...values,
             amount: 0,
-            date: format(new Date(), "yyyy-MM-dd"),
+            date: format(subDays(new Date(), 1), "yyyy-MM-dd"),
           },
         });
         setAttachment(null);
@@ -264,7 +264,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                         value={formik.values.date}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        max={format(new Date(), "yyyy-MM-dd")}
+                        max={format(subDays(new Date(), 1), "yyyy-MM-dd")}
                         className={`form-control ${formik.touched.date && formik.errors.date
                           ? "is-invalid"
                           : ""
