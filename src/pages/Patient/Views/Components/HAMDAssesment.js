@@ -13,7 +13,7 @@ import {
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
-import {  calculateScores, getInterpretationAndRecommendations, hamdQuestions } from "./QuestionData/HAM-DQuestions";
+import { calculateScores, getInterpretationAndRecommendations, hamdQuestions } from "./QuestionData/HAM-DQuestions";
 
 
 const HAMDAssesment = () => {
@@ -56,7 +56,7 @@ const HAMDAssesment = () => {
   };
 
   const closeModal = () => {
-    const unAnswered = hamdQuestions.filter((q) => !answers[q.id]);
+    const unAnswered = hamdQuestions.filter((q) => q.type !== 'optional' && !answers[q.id]);
     if (selectedDoctor.id === -1 || unAnswered.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
@@ -76,7 +76,7 @@ const HAMDAssesment = () => {
       return openModal("Please choose a doctor first");
     }
 
-    const unanswered = hamdQuestions.filter((q) => !answers[q.id]);
+    const unanswered = hamdQuestions.filter((q) => q.type !== 'optional' && !answers[q.id]);
     if (unanswered.length > 0) {
       return openModal("Please answer all the questions");
     }
@@ -86,7 +86,7 @@ const HAMDAssesment = () => {
     const { severity, interpretation, recommendations } =
       getInterpretationAndRecommendations(totalScore);
     console.log(severity, interpretation, recommendations);
-    const formattedQuestions = hamdQuestions.map((q) => ({
+    const formattedQuestions = hamdQuestions.filter((q) => answers[q.id] !== undefined).map((q) => ({
       questionId: q.id,
       question: q.question[language],
       answer: answers[q.id],
@@ -207,17 +207,20 @@ const HAMDAssesment = () => {
       {hamdQuestions.map((q, idx) => (
         <div key={q.id} className="mb-4 p-4 bg-white border rounded shadow-sm">
           <h3 className="h6 fw-semibold text-dark mb-2">
-            {idx + 1}. {q.question[language]}
+            {idx + 1}. {q.question[language]} {q.type === 'optional' && <span className="text-secondary fst-italic">(Optional)</span>}
           </h3>
+          <p className="text-primary small mb-3 fst-italic">
+            <i className="fas fa-info-circle me-1"></i>
+            {q.guidance[language]}
+          </p>
           <div className="d-flex flex-wrap gap-2">
             {Object.keys(q.score).map((opt) => (
               <label
                 key={opt}
-                className={`d-flex align-items-center p-2 rounded cursor-pointer ${
-                  answers[q.id] === opt
-                    ? "bg-primary text-white"
-                    : "bg-light text-dark border"
-                }`}
+                className={`d-flex align-items-center p-2 rounded cursor-pointer ${answers[q.id] === opt
+                  ? "bg-primary text-white"
+                  : "bg-light text-dark border"
+                  }`}
               >
                 <input
                   type="radio"
