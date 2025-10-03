@@ -49,7 +49,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   const hasCreatePermission =
     hasPermission("CASH", "CASHBALANCE", "WRITE") ||
     hasPermission("CASH", "CASHBALANCE", "DELETE");
-
+  const hasWritePermission = hasPermission("CASH", "CASHBALANCE", "WRITE");
   const hasReadPermission =
     hasPermission("CASH", "CASHBALANCE", "READ");
 
@@ -319,7 +319,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                     color="primary"
                     type="submit"
                     className="w-100 mt-auto"
-                    disabled={formik.isSubmitting}
+                    disabled={formik.isSubmitting || (hasWritePermission && lastBaseBalance?.amount)}
                   >
                     {formik.isSubmitting ? (
                       <Spinner size="sm" />
