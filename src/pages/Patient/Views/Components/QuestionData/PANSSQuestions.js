@@ -598,7 +598,7 @@ export const panssQuestions = [
   {
     id: "G14",
     question: {
-      en: "POOR IMPULSE CONTROL -Disordered regulation and control of action on innerurges, resulting in sudden, unmodulated,arbitraryormisdirecteddischargeoftensionandemotionswithoutconcernaboutconsequences. ",
+      en: "POOR IMPULSE CONTROL – Disordered regulation and control of action on inner urges, resulting in sudden, unmodulated, arbitrary or misdirected discharge of tension and emotions without concern about consequences.",
       hi: "आवेग नियंत्रण में कमी – आंतरिक इच्छाओं पर क्रिया के नियमन और नियंत्रण में असामान्यता, जिसके परिणामस्वरूप तनाव और भावनाओं का अचानक, अनियंत्रित, मनमाना या गलत दिशा में प्रकट होना होता है, बिना परिणाम की परवाह किए।",
     },
     type: "mutiple",
@@ -693,72 +693,55 @@ export const calculateScores = (answers) => {
 };
 
 export const getInterpretationAndRecommendations = (subscaleScores) => {
+  let severity = "";
   let interpretation = "";
   let recommendations = "";
 
-  // Positive Scale
-  if (subscaleScores.Positive >= 40) {
-    interpretation +=
-      "Positive symptom scores are elevated, indicating prominent symptoms such as delusions, hallucinations, excitement, and hostility. ";
-    recommendations +=
-      "Intensive antipsychotic treatment and monitoring for acute psychotic symptoms is recommended.\n";
-  } else if (subscaleScores.Positive >= 25) {
-    interpretation +=
-      "Positive symptoms are moderately elevated, suggesting presence of symptoms that may impact functioning. ";
-    recommendations +=
-      "Review and adjust antipsychotic medications and consider supportive psychotherapy.\n";
+  if (subscaleScores.totalScore > 110) {
+    severity = "Very Severe";
+  } else if (subscaleScores.totalScore >= 81) {
+    severity = "Severe/Marked";
+  } else if (subscaleScores.totalScore >= 60) {
+    severity = "Moderate";
   } else {
-    interpretation += "Positive symptoms are within mild or minimal range. ";
+    severity = "Mild or Remitted";
   }
 
-  // Negative Scale
-  if (subscaleScores.Negative >= 40) {
-    interpretation +=
-      "Negative symptom scores are high, reflecting substantial emotional withdrawal, blunted affect, and social disengagement. ";
-    recommendations +=
-      "Focus on psychosocial rehabilitation and therapies such as cognitive behavioral therapy and social skills training.\n";
-  } else if (subscaleScores.Negative >= 25) {
-    interpretation +=
-      "Negative symptoms are moderately present, which may impact patient motivation and social interactions. ";
-    recommendations +=
-      "Consider psychosocial interventions and medication adjustments targeting negative symptoms.\n";
+  interpretation += `The patient presents with an overall symptom severity classified as ${severity} (Total PANSS Score: ${subscaleScores.totalScore}). This score indicates the current level of psychopathology and the need for clinical intervention.`;
+
+  const P_prominence = subscaleScores.Positive > subscaleScores.Negative + 5;
+  const N_prominence = subscaleScores.Negative > subscaleScores.Positive + 5;
+
+
+  if (P_prominence && subscaleScores.Positive > 20) {
+    interpretation += ` The profile is primarily characterized by Positive Symptoms (Score: ${subscaleScores.Positive}), suggesting high load of psychotic features such as delusions, hallucinations, and conceptual disorganization.`;
+  } else if (N_prominence && subscaleScores.Negative > 20) {
+    interpretation += ` The profile is dominated by Negative Symptoms (Score: ${subscaleScores.Negative}), indicating significant deficits in emotional range, social drive, and rapport. This profile is often associated with poorer functional outcomes.`;
+  } else if (subscaleScores.Positive >= 15 && subscaleScores.Negative >= 15) {
+    interpretation += ` The patient exhibits a Mixed Symptom Profile with both positive (Score: ${subscaleScores.Positive}) and negative (Score: ${subscaleScores.Negative}) symptoms being moderately elevated, requiring broad-spectrum treatment.`;
   } else {
-    interpretation += "Negative symptoms are within mild or minimal range. ";
+    interpretation += ` Symptom levels are generally low across the core dimensions, suggesting a current state of **remission** or minimal residual symptoms (Positive Score: ${subscaleScores.Positive}, Negative Score: ${subscaleScores.Negative}).`;
   }
 
-  // General Scale
-  if (subscaleScores.General >= 80) {
-    interpretation +=
-      "General psychopathology symptoms are severely elevated, indicating pronounced difficulties with anxiety, depression, and cognitive dysfunction. ";
-    recommendations +=
-      "Comprehensive psychiatric evaluation and multidisciplinary interventions are warranted, including pharmacological and psychotherapeutic approaches.\n";
-  } else if (subscaleScores.General >= 50) {
-    interpretation +=
-      "Moderate levels of general psychopathology symptoms such as anxiety, depression, and impaired attention are present. ";
-    recommendations +=
-      "Implement supportive therapy and monitor for symptom progression and treatment response.\n";
+  interpretation += ` The General Psychopathology subscale score (${subscaleScores.General}) reflects associated symptoms such as anxiety, depression, and poor impulse control.`;
+
+
+  if (severity === "Very Severe" || severity === "Severe/Marked") {
+    recommendations += `Acute Management & Pharmacotherapy: Due to the ${severity.toUpperCase()} severity, immediate and intensive pharmacological intervention is critical. Consideration of hospitalization or intensive monitoring is recommended. The antipsychotic regimen should be optimized, potentially using higher doses or a combination, focusing on aggressive symptom reduction.`;
+  } else if (severity === "Moderate") {
+    recommendations += `Treatment Adjustment & Monitoring: The patient requires optimization of current pharmacological treatment. Psychoeducation and symptom-focused therapy (e.g., CBTp) should be introduced or intensified to manage current symptoms.`;
   } else {
-    interpretation += "General psychopathology symptoms are within mild or minimal range. ";
+    recommendations += `Maintenance & Functional Recovery: The primary focus should be on maintaining stability with the current medication at the lowest effective dose. Psychosocial rehabilitation**, cognitive remediation, and vocational training are paramount to enhance functional recovery and quality of life.`;
   }
 
-  // Composite Scale
-  if (subscaleScores.Composite > 10) {
-    interpretation +=
-      "Composite score indicates predominance of positive symptoms over negative symptoms. ";
-    recommendations +=
-      "Prioritize treatment strategies focused on controlling positive symptoms and ensuring patient safety.\n";
-  } else if (subscaleScores.Composite < -10) {
-    interpretation +=
-      "Composite score indicates predominance of negative symptoms over positive symptoms. ";
-    recommendations +=
-      "Emphasize interventions addressing negative symptoms and functional impairment.\n";
-  } else {
-    interpretation += "Composite score shows balanced positive and negative symptomatology. ";
-  }
-
+  recommendations += `Specific Psychosocial Focus:
+ Positive Symptoms Focus (if P > 20): Implement Cognitive Behavioral Therapy for Psychosis (CBTp).
+ Negative Symptoms Focus (if N > 20): Implement Cognitive Remediation Therapy (CRT) and social skills training.
+ General Symptoms Focus: Initiate supportive psychotherapy and stress management techniques to address mood and anxiety symptoms.`;
   return {
     interpretationText: interpretation.trim(),
     recommendationsText: recommendations.trim(),
+    severity
   };
 };
 

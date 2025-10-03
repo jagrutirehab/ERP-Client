@@ -10,6 +10,7 @@ const PANSSResultComponent = ({ resultData }) => {
         Negative,
         General,
         Composite,
+        severity
     } = resultData;
 
     const formatRecommendations = (text) => {
@@ -74,6 +75,7 @@ const PANSSResultComponent = ({ resultData }) => {
                             { label: "Negative", value: Negative },
                             { label: "General", value: General },
                             { label: "Composite", value: Composite },
+                            { label: "Severity", value: severity },
                         ].map((item, index) => (
                             <div key={index} className="col-12 col-sm-6 col-lg-4">
                                 <div className="bg-white border border-info-subtle rounded-3 p-3 shadow-sm h-100">
