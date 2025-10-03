@@ -12,6 +12,7 @@ import {
   postACDSTest,
   postHAMATest,
   postHAMDTest,
+  postPANSSTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -149,6 +150,19 @@ export const createHAMDTest = createAsyncThunk(
   async (data, { dispatch, rejectWithValue }) => {
     try {
       const response = await postHAMDTest(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const createPANSSTest = createAsyncThunk(
+  "createPANSSTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postPANSSTest(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -296,6 +310,17 @@ export const clinicalTestSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(createHAMDTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+    // create HAM-D Test
+    builder
+      .addCase(createPANSSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createPANSSTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createPANSSTest.rejected, (state) => {
         state.isLoading = false;
       });
     // fetchClinicalTest

@@ -13,6 +13,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Assess the subjective feeling of apprehension, worry, and tension experienced by the patient.",
+      hi: "मरीज़ द्वारा अनुभव की गई आशंका, चिंता और तनाव की व्यक्तिपरक भावना का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q2",
@@ -28,6 +32,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Evaluate physical and mental strain, and difficulties in relaxation or control.",
+      hi: "शारीरिक और मानसिक तनाव, तथा आराम या नियंत्रण में आने वाली कठिनाइयों का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q3",
@@ -43,6 +51,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Note the presence and intensity of specific phobias or general anxious avoidances.",
+      hi: "विशिष्ट फोबिया या सामान्य चिंताजन्य परिहार की उपस्थिति और उसकी तीव्रता को नोट करें।"
+    }
   },
   {
     id: "Q4",
@@ -58,6 +70,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Focus on sleep initiation, maintenance, quality, and associated distress.",
+      hi: "नींद की शुरुआत, उसे बनाए रखना, उसकी गुणवत्ता और उससे जुड़ी हुई परेशानी पर ध्यान दें।"
+    }
   },
   {
     id: "Q5",
@@ -73,6 +89,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Assess cognitive impairments related to anxiety, such as distractibility or forgetfulness.",
+      hi: "चिंता से जुड़ी संज्ञानात्मक कमियों, जैसे ध्यान भटकना या भूलने की प्रवृत्ति, का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q6",
@@ -88,6 +108,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Rate the presence of mood symptoms often co-occurring with anxiety.",
+      hi: "चिंता के साथ अक्सर पाए जाने वाले मूड लक्षणों की उपस्थिति का आकलन करें।"
+    }
   },
   {
     id: "Q7",
@@ -103,6 +127,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Observe and inquire about muscular manifestations of tension.",
+      hi: "तनाव से जुड़ी मांसपेशीय अभिव्यक्तियों का निरीक्षण करें और उनके बारे में पूछताछ करें।"
+    }
   },
   {
     id: "Q8",
@@ -118,6 +146,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Rate unusual somatic sensations not otherwise classified.",
+      hi: "अन्य श्रेणियों में न आने वाले असामान्य शारीरिक संवेदनाओं का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q9",
@@ -133,6 +165,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Assess cardiac-related anxiety symptoms experienced.",
+      hi: "अनुभव किए गए हृदय से संबंधित चिंता के लक्षणों का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q10",
@@ -148,6 +184,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Inquire about respiratory distress or discomfort tied to anxiety.",
+      hi: "चिंता से जुड़ी श्वसन संबंधी परेशानी या असुविधा के बारे में पूछताछ करें।"
+    }
   },
   {
     id: "Q11",
@@ -163,6 +203,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Evaluate gastrointestinal symptoms potentially resulting from anxiety.",
+      hi: "चिंता के कारण संभावित पाचन संबंधी लक्षणों का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q12",
@@ -178,6 +222,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Assess genito-urinary symptoms, noting potential embarrassment for the patient.",
+      hi: "जेनिटो-यूरेनरी लक्षणों का मूल्यांकन करें, और मरीज़ के लिए संभावित शर्मिंदगी को ध्यान में रखें।"
+    }
   },
   {
     id: "Q13",
@@ -193,6 +241,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Rate generalized symptoms of heightened autonomic nervous system activity.",
+      hi: "स्वायत्त तंत्रिका तंत्र की बढ़ी हुई सक्रियता के सामान्य लक्षणों का मूल्यांकन करें।"
+    }
   },
   {
     id: "Q14",
@@ -208,6 +260,10 @@ export const hamaQuestions = [
       Severe: 3,
       "Very severe": 4,
     },
+    guidance: {
+      en: "Observe the patient's non-verbal and physical presentation during the interview.",
+      hi: "साक्षात्कार के दौरान मरीज़ की गैर-मौखिक और शारीरिक अभिव्यक्ति का निरीक्षण करें।"
+    }
   },
 ];
 
@@ -237,21 +293,21 @@ export const getInterpretationAndRecommendations = (subscaleScores) => {
     recommendations =
       "Consider non-pharmacological approaches, such as psychoeducation and lifestyle modifications. Monitor symptoms regularly.";
   } else if (subscaleScores >= 18 && subscaleScores <= 24) {
-    severity = "Mild to Moderate";
+    severity = "Moderate";
     interpretation =
       "Moderate anxiety symptoms that may impact daily functioning.";
     recommendations =
       "Evaluate the need for pharmacotherapy and consider cognitive-behavioral therapy. Encourage stress management techniques.";
   } else if (subscaleScores >= 25 && subscaleScores <= 30) {
-    severity = "Moderate to Severe";
+    severity = "Severe";
     interpretation =
       "Severe anxiety symptoms requiring comprehensive clinical intervention.";
     recommendations =
       "Recommend thorough psychiatric evaluation. Pharmacological treatment combined with psychotherapy is advised. Monitor closely for treatment response.";
   } else if (subscaleScores >= 31 && subscaleScores <= 56) {
-    severity = "Severe to Very Severe";
+    severity = "Very Severe";
     interpretation =
-      "Severe and persistent anxiety symptoms that likely seriously impair daily functioning, with a heightened risk for distress, crisis, or safety concerns.";
+      "Very Severe and persistent anxiety symptoms that likely seriously impair daily functioning, with a heightened risk for distress, crisis, or safety concerns.";
     recommendations =
       "Urgent psychiatric evaluation is recommended. Intensive pharmacotherapy and psychotherapy should be initiated with close monitoring. Hospitalization may be necessary if risk issues or inability to function are present.";
   }
