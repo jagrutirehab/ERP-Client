@@ -83,7 +83,7 @@ const PANSSAssessment = () => {
         console.log(answers)
         const scores = calculateScores(answers);
         console.log(scores);
-        const { interpretationText, recommendationsText } =
+        const { severity, interpretationText, recommendationsText } =
             getInterpretationAndRecommendations(scores);
 
         const formattedQuestions = panssQuestions.map((q) => ({
@@ -98,6 +98,7 @@ const PANSSAssessment = () => {
         formData.append("doctorId", selectedDoctor.id);
         formData.append("observation", observations);
         formData.append("systemTotalScore", scores.totalScore);
+        formData.append("severity", severity);
         formData.append("Positive", scores.Positive);
         formData.append("Negative", scores.Negative);
         formData.append("General", scores.General);

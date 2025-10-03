@@ -205,8 +205,8 @@ export const hamdQuestions = [
   {
     id: "12",
     question: {
-      en: "Somatic symptoms GI.",
-      hi: "शारीरिक लक्षण – जठरांत्रीय (GI)।"
+      en: "Somatic symptoms - Gastrointestinal.",
+      hi: "शारीरिक लक्षण – पाचन तंत्र"
     },
     type: "mutiple",
     score: {
@@ -379,7 +379,7 @@ export const hamdQuestions = [
 export const calculateScores = (answers) => {
   let totalScore = 0;
   for (const [questionId, answerValue] of Object.entries(answers)) {
-    const question = hamdQuestions.find((q) => q.id === questionId);
+    const question = hamdQuestions.find((q) => q.id === questionId && q.type !== "optional");
     if (question && question.score) {
       const scoreValue = question.score[answerValue] ?? 0;
       totalScore += scoreValue;
