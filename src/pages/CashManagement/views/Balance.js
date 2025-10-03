@@ -49,9 +49,17 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   const hasCreatePermission =
     hasPermission("CASH", "CASHBALANCE", "WRITE") ||
     hasPermission("CASH", "CASHBALANCE", "DELETE");
-  const hasWritePermission = hasPermission("CASH", "CASHBALANCE", "WRITE");
   const hasReadPermission =
     hasPermission("CASH", "CASHBALANCE", "READ");
+
+  const hasBalanceOverridePermission = roles?.permissions.some(
+    (pm) =>
+      pm.module === "CASH" &&
+      pm.subModules?.some(
+        (sub) => sub.name === "CASHBALANCE" && sub.type === "DELETE"
+      )
+  );
+
 
   const getHeading = () => {
     if (hasCreatePermission && hasReadPermission) {
@@ -319,7 +327,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                     color="primary"
                     type="submit"
                     className="w-100 mt-auto"
-                    disabled={formik.isSubmitting || (hasWritePermission && lastBaseBalance?.amount)}
+                    disabled={formik.isSubmitting || (!hasBalanceOverridePermission && lastBaseBalance?.amount)}
                   >
                     {formik.isSubmitting ? (
                       <Spinner size="sm" />
