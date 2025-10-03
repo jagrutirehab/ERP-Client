@@ -22,6 +22,7 @@ import YBOCSResultComponent from "./Components/YBOCSResult";
 import ACDSResultComponent from "./Components/ACDSResult";
 import HAMAResultComponent from "./Components/HAMAResult";
 import HAMDResultComponent from "./Components/HAMDResult";
+import PANSSResultComponent from "./Components/PANSSResult";
 
 const ClinicalTest = ({
   // addmissionsCharts,
@@ -173,6 +174,11 @@ const ClinicalTest = ({
                                         )}
                                         {test?.testType === 14 && (
                                           <HAMDResultComponent
+                                            resultData={test}
+                                          />
+                                        )} 
+                                        {test?.testType === 15 && (
+                                          <PANSSResultComponent
                                             resultData={test}
                                           />
                                         )}
