@@ -61,6 +61,16 @@ export const permissionList = [
     ],
   },
   {
+    key: "CASH",
+    label: "Cash",
+    subModules: [
+      { name: "CASHREPORTS", label: "Cash Reports" },
+      { name: "CASHBALANCE", label: "Cash Base Balance" },
+      { name: "CASHDEPOSITS", label: "Cash Deposits" },
+      { name: "CASHSPENDING", label: "Cash Spending" },
+    ],
+  },
+  {
     key: "SETTING",
     label: "Setting",
     subModules: [
@@ -104,6 +114,14 @@ export const permissionList = [
       { name: "DBLOGS", label: "DB Logs" },
       { name: "LEADANALYTICS", label: "Lead Analytics" },
       { name: "OPDANALYTICS", label: "OPD Analytics" },
+    ],
+  },
+  {
+    key: "INVENTORY",
+    label: "Inventory",
+    subModules: [
+      { name: "DASHBOARD", label: "Dashboard" },
+      { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
     ],
   },
 ];

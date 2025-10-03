@@ -21,6 +21,52 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
+    id: "cash",
+    label: "Cash",
+    name: "Cash",
+    link: "/cash",
+    icon: "bx bx-rupee",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+    // children: [
+    //   {
+    //     name: "Reports",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Balance",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Deposits",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Spending",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    // ],
+  },
+  {
     id: "users",
     label: "User",
     name: "User",
@@ -169,6 +215,28 @@ const pages = [
     name: "Report",
     link: "/report",
     icon: "bx bxs-report",
+  },
+  {
+    id: "inventory",
+    label: "Inventory",
+    name: "Inventory",
+    link: "/inventory",
+    icon: "bx bx-book",
+  },
+];
+
+export const Inventory = [
+  {
+    id: "inventory-dashboard",
+    label: "Dashboard",
+    link: "/inventory/dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "inventorymanagement",
+    label: "Inventory",
+    link: "/inventory/management",
+    icon: "bx bx-building-house",
   },
 ];
 

@@ -1,11 +1,11 @@
 import React from "react";
-import { StyleSheet, View, Image, Text, Font } from "@react-pdf/renderer";
+import { StyleSheet, View, Text, Font } from "@react-pdf/renderer";
 
 //fonts
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
-import DoctorSignature from "../DoctorSignature";
+import DoctorSignature from "./DoctorSignature";
 
 Font.register({
   family: "Marathi",
@@ -208,8 +208,9 @@ const SummaryFooter = ({ chart, patient, center }) => {
           </Text>
           <Text style={styles.col6}>Signature</Text>
         </View>
+        <DoctorSignature doctor={patient} />
       </View>
-      <DoctorSignature doctor={chart?.author} />
+      {/* <DoctorSignature doctor={chart?.author} /> */}
 
       <View style={{ marginTop: "auto" }} fixed>
         <View style={styles.fixedHeading}>

@@ -12,32 +12,71 @@ Font.register({
   ],
 });
 
-const styles = StyleSheet.create({
-  container: {
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  orgName: {
-    fontFamily: "Roboto",
-    fontWeight: "bold",
-    fontSize: 30,
-    textTransform: "uppercase",
-    marginBottom: 2,
-  },
-  address: {
-    fontSize: 20,
-    marginBottom: 1,
-  },
-  phone: {
-    fontSize: 20,
-    marginBottom: 1,
-  },
-  website: {
-    fontSize: 20,
-  },
-});
+// const styles = StyleSheet.create({
+//   container: {
+//     textAlign: "center",
+//     marginBottom: 8,
+//   },
+//   orgName: {
+//     fontFamily: "Roboto",
+//     fontWeight: "bold",
+//     fontSize: 30,
+//     textTransform: "uppercase",
+//     marginBottom: 2,
+//   },
+//   address: {
+//     fontSize: 20,
+//     marginBottom: 1,
+//   },
+//   phone: {
+//     fontSize: 20,
+//     marginBottom: 1,
+//   },
+//   website: {
+//     fontSize: 20,
+//   },
+// });
 
-const PrintHeader = ({ intern }) => {
+const getResponsiveStyles = (pageWidth) =>
+  StyleSheet.create({
+    container: {
+      textAlign: "center",
+      marginBottom: 8,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    leftCol: {
+      width: "46%",
+      textAlign: "left",
+    },
+    rightCol: {
+      width: "50%",
+      flexDirection: "column",
+      alignItems: "flex-end",
+    },
+    orgName: {
+      fontFamily: "Roboto",
+      fontWeight: "bold",
+      fontSize: pageWidth <= 600 ? 10 : 30, // responsive font size
+      textTransform: "uppercase",
+      marginBottom: 2,
+    },
+    address: {
+      fontSize: pageWidth <= 600 ? 7 : 20,
+      marginBottom: 1,
+    },
+    phone: {
+      fontSize: pageWidth <= 600 ? 7 : 20,
+      marginBottom: 1,
+    },
+    website: {
+      fontSize: pageWidth <= 600 ? 7 : 20,
+    },
+  });
+
+const PrintHeader = ({ intern, pageWidth = 800 }) => {
+  const styles = getResponsiveStyles(pageWidth);
   return (
     <View style={styles.container}>
       <div style={{ display: "flex", width: "100%" }}>

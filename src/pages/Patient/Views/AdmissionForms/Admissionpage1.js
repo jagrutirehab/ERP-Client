@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const Admissionpage1 = ({ register, admissions, patient, details }) => {
+const Admissionpage1 = ({ register, admissions, patient, details, chartData }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -151,7 +151,7 @@ const Admissionpage1 = ({ register, admissions, patient, details }) => {
           <span style={label}>Age :</span>
           <input
             type="text"
-            value={age}
+            value={chartData?.detailAdmission?.detailAdmission?.age || age}
             {...register("Basic_Admission_Form_age")}
             style={{
               fontWeight: "bold",

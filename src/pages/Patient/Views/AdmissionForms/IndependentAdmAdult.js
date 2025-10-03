@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const IndependentAdmAdult = ({ register, patient, details }) => {
+const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -125,8 +125,13 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
           Unit
           <input
             type="text"
+            value={patient?.doctorData?.unit}
             {...register("Indipendent_Admission_adult_unit")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />
           Department of Psychiatry <br />
           Jagruti Rehabilitation Centre.
@@ -179,7 +184,7 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         age
         <input
           type="text"
-          value={age}
+          value={chartData?.detailAdmission?.detailAdmission?.age || age}
           {...register("Indipendent_Admission_adult_age")}
           style={{
             border: "none",
@@ -226,22 +231,37 @@ const IndependentAdmAdult = ({ register, patient, details }) => {
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line1}
             {...register("Indipendent_Admission_adult_symptom1")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line2}
             {...register("Indipendent_Admission_adult_symptom2")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line3}
             {...register("Indipendent_Admission_adult_symptom3")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
       </ol>

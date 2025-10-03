@@ -98,7 +98,7 @@ const AdmitPatient = ({
         "Please select Guardian Phone Number"
       ),
       referredBy: Yup.string().required("Please select Referred By"),
-      ipdFileNumber: Yup.string().required("Please select Ipd File Number"),
+      // ipdFileNumber: Yup.string().required("Please select Ipd File Number"),
       //admission
       addmissionDate: Yup.date().required("Please select addmission date"),
       center: Yup.string().required("Please select center"),
@@ -190,26 +190,31 @@ const AdmitPatient = ({
       label: "Guardian Name",
       name: "guardianName",
       type: "text",
+      required: true,
     },
     {
       label: "Relation",
       name: "guardianRelation",
       type: "text",
+      required: true,
     },
     {
       label: "Phone Number",
       name: "guardianPhoneNumber",
       type: "text",
+      required: true,
     },
     {
       label: "Referred By",
       name: "referredBy",
       type: "text",
+      required: true,
     },
     {
       label: "IPD File Number",
       name: "ipdFileNumber",
       type: "text",
+      required: false,
     },
   ];
 
@@ -253,7 +258,7 @@ const AdmitPatient = ({
             <div className="mb-3">
               <Label htmlFor={f.name} className="form-label">
                 {f.label}
-                <span className="text-danger">*</span>
+                {f.required && <span className="text-danger">*</span>}
               </Label>
               <Input
                 type={f.type}
@@ -285,7 +290,8 @@ const AdmitPatient = ({
             // Get all required fields from step 1 (excluding email)
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields,
+              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              // ...patientGuardianFields,
             ].map((f) => f.name);
 
             // Touch all fields to trigger validation
@@ -456,7 +462,8 @@ const AdmitPatient = ({
             // First validate step 1 fields
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields,
+              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              // ...patientGuardianFields,
             ].map((f) => f.name);
 
             // Touch all step 1 fields
@@ -541,7 +548,8 @@ const AdmitPatient = ({
               // Get all required fields from step 1
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields,
+                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               // Touch all fields to trigger validation
@@ -574,7 +582,8 @@ const AdmitPatient = ({
               // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields,
+                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               const hasErrors = step1Fields.some(

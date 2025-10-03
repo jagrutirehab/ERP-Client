@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Button, Col, Row, Spinner } from "reactstrap";
 import NurseBar from "./Views/Components/NurseBar";
 import PatientCard from "./Views/Components/PatientCard";
-import { setAlertData, setAlertModal } from "../../store/actions";
+import { setAlertModal } from "../../store/actions";
 import PropTypes from "prop-types";
-import { useDispatch, connect, useSelector } from "react-redux";
+import { useDispatch, connect } from "react-redux";
 import InfoModal from "./Views/Components/InfoModal";
 import {
   allNurseAssignedPatients,

@@ -94,8 +94,7 @@ const Forms = [
   //   name: "Discharge Form",
   //   category: "DISCHARGE FORM",
   // },
-  
-]
+];
 const testRecord = [
   // { name : "ROR" },
   // { name : "NIMHAS" },
@@ -106,6 +105,9 @@ const testRecord = [
   { name: "MMSE" },
   { name: "Y-BOCS" },
   { name: "ACDS" },
+  { name: "HAM-A" },
+  { name: "HAM-D" },
+  { name: "PANSS" },
 ];
 
 const prescriptionFormFields = [
@@ -697,16 +699,19 @@ const patientGuradianFields = [
     label: "Guardian Name",
     name: "guardianName",
     type: "text",
+    required: true,
   },
   {
     label: "Relation",
     name: "guardianRelation",
     type: "text",
+    required: true,
   },
   {
     label: "Phone Number",
     name: "guardianPhoneNumber",
     type: "text",
+    required: true,
   },
   // {
   //   label: "Date Of Addmission",
@@ -717,11 +722,13 @@ const patientGuradianFields = [
     label: "Referred By",
     name: "referredBy",
     type: "text",
+    required: true,
   },
   {
     label: "IPD File Number",
     name: "ipdFileNumber",
     type: "text",
+    required: false,
   },
 ];
 
@@ -930,5 +937,5 @@ export {
   timelineFilters,
   INTERN,
   InternTimelineFilter,
-  Forms
+  Forms,
 };
