@@ -9,14 +9,12 @@ import {
   GENERAL,
   IPD,
   LAB_REPORT,
-  OPD,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
 } from "../../constants/patient";
 
 //charts
-import Prescription from "./Prescription";
 import OPDPrescription from "./OPD/Prescription/index";
 import ClinicalNote from "./ClinicalNote";
 import VitalSign from "./VitalSign";
@@ -35,7 +33,6 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingLeft: 30,
     paddingRight: 30,
-    // paddingBottom: 30,
     flexDirection: "column",
   },
 });
@@ -141,7 +138,10 @@ const Charts = ({ charts, patient, doctor, admission }) => {
             </RenderWhen>
 
             <RenderWhen
-              isTrue={chart?.chart === DETAIL_ADMISSION && chart.type === IPD}
+              isTrue={
+                chart?.chart === DETAIL_ADMISSION &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
             >
               <DetailAdmission
                 chart={chart}

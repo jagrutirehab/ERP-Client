@@ -81,6 +81,21 @@ export const postACDSTest = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const postHAMATest = (data) =>
+  api.create(url.POST_HAMA_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postHAMDTest = (data) =>
+  api.create(url.POST_HAMD_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postPANSSTest = (data) =>
+  api.create(url.POST_PANSS_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
@@ -555,7 +570,6 @@ export const deleteAppointmentPermanently = (param) =>
   api.delete(`${url.DELETE_APPOINTMENT_PERMANENTLY}/${param}`);
 export const postRestoreAppointment = (data) =>
   api.update(url.RESTORE_APPOINTMENT, data);
-
 //Setting
 //Doctor schedule
 export const getAllDoctorSchedule = (data) =>
@@ -840,6 +854,52 @@ export const assignPatientType = ({ patientId, patientType }) => {
 
 export const getAllEmergencyPatients = (params = {}) => {
   return api.create(url.GET_EMERGENCY_PATIENTS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+// cash management
+export const postBankDeposit = (data) => {
+  return api.create(url.ADD_BANK_DEPOSIT, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getLatestBankDesposits = (params = {}) => {
+  return api.create(url.GET_LATEST_BANK_DEPOSITS, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const getLatestSpendings = (params = {}) => {
+  return api.create(url.GET_LATEST_SPENDING, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const postSpending = (data) => {
+  return api.create(url.ADD_SPENDING, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getBaseBalanceByCenter = (centerId) => {
+  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`);
+};
+
+export const postBaseBalance = (data) => {
+  return api.create(url.ADD_BASE_BALANCE, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getDetailedCashReport = (params = {}) => {
+  return api.create(url.GET_DETAILED_CASH_REPORT, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const getSummaryCashReport = (params = {}) => {
+  return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
     headers: { "Content-Type": "application/json" },
   });
 };

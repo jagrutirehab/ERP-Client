@@ -251,6 +251,9 @@ export const POST_MMSE_TEST = "/clinical-test/mmse-test";
 export const POST_YMRS_TEST = "/clinical-test/ymrs-test";
 export const POST_YBOCS_TEST = "/clinical-test/ybocs-test";
 export const POST_ACDS_TEST = "/clinical-test/acds-test";
+export const POST_HAMA_TEST = "/clinical-test/hama-test";
+export const POST_HAMD_TEST = "/clinical-test/hamd-test";
+export const POST_PANSS_TEST = "/clinical-test/panss-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER
@@ -294,6 +297,16 @@ export const NOTES = "/notes";
 // emergency
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
+
+// cash managemenet
+export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
+export const ADD_SPENDING = "/cash/spending";
+export const ADD_BASE_BALANCE = "/cash/base-balance";
+export const GET_LATEST_BANK_DEPOSITS = "/cash/bank-deposit/list";
+export const GET_LATEST_SPENDING = "/cash/spending/list";
+export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
+export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
+export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";

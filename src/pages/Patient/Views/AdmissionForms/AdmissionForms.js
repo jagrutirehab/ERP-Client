@@ -35,7 +35,11 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { createEditChart, fetchPatientById } from "../../../../store/actions";
+import {
+  createEditChart,
+  fetchCharts,
+  fetchPatientById,
+} from "../../../../store/actions";
 import AddmissionCard from "../Components/AddmissionCard";
 import IPD from "../IPD";
 import AdmissionChartModal from "../../Modals/AdmissionChart.modal";
@@ -66,6 +70,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
   const [supporttype, setSupporttype] = useState("");
+  const [chartData, setChartData] = useState([]);
   const [details, setDetails] = useState({
     roomtype: "",
     IPDnum: "",
@@ -112,6 +117,32 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, addmissionsCharts]);
+
+  useEffect(() => {
+    if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
+      dispatch(fetchCharts(addmissionId))
+        .unwrap()
+        .then((charts) => {
+          // filter charts that contain detailAdmission
+          const detailAdmissionCharts =
+            charts.payload?.filter((c) => c.detailAdmission) || [];
+
+          if (detailAdmissionCharts.length > 0) {
+            // sort by createdAt or date to get the latest
+            const latest = detailAdmissionCharts.sort(
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            )[0];
+            setChartData(latest);
+          } else {
+            setChartData(null); // or []
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching charts:", err);
+          setChartData(null);
+        });
+    }
+  }, [dispatch, patient, addmissionId]);
 
   const { register, handleSubmit } = useForm();
 
@@ -935,6 +966,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   <div ref={adultRef}>
                     <IndependentAdmAdult
                       register={register}
+                      chartData={chartData}
                       patient={patient}
                       details={details}
                     />
@@ -946,6 +978,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   <div ref={minorRef}>
                     <IndependentAdmMinor
                       register={register}
+                      chartData={chartData}
                       patient={patient}
                       details={details}
                     />
@@ -957,6 +990,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   <div ref={supportRef}>
                     <AdmWithHighSupport
                       register={register}
+                      chartData={chartData}
                       patient={patient}
                       details={details}
                     />
@@ -967,6 +1001,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   <div ref={supportRef}>
                     <AdmWithHighSupport2
                       register={register}
+                      chartData={chartData}
                       patient={patient}
                       details={details}
                     />
@@ -1061,6 +1096,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
               <div ref={admission1Ref}>
                 <Admissionpage1
                   register={register}
+                  chartData={chartData}
                   admissions={admissions}
                   patient={patient}
                   details={details}
@@ -1301,6 +1337,7 @@ const mapStateToProps = (state) => ({
   doctors: state.User?.doctor,
   psychologists: state.User?.counsellors,
   admissions: state.Chart.data,
+  charts: state.Chart.charts,
 });
 
 export default connect(mapStateToProps)(AddmissionForms);

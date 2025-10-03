@@ -87,11 +87,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionBody = ({ chart, doctor, author }) => {
+const PrescriptionBody = ({ chart, doctor }) => {
   const renderImage = (src, width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;
   };
+
+
   return (
     <React.Fragment>
       <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
@@ -240,7 +242,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
               justifyContent: "center",
             }}
           >
-            {author?.signature && (
+            {doctor?.signature && (
               <View
                 style={{
                   width: "100%",
@@ -249,46 +251,28 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 }}
                 wrap={false}
               >
-                {renderImage(author.signature, 200)}
+                {renderImage(doctor.signature, 200)}
               </View>
             )}
-            {author?.name && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  marginBottom: 3,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {author?.name}
-              </Text>
+            {safeText(
+              "",
+              { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
+              doctor?.name ? `Dr. ${doctor.name}` : ""
             )}
             {safeText(
               "",
-              {
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                ...styles.textCapitalize,
-              },
-              author?.degrees
+              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              doctor?.degrees
             )}
             {safeText(
               "",
-              {
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                ...styles.textCapitalize,
-              },
-              author?.speciality
+              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              doctor?.speciality
             )}
             {safeText(
               "Reg. No.",
-              {
-                lineHeight: 1.2,
-                ...styles.fontNormal,
-                ...styles.textCapitalize,
-              },
-              author?.registrationNo
+              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              doctor?.registrationNo
             )}
           </View>
         </View>

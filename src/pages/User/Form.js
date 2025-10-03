@@ -11,18 +11,13 @@ import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import {
-  addNewUser,
-  clearUser,
-} from "../../store/features/auth/user/userSlice";
+import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { FormFeedback, Input, Label } from "reactstrap";
+import { Input, Label } from "reactstrap";
 
 const UserForm = ({
   isOpen,
@@ -70,24 +65,24 @@ const UserForm = ({
   const [conditions, setConditions] = useState([]);
   const [therapies, setTherapies] = useState([]);
   const [languages, setLanguages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
-  const [search, setSearch] = useState([]);
+  // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
   const fetchRoles = async () => {
     if (!token) return;
     if (!hasUserPermission) return;
     try {
-      setLoading(true);
-      const response = await getAllRoleslist({ token, search });
+      // setLoading(true);
+      const response = await getAllRoleslist({ token });
       setAcccessRoles(response?.data || []);
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error("Failed to fetch access roles.");
       }
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -105,6 +100,7 @@ const UserForm = ({
     if (!conditionOptions || conditionOptions.length === 0) {
       dispatch(fetchCondition());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     therapyOptions?.length,
     conditionOptions?.length,
@@ -239,6 +235,7 @@ const UserForm = ({
       degrees: userData ? userData.degrees : "",
       speciality: userData ? userData?.speciality : "",
       registrationNo: userData ? userData?.registrationNo : "",
+      unit: userData ? userData?.unit : "",
       centerAccess: userData?.centerAccess
         ? userData?.centerAccess.map((cn) => cn._id)
         : [],
@@ -317,6 +314,7 @@ const UserForm = ({
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
+      formData.append("unit", values.unit);
       formData.append("centerAccess", values?.centerAccess.join(","));
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
@@ -2072,6 +2070,65 @@ const UserForm = ({
                       {validation.errors.registrationNo}
                     </p>
                   )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  Unit
+                </label>
+                <input
+                  type="text"
+                  name="unit"
+                  placeholder="Enter Unit"
+                  style={{
+                    padding: "10px",
+                    border: `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`,
+                    borderRadius: "6px",
+                    fontSize: "15px",
+                    outline: "none",
+                    width: "100%",
+                    backgroundColor: "#ffffff",
+                    transition: "border-color 0.2s",
+                  }}
+                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                  onBlur={(e) => {
+                    e.target.style.border = `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`;
+                    validation.handleBlur(e);
+                  }}
+                  onChange={validation.handleChange}
+                  value={validation.values.unit || ""}
+                />
+                {validation.touched.unit && validation.errors.unit && (
+                  <p
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "13px",
+                      marginTop: "6px",
+                    }}
+                  >
+                    {validation.errors.unit}
+                  </p>
+                )}
               </div>
 
               <div

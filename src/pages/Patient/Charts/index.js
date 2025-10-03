@@ -32,7 +32,6 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
-  // console.log(addmission, "this is data");
 
   const dispatch = useDispatch();
 
