@@ -13,6 +13,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Rate based on patient's verbal report and nonverbal behavior (e.g., facial expression, demeanor).",
+      hi: "मरीज़ की मौखिक रिपोर्ट और गैर-मौखिक व्यवहार (जैसे चेहरे के भाव, आचरण) के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "2",
@@ -28,6 +32,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Distinguish between self-reproach (score - Mild) and definite delusions (score - Incapacitating).",
+      hi: "स्वयं को दोष देने (स्कोर - हल्का) और स्पष्ट भ्रम (स्कोर - अक्षमकारी) के बीच अंतर करें।"
+    }
   },
   {
     id: "3",
@@ -43,6 +51,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Rate based on verbal statements and presence of suicidal ideation or attempts.",
+      hi: "मौखिक बयानों और आत्महत्या के विचार या प्रयास की उपस्थिति के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "4",
@@ -56,6 +68,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Difficulty falling asleep (within 30 minutes).",
+      hi: "नींद आने में कठिनाई (30 मिनट के भीतर)।"
+    }
   },
   {
     id: "5",
@@ -69,6 +85,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Waking during the night, excluding early morning awakening.",
+      hi: "रात में जागना, सुबह जल्दी जागने को छोड़कर।"
+    }
   },
   {
     id: "6",
@@ -82,6 +102,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Waking early and inability to go back to sleep (before 4 AM/2 hours before usual).",
+      hi: "सुबह जल्दी जागना और फिर से सो न पाना (सुबह 4 बजे से पहले / सामान्य समय से 2 घंटे पहले)।"
+    }
   },
   {
     id: "7",
@@ -97,6 +121,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Rate on loss of interest, lack of energy, or inability to perform tasks.",
+      hi: "रुचि की कमी, ऊर्जा की कमी, या कार्य करने में असमर्थता के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "8",
@@ -112,6 +140,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Rate based on patient's thought, speech, and motor activity.",
+      hi: "मरीज़ के विचार, भाषण, और गतिशीलता के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "9",
@@ -127,6 +159,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Rate based on patient's observed restlessness, fidgeting, and pacing.",
+      hi: "मरीज़ की देखी गई बेचैनी, फिजेटिंग और आगे-पीछे चलने के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "10",
@@ -142,6 +178,10 @@ export const hamdQuestions = [
       severe: 3,
       incapacitating: 4,
     },
+    guidance: {
+      en: "Subjective feelings of tension, apprehension, and worry.",
+      hi: "तनाव, आशंका और चिंता की व्यक्तिपरक भावनाएँ।"
+    }
   },
   {
     id: "11",
@@ -157,12 +197,16 @@ export const hamdQuestions = [
       Severe: 3,
       Incapacitating: 4,
     },
+    guidance: {
+      en: "Physical symptoms of anxiety (e.g., GI, cardiovascular, or respiratory symptoms).",
+      hi: "चिंता के शारीरिक लक्षण (जैसे पाचन, हृदय-संबंधी, या श्वसन संबंधी लक्षण)।"
+    }
   },
   {
     id: "12",
     question: {
-      en: "Somatic symptoms GI.",
-      hi: "शारीरिक लक्षण – जठरांत्रीय (GI)।"
+      en: "Somatic symptoms - Gastrointestinal.",
+      hi: "शारीरिक लक्षण – पाचन तंत्र"
     },
     type: "mutiple",
     score: {
@@ -170,6 +214,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Rate on loss of appetite, heavy feeling in abdomen, or constipation.",
+      hi: "भूख की कमी, पेट में भारीपन, या कब्ज़ के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "13",
@@ -183,6 +231,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Rate on heaviness in limbs, backaches, headaches, or muscle pain.",
+      hi: "अंगों में भारीपन, पीठ या सिर में दर्द, या मांसपेशियों में दर्द के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "14",
@@ -196,6 +248,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Rate on loss of libido or menstrual disturbances.",
+      hi: "कामेच्छा की कमी या मासिक धर्म में असामान्यताओं के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "15",
@@ -211,6 +267,10 @@ export const hamdQuestions = [
       Severe: 3,
       Incapacitating: 4,
     },
+    guidance: {
+      en: "Rate on preoccupation with bodily health, perceived illness, or delusions.",
+      hi: "शारीरिक स्वास्थ्य के प्रति अत्यधिक चिंतन, महसूस की गई बीमारी, या भ्रम के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "16",
@@ -224,6 +284,10 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Rate on weight loss over the past week/recent time frame.",
+      hi: "पिछले सप्ताह/हाल के समय में वजन में कमी के आधार पर मूल्यांकन करें।"
+    }
   },
   {
     id: "17",
@@ -237,13 +301,85 @@ export const hamdQuestions = [
       "Doubtful or trivial": 1,
       present: 2,
     },
+    guidance: {
+      en: "Rate on patient's self-awareness of being ill and its psychiatric nature.",
+      hi: "मरीज़ की अपनी बीमारी और उसके मानसिक स्वभाव के प्रति आत्म-जागरूकता के आधार पर मूल्यांकन करें।"
+    }
   },
+  {
+    id: "18",
+    question: {
+      en: "Diurnal Variation.",
+      hi: "दिन-प्रतिदिन परिवर्तन।"
+    },
+    type: "optional",
+    score: {
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
+    },
+    guidance: {
+      en: "Rate on mood fluctuation (worse in morning/evening).",
+      hi: "मूड में उतार-चढ़ाव (सुबह/शाम में अधिक खराब) के आधार पर मूल्यांकन करें।"
+    }
+  },
+  {
+    id: "19",
+    question: {
+      en: "Depersonalization and Derealization.",
+      hi: "व्यक्तिविच्छेदन और वास्तविकता विच्छेदन।"
+    },
+    type: "optional",
+    score: {
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
+    },
+    guidance: {
+      en: "Subjective feelings of unreality, nihilistic ideas.",
+      hi: "अवास्तविकता की व्यक्तिपरक भावनाएँ, और शून्यवादात्मक विचार।"
+    }
+  },
+  {
+    id: "20",
+    question: {
+      en: "Paranoid Symptoms",
+      hi: "संदेहवादी लक्षण।"
+    },
+    type: "optional",
+    score: {
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
+    },
+    guidance: {
+      en: "Ideas of reference, persecution, or delusional content.",
+      hi: "संदर्भ के विचार, उत्पीड़न, या भ्रांतिकारी सामग्री।"
+    }
+  },
+  {
+    id: "21",
+    question: {
+      en: "Obsessional and Compulsive Symptoms",
+      hi: "आवधिक और बाध्यकारी लक्षण।"
+    },
+    type: "optional",
+    score: {
+      Absent: 0,
+      "Doubtful or trivial": 1,
+      present: 2,
+    },
+    guidance: {
+      en: "Obsessive thoughts or compulsive acts.",
+      hi: "आवधिक विचार या बाध्यकारी क्रियाएँ।"
+    }
+  }
 ];
 
 export const calculateScores = (answers) => {
   let totalScore = 0;
   for (const [questionId, answerValue] of Object.entries(answers)) {
-    const question = hamdQuestions.find((q) => q.id === questionId);
+    const question = hamdQuestions.find((q) => q.id === questionId && q.type !== "optional");
     if (question && question.score) {
       const scoreValue = question.score[answerValue] ?? 0;
       totalScore += scoreValue;
@@ -270,15 +406,15 @@ export const getInterpretationAndRecommendations = (totalScore) => {
     recommendations =
       "Supportive psychotherapy or counseling is often sufficient. Encourage healthy routines and monitor symptoms regularly.";
   } else if (totalScore >= 14 && totalScore <= 17) {
-    severity = "Mild to Moderate";
+    severity = "Moderate";
     interpretation =
-      "Mild to moderate depressive symptoms, with noticeable but manageable effects on daily functioning.";
+      "Moderate depressive symptoms, with noticeable but manageable effects on daily functioning.";
     recommendations =
       "Recommend formal psychotherapy, review need for medication especially if functional impairment is present, and reinforce support systems.";
   } else if (totalScore > 17) {
-    severity = "Moderate to Severe";
+    severity = "Severe";
     interpretation =
-      "Moderate to severe symptoms; substantial impact on daily living and functioning, potentially associated with risk factors such as suicidal ideation.";
+      "Severe symptoms, substantial impact on daily living and functioning, potentially associated with risk factors such as suicidal ideation.";
     recommendations =
       "Strongly recommend psychiatric/mental health referral. Consider combined treatment with medication and psychotherapy. Evaluate risk factors and safety as a priority.";
   }

@@ -193,15 +193,13 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       Amount *
                     </Label>
                     <Input
-                      type="number"
+                      type="text"
                       id="amount"
                       name="amount"
                       value={formik.values.amount}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       placeholder="0.00"
-                      step="0.01"
-                      min="0"
                       className={`form-control ${formik.touched.amount && formik.errors.amount
                         ? "is-invalid"
                         : ""

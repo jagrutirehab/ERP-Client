@@ -253,6 +253,7 @@ export const POST_YBOCS_TEST = "/clinical-test/ybocs-test";
 export const POST_ACDS_TEST = "/clinical-test/acds-test";
 export const POST_HAMA_TEST = "/clinical-test/hama-test";
 export const POST_HAMD_TEST = "/clinical-test/hamd-test";
+export const POST_PANSS_TEST = "/clinical-test/panss-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
 
 // OFFER

@@ -107,6 +107,7 @@ const testRecord = [
   { name: "ACDS" },
   { name: "HAM-A" },
   { name: "HAM-D" },
+  { name: "PANSS" },
 ];
 
 const prescriptionFormFields = [

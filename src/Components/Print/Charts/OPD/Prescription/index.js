@@ -20,12 +20,25 @@ const styles = StyleSheet.create({
 });
 
 const Prescription = ({ chart, center, patient, doctor }) => {
+
+  let primaryDoctor;
+
+  if (chart?.type === "IPD") {
+    if (chart?.author?.author === doctor?._id) {
+      primaryDoctor = doctor;
+    } else {
+      primaryDoctor = chart?.author || doctor;
+    }
+  } else {
+    primaryDoctor = doctor || chart?.author;
+  }
+
   return (
     <React.Fragment>
       {/* <Document>
         <Page style={styles.page} size="A4" wrap> */}
-      <Header chart={chart} doctor={doctor} center={center} patient={patient} />
-      <PrescriptionBody author={chart?.author} chart={chart?.prescription} doctor={doctor} />
+      <Header chart={chart} doctor={primaryDoctor} center={center} patient={patient} />
+      <PrescriptionBody author={chart?.author} chart={chart?.prescription} doctor={primaryDoctor} />
       <Footer />
       {/* </Page>
       </Document> */}

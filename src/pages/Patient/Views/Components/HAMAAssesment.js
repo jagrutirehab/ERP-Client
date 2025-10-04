@@ -211,15 +211,18 @@ const HAMAAssesment = () => {
           <h3 className="h6 fw-semibold text-dark mb-2">
             {idx + 1}. {q.question[language]}
           </h3>
+          <p className="text-primary small mb-3 fst-italic">
+            <i className="fas fa-info-circle me-1"></i>
+            {q.guidance[language]}
+          </p>
           <div className="d-flex flex-wrap gap-2">
             {Object.keys(q.score).map((opt) => (
               <label
                 key={opt}
-                className={`d-flex align-items-center p-2 rounded cursor-pointer ${
-                  answers[q.id] === opt
+                className={`d-flex align-items-center p-2 rounded cursor-pointer ${answers[q.id] === opt
                     ? "bg-primary text-white"
                     : "bg-light text-dark border"
-                }`}
+                  }`}
               >
                 <input
                   type="radio"

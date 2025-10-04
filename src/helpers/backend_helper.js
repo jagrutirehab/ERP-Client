@@ -85,8 +85,14 @@ export const postHAMATest = (data) =>
   api.create(url.POST_HAMA_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  export const postHAMDTest = (data) =>
+
+export const postHAMDTest = (data) =>
   api.create(url.POST_HAMD_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postPANSSTest = (data) =>
+  api.create(url.POST_PANSS_TEST, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
