@@ -15,16 +15,33 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
 import {
   Dropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
   CardBody,
+  Modal,
+  ModalHeader,
+  ModalBody,
 } from "reactstrap";
+import { medicines } from "../dummydata";
+import AddinventoryMedicine from "../AddinventoryMedicine";
+import { Button } from "../Components/Button";
+import { Select } from "../Components/Select";
+import { Card, CardContent } from "../Components/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../Components/Table";
+import { AnalyticsView } from "../views/AnalyticView";
+import { StatusBadge } from "../Components/StatusBadge";
+import BulkImportModal from "../Components/BulkImportModal";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -34,171 +51,15 @@ ChartJS.register(
   Legend
 );
 
-// Button Component
-const Button = ({ children, variant = "default", size = "md", onClick }) => {
-  const base =
-    "btn font-weight-bold transition-all duration-300 d-flex align-items-center justify-content-center shadow-sm";
-  const variants = {
-    default: "btn-primary bg-gradient-primary text-white",
-    outline: "btn-outline-primary text-primary",
-    danger: "btn-danger text-white",
-    success: "btn-success text-white",
-    ghost: "btn-outline-secondary text-dark", // Added ghost variant for hamburger
-  };
-  const sizes = {
-    md: "btn-md px-4 py-2",
-    sm: "btn-sm px-3 py-1",
-    icon: "p-2",
-  };
-  return (
-    <button
-      onClick={onClick}
-      className={`${base} ${variants[variant]} ${sizes[size]}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-// Select Component
-const Select = ({ options, placeholder, value, onChange, className }) => (
-  <select
-    value={value}
-    onChange={onChange}
-    className={`form-select border-primary rounded-lg px-3 py-2 shadow-sm ${className}`}
-  >
-    <option value="">{placeholder}</option>
-    {options.map((opt, i) => (
-      <option key={i} value={opt.value}>
-        {opt.label}
-      </option>
-    ))}
-  </select>
-);
-
-// Card Components
-const Card = ({ children }) => (
-  <div className="card border-primary rounded-lg shadow-lg bg-gradient-light hover-shadow">
-    {children}
-  </div>
-);
-const CardContent = ({ children }) => (
-  <div className="card-body p-4">{children}</div>
-);
-
-// Table Components
-const Table = ({ children, tableStyle }) => (
-  <div
-    className="table-responsive rounded-lg border border-primary shadow-lg bg-white"
-    style={{ overflowX: "auto" }}
-  >
-    <table className="table table-hover mb-0" style={{ minWidth: "1200px" }}>
-      {children}
-    </table>
-  </div>
-);
-// Changed thead styling to a more vivid gradient and ensured text is white
-const TableHeader = ({ children }) => (
-  <thead
-    style={{
-      background: "linear-gradient(90deg,#6c5ce7,#00b8d8)",
-      color: "#fff",
-    }}
-  >
-    {children}
-  </thead>
-);
-const TableRow = ({ children }) => (
-  <tr className="border-bottom">{children}</tr>
-);
-const TableHead = ({ children, noWrap = false }) => (
-  <th
-    className="p-3 text-left font-weight-bold"
-    style={noWrap ? { whiteSpace: "nowrap" } : {}}
-  >
-    {children}
-  </th>
-);
-const TableBody = ({ children }) => <tbody>{children}</tbody>;
-const TableCell = ({ children, className, noWrap = false }) => (
-  <td
-    className={`p-3 ${className || ""}`}
-    style={noWrap ? { whiteSpace: "nowrap" } : {}}
-  >
-    {children}
-  </td>
-);
-
-// Status Badge
-const StatusBadge = ({ status }) => {
-  const styles =
-    status === "LOW"
-      ? "badge bg-danger bg-gradient text-white border border-danger"
-      : "badge bg-success bg-gradient text-white border border-success";
-  return (
-    <span className={`px-3 py-1 font-weight-bold rounded-pill ${styles}`}>
-      {status}
-    </span>
-  );
-};
-
-// Analytics View with Chart
-const AnalyticsView = ({ medicines }) => {
-  const data = {
-    labels: medicines.map((med) => med.name),
-    datasets: [
-      {
-        label: "Stock Levels",
-        data: medicines.map((med) => med.stock),
-        backgroundColor: "rgba(111, 66, 193, 0.6)", // Purple
-        borderColor: "rgba(111, 66, 193, 1)",
-        borderWidth: 1,
-      },
-      {
-        label: "Reorder Point",
-        data: medicines.map((med) => med.reorder),
-        backgroundColor: "rgba(13, 202, 240, 0.6)", // Cyan
-        borderColor: "rgba(13, 202, 240, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: "top" },
-      title: {
-        display: true,
-        text: "Inventory Stock Overview",
-        font: { size: 18 },
-      },
-    },
-    scales: {
-      y: { beginAtZero: true },
-    },
-  };
-
-  return (
-    <div className="card border-primary rounded-lg shadow-lg bg-white p-4">
-      <h2 className="h4 font-weight-bold text-primary mb-4">
-        Inventory Analytics
-      </h2>
-      <div style={{ height: "320px" }}>
-        <Bar data={data} options={options} />
-      </div>
-    </div>
-  );
-};
-
 // Main Component
 const InventoryManagement = () => {
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
-
-  // Pagination state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingMedicine, setEditingMedicine] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5); // default page size
+  const [pageSize, setPageSize] = useState(5);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const toggleDropdown = (id) => {
     setDropdownOpen((prevState) => ({
@@ -207,60 +68,6 @@ const InventoryManagement = () => {
     }));
   };
 
-  const medicines = [
-    {
-      name: "Paracetamol",
-      generic: "Acetaminophen",
-      category: "Analgesics",
-      form: "Tablet",
-      strength: "500mg",
-      stock: 2500,
-      reorder: 500,
-      expiry: "Dec 31, 2025",
-      batch: "PCM-2024-001",
-      supplier: "MedSupply Co",
-      status: "NORMAL",
-    },
-    {
-      name: "Amoxicillin",
-      generic: "Amoxicillin",
-      category: "Antibiotics",
-      form: "Capsule",
-      strength: "250mg",
-      stock: 150,
-      reorder: 200,
-      expiry: "Aug 15, 2025",
-      batch: "AMX-2024-002",
-      supplier: "PharmaDist Inc",
-      status: "LOW",
-    },
-    {
-      name: "Insulin",
-      generic: "Human Insulin",
-      category: "Diabetes Medications",
-      form: "Injectable",
-      strength: "100IU/ml",
-      stock: 75,
-      reorder: 100,
-      expiry: "Jun 30, 2025",
-      batch: "INS-2024-003",
-      supplier: "SpecialtyCare Ltd",
-      status: "LOW",
-    },
-    {
-      name: "Lisinopril",
-      generic: "Lisinopril",
-      category: "ACE Inhibitors",
-      form: "Tablet",
-      strength: "10mg",
-      stock: 800,
-      reorder: 300,
-      expiry: "Mar 20, 2026",
-      batch: "LIS-2024-004",
-      supplier: "MedSupply Co",
-      status: "NORMAL",
-    },
-  ];
   const demoMedicines = Array.isArray(medicines)
     ? medicines.concat(
         medicines.map((m, idx) => ({ ...m, name: `${m.name} ${idx + 1}` }))
@@ -269,8 +76,6 @@ const InventoryManagement = () => {
 
   const totalItems = demoMedicines.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-
-  // clamp currentPage if pageSize changes
   if (currentPage > totalPages) setCurrentPage(totalPages);
 
   const startIdx = (currentPage - 1) * pageSize;
@@ -283,13 +88,36 @@ const InventoryManagement = () => {
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
     setPageSize(newSize);
-    setCurrentPage(1); // reset to first page when page size changes
+    setCurrentPage(1);
+  };
+
+  const handleAdd = () => {
+    setEditingMedicine(null);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (medicine) => {
+    setEditingMedicine(medicine);
+    setModalOpen(true);
+  };
+
+  const handleFormSubmit = (data) => {
+    if (editingMedicine) {
+      console.log("Updating medicine:", data);
+    } else {
+      console.log("Adding new medicine:", data);
+    }
+    setModalOpen(false);
+  };
+
+  const handleBulkImport = (data) => {
+    console.log("Mapped Data ready for MongoDB:", data);
+    // TODO: send `data` to backend API for MongoDB insert
   };
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
-        {/* Header */}
         <div className="text-center text-md-left mb-4">
           <h1 className="display-4 font-weight-bold text-primary">
             Medicine Inventory
@@ -298,21 +126,19 @@ const InventoryManagement = () => {
             Manage your medicine catalog with ease and efficiency
           </p>
         </div>
-
-        {/* Actions */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
             <div className="position-relative w-100">
               <Search
                 className="position-absolute"
                 style={{
-                  left: "8px", // left end alignment
-                  top: "50%", // vertical center
+                  left: "8px",
+                  top: "50%",
                   transform: "translateY(-50%)",
                   height: "18px",
                   width: "18px",
                   color: "#6c757d",
-                  pointerEvents: "none", // icon won't capture clicks
+                  pointerEvents: "none",
                 }}
                 aria-hidden="true"
               />
@@ -321,7 +147,7 @@ const InventoryManagement = () => {
                 placeholder="Search medicines..."
                 className={`form-control`}
                 style={{
-                  paddingLeft: "36px", // leave room for the icon
+                  paddingLeft: "36px",
                   paddingRight: "12px",
                   height: "40px",
                 }}
@@ -329,12 +155,13 @@ const InventoryManagement = () => {
             </div>
           </div>
           <div className="d-flex flex-wrap gap-2 inventory-actions">
-            <Button>+ Add Medicine</Button>
+            <Button onClick={handleAdd}>+ Add Medicine</Button>
             <Button
               type="button"
               className="btn btn-outline-primary text-primary"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              onClick={() => setBulkOpen(true)}
             >
               Bulk Actions
             </Button>
@@ -494,7 +321,9 @@ const InventoryManagement = () => {
                             <MoreHorizontal className="h-4 w-4" />
                           </DropdownToggle>
                           <DropdownMenu end>
-                            <DropdownItem>Edit</DropdownItem>
+                            <DropdownItem onClick={() => handleEdit(med)}>
+                              Edit
+                            </DropdownItem>
                             <DropdownItem>View</DropdownItem>
                             <DropdownItem>Adjust</DropdownItem>
                           </DropdownMenu>
@@ -607,6 +436,29 @@ const InventoryManagement = () => {
 
         {/* Analytics View */}
         {view === "analytics" && <AnalyticsView medicines={demoMedicines} />}
+
+        <Modal
+          isOpen={modalOpen}
+          toggle={() => setModalOpen(!modalOpen)}
+          size="xl"
+          scrollable
+          backdrop="static"
+        >
+          <ModalHeader toggle={() => setModalOpen(false)}>
+            {editingMedicine ? "Edit Medicine" : "Add Medicine"}
+          </ModalHeader>
+          <ModalBody>
+            <AddinventoryMedicine
+              defaultValues={editingMedicine || {}}
+              onSubmit={handleFormSubmit}
+            />
+          </ModalBody>
+        </Modal>
+        <BulkImportModal
+          isOpen={bulkOpen}
+          toggle={() => setBulkOpen(!bulkOpen)}
+          onImport={handleBulkImport}
+        />
       </div>
     </CardBody>
   );
