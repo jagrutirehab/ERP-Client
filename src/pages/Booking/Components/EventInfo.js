@@ -113,13 +113,17 @@ const EventInfo = ({
             <div className="font-size-14">
               {data?.patient?.gender && <span>{data.patient.gender}</span>}
             </div>
+            <div className="font-size-14">
+              {data?.patient?.address && <div>Address: {capitalizeWords(data.patient.address)}</div>}
+            </div>
+            <div className="font-size-14">
+              {data?.patient?.dateOfBirth && <div>Age: {differenceInYears(new Date(), new Date(data.patient.dateOfBirth))} years</div>}
+            </div>
           </div>
         </div>
         <div className="text-muted mt-3">
           {data?.patient?.phoneNumber && <div>{data.patient.phoneNumber}</div>}
           {data?.patient?.email && <div>{data.patient.email}</div>}
-          {data?.patient?.address && <div>{capitalizeWords(data.patient.address)}</div>}
-          {data?.patient?.age && <div>{data?.patient?.age} years</div>}
         </div>
         <div className="d-flex justify-content-between pt-1 pb-1 mt-3 align-items-center border-top border-bottom">
           <div className="text-muted w-50">
