@@ -18,7 +18,7 @@ const Guideline = ({ guideline }) => {
         {/* <span className="badge bg-primary">{guideline.status}</span> */}
         <button
           className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-          onClick={() => handlePrint(printRef)}
+          onClick={() => handlePrint(printRef, guideline.name)}
           title={`Print ${guideline.name}`}
         >
           <Printer size={14} />

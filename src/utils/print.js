@@ -1,8 +1,9 @@
 import printJS from "print-js";
 
-export const handlePrint = (ref) => {
+export const handlePrint = (ref, title) => {
   if (printJS && ref.current) {
     printJS({
+      documentTitle: title || "Print" + Math.floor(Math.random() * 9 + 9000),
       printable: ref.current.innerHTML,
       type: "raw-html",
       scanStyles: false,

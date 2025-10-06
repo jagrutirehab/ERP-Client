@@ -12,7 +12,9 @@ const AdmissionDischargeGuidelines = () => {
         <h2 className="mb-0">Admission Discharge Guidelines</h2>
         <button
           className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-          onClick={() => handlePrint(printRef)}
+          onClick={() =>
+            handlePrint(printRef, "Admission Discharge Guidelines")
+          }
           title={`Print Admission Discharge Guidelines`}
         >
           <Printer size={14} />

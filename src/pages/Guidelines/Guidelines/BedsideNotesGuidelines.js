@@ -12,7 +12,7 @@ const BedsideNotesGuidelines = () => {
         <h2 className="mb-0">Bedside Notes Guidelines</h2>
         <button
           className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-          onClick={() => handlePrint(printRef)}
+          onClick={() => handlePrint(printRef, "Bedside Notes Guidelines")}
           title={`Print Bedside Notes Guidelines`}
         >
           <Printer size={14} />
