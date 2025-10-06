@@ -1,5 +1,5 @@
 import React from "react";
-import { differenceInMinutes, format } from "date-fns";
+import { differenceInMinutes, differenceInYears, format } from "date-fns";
 import { useDispatch } from "react-redux";
 import {
   createEditBill,
@@ -18,6 +18,7 @@ import {
 } from "../../../Components/constants/patient";
 import MeetingComponent from "../../Meeting/Components";
 import { Link } from "react-router-dom";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const EventInfo = ({
   data,
@@ -117,6 +118,8 @@ const EventInfo = ({
         <div className="text-muted mt-3">
           {data?.patient?.phoneNumber && <div>{data.patient.phoneNumber}</div>}
           {data?.patient?.email && <div>{data.patient.email}</div>}
+          {data?.patient?.address && <div>{capitalizeWords(data.patient.address)}</div>}
+          {data?.patient?.age && <div>{data?.patient?.age} years</div>}
         </div>
         <div className="d-flex justify-content-between pt-1 pb-1 mt-3 align-items-center border-top border-bottom">
           <div className="text-muted w-50">
@@ -351,9 +354,9 @@ const EventInfo = ({
                     patient: data.patient,
                     center: data.center?._id,
                     doctor: {
-                        ...data.doctor,
-                        profilePicture: null,
-                      },
+                      ...data.doctor,
+                      profilePicture: null,
+                    },
                     appointment: data._id,
                   })
                 );

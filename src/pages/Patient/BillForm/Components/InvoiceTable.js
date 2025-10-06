@@ -102,10 +102,8 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
 
             return (
               <React.Fragment key={item.id + item.slot}>
-                {/* Mobile Card Layout */}
-                <div className="d-md-none card shadow-sm mb-3">
+                <div className="d-md-none card shadow-sm mb-3 mt-2">
                   <div className="card-body">
-                    {/* Treatment Slot */}
                     <div className="mb-3">
                       <div className="d-flex justify-content-between align-items-center">
                         <span className="text-primary text-capitalize fw-bold">{item.slot}</span>
@@ -120,7 +118,6 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       </div>
                     </div>
 
-                    {/* Quantity and Cost Row */}
                     <Row className="g-2 mb-3">
                       <Col xs={6}>
                         <div className="mb-2">
@@ -174,11 +171,10 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       </Col>
                     </Row>
 
-                    {/* Unit and Total Row */}
                     <Row className="g-2 mb-3">
-                      <Col xs={6}>
+                      <Col xs={7}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Unit</Label>
+                          <Label size="sm" className="fw-bold text-muted">Unit of Measurement</Label>
                           {unitOptions.length === 1 ? (
                             <div className="d-flex align-items-center border rounded p-1 bg-light">
                               <span className="text-muted small">
@@ -205,17 +201,17 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                           )}
                         </div>
                       </Col>
-                      <Col xs={6}>
+                      <Col xs={5}>
                         <div className="mb-2">
                           <Label size="sm" className="fw-bold text-muted">Total</Label>
-                          <div className="border rounded p-2 bg-primary text-white text-center">
+                          <div className="border rounded px-2 py-1 bg-primary text-white text-center">
                             <span className="fw-bold">{totalValue?.toFixed(2) || 0}</span>
                           </div>
                         </div>
                       </Col>
                     </Row>
 
-                    {/* Remarks */}
+
                     <div className="mb-2">
                       <Label size="sm" className="fw-bold text-muted">Remarks</Label>
                       <Input
