@@ -13,7 +13,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           }}
         >
           <span className="d-block d-sm-none">
-            <i className="fas fa-home"></i>
+            All
           </span>
           <span className="d-none d-sm-block">All Interns</span>
         </NavLink>
@@ -27,7 +27,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           }}
         >
           <span className="d-block d-sm-none">
-            <i className="fas fa-user"></i>
+            Active
           </span>
           <span className="d-none d-sm-block">Active</span>
         </NavLink>
@@ -41,7 +41,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           }}
         >
           <span className="d-block d-sm-none">
-            <i className="fas fa-check"></i>
+            Completed
           </span>
           <span className="d-none d-sm-block">Completed</span>
         </NavLink>

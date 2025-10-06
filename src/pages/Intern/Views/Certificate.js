@@ -21,6 +21,7 @@ import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import CertificateTemplate from "./Components/CertificateTemplate";
 import { editInternForm, fetchDoctors } from "../../../store/actions";
 import { useParams } from "react-router-dom";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 const Certificate = ({ intern, psychologists }) => {
   const { id } = useParams();
@@ -32,6 +33,7 @@ const Certificate = ({ intern, psychologists }) => {
   const [certificateType, setCertificateType] = useState("");
 
   const certificateRef = useRef(null);
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   useEffect(() => {
     dispatch(fetchDoctors({ center: intern.center._id }));
@@ -149,20 +151,27 @@ const Certificate = ({ intern, psychologists }) => {
     return { pdfBlob, fileName };
   };
 
-  const downloadPDF = (url) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${intern.id.value}-${intern.name}-certificate.pdf`;
-    document.body.appendChild(link);
-    link.click();
+  const downloadPDF = async (url, fileName) => {
+    if (isMobile) {
+      window.open(url, "_blank");
+    } else {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
 
-    setTimeout(() => {
-      document.body.removeChild(link);
-      if (url.startsWith("blob:")) {
-        URL.revokeObjectURL(url);
-      }
-    }, 100);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${intern.id.value}-${intern.name}-certificate.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }, 100);
+    }
   };
+
 
   return (
     <>
@@ -227,8 +236,8 @@ const Certificate = ({ intern, psychologists }) => {
             psychologist={
               selectedPsychologist
                 ? psychologists.find(
-                    (p) => p._id === selectedPsychologist.value
-                  )
+                  (p) => p._id === selectedPsychologist.value
+                )
                 : intern.psychologist
             }
           />

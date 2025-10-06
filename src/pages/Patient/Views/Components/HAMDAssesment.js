@@ -126,7 +126,7 @@ const HAMDAssesment = () => {
             Patient Name: {patient?.name}
           </div>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap justify-content-end">
           <Dropdown
             size="sm"
             isOpen={doctorDropdown}

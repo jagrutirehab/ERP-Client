@@ -320,6 +320,17 @@ body {
   // }
 }
 
+//print css
+.hidden {
+  display: none;
+}
+
+@media print {
+  .print\:block {
+    display: block;
+  }
+}
+
 .z-index-1 {
   z-index: 1 !important;
 }

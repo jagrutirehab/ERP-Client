@@ -52,7 +52,7 @@ const PaymentForm = ({ toggle, centers, userCenters }) => {
           <Row className="ps-3 pe-3">
             <Col xs={12}>
               <Label>Centers</Label>
-              <div className="d-flex gap-3">
+              <div className="d-flex flex-wrap gap-3">
                 {(centers || []).map((cen) => (
                   <div>
                     <Input
@@ -73,7 +73,7 @@ const PaymentForm = ({ toggle, centers, userCenters }) => {
                 </FormFeedback>
               ) : null}
             </Col>
-            <Col xs={2} md={4}>
+            <Col md={4}>
               <Label>Account Name</Label>
               <div className="mb-3">
                 <Input

@@ -193,48 +193,52 @@ const DetailedReport = ({
   };
 
   return (
-    <TabPane tabId="detail">
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div className="d-flex gap-2 align-items-center">
-          <Input
-            type="select"
-            value={limit}
-            onChange={(e) =>
-              handleFilterChange("limit", Number(e.target.value))
-            }
-            style={{ width: "100px" }}
-          >
-            {[10, 20, 30, 40, 50].map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </Input>
-          <Input
-            type="select"
-            value={selectedTransactionType}
-            onChange={(e) =>
-              handleFilterChange("transactionType", e.target.value)
-            }
-            style={{ width: "200px" }}
-          >
-            <option value="">All</option>
-            <option value="BASEBALANCE">Base Balances</option>
-            <option value="BANKDEPOSIT">Bank Deposits</option>
-            <option value="SPENDING">Spendings</option>
-          </Input>
-          <Header reportDate={reportDate} setReportDate={handleDateChange} />
-          <CenterDropdown
-            options={centerOptions}
-            value={selectedCentersIds}
-            onChange={(ids) => {
-              setPage(1);
-              setSelectedCentersIds(ids);
-              setSelectedCenters(
-                centerOptions.filter((c) => ids.includes(c._id))
-              );
-            }}
-          />
+    <TabPane tabId="detail" style={{ padding: 0 }}>
+      <div className="mt-3">
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <div style={{ minWidth: "100px", maxWidth: "120px" }}>
+            <Input
+              type="select"
+              value={limit}
+              onChange={(e) => handleFilterChange("limit", Number(e.target.value))}
+            >
+              {[10, 20, 30, 40, 50].map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </Input>
+          </div>
+          <div style={{ minWidth: "150px", maxWidth: "200px" }}>
+            <Input
+              type="select"
+              value={selectedTransactionType}
+              onChange={(e) =>
+                handleFilterChange("transactionType", e.target.value)
+              }
+            >
+              <option value="">All</option>
+              <option value="BASEBALANCE">Base Balances</option>
+              <option value="BANKDEPOSIT">Bank Deposits</option>
+              <option value="SPENDING">Spendings</option>
+            </Input>
+          </div>
+          <div style={{ minWidth: "150px" }}>
+            <Header reportDate={reportDate} setReportDate={handleDateChange} />
+          </div>
+          <div style={{ minWidth: "200px", maxWidth: "250px" }}>
+            <CenterDropdown
+              options={centerOptions}
+              value={selectedCentersIds}
+              onChange={(ids) => {
+                setPage(1);
+                setSelectedCentersIds(ids);
+                setSelectedCenters(
+                  centerOptions.filter((c) => ids.includes(c._id))
+                );
+              }}
+            />
+          </div>
         </div>
       </div>
 

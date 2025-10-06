@@ -26,6 +26,7 @@ const Navdata = () => {
       "setting",
       "recyclebin",
       "inventory",
+      "guidelines",
     ];
 
     routes?.sort((a, b) => {
