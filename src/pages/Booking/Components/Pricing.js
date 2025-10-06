@@ -285,26 +285,26 @@ const Pricing = ({
                     </Input>
                   </div>
                 </Col>
-            <Col xs={5} md={5}>                  <div className="mt-auto">
-                    <Label size="sm">Session Price</Label>
-                    <Input
-                      bsSize="sm"
-                      type="text"
-                      required
-                      value={prc.price}
-                      onChange={(e) =>
-                        handleChange("online", idx, "price", e.target.value)
+                <Col xs={5} md={5}>                  <div className="mt-auto">
+                  <Label size="sm">Session Price</Label>
+                  <Input
+                    bsSize="sm"
+                    type="text"
+                    required
+                    value={prc.price}
+                    onChange={(e) =>
+                      handleChange("online", idx, "price", e.target.value)
+                    }
+                    onKeyPress={(e) => {
+                      // Allow only numbers and backspace
+                      if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
+                        e.preventDefault();
                       }
-                      onKeyPress={(e) => {
-                        // Allow only numbers and backspace
-                        if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </div>
+                    }}
+                  />
+                </div>
                 </Col>
-                 <Col xs={2} md={2} className="d-flex align-items-end justify-content-center">
+                <Col xs={2} md={2} className="d-flex align-items-end justify-content-center">
                   <Button
                     size="sm"
                     onClick={() => removeOnlineSession(idx)}
@@ -325,14 +325,17 @@ const Pricing = ({
             {pricing?.offline?.map((prc, idx) => (
               <Row
                 key={idx}
-                className={`${
-                  idx !== pricing.offline.length - 1
-                    ? "border-bottom border-dark pb-4"
-                    : ""
-                }`}
+                className={`${idx !== pricing.offline.length - 1
+                  ? "border-bottom border-dark pb-4"
+                  : ""
+                  }`}
               >
-                <Col xs={12} md={4}>
-                  <div className="">
+                <Col
+                  xs={10}
+                  md={4}
+                  className="position-relative"
+                >
+                  <div>
                     <Label size="sm">Centers</Label>
                     <Input
                       bsSize="sm"
@@ -359,7 +362,26 @@ const Pricing = ({
                   </div>
                 </Col>
 
-                 <Col xs={12} md={6}>
+                <Col
+                  xs={2}
+                  md={0}
+                  className="d-flex d-md-none align-items-start justify-content-center"
+                >
+                  <Button
+                    size="sm"
+                    onClick={() => removeOfflineCenter(idx)}
+                    color="danger"
+                    outline
+                    type="button"
+                  >
+                    <i className="ri-close-circle-line fs-16"></i>
+                  </Button>
+                </Col>
+
+
+
+
+                <Col xs={12} md={6}>
                   {(prc?.pricings || []).map((pricing, i) => (
                     <div className="d-flex gap-4" key={i}>
                       <div className="mt-auto">
@@ -427,7 +449,7 @@ const Pricing = ({
                     </div>
                   ))}
                 </Col>
-                <Col xs={12} md={2} className="d-flex justify-content-md-start justify-content-center">
+                <Col xs={12} md={2} className="d-none d-md-flex justify-content-md-start justify-content-center">
                   <Button
                     size="sm"
                     onClick={() => removeOfflineCenter(idx)}
