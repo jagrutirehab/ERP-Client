@@ -12,7 +12,9 @@ const RehabiliationGuidelines = () => {
         <h2 className="mb-0">Rehabilitation Centre Guidelines</h2>
         <button
           className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-          onClick={() => handlePrint(printRef)}
+          onClick={() =>
+            handlePrint(printRef, "Rehabilitation Centre Guidelines")
+          }
           title={`Print Rehabilitation Centre Guidelines`}
         >
           <Printer size={14} />
