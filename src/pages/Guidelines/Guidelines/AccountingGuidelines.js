@@ -12,7 +12,7 @@ const AccountingGuidelines = () => {
         <h2 className="mb-0">Accounting Guidelines</h2>
         <button
           className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-          onClick={() => handlePrint(printRef)}
+          onClick={() => handlePrint(printRef, "Accounting Guidelines")}
           title={`Print Accounting Guidelines`}
         >
           <Printer size={14} />
