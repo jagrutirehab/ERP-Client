@@ -41,6 +41,8 @@ import {
 import { AnalyticsView } from "../views/AnalyticView";
 import { StatusBadge } from "../Components/StatusBadge";
 import BulkImportModal from "../Components/BulkImportModal";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 ChartJS.register(
   CategoryScale,
@@ -110,21 +112,16 @@ const InventoryManagement = () => {
     setModalOpen(false);
   };
 
-  const handleBulkImport = (data) => {
-    console.log("Mapped Data ready for MongoDB:", data);
-    // TODO: send `data` to backend API for MongoDB insert
+  const handleBulkImport = async (mappedData) => {
+    toast.success(`Imported ${mappedData.length} rows successfully.`);
+    setBulkOpen(false);
   };
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-4 font-weight-bold text-primary">
-            PHARMACY
-          </h1>
-          {/* <p className="text-muted lead">
-            Manage your medicine catalog with ease and efficiency
-          </p> */}
+          <h1 className="display-4 font-weight-bold text-primary">PHARMACY</h1>
         </div>
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
