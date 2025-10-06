@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, connect } from "react-redux";
 import {
   fetchHubspotContacts,
   togglePatientForm,
@@ -26,7 +26,7 @@ const visitDateOptions = [
   { label: "Planned Visits", value: "planned" },
 ];
 
-const LeadDashboard = ({ leadDate }) => {
+const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
   const dispatch = useDispatch();
   const {
     contacts = [],
@@ -59,8 +59,6 @@ const LeadDashboard = ({ leadDate }) => {
     } else {
       params.visitDate = visitDateFilter;
     }
-
-    console.log(params, "params");
     dispatch(fetchHubspotContacts(params));
   }, [visitDateFilter, currentPage, itemsPerPage, dispatch]);
 
@@ -80,6 +78,12 @@ const LeadDashboard = ({ leadDate }) => {
 
   // Filtering (client-side for visitType, status, assignedTo)
   const filteredContacts = useMemo(() => {
+    const access = centers
+      .filter((cn) => centerAccess.includes(cn._id))
+      .map((cn) => cn.title);
+
+    console.log({ access });
+
     let filtered = contacts;
     if (filters.visitType) {
       filtered = filtered.filter((c) => c.visitType === filters.visitType);
@@ -90,10 +94,14 @@ const LeadDashboard = ({ leadDate }) => {
     if (filters.assignedTo) {
       filtered = filtered.filter((c) => c.assignedTo === filters.assignedTo);
     }
+    if (access?.length > 0)
+      filtered = filtered.filter((c) =>
+        access.some((a) => c.center.includes(a))
+      );
+    else filtered = [];
     return filtered;
-  }, [contacts, filters]);
-
-  console.log(filteredContacts, "filteredContacts");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contacts, centerAccess, filters]);
 
   // Pagination controls
   const totalPages = pagination?.totalPages || 1;
@@ -370,4 +378,9 @@ const LeadDashboard = ({ leadDate }) => {
   );
 };
 
-export default LeadDashboard;
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+});
+
+export default connect(mapStateToProps)(LeadDashboard);
