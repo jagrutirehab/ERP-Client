@@ -223,6 +223,13 @@ const pages = [
     link: "/inventory",
     icon: "bx bx-book",
   },
+  {
+    id: "guidelines",
+    label: "Guidelines",
+    name: "Guidelines",
+    link: "/guidelines",
+    icon: "bx bx-book-open",
+  },
 ];
 
 export const Inventory = [

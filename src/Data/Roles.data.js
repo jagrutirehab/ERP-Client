@@ -124,6 +124,13 @@ export const permissionList = [
       { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
     ],
   },
+  {
+    key: "GUIDELINES",
+    label: "Guidelines",
+    subModules: [
+      { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];
