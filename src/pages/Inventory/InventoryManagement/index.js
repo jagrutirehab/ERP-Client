@@ -120,11 +120,11 @@ const InventoryManagement = () => {
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
           <h1 className="display-4 font-weight-bold text-primary">
-            Medicine Inventory
+            PHARMACY
           </h1>
-          <p className="text-muted lead">
+          {/* <p className="text-muted lead">
             Manage your medicine catalog with ease and efficiency
-          </p>
+          </p> */}
         </div>
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>

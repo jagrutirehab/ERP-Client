@@ -234,7 +234,7 @@ export const Inventory = [
   },
   {
     id: "inventorymanagement",
-    label: "Inventory",
+    label: "Pharmacy",
     link: "/inventory/management",
     icon: "bx bx-building-house",
   },
