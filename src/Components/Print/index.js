@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { PDFViewer } from "@react-pdf/renderer";
+import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 
 //modal
 import CustomModal from "../Common/Modal";
@@ -13,6 +13,8 @@ import { togglePrint } from "../../store/actions";
 import Bills from "./Bills";
 import InternBills from "./Intern/index";
 import RenderWhen from "../Common/RenderWhen";
+import { useMediaQuery } from "../Hooks/useMediaQuery";
+import { Spinner } from "reactstrap";
 
 const Print = ({
   modal,
@@ -30,6 +32,8 @@ const Print = ({
   useEffect(() => {
     setVp(window.innerWidth);
   }, [vp]);
+
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const closePrint = () => {
     dispatch(togglePrint({ data: null, modal: false }));
@@ -51,49 +55,177 @@ const Print = ({
         centered
         size={"xl"}
       >
-        <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
-          <RenderWhen isTrue={patient ? true : false}>
-            <RenderWhen isTrue={printData?.chart ? true : false}>
-              <Charts
-                charts={[printData]}
-                center={printData?.center}
-                patient={patient}
-                admission={admission}
-                doctor={doctor}
-              />
+
+        <RenderWhen isTrue={isMobile}>
+          <div className="text-center">
+            <RenderWhen isTrue={patient ? true : false}>
+              <RenderWhen isTrue={printData?.chart ? true : false}>
+                <div className="mb-3 p-3 border rounded bg-light">
+                  <p className="text-muted mb-3">
+                    Preview not available, please download.
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <Charts
+                        charts={[printData]}
+                        center={printData?.center}
+                        patient={patient}
+                        admission={admission}
+                        doctor={doctor}
+                      />
+                    }
+                    fileName={`${patient?.name || 'chart'}.pdf`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {({ loading }) =>
+                      loading ? <Spinner size="sm" /> : 'Download'
+                    }
+                  </PDFDownloadLink>
+                </div>
+              </RenderWhen>
+
+              <RenderWhen isTrue={printData?.bill ? true : false}>
+                <div className="mb-3 p-3 border rounded bg-light">
+                  <p className="text-muted mb-3">
+                    Preview not available, please download.
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <Bills
+                        bill={printData}
+                        center={printData?.center}
+                        patient={patient}
+                        admission={admission}
+                      />
+                    }
+                    fileName={`${patient?.name || 'bill'}.pdf`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {({ loading }) =>
+                      loading ? <Spinner size="sm" /> : 'Download'
+                    }
+                  </PDFDownloadLink>
+                </div>
+              </RenderWhen>
+
+              <RenderWhen isTrue={printData?.bill && intern ? true : false}>
+                <div className="mb-3 p-3 border rounded bg-light">
+                  <p className="text-muted mb-3">
+                    Preview not available, please download.
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <Bills
+                        bill={printData}
+                        center={printData?.center}
+                        intern={intern}
+                        admission={admission}
+                      />
+                    }
+                    fileName={`${intern?.name || 'intern_bill'}.pdf`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {({ loading }) =>
+                      loading ? <Spinner size="sm" /> : 'Download'
+                    }
+                  </PDFDownloadLink>
+                </div>
+              </RenderWhen>
+
+              <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
+                <div className="mb-3 p-3 border rounded bg-light">
+                  <p className="text-muted mb-3">
+                    Preview not available, please download.
+                  </p>
+                  <PDFDownloadLink
+                    document={
+                      <BulkCharts
+                        admission={admission}
+                        charts={printAllCharts}
+                        patient={patient}
+                      />
+                    }
+                    fileName={`${patient?.name || 'charts'}.pdf`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {({ loading }) =>
+                      loading ? <Spinner size="sm" /> : 'Download'
+                    }
+                  </PDFDownloadLink>
+                </div>
+              </RenderWhen>
             </RenderWhen>
-            <RenderWhen isTrue={printData?.bill && patient ? true : false}>
-              <Bills
-                bill={printData}
-                center={printData?.center}
-                patient={patient}
-                admission={admission}
-              />
+
+            <RenderWhen isTrue={intern ? true : false}>
+              <div className="mb-3 p-3 border rounded bg-light">
+                <p className="text-muted mb-3">
+                  Preview not available, please download.
+                </p>
+                <PDFDownloadLink
+                  document={
+                    <InternBills
+                      bill={printData}
+                      center={printData?.center}
+                      intern={intern}
+                    />
+                  }
+                  fileName={`${intern?.name || 'intern_bill'}.pdf`}
+                  className="btn btn-primary btn-sm"
+                >
+                  {({ loading }) =>
+                    loading ? <Spinner size="sm" /> : 'Download'
+                  }
+                </PDFDownloadLink>
+              </div>
             </RenderWhen>
-            <RenderWhen isTrue={printData?.bill && intern ? true : false}>
-              <Bills
+          </div>
+        </RenderWhen>
+        <RenderWhen isTrue={!isMobile}>
+          <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
+            <RenderWhen isTrue={patient ? true : false}>
+              <RenderWhen isTrue={printData?.chart ? true : false}>
+                <Charts
+                  charts={[printData]}
+                  center={printData?.center}
+                  patient={patient}
+                  admission={admission}
+                  doctor={doctor}
+                />
+              </RenderWhen>
+              <RenderWhen isTrue={printData?.bill && patient ? true : false}>
+                <Bills
+                  bill={printData}
+                  center={printData?.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+              <RenderWhen isTrue={printData?.bill && intern ? true : false}>
+                <Bills
+                  bill={printData}
+                  center={printData?.center}
+                  intern={intern}
+                  admission={admission}
+                />
+              </RenderWhen>
+              <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
+                <BulkCharts
+                  admission={admission}
+                  charts={printAllCharts}
+                  patient={patient}
+                />
+              </RenderWhen>
+            </RenderWhen>
+            <RenderWhen isTrue={intern ? true : false}>
+              <InternBills
                 bill={printData}
                 center={printData?.center}
                 intern={intern}
-                admission={admission}
               />
             </RenderWhen>
-            <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
-              <BulkCharts
-                admission={admission}
-                charts={printAllCharts}
-                patient={patient}
-              />
-            </RenderWhen>
-          </RenderWhen>
-          <RenderWhen isTrue={intern ? true : false}>
-            <InternBills
-              bill={printData}
-              center={printData?.center}
-              intern={intern}
-            />
-          </RenderWhen>
-        </PDFViewer>
+          </PDFViewer>
+        </RenderWhen>
+
       </CustomModal>
     </React.Fragment>
   );

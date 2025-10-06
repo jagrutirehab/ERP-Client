@@ -135,7 +135,7 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
           <Row className="ps-3 pe-3">
             <Col xs={12}>
               <Label>Centers</Label>
-              <div className="d-flex gap-3">
+              <div className="d-flex flex-wrap gap-3">
                 {(centers || []).map((cen) => (
                   <div>
                     <Input
@@ -156,7 +156,7 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
                 </FormFeedback>
               ) : null}
             </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={3}>
+            <Col className="mb-3 pb-2 border-bottom" xs={3} md={3}>
               Name<span className="text-danger">*</span>
             </Col>
             <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
@@ -165,13 +165,13 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
             <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
               Cost
             </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={2} md={3}>
+            <Col className="mb-3 pb-2 border-bottom" xs={4} md={3}>
               Category
             </Col>
-            <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}></Col>
+            <Col className="mb-3 pb-2 border-bottom" xs={1} md={2}></Col>
             {(items || []).map((medicine, idx) => (
               <React.Fragment key={idx}>
-                <Col xs={2} md={3}>
+                <Col xs={3} md={3}>
                   <div className="mb-3">
                     <Input
                       required
@@ -211,7 +211,7 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
                     />
                   </div>
                 </Col>
-                <Col xs={2} md={3}>
+                <Col xs={4} md={3}>
                   <div className="mb-3">
                     <Input
                       bsSize="sm"

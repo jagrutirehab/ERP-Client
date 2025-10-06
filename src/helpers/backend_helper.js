@@ -108,10 +108,11 @@ export const postCenter = (data) =>
   api.create(url.POST_CENTER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-export const getCenters = (data) =>
+export const getCenters = ({centerIds,search} = {}) =>
   api.get(url.GET_CENTERS, {
     params: {
-      centerIds: data,
+      centerIds,
+      search
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });

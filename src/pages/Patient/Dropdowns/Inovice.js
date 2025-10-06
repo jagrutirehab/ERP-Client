@@ -39,7 +39,7 @@ const Inovice = ({
 
   return (
     <React.Fragment>
-      <div className="d-flex align-items-stretch">
+      <div className="d-flex flex-column flex-md-row align-items-stretch gap-3">
         <div>
           <Label>Invoice Procedures</Label>
           <UncontrolledDropdown
@@ -102,7 +102,7 @@ const Inovice = ({
             </DropdownMenu>
           </UncontrolledDropdown>
         </div>
-        <div className="w-25">
+        <div className="w-md-25">
           <Label>Categories</Label>
           <Select
             isMulti

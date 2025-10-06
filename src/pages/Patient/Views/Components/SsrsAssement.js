@@ -147,7 +147,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
             Patient Name: {patient?.name}
           </span>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap justify-content-end">
           <Dropdown size="sm" isOpen={dummyDrop} toggle={toggle3}>
             <DropdownToggle caret outline color="primary">
               {selectedDoctor.name}

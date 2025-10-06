@@ -42,6 +42,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [search, setSearch] = useState("")
 
   //Modal
   // const [formModal, setFormModal] = useState(false);
@@ -57,8 +58,16 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const [centerData, setCenterData] = useState();
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
-  }, [dispatch, user]);
+    if (!user) {
+      dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+      return;
+    }
+    const handler = setTimeout(() => {
+      dispatch(fetchCenters({ centerIds: user?.centerAccess, search }));
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [dispatch, user, search]);
 
   useEffect(() => {
     dispatch(fetchMedicines());
@@ -100,6 +109,8 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                   <div className="search-box">
                     <Input
                       type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                       className="form-control"
                       placeholder="Search for title, address"
                     />

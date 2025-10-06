@@ -31,7 +31,7 @@ const FileUpload = ({ setAttachment, attachment }) => {
           onChange={handleFileChange}
           accept=".png,.jpg,.jpeg,.pdf"
         />
-        <span className="text-muted ms-2">or drag and drop</span>
+        {/* <span className="text-muted ms-2">or drag and drop</span> */}
       </div>
       <p className="small text-muted mb-0">PNG, JPG, PDF up to 10MB</p>
       {attachment && (

@@ -284,7 +284,7 @@ const MMSEAssessment = () => {
             Patient Name: {patient?.name}
           </div>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap justify-content-end">
           <Dropdown
             size="sm"
             isOpen={psychologistDropdown}
@@ -454,11 +454,10 @@ const MMSEAssessment = () => {
                 {q.options.map((opt) => (
                   <label
                     key={opt}
-                    className={`d-flex align-items-center p-2 rounded cursor-pointer ${
-                      answers[q.id] === opt
-                        ? "bg-primary text-white"
-                        : "bg-light text-dark border"
-                    }`}
+                    className={`d-flex align-items-center p-2 rounded cursor-pointer ${answers[q.id] === opt
+                      ? "bg-primary text-white"
+                      : "bg-light text-dark border"
+                      }`}
                   >
                     <input
                       type="radio"

@@ -106,7 +106,7 @@ const Views = () => {
   return (
     <React.Fragment>
       <div className="h-auto" style={{ overflow: "auto !important" }}>
-        <div className="position-relative overflow-auto mt-1 px-3 py-3">
+        <div className="position-relative overflow-auto mt-1 py-3">
           <div className="d-flex justify-content-between flex-wrap mb-3">
             <ButtonGroup size="sm">
               {availableViews.map((sub) => (
