@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Input, Button, Row, Col } from "reactstrap";
+import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
 
 const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
@@ -60,21 +60,21 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
   return (
     <React.Fragment>
       <div className="w-100">
-        <div className="pb-3 pt-3 border-bottom">
+        <div className="pb-3 pt-3 border-bottom d-none d-md-block">
           <Row>
-            <Col className="font-semi-bold treatment-head" xs={3} md={2}>
+            <Col className="font-semi-bold treatment-head" md={2}>
               Treatments
             </Col>
-            <Col className="font-semi-bold unit-head" xs={2} md={2}>
+            <Col className="font-semi-bold unit-head" md={2}>
               Quantity
             </Col>
-            <Col className="font-semi-bold cost-head" xs={2} md={2}>
+            <Col className="font-semi-bold cost-head" md={2}>
               Cost
             </Col>
-            <Col className="font-semi-bold cost-head" xs={2} md={2}>
+            <Col className="font-semi-bold cost-head" md={2}>
               Unit of Measurement
             </Col>
-            <Col className="font-semi-bold total-head" xs={3} md={3}>
+            <Col className="font-semi-bold total-head" md={3}>
               Total
             </Col>
           </Row>
@@ -102,13 +102,138 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
 
             return (
               <React.Fragment key={item.id + item.slot}>
-                <Row className="mt-3 mb-3">
-                  <Col
-                    className="text-primary text-capitalize mb-3 mb-lg-0"
-                    xs={12}
-                    md={12}
-                    lg={2}
-                  >
+                {/* Mobile Card Layout */}
+                <div className="d-md-none card shadow-sm mb-3">
+                  <div className="card-body">
+                    {/* Treatment Slot */}
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span className="text-primary text-capitalize fw-bold">{item.slot}</span>
+                        <Button
+                          onClick={() => deleteForm(idx)}
+                          color="danger"
+                          size="sm"
+                          className="ms-2"
+                        >
+                          <i className="ri-close-circle-line font-size-16"></i>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Quantity and Cost Row */}
+                    <Row className="g-2 mb-3">
+                      <Col xs={6}>
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">Quantity</Label>
+                          <Input
+                            bsSize="sm"
+                            id={idx}
+                            slot={item}
+                            min={1}
+                            type="number"
+                            name="unit"
+                            value={item.unit || ""}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              if (value >= 0 || e.target.value === "") {
+                                getValues(e);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.which === 38 || e.which === 40) {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+                        </div>
+                      </Col>
+                      <Col xs={6}>
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">Cost</Label>
+                          <Input
+                            bsSize="sm"
+                            id={idx}
+                            slot={item}
+                            type="number"
+                            name="cost"
+                            min={1}
+                            value={item.cost || ""}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              if (value >= 0 || e.target.value === "") {
+                                getValues(e);
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.which === 38 || e.which === 40) {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+                        </div>
+                      </Col>
+                    </Row>
+
+                    {/* Unit and Total Row */}
+                    <Row className="g-2 mb-3">
+                      <Col xs={6}>
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">Unit</Label>
+                          {unitOptions.length === 1 ? (
+                            <div className="d-flex align-items-center border rounded p-1 bg-light">
+                              <span className="text-muted small">
+                                {unitOptions[0].label}
+                              </span>
+                            </div>
+                          ) : (
+                            <Input
+                              bsSize="sm"
+                              id={idx}
+                              required
+                              type="select"
+                              name="unitOfMeasurement"
+                              value={item.unitOfMeasurement || ""}
+                              onChange={getValues}
+                            >
+                              <option value="">Select Unit</option>
+                              {unitOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </Input>
+                          )}
+                        </div>
+                      </Col>
+                      <Col xs={6}>
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">Total</Label>
+                          <div className="border rounded p-2 bg-primary text-white text-center">
+                            <span className="fw-bold">{totalValue?.toFixed(2) || 0}</span>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    {/* Remarks */}
+                    <div className="mb-2">
+                      <Label size="sm" className="fw-bold text-muted">Remarks</Label>
+                      <Input
+                        id={idx}
+                        type="textarea"
+                        name="comments"
+                        rows="2"
+                        placeholder="Add remarks..."
+                        value={item.comments || ""}
+                        onChange={getValues}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <Row className="mt-3 mb-3 d-none d-md-flex">
+                  <Col className="text-primary text-capitalize" lg={2}>
                     <span>{item.slot}</span>
                   </Col>
                   <Col xs={2} md={2}>
