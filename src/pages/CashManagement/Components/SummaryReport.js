@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { connect, useDispatch } from "react-redux";
 import {
   Badge,
@@ -11,9 +11,12 @@ import {
   Row,
   TabPane,
   Spinner,
+  UncontrolledTooltip,
+  Button,
 } from "reactstrap";
 import { getSummaryReport } from "../../../store/features/cashManagement/cashSlice";
 import PropTypes from "prop-types";
+import { RotateCw } from "lucide-react";
 
 const formatCurrency = (amount) =>
   amount.toLocaleString("en-IN", {
@@ -30,20 +33,17 @@ const SummaryReport = ({
   roles,
 }) => {
   const dispatch = useDispatch();
+  const lastSummaryCacheKeyRef = useRef("");
 
   useEffect(() => {
-    if (activeTab === "summary" && hasUserPermission) {
-      dispatch(getSummaryReport({ centers: centerAccess }));
-    }
-  }, [centerAccess, dispatch, activeTab, roles]);
+    if (!hasUserPermission || activeTab !== "summary") return;
 
-  if (loading) {
-    return (
-      <TabPane tabId="summary" className="text-center py-5">
-        <Spinner color="primary" />
-      </TabPane>
-    );
-  }
+    const cacheKey = [...centerAccess].sort().join(",");
+    if (lastSummaryCacheKeyRef.current !== cacheKey) {
+      dispatch(getSummaryReport({ centers: centerAccess }));
+      lastSummaryCacheKeyRef.current = cacheKey;
+    }
+  }, [activeTab, centerAccess, roles, dispatch]);
 
   if (!summaryReport || summaryReport.data?.length === 0) {
     return (
@@ -58,14 +58,67 @@ const SummaryReport = ({
   return (
     <TabPane tabId="summary">
       <Col className="mb-2">
-        <div className="d-flex justify-content-end">
-          <span className="fw-bold fs-6 fs-md-5">
-            Total Ending Balance: {formatCurrency(summaryReport?.totalCurrentBalance || 0)}
+        <div
+          className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-2 gap-2"
+        >
+          <span
+            className="fw-bold fs-6 fs-md-5"
+            style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}
+          >
+            Total Ending Balance:
+            {loading ? (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "140px",
+                  height: "1em",
+                  backgroundColor: "#e0e0e0",
+                  borderRadius: "4px",
+                  animation: "pulse 1.5s infinite",
+                  position: "relative",
+                  top: "2px",
+                }}
+              />
+            ) : (
+              <span>{formatCurrency(summaryReport?.data?.totalCurrentBalance || 0)}</span>
+            )}
           </span>
+
+          <div className="align-self-md-center align-self-start">
+            <Button
+              id="refresh-summary-btn"
+              color="outline-secondary"
+              size="sm"
+              onClick={() =>
+                dispatch(getSummaryReport({ centers: centerAccess, refetch: true }))
+              }
+              disabled={loading}
+              className="d-flex align-items-center justify-content-center rounded-circle p-0"
+              style={{
+                width: "36px",
+                height: "36px",
+              }}
+            >
+              <RotateCw
+                size={16}
+                style={{
+                  animation: loading ? "spin 1s linear infinite" : "none",
+                }}
+              />
+            </Button>
+            <UncontrolledTooltip target="refresh-summary-btn" placement="top">
+              Refresh
+            </UncontrolledTooltip>
+          </div>
         </div>
+
       </Col>
       <Row>
-        {summaryReport?.data?.map((data) => (
+        {loading ? (
+          <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+            <Spinner color="primary" />
+          </div>
+        ) : summaryReport?.data?.data?.map((data) => (
           <Col key={data.center._id} xs="12" md="6" xl="3" className="mb-4">
             <Card className="shadow-sm h-100 hover-shadow bg-white">
               <CardBody>
@@ -137,6 +190,19 @@ const SummaryReport = ({
           </Col>
         ))}
       </Row>
+      <style>
+        {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.4; }
+          100% { opacity: 1; }
+        }
+      `}
+      </style>
     </TabPane>
   );
 };

@@ -108,7 +108,7 @@ export const postCenter = (data) =>
   api.create(url.POST_CENTER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-export const getCenters = ({centerIds,search} = {}) =>
+export const getCenters = ({ centerIds, search } = {}) =>
   api.get(url.GET_CENTERS, {
     params: {
       centerIds,
@@ -862,46 +862,73 @@ export const getAllEmergencyPatients = (params = {}) => {
 // cash management
 export const postBankDeposit = (data) => {
   return api.create(url.ADD_BANK_DEPOSIT, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data"
+    },
   });
 };
 
 export const getLatestBankDesposits = (params = {}) => {
   return api.create(url.GET_LATEST_BANK_DEPOSITS, params, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json"
+    },
   });
 };
 
 export const getLatestSpendings = (params = {}) => {
   return api.create(url.GET_LATEST_SPENDING, params, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json"
+    },
   });
 };
 
 export const postSpending = (data) => {
   return api.create(url.ADD_SPENDING, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data"
+    },
   });
 };
 
 export const getBaseBalanceByCenter = (centerId) => {
-  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`);
+  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      }
+    }
+  );
 };
 
 export const postBaseBalance = (data) => {
   return api.create(url.ADD_BASE_BALANCE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data"
+    },
   });
 };
 
 export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json"
+    },
   });
 };
 export const getSummaryCashReport = (params = {}) => {
   return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json"
+    },
   });
 };
 
