@@ -8,17 +8,22 @@ const AddinventoryMedicine = ({ defaultValues = {}, onSubmit }) => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name: defaultValues.name || "",
-      generic: defaultValues.generic || "",
-      category: defaultValues.category || "",
-      form: defaultValues.form || "",
-      strength: defaultValues.strength || "",
+      code: defaultValues.code || "",
+      medicineName: defaultValues.medicineName || "",
+      unitType: defaultValues.unitType || "",
+      Strength: defaultValues.Strength || "",
       stock: defaultValues.stock || "",
-      reorder: defaultValues.reorder || "",
-      expiry: defaultValues.expiry || "",
-      batch: defaultValues.batch || "",
-      supplier: defaultValues.supplier || "",
-      status: defaultValues.status || "AVAILABLE",
+      costprice: defaultValues.costprice || "",
+      value: defaultValues.value || "",
+      mrp: defaultValues.mrp || "",
+      purchasePrice: defaultValues.purchasePrice || "",
+      SalesPrice: defaultValues.SalesPrice || "",
+      company: defaultValues.company || "",
+      manufacturer: defaultValues.manufacturer || "",
+      RackNum: defaultValues.RackNum || "",
+      Expiry: defaultValues.Expiry || "",
+      Batch: defaultValues.Batch || "",
+      Status: defaultValues.Status || "NORMAL",
     },
   });
 
@@ -58,11 +63,6 @@ const AddinventoryMedicine = ({ defaultValues = {}, onSubmit }) => {
       fontSize: "15px",
       transition: "border-color 0.2s",
     },
-    inputFocus: {
-      borderColor: "#4299e1",
-      outline: "none",
-      boxShadow: "0 0 0 1px #4299e1",
-    },
     errorText: {
       color: "#e53e3e",
       fontSize: "12px",
@@ -84,19 +84,14 @@ const AddinventoryMedicine = ({ defaultValues = {}, onSubmit }) => {
       marginTop: "20px",
       transition: "background-color 0.2s, transform 0.1s",
     },
-    submitButtonHover: {
-      backgroundColor: "#3182ce",
-    },
     select: {
       padding: "12px 15px",
       border: "1px solid #e2e8f0",
       borderRadius: "8px",
       fontSize: "15px",
       transition: "border-color 0.2s",
-      WebkitAppearance: "none",
-      MozAppearance: "none",
-      appearance: "none",
       backgroundColor: "white",
+      appearance: "none",
     },
   };
 
@@ -126,105 +121,117 @@ const AddinventoryMedicine = ({ defaultValues = {}, onSubmit }) => {
   return (
     <div>
       <h2 style={styles.title}>
-        {defaultValues?.name ? "Edit Medicine Details" : "Add New Medicine"}
+        {defaultValues?.medicineName
+          ? "Edit Medicine Details"
+          : "Add New Medicine"}
       </h2>
 
       <form onSubmit={handleSubmit(submitHandler)} style={styles.form}>
         <InputField
           label="Medicine Name"
-          name="name"
-          validation={{ required: "Name is required" }}
-          isFullWidth={true}
+          name="medicineName"
+          validation={{ required: "Medicine name is required" }}
+          isFullWidth
         />
         <InputField
-          label="Generic Name"
-          name="generic"
-          validation={{ required: "Generic name is required" }}
+          label="Code"
+          name="code"
+          validation={{ required: "Code is required" }}
         />
         <InputField
-          label="Category"
-          name="category"
-          validation={{ required: "Category is required" }}
-        />
-        <InputField
-          label="Form (e.g., Tablet, Syrup)"
-          name="form"
-          validation={{ required: "Form is required" }}
-        />
-        <InputField
-          label="Strength"
-          name="strength"
-          validation={{ required: "Strength is required" }}
+          label="Unit Type"
+          name="unitType"
+          validation={{ required: "Unit Type is required" }}
         />
         <InputField
           label="Current Stock"
           name="stock"
           type="number"
-          validation={{
-            required: "Stock is required",
-            min: { value: 0, message: "Stock must be non-negative" },
-            valueAsNumber: true,
-          }}
+          validation={{ required: "Stock is required" }}
         />
+        <InputField label="Strength" name="Strength" />
         <InputField
-          label="Reorder Level"
-          name="reorder"
+          label="Cost Price"
+          name="costprice"
           type="number"
           validation={{
-            required: "Reorder level is required",
-            min: { value: 0, message: "Reorder must be non-negative" },
-            valueAsNumber: true,
+            required: "Cost Price is required",
+            min: { value: 0, message: "Must be non-negative" },
           }}
         />
         <InputField
-          label="Expiry Date"
-          name="expiry"
-          type="date"
-          validation={{ required: "Expiry date is required" }}
+          label="Value"
+          name="value"
+          type="number"
+          validation={{
+            required: "Value is required",
+            min: { value: 0, message: "Must be non-negative" },
+          }}
         />
         <InputField
-          label="Batch Number"
-          name="batch"
-          validation={{ required: "Batch number is required" }}
+          label="M.R.P"
+          name="mrp"
+          type="number"
+          validation={{
+            required: "MRP is required",
+            min: { value: 0, message: "Must be non-negative" },
+          }}
         />
         <InputField
-          label="Supplier"
-          name="supplier"
-          validation={{ required: "Supplier is required" }}
-          isFullWidth={true}
+          label="Purchase Price"
+          name="purchasePrice"
+          type="number"
+          validation={{
+            required: "Purchase Price is required",
+            min: { value: 0, message: "Must be non-negative" },
+          }}
         />
-
+        <InputField
+          label="Sales Price"
+          name="SalesPrice"
+          type="number"
+          validation={{
+            required: "Sales Price is required",
+            min: { value: 0, message: "Must be non-negative" },
+          }}
+        />
+        <InputField label="Expiry Date" name="Expiry" type="date" />
+        <InputField label="Batch Number" name="Batch" />
         <div style={styles.formGroup}>
-          <label htmlFor="status" style={styles.label}>
+          <label htmlFor="Status" style={styles.label}>
             Status
           </label>
           <select
-            id="status"
-            {...register("status", { required: "Status is required" })}
+            id="Status"
+            {...register("Status", { required: "Status is required" })}
             style={styles.select}
           >
-            <option value="AVAILABLE">AVAILABLE</option>
-            <option value="LOW">LOW</option>
-            <option value="OUT OF STOCK">OUT OF STOCK</option>
+            <option value="NORMAL">Normal</option>
+            <option value="LOW">Low</option>
           </select>
-          {errors.status && (
-            <p style={styles.errorText}>{errors.status.message}</p>
+          {errors.Status && (
+            <p style={styles.errorText}>{errors.Status.message}</p>
           )}
         </div>
-        <div style={{ gridColumn: "2 / 3" }}></div>
+        <InputField
+          label="Company"
+          name="company"
+          validation={{ required: "Company is required" }}
+          isFullWidth
+        />
+        <InputField label="Manufacturer" name="manufacturer" isFullWidth />
+        <InputField label="Rack Number" name="RackNum" isFullWidth />
         <button
           type="submit"
           style={styles.submitButton}
           onMouseOver={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              styles.submitButtonHover.backgroundColor)
+            (e.currentTarget.style.backgroundColor = "#3182ce")
           }
           onMouseOut={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              styles.submitButton.backgroundColor)
+            (e.currentTarget.style.backgroundColor = "#4299e1")
           }
         >
-          {defaultValues?.name ? "Update Medicine" : "Add Medicine"}
+          {defaultValues?.medicineName ? "Update Medicine" : "Add Medicine"}
         </button>
       </form>
     </div>

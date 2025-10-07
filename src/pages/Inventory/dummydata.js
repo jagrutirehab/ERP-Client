@@ -55,31 +55,50 @@ export const medicines = [
 ];
 
 {
-  /* Mapping UI */
+  /* Cards View */
 }
 {
-  /* {fileColumns.length > 0 && (
-          <div className="row g-3">
-            {dbFields.map((field) => (
-              <div className="col-12 col-md-6" key={field}>
-                <label className="form-label text-muted">{field}</label>
-                <select
-                  className="form-select"
-                  value={columnMapping[field] || ""}
-                  onChange={(e) =>
-                    setColumnMapping((prev) => ({
-                      ...prev,
-                      [field]: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="">-- Not Mapped --</option>
-                  {fileColumns.map((col, i) => (
-                    <option key={i} value={i}>
-                      {col}
-                    </option>
-                  ))}
-                </select>
+  /* {view === "cards" && (
+          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" style={{maxHeight: "55vh", overflow:"auto"}}>
+            {(medicines || []).map((med) => (
+              <div className="col" key={med._id}>
+                <Card>
+                  <CardContent>
+                    <h2 className="h5 font-weight-bold text-primary">
+                      {display(med.medicineName)}
+                    </h2>
+                    <p className="text-muted small">
+                      {display(med.generic)} • {display(med.category)}
+                    </p>
+                    <p className="small">
+                      Strength: {display(med.Strength || med.strength)} • Unit:{" "}
+                      {display(med.unitType || med.unit)}
+                    </p>
+                    <p className="small">
+                      Stock: {display(med.stock)} (Reorder:{" "}
+                      {display(med.reorder)})
+                    </p>
+                    <p className="small">Expiry: {display(med.Expiry)}</p>
+                    <p className="small">Batch: {display(med.Batch)}</p>
+                    <p className="small">Supplier: {display(med.supplier)}</p>
+                    <StatusBadge status={med.Status} />
+                    <div className="d-flex flex-wrap gap-2 mt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(med)}
+                      >
+                        Edit
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Adjust
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             ))}
           </div>
@@ -87,31 +106,23 @@ export const medicines = [
 }
 
 {
-  /* {Object.values(columnMapping).some((v) => v !== "") && (
-          <div className="mt-4">
-            <h5 className="mb-2">Mapping Summary</h5>
-            <div className="table-responsive">
-              <table className="table table-bordered table-sm">
-                <thead className="table-light">
-                  <tr>
-                    <th>DB Field</th>
-                    <th>File Column</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dbFields.map((field) => {
-                    const colIndex = columnMapping[field];
-                    if (colIndex === "" || colIndex === undefined) return null;
-                    return (
-                      <tr key={field}>
-                        <td>{field}</td>
-                        <td>{fileColumns[colIndex]}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )} */
+  /* <Button
+                        variant={view === "cards" ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => setView("cards")}
+                      >
+                        <LayoutGrid className="h-5 w-5" />
+                      </Button> */
+}
+
+{
+  /* <div className="col-12 col-sm-6 col-lg-3">
+            <Select
+              placeholder="All Centers"
+              options={[
+                { value: "center1", label: "Center 1" },
+                { value: "center2", label: "Center 2" },
+              ]}
+            />
+          </div> */
 }

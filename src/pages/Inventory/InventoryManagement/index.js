@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   Table as TableIcon,
-  LayoutGrid,
   BarChart3,
   MoreHorizontal,
 } from "lucide-react";
@@ -25,11 +24,9 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
-import { medicines } from "../dummydata";
 import AddinventoryMedicine from "../AddinventoryMedicine";
 import { Button } from "../Components/Button";
 import { Select } from "../Components/Select";
-import { Card, CardContent } from "../Components/card";
 import {
   Table,
   TableBody,
@@ -41,8 +38,9 @@ import {
 import { AnalyticsView } from "../views/AnalyticView";
 import { StatusBadge } from "../Components/StatusBadge";
 import BulkImportModal from "../Components/BulkImportModal";
-import axios from "axios";
 import { toast } from "react-toastify";
+import axios from "axios";
+import Barcode from "react-barcode";
 
 ChartJS.register(
   CategoryScale,
@@ -53,7 +51,6 @@ ChartJS.register(
   Legend
 );
 
-// Main Component
 const InventoryManagement = () => {
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
@@ -61,36 +58,18 @@ const InventoryManagement = () => {
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [qfilter, setQfilter] = useState("");
+  const [medicines, setMedicines] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const abortRef = useRef(null);
 
   const toggleDropdown = (id) => {
-    setDropdownOpen((prevState) => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }));
-  };
-
-  const demoMedicines = Array.isArray(medicines)
-    ? medicines.concat(
-        medicines.map((m, idx) => ({ ...m, name: `${m.name} ${idx + 1}` }))
-      )
-    : medicines;
-
-  const totalItems = demoMedicines.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  if (currentPage > totalPages) setCurrentPage(totalPages);
-
-  const startIdx = (currentPage - 1) * pageSize;
-  const endIdx = startIdx + pageSize;
-  const pagedMedicines = demoMedicines.slice(startIdx, endIdx);
-
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-
-  const handlePageSizeChange = (e) => {
-    const newSize = parseInt(e.target.value, 10);
-    setPageSize(newSize);
-    setCurrentPage(1);
+    setDropdownOpen((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleAdd = () => {
@@ -103,19 +82,132 @@ const InventoryManagement = () => {
     setModalOpen(true);
   };
 
-  const handleFormSubmit = (data) => {
-    if (editingMedicine) {
-      console.log("Updating medicine:", data);
-    } else {
-      console.log("Adding new medicine:", data);
+  const handleFormSubmit = async (data) => {
+    try {
+      if (editingMedicine && editingMedicine._id) {
+        await axios.patch(`/pharmacy/${editingMedicine._id}`, data, {
+          headers: { "Content-Type": "application/json" },
+        });
+        toast.success("Medicine updated successfully");
+      } else {
+        await axios.post("/pharmacy/", data, {
+          headers: { "Content-Type": "application/json" },
+        });
+        toast.success("Medicine added successfully");
+      }
+
+      // 🔹 Close modal and refresh list
+      setModalOpen(false);
+      fetchMedicines({
+        page: currentPage,
+        limit: pageSize,
+        q: debouncedSearch,
+        fillter: qfilter,
+      });
+    } catch (error) {
+      console.error("Error saving medicine:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to save medicine. Please try again.");
+      }
     }
-    setModalOpen(false);
   };
 
   const handleBulkImport = async (mappedData) => {
     toast.success(`Imported ${mappedData.length} rows successfully.`);
     setBulkOpen(false);
+    setCurrentPage(1);
+    fetchMedicines({
+      page: 1,
+      limit: pageSize,
+      q: debouncedSearch,
+      fillter: qfilter,
+    });
   };
+  const getPageRange = (total, current, maxButtons = 7) => {
+    if (total <= maxButtons)
+      return Array.from({ length: total }, (_, i) => i + 1);
+
+    const sideButtons = Math.floor((maxButtons - 3) / 2);
+    let start = Math.max(2, current - sideButtons);
+    let end = Math.min(total - 1, current + sideButtons);
+    if (current - 1 <= sideButtons) {
+      start = 2;
+      end = Math.min(total - 1, maxButtons - 2);
+    }
+    if (total - current <= sideButtons) {
+      end = total - 1;
+      start = Math.max(2, total - (maxButtons - 3));
+    }
+
+    const range = [1];
+    if (start > 2) range.push("...");
+    for (let i = start; i <= end; i++) range.push(i);
+    if (end < total - 1) range.push("...");
+    range.push(total);
+    return range;
+  };
+
+  async function fetchMedicines({ page = 1, limit = 5, q = "" } = {}) {
+    if (abortRef.current) {
+      try {
+        abortRef.current.abort();
+      } catch (e) {}
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    try {
+      const response = await axios.get("/pharmacy/", {
+        params: { page, limit, search: q || undefined, fillter: qfilter },
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      setMedicines(response?.data || []);
+      setTotalItems(response?.total);
+      setTotalPages(response?.pages);
+      setCurrentPage(response?.page);
+    } catch (err) {
+      if (err?.name === "CanceledError" || err?.name === "AbortError") {
+      } else {
+        console.error(err);
+        toast.error("Failed to fetch medicines");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchMedicines({
+      page: currentPage,
+      limit: pageSize,
+      q: debouncedSearch,
+      fillter: qfilter,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, debouncedSearch, qfilter]);
+
+  const goToPage = (page) => {
+    if (page === "..." || page === currentPage) return;
+    const target = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(target);
+  };
+
+  const handlePageSizeChange = (e) => {
+    const newSize = parseInt(e.target.value, 10);
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
@@ -123,6 +215,7 @@ const InventoryManagement = () => {
         <div className="text-center text-md-left mb-4">
           <h1 className="display-4 font-weight-bold text-primary">PHARMACY</h1>
         </div>
+
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
             <div className="position-relative w-100">
@@ -148,9 +241,15 @@ const InventoryManagement = () => {
                   paddingRight: "12px",
                   height: "40px",
                 }}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // reset page on new search
+                }}
               />
             </div>
           </div>
+
           <div className="d-flex flex-wrap gap-2 inventory-actions">
             <Button onClick={handleAdd}>+ Add Medicine</Button>
             <Button
@@ -167,6 +266,30 @@ const InventoryManagement = () => {
               className="btn btn-outline-primary text-primary"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              onClick={() => {
+                // Basic client-side export of current page as CSV
+                if (!medicines || medicines.length === 0) {
+                  toast.info("No data to export");
+                  return;
+                }
+                const header = Object.keys(medicines[0]);
+                const rows = medicines.map((m) =>
+                  header.map((h) => (m[h] ?? "").toString().replace(/"/g, '""'))
+                );
+                const csv = [
+                  header.join(","),
+                  ...rows.map((r) => r.join(",")),
+                ].join("\n");
+                const blob = new Blob([csv], {
+                  type: "text/csv;charset=utf-8;",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `medicines_page_${currentPage}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
             >
               Export
             </Button>
@@ -177,37 +300,11 @@ const InventoryManagement = () => {
         <div className="row g-3 mb-4">
           <div className="col-12 col-sm-6 col-lg-3">
             <Select
-              placeholder="All Categories"
-              options={[
-                { value: "analgesics", label: "Analgesics" },
-                { value: "antibiotics", label: "Antibiotics" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
               placeholder="All Stock Levels"
+              onChange={(e) => setQfilter(e.target.value)}
               options={[
-                { value: "low", label: "Low Stock" },
-                { value: "normal", label: "Normal" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
-              placeholder="All Suppliers"
-              options={[
-                { value: "medsupply", label: "MedSupply Co" },
-                { value: "pharmadist", label: "PharmaDist Inc" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
-              placeholder="All Centers"
-              options={[
-                { value: "center1", label: "Center 1" },
-                { value: "center2", label: "Center 2" },
+                { value: "LOW", label: "Low Stock" },
+                { value: "NORMAL", label: "Normal" },
               ]}
             />
           </div>
@@ -230,7 +327,6 @@ const InventoryManagement = () => {
                 <option value={25}>25</option>
                 <option value={50}>50</option>
               </select>
-              <span className="small text-muted">entries</span>
             </div>
           </div>
 
@@ -242,13 +338,6 @@ const InventoryManagement = () => {
                 onClick={() => setView("table")}
               >
                 <TableIcon className="h-5 w-5" />
-              </Button>
-              <Button
-                variant={view === "cards" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setView("cards")}
-              >
-                <LayoutGrid className="h-5 w-5" />
               </Button>
               <Button
                 variant={view === "analytics" ? "default" : "outline"}
@@ -266,68 +355,115 @@ const InventoryManagement = () => {
           <>
             <div
               className="overflow-auto mb-2"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              style={{ WebkitOverflowScrolling: "touch", maxHeight: "55vh" }}
             >
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead noWrap>Bar Code</TableHead>
+                    <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
-                    <TableHead noWrap>Generic Name</TableHead>
-                    <TableHead noWrap>Category</TableHead>
-                    <TableHead noWrap>Dosage Form</TableHead>
                     <TableHead noWrap>Strength</TableHead>
-                    <TableHead noWrap>Stock</TableHead>
-                    <TableHead noWrap>Reorder Point</TableHead>
+                    <TableHead noWrap>Unit</TableHead>
+                    <TableHead noWrap>Current Stock</TableHead>
+                    <TableHead noWrap>Cost Price</TableHead>
+                    <TableHead noWrap>Value</TableHead>
+                    <TableHead noWrap>M.R.P</TableHead>
+                    <TableHead noWrap>Purchase Price</TableHead>
+                    <TableHead noWrap>Sales Price</TableHead>
                     <TableHead noWrap>Expiry Date</TableHead>
                     <TableHead noWrap>Batch</TableHead>
-                    <TableHead noWrap>Supplier</TableHead>
+                    <TableHead noWrap>Company</TableHead>
+                    <TableHead noWrap>Manufacturer</TableHead>
+                    <TableHead noWrap>Rack Number</TableHead>
                     <TableHead noWrap>Status</TableHead>
                     <TableHead noWrap>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagedMedicines.map((med, i) => (
-                    <TableRow key={i}>
-                      <TableCell
-                        noWrap
-                        className="font-weight-bold text-primary"
-                      >
-                        {med.name}
-                      </TableCell>
-                      <TableCell noWrap>{med.generic}</TableCell>
-                      <TableCell noWrap>{med.category}</TableCell>
-                      <TableCell noWrap>{med.form}</TableCell>
-                      <TableCell noWrap>{med.strength}</TableCell>
-                      <TableCell noWrap>{med.stock}</TableCell>
-                      <TableCell noWrap>{med.reorder}</TableCell>
-                      <TableCell noWrap>{med.expiry}</TableCell>
-                      <TableCell noWrap>{med.batch}</TableCell>
-                      <TableCell noWrap>{med.supplier}</TableCell>
-                      <TableCell noWrap>
-                        <StatusBadge status={med.status} />
-                      </TableCell>
-                      <TableCell noWrap>
-                        <Dropdown
-                          isOpen={dropdownOpen[i] || false}
-                          toggle={() => toggleDropdown(i)}
-                        >
-                          <DropdownToggle
-                            tag="button"
-                            className="btn btn-ghost p-1"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownToggle>
-                          <DropdownMenu end>
-                            <DropdownItem onClick={() => handleEdit(med)}>
-                              Edit
-                            </DropdownItem>
-                            <DropdownItem>View</DropdownItem>
-                            <DropdownItem>Adjust</DropdownItem>
-                          </DropdownMenu>
-                        </Dropdown>
-                      </TableCell>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={16}>Loading...</TableCell>
                     </TableRow>
-                  ))}
+                  ) : medicines.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={16}>No records found</TableCell>
+                    </TableRow>
+                  ) : (
+                    medicines.map((med) => (
+                      <TableRow key={med._id}>
+                        <TableCell noWrap>
+                          <div
+                            style={{
+                              transform: "scale(0.9)",
+                              transformOrigin: "left center",
+                            }}
+                          >
+                            {med?.code ? (
+                              <Barcode
+                                value={med?.code}
+                                height={30}
+                                // width={1.2}
+                                fontSize={10}
+                                displayValue={true}
+                              />
+                            ) : (
+                              "-"
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.code)}</TableCell>
+                        <TableCell
+                          noWrap
+                          className="font-weight-bold text-primary"
+                        >
+                          {display(med?.medicineName)}
+                        </TableCell>
+                        <TableCell noWrap>
+                          {display(med?.Strength || med?.Strength)}
+                        </TableCell>
+                        <TableCell noWrap>
+                          {display(med?.unitType || med?.unit)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.stock)}</TableCell>
+                        <TableCell noWrap>{display(med?.costprice)}</TableCell>
+                        <TableCell noWrap>{display(med?.value)}</TableCell>
+                        <TableCell noWrap>{display(med?.mrp)}</TableCell>
+                        <TableCell noWrap>
+                          {display(med?.purchasePrice)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.SalesPrice)}</TableCell>
+                        <TableCell noWrap>{display(med?.Expiry)}</TableCell>
+                        <TableCell noWrap>{display(med?.Batch)}</TableCell>
+                        <TableCell noWrap>{display(med?.company)}</TableCell>
+                        <TableCell noWrap>
+                          {display(med?.manufacturer)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.RackNum)}</TableCell>
+                        <TableCell noWrap>
+                          <StatusBadge status={med.Status} />
+                        </TableCell>
+                        <TableCell noWrap>
+                          <Dropdown
+                            isOpen={!!dropdownOpen[med._id]}
+                            toggle={() => toggleDropdown(med._id)}
+                          >
+                            <DropdownToggle
+                              tag="button"
+                              className="btn btn-ghost p-1"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownToggle>
+                            <DropdownMenu end>
+                              <DropdownItem onClick={() => handleEdit(med)}>
+                                Edit
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -335,8 +471,10 @@ const InventoryManagement = () => {
             {/* Pagination controls */}
             <div className="d-flex justify-content-between align-items-center">
               <div className="small text-muted">
-                Showing {Math.min(startIdx + 1, totalItems)} to{" "}
-                {Math.min(endIdx, totalItems)} of {totalItems} entries
+                Showing{" "}
+                {totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{" "}
+                {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
+                entries
               </div>
 
               <nav>
@@ -348,25 +486,30 @@ const InventoryManagement = () => {
                   >
                     <button
                       className="page-link"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
                     >
                       Previous
                     </button>
                   </li>
 
-                  {pageNumbers.map((num) => (
+                  {getPageRange(totalPages, currentPage, 7).map((p, idx) => (
                     <li
-                      key={num}
+                      key={`${p}-${idx}`}
                       className={`page-item ${
-                        num === currentPage ? "active" : ""
-                      }`}
+                        p === currentPage ? "active" : ""
+                      } ${p === "..." ? "disabled" : ""}`}
                     >
-                      <button
-                        className="page-link"
-                        onClick={() => setCurrentPage(num)}
-                      >
-                        {num}
-                      </button>
+                      {p === "..." ? (
+                        <span className="page-link">...</span>
+                      ) : (
+                        <button
+                          className="page-link"
+                          onClick={() => goToPage(p)}
+                        >
+                          {p}
+                        </button>
+                      )}
                     </li>
                   ))}
 
@@ -378,8 +521,9 @@ const InventoryManagement = () => {
                     <button
                       className="page-link"
                       onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        goToPage(Math.min(totalPages, currentPage + 1))
                       }
+                      disabled={currentPage === totalPages}
                     >
                       Next
                     </button>
@@ -390,49 +534,8 @@ const InventoryManagement = () => {
           </>
         )}
 
-        {/* Cards View */}
-        {view === "cards" && (
-          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
-            {demoMedicines.map((med, i) => (
-              <div className="col" key={i}>
-                <Card>
-                  <CardContent>
-                    <h2 className="h5 font-weight-bold text-primary">
-                      {med.name}
-                    </h2>
-                    <p className="text-muted small">
-                      {med.generic} • {med.category}
-                    </p>
-                    <p className="small">
-                      Form: {med.form}, Strength: {med.strength}
-                    </p>
-                    <p className="small">
-                      Stock: {med.stock} (Reorder: {med.reorder})
-                    </p>
-                    <p className="small">Expiry: {med.expiry}</p>
-                    <p className="small">Batch: {med.batch}</p>
-                    <p className="small">Supplier: {med.supplier}</p>
-                    <StatusBadge status={med.status} />
-                    <div className="d-flex flex-wrap gap-2 mt-3">
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Adjust
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Analytics View */}
-        {view === "analytics" && <AnalyticsView medicines={demoMedicines} />}
+        {view === "analytics" && <AnalyticsView medicines={medicines} />}
 
         <Modal
           isOpen={modalOpen}
@@ -451,6 +554,7 @@ const InventoryManagement = () => {
             />
           </ModalBody>
         </Modal>
+
         <BulkImportModal
           isOpen={bulkOpen}
           toggle={() => setBulkOpen(!bulkOpen)}

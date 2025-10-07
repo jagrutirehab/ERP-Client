@@ -2,7 +2,7 @@ import { Bar } from "react-chartjs-2";
 
 export const AnalyticsView = ({ medicines }) => {
   const data = {
-    labels: medicines.map((med) => med.name),
+    labels: medicines.map((med) => med.medicineName),
     datasets: [
       {
         label: "Stock Levels",
@@ -13,7 +13,7 @@ export const AnalyticsView = ({ medicines }) => {
       },
       {
         label: "Reorder Point",
-        data: medicines.map((med) => med.reorder),
+        data: medicines.map((med) => med.costprice),
         backgroundColor: "rgba(13, 202, 240, 0.6)", // Cyan
         borderColor: "rgba(13, 202, 240, 1)",
         borderWidth: 1,

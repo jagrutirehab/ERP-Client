@@ -49,6 +49,7 @@
     "prop-types": "^15.8.1",
     "qs": "^6.11.2",
     "react": "^18.2.0",
+    "react-barcode": "^1.6.1",
     "react-big-calendar": "^1.17.1",
     "react-chartjs-2": "^5.3.0",
     "react-cropper": "^2.3.3",
