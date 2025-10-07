@@ -18,16 +18,23 @@ const initialState = {
   baseBalance: [],
   lastBaseBalance: null,
   detailedReport: {},
-  summaryReport: {},
+  summaryReport: {
+    data: {},
+    cache: {},
+  },
   isUptoDate: true,
 };
 
 export const getLastBankDeposits = createAsyncThunk(
   "cash/getLatestBankDesposits",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (data, { getState, dispatch, rejectWithValue }) => {
+    const cached = getState().Cash.bankDeposits?.data;
+    if (cached && cached.length > 0) {
+      return { data: cached, fromCache: true }
+    }
     try {
       const response = await getLatestBankDesposits(data);
-      return response;
+      return { data: response, fromCache: false };
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch deposits");
@@ -58,10 +65,14 @@ export const addSpending = createAsyncThunk(
 
 export const getLastSpendings = createAsyncThunk(
   "cash/getLatestSpendings",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (data, { getState, dispatch, rejectWithValue }) => {
+    const cached = getState().Cash.spendings?.data;
+    if (cached && cached.data.length > 0) {
+      return { data: cached, fromCache: true };
+    }
     try {
       const response = await getLatestSpendings(data);
-      return response;
+      return { data: response, fromCache: false };
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch spendings");
@@ -148,10 +159,15 @@ export const getDetailedReport = createAsyncThunk(
 
 export const getSummaryReport = createAsyncThunk(
   "cash/getSummaryCashReport",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({ centers, refetch = false }, { getState, dispatch, rejectWithValue }) => {
+    const cacheKey = [...centers].sort().join(",");
+    const cached = getState().Cash.summaryReport?.cache?.[cacheKey];
+    if (!refetch && cached) {
+      return { data: cached, fromCache: true };
+    }
     try {
-      const response = await getSummaryCashReport(data);
-      return response;
+      const response = await getSummaryCashReport({ centers });
+      return { data: response, cacheKey, fromCache: false };
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch spendings");
@@ -186,8 +202,10 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLastBankDeposits.fulfilled, (state, { payload }) => {
-        state.bankDeposits = payload;
         state.loading = false;
+        if (!payload.fromCache) {
+          state.bankDeposits = payload.data;
+        }
       })
       .addCase(getLastBankDeposits.rejected, (state) => {
         state.loading = false;
@@ -204,8 +222,11 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLastSpendings.fulfilled, (state, { payload }) => {
-        state.spendings = payload;
         state.loading = false;
+        if (!payload.fromCache) {
+          state.spendings = payload.data;
+        }
+
       })
       .addCase(getLastSpendings.rejected, (state) => {
         state.loading = false;
@@ -291,8 +312,13 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getSummaryReport.fulfilled, (state, { payload }) => {
-        state.summaryReport = payload.payload;
         state.loading = false;
+        if (!payload.fromCache) {
+          state.summaryReport.cache = {
+            [payload.cacheKey]: payload.data.payload,
+          };
+          state.summaryReport.data = payload.data.payload
+        }
       })
       .addCase(getSummaryReport.rejected, (state) => {
         state.loading = false;

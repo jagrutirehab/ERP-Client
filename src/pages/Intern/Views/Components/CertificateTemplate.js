@@ -10,7 +10,8 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
       fontFamily: '"Times New Roman", serif',
       padding: "140px 70px 60px 70px",
       boxSizing: "border-box",
-      fontWeight: "16px",
+      fontSize: "16px",
+      lineHeight: 1.6,
     },
     bgImg: {
       position: "absolute",
@@ -100,36 +101,32 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
     nameWithPronoun = `${pronoun1} ${nameWithPronoun}`;
   }
 
-  const paragraph1 = `This is to certify that ${nameWithPronoun}, a student of ${
-    toTitleCase(intern?.educationalInstitution) || "______"
-  }, ${toTitleCase(intern?.state) || "______"}, pursuing ${
-    toTitleCase(intern?.courseProgram) || "______"
-  }${
-    type === "ONGOING"
+  const paragraph1 = `This is to certify that ${nameWithPronoun}, a student of ${toTitleCase(intern?.educationalInstitution) || "______"
+    }, ${toTitleCase(intern?.state) || "______"}, pursuing ${toTitleCase(intern?.courseProgram) || "______"
+    }${type === "ONGOING"
       ? `, is currently undergoing ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistFullName}.`
       : `, has completed ${pronoun2} internship at Jagruti Rehabilitation Centre under the supervision of ${psychologistFullName} for ${internshipDuration}.`
-  }`;
+    }`;
 
   const paragraph2 =
     gender === "OTHERS"
       ? `${toTitleCase(
-          intern?.name || "The intern"
-        )} has been sincere, diligent and proactive through the course of the internship. ${toTitleCase(
-          intern?.name || "The intern"
-        )} was hands-on and engaged in observation of Case History Taking & Mental Status Examination, conducting Psycho Education Sessions and Activities. The dedication, hard work and work ethic during this course was commendable.`
+        intern?.name || "The intern"
+      )} has been sincere, diligent and proactive through the course of the internship. ${toTitleCase(
+        intern?.name || "The intern"
+      )} was hands-on and engaged in observation of Case History Taking & Mental Status Examination, conducting Psycho Education Sessions and Activities. The dedication, hard work and work ethic during this course was commendable.`
       : `${toTitleCase(
-          pronoun3
-        )} has been sincere, diligent and proactive through the course of ${pronoun2} internship. ${toTitleCase(
-          pronoun3
-        )} was hands-on and engaged in observation of Case History Taking & Mental Status Examination, conducting Psycho Education Sessions and Activities. ${toTitleCase(
-          pronoun2
-        )} dedication, hard work and work ethic during this course was commendable.`;
+        pronoun3
+      )} has been sincere, diligent and proactive through the course of ${pronoun2} internship. ${toTitleCase(
+        pronoun3
+      )} was hands-on and engaged in observation of Case History Taking & Mental Status Examination, conducting Psycho Education Sessions and Activities. ${toTitleCase(
+        pronoun2
+      )} dedication, hard work and work ethic during this course was commendable.`;
 
   const paragraph3 =
     gender === "OTHERS"
-      ? `We wish ${
-          intern?.name || "the intern"
-        } the best of luck for future endeavors.`
+      ? `We wish ${intern?.name || "the intern"
+      } the best of luck for future endeavors.`
       : `We wish ${pronoun2} the best of luck for ${pronoun2} future endeavors.`;
 
   return (
@@ -142,6 +139,7 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
             textAlign: "right",
             fontWeight: "bold",
             marginBottom: "40px",
+            fontSize: "15px",
           }}
         >
           Date :{" "}
@@ -156,7 +154,7 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
           style={{
             marginBottom: "50px",
             fontFamily: "Arial, sans-serif",
-            fontWeight: "14.7px",
+            fontSize: "16px",
           }}
         >
           <p style={{ marginBottom: 0, fontWeight: "bold" }}>To,</p>
@@ -181,7 +179,7 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
           </span>
         </div>
 
-        <div style={{ textAlign: "justify", lineHeight: 1.6, fontSize: 15 }}>
+        <div style={{ textAlign: "justify", lineHeight: 1.6, fontSize: "16px", }}>
           <p>{paragraph1}</p>
           <p>{paragraph2}</p>
           <p>
@@ -193,14 +191,14 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
           </p>
         </div>
 
-        <div style={{ marginTop: "100px" }}>
+        <div style={{ marginTop: "100px", fontSize: "16px" }}>
           <p style={{ marginBottom: 0, fontWeight: "bold" }}>
             {psychologistFullName}
           </p>
           <p style={{ fontWeight: "bold" }}>Senior Psychologist</p>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
