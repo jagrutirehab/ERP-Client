@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   Table as TableIcon,
-  LayoutGrid,
   BarChart3,
   MoreHorizontal,
 } from "lucide-react";
@@ -15,16 +14,34 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
 import {
   Dropdown,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
   CardBody,
+  Modal,
+  ModalHeader,
+  ModalBody,
 } from "reactstrap";
+import AddinventoryMedicine from "../AddinventoryMedicine";
+import { Button } from "../Components/Button";
+import { Select } from "../Components/Select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../Components/Table";
+import { AnalyticsView } from "../views/AnalyticView";
+import { StatusBadge } from "../Components/StatusBadge";
+import BulkImportModal from "../Components/BulkImportModal";
+import { toast } from "react-toastify";
+import axios from "axios";
+import Barcode from "react-barcode";
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -34,285 +51,184 @@ ChartJS.register(
   Legend
 );
 
-// Button Component
-const Button = ({ children, variant = "default", size = "md", onClick }) => {
-  const base =
-    "btn font-weight-bold transition-all duration-300 d-flex align-items-center justify-content-center shadow-sm";
-  const variants = {
-    default: "btn-primary bg-gradient-primary text-white",
-    outline: "btn-outline-primary text-primary",
-    danger: "btn-danger text-white",
-    success: "btn-success text-white",
-    ghost: "btn-outline-secondary text-dark", // Added ghost variant for hamburger
-  };
-  const sizes = {
-    md: "btn-md px-4 py-2",
-    sm: "btn-sm px-3 py-1",
-    icon: "p-2",
-  };
-  return (
-    <button
-      onClick={onClick}
-      className={`${base} ${variants[variant]} ${sizes[size]}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-// Select Component
-const Select = ({ options, placeholder, value, onChange, className }) => (
-  <select
-    value={value}
-    onChange={onChange}
-    className={`form-select border-primary rounded-lg px-3 py-2 shadow-sm ${className}`}
-  >
-    <option value="">{placeholder}</option>
-    {options.map((opt, i) => (
-      <option key={i} value={opt.value}>
-        {opt.label}
-      </option>
-    ))}
-  </select>
-);
-
-// Card Components
-const Card = ({ children }) => (
-  <div className="card border-primary rounded-lg shadow-lg bg-gradient-light hover-shadow">
-    {children}
-  </div>
-);
-const CardContent = ({ children }) => (
-  <div className="card-body p-4">{children}</div>
-);
-
-// Table Components
-const Table = ({ children, tableStyle }) => (
-  <div
-    className="table-responsive rounded-lg border border-primary shadow-lg bg-white"
-    style={{ overflowX: "auto" }}
-  >
-    <table className="table table-hover mb-0" style={{ minWidth: "1200px" }}>
-      {children}
-    </table>
-  </div>
-);
-// Changed thead styling to a more vivid gradient and ensured text is white
-const TableHeader = ({ children }) => (
-  <thead
-    style={{
-      background: "linear-gradient(90deg,#6c5ce7,#00b8d8)",
-      color: "#fff",
-    }}
-  >
-    {children}
-  </thead>
-);
-const TableRow = ({ children }) => (
-  <tr className="border-bottom">{children}</tr>
-);
-const TableHead = ({ children, noWrap = false }) => (
-  <th
-    className="p-3 text-left font-weight-bold"
-    style={noWrap ? { whiteSpace: "nowrap" } : {}}
-  >
-    {children}
-  </th>
-);
-const TableBody = ({ children }) => <tbody>{children}</tbody>;
-const TableCell = ({ children, className, noWrap = false }) => (
-  <td
-    className={`p-3 ${className || ""}`}
-    style={noWrap ? { whiteSpace: "nowrap" } : {}}
-  >
-    {children}
-  </td>
-);
-
-// Status Badge
-const StatusBadge = ({ status }) => {
-  const styles =
-    status === "LOW"
-      ? "badge bg-danger bg-gradient text-white border border-danger"
-      : "badge bg-success bg-gradient text-white border border-success";
-  return (
-    <span className={`px-3 py-1 font-weight-bold rounded-pill ${styles}`}>
-      {status}
-    </span>
-  );
-};
-
-// Analytics View with Chart
-const AnalyticsView = ({ medicines }) => {
-  const data = {
-    labels: medicines.map((med) => med.name),
-    datasets: [
-      {
-        label: "Stock Levels",
-        data: medicines.map((med) => med.stock),
-        backgroundColor: "rgba(111, 66, 193, 0.6)", // Purple
-        borderColor: "rgba(111, 66, 193, 1)",
-        borderWidth: 1,
-      },
-      {
-        label: "Reorder Point",
-        data: medicines.map((med) => med.reorder),
-        backgroundColor: "rgba(13, 202, 240, 0.6)", // Cyan
-        borderColor: "rgba(13, 202, 240, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: "top" },
-      title: {
-        display: true,
-        text: "Inventory Stock Overview",
-        font: { size: 18 },
-      },
-    },
-    scales: {
-      y: { beginAtZero: true },
-    },
-  };
-
-  return (
-    <div className="card border-primary rounded-lg shadow-lg bg-white p-4">
-      <h2 className="h4 font-weight-bold text-primary mb-4">
-        Inventory Analytics
-      </h2>
-      <div style={{ height: "320px" }}>
-        <Bar data={data} options={options} />
-      </div>
-    </div>
-  );
-};
-
-// Main Component
 const InventoryManagement = () => {
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
-
-  // Pagination state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingMedicine, setEditingMedicine] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5); // default page size
+  const [pageSize, setPageSize] = useState(5);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [qfilter, setQfilter] = useState("");
+  const [medicines, setMedicines] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const abortRef = useRef(null);
 
   const toggleDropdown = (id) => {
-    setDropdownOpen((prevState) => ({
-      ...prevState,
-      [id]: !prevState[id],
-    }));
+    setDropdownOpen((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const medicines = [
-    {
-      name: "Paracetamol",
-      generic: "Acetaminophen",
-      category: "Analgesics",
-      form: "Tablet",
-      strength: "500mg",
-      stock: 2500,
-      reorder: 500,
-      expiry: "Dec 31, 2025",
-      batch: "PCM-2024-001",
-      supplier: "MedSupply Co",
-      status: "NORMAL",
-    },
-    {
-      name: "Amoxicillin",
-      generic: "Amoxicillin",
-      category: "Antibiotics",
-      form: "Capsule",
-      strength: "250mg",
-      stock: 150,
-      reorder: 200,
-      expiry: "Aug 15, 2025",
-      batch: "AMX-2024-002",
-      supplier: "PharmaDist Inc",
-      status: "LOW",
-    },
-    {
-      name: "Insulin",
-      generic: "Human Insulin",
-      category: "Diabetes Medications",
-      form: "Injectable",
-      strength: "100IU/ml",
-      stock: 75,
-      reorder: 100,
-      expiry: "Jun 30, 2025",
-      batch: "INS-2024-003",
-      supplier: "SpecialtyCare Ltd",
-      status: "LOW",
-    },
-    {
-      name: "Lisinopril",
-      generic: "Lisinopril",
-      category: "ACE Inhibitors",
-      form: "Tablet",
-      strength: "10mg",
-      stock: 800,
-      reorder: 300,
-      expiry: "Mar 20, 2026",
-      batch: "LIS-2024-004",
-      supplier: "MedSupply Co",
-      status: "NORMAL",
-    },
-  ];
-  const demoMedicines = Array.isArray(medicines)
-    ? medicines.concat(
-        medicines.map((m, idx) => ({ ...m, name: `${m.name} ${idx + 1}` }))
-      )
-    : medicines;
+  const handleAdd = () => {
+    setEditingMedicine(null);
+    setModalOpen(true);
+  };
 
-  const totalItems = demoMedicines.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const handleEdit = (medicine) => {
+    setEditingMedicine(medicine);
+    setModalOpen(true);
+  };
 
-  // clamp currentPage if pageSize changes
-  if (currentPage > totalPages) setCurrentPage(totalPages);
+  const handleFormSubmit = async (data) => {
+    try {
+      if (editingMedicine && editingMedicine._id) {
+        await axios.patch(`/pharmacy/${editingMedicine._id}`, data, {
+          headers: { "Content-Type": "application/json" },
+        });
+        toast.success("Medicine updated successfully");
+      } else {
+        await axios.post("/pharmacy/", data, {
+          headers: { "Content-Type": "application/json" },
+        });
+        toast.success("Medicine added successfully");
+      }
 
-  const startIdx = (currentPage - 1) * pageSize;
-  const endIdx = startIdx + pageSize;
-  const pagedMedicines = demoMedicines.slice(startIdx, endIdx);
+      // 🔹 Close modal and refresh list
+      setModalOpen(false);
+      fetchMedicines({
+        page: currentPage,
+        limit: pageSize,
+        q: debouncedSearch,
+        fillter: qfilter,
+      });
+    } catch (error) {
+      console.error("Error saving medicine:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to save medicine. Please try again.");
+      }
+    }
+  };
 
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+  const handleBulkImport = async (mappedData) => {
+    toast.success(`Imported ${mappedData.length} rows successfully.`);
+    setBulkOpen(false);
+    setCurrentPage(1);
+    fetchMedicines({
+      page: 1,
+      limit: pageSize,
+      q: debouncedSearch,
+      fillter: qfilter,
+    });
+  };
+  const getPageRange = (total, current, maxButtons = 7) => {
+    if (total <= maxButtons)
+      return Array.from({ length: total }, (_, i) => i + 1);
+
+    const sideButtons = Math.floor((maxButtons - 3) / 2);
+    let start = Math.max(2, current - sideButtons);
+    let end = Math.min(total - 1, current + sideButtons);
+    if (current - 1 <= sideButtons) {
+      start = 2;
+      end = Math.min(total - 1, maxButtons - 2);
+    }
+    if (total - current <= sideButtons) {
+      end = total - 1;
+      start = Math.max(2, total - (maxButtons - 3));
+    }
+
+    const range = [1];
+    if (start > 2) range.push("...");
+    for (let i = start; i <= end; i++) range.push(i);
+    if (end < total - 1) range.push("...");
+    range.push(total);
+    return range;
+  };
+
+  async function fetchMedicines({ page = 1, limit = 5, q = "" } = {}) {
+    if (abortRef.current) {
+      try {
+        abortRef.current.abort();
+      } catch (e) {}
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    try {
+      const response = await axios.get("/pharmacy/", {
+        params: { page, limit, search: q || undefined, fillter: qfilter },
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      setMedicines(response?.data || []);
+      setTotalItems(response?.total);
+      setTotalPages(response?.pages);
+      setCurrentPage(response?.page);
+    } catch (err) {
+      if (err?.name === "CanceledError" || err?.name === "AbortError") {
+      } else {
+        console.error(err);
+        toast.error("Failed to fetch medicines");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchMedicines({
+      page: currentPage,
+      limit: pageSize,
+      q: debouncedSearch,
+      fillter: qfilter,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, debouncedSearch, qfilter]);
+
+  const goToPage = (page) => {
+    if (page === "..." || page === currentPage) return;
+    const target = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(target);
+  };
 
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
     setPageSize(newSize);
-    setCurrentPage(1); // reset to first page when page size changes
+    setCurrentPage(1);
   };
+  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
-        {/* Header */}
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-4 font-weight-bold text-primary">
-            Medicine Inventory
-          </h1>
-          <p className="text-muted lead">
-            Manage your medicine catalog with ease and efficiency
-          </p>
+          <h1 className="display-4 font-weight-bold text-primary">PHARMACY</h1>
         </div>
 
-        {/* Actions */}
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
             <div className="position-relative w-100">
               <Search
                 className="position-absolute"
                 style={{
-                  left: "8px", // left end alignment
-                  top: "50%", // vertical center
+                  left: "8px",
+                  top: "50%",
                   transform: "translateY(-50%)",
                   height: "18px",
                   width: "18px",
                   color: "#6c757d",
-                  pointerEvents: "none", // icon won't capture clicks
+                  pointerEvents: "none",
                 }}
                 aria-hidden="true"
               />
@@ -321,20 +237,27 @@ const InventoryManagement = () => {
                 placeholder="Search medicines..."
                 className={`form-control`}
                 style={{
-                  paddingLeft: "36px", // leave room for the icon
+                  paddingLeft: "36px",
                   paddingRight: "12px",
                   height: "40px",
+                }}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // reset page on new search
                 }}
               />
             </div>
           </div>
+
           <div className="d-flex flex-wrap gap-2 inventory-actions">
-            <Button>+ Add Medicine</Button>
+            <Button onClick={handleAdd}>+ Add Medicine</Button>
             <Button
               type="button"
               className="btn btn-outline-primary text-primary"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              onClick={() => setBulkOpen(true)}
             >
               Bulk Actions
             </Button>
@@ -343,6 +266,30 @@ const InventoryManagement = () => {
               className="btn btn-outline-primary text-primary"
               onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+              onClick={() => {
+                // Basic client-side export of current page as CSV
+                if (!medicines || medicines.length === 0) {
+                  toast.info("No data to export");
+                  return;
+                }
+                const header = Object.keys(medicines[0]);
+                const rows = medicines.map((m) =>
+                  header.map((h) => (m[h] ?? "").toString().replace(/"/g, '""'))
+                );
+                const csv = [
+                  header.join(","),
+                  ...rows.map((r) => r.join(",")),
+                ].join("\n");
+                const blob = new Blob([csv], {
+                  type: "text/csv;charset=utf-8;",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `medicines_page_${currentPage}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
             >
               Export
             </Button>
@@ -353,37 +300,11 @@ const InventoryManagement = () => {
         <div className="row g-3 mb-4">
           <div className="col-12 col-sm-6 col-lg-3">
             <Select
-              placeholder="All Categories"
-              options={[
-                { value: "analgesics", label: "Analgesics" },
-                { value: "antibiotics", label: "Antibiotics" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
               placeholder="All Stock Levels"
+              onChange={(e) => setQfilter(e.target.value)}
               options={[
-                { value: "low", label: "Low Stock" },
-                { value: "normal", label: "Normal" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
-              placeholder="All Suppliers"
-              options={[
-                { value: "medsupply", label: "MedSupply Co" },
-                { value: "pharmadist", label: "PharmaDist Inc" },
-              ]}
-            />
-          </div>
-          <div className="col-12 col-sm-6 col-lg-3">
-            <Select
-              placeholder="All Centers"
-              options={[
-                { value: "center1", label: "Center 1" },
-                { value: "center2", label: "Center 2" },
+                { value: "LOW", label: "Low Stock" },
+                { value: "NORMAL", label: "Normal" },
               ]}
             />
           </div>
@@ -406,7 +327,6 @@ const InventoryManagement = () => {
                 <option value={25}>25</option>
                 <option value={50}>50</option>
               </select>
-              <span className="small text-muted">entries</span>
             </div>
           </div>
 
@@ -418,13 +338,6 @@ const InventoryManagement = () => {
                 onClick={() => setView("table")}
               >
                 <TableIcon className="h-5 w-5" />
-              </Button>
-              <Button
-                variant={view === "cards" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setView("cards")}
-              >
-                <LayoutGrid className="h-5 w-5" />
               </Button>
               <Button
                 variant={view === "analytics" ? "default" : "outline"}
@@ -442,66 +355,115 @@ const InventoryManagement = () => {
           <>
             <div
               className="overflow-auto mb-2"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              style={{ WebkitOverflowScrolling: "touch", maxHeight: "55vh" }}
             >
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead noWrap>Bar Code</TableHead>
+                    <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
-                    <TableHead noWrap>Generic Name</TableHead>
-                    <TableHead noWrap>Category</TableHead>
-                    <TableHead noWrap>Dosage Form</TableHead>
                     <TableHead noWrap>Strength</TableHead>
-                    <TableHead noWrap>Stock</TableHead>
-                    <TableHead noWrap>Reorder Point</TableHead>
+                    <TableHead noWrap>Unit</TableHead>
+                    <TableHead noWrap>Current Stock</TableHead>
+                    <TableHead noWrap>Cost Price</TableHead>
+                    <TableHead noWrap>Value</TableHead>
+                    <TableHead noWrap>M.R.P</TableHead>
+                    <TableHead noWrap>Purchase Price</TableHead>
+                    <TableHead noWrap>Sales Price</TableHead>
                     <TableHead noWrap>Expiry Date</TableHead>
                     <TableHead noWrap>Batch</TableHead>
-                    <TableHead noWrap>Supplier</TableHead>
+                    <TableHead noWrap>Company</TableHead>
+                    <TableHead noWrap>Manufacturer</TableHead>
+                    <TableHead noWrap>Rack Number</TableHead>
                     <TableHead noWrap>Status</TableHead>
                     <TableHead noWrap>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagedMedicines.map((med, i) => (
-                    <TableRow key={i}>
-                      <TableCell
-                        noWrap
-                        className="font-weight-bold text-primary"
-                      >
-                        {med.name}
-                      </TableCell>
-                      <TableCell noWrap>{med.generic}</TableCell>
-                      <TableCell noWrap>{med.category}</TableCell>
-                      <TableCell noWrap>{med.form}</TableCell>
-                      <TableCell noWrap>{med.strength}</TableCell>
-                      <TableCell noWrap>{med.stock}</TableCell>
-                      <TableCell noWrap>{med.reorder}</TableCell>
-                      <TableCell noWrap>{med.expiry}</TableCell>
-                      <TableCell noWrap>{med.batch}</TableCell>
-                      <TableCell noWrap>{med.supplier}</TableCell>
-                      <TableCell noWrap>
-                        <StatusBadge status={med.status} />
-                      </TableCell>
-                      <TableCell noWrap>
-                        <Dropdown
-                          isOpen={dropdownOpen[i] || false}
-                          toggle={() => toggleDropdown(i)}
-                        >
-                          <DropdownToggle
-                            tag="button"
-                            className="btn btn-ghost p-1"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownToggle>
-                          <DropdownMenu end>
-                            <DropdownItem>Edit</DropdownItem>
-                            <DropdownItem>View</DropdownItem>
-                            <DropdownItem>Adjust</DropdownItem>
-                          </DropdownMenu>
-                        </Dropdown>
-                      </TableCell>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={16}>Loading...</TableCell>
                     </TableRow>
-                  ))}
+                  ) : medicines.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={16}>No records found</TableCell>
+                    </TableRow>
+                  ) : (
+                    medicines.map((med) => (
+                      <TableRow key={med._id}>
+                        <TableCell noWrap>
+                          <div
+                            style={{
+                              transform: "scale(0.9)",
+                              transformOrigin: "left center",
+                            }}
+                          >
+                            {med?.code ? (
+                              <Barcode
+                                value={med?.code}
+                                height={30}
+                                // width={1.2}
+                                fontSize={10}
+                                displayValue={true}
+                              />
+                            ) : (
+                              "-"
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.code)}</TableCell>
+                        <TableCell
+                          noWrap
+                          className="font-weight-bold text-primary"
+                        >
+                          {display(med?.medicineName)}
+                        </TableCell>
+                        <TableCell noWrap>
+                          {display(med?.Strength || med?.Strength)}
+                        </TableCell>
+                        <TableCell noWrap>
+                          {display(med?.unitType || med?.unit)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.stock)}</TableCell>
+                        <TableCell noWrap>{display(med?.costprice)}</TableCell>
+                        <TableCell noWrap>{display(med?.value)}</TableCell>
+                        <TableCell noWrap>{display(med?.mrp)}</TableCell>
+                        <TableCell noWrap>
+                          {display(med?.purchasePrice)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.SalesPrice)}</TableCell>
+                        <TableCell noWrap>{display(med?.Expiry)}</TableCell>
+                        <TableCell noWrap>{display(med?.Batch)}</TableCell>
+                        <TableCell noWrap>{display(med?.company)}</TableCell>
+                        <TableCell noWrap>
+                          {display(med?.manufacturer)}
+                        </TableCell>
+                        <TableCell noWrap>{display(med?.RackNum)}</TableCell>
+                        <TableCell noWrap>
+                          <StatusBadge status={med.Status} />
+                        </TableCell>
+                        <TableCell noWrap>
+                          <Dropdown
+                            isOpen={!!dropdownOpen[med._id]}
+                            toggle={() => toggleDropdown(med._id)}
+                          >
+                            <DropdownToggle
+                              tag="button"
+                              className="btn btn-ghost p-1"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownToggle>
+                            <DropdownMenu end>
+                              <DropdownItem onClick={() => handleEdit(med)}>
+                                Edit
+                              </DropdownItem>
+                            </DropdownMenu>
+                          </Dropdown>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -509,8 +471,10 @@ const InventoryManagement = () => {
             {/* Pagination controls */}
             <div className="d-flex justify-content-between align-items-center">
               <div className="small text-muted">
-                Showing {Math.min(startIdx + 1, totalItems)} to{" "}
-                {Math.min(endIdx, totalItems)} of {totalItems} entries
+                Showing{" "}
+                {totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{" "}
+                {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
+                entries
               </div>
 
               <nav>
@@ -522,25 +486,30 @@ const InventoryManagement = () => {
                   >
                     <button
                       className="page-link"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
                     >
                       Previous
                     </button>
                   </li>
 
-                  {pageNumbers.map((num) => (
+                  {getPageRange(totalPages, currentPage, 7).map((p, idx) => (
                     <li
-                      key={num}
+                      key={`${p}-${idx}`}
                       className={`page-item ${
-                        num === currentPage ? "active" : ""
-                      }`}
+                        p === currentPage ? "active" : ""
+                      } ${p === "..." ? "disabled" : ""}`}
                     >
-                      <button
-                        className="page-link"
-                        onClick={() => setCurrentPage(num)}
-                      >
-                        {num}
-                      </button>
+                      {p === "..." ? (
+                        <span className="page-link">...</span>
+                      ) : (
+                        <button
+                          className="page-link"
+                          onClick={() => goToPage(p)}
+                        >
+                          {p}
+                        </button>
+                      )}
                     </li>
                   ))}
 
@@ -552,8 +521,9 @@ const InventoryManagement = () => {
                     <button
                       className="page-link"
                       onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        goToPage(Math.min(totalPages, currentPage + 1))
                       }
+                      disabled={currentPage === totalPages}
                     >
                       Next
                     </button>
@@ -564,49 +534,32 @@ const InventoryManagement = () => {
           </>
         )}
 
-        {/* Cards View */}
-        {view === "cards" && (
-          <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
-            {demoMedicines.map((med, i) => (
-              <div className="col" key={i}>
-                <Card>
-                  <CardContent>
-                    <h2 className="h5 font-weight-bold text-primary">
-                      {med.name}
-                    </h2>
-                    <p className="text-muted small">
-                      {med.generic} • {med.category}
-                    </p>
-                    <p className="small">
-                      Form: {med.form}, Strength: {med.strength}
-                    </p>
-                    <p className="small">
-                      Stock: {med.stock} (Reorder: {med.reorder})
-                    </p>
-                    <p className="small">Expiry: {med.expiry}</p>
-                    <p className="small">Batch: {med.batch}</p>
-                    <p className="small">Supplier: {med.supplier}</p>
-                    <StatusBadge status={med.status} />
-                    <div className="d-flex flex-wrap gap-2 mt-3">
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Adjust
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Analytics View */}
-        {view === "analytics" && <AnalyticsView medicines={demoMedicines} />}
+        {view === "analytics" && <AnalyticsView medicines={medicines} />}
+
+        <Modal
+          isOpen={modalOpen}
+          toggle={() => setModalOpen(!modalOpen)}
+          size="xl"
+          scrollable
+          backdrop="static"
+        >
+          <ModalHeader toggle={() => setModalOpen(false)}>
+            {editingMedicine ? "Edit Medicine" : "Add Medicine"}
+          </ModalHeader>
+          <ModalBody>
+            <AddinventoryMedicine
+              defaultValues={editingMedicine || {}}
+              onSubmit={handleFormSubmit}
+            />
+          </ModalBody>
+        </Modal>
+
+        <BulkImportModal
+          isOpen={bulkOpen}
+          toggle={() => setBulkOpen(!bulkOpen)}
+          onImport={handleBulkImport}
+        />
       </div>
     </CardBody>
   );
