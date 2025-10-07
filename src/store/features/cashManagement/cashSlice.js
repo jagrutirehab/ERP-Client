@@ -18,7 +18,7 @@ const initialState = {
   baseBalance: [],
   lastBaseBalance: null,
   detailedReport: {},
-  summaryReport: [],
+  summaryReport: {},
   isUptoDate: true,
 };
 

@@ -74,7 +74,7 @@ const Print = ({
                         doctor={doctor}
                       />
                     }
-                    fileName={`${patient?.name || 'chart'}.pdf`}
+                    fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-chart.pdf`}
                     className="btn btn-primary btn-sm"
                   >
                     {({ loading }) =>
@@ -98,7 +98,7 @@ const Print = ({
                         admission={admission}
                       />
                     }
-                    fileName={`${patient?.name || 'bill'}.pdf`}
+                    fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-bill.pdf`}
                     className="btn btn-primary btn-sm"
                   >
                     {({ loading }) =>
@@ -122,7 +122,7 @@ const Print = ({
                         admission={admission}
                       />
                     }
-                    fileName={`${intern?.name || 'intern_bill'}.pdf`}
+                    fileName={`${intern?.id?.value}-${(intern?.name || 'intern').replace(/\s+/g, '_')}-reciept.pdf`}
                     className="btn btn-primary btn-sm"
                   >
                     {({ loading }) =>
@@ -145,7 +145,7 @@ const Print = ({
                         patient={patient}
                       />
                     }
-                    fileName={`${patient?.name || 'charts'}.pdf`}
+                    fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-charts.pdf`}
                     className="btn btn-primary btn-sm"
                   >
                     {({ loading }) =>
@@ -169,7 +169,7 @@ const Print = ({
                       intern={intern}
                     />
                   }
-                  fileName={`${intern?.name || 'intern_bill'}.pdf`}
+                  fileName={`${intern?.id?.value}-${(intern?.name || 'intern').replace(/\s+/g, '_')}-reciept.pdf`}
                   className="btn btn-primary btn-sm"
                 >
                   {({ loading }) =>

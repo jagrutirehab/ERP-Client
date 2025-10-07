@@ -65,152 +65,172 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
   }, [intern, details]);
 
   return (
-    <div style={pageContainer}>
-      {/* Header (optional) */}
-      <div style={{ marginBottom: "20px" }}>
-        <PrintHeader intern={intern} pageWidth={window.innerWidth} />
-      </div>
+    <>
+      <style>
+        {`
+      @media (max-width: 768px) {
+        .intern-name-input {
+          width: calc(100% - 30px) !important;
+          max-width: 300px !important;
+        }
+      }
+    `}
+      </style>
+      <div style={pageContainer}>
+        {/* Header (optional) */}
+        <div style={{ marginBottom: "20px" }}>
+          <PrintHeader intern={intern} pageWidth={window.innerWidth} />
+        </div>
 
-      {/* Title */}
-      <div style={heading}>Intern’s Undertaking Form</div>
+        {/* Title */}
+        <div style={heading}>Intern’s Undertaking Form</div>
 
-      {/* Section 6: Acknowledgment */}
-      <div style={subHeading}>6. Acknowledgment</div>
+        {/* Section 6: Acknowledgment */}
+        <div style={subHeading}>6. Acknowledgment</div>
 
-      <div style={section}>
-        I,
-        <input
-          type="text"
-          defaultValue={intern?.name}
-          {...(register ? register("ack_intern_name") : {})}
-          placeholder="(name of intern)"
+        <div style={section}>
+          <span style={{ display: 'inline-block' }}>
+            I,
+            <input
+              type="text"
+              defaultValue={intern?.name}
+              {...(register ? register("ack_intern_name") : {})}
+              placeholder="(name of intern)"
+              style={{
+                ...inputLine,
+                width: "460px",
+                marginLeft: "8px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+              className="intern-name-input"
+            />
+            ,
+          </span>
+          {" "}have read, understood, and agree to the terms of this Undertaking and
+          Consent Form. I confirm that I will uphold professional boundaries and
+          adhere to the protocol outlined above during my internship at{" "}
+          <span style={bold}>Jagruti Rehabilitation Centre</span>.
+        </div>
+
+        <div style={{ marginTop: "18px", marginBottom: "8px" }}>
+          Signature:
+          <input
+            type="text"
+            {...(register ? register("ack_signature") : {})}
+            style={{ ...smallInput, marginLeft: "10px" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "24px" }}>
+          Date:
+          <input
+            type="date"
+            {...(register ? register("ack_date") : {},
+            {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+              },
+            })}
+            defaultValue={new Date().toISOString().split("T")[0]}
+            style={{
+              ...smallInput,
+              marginLeft: "55px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          />
+        </div>
+
+        {/* Jagruti Representative */}
+        <div style={subHeading}>Jagruti Rehabilitation Centre Representative</div>
+
+        <div style={section}>
+          <span style={{ display: 'inline-block' }}>
+            I,
+            <input
+              type="text"
+              defaultValue={intern?.name}
+              {...(register ? register("rep_name") : {})}
+              placeholder="(representative name)"
+              style={{
+                ...inputLine,
+                width: "460px",
+                marginLeft: "8px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+              className="intern-name-input"
+            />
+            ,
+          </span>
+          {" "}confirm that the terms of this Form have been explained to the intern,
+          and they have agreed to comply with the protocol.
+        </div>
+
+        <div style={{ marginTop: "18px", marginBottom: "8px" }}>
+          Staff Signature:
+          <input
+            type="text"
+            {...(register ? register("rep_signature") : {})}
+            style={{ ...smallInput, marginLeft: "10px" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "8px" }}>
+          Designation:
+          <input
+            type="text"
+            defaultValue={details?.position}
+            {...(register ? register("rep_designation") : {})}
+            style={{
+              ...smallInput,
+              marginLeft: "22px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: "8px" }}>
+          Date:
+          <input
+            type="date"
+            {...(register ? register("rep_date") : {},
+            {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
+              },
+            })}
+            defaultValue={new Date().toISOString().split("T")[0]}
+            style={{
+              ...smallInput,
+              marginLeft: "75px",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          />
+        </div>
+
+        {/* Footer */}
+        <div
           style={{
-            ...inputLine,
-            width: "460px",
-            marginLeft: "8px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
+            marginTop: "80px",
+            borderTop: "1px solid #ccc",
+            paddingTop: "8px",
+            textAlign: "center",
+            fontSize: "11px",
+            color: "#444",
           }}
-        />
-        , have read, understood, and agree to the terms of this Undertaking and
-        Consent Form. I confirm that I will uphold professional boundaries and
-        adhere to the protocol outlined above during my internship at{" "}
-        <span style={bold}>Jagruti Rehabilitation Centre</span>.
+        >
+          🌐 www.jagrutirehab.org &nbsp;&nbsp; | &nbsp;&nbsp; 📞 +91-9822207761
+        </div>
       </div>
-
-      <div style={{ marginTop: "18px", marginBottom: "8px" }}>
-        Signature:
-        <input
-          type="text"
-          {...(register ? register("ack_signature") : {})}
-          style={{ ...smallInput, marginLeft: "10px" }}
-        />
-      </div>
-
-      <div style={{ marginBottom: "24px" }}>
-        Date:
-        <input
-          type="date"
-          {...(register ? register("ack_date") : {},
-          {
-            setValueAs: (val) => {
-              if (!val) return "";
-              const [year, month, day] = val.split("-");
-              return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
-            },
-          })}
-          defaultValue={new Date().toISOString().split("T")[0]}
-          style={{
-            ...smallInput,
-            marginLeft: "55px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-          }}
-        />
-      </div>
-
-      {/* Jagruti Representative */}
-      <div style={subHeading}>Jagruti Rehabilitation Centre Representative</div>
-
-      <div style={section}>
-        I,
-        <input
-          type="text"
-          defaultValue={intern?.name}
-          {...(register ? register("rep_name") : {})}
-          placeholder="(representative name)"
-          style={{
-            ...inputLine,
-            width: "460px",
-            marginLeft: "8px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-          }}
-        />
-        , confirm that the terms of this Form have been explained to the intern,
-        and they have agreed to comply with the protocol.
-      </div>
-
-      <div style={{ marginTop: "18px", marginBottom: "8px" }}>
-        Staff Signature:
-        <input
-          type="text"
-          {...(register ? register("rep_signature") : {})}
-          style={{ ...smallInput, marginLeft: "10px" }}
-        />
-      </div>
-
-      <div style={{ marginBottom: "8px" }}>
-        Designation:
-        <input
-          type="text"
-          defaultValue={details?.position}
-          {...(register ? register("rep_designation") : {})}
-          style={{
-            ...smallInput,
-            marginLeft: "22px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: "8px" }}>
-        Date:
-        <input
-          type="date"
-          {...(register ? register("rep_date") : {},
-          {
-            setValueAs: (val) => {
-              if (!val) return "";
-              const [year, month, day] = val.split("-");
-              return `${day}/${month}/${year}`; // convert to DD/MM/YYYY
-            },
-          })}
-          defaultValue={new Date().toISOString().split("T")[0]}
-          style={{
-            ...smallInput,
-            marginLeft: "75px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-          }}
-        />
-      </div>
-
-      {/* Footer */}
-      <div
-        style={{
-          marginTop: "80px",
-          borderTop: "1px solid #ccc",
-          paddingTop: "8px",
-          textAlign: "center",
-          fontSize: "11px",
-          color: "#444",
-        }}
-      >
-        🌐 www.jagrutirehab.org &nbsp;&nbsp; | &nbsp;&nbsp; 📞 +91-9822207761
-      </div>
-    </div>
+    </>
   );
 };
 

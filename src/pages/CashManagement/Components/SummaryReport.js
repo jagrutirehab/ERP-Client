@@ -45,7 +45,7 @@ const SummaryReport = ({
     );
   }
 
-  if (!summaryReport || summaryReport?.length === 0) {
+  if (!summaryReport || summaryReport.data?.length === 0) {
     return (
       <TabPane tabId="summary" className="text-center py-5">
         <p className="text-muted">
@@ -57,8 +57,15 @@ const SummaryReport = ({
 
   return (
     <TabPane tabId="summary">
+      <Col className="mb-2">
+        <div className="d-flex justify-content-end">
+          <span className="fw-bold fs-6 fs-md-5">
+            Total Ending Balance: {formatCurrency(summaryReport?.totalCurrentBalance || 0)}
+          </span>
+        </div>
+      </Col>
       <Row>
-        {summaryReport?.map((data) => (
+        {summaryReport?.data?.map((data) => (
           <Col key={data.center._id} xs="12" md="6" xl="3" className="mb-4">
             <Card className="shadow-sm h-100 hover-shadow bg-white">
               <CardBody>

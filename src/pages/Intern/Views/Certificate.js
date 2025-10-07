@@ -22,6 +22,7 @@ import CertificateTemplate from "./Components/CertificateTemplate";
 import { editInternForm, fetchDoctors } from "../../../store/actions";
 import { useParams } from "react-router-dom";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { toast } from "react-toastify";
 
 const Certificate = ({ intern, psychologists }) => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const Certificate = ({ intern, psychologists }) => {
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [certificateType, setCertificateType] = useState("");
 
   const certificateRef = useRef(null);
@@ -66,7 +68,7 @@ const Certificate = ({ intern, psychologists }) => {
     const cert = intern.certificate;
 
     if (!needsRegeneration(cert, type)) {
-      downloadPDF(cert.url);
+      downloadPDF(cert.url, cert.originalName);
       return;
     }
 
@@ -80,7 +82,7 @@ const Certificate = ({ intern, psychologists }) => {
     try {
       const { pdfBlob, fileName } = await generateCertificate(certificateType);
 
-      downloadPDF(URL.createObjectURL(pdfBlob));
+      downloadPDF(URL.createObjectURL(pdfBlob), fileName);
 
       const formData = new FormData();
       formData.append("psychologist", selectedPsychologist.value);
@@ -107,7 +109,7 @@ const Certificate = ({ intern, psychologists }) => {
       setIsGenerating(true);
       const { pdfBlob, fileName } = await generateCertificate(type);
 
-      downloadPDF(URL.createObjectURL(pdfBlob));
+      downloadPDF(URL.createObjectURL(pdfBlob), fileName);
 
       const formData = new FormData();
       formData.append("certificateType", type);
@@ -152,26 +154,31 @@ const Certificate = ({ intern, psychologists }) => {
   };
 
   const downloadPDF = async (url, fileName) => {
-    if (isMobile) {
-      window.open(url, "_blank");
-    } else {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
+    setIsDownloading(true);
+    try {
+      if (isMobile) {
+        window.open(url, "_blank");
+        return;
+      } else {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
 
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = `${intern.id.value}-${intern.name}-certificate.pdf`;
-      document.body.appendChild(link);
-      link.click();
-
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      }, 100);
+        setTimeout(() => {
+          document.body.removeChild(link);
+          if (url.startsWith("blob:")) {
+            URL.revokeObjectURL(url);
+          }
+        }, 100);
+      }
+    } catch (e) {
+      console.error("Error while downloading PDF:", e);
+    } finally {
+      setIsDownloading(false);
     }
   };
-
 
   return (
     <>
@@ -185,10 +192,10 @@ const Certificate = ({ intern, psychologists }) => {
                 size="sm"
                 outline
                 disabled={
-                  isGenerating || loading || intern.internStatus === "completed"
+                  isGenerating || loading || intern.internStatus === "completed" || isDownloading
                 }
               >
-                {isGenerating && certificateType === "ONGOING" ? (
+                {(isGenerating || isDownloading) && certificateType === "ONGOING" ? (
                   <>
                     <Spinner color="primary" size="sm" className="me-2" />
                     Download Ongoing Certificate
@@ -203,10 +210,10 @@ const Certificate = ({ intern, psychologists }) => {
                 size="sm"
                 outline
                 disabled={
-                  intern.internStatus !== "completed" || isGenerating || loading
+                  intern.internStatus !== "completed" || isGenerating || loading || isDownloading
                 }
               >
-                {isGenerating && certificateType === "COMPLETED" ? (
+                {(isGenerating || isDownloading) && certificateType === "COMPLETED" ? (
                   <>
                     <Spinner color="primary" size="sm" className="me-2" />
                     Download Completion Certificate
