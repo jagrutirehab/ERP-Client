@@ -92,19 +92,45 @@ const DetailedReport = ({
     {
       name: "Type",
       selector: (row) => {
-        if (row.type === "BASEBALANCE") {
+        if (row.transactionCategory === "BASEBALANCE") {
           return (
             <Badge color="warning" className="text-dark">
               BASE BALANCE
             </Badge>
           );
-        } else if (row.type === "SPENDING" || row.type === "BANKDEPOSIT") {
+        } else if (row.transactionCategory === "SPENDING" || row.transactionCategory === "BANKDEPOSIT") {
           return (
             <Badge color="danger">
-              {row.type.charAt(0).toUpperCase() + row.type.slice(1)}
+              {row.transactionCategory}
+            </Badge>
+          )
+        }
+        else if (row.transactionCategory === "RECEIPT" && row.source === "INTERNBILL") {
+          return (
+            <Badge color="success">
+              INTERN RECEIPT
             </Badge>
           );
-        } else {
+        } else if (row.transactionCategory === "INVOICE" & row.transactionType === "OPD") {
+          return (
+            <Badge color="success">
+              OPD
+            </Badge>
+          );
+        } else if (row.transactionCategory === "ADVANCE_PAYMENT") {
+          return (
+            <Badge color="success">
+              IPD
+            </Badge>
+          );
+        } else if (row.transactionCategory === "DEPOSIT") {
+          return (
+            <Badge color="success">
+              DEPOSIT-OLIVE
+            </Badge>
+          )
+        }
+        else {
           return "-";
         }
       },
@@ -221,6 +247,10 @@ const DetailedReport = ({
               <option value="BASEBALANCE">Base Balances</option>
               <option value="BANKDEPOSIT">Bank Deposits</option>
               <option value="SPENDING">Spendings</option>
+              <option value="IPD">IPD Payments</option>
+              <option value="DEPOSIT-OLIVE">Deposit-Olive payments</option>
+              <option value="OPD">OPD Payments</option>
+              <option value="INTERN">Intern Payments</option>
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>
