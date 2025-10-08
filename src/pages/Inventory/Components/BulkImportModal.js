@@ -35,9 +35,10 @@ const isNumericField = (field) =>
     "SalesPrice",
   ].includes(field);
 
-const BulkImportModal = ({ isOpen, toggle, onImport }) => {
+const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [uploadedData, setUploadedData] = useState([]);
   const [headerRowIndex, setHeaderRowIndex] = useState(0);
+
   const emptyMapping = () =>
     dbFields.reduce((acc, f) => {
       acc[f] = "";
@@ -47,18 +48,68 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
   const [columnMapping, setColumnMapping] = useState(emptyMapping());
 
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedCount, setUploadedCount] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // 0..100
+  const [uploadedCount, setUploadedCount] = useState(0); // inserted items count
+  const [totalCount, setTotalCount] = useState(0); // total items to process
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [totalChunks, setTotalChunks] = useState(0);
   const [failedChunks, setFailedChunks] = useState([]);
   const [uploadDone, setUploadDone] = useState(false);
+  const [skippedCountTotal, setSkippedCountTotal] = useState(0);
+
+  // MULTI centers: store as array of centerId strings
+  const [selectedCenters, setSelectedCenters] = useState([]);
+  const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
+
   const containerRef = useRef(null);
   const svgRef = useRef(null);
   const dbRefs = useRef({});
   const fileRefs = useRef({});
   const endpoint = "/pharmacy/bulk-insert";
+
+  // refs (mutable, keep accurate across async callbacks)
+  const uploadedRef = useRef(0); // inserted items
+  const skippedRef = useRef(0); // skipped items
+  const totalItemsRef = useRef(0); // total items
+  const chunksTotalRef = useRef(0); // number of chunks
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedCenters([]);
+    } else {
+      setUploadedData([]);
+      setColumnMapping(emptyMapping());
+      setHeaderRowIndex(0);
+      setUploadProgress(0);
+      setUploadedCount(0);
+      setTotalCount(0);
+      setCurrentChunkIndex(0);
+      setTotalChunks(0);
+      setFailedChunks([]);
+      setUploadDone(false);
+      setSkippedCountTotal(0);
+      setSelectedCenters([]);
+      setCenterDropdownOpen(false);
+      uploadedRef.current = 0;
+      skippedRef.current = 0;
+      totalItemsRef.current = 0;
+      chunksTotalRef.current = 0;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, user]);
+
+  // close center dropdown on outside click
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target)) {
+        setCenterDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -81,9 +132,15 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
       setUploadProgress(0);
       setUploadedCount(0);
       setFailedChunks([]);
+      setSkippedCountTotal(0);
+      uploadedRef.current = 0;
+      skippedRef.current = 0;
+      totalItemsRef.current = 0;
+      chunksTotalRef.current = 0;
     };
     reader.readAsArrayBuffer(file);
   };
+
   const buildMappedObjects = () => {
     const rows = uploadedData.slice(headerRowIndex + 1);
     const mapped = rows.map((row) => {
@@ -107,64 +164,126 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
           }
         }
       });
+
+      // attach centers: for each selected center assign the row's stock value (if any)
+      if (Array.isArray(selectedCenters) && selectedCenters.length > 0) {
+        const stockVal =
+          typeof obj.stock === "number" ? obj.stock : Number(obj.stock || 0);
+        obj.centers = selectedCenters.map((centerId) => ({
+          centerId,
+          stock: Number.isFinite(stockVal) ? stockVal : 0,
+        }));
+      }
+
+      obj.deleted = false;
+
       return obj;
     });
-    return mapped;
+
+    // Keep rows with at least one non-meta field mapped
+    const filtered = mapped.filter((o) => {
+      const keys = Object.keys(o).filter(
+        (k) => k !== "deleted" && k !== "centers"
+      );
+      return keys.length > 0;
+    });
+
+    return filtered;
   };
 
+  /**
+   * Send a chunk with retries.
+   * onUploadProgress converts byte progress into estimated items processed in this chunk,
+   * combines with already-processed items and updates UI progress (clamped 0..100).
+   */
   const sendChunkWithRetry = async (chunkData, chunkIndex, maxAttempts = 3) => {
     let attempt = 0;
     while (attempt < maxAttempts) {
       attempt++;
       try {
-        await axios.post(endpoint, chunkData, {
+        const resp = await axios.post(endpoint, chunkData, {
           headers: { "Content-Type": "application/json" },
           timeout: 0,
           onUploadProgress: (progressEvent) => {
-            if (!totalChunks) return;
-            if (progressEvent.total) {
-              const chunkPercent = progressEvent.loaded / progressEvent.total; // 0..1
-              const overall = Math.round(
-                ((chunkIndex + chunkPercent) / totalChunks) * 100
-              );
-              setUploadProgress((prev) => Math.max(prev, overall));
-            }
+            // progressEvent may be undefined depending on the environment.
+            if (!progressEvent || !progressEvent.total) return;
+
+            // estimate item-based progress:
+            // alreadyProcessed = uploadedRef + skippedRef (items)
+            const alreadyProcessed = uploadedRef.current + skippedRef.current;
+
+            const chunkItems = chunkData.length || 1;
+            const byteRatio = Math.min(
+              1,
+              Math.max(0, progressEvent.loaded / progressEvent.total)
+            ); // 0..1
+
+            // estimated items processed in current chunk based on bytes
+            const estimatedCurrentChunkItems = chunkItems * byteRatio;
+
+            const totalItems = Math.max(1, totalItemsRef.current);
+
+            const estimatedProcessedTotal =
+              alreadyProcessed + estimatedCurrentChunkItems;
+
+            let pct = Math.round((estimatedProcessedTotal / totalItems) * 100);
+
+            // clamp
+            pct = Math.max(0, Math.min(100, pct));
+
+            // only update when it moves forward
+            setUploadProgress((prev) => Math.max(prev, pct));
           },
         });
-        return { success: true };
+
+        const data = resp.data || {};
+        const inserted = Number(data.insertedCount ?? data.count ?? 0);
+        const skipped =
+          Number(
+            data.skippedCount ?? Math.max(0, chunkData.length - inserted)
+          ) || 0;
+        return { success: true, inserted, skipped };
       } catch (err) {
-        toast.warn(`Chunk ${chunkIndex} attempt ${attempt} failed`, err);
+        toast.warn(`Chunk ${chunkIndex} attempt ${attempt} failed`);
         if (attempt >= maxAttempts) {
           return { success: false, error: err };
         }
+        
         // eslint-disable-next-line no-loop-func
         await new Promise((r) => setTimeout(r, 600 * attempt));
       }
     }
+    return { success: false, error: new Error("Unknown error") };
   };
 
-  const handleImport = async ({ chunkSize = 10 } = {}) => {
+  const handleImport = async ({ chunkSize = 100 } = {}) => {
     const mappedData = buildMappedObjects();
     const totalItemsLocal = mappedData.length;
     if (!totalItemsLocal) {
-      alert("No data to import (either no rows or mapped cells are empty).");
+      toast.info("No data to import (no rows or no mapped fields).");
       return;
     }
 
+    // reset refs and UI
+    uploadedRef.current = 0;
+    skippedRef.current = 0;
+    totalItemsRef.current = totalItemsLocal;
     setUploading(true);
     setUploadProgress(0);
     setUploadedCount(0);
     setTotalCount(totalItemsLocal);
     setFailedChunks([]);
     setUploadDone(false);
+    setSkippedCountTotal(0);
 
+    // create chunks
     const chunks = [];
     for (let i = 0; i < totalItemsLocal; i += chunkSize) {
       chunks.push(mappedData.slice(i, i + chunkSize));
     }
-
     const chunksTotal = chunks.length;
     setTotalChunks(chunksTotal);
+    chunksTotalRef.current = chunksTotal;
 
     const beforeUnload = (e) => {
       e.preventDefault();
@@ -177,6 +296,7 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
         setCurrentChunkIndex(i);
         const chunk = chunks[i];
 
+        // send chunk (onUploadProgress will estimate within-chunk progress)
         const result = await sendChunkWithRetry(chunk, i, 3);
 
         if (!result.success) {
@@ -188,29 +308,63 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
               error: result.error?.message || "unknown",
             },
           ]);
+          toast.error(`Chunk ${i} failed after retries.`);
         } else {
-          setUploadedCount((prev) => {
-            const newCount = prev + chunk.length;
-            setUploadProgress(Math.round((newCount / totalItemsLocal) * 100));
-            return newCount;
-          });
+          const inserted = result.inserted ?? 0;
+          const skipped =
+            result.skipped ?? Math.max(0, chunk.length - inserted);
+
+          // update refs (synchronous) and then update visible state
+          uploadedRef.current += inserted;
+          skippedRef.current += skipped;
+
+          setUploadedCount(uploadedRef.current);
+          setSkippedCountTotal(skippedRef.current);
+
+          // compute percent based on processed items (guaranteed <= totalItemsLocal)
+          const processed = uploadedRef.current + skippedRef.current;
+          let pct = Math.round(
+            (processed / Math.max(1, totalItemsLocal)) * 100
+          );
+          pct = Math.max(0, Math.min(100, pct));
+          setUploadProgress(pct);
+
+          if (inserted < chunk.length) {
+            toast.info(
+              `Chunk ${i}: inserted ${inserted}/${chunk.length}, skipped ${skipped}`
+            );
+          }
         }
 
-        // Force a tiny delay to let React render progress bar
+        // tiny delay to allow UI updates
+        // eslint-disable-next-line no-await-in-loop
         await new Promise((r) => setTimeout(r, 50));
       }
 
+      // final clamp and UI updates
       setUploadProgress(100);
       setUploadDone(failedChunks.length === 0);
+
+      const finalInserted = uploadedRef.current;
+      const finalSkipped = skippedRef.current;
+      if (failedChunks.length === 0) {
+        toast.success(
+          `Import finished: inserted ${finalInserted}, skipped ${finalSkipped}`
+        );
+      } else {
+        toast.warn(
+          `Import finished with ${failedChunks.length} failed chunk(s). Inserted: ${finalInserted}, skipped: ${finalSkipped}`
+        );
+      }
     } catch (err) {
       toast.error("Upload failed unexpectedly");
+      console.error(err);
     } finally {
       setUploading(false);
       window.removeEventListener("beforeunload", beforeUnload);
     }
   };
 
-  // Retry only failed chunks
   const retryFailed = async () => {
     if (!failedChunks.length) return;
     setUploading(true);
@@ -232,13 +386,28 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
             error: result.error?.message || "unknown",
           });
         } else {
-          setUploadedCount((prev) => prev + item.data.length);
+          const inserted = result.inserted ?? 0;
+          const skipped =
+            result.skipped ?? Math.max(0, item.data.length - inserted);
+
+          uploadedRef.current += inserted;
+          skippedRef.current += skipped;
+          setUploadedCount(uploadedRef.current);
+          setSkippedCountTotal(skippedRef.current);
+
+          const processed = uploadedRef.current + skippedRef.current;
+          let pct = Math.round((processed / Math.max(1, totalCount)) * 100);
+          pct = Math.max(0, Math.min(100, pct));
+          setUploadProgress(pct);
         }
       }
       setFailedChunks(remaining);
       if (remaining.length === 0) {
         setUploadDone(true);
         setUploadProgress(100);
+        toast.success("All failed chunks retried successfully");
+      } else {
+        toast.warn(`${remaining.length} chunk(s) still failing`);
       }
     } finally {
       setUploading(false);
@@ -246,7 +415,7 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
     }
   };
 
-  // Draw mapping lines
+  // Draw mapping lines (unchanged)
   const drawLines = () => {
     const svg = svgRef.current;
     const container = containerRef.current;
@@ -306,18 +475,34 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Derived arrays
   const fileColumns = uploadedData[headerRowIndex] || [];
   const dataPreview = uploadedData.slice(
     headerRowIndex + 1,
     headerRowIndex + 11
-  ); // top 10 data rows
+  );
 
   const onMapChange = (field, value) => {
     setColumnMapping((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  // helper: available centers = all - selected
+  const allCenters = user?.userCenters || [];
+  const availableCenters = allCenters.filter(
+    (c) => !selectedCenters.includes(String(c?._id))
+  );
+
+  const handleAddCenter = (centerId) => {
+    if (uploading) return;
+    setSelectedCenters((prev) => [...prev, String(centerId)]);
+    setCenterDropdownOpen(true); // keep open for multi-select UX
+  };
+
+  const handleRemoveCenter = (centerId) => {
+    if (uploading) return;
+    setSelectedCenters((prev) => prev.filter((id) => id !== String(centerId)));
   };
 
   return (
@@ -331,6 +516,161 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
         Bulk Import Medicines
       </ModalHeader>
       <ModalBody>
+        {/* Custom Multi-select Centers */}
+        <div className="mb-3" ref={containerRef}>
+          <label
+            htmlFor="centersMultiCustom"
+            style={{
+              marginBottom: "8px",
+              fontWeight: "600",
+              fontSize: "14px",
+              color: "#4a5568",
+              display: "block",
+            }}
+          >
+            Select Centers (click to open)
+          </label>
+
+          <div
+            id="centersMultiCustom"
+            style={{
+              border: "1px solid #e2e8f0",
+              borderRadius: 8,
+              padding: "8px 10px",
+              minHeight: 44,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+              backgroundColor: uploading ? "#f8f9fa" : "white",
+              cursor: uploading ? "not-allowed" : "pointer",
+            }}
+            onClick={() => {
+              if (!uploading) setCenterDropdownOpen((s) => !s);
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (!uploading) setCenterDropdownOpen((s) => !s);
+              }
+            }}
+          >
+            {selectedCenters.length === 0 && (
+              <div style={{ color: "#6c757d" }}>No centers selected</div>
+            )}
+            {selectedCenters.map((id) => {
+              const c = allCenters.find((x) => String(x?._id) === String(id));
+              return (
+                <div
+                  key={id}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "6px 10px",
+                    backgroundColor: "#e9f2ff",
+                    border: "1px solid #d0e6ff",
+                    borderRadius: 999,
+                    fontSize: 13,
+                  }}
+                >
+                  <span>{c?.title ?? id}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveCenter(id);
+                    }}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      padding: 0,
+                      margin: 0,
+                      lineHeight: 1,
+                      fontWeight: 700,
+                    }}
+                    aria-label={`Remove ${c?.title ?? id}`}
+                    disabled={uploading}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+
+            <div style={{ marginLeft: "auto", paddingLeft: 8 }}>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  transform: centerDropdownOpen ? "rotate(180deg)" : "none",
+                }}
+              >
+                <path
+                  d="M6 9l6 6 6-6"
+                  fill="none"
+                  stroke="#495057"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {centerDropdownOpen && !uploading && (
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                marginTop: 8,
+                maxHeight: 220,
+                overflow: "auto",
+                background: "white",
+                boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+                zIndex: 9999,
+                position: "relative",
+              }}
+            >
+              {availableCenters.length === 0 ? (
+                <div style={{ padding: 12, color: "#6c757d" }}>
+                  No more centers
+                </div>
+              ) : (
+                availableCenters.map((c) => (
+                  <div
+                    key={c?._id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddCenter(c?._id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCenter(c?._id);
+                      }
+                    }}
+                    style={{
+                      padding: "10px 12px",
+                      borderBottom: "1px solid #f1f3f5",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {c?.title}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
         {/* File selector */}
         <div className="mb-3">
           <input
@@ -375,11 +715,9 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
             }}
           >
             {dbFields.map((field) => {
-              // used indices as strings
               const usedIndices = Object.values(columnMapping).filter(
                 (v) => v !== "" && v !== undefined
               );
-              // allow this field's currently selected index even if in usedIndices
               return (
                 <div
                   key={field}
@@ -521,7 +859,7 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
           </div>
         )}
 
-        {/* Progress & actions */}
+        {/* Progress overlay */}
         {uploading && (
           <div
             style={{
@@ -533,8 +871,8 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "rgba(0,0,0,0.4)", // semi-transparent dark overlay
-              backdropFilter: "blur(5px)", // blurry effect
+              backgroundColor: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(5px)",
               zIndex: 9999,
             }}
           >
@@ -557,6 +895,9 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
                 {uploadedCount} / {totalCount} items uploaded • Chunk{" "}
                 {currentChunkIndex + 1} / {totalChunks}
               </div>
+              <div className="mb-2 small text-muted">
+                Skipped (duplicates): {skippedCountTotal}
+              </div>
               <div
                 style={{
                   display: "flex",
@@ -568,7 +909,11 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
                 }}
               >
                 <Typeloader />
-                <Progress value={uploadProgress} animated style={{width:"100%"}}>
+                <Progress
+                  value={uploadProgress}
+                  animated
+                  style={{ width: "100%" }}
+                >
                   {uploadProgress}%
                 </Progress>
               </div>
@@ -578,7 +923,8 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
 
         {!uploading && uploadDone && (
           <div className="alert alert-success text-center fw-bold">
-            ✅ Upload complete (uploaded {uploadedCount} items)
+            ✅ Upload complete (inserted {uploadedCount} items, skipped{" "}
+            {skippedCountTotal})
           </div>
         )}
 
@@ -586,6 +932,13 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
           <div className="alert alert-danger">
             <div>
               <strong>{failedChunks.length}</strong> chunk(s) failed.
+            </div>
+            <div style={{ marginTop: 8 }}>
+              {failedChunks.map((f) => (
+                <div key={f.index}>
+                  Chunk {f.index}: {f.data.length} items — error: {f.error}
+                </div>
+              ))}
             </div>
             <div className="mt-2 d-flex gap-2">
               <Button onClick={retryFailed}>Retry Failed</Button>
@@ -611,7 +964,7 @@ const BulkImportModal = ({ isOpen, toggle, onImport }) => {
           </Button>
 
           <Button
-            onClick={() => handleImport({ chunkSize: 10 })}
+            onClick={() => handleImport({ chunkSize: 100 })}
             disabled={
               uploading ||
               !Object.values(columnMapping).some(

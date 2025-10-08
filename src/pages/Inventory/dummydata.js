@@ -114,15 +114,3 @@ export const medicines = [
                         <LayoutGrid className="h-5 w-5" />
                       </Button> */
 }
-
-{
-  /* <div className="col-12 col-sm-6 col-lg-3">
-            <Select
-              placeholder="All Centers"
-              options={[
-                { value: "center1", label: "Center 1" },
-                { value: "center2", label: "Center 2" },
-              ]}
-            />
-          </div> */
-}

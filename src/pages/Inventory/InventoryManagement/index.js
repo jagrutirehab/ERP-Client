@@ -41,6 +41,11 @@ import BulkImportModal from "../Components/BulkImportModal";
 import { toast } from "react-toastify";
 import axios from "axios";
 import Barcode from "react-barcode";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCenters } from "../../../store/actions";
+import ExcelJS from "exceljs";
+import JsBarcode from "jsbarcode";
+import { saveAs } from "file-saver";
 
 ChartJS.register(
   CategoryScale,
@@ -52,19 +57,30 @@ ChartJS.register(
 );
 
 const InventoryManagement = () => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.User);
+  // console.log(user);
+
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [qfilter, setQfilter] = useState("");
+
+  // Center filter state (single select)
+  const [selectedCenter, setSelectedCenter] = useState("");
+
   const [medicines, setMedicines] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [printloading, setPrintLoading] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const abortRef = useRef(null);
 
@@ -96,13 +112,15 @@ const InventoryManagement = () => {
         toast.success("Medicine added successfully");
       }
 
-      // 🔹 Close modal and refresh list
+      // Close modal and refresh list (keep current filters)
       setModalOpen(false);
       fetchMedicines({
         page: currentPage,
         limit: pageSize,
         q: debouncedSearch,
         fillter: qfilter,
+        center: selectedCenter || undefined,
+        centers: user?.centerAccess,
       });
     } catch (error) {
       console.error("Error saving medicine:", error);
@@ -123,8 +141,11 @@ const InventoryManagement = () => {
       limit: pageSize,
       q: debouncedSearch,
       fillter: qfilter,
+      center: selectedCenter || undefined,
+      centers: user?.centerAccess,
     });
   };
+
   const getPageRange = (total, current, maxButtons = 7) => {
     if (total <= maxButtons)
       return Array.from({ length: total }, (_, i) => i + 1);
@@ -149,7 +170,15 @@ const InventoryManagement = () => {
     return range;
   };
 
-  async function fetchMedicines({ page = 1, limit = 5, q = "" } = {}) {
+  // Fetch medicines — now includes center param when provided and correctly reads response.data
+  async function fetchMedicines({
+    page = 1,
+    limit = 5,
+    q = "",
+    fillter = "",
+    center,
+    centers,
+  } = {}) {
     if (abortRef.current) {
       try {
         abortRef.current.abort();
@@ -160,19 +189,41 @@ const InventoryManagement = () => {
 
     setLoading(true);
     try {
+      const params = {
+        page,
+        limit,
+        search: q || undefined,
+        fillter: fillter || undefined,
+      };
+
+      // Only send `center` if it has a value
+      if (center) {
+        params.center = center;
+      } else if (user?.centerAccess) {
+        // Only send `centers` if `center` is not provided
+        params.centers = user.centerAccess;
+      }
       const response = await axios.get("/pharmacy/", {
-        params: { page, limit, search: q || undefined, fillter: qfilter },
+        params,
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
       });
 
-      setMedicines(response?.data || []);
-      setTotalItems(response?.total);
-      setTotalPages(response?.pages);
-      setCurrentPage(response?.page);
+      // axios puts the server body in response.data
+      const body = response || {};
+
+      // backend returns { success, total, page, pages, data }
+      setMedicines(Array.isArray(body.data) ? body.data : []);
+      setTotalItems(Number(body.total ?? 0));
+      setTotalPages(Number(body.pages ?? 1));
+      setCurrentPage(Number(body.page ?? page));
     } catch (err) {
-      if (err?.name === "CanceledError" || err?.name === "AbortError") {
-      } else {
+      // axios cancellation error name/code varies across versions/environments
+      const cancelled =
+        err?.name === "CanceledError" ||
+        err?.name === "AbortError" ||
+        err?.code === "ERR_CANCELED";
+      if (!cancelled) {
         console.error(err);
         toast.error("Failed to fetch medicines");
       }
@@ -181,20 +232,31 @@ const InventoryManagement = () => {
     }
   }
 
+  // debounce search input
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
     return () => clearTimeout(t);
   }, [searchQuery]);
 
+  // fetch when page, size, search, filter or selectedCenter change
   useEffect(() => {
     fetchMedicines({
       page: currentPage,
       limit: pageSize,
       q: debouncedSearch,
       fillter: qfilter,
+      center: selectedCenter || undefined,
+      centers: user?.centerAccess,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, debouncedSearch, qfilter]);
+  }, [
+    currentPage,
+    pageSize,
+    debouncedSearch,
+    qfilter,
+    selectedCenter,
+    user?.centerAccess,
+  ]);
 
   const goToPage = (page) => {
     if (page === "..." || page === currentPage) return;
@@ -208,6 +270,11 @@ const InventoryManagement = () => {
     setCurrentPage(1);
   };
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
+
+  useEffect(() => {
+    dispatch(fetchCenters(user?.centerAccess));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, user?.centerAccess]);
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
@@ -264,34 +331,162 @@ const InventoryManagement = () => {
             <Button
               type="button"
               className="btn btn-outline-primary text-primary"
+              disabled={printloading}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-              onClick={() => {
-                // Basic client-side export of current page as CSV
-                if (!medicines || medicines.length === 0) {
-                  toast.info("No data to export");
-                  return;
+              onClick={async () => {
+                try {
+                  setPrintLoading(true);
+
+                  // 1️⃣ Fetch all medicine data
+                  const response = await axios.get("/pharmacy/print", {
+                    params: {
+                      search: debouncedSearch || undefined,
+                      fillter: qfilter || undefined,
+                      center: selectedCenter || undefined,
+                      centers: user?.centerAccess || undefined,
+                    },
+                    headers: { "Content-Type": "application/json" },
+                  });
+
+                  const data = Array.isArray(response?.data)
+                    ? response.data
+                    : [];
+
+                  if (data.length === 0) {
+                    toast.info("No data to export");
+                    return;
+                  }
+
+                  // 2️⃣ Create Excel workbook
+                  const workbook = new ExcelJS.Workbook();
+                  const sheet = workbook.addWorksheet("Pharmacy Inventory");
+
+                  // 3️⃣ Define header row (same as your table)
+                  const headers = [
+                    "Barcode",
+                    "Code",
+                    "Medicine Name",
+                    "Strength",
+                    "Centre",
+                    "Unit",
+                    "Stock",
+                    "Cost Price",
+                    "Value",
+                    "MRP",
+                    "Purchase Price",
+                    "Sales Price",
+                    "Expiry Date",
+                    "Batch",
+                    "Company",
+                    "Manufacturer",
+                    "Rack",
+                    "Status",
+                  ];
+                  sheet.addRow(headers);
+
+                  // Style header
+                  sheet.getRow(1).font = {
+                    bold: true,
+                    color: { argb: "FFFFFFFF" },
+                  };
+                  sheet.getRow(1).fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FF007ACC" },
+                  };
+
+                  // 4️⃣ Add each medicine row
+                  for (let i = 0; i < data.length; i++) {
+                    const med = data[i];
+
+                    // generate barcode image for each code
+                    let barcodeDataURL = null;
+                    if (med?.code) {
+                      const canvas = document.createElement("canvas");
+                      JsBarcode(canvas, med.code, {
+                        format: "CODE128",
+                        height: 40,
+                        displayValue: true,
+                        fontSize: 12,
+                      });
+                      barcodeDataURL = canvas.toDataURL("image/png");
+                    }
+
+                    const rowValues = [
+                      "", // placeholder for barcode image
+                      med?.code || "-",
+                      med?.medicineName || "-",
+                      med?.Strength || "-",
+                      med?.centers
+                        ? med.centers.map((c) => c?.centerId?.title).join(", ")
+                        : "-",
+                      med?.unitType || med?.unit || "-",
+                      med?.stock ?? "-",
+                      med?.costprice ?? "-",
+                      med?.value ?? "-",
+                      med?.mrp ?? "-",
+                      med?.purchasePrice ?? "-",
+                      med?.SalesPrice ?? "-",
+                      med?.Expiry ?? "-",
+                      med?.Batch ?? "-",
+                      med?.company ?? "-",
+                      med?.manufacturer ?? "-",
+                      med?.RackNum ?? "-",
+                      med?.Status ?? "-",
+                    ];
+
+                    const row = sheet.addRow(rowValues);
+
+                    // add barcode image
+                    if (barcodeDataURL) {
+                      const img = workbook.addImage({
+                        base64: barcodeDataURL,
+                        extension: "png",
+                      });
+
+                      // position: barcode in first column of this row
+                      sheet.addImage(img, {
+                        tl: { col: 0, row: i + 1 },
+                        ext: { width: 150, height: 40 },
+                      });
+                    }
+                  }
+
+                  // 5️⃣ Auto-size columns
+                  sheet.columns.forEach((col) => {
+                    let maxLength = 15;
+                    col.eachCell({ includeEmpty: true }, (cell) => {
+                      const len = cell.value ? cell.value.toString().length : 0;
+                      if (len > maxLength) maxLength = len;
+                    });
+                    col.width = maxLength + 2;
+                  });
+
+                  // 6️⃣ Download Excel
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  });
+                  saveAs(
+                    blob,
+                    `Pharmacy_Export_${new Date()
+                      .toISOString()
+                      .slice(0, 10)}.xlsx`
+                  );
+
+                  toast.success(
+                    `Exported ${data.length} medicines with barcodes ✅`
+                  );
+                } catch (err) {
+                  console.error("Excel export error:", err);
+                  toast.error("Failed to export Excel file");
+                } finally {
+                  setPrintLoading(false);
                 }
-                const header = Object.keys(medicines[0]);
-                const rows = medicines.map((m) =>
-                  header.map((h) => (m[h] ?? "").toString().replace(/"/g, '""'))
-                );
-                const csv = [
-                  header.join(","),
-                  ...rows.map((r) => r.join(",")),
-                ].join("\n");
-                const blob = new Blob([csv], {
-                  type: "text/csv;charset=utf-8;",
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `medicines_page_${currentPage}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
               }}
             >
-              Export
+              Export (Excel)
             </Button>
           </div>
         </div>
@@ -301,11 +496,34 @@ const InventoryManagement = () => {
           <div className="col-12 col-sm-6 col-lg-3">
             <Select
               placeholder="All Stock Levels"
-              onChange={(e) => setQfilter(e.target.value)}
+              onChange={(e) => {
+                setQfilter(e.target.value);
+                setCurrentPage(1);
+              }}
               options={[
                 { value: "LOW", label: "Low Stock" },
                 { value: "NORMAL", label: "Normal" },
+                { value: "MODRATE", label: "Moderate" },
+                { value: "OUTOFSTOCK", label: "Out Of Stock" },
               ]}
+            />
+          </div>
+
+          <div className="col-12 col-sm-6 col-lg-3">
+            <Select
+              placeholder="All Centers"
+              value={selectedCenter}
+              onChange={(e) => {
+                setSelectedCenter(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={
+                user?.userCenters?.map((center) => ({
+                  // ensure we use the DB _id (not .id)
+                  value: center?._id ?? center?.id ?? "",
+                  label: center?.title ?? center?.name ?? "Unknown",
+                })) || []
+              }
             />
           </div>
         </div>
@@ -364,6 +582,7 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
                     <TableHead noWrap>Strength</TableHead>
+                    <TableHead noWrap>Centre</TableHead>
                     <TableHead noWrap>Unit</TableHead>
                     <TableHead noWrap>Current Stock</TableHead>
                     <TableHead noWrap>Cost Price</TableHead>
@@ -380,17 +599,47 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={16}>Loading...</TableCell>
-                    </TableRow>
-                  ) : medicines.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={16}>No records found</TableCell>
-                    </TableRow>
-                  ) : (
-                    medicines.map((med) => (
+
+                {loading ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      minHeight: "200px",
+                      fontSize: "1.1rem",
+                      fontWeight: 500,
+                      color: "#666",
+                    }}
+                  >
+                    Loading...
+                  </div>
+                ) : medicines.length === 0 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        width: "100%",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100%",
+                      }}
+                    >
+                      No records found
+                    </div>
+                  </div>
+                ) : (
+                  <TableBody>
+                    {medicines.map((med) => (
                       <TableRow key={med._id}>
                         <TableCell noWrap>
                           <div
@@ -403,7 +652,6 @@ const InventoryManagement = () => {
                               <Barcode
                                 value={med?.code}
                                 height={30}
-                                // width={1.2}
                                 fontSize={10}
                                 displayValue={true}
                               />
@@ -421,6 +669,15 @@ const InventoryManagement = () => {
                         </TableCell>
                         <TableCell noWrap>
                           {display(med?.Strength || med?.Strength)}
+                        </TableCell>
+                        <TableCell noWrap>
+                          {display(
+                            med?.centers
+                              ? med?.centers
+                                  .map((item) => item?.centerId?.title)
+                                  .join(", ")
+                              : "-"
+                          )}
                         </TableCell>
                         <TableCell noWrap>
                           {display(med?.unitType || med?.unit)}
@@ -462,9 +719,9 @@ const InventoryManagement = () => {
                           </Dropdown>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
+                    ))}
+                  </TableBody>
+                )}
               </Table>
             </div>
 
@@ -549,6 +806,7 @@ const InventoryManagement = () => {
           </ModalHeader>
           <ModalBody>
             <AddinventoryMedicine
+              user={user}
               defaultValues={editingMedicine || {}}
               onSubmit={handleFormSubmit}
             />
@@ -557,6 +815,7 @@ const InventoryManagement = () => {
 
         <BulkImportModal
           isOpen={bulkOpen}
+          user={user}
           toggle={() => setBulkOpen(!bulkOpen)}
           onImport={handleBulkImport}
         />
