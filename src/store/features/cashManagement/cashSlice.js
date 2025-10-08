@@ -19,7 +19,7 @@ const initialState = {
   lastBaseBalance: null,
   detailedReport: {},
   summaryReport: {
-    data: {},
+    data: [],
     cache: {},
   },
   isUptoDate: true,

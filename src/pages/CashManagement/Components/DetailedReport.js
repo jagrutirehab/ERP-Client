@@ -92,40 +92,45 @@ const DetailedReport = ({
     {
       name: "Type",
       selector: (row) => {
+        const badgeStyle = {
+          display: "inline-block",
+          whiteSpace: "normal",   
+          wordBreak: "break-word", 
+        };
         if (row.transactionCategory === "BASEBALANCE") {
           return (
-            <Badge color="warning" className="text-dark">
+            <Badge color="warning" className="text-dark" style={badgeStyle}>
               BASE BALANCE
             </Badge>
           );
         } else if (row.transactionCategory === "SPENDING" || row.transactionCategory === "BANKDEPOSIT") {
           return (
-            <Badge color="danger">
+            <Badge color="danger" style={badgeStyle}>
               {row.transactionCategory}
             </Badge>
           )
         }
         else if (row.transactionCategory === "RECEIPT" && row.source === "INTERNBILL") {
           return (
-            <Badge color="success">
+            <Badge color="success" style={badgeStyle}>
               INTERN RECEIPT
             </Badge>
           );
         } else if (row.transactionCategory === "INVOICE" & row.transactionType === "OPD") {
           return (
-            <Badge color="success">
+            <Badge color="success" style={badgeStyle}>
               OPD
             </Badge>
           );
         } else if (row.transactionCategory === "ADVANCE_PAYMENT") {
           return (
-            <Badge color="success">
+            <Badge color="success" style={badgeStyle}>
               IPD
             </Badge>
           );
         } else if (row.transactionCategory === "DEPOSIT") {
           return (
-            <Badge color="success">
+            <Badge color="success" style={badgeStyle}>
               DEPOSIT-OLIVE
             </Badge>
           )
@@ -289,34 +294,59 @@ const DetailedReport = ({
             />
           )}
           {!loading && detailedReport?.pagination?.totalPages > 1 && (
-            <Row className="mt-4 justify-content-center align-items-center">
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  ← Previous
-                </Button>
-              </Col>
-              <Col xs="auto" className="text-center text-muted mx-3">
-                Showing {(page - 1) * limit + 1}–
-                {Math.min(
-                  page * limit,
-                  detailedReport?.pagination?.totalDocs || 0
-                )}{" "}
-                of {detailedReport?.pagination?.totalDocs || 0}
-              </Col>
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === detailedReport?.pagination?.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Next →
-                </Button>
-              </Col>
-            </Row>
+            <>
+              {/* Mobile Layout */}
+              <div className="d-block d-md-none text-center mt-3">
+                <div className="text-muted mb-2">
+                  Showing {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
+                  {detailedReport?.pagination?.totalDocs || 0}
+                </div>
+                <div className="d-flex justify-content-center gap-2">
+                  <Button
+                    color="secondary"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    ← Previous
+                  </Button>
+                  <Button
+                    color="secondary"
+                    disabled={page === detailedReport?.pagination?.totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next →
+                  </Button>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
+                <Col xs="auto" className="d-flex justify-content-center">
+                  <Button
+                    color="secondary"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    ← Previous
+                  </Button>
+                </Col>
+                <Col xs="auto" className="text-center text-muted mx-3">
+                  Showing {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
+                  {detailedReport?.pagination?.totalDocs || 0}
+                </Col>
+                <Col xs="auto" className="d-flex justify-content-center">
+                  <Button
+                    color="secondary"
+                    disabled={page === detailedReport?.pagination?.totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next →
+                  </Button>
+                </Col>
+              </Row>
+            </>
           )}
         </CardBody>
       </Card>

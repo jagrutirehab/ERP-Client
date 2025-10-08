@@ -45,23 +45,14 @@ const SummaryReport = ({
     }
   }, [activeTab, centerAccess, roles, dispatch]);
 
-  if (!summaryReport || summaryReport.data?.length === 0) {
-    return (
-      <TabPane tabId="summary" className="text-center py-5">
-        <p className="text-muted">
-          No summary data available for your centers.
-        </p>
-      </TabPane>
-    );
-  }
 
   return (
     <TabPane tabId="summary">
       <Col className="mb-2">
-        <div
+        {/* <div
           className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-2 gap-2"
-        >
-          <span
+        > */}
+        {/* <span
             className="fw-bold fs-6 fs-md-5"
             style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}
           >
@@ -82,43 +73,48 @@ const SummaryReport = ({
             ) : (
               <span>{formatCurrency(summaryReport?.data?.totalCurrentBalance || 0)}</span>
             )}
-          </span>
+          </span> */}
 
-          <div className="align-self-md-center align-self-start">
-            <Button
-              id="refresh-summary-btn"
-              color="outline-secondary"
-              size="sm"
-              onClick={() =>
-                dispatch(getSummaryReport({ centers: centerAccess, refetch: true }))
-              }
-              disabled={loading}
-              className="d-flex align-items-center justify-content-center rounded-circle p-0"
+        <div className="d-flex justify-content-end ms-auto">
+          <Button
+            id="refresh-summary-btn"
+            color="outline-secondary"
+            size="sm"
+            onClick={() =>
+              dispatch(getSummaryReport({ centers: centerAccess, refetch: true }))
+            }
+            disabled={loading}
+            className="d-flex align-items-center justify-content-center rounded-circle p-0"
+            style={{
+              width: "36px",
+              height: "36px",
+            }}
+          >
+            <RotateCw
+              size={16}
               style={{
-                width: "36px",
-                height: "36px",
+                animation: loading ? "spin 1s linear infinite" : "none",
               }}
-            >
-              <RotateCw
-                size={16}
-                style={{
-                  animation: loading ? "spin 1s linear infinite" : "none",
-                }}
-              />
-            </Button>
-            <UncontrolledTooltip target="refresh-summary-btn" placement="top">
-              Refresh
-            </UncontrolledTooltip>
-          </div>
+            />
+          </Button>
+          <UncontrolledTooltip target="refresh-summary-btn" placement="top">
+            Refresh
+          </UncontrolledTooltip>
         </div>
+
+        {/* </div> */}
 
       </Col>
       <Row>
         {loading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+          <div className="text-center py-5">
             <Spinner color="primary" />
           </div>
-        ) : summaryReport?.data?.data?.map((data) => (
+        ) : !summaryReport?.data || !Array.isArray(summaryReport.data) || summaryReport.data.length === 0 ? (
+          <div className="text-center py-5 text-muted">
+            No summary data available for your centers.
+          </div>
+        ) : summaryReport?.data?.map((data) => (
           <Col key={data.center._id} xs="12" md="6" xl="3" className="mb-4">
             <Card className="shadow-sm h-100 hover-shadow bg-white">
               <CardBody>
@@ -209,7 +205,7 @@ const SummaryReport = ({
 
 SummaryReport.prototype = {
   centerAccess: PropTypes.array,
-  summaryReport: PropTypes.array,
+  summaryReport: PropTypes.object,
   loading: PropTypes.bool,
   activeTab: PropTypes.string,
   hasUserPermission: PropTypes.bool,
