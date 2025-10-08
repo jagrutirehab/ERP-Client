@@ -30,21 +30,28 @@ const ItemCard = ({ item, type }) => {
             )}
             {item.attachment && (
               <div
-                className="d-flex align-items-center text-primary"
-                style={{ textDecoration: "underline", cursor: "pointer" }}
+                className="d-flex align-items-center text-primary mt-2"
+                style={{ cursor: "pointer" }}
                 onClick={() => downloadFile(item.attachment)}
               >
-                <FileText size={14} className="me-1" />
-                <span>{item.attachment.originalName}</span>
+                <FileText size={14} className="me-1 flex-shrink-0" />
+                <span
+                  className="text-break text-decoration-underline"
+                  style={{
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word'
+                  }}
+                >
+                  {item.attachment.originalName}
+                </span>
               </div>
             )}
           </Col>
           <Col md={4} className="text-end">
             <div className="d-flex align-items-center justify-content-end">
               <span
-                className={`h5 mb-0 fw-bold ${
-                  type === "BASEBALANCE" ? "text-success" : "text-danger"
-                }`}
+                className={`h5 mb-0 fw-bold ${type === "BASEBALANCE" ? "text-success" : "text-danger"
+                  }`}
               >
                 {type === "BASEBALANCE" ? "+" : "-"} ₹{item.amount.toFixed(2)}
               </span>

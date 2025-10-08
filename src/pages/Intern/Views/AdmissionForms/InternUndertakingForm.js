@@ -9,7 +9,7 @@ const InternUndertakingForm = ({ register, intern, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "13px",
     lineHeight: "1.5",
     width: "100%",
     maxWidth: "800px",
@@ -17,14 +17,14 @@ const InternUndertakingForm = ({ register, intern, details }) => {
 
   const heading = {
     fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: "18px",
     marginBottom: "10px",
     textAlign: "center",
   };
 
   const subHeading = {
     fontWeight: "bold",
-    fontSize: "12.5px",
+    fontSize: "14px",
     marginTop: "15px",
     marginBottom: "6px",
   };
