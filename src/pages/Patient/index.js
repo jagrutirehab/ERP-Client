@@ -64,7 +64,7 @@ const Patient = ({ centerAccess, patients, user }) => {
 
   useEffect(() => {
     dispatch(fetchBillItems(centerAccess));
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 

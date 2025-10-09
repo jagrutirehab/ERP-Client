@@ -272,7 +272,7 @@ const InventoryManagement = () => {
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 

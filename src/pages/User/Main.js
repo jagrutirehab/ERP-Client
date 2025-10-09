@@ -103,7 +103,7 @@ const Main = ({ user, form, centerAccess }) => {
   const handleAuthError = useAuthError();
   useEffect(() => {
     if (token) {
-      dispatch(fetchCenters(user?.centerAccess));
+      dispatch(fetchCenters({centerIds: user?.centerAccess}));
       dispatch(fetchAllCenters());
     }
   }, [dispatch, user, token]);

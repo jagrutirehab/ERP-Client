@@ -138,7 +138,7 @@ const Header = ({
   };
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
   }, [dispatch, user]);
 
   useEffect(() => {
