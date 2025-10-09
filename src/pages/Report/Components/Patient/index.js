@@ -145,24 +145,24 @@ const Patient = ({ centerAccess }) => {
 
   const generalColumns = [
     {
-      name: "#",
+      name: <div>#</div>,
       selector: (row, idx) => idx + 1,
     },
     {
-      name: "Center",
+      name: <div>Center</div>,
       selector: (row) => row.center?.title,
     },
     {
-      name: "Patient",
+      name: <div>Patient</div>,
       selector: (row) => row.patient?.name,
       wrap: true,
     },
     {
-      name: "UID",
+      name: <div>UID</div>,
       selector: (row) => `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
     },
     {
-      name: "Doctor",
+      name: <div>Doctor</div>,
       selector: (row) => {
         const doctorsFromArray =
           row?.doctors?.length > 0
@@ -193,7 +193,7 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Psychologist",
+      name: <div>Psychologist</div>,
       selector: (row) => {
         const psychologistsFromArray =
           row?.psychologists?.length > 0
@@ -232,36 +232,36 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Gender",
+      name: <div>Gender</div>,
       selector: (row) => row.patient?.gender,
     },
     {
-      name: "Referred By",
+      name: <div>Referred By</div>,
       selector: (row) => row.patient?.referredBy,
       wrap: true,
     },
     {
-      name: "Phone No",
+      name: <div>Phone No</div>,
       selector: (row) => row.patient?.phoneNumber,
     },
     {
-      name: "Age",
+      name: <div>Age</div>,
       selector: (row) =>
         differenceInYears(new Date(), new Date(row.patient?.dateOfBirth)) +
         " years",
     },
     {
-      name: "Guardian",
+      name: <div>Guardian</div>,
       selector: (row) => row.patient?.guardianName,
       wrap: true,
     },
     {
-      name: "Guardian Number",
+      name: <div>Guardian Number</div>,
       selector: (row) => row.patient?.guardianPhoneNumber,
       wrap: true,
     },
     {
-      name: "Admission Date",
+      name: <div>Admission Date</div>,
       selector: (row) =>
         row.addmissionDate
           ? format(new Date(row.addmissionDate), "d MMM yyyy hh:mm a")
@@ -269,7 +269,7 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Discharge Date",
+      name: <div>Discharge Date</div>,
       selector: (row) =>
         row.dischargeDate
           ? format(new Date(row.dischargeDate), "d MMM yyyy hh:mm a")
@@ -279,7 +279,7 @@ const Patient = ({ centerAccess }) => {
   ];
 
   const billCycleDate = {
-    name: "Bill Cycle Date",
+    name: <div>Bill Cycle Date</div>,
     selector: (row) =>
       row.addmission?.addmissionDate
         ? format(new Date(row.addmission.addmissionDate), "d")
@@ -288,7 +288,7 @@ const Patient = ({ centerAccess }) => {
   };
 
   const addmissionDate = {
-    name: "Admission Date",
+    name: <div>Admission Date</div>,
     selector: (row) =>
       row.addmission?.addmissionDate
         ? format(new Date(row.addmission.addmissionDate), "d MMM yyyy hh:mm a")
@@ -297,7 +297,7 @@ const Patient = ({ centerAccess }) => {
   };
 
   const dischargeDate = {
-    name: "Discharge Date",
+    name: <div>Discharge Date</div>,
     selector: (row) =>
       row.addmission?.dischargeDate
         ? format(new Date(row.addmission.dischargeDate), "d MMM yyyy hh:mm a")
@@ -307,33 +307,33 @@ const Patient = ({ centerAccess }) => {
 
   const patientRow = [
     {
-      name: "#",
+      name: <div>#</div>,
       selector: (row, idx) => idx + 1,
     },
     {
-      name: "Center",
+      name: <div>Center</div>,
       selector: (row) => row.center?.title,
     },
     {
-      name: "Patient",
+      name: <div>Patient</div>,
       selector: (row) => row?.name,
       wrap: true,
     },
     {
-      name: "UID",
+      name: <div>UID</div>,
       selector: (row) => `${row?.uid?.prefix}${row?.uid?.value}`,
     },
     {
-      name: "Gender",
+      name: <div>Gender</div>,
       selector: (row) => row?.gender,
     },
     {
-      name: "Referred By",
+      name: <div>Referred By</div>,
       selector: (row) => row?.referredBy,
       wrap: true,
     },
     {
-      name: "Doctor",
+      name: <div>Doctor</div>,
       selector: (row) =>
         row?.addmission?.doctors?.length > 0
           ? row.addmission.doctors
@@ -344,7 +344,7 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Psychologist",
+      name: <div>Psychologist</div>,
       selector: (row) =>
         row?.addmission?.psychologists?.length > 0
           ? row.addmission.psychologists
@@ -358,29 +358,29 @@ const Patient = ({ centerAccess }) => {
     },
 
     {
-      name: "Phone No",
+      name: <div>Phone No</div>,
       selector: (row) => row?.phoneNumber,
     },
     //
     {
-      name: "Age",
+      name: <div>Age</div>,
       selector: (row) =>
         row?.dateOfBirth
           ? differenceInYears(new Date(), new Date(row?.dateOfBirth)) + " years"
           : "",
     },
     {
-      name: "Guardian",
+      name: <div>Guardian</div>,
       selector: (row) => row?.guardianName,
       wrap: true,
     },
     {
-      name: "Guardian Number",
+      name: <div>Guardian Number</div>,
       selector: (row) => row?.guardianPhoneNumber,
       wrap: true,
     },
     {
-      name: "IPD File NUmber",
+      name: <div>IPD File NUmber</div>,
       selector: (row) => row.ipdFileNumber,
     },
   ];
@@ -469,14 +469,15 @@ const Patient = ({ centerAccess }) => {
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between mt-3">
-            <div className="d-flex gap-2">
+          <div className="d-flex flex-column flex-md-row justify-content-between mt-3 gap-3">
+            <div className="d-flex flex-column flex-sm-row gap-2">
               <Input
                 type="select"
                 value={filter}
                 onChange={(e) => {
                   setFilter(e.target.value);
                 }}
+                className="w-100 w-sm-auto"
               >
                 <option value={""}>General</option>
                 <option value={"ADMITTED_PATIENTS"}>Admitted Patients</option>
@@ -494,6 +495,7 @@ const Patient = ({ centerAccess }) => {
                   setPage(1);
                 }}
                 style={{ width: "100px" }}
+                className="w-100 w-sm-auto"
               >
                 {[10, 20, 30, 40, 50].map((l) => (
                   <option key={l} value={l}>
@@ -511,6 +513,7 @@ const Patient = ({ centerAccess }) => {
                     setPage(1);
                   }}
                   style={{ width: "200px" }}
+                  className="w-100 w-sm-auto"
                 >
                   <option value={0}>All Bill Cycle Date</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((bc) => (
@@ -521,13 +524,13 @@ const Patient = ({ centerAccess }) => {
                 </Input>
               )}
             </div>
-            <div>
+            <div className="d-flex flex-column flex-sm-row gap-2">
               {filter === "ADMITTED_PATIENTS" &&
                 (val === "ALL_ADMITTED" ? (
                   <Button
                     color="info"
                     onClick={() => setVal("")}
-                    style={{ marginRight: "10px" }}
+                    className="w-auto"
                   >
                     Back to dates
                   </Button>
@@ -535,7 +538,7 @@ const Patient = ({ centerAccess }) => {
                   <Button
                     color="info"
                     onClick={() => setVal("ALL_ADMITTED")}
-                    style={{ marginRight: "10px" }}
+                    className="w-auto"
                   >
                     Show All Admitted Patients
                   </Button>
@@ -545,6 +548,7 @@ const Patient = ({ centerAccess }) => {
                 color="info"
                 onClick={fetchFullData}
                 disabled={csvLoading}
+                className="w-auto"
               >
                 {csvLoading ? "Preparing CSV..." : "Export CSV"}
               </Button>
