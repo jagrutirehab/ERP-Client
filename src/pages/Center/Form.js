@@ -146,7 +146,8 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       branchName: centerData ? centerData.branchName : "",
       numbers: centerData ? centerData.numbers : "",
       centerName: centerData ? centerData.centerName : "",
-      city: centerData ? centerData.city : "",
+      city: centerData ? centerData.city?.city : "",
+      state: centerData ? centerData.city?.state : "",
       localArea: centerData ? centerData.localArea : "",
     },
     validationSchema: Yup.object({
@@ -173,6 +174,9 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       formData.append("accountNumber", values.accountNumber);
       formData.append("branchName", values.branchName);
       formData.append("numbers", values.numbers);
+      formData.append("city", values.city);
+      formData.append("state", values.state);
+      formData.append("localArea", values.localArea);
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -187,7 +191,9 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
-  const fieldsArray = Object.keys(validation.values);
+  const fieldsArray = Object.keys(validation.values).filter(
+    (key) => key !== "state"
+  );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
@@ -235,7 +241,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       setLogo(reader.result);
     };
     reader.readAsDataURL(file);
-  
+
     // const reader = new FileReader();
     // reader.addEventListener("load", () => {
     //   const imageElement = new Image();
@@ -283,7 +289,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   file={logo}
                   setLogo={setLogo}
                   setCropLogo={setCrop}
-                 
+
                   // maxHeight={150}
                   // maxWidth={150}
                   // minHeight={150}
@@ -312,30 +318,37 @@ const CenterForm = ({ author, isOpen, centerData }) => {
               <Col xs={12}>
                 {!centerData?.logo && !Boolean(cropLogo) && (
                   <Dropzone
-                    onDrop={(acceptedFiles ) =>  {
+                    onDrop={(acceptedFiles) => {
                       handleAcceptedFiles(acceptedFiles);
-                      
                     }}
                     multiple={false}
                   >
                     {({ getRootProps, getInputProps }) => (
                       <div className="dropzone dz-clickable text-center">
-                        <div 
+                        <div
                           className="dz-message needsclick btn border-dashed border-secondary"
                           {...getRootProps()}
                         >
-                           <input {...getInputProps()} />
-                           {logo ? (
-              <img src={logo} alt="Preview" style={{ width: "100%", height: "150px", objectFit: "contain" }} />
-            ) : (
-              <div>
-                          <div className="mb-3">
-                            <i className="display-4 text-muted ri-upload-cloud-2-fill" />
-                          </div>
-                          <h4>Drop Logo here or click to upload.</h4>
+                          <input {...getInputProps()} />
+                          {logo ? (
+                            <img
+                              src={logo}
+                              alt="Preview"
+                              style={{
+                                width: "100%",
+                                height: "150px",
+                                objectFit: "contain",
+                              }}
+                            />
+                          ) : (
+                            <div>
+                              <div className="mb-3">
+                                <i className="display-4 text-muted ri-upload-cloud-2-fill" />
+                              </div>
+                              <h4>Drop Logo here or click to upload.</h4>
+                            </div>
+                          )}
                         </div>
-                           )}
-          </div>
                       </div>
                     )}
                   </Dropzone>
@@ -369,15 +382,35 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                       <Select
                         className="basic-single"
                         classNamePrefix="select"
-                        defaultValue={""}
-                        isClearable={true}
-                        isSearchable={true}
-                        name="color"
-                        options={cities}
-                        onChange={(e) => {
-                          // validation.setFieldValue("city", );
-                        }}
+                        isClearable
+                        isSearchable
                         id="city"
+                        name="city"
+                        value={
+                          cities.find(
+                            (c) =>
+                              c.city === validation.values.city &&
+                              c.state === validation.values.state
+                          ) || null
+                        }
+                        options={cities}
+                        getOptionLabel={(option) => option.label}
+                        getOptionValue={(option) => option.value}
+                        onChange={(selectedOption) => {
+                          if (selectedOption) {
+                            validation.setFieldValue(
+                              "city",
+                              selectedOption.city
+                            );
+                            validation.setFieldValue(
+                              "state",
+                              selectedOption.state
+                            );
+                          } else {
+                            validation.setFieldValue("city", "");
+                            validation.setFieldValue("state", "");
+                          }
+                        }}
                       />
                       {validation.touched.city && validation.errors.city ? (
                         <FormFeedback type="invalid">
