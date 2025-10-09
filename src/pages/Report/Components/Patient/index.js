@@ -477,7 +477,7 @@ const Patient = ({ centerAccess }) => {
                 onChange={(e) => {
                   setFilter(e.target.value);
                 }}
-                className="w-100 w-sm-auto"
+                className="w-auto"
               >
                 <option value={""}>General</option>
                 <option value={"ADMITTED_PATIENTS"}>Admitted Patients</option>
@@ -513,7 +513,7 @@ const Patient = ({ centerAccess }) => {
                     setPage(1);
                   }}
                   style={{ width: "200px" }}
-                  className="w-100 w-sm-auto"
+                  className="w-auto"
                 >
                   <option value={0}>All Bill Cycle Date</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((bc) => (
