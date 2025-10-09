@@ -77,6 +77,7 @@ const InventoryManagement = () => {
   const [selectedCenter, setSelectedCenter] = useState("");
 
   const [medicines, setMedicines] = useState([]);
+  console.log(medicines)
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -436,7 +437,7 @@ const InventoryManagement = () => {
                       med?.Status ?? "-",
                     ];
 
-                    const row = sheet.addRow(rowValues);
+                    sheet.addRow(rowValues);
 
                     // add barcode image
                     if (barcodeDataURL) {

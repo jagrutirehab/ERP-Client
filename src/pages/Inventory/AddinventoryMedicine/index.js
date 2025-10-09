@@ -51,7 +51,11 @@ const AddinventoryMedicine = ({
   const containerRef = useRef(null);
   const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
   const [selectedCenters, setSelectedCenters] = useState(
-    defaultValues.centers ? defaultValues.centers.map((c) => c.centerId) : []
+    defaultValues.centers
+      ? defaultValues.centers.map((c) =>
+          typeof c.centerId === "object" ? c.centerId._id : c.centerId
+        )
+      : []
   );
 
   const availableCenters = user?.userCenters.filter(
