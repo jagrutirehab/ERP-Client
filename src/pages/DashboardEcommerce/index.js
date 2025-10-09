@@ -53,7 +53,7 @@ const DashboardEcommerce = ({
       axios.defaults.headers.common["Authorization"] === `Bearer ${token}`;
 
     if (token && headerSet && user) {
-      dispatch(fetchCenters(user?.centerAccess));
+      dispatch(fetchCenters({centerIds: user?.centerAccess  }));
     }
   }, [dispatch, user]);
 
