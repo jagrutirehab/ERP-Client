@@ -469,8 +469,8 @@ const Patient = ({ centerAccess }) => {
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between mt-3">
-            <div className="d-flex gap-2">
+          <div className="d-flex flex-column flex-md-row justify-content-between mt-3 gap-2">
+            <div className="d-flex flex-wrap gap-2">
               <Input
                 type="select"
                 value={filter}
@@ -521,7 +521,7 @@ const Patient = ({ centerAccess }) => {
                 </Input>
               )}
             </div>
-            <div>
+            <div className="d-flex flex-wrap gap-2 justify-content-md-end">
               {filter === "ADMITTED_PATIENTS" &&
                 (val === "ALL_ADMITTED" ? (
                   <Button
