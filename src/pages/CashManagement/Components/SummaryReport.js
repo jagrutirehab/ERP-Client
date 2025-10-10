@@ -173,7 +173,7 @@ const SummaryReport = ({
                     <span className="fw-bold">Ending Balance:</span>
                     <h6>
                       <Badge
-                        color={data.currentBalance >= data.baseBalanceAmount ? "success" : "danger"}
+                        color={data.currentBalance >= 0 ? "success" : "danger"}
                         pill
                       >
                         {formatCurrency(data.currentBalance)}
