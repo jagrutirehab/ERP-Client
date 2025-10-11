@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import Select from "react-select";
 import { categoryUnitOptions } from "../../../Components/constants/patient";
 import { fetchBillItems } from "../../../store/actions";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 const Inovice = ({
   data,
@@ -26,6 +27,7 @@ const Inovice = ({
   const dispatch = useDispatch();
   const centers = useSelector((state) => state.User?.centerAccess);
   const [searchItem, setSearchItem] = useState("");
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   useEffect(() => {
     dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
@@ -39,11 +41,11 @@ const Inovice = ({
 
   return (
     <React.Fragment>
-      <div className="d-flex flex-column flex-md-row align-items-stretch gap-3">
-        <div>
+      <div className="d-flex align-items-stretch gap-3 flex-wrap">
+        <div style={{ minWidth: isMobile ? "100%" : "250px" }}>
           <Label>Invoice Procedures</Label>
           <UncontrolledDropdown
-            className="me-2 dropdown-menu-md"
+            className="me-2 dropdown-menu-md w-100"
             direction="down"
           >
             <DropdownToggle
@@ -58,7 +60,7 @@ const Inovice = ({
                 style={{ height: "37px" }}
               />
             </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-md overflow-auto dropdown-height-md">
+            <DropdownMenu className="dropdown-menu-md overflow-auto dropdown-height-md w-100">
               <DropdownItem></DropdownItem>
               {(dataList || [])
                 .filter((item) => {
@@ -102,7 +104,7 @@ const Inovice = ({
             </DropdownMenu>
           </UncontrolledDropdown>
         </div>
-        <div className="w-md-25">
+        <div style={{ minWidth: isMobile ? "100%" : "280px", maxWidth: isMobile ? "" : "75%" }}>
           <Label>Categories</Label>
           <Select
             isMulti
@@ -114,7 +116,7 @@ const Inovice = ({
                 value: key,
               })),
             ]}
-            className="basic-multi-select text-capitalize"
+            className="basic-multi-select text-capitalize w-100"
             classNamePrefix="select"
           />
         </div>
