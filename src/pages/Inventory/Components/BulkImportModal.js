@@ -330,9 +330,9 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           setUploadProgress(pct);
 
           if (inserted < chunk.length) {
-            toast.info(
-              `Chunk ${i}: inserted ${inserted}/${chunk.length}, skipped ${skipped}`
-            );
+            // toast.info(
+            //   `Chunk ${i}: inserted ${inserted}/${chunk.length}, skipped ${skipped}`
+            // );
           }
         }
 
@@ -923,8 +923,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
         {!uploading && uploadDone && (
           <div className="alert alert-success text-center fw-bold">
-            ✅ Upload complete (inserted {uploadedCount} items, skipped{" "}
-            {skippedCountTotal})
+            ✅ Upload completed
           </div>
         )}
 
@@ -936,7 +935,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
             <div style={{ marginTop: 8 }}>
               {failedChunks.map((f) => (
                 <div key={f.index}>
-                  Chunk {f.index}: {f.data.length} items — error: {f.error}
+                  {/* Chunk {f.index}: {f.data.length} items — error: {f.error} */}
+                  Some chunks are Faild
                 </div>
               ))}
             </div>
