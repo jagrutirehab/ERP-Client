@@ -25,7 +25,7 @@ const authRoles = [
   },
   {
     name: "ONLINE SUPPORT ADMIN",
-    value: "ONLINE SUPPORT ADMIN",
+    value: "ONLINE_SUPPORT_ADMIN",
   },
 ];
 
