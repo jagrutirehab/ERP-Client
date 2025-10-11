@@ -140,6 +140,7 @@ const AddinventoryMedicine = ({
     type = "text",
     validation,
     isFullWidth = false,
+    step,
   }) => (
     <div
       style={{ ...styles.formGroup, ...(isFullWidth ? styles.fullWidth : {}) }}
@@ -150,6 +151,7 @@ const AddinventoryMedicine = ({
       <input
         id={name}
         type={type}
+        step={step || (type === "number" ? "any" : undefined)}
         {...register(name, validation)}
         style={styles.input}
       />
@@ -337,10 +339,17 @@ const AddinventoryMedicine = ({
           name="unitType"
           validation={{ required: "Unit Type is required" }}
         />
+        {/* <InputField
+          label="Current Stock"
+          name="stock"
+          type="number"
+          validation={{ required: "Stock is required" }}
+        /> */}
         <InputField
           label="Current Stock"
           name="stock"
           type="number"
+          step="any"
           validation={{ required: "Stock is required" }}
         />
         <InputField label="Strength" name="Strength" />
@@ -348,6 +357,7 @@ const AddinventoryMedicine = ({
           label="Cost Price"
           name="costprice"
           type="number"
+          step="any"
           validation={{
             required: "Cost Price is required",
             min: { value: 0, message: "Must be non-negative" },
@@ -357,6 +367,7 @@ const AddinventoryMedicine = ({
           label="Value"
           name="value"
           type="number"
+          step="any"
           validation={{
             required: "Value is required",
             min: { value: 0, message: "Must be non-negative" },
@@ -366,6 +377,7 @@ const AddinventoryMedicine = ({
           label="M.R.P"
           name="mrp"
           type="number"
+          step="any"
           validation={{
             required: "MRP is required",
             min: { value: 0, message: "Must be non-negative" },
@@ -375,6 +387,7 @@ const AddinventoryMedicine = ({
           label="Purchase Price"
           name="purchasePrice"
           type="number"
+          step="any"
           validation={{
             required: "Purchase Price is required",
             min: { value: 0, message: "Must be non-negative" },
@@ -384,6 +397,7 @@ const AddinventoryMedicine = ({
           label="Sales Price"
           name="SalesPrice"
           type="number"
+          step="any"
           validation={{
             required: "Sales Price is required",
             min: { value: 0, message: "Must be non-negative" },

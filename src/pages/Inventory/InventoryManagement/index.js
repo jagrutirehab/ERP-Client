@@ -136,9 +136,6 @@ const InventoryManagement = () => {
   };
 
   const handleBulkImport = async (mappedData) => {
-    toast.success(`Imported ${mappedData.length} rows successfully.`);
-    setBulkOpen(false);
-    setCurrentPage(1);
     fetchMedicines({
       page: 1,
       limit: pageSize,
@@ -147,6 +144,9 @@ const InventoryManagement = () => {
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
+    setCurrentPage(1);
+    setBulkOpen(false);
+    toast.success(`Imported rows successfully.`);
   };
 
   const getPageRange = (total, current, maxButtons = 7) => {
@@ -341,14 +341,21 @@ const InventoryManagement = () => {
                 try {
                   setPrintLoading(true);
 
+                  const params = {
+                    search: debouncedSearch || undefined,
+                    fillter: qfilter || undefined,
+                  };
+
+                  // Conditionally add only one of them
+                  if (selectedCenter) {
+                    params.center = selectedCenter;
+                  } else {
+                    params.centers = user?.centerAccess;
+                  }
+
                   // 1️⃣ Fetch all medicine data
                   const response = await axios.get("/pharmacy/print", {
-                    params: {
-                      search: debouncedSearch || undefined,
-                      fillter: qfilter || undefined,
-                      center: selectedCenter || undefined,
-                      centers: user?.centerAccess || undefined,
-                    },
+                    params,
                     headers: { "Content-Type": "application/json" },
                   });
 
