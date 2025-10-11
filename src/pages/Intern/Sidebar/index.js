@@ -100,7 +100,7 @@ const Sidebar = ({
   };
 
   return (
-    <div className="chat-leftsidebar" style={{ marginTop: 80 }}>
+    <div className="chat-leftsidebar" >
       <div className="px-4 pt-4 mb-4">
         <div className="d-flex align-items-start">
           <div className="flex-grow-1">

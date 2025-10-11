@@ -31,10 +31,10 @@ const InternTopbar = ({ setDeleteIntern }) => {
   };
 
   return (
-    <div className="p-3 p-lg-4 border-bottom user-chat-topbar">
+    <div className="p-3 py-lg-3 px-lg-4  border-bottom user-chat-topbar">
+      {/* <br></br>
       <br></br>
-      <br></br>
-      <br></br>
+      <br></br> */}
       <div className="row align-items-center">
         <div className="col-sm-4 col-8">
           <div className="d-flex align-items-center">
@@ -60,8 +60,8 @@ const InternTopbar = ({ setDeleteIntern }) => {
                     )}
                   </div>
                 </div>
-                <div className="flex-grow-1 overflow-hidden">
-                  <h5 className="font-size-16 mb-0 text-truncate">
+                <div className="flex-grow-1">
+                  <h5 className="font-size-16 mb-0 text-break text-md-truncate">
                     {intern?.name}
                     <span className="ms-2 text-muted fs-14">
                       ({`${intern?.id?.prefix}${intern?.id?.value}`})

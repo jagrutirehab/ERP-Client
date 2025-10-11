@@ -28,7 +28,7 @@ const Main = ({ intern, deleteIntern, setDeleteIntern }) => {
   return (
     <React.Fragment>
       <RenderWhen isTrue={intern ? true : false}>
-        <div className="w-100" style={{ marginTop: "25px" }}>
+        <div className="w-100">
           <InternTopbar
             deleteIntern={deleteIntern}
             setDeleteIntern={setDeleteIntern}
