@@ -102,7 +102,10 @@ const Inovice = ({
             </DropdownMenu>
           </UncontrolledDropdown>
         </div>
-        <div className="w-md-25">
+        <div
+          className="w-100 w-md-auto"
+          style={{ minWidth: "35%", maxWidth: "100%" }}
+        >
           <Label>Categories</Label>
           <Select
             isMulti
