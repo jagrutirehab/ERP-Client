@@ -72,7 +72,12 @@ const FileUpload = ({ setAttachment, attachment }) => {
 
         {attachment && (
           <div className="mt-3 pt-3 border-top">
-            <Badge color="success" className="mb-2">
+            <Badge color="success" className="mb-2 text-break"
+              style={{
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                lineHeight: "1.4",
+              }}>
               <i className="fas fa-check me-1"></i>
               {attachment.name}
             </Badge>

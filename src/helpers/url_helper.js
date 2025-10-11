@@ -98,6 +98,7 @@ export const GET_INTERN_TIMELINE = "timeline/intern";
 //CHART
 export const GET_CHARTS_ADDMISSIONS = "/chart/addmission";
 export const GET_CHARTS = "/chart";
+export const GET_LATEST_CHARTS="/chart/latest";
 export const GET_GENERAL_CHARTS = "/chart/general";
 export const GET_DELETED_CHARTS = "/chart/deleted";
 export const POST_PRESCRIPTION = "/chart/prescription";
