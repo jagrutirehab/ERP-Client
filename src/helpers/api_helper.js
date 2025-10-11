@@ -45,6 +45,24 @@ function handleLogout() {
     console.error("Error during logout:", err);
   }
 }
+
+
+// main API request interceptor
+axios.interceptors.request.use((config) => {
+  const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+  if (config.headers["X-No-Cookie-Token"] === "true") {
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  }
+
+  return config;
+});
+
+
 // ✅ Main API response interceptor
 axios.interceptors.response.use(
   function (response) {
