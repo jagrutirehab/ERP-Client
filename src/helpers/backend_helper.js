@@ -349,6 +349,8 @@ export const getChartsAddmissions = (data) =>
   });
 export const getCharts = (data) =>
   api.get(url.GET_CHARTS, { addmission: data });
+export const getLatestCharts = ({ patient, limit }) =>
+  api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);
 export const postPrescription = (data) =>
   api.create(url.POST_PRESCRIPTION, data);
@@ -761,9 +763,10 @@ export const getHubspotContacts = ({
   search = "",
   visitDate,
   status,
+  centers,
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
-    params: { page, limit, search, visitDate, status },
+    params: { page, limit, search, visitDate, status, centers },
   });
 };
 

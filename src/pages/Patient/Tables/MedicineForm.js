@@ -34,7 +34,7 @@ const SortableMedicine = ({ index, children }) => {
 
   return (
     <div ref={setNodeRef} style={style} className="d-flex align-items-center gap-2">
-      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20, }}>
+      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20,touchAction: "none" }}>
         <Menu />
       </span>
       {children}
@@ -44,7 +44,11 @@ const SortableMedicine = ({ index, children }) => {
 
 
 const Medicine = ({ medicines, setMedicines, isNew }) => {
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 }
+    })
+  );
 
   const handleChange = (e) => {
     const prop = e.target.name;

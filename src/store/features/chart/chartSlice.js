@@ -17,6 +17,7 @@ import {
   getChartsAddmissions,
   getCounsellingNote,
   getGeneralCharts,
+  getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
   postCounsellingNote,
@@ -71,6 +72,19 @@ export const fetchCharts = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getCharts(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchLatestCharts = createAsyncThunk(
+  "getLatestCharts",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLatestCharts(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -867,6 +881,18 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchCharts.rejected, (state) => {
         state.chartLoading = false;
+      });
+      
+      builder
+      .addCase(fetchLatestCharts.pending, (state) => {
+        state.generalChartLoading = true;
+      })
+      .addCase(fetchLatestCharts.fulfilled, (state, { payload }) => {
+        state.generalChartLoading = false;
+        state.charts = payload.payload;
+      })
+      .addCase(fetchLatestCharts.rejected, (state) => {
+        state.generalChartLoading = false;
       });
 
     builder

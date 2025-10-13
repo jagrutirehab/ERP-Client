@@ -26,9 +26,11 @@ import {
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const Spending = ({ centers, centerAccess, spendings, loading }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
@@ -101,7 +103,9 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
         setAttachmentTouched(false);
         toast.success("spending logged successfully");
       } catch (error) {
-        toast.error(error.message || "Failed to log spending.");
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to log spending.");
+        }
       }
       resetForm();
       setAttachment(null);
@@ -130,7 +134,16 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
-    dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess }));
+    const fetchSpendings = async () => {
+      try {
+        await dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess })).unwrap();
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch spendings.");
+        }
+      }
+    }
+    fetchSpendings();
   }, [centerAccess, dispatch, roles]);
 
   if (!hasCreatePermission && !hasReadPermission) {

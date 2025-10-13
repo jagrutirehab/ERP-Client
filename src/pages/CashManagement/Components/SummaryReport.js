@@ -17,6 +17,8 @@ import {
 import { getSummaryReport } from "../../../store/features/cashManagement/cashSlice";
 import PropTypes from "prop-types";
 import { RotateCw } from "lucide-react";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
 
 const formatCurrency = (amount) =>
   amount.toLocaleString("en-IN", {
@@ -34,17 +36,36 @@ const SummaryReport = ({
 }) => {
   const dispatch = useDispatch();
   const lastSummaryCacheKeyRef = useRef("");
+  const handleAuthError = useAuthError();
 
   useEffect(() => {
     if (!hasUserPermission || activeTab !== "summary") return;
 
     const cacheKey = [...centerAccess].sort().join(",");
     if (lastSummaryCacheKeyRef.current !== cacheKey) {
-      dispatch(getSummaryReport({ centers: centerAccess }));
-      lastSummaryCacheKeyRef.current = cacheKey;
+      const fetchSummary = async () => {
+        try {
+          await dispatch(getSummaryReport({ centers: centerAccess })).unwrap();
+          lastSummaryCacheKeyRef.current = cacheKey;
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            toast.error(error.message || "Failed to fetch summary report.");
+          }
+        }
+      };
+      fetchSummary();
     }
   }, [activeTab, centerAccess, roles, dispatch]);
 
+  const handleRefresh = async () => {
+    try {
+      await dispatch(getSummaryReport({ centers: centerAccess, refetch: true })).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch summary report.");
+      }
+    }
+  }
 
   return (
     <TabPane tabId="summary">
@@ -80,9 +101,7 @@ const SummaryReport = ({
             id="refresh-summary-btn"
             color="outline-secondary"
             size="sm"
-            onClick={() =>
-              dispatch(getSummaryReport({ centers: centerAccess, refetch: true }))
-            }
+            onClick={handleRefresh}
             disabled={loading}
             className="d-flex align-items-center justify-content-center rounded-circle p-0"
             style={{
