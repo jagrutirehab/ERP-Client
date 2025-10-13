@@ -48,19 +48,27 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
 
   // Fetch contacts when visitDateFilter, currentPage, or itemsPerPage changes
   useEffect(() => {
+    const access = centers
+      .filter((cn) => centerAccess.includes(cn._id))
+      .map((cn) => cn.title)
+      .join(",");
     const params = {
       page: currentPage,
       limit: itemsPerPage,
       // leadDate: leadDate,
       // visitDate: visitDateFilter,
     };
+    console.log({ access });
+
+    if (access) params.centers = access;
     if (visitDateFilter === "planned") {
       params.status = "Planned";
     } else {
       params.visitDate = visitDateFilter;
     }
     dispatch(fetchHubspotContacts(params));
-  }, [visitDateFilter, currentPage, itemsPerPage, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visitDateFilter, currentPage, itemsPerPage, dispatch, centerAccess]);
 
   // Reset tooltip state and cleanup refs when data changes or component unmounts
   useEffect(() => {
@@ -82,8 +90,6 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
       .filter((cn) => centerAccess.includes(cn._id))
       .map((cn) => cn.title);
 
-    console.log({ access });
-
     let filtered = contacts;
     if (filters.visitType) {
       filtered = filtered.filter((c) => c.visitType === filters.visitType);
@@ -94,14 +100,16 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
     if (filters.assignedTo) {
       filtered = filtered.filter((c) => c.assignedTo === filters.assignedTo);
     }
-    if (access?.length > 0)
-      filtered = filtered.filter((c) =>
-        access.some((a) => c.center.includes(a))
-      );
-    else filtered = [];
+    // if (access?.length > 0)
+    //   filtered = filtered.filter((c) =>
+    //     access.some((a) => c.center.includes(a))
+    //   );
+    // else filtered = [];
     return filtered;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contacts, centerAccess, filters]);
+
+  console.log({ filteredContacts, contacts, filters });
 
   // Pagination controls
   const totalPages = pagination?.totalPages || 1;
