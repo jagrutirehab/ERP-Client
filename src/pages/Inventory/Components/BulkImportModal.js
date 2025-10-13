@@ -48,16 +48,16 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [columnMapping, setColumnMapping] = useState(emptyMapping());
 
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // 0..100
-  const [uploadedCount, setUploadedCount] = useState(0); // inserted items count
-  const [totalCount, setTotalCount] = useState(0); // total items to process
+  const [uploadProgress, setUploadProgress] = useState(0);
+  // eslint-disable-next-line no-unused-vars
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [totalChunks, setTotalChunks] = useState(0);
   const [failedChunks, setFailedChunks] = useState([]);
   const [uploadDone, setUploadDone] = useState(false);
   const [skippedCountTotal, setSkippedCountTotal] = useState(0);
 
-  // MULTI centers: store as array of centerId strings
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
 
@@ -67,11 +67,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const fileRefs = useRef({});
   const endpoint = "/pharmacy/bulk-insert";
 
-  // refs (mutable, keep accurate across async callbacks)
-  const uploadedRef = useRef(0); // inserted items
-  const skippedRef = useRef(0); // skipped items
-  const totalItemsRef = useRef(0); // total items
-  const chunksTotalRef = useRef(0); // number of chunks
+  const uploadedRef = useRef(0);
+  const skippedRef = useRef(0);
+  const totalItemsRef = useRef(0);
+  const chunksTotalRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -98,7 +97,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user]);
 
-  // close center dropdown on outside click
   useEffect(() => {
     const onDocClick = (e) => {
       if (!containerRef.current) return;
@@ -164,8 +162,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           }
         }
       });
-
-      // attach centers: for each selected center assign the row's stock value (if any)
       if (Array.isArray(selectedCenters) && selectedCenters.length > 0) {
         const stockVal =
           typeof obj.stock === "number" ? obj.stock : Number(obj.stock || 0);
@@ -176,11 +172,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       }
 
       obj.deleted = false;
+      obj.createdBy = user?.user?._id || user?._id || null;
 
       return obj;
     });
-
-    // Keep rows with at least one non-meta field mapped
+    // console.log(mapped[0])
     const filtered = mapped.filter((o) => {
       const keys = Object.keys(o).filter(
         (k) => k !== "deleted" && k !== "centers"
@@ -190,12 +186,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
     return filtered;
   };
-
-  /**
-   * Send a chunk with retries.
-   * onUploadProgress converts byte progress into estimated items processed in this chunk,
-   * combines with already-processed items and updates UI progress (clamped 0..100).
-   */
   const sendChunkWithRetry = async (chunkData, chunkIndex, maxAttempts = 3) => {
     let attempt = 0;
     while (attempt < maxAttempts) {
@@ -205,33 +195,19 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           headers: { "Content-Type": "application/json" },
           timeout: 0,
           onUploadProgress: (progressEvent) => {
-            // progressEvent may be undefined depending on the environment.
             if (!progressEvent || !progressEvent.total) return;
-
-            // estimate item-based progress:
-            // alreadyProcessed = uploadedRef + skippedRef (items)
             const alreadyProcessed = uploadedRef.current + skippedRef.current;
-
             const chunkItems = chunkData.length || 1;
             const byteRatio = Math.min(
               1,
               Math.max(0, progressEvent.loaded / progressEvent.total)
-            ); // 0..1
-
-            // estimated items processed in current chunk based on bytes
+            );
             const estimatedCurrentChunkItems = chunkItems * byteRatio;
-
             const totalItems = Math.max(1, totalItemsRef.current);
-
             const estimatedProcessedTotal =
               alreadyProcessed + estimatedCurrentChunkItems;
-
             let pct = Math.round((estimatedProcessedTotal / totalItems) * 100);
-
-            // clamp
             pct = Math.max(0, Math.min(100, pct));
-
-            // only update when it moves forward
             setUploadProgress((prev) => Math.max(prev, pct));
           },
         });
@@ -248,7 +224,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         if (attempt >= maxAttempts) {
           return { success: false, error: err };
         }
-        
+
         // eslint-disable-next-line no-loop-func
         await new Promise((r) => setTimeout(r, 600 * attempt));
       }
@@ -320,8 +296,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
           setUploadedCount(uploadedRef.current);
           setSkippedCountTotal(skippedRef.current);
-
-          // compute percent based on processed items (guaranteed <= totalItemsLocal)
           const processed = uploadedRef.current + skippedRef.current;
           let pct = Math.round(
             (processed / Math.max(1, totalItemsLocal)) * 100
@@ -335,13 +309,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
             // );
           }
         }
-
-        // tiny delay to allow UI updates
         // eslint-disable-next-line no-await-in-loop
         await new Promise((r) => setTimeout(r, 50));
       }
 
-      // final clamp and UI updates
       setUploadProgress(100);
       setUploadDone(failedChunks.length === 0);
 
@@ -349,8 +320,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       const finalSkipped = skippedRef.current;
       if (failedChunks.length === 0) {
         toast.success(
-          `Import finished: inserted ${finalInserted}, skipped ${finalSkipped}`
+          `Import finished: ${finalSkipped}`
         );
+        onImport(mappedData); // Call onImport to notify parent
+        toggle();
       } else {
         toast.warn(
           `Import finished with ${failedChunks.length} failed chunk(s). Inserted: ${finalInserted}, skipped: ${finalSkipped}`
@@ -406,6 +379,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         setUploadDone(true);
         setUploadProgress(100);
         toast.success("All failed chunks retried successfully");
+        onImport([]);
+        toggle();
       } else {
         toast.warn(`${remaining.length} chunk(s) still failing`);
       }
@@ -892,11 +867,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
                 page.
               </div>
               <div className="mb-2 text-center small text-muted">
-                {uploadedCount} / {totalCount} items uploaded • Chunk{" "}
-                {currentChunkIndex + 1} / {totalChunks}
+                items uploading • Chunk {currentChunkIndex + 1} / {totalChunks}
               </div>
               <div className="mb-2 small text-muted">
-                Skipped (duplicates): {skippedCountTotal}
+                Uploaded: {skippedCountTotal}
               </div>
               <div
                 style={{

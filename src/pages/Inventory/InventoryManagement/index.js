@@ -98,25 +98,70 @@ const InventoryManagement = () => {
     setModalOpen(true);
   };
 
+  // const handleFormSubmit = async (data) => {
+  //   try {
+  //     if (editingMedicine && editingMedicine._id) {
+  //       const res = await axios.patch(
+  //         `/pharmacy/${editingMedicine._id}`,
+  //         ...data, updatedBy:user?.user?._id || user?._id || null,
+  //         {
+  //           headers: { "Content-Type": "application/json" },
+  //         }
+  //       );
+  //       toast.success(res?.message || "Medicine updated successfully");
+  //     } else {
+  //       const res = await axios.post("/pharmacy/", ...data, createdBy:user?.user?._id || user?._id || null, {
+  //         headers: { "Content-Type": "application/json" },
+  //       });
+  //       toast.success(res?.message || "Medicine added successfully");
+  //     }
+
+  //     // Close modal and refresh list (keep current filters)
+  //     setModalOpen(false);
+  //     fetchMedicines({
+  //       page: currentPage,
+  //       limit: pageSize,
+  //       q: debouncedSearch,
+  //       fillter: qfilter,
+  //       center: selectedCenter || undefined,
+  //       centers: user?.centerAccess,
+  //     });
+  //   } catch (error) {
+  //     if (error.response?.data?.message) {
+  //       toast.error(error.response.data.message);
+  //     } else {
+  //       toast.error("Failed to save medicine. Please try again.");
+  //     }
+  //   }
+  // };
+
   const handleFormSubmit = async (data) => {
     try {
+      const payload = {
+        ...data,
+        updatedBy: editingMedicine?._id
+          ? user?.user?._id || user?._id || null
+          : undefined,
+        createdBy: !editingMedicine?._id
+          ? user?.user?._id || user?._id || null
+          : undefined,
+      };
+
+      let res;
+
       if (editingMedicine && editingMedicine._id) {
-        const res = await axios.patch(
-          `/pharmacy/${editingMedicine._id}`,
-          data,
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        toast.success(res?.message || "Medicine updated successfully");
-      } else {
-        const res = await axios.post("/pharmacy/", data, {
+        res = await axios.patch(`/pharmacy/${editingMedicine._id}`, payload, {
           headers: { "Content-Type": "application/json" },
         });
-        toast.success(res?.message || "Medicine added successfully");
+        toast.success(res?.data?.message || "Medicine updated successfully");
+      } else {
+        res = await axios.post("/pharmacy/", payload, {
+          headers: { "Content-Type": "application/json" },
+        });
+        toast.success(res?.data?.message || "Medicine added successfully");
       }
 
-      // Close modal and refresh list (keep current filters)
+      // Close modal and refresh list
       setModalOpen(false);
       fetchMedicines({
         page: currentPage,
@@ -127,11 +172,10 @@ const InventoryManagement = () => {
         centers: user?.centerAccess,
       });
     } catch (error) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error("Failed to save medicine. Please try again.");
-      }
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to save medicine. Please try again."
+      );
     }
   };
 
