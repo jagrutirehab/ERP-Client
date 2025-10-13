@@ -761,9 +761,10 @@ export const getHubspotContacts = ({
   search = "",
   visitDate,
   status,
+  centers,
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
-    params: { page, limit, search, visitDate, status },
+    params: { page, limit, search, visitDate, status, centers },
   });
 };
 
