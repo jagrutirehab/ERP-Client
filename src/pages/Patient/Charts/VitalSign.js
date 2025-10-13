@@ -6,7 +6,7 @@ const VitalSign = ({ data }) => {
     <React.Fragment>
       <div>
         <div className="table-auto">
-          <div className="table-responsive h-auto table-card mb-1">
+          <div className="table-responsive h-auto table-card mb-1 ">
             <table
               className="bill-table table table-sm align-middle table-nowrap"
               id="customerTable"

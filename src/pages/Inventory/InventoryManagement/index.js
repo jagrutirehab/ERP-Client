@@ -77,7 +77,6 @@ const InventoryManagement = () => {
   const [selectedCenter, setSelectedCenter] = useState("");
 
   const [medicines, setMedicines] = useState([]);
-  console.log(medicines)
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -102,15 +101,19 @@ const InventoryManagement = () => {
   const handleFormSubmit = async (data) => {
     try {
       if (editingMedicine && editingMedicine._id) {
-        await axios.patch(`/pharmacy/${editingMedicine._id}`, data, {
-          headers: { "Content-Type": "application/json" },
-        });
-        toast.success("Medicine updated successfully");
+        const res = await axios.patch(
+          `/pharmacy/${editingMedicine._id}`,
+          data,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        toast.success(res?.message || "Medicine updated successfully");
       } else {
-        await axios.post("/pharmacy/", data, {
+        const res = await axios.post("/pharmacy/", data, {
           headers: { "Content-Type": "application/json" },
         });
-        toast.success("Medicine added successfully");
+        toast.success(res?.message || "Medicine added successfully");
       }
 
       // Close modal and refresh list (keep current filters)
@@ -124,7 +127,6 @@ const InventoryManagement = () => {
         centers: user?.centerAccess,
       });
     } catch (error) {
-      console.error("Error saving medicine:", error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -134,9 +136,6 @@ const InventoryManagement = () => {
   };
 
   const handleBulkImport = async (mappedData) => {
-    toast.success(`Imported ${mappedData.length} rows successfully.`);
-    setBulkOpen(false);
-    setCurrentPage(1);
     fetchMedicines({
       page: 1,
       limit: pageSize,
@@ -145,6 +144,9 @@ const InventoryManagement = () => {
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
+    setCurrentPage(1);
+    setBulkOpen(false);
+    toast.success(`Imported rows successfully.`);
   };
 
   const getPageRange = (total, current, maxButtons = 7) => {
@@ -273,7 +275,7 @@ const InventoryManagement = () => {
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   useEffect(() => {
-    dispatch(fetchCenters({centerIds: user?.centerAccess}));
+    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 
@@ -339,14 +341,21 @@ const InventoryManagement = () => {
                 try {
                   setPrintLoading(true);
 
+                  const params = {
+                    search: debouncedSearch || undefined,
+                    fillter: qfilter || undefined,
+                  };
+
+                  // Conditionally add only one of them
+                  if (selectedCenter) {
+                    params.center = selectedCenter;
+                  } else {
+                    params.centers = user?.centerAccess;
+                  }
+
                   // 1️⃣ Fetch all medicine data
                   const response = await axios.get("/pharmacy/print", {
-                    params: {
-                      search: debouncedSearch || undefined,
-                      fillter: qfilter || undefined,
-                      center: selectedCenter || undefined,
-                      centers: user?.centerAccess || undefined,
-                    },
+                    params,
                     headers: { "Content-Type": "application/json" },
                   });
 
@@ -691,7 +700,11 @@ const InventoryManagement = () => {
                           {display(med?.purchasePrice)}
                         </TableCell>
                         <TableCell noWrap>{display(med?.SalesPrice)}</TableCell>
-                        <TableCell noWrap>{display(med?.Expiry)}</TableCell>
+                        <TableCell noWrap>
+                          {med?.Expiry
+                            ? new Date(med.Expiry).toLocaleDateString("en-US")
+                            : "-"}
+                        </TableCell>
                         <TableCell noWrap>{display(med?.Batch)}</TableCell>
                         <TableCell noWrap>{display(med?.company)}</TableCell>
                         <TableCell noWrap>

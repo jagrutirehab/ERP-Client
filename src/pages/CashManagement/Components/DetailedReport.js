@@ -20,6 +20,8 @@ import { getDetailedReport } from "../../../store/features/cashManagement/cashSl
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
 
 const DetailedReport = ({
   centers,
@@ -31,6 +33,7 @@ const DetailedReport = ({
   roles,
 }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
@@ -94,8 +97,8 @@ const DetailedReport = ({
       selector: (row) => {
         const badgeStyle = {
           display: "inline-block",
-          whiteSpace: "normal",   
-          wordBreak: "break-word", 
+          whiteSpace: "normal",
+          wordBreak: "break-word",
         };
         if (row.transactionCategory === "BASEBALANCE") {
           return (
@@ -187,16 +190,27 @@ const DetailedReport = ({
 
   useEffect(() => {
     if (activeTab === "detail" && hasUserPermission) {
-      dispatch(
-        getDetailedReport({
-          page,
-          limit,
-          transactionType: selectedTransactionType,
-          centers: selectedCentersIds,
-          startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString(),
-        })
-      );
+
+      const fetchDetailReport = async () => {
+        try {
+          await dispatch(
+            getDetailedReport({
+              page,
+              limit,
+              transactionType: selectedTransactionType,
+              centers: selectedCentersIds,
+              startDate: reportDate.start.toISOString(),
+              endDate: reportDate.end.toISOString(),
+            })
+          ).unwrap();
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            toast.error(error.message || "Failed to fetch detail report.");
+          }
+        }
+      }
+
+      fetchDetailReport();
     }
   }, [
     page,

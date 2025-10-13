@@ -36,8 +36,7 @@ export const getLastBankDeposits = createAsyncThunk(
       const response = await getLatestBankDesposits(data);
       return { data: response, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch deposits");
+      return rejectWithValue(error);
     }
   }
 );
@@ -58,7 +57,7 @@ export const addSpending = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to log spending");
+      return rejectWithValue(error);
     }
   }
 );
@@ -67,15 +66,14 @@ export const getLastSpendings = createAsyncThunk(
   "cash/getLatestSpendings",
   async (data, { getState, dispatch, rejectWithValue }) => {
     const cached = getState().Cash.spendings?.data;
-    if (cached && cached.data.length > 0) {
+    if (cached && cached.length > 0) {
       return { data: cached, fromCache: true };
     }
     try {
       const response = await getLatestSpendings(data);
       return { data: response, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
@@ -96,7 +94,7 @@ export const addBankDeposit = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to add deposit");
+      return rejectWithValue(error);
     }
   }
 );
@@ -117,7 +115,7 @@ export const addBaseBalance = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to add base balance");
+      return rejectWithValue(error);
     }
   }
 );
@@ -138,8 +136,7 @@ export const getLastBaseBalanceByCenter = createAsyncThunk(
       const response = await getBaseBalanceByCenter(centerId);
       return { payload: response.payload, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch base balance");
+      return rejectWithValue(error);
     }
   }
 );
@@ -151,8 +148,7 @@ export const getDetailedReport = createAsyncThunk(
       const response = await getDetailedCashReport(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
@@ -169,8 +165,7 @@ export const getSummaryReport = createAsyncThunk(
       const response = await getSummaryCashReport({ centers });
       return { data: response, cacheKey, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
