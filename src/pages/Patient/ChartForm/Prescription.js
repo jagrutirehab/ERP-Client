@@ -407,8 +407,16 @@ const Prescription = ({
                     itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   >
                     {chart.chart === PRESCRIPTION && <PrescriptionChart data={chart?.prescription} />}
-                    {chart.chart === RELATIVE_VISIT && <RelativeVisit data={chart?.relativeVisit} />}
-                    {chart.chart === DISCHARGE_SUMMARY && <DischargeSummary data={chart?.dischargeSummary} />}
+                    {chart.chart === RELATIVE_VISIT && (
+                      <div className="mt-4">
+                        <RelativeVisit data={chart?.relativeVisit} />
+                      </div>
+                    )}
+                    {chart.chart === DISCHARGE_SUMMARY &&
+                      <div className="mt-4">
+                        <DischargeSummary data={chart?.dischargeSummary} />
+                      </div>
+                    }
                     {chart.chart === VITAL_SIGN && (
                       <div className="mt-4 mx-3">
                         <VitalSign data={chart.vitalSign} />
@@ -423,7 +431,11 @@ const Prescription = ({
                       <CounsellingNote data={chart.counsellingNote} />
                     </diV>}
                     {chart.chart === LAB_REPORT && <LabReport data={chart.labReport?.reports} />}
-                    {chart.chart === DETAIL_ADMISSION && <DetailAdmission data={chart.detailAdmission} />}
+                    {chart.chart === DETAIL_ADMISSION &&
+                      <div className="mt-4">
+                        <DetailAdmission data={chart.detailAdmission} />
+                      </div>
+                    }
                   </Wrapper>
                 </div>
               ))}
