@@ -26,10 +26,11 @@ import FileUpload from "../Components/FileUpload";
 import ItemCard from "../Components/ItemCard";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
   const dispatch = useDispatch();
-
+  const handleAuthError = useAuthError();
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
     .map((c) => ({
@@ -97,7 +98,9 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
         setAttachmentTouched(false);
         toast.success("Deposit added successfully");
       } catch (error) {
-        toast.error(error.message || "Failed to add deposit.");
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to add deposit");
+        }
       }
     },
   });
@@ -124,9 +127,19 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
-    dispatch(
-      getLastBankDeposits({ page: 1, limit: 10, centers: centerAccess })
-    );
+    const fetchDeposits = async () => {
+      try {
+        await dispatch(
+          getLastBankDeposits({ page: 1, limit: 10, centers: centerAccess })
+        ).unwrap();
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          console.error("Error fetching bank deposits:", error);
+          toast.error(error.message || "Failed to fetch bank deposits.");
+        }
+      }
+    }
+    fetchDeposits();
   }, [centerAccess, dispatch, roles]);
 
   if (!hasCreatePermission && !hasReadPermission) {

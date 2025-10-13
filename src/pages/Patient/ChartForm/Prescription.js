@@ -414,8 +414,14 @@ const Prescription = ({
                         <VitalSign data={chart.vitalSign} />
                       </div>
                     )}
-                    {chart.chart === CLINICAL_NOTE && <ClinicalNote data={chart.clinicalNote} />}
-                    {chart.chart === COUNSELLING_NOTE && <CounsellingNote data={chart.counsellingNote} />}
+                    {chart.chart === CLINICAL_NOTE &&
+                      <div className="mt-4">
+                        <ClinicalNote data={chart.clinicalNote} />
+                      </div>
+                    }
+                    {chart.chart === COUNSELLING_NOTE && <diV className="mt-4">
+                      <CounsellingNote data={chart.counsellingNote} />
+                    </diV>}
                     {chart.chart === LAB_REPORT && <LabReport data={chart.labReport?.reports} />}
                     {chart.chart === DETAIL_ADMISSION && <DetailAdmission data={chart.detailAdmission} />}
                   </Wrapper>

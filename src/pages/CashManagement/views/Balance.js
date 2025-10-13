@@ -30,9 +30,11 @@ import { downloadFile } from "../../../Components/Common/downloadFile";
 import { format, subDays } from "date-fns";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
     .map((c) => ({
@@ -162,11 +164,20 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
-    if (formik.values.center) {
-      dispatch(getLastBaseBalanceByCenter(formik.values.center));
-    } else {
-      dispatch(clearLastBaseBalance());
+    const fetchBaseBalance = async () => {
+      try {
+        if (formik.values.center) {
+          await dispatch(getLastBaseBalanceByCenter(formik.values.center)).unwrap();
+        } else {
+          dispatch(clearLastBaseBalance());
+        }
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch base balance.");
+        }
+      }
     }
+    fetchBaseBalance();
   }, [formik.values.center, dispatch, hasReadPermission]);
 
   const hasSelectedCenter = !!formik.values.center;
