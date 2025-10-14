@@ -120,8 +120,7 @@ const Wrapper = ({
                   direction="start"
                   className="col text-end"
                 >
-                  {!hideDropDown && !item.clinicalTest &&
-                    item.clinicalTest !== "ClinicalTest" && (
+                  {!hideDropDown && (
                       <DropdownToggle
                         tag="a"
                         id="dropdownMenuLink14"

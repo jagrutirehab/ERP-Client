@@ -15,6 +15,7 @@ import InternBills from "./Intern/index";
 import RenderWhen from "../Common/RenderWhen";
 import { useMediaQuery } from "../Hooks/useMediaQuery";
 import { Spinner } from "reactstrap";
+import ClinicalTest from "./clinicalTest";
 
 const Print = ({
   modal,
@@ -23,10 +24,13 @@ const Print = ({
   intern,
   admission,
   doctor,
+  clinicalTest,
   center,
   patientAdmissionsCharts,
+  charts
 }) => {
   const dispatch = useDispatch();
+  console.log("print clinical test", clinicalTest);
 
   const [vp, setVp] = useState(null);
   useEffect(() => {
@@ -178,6 +182,27 @@ const Print = ({
                 </PDFDownloadLink>
               </div>
             </RenderWhen>
+            <RenderWhen isTrue={clinicalTest ? true : false}>
+              <div className="mb-3 p-3 border rounded bg-light">
+                <p className="text-muted mb-3">
+                  Preview not available, please download.
+                </p>
+                <PDFDownloadLink
+                  document={
+                    <ClinicalTest
+                      charts={charts}
+                      clinicalTest={clinicalTest}
+                    />
+                  }
+                  fileName={`${clinicalTest?.patientId?.id?.value}-${(clinicalTest?.patientId?.name || 'patient').replace(/\s+/g, '_')}-clinical_test.pdf`}
+                  className="btn btn-primary btn-sm"
+                >
+                  {({ loading }) =>
+                    loading ? <Spinner size="sm" /> : 'Download'
+                  }
+                </PDFDownloadLink>
+              </div>
+            </RenderWhen>
           </div>
         </RenderWhen>
         <RenderWhen isTrue={!isMobile}>
@@ -223,6 +248,12 @@ const Print = ({
                 intern={intern}
               />
             </RenderWhen>
+            <RenderWhen isTrue={clinicalTest ? true : false}>
+              <ClinicalTest
+                charts={charts}
+                clinicalTest={clinicalTest}
+              />
+            </RenderWhen>
           </PDFViewer>
         </RenderWhen>
 
@@ -248,6 +279,8 @@ const mapStateToProps = (state) => ({
   doctor: state.Print.doctor,
   center: state.Print.center,
   patientAdmissionsCharts: state.Chart.data,
+  clinicalTest: state.Print.clinicalTest,
+  charts: state.Chart.data[0]?.charts,
 });
 
 export default connect(mapStateToProps)(Print);
