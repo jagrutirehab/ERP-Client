@@ -64,6 +64,7 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
+                    maxDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
