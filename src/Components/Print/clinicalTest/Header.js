@@ -147,7 +147,7 @@ const Header = ({ date, patient, doctor }) => {
                             </Text>
                         )}
                         {patient.gender && (
-                            <Text style={styles.paddingTop3}>{patient.gender},</Text>
+                            <Text style={styles.paddingTop3}>{patient.gender}</Text>
                         )}
                         {patient.dateOfBirth && (
                             <Text style={{ ...styles.paddingTop3 }}>{age()}</Text>

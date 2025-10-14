@@ -143,6 +143,48 @@ const styles = StyleSheet.create({
 });
 
 
+const formatRecommendationsPDF = (text) => {
+    if (!text) return [<Text key="none">No Recommendation</Text>];
+
+    const placeholderMap = {
+        "e.g.": "___eg___",
+        "i.e.": "___ie___",
+        "etc.": "___etc___",
+        "vs.": "___vs___",
+    };
+
+    let safeText = text;
+    for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
+        safeText = safeText.replaceAll(abbr, placeholder);
+    }
+
+    // Try numbered bullets first
+    let parts = safeText.split(/(?=\d+\.\s)/);
+
+    // If no numbered bullets, split by sentence
+    if (parts.length === 1) {
+        parts = safeText.match(/[^.!?]+[.!?]+(\s|$)/g) || [safeText];
+    }
+
+    return parts.map((line, idx) => {
+        let restored = line.trim();
+        for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
+            restored = restored.replaceAll(placeholder, abbr);
+        }
+
+        restored = restored.replace(/^\d+\.\s*/, "").trim();
+
+        return (
+            <View style={styles.bulletItem} key={idx}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.recommendationText}>{capitalizeWords(restored)}</Text>
+            </View>
+        );
+    });
+};
+
+
+
 const Body = ({ clinicalTest, charts }) => {
     const getTestInfo = (testType) => testInfo.find(t => t.type === testType);
 
@@ -229,12 +271,12 @@ const Body = ({ clinicalTest, charts }) => {
                         }
 
                         {
-                            clinicalTest?.systemInterpretation && (
+                            (clinicalTest?.systemInterpretation || clinicalTest?.interpretation) && (
                                 <>
                                     <View wrap={false}>
                                         <Text style={styles.label}>INTERPRETATION:</Text>
                                         <Text style={styles.paragraph}>
-                                            {capitalizeWords(clinicalTest.systemInterpretation)}
+                                            {capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}
                                         </Text>
                                     </View>
                                     <View style={styles.divider} />
@@ -242,18 +284,11 @@ const Body = ({ clinicalTest, charts }) => {
                             )
                         }
                         {
-                            clinicalTest?.systemRecommendation && (
+                            (clinicalTest?.systemRecommendation || clinicalTest?.recommendation) && (
                                 <View wrap={false}>
                                     <Text style={styles.label}>RECOMMENDATION:</Text>
                                     <View style={styles.recommendationContainer}>
-                                        {capitalizeWords(clinicalTest.systemRecommendation).split(/(?<=\.)\s+/).map((sentence, index) => (
-                                            <View key={index} style={styles.bulletItem}>
-                                                <Text style={styles.bullet}>•</Text>
-                                                <Text style={styles.recommendationText}>
-                                                    {sentence}
-                                                </Text>
-                                            </View>
-                                        ))}
+                                        {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation)}
                                     </View>
                                 </View>
                             )
