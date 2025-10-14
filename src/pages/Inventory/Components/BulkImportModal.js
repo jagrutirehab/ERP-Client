@@ -232,7 +232,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     return { success: false, error: new Error("Unknown error") };
   };
 
-  const handleImport = async ({ chunkSize = 100 } = {}) => {
+  const handleImport = async ({ chunkSize = 50 } = {}) => {
     const mappedData = buildMappedObjects();
     const totalItemsLocal = mappedData.length;
     if (!totalItemsLocal) {
@@ -938,7 +938,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           </Button>
 
           <Button
-            onClick={() => handleImport({ chunkSize: 100 })}
+            onClick={() => handleImport({ chunkSize: 50 })}
             disabled={
               uploading ||
               !Object.values(columnMapping).some(
