@@ -128,17 +128,17 @@ const styles = StyleSheet.create({
     recommendationContainer: {
         marginLeft: 10,
     },
-    recommendationItem: {
+    recommendationText: {
+        flex: 1,
+        textAlign: 'justify',
+    },
+    bulletItem: {
         flexDirection: 'row',
         marginBottom: 5,
     },
     bullet: {
         marginRight: 8,
         fontSize: 16,
-    },
-    recommendationText: {
-        flex: 1,
-        textAlign: 'justify',
     },
 });
 
@@ -169,7 +169,7 @@ const Body = ({ clinicalTest, charts }) => {
                             <View>
                                 <Text style={styles.label}>SUB SCORES:</Text>
                                 {getTestInfo(clinicalTest?.testType).subScores.map((sub, index) => (
-                                    <View key={index} style={styles.recommendationItem}>
+                                    <View key={index} style={styles.bulletItem}>
                                         <Text style={styles.bullet}>•</Text>
                                         <Text style={styles.value}>
                                             {clinicalTest?.testType === 10
@@ -180,84 +180,87 @@ const Body = ({ clinicalTest, charts }) => {
                                     </View>
                                 ))}
                             </View>
-                )}
-                <View style={styles.divider} />
-
-                {
-                    (clinicalTest?.severity || clinicalTest?.systemSeverity) && (
-                        <>
-                            <Text style={styles.label}>SEVERITY:</Text>
-                            <Text style={styles.value}>
-                                {clinicalTest?.severity || clinicalTest?.systemSeverity}
-                            </Text>
-                            <View style={styles.divider} />
-                        </>
-                    )
-                }
-
-
-                {detailAdmissionChart?.detailAdmission?.ChiefComplaints && (
-                    <>
-                        <Text style={styles.label}>CHIEF COMPLAINTS:</Text>
-                        <View style={{ marginBottom: 8 }}>
-                            {Object.values(detailAdmissionChart.detailAdmission.ChiefComplaints)
-                                .filter(line => line && line.trim() !== "")
-                                .map((line, idx) => (
-                                    <Text key={idx} style={styles.value}>• {capitalizeWords(line)}</Text>
-                                ))}
-                        </View>
+                        )}
                         <View style={styles.divider} />
-                    </>
-                )}
 
-                {
-                    clinicalTest?.observation && (
-                        <>
-                            <View>
-                                <Text style={styles.label}>OBSERVATIONS:</Text>
-                                <Text style={styles.paragraph}>
-                                    {capitalizeWords(clinicalTest.observation)}
-                                </Text>
-                            </View>
+                        {
+                            (clinicalTest?.severity || clinicalTest?.systemSeverity) && (
+                                <>
+                                    <Text style={styles.label}>SEVERITY:</Text>
+                                    <Text style={styles.value}>
+                                        {clinicalTest?.severity || clinicalTest?.systemSeverity}
+                                    </Text>
+                                    <View style={styles.divider} />
+                                </>
+                            )
+                        }
 
-                            <View style={styles.divider} />
-                        </>
-                    )
-                }
 
-                {
-                    clinicalTest?.systemInterpretation && (
-                        <>
-                            <View wrap={false}>
-                                <Text style={styles.label}>INTERPRETATION:</Text>
-                                <Text style={styles.paragraph}>
-                                    {capitalizeWords(clinicalTest.systemInterpretation)}
-                                </Text>
-                            </View>
-                            <View style={styles.divider} />
-                        </>
-                    )
-                }
-                {
-                    clinicalTest?.systemRecommendation && (
-                        <View wrap={false}>
-                            <Text style={styles.label}>RECOMMENDATION:</Text>
-                            <View style={styles.recommendationContainer}>
-                                {capitalizeWords(clinicalTest.systemRecommendation).split(/(?<=\.)\s+/).map((sentence, index) => (
-                                    <View key={index} style={styles.recommendationItem}>
-                                        <Text style={styles.bullet}>•</Text>
-                                        <Text style={styles.recommendationText}>
-                                            {sentence}
+                        {detailAdmissionChart?.detailAdmission?.ChiefComplaints && (
+                            <>
+                                <Text style={styles.label}>CHIEF COMPLAINTS:</Text>
+                                <View style={{ marginBottom: 8 }}>
+                                    {Object.values(detailAdmissionChart.detailAdmission.ChiefComplaints)
+                                        .filter(line => line && line.trim() !== "")
+                                        .map((line, idx) => (
+                                            <View style={styles.bulletItem} key={idx}>
+                                                <Text style={styles.bullet}>•</Text>
+                                                <Text style={styles.value}>{capitalizeWords(line)}</Text>
+                                            </View>
+                                        ))}
+                                </View>
+                                <View style={styles.divider} />
+                            </>
+                        )}
+
+                        {
+                            clinicalTest?.observation && (
+                                <>
+                                    <View>
+                                        <Text style={styles.label}>OBSERVATIONS:</Text>
+                                        <Text style={styles.paragraph}>
+                                            {capitalizeWords(clinicalTest.observation)}
                                         </Text>
                                     </View>
-                                ))}
-                            </View>
-                        </View>
-                    )
-                }
-            </View>
+
+                                    <View style={styles.divider} />
+                                </>
+                            )
+                        }
+
+                        {
+                            clinicalTest?.systemInterpretation && (
+                                <>
+                                    <View wrap={false}>
+                                        <Text style={styles.label}>INTERPRETATION:</Text>
+                                        <Text style={styles.paragraph}>
+                                            {capitalizeWords(clinicalTest.systemInterpretation)}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.divider} />
+                                </>
+                            )
+                        }
+                        {
+                            clinicalTest?.systemRecommendation && (
+                                <View wrap={false}>
+                                    <Text style={styles.label}>RECOMMENDATION:</Text>
+                                    <View style={styles.recommendationContainer}>
+                                        {capitalizeWords(clinicalTest.systemRecommendation).split(/(?<=\.)\s+/).map((sentence, index) => (
+                                            <View key={index} style={styles.bulletItem}>
+                                                <Text style={styles.bullet}>•</Text>
+                                                <Text style={styles.recommendationText}>
+                                                    {sentence}
+                                                </Text>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            )
+                        }
+                    </View>
                 )}
-        </View>
+            </View>
         </React.Fragment >
     );
 };
