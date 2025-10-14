@@ -636,7 +636,7 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
                     <TableHead noWrap>Strength</TableHead>
-                    <TableHead noWrap>Centre</TableHead>
+                    <TableHead noWrap>Centre / Stock</TableHead>
                     <TableHead noWrap>Unit</TableHead>
                     <TableHead noWrap>Current Stock</TableHead>
                     <TableHead noWrap>Cost Price</TableHead>
@@ -725,13 +725,126 @@ const InventoryManagement = () => {
                           {display(med?.Strength || med?.Strength)}
                         </TableCell>
                         <TableCell noWrap>
-                          {display(
-                            med?.centers
-                              ? med?.centers
-                                  .map((item) => item?.centerId?.title)
-                                  .join(", ")
-                              : "-"
-                          )}
+                          {/* The unique ID for the container element will be derived from med._id */}
+                          {(() => {
+                            const centers = med?.centers || [];
+                            const initialCount = 2;
+                            const hiddenCount = centers.length - initialCount;
+                            const containerId = `center-stock-container-${med._id}`; // Unique ID for the container
+
+                            // Function to handle the click and toggle visibility
+                            const toggleCenters = (e) => {
+                              e.preventDefault();
+                              const container =
+                                document.getElementById(containerId);
+                              if (!container) return;
+
+                              const hiddenItems = container.querySelectorAll(
+                                ".hidden-center-item"
+                              );
+                              const button = e.target;
+                              const isExpanded =
+                                button.getAttribute("data-expanded") === "true";
+
+                              if (isExpanded) {
+                                // Collapse: Hide items and change text to "View all"
+                                hiddenItems.forEach(
+                                  (item) => (item.style.display = "none")
+                                );
+                                button.innerText = `View all (+${hiddenCount})`;
+                                button.setAttribute("data-expanded", "false");
+                              } else {
+                                // Expand: Show all items and change text to "View less"
+                                hiddenItems.forEach(
+                                  (item) => (item.style.display = "flex")
+                                );
+                                button.innerText = "View less";
+                                button.setAttribute("data-expanded", "true");
+                              }
+                            };
+
+                            return (
+                              <div
+                                style={{
+                                  whiteSpace: "normal",
+                                  minWidth: "180px",
+                                  padding: "4px 0",
+                                }}
+                                id={containerId} // Apply the unique ID here
+                              >
+                                {centers.length > 0 ? (
+                                  <ul
+                                    style={{
+                                      listStyle: "none",
+                                      padding: 0,
+                                      margin: 0,
+                                    }}
+                                  >
+                                    {centers.map((item, index) => {
+                                      const isHidden = index >= initialCount;
+                                      return (
+                                        <li
+                                          key={index}
+                                          className={
+                                            isHidden ? "hidden-center-item" : ""
+                                          } // Add a class to target later
+                                          style={{
+                                            display: isHidden ? "none" : "flex", // Initially hide items beyond the limit
+                                            justifyContent: "space-between",
+                                            borderBottom:
+                                              index < centers.length - 1
+                                                ? "1px solid #eee"
+                                                : "none",
+                                            padding: "2px 0",
+                                          }}
+                                        >
+                                          {/* Center Name (Left-aligned) */}
+                                          <span
+                                            style={{
+                                              fontWeight: 600,
+                                              color: "#007bff",
+                                            }}
+                                          >
+                                            {display(item?.centerId?.title)}
+                                          </span>
+                                          {/* Stock Value (Right-aligned) */}
+                                          <span
+                                            style={{
+                                              fontWeight: 500,
+                                              marginLeft: "10px",
+                                            }}
+                                          >
+                                            {display(item?.stock)}
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                ) : (
+                                  "-"
+                                )}
+
+                                {/* The "View all" / "View less" button */}
+                                {hiddenCount > 0 && (
+                                  <button
+                                    onClick={toggleCenters} // Use the inline DOM manipulation function
+                                    data-expanded="false" // Track state on the button itself
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      color: "#007bff",
+                                      cursor: "pointer",
+                                      padding: "2px 0",
+                                      marginTop: "4px",
+                                      fontSize: "0.85rem",
+                                    }}
+                                  >
+                                    {`View all (+${hiddenCount})`}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell noWrap>
                           {display(med?.unitType || med?.unit)}
