@@ -64,7 +64,7 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
     doctor?.specializations ||
     doctor?.regNumber;
 
-
+console.log({chart,center, patient, doctor })
 
   const age = () =>
     differenceInYears(new Date(), new Date(patient?.dateOfBirth));

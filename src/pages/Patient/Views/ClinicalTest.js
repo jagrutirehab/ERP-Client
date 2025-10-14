@@ -13,7 +13,7 @@ import Placeholder from "./Components/Placeholder";
 import { CLINIC_TEST } from "../../../Components/constants/patient"; // create if needed
 import Wrapper from "../Components/Wrapper";
 import CIWAResultComponent from "./Components/CIWAResultComponent ";
-import { fetchClinicalTest } from "../../../store/actions";
+import { fetchClinicalTest, togglePrint } from "../../../store/actions";
 import CSSRSResultComponent from "./Components/SsrsResult";
 import YmscResult from "./Components/YmscResult";
 import MPQ9ResultComponent from "./Components/MPQ9Result";
@@ -41,6 +41,8 @@ const ClinicalTest = ({
   }, [patient]);
 
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
+
+  
 
   return (
     <React.Fragment>
@@ -125,6 +127,9 @@ const ClinicalTest = ({
                                   return (
                                     <div>
                                       <Wrapper
+                                        printItem={() => dispatch(togglePrint({modal: true, clinicalTest: test, doctor:test.doctorId, patient:test.patientId}))}
+                                        disableEdit={true}
+                                        disableDelete={true}
                                         item={{
                                           clinicalTest: "ClinicalTest",
                                           author: {
