@@ -119,7 +119,7 @@ const DetailedReport = ({
               INTERN RECEIPT
             </Badge>
           );
-        } else if (row.transactionCategory === "INVOICE" & row.transactionType === "OPD") {
+        } else if (row.transactionCategory === "INVOICE" && row.transactionType === "OPD") {
           return (
             <Badge color="success" style={badgeStyle}>
               OPD
