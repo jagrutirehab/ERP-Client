@@ -188,7 +188,11 @@ const formatRecommendationsPDF = (text) => {
 const Body = ({ clinicalTest, charts }) => {
     const getTestInfo = (testType) => testInfo.find(t => t.type === testType);
 
-    const detailAdmissionChart = charts?.find((chart) => chart.chart === "DETAIL_ADMISSION");
+    const chiefComplaints = charts?.find((chart) => chart.chart === "DETAIL_ADMISSION")?.detailAdmission?.ChiefComplaints;
+    const filteredChiefComplaints = chiefComplaints
+        ? Object.values(chiefComplaints).filter(line => line && line.trim() !== "")
+        : [];
+
 
     return (
         <React.Fragment>
@@ -238,18 +242,16 @@ const Body = ({ clinicalTest, charts }) => {
                         }
 
 
-                        {detailAdmissionChart?.detailAdmission?.ChiefComplaints && (
+                        {filteredChiefComplaints.length > 0 && (
                             <>
                                 <Text style={styles.label}>CHIEF COMPLAINTS:</Text>
                                 <View style={{ marginBottom: 8 }}>
-                                    {Object.values(detailAdmissionChart.detailAdmission.ChiefComplaints)
-                                        .filter(line => line && line.trim() !== "")
-                                        .map((line, idx) => (
-                                            <View style={styles.bulletItem} key={idx}>
-                                                <Text style={styles.bullet}>•</Text>
-                                                <Text style={styles.value}>{capitalizeWords(line)}</Text>
-                                            </View>
-                                        ))}
+                                    {filteredChiefComplaints.map((line, idx) => (
+                                        <View style={styles.bulletItem} key={idx}>
+                                            <Text style={styles.bullet}>•</Text>
+                                            <Text style={styles.value}>{capitalizeWords(line)}</Text>
+                                        </View>
+                                    ))}
                                 </View>
                                 <View style={styles.divider} />
                             </>
