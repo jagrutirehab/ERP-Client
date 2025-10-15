@@ -188,16 +188,10 @@ const Notification = ({ bill, userCenters, loading }) => {
                             <Col xs={6}>
                               <p className="text-muted mb-0">Bill Cycle Date</p>
                               <h5 className="mb-1">
-                                {item?.addmission
+                                {item?.lastBillingCycleDate
                                   ? format(
-                                      Math.abs(
-                                        new Date(
-                                          new Date().setDate(
-                                            new Date(
-                                              item.addmission.addmissionDate
-                                            ).getDate()
-                                          )
-                                        )
+                                      new Date(
+                                        item?.lastBillingCycleDate
                                       ),
                                       "dd MMM"
                                     )
