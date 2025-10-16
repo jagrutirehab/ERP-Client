@@ -15,6 +15,8 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import { useInView } from "react-hook-inview";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { setTestPageOpen } from "../../../store/features/clinicalTest/clinicalTestSlice";
+import { format } from "date-fns";
+import { BILL_PAID, BILLING_CYCLE_MISSED, INVOICE_CREATED, NEXT_BILLING_PENDING, NO_BILLING } from "../../../Components/constants/bill";
 
 const Sidebar = ({
   patients,
@@ -39,6 +41,14 @@ const Sidebar = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, centerAccess, customActiveTab, isVisible]);
+
+  const generateBillingStatusColor = (billingStatus) => {
+    if (billingStatus === BILLING_CYCLE_MISSED) return 'danger';
+    else if (billingStatus === NEXT_BILLING_PENDING) return 'warning';
+    else if (billingStatus === INVOICE_CREATED) return 'info';
+    else if (billingStatus === BILL_PAID) return 'success';
+    else if (billingStatus === NO_BILLING) return '';
+  }
 
   useEffect(() => {
     toggleDataSidebar();
@@ -157,6 +167,16 @@ const Sidebar = ({
                         <p className="text-truncate text-capitalize font-semi-bold fs-13 mb-0">
                           {pt.name || ""}
                         </p>
+                        <RenderWhen isTrue={pt.isAdmit && pt?.addmission?.addmissionDate}>
+                          <p className="text-muted mb-0" style={{ fontSize: "10px" }}>
+                            {format(
+                              new Date(
+                                pt?.addmission?.addmissionDate
+                              ),
+                              "dd MMM yyyy"
+                            )}
+                          </p>
+                        </RenderWhen>
                       </div>
                       <div className="flex-shrink-0 d-flex align-items-center">
                         <RenderWhen isTrue={!pt.isAdmit && !pt.isDischarge}>
@@ -194,7 +214,7 @@ const Sidebar = ({
                         <RenderWhen isTrue={pt.isAdmit}>
                           <span
                             id="admit-patient"
-                            className="badge badge-soft-dark text-primary me-3"
+                            className="badge badge-soft-dark text-primary me-1"
                           >
                             <i className="ri-user-location-fill fs-6"></i>
                           </span>
@@ -211,6 +231,18 @@ const Sidebar = ({
                         <UncontrolledTooltip target="patient-center">
                           Patient Center
                         </UncontrolledTooltip>
+                        <RenderWhen isTrue={pt.isAdmit}>
+                          <span id={`billing-cycle-${pt?._id}`} className="badge badge-soft-dark mx-1">
+                            <span
+                              className={`bg-${generateBillingStatusColor(pt?.billingStatus)} d-inline-block rounded-circle`}
+                              style={{ width: "10px", height: "10px", verticalAlign: "middle" }}
+                            ></span>
+                          </span>
+                          <UncontrolledTooltip target={`billing-cycle-${pt?._id}`}>
+                            {pt?.billingStatus}
+                          </UncontrolledTooltip>
+                        </RenderWhen>
+
                       </div>
                     </div>
                   </Link>
