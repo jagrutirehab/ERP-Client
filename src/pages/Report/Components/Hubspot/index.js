@@ -50,7 +50,11 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
   useEffect(() => {
     const access = centers
       .filter((cn) => centerAccess.includes(cn._id))
-      .map((cn) => cn.title)
+      .map((cn) => {
+        const titles = cn.title.split("-").join(",");
+        return titles;
+        // cn.title
+      })
       .join(",");
     const params = {
       page: currentPage,
