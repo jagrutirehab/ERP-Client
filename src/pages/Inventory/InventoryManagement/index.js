@@ -227,8 +227,9 @@ const InventoryManagement = () => {
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
       if (!cancelled) {
-        console.error(err);
-        toast.error("Failed to fetch medicines");
+        return;
+        // console.error(err);
+        // toast.error("Failed to fetch medicines");
       }
     } finally {
       setLoading(false);

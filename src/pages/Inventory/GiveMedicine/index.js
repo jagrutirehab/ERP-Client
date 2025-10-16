@@ -8,7 +8,13 @@ import { searchPatient } from "../../../store/actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines, onResetPagination }) => {
+const Givemedicine = ({
+  patients,
+  user,
+  setModalOpengive,
+  fetchMedicines,
+  onResetPagination,
+}) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User.centerAccess);
   const [selectedCenter, setSelectedCenter] = useState("");
@@ -54,7 +60,8 @@ const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines, onRese
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled) toast.error("Failed to fetch medicines");
+      if (!cancelled) return;
+      // toast.error("Failed to fetch medicines");
     } finally {
       setLoading(false);
     }
@@ -245,7 +252,8 @@ const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines, onRese
                     borderBottom: "1px solid #eee",
                   }}
                 >
-                  {med.medicineName} ({med.Strength}{med.unitType}, stock:{" "}
+                  {med.medicineName} ({med.Strength}
+                  {med.unitType}, stock:{" "}
                   {med.centers?.find((c) => c.centerId?._id === selectedCenter)
                     ?.stock ?? 0}
                   )
