@@ -46,6 +46,7 @@ import { fetchCenters } from "../../../store/actions";
 import ExcelJS from "exceljs";
 import JsBarcode from "jsbarcode";
 import { saveAs } from "file-saver";
+import Givemedicine from "../GiveMedicine";
 
 ChartJS.register(
   CategoryScale,
@@ -59,23 +60,17 @@ ChartJS.register(
 const InventoryManagement = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
-  // console.log(user);
-
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
-
+  const [modalOpengive, setModalOpengive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [qfilter, setQfilter] = useState("");
-
-  // Center filter state (single select)
   const [selectedCenter, setSelectedCenter] = useState("");
-
   const [medicines, setMedicines] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -98,42 +93,9 @@ const InventoryManagement = () => {
     setModalOpen(true);
   };
 
-  // const handleFormSubmit = async (data) => {
-  //   try {
-  //     if (editingMedicine && editingMedicine._id) {
-  //       const res = await axios.patch(
-  //         `/pharmacy/${editingMedicine._id}`,
-  //         ...data, updatedBy:user?.user?._id || user?._id || null,
-  //         {
-  //           headers: { "Content-Type": "application/json" },
-  //         }
-  //       );
-  //       toast.success(res?.message || "Medicine updated successfully");
-  //     } else {
-  //       const res = await axios.post("/pharmacy/", ...data, createdBy:user?.user?._id || user?._id || null, {
-  //         headers: { "Content-Type": "application/json" },
-  //       });
-  //       toast.success(res?.message || "Medicine added successfully");
-  //     }
-
-  //     // Close modal and refresh list (keep current filters)
-  //     setModalOpen(false);
-  //     fetchMedicines({
-  //       page: currentPage,
-  //       limit: pageSize,
-  //       q: debouncedSearch,
-  //       fillter: qfilter,
-  //       center: selectedCenter || undefined,
-  //       centers: user?.centerAccess,
-  //     });
-  //   } catch (error) {
-  //     if (error.response?.data?.message) {
-  //       toast.error(error.response.data.message);
-  //     } else {
-  //       toast.error("Failed to save medicine. Please try again.");
-  //     }
-  //   }
-  // };
+  const handleGiveMedicine = () => {
+    setModalOpengive(true);
+  };
 
   const handleFormSubmit = async (data) => {
     try {
@@ -217,7 +179,7 @@ const InventoryManagement = () => {
     return range;
   };
 
-  // Fetch medicines — now includes center param when provided and correctly reads response.data
+  // Fetch medicines
   async function fetchMedicines({
     page = 1,
     limit = 5,
@@ -243,11 +205,9 @@ const InventoryManagement = () => {
         fillter: fillter || undefined,
       };
 
-      // Only send `center` if it has a value
       if (center) {
         params.center = center;
       } else if (user?.centerAccess) {
-        // Only send `centers` if `center` is not provided
         params.centers = user.centerAccess;
       }
       const response = await axios.get("/pharmacy/", {
@@ -256,16 +216,12 @@ const InventoryManagement = () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      // axios puts the server body in response.data
       const body = response || {};
-
-      // backend returns { success, total, page, pages, data }
       setMedicines(Array.isArray(body.data) ? body.data : []);
       setTotalItems(Number(body.total ?? 0));
       setTotalPages(Number(body.pages ?? 1));
       setCurrentPage(Number(body.page ?? page));
     } catch (err) {
-      // axios cancellation error name/code varies across versions/environments
       const cancelled =
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
@@ -279,13 +235,13 @@ const InventoryManagement = () => {
     }
   }
 
-  // debounce search input
+  // Debounce search input
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // fetch when page, size, search, filter or selectedCenter change
+  // Fetch when page, size, search, filter or selectedCenter change
   useEffect(() => {
     fetchMedicines({
       page: currentPage,
@@ -295,7 +251,6 @@ const InventoryManagement = () => {
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentPage,
     pageSize,
@@ -320,7 +275,6 @@ const InventoryManagement = () => {
 
   useEffect(() => {
     dispatch(fetchCenters({ centerIds: user?.centerAccess }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 
   return (
@@ -358,7 +312,7 @@ const InventoryManagement = () => {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  setCurrentPage(1); // reset page on new search
+                  setCurrentPage(1);
                 }}
               />
             </div>
@@ -390,14 +344,12 @@ const InventoryManagement = () => {
                     fillter: qfilter || undefined,
                   };
 
-                  // Conditionally add only one of them
                   if (selectedCenter) {
                     params.center = selectedCenter;
                   } else {
                     params.centers = user?.centerAccess;
                   }
 
-                  // 1️⃣ Fetch all medicine data
                   const response = await axios.get("/pharmacy/print", {
                     params,
                     headers: { "Content-Type": "application/json" },
@@ -412,11 +364,9 @@ const InventoryManagement = () => {
                     return;
                   }
 
-                  // 2️⃣ Create Excel workbook
                   const workbook = new ExcelJS.Workbook();
                   const sheet = workbook.addWorksheet("Pharmacy Inventory");
 
-                  // 3️⃣ Define header row (same as your table)
                   const headers = [
                     "Barcode",
                     "Code",
@@ -439,7 +389,6 @@ const InventoryManagement = () => {
                   ];
                   sheet.addRow(headers);
 
-                  // Style header
                   sheet.getRow(1).font = {
                     bold: true,
                     color: { argb: "FFFFFFFF" },
@@ -450,11 +399,9 @@ const InventoryManagement = () => {
                     fgColor: { argb: "FF007ACC" },
                   };
 
-                  // 4️⃣ Add each medicine row
                   for (let i = 0; i < data.length; i++) {
                     const med = data[i];
 
-                    // generate barcode image for each code
                     let barcodeDataURL = null;
                     if (med?.code) {
                       const canvas = document.createElement("canvas");
@@ -468,7 +415,7 @@ const InventoryManagement = () => {
                     }
 
                     const rowValues = [
-                      "", // placeholder for barcode image
+                      "",
                       med?.code || "-",
                       med?.medicineName || "-",
                       med?.Strength || "-",
@@ -492,14 +439,12 @@ const InventoryManagement = () => {
 
                     sheet.addRow(rowValues);
 
-                    // add barcode image
                     if (barcodeDataURL) {
                       const img = workbook.addImage({
                         base64: barcodeDataURL,
                         extension: "png",
                       });
 
-                      // position: barcode in first column of this row
                       sheet.addImage(img, {
                         tl: { col: 0, row: i + 1 },
                         ext: { width: 150, height: 40 },
@@ -507,7 +452,6 @@ const InventoryManagement = () => {
                     }
                   }
 
-                  // 5️⃣ Auto-size columns
                   sheet.columns.forEach((col) => {
                     let maxLength = 15;
                     col.eachCell({ includeEmpty: true }, (cell) => {
@@ -517,7 +461,6 @@ const InventoryManagement = () => {
                     col.width = maxLength + 2;
                   });
 
-                  // 6️⃣ Download Excel
                   const buffer = await workbook.xlsx.writeBuffer();
                   const blob = new Blob([buffer], {
                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -542,6 +485,7 @@ const InventoryManagement = () => {
             >
               Export (Excel)
             </Button>
+            <Button onClick={handleGiveMedicine}>Give Medicine</Button>
           </div>
         </div>
 
@@ -573,7 +517,6 @@ const InventoryManagement = () => {
               }}
               options={
                 user?.userCenters?.map((center) => ({
-                  // ensure we use the DB _id (not .id)
                   value: center?._id ?? center?.id ?? "",
                   label: center?.title ?? center?.name ?? "Unknown",
                 })) || []
@@ -585,7 +528,6 @@ const InventoryManagement = () => {
         {/* View Switch */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>
-            {/* Page size selector */}
             <div className="d-flex align-items-center gap-2">
               <label className="mb-0 small text-muted">Show</label>
               <select
@@ -725,14 +667,12 @@ const InventoryManagement = () => {
                           {display(med?.Strength || med?.Strength)}
                         </TableCell>
                         <TableCell noWrap>
-                          {/* The unique ID for the container element will be derived from med._id */}
                           {(() => {
                             const centers = med?.centers || [];
                             const initialCount = 2;
                             const hiddenCount = centers.length - initialCount;
-                            const containerId = `center-stock-container-${med._id}`; // Unique ID for the container
+                            const containerId = `center-stock-container-${med._id}`;
 
-                            // Function to handle the click and toggle visibility
                             const toggleCenters = (e) => {
                               e.preventDefault();
                               const container =
@@ -747,14 +687,12 @@ const InventoryManagement = () => {
                                 button.getAttribute("data-expanded") === "true";
 
                               if (isExpanded) {
-                                // Collapse: Hide items and change text to "View all"
                                 hiddenItems.forEach(
                                   (item) => (item.style.display = "none")
                                 );
                                 button.innerText = `View all (+${hiddenCount})`;
                                 button.setAttribute("data-expanded", "false");
                               } else {
-                                // Expand: Show all items and change text to "View less"
                                 hiddenItems.forEach(
                                   (item) => (item.style.display = "flex")
                                 );
@@ -770,7 +708,7 @@ const InventoryManagement = () => {
                                   minWidth: "180px",
                                   padding: "4px 0",
                                 }}
-                                id={containerId} // Apply the unique ID here
+                                id={containerId}
                               >
                                 {centers.length > 0 ? (
                                   <ul
@@ -787,9 +725,9 @@ const InventoryManagement = () => {
                                           key={index}
                                           className={
                                             isHidden ? "hidden-center-item" : ""
-                                          } // Add a class to target later
+                                          }
                                           style={{
-                                            display: isHidden ? "none" : "flex", // Initially hide items beyond the limit
+                                            display: isHidden ? "none" : "flex",
                                             justifyContent: "space-between",
                                             borderBottom:
                                               index < centers.length - 1
@@ -798,7 +736,6 @@ const InventoryManagement = () => {
                                             padding: "2px 0",
                                           }}
                                         >
-                                          {/* Center Name (Left-aligned) */}
                                           <span
                                             style={{
                                               fontWeight: 600,
@@ -807,7 +744,6 @@ const InventoryManagement = () => {
                                           >
                                             {display(item?.centerId?.title)}
                                           </span>
-                                          {/* Stock Value (Right-aligned) */}
                                           <span
                                             style={{
                                               fontWeight: 500,
@@ -824,11 +760,10 @@ const InventoryManagement = () => {
                                   "-"
                                 )}
 
-                                {/* The "View all" / "View less" button */}
                                 {hiddenCount > 0 && (
                                   <button
-                                    onClick={toggleCenters} // Use the inline DOM manipulation function
-                                    data-expanded="false" // Track state on the button itself
+                                    onClick={toggleCenters}
+                                    data-expanded="false"
                                     style={{
                                       background: "none",
                                       border: "none",
@@ -980,6 +915,25 @@ const InventoryManagement = () => {
               user={user}
               defaultValues={editingMedicine || {}}
               onSubmit={handleFormSubmit}
+            />
+          </ModalBody>
+        </Modal>
+
+        <Modal
+          isOpen={modalOpengive}
+          toggle={() => setModalOpengive(!modalOpengive)}
+          size="l"
+          scrollable
+          backdrop="static"
+        >
+          <ModalHeader toggle={() => setModalOpengive(false)}>
+            {"Give Medicine"}
+          </ModalHeader>
+          <ModalBody>
+            <Givemedicine
+              user={user}
+              setModalOpengive={setModalOpengive}
+              fetchMedicines={fetchMedicines}
             />
           </ModalBody>
         </Modal>
