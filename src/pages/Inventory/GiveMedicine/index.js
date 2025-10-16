@@ -244,7 +244,7 @@ const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines }) => {
                     borderBottom: "1px solid #eee",
                   }}
                 >
-                  {med.medicineName} ({med.unitType}, stock:{" "}
+                  {med.medicineName} ({med.Strength}{med.unitType}, stock:{" "}
                   {med.centers?.find((c) => c.centerId?._id === selectedCenter)
                     ?.stock ?? 0}
                   )
