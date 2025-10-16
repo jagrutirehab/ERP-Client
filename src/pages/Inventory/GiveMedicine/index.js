@@ -133,6 +133,7 @@ const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines }) => {
     }
 
     const payload = {
+      userId: user.user._id,
       CenterId: selectedCenter,
       MedicineId: selectedMedicines.map((m) => ({
         Medicine: m._id,
