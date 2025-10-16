@@ -8,7 +8,7 @@ import { searchPatient } from "../../../store/actions";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines }) => {
+const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines, onResetPagination }) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User.centerAccess);
   const [selectedCenter, setSelectedCenter] = useState("");
@@ -161,6 +161,7 @@ const Givemedicine = ({ patients, user, setModalOpengive, fetchMedicines }) => {
         setMedicines([]);
         // Close modal and refetch data
         setModalOpengive(false);
+        onResetPagination();
         fetchMedicines({
           page: 1, // Optionally reset to first page
           limit: 5, // Match InventoryManagement's default pageSize

@@ -181,8 +181,8 @@ const InventoryManagement = () => {
 
   // Fetch medicines
   async function fetchMedicines({
-    page = 1,
-    limit = 5,
+    page = currentPage,
+    limit = pageSize,
     q = "",
     fillter = "",
     center,
@@ -251,7 +251,7 @@ const InventoryManagement = () => {
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentPage,
     pageSize,
@@ -579,7 +579,7 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
                     <TableHead noWrap>Strength</TableHead>
-                    <TableHead noWrap>Centre /  Available stock</TableHead>
+                    <TableHead noWrap>Centre / Available stock</TableHead>
                     <TableHead noWrap>Unit</TableHead>
                     {/* <TableHead noWrap>Current Stock</TableHead> */}
                     <TableHead noWrap>Cost Price</TableHead>
@@ -935,6 +935,10 @@ const InventoryManagement = () => {
               user={user}
               setModalOpengive={setModalOpengive}
               fetchMedicines={fetchMedicines}
+              onResetPagination={() => {
+                setCurrentPage(1);
+                setPageSize(5);
+              }}
             />
           </ModalBody>
         </Modal>
