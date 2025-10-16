@@ -251,6 +251,7 @@ const InventoryManagement = () => {
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentPage,
     pageSize,
@@ -578,9 +579,9 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Code</TableHead>
                     <TableHead noWrap>Medicine Name</TableHead>
                     <TableHead noWrap>Strength</TableHead>
-                    <TableHead noWrap>Centre / Stock</TableHead>
+                    <TableHead noWrap>Centre /  Available stock</TableHead>
                     <TableHead noWrap>Unit</TableHead>
-                    <TableHead noWrap>Current Stock</TableHead>
+                    {/* <TableHead noWrap>Current Stock</TableHead> */}
                     <TableHead noWrap>Cost Price</TableHead>
                     <TableHead noWrap>Value</TableHead>
                     <TableHead noWrap>M.R.P</TableHead>
@@ -784,7 +785,7 @@ const InventoryManagement = () => {
                         <TableCell noWrap>
                           {display(med?.unitType || med?.unit)}
                         </TableCell>
-                        <TableCell noWrap>{display(med?.stock)}</TableCell>
+                        {/* <TableCell noWrap>{display(med?.stock)}</TableCell> */}
                         <TableCell noWrap>{display(med?.costprice)}</TableCell>
                         <TableCell noWrap>{display(med?.value)}</TableCell>
                         <TableCell noWrap>{display(med?.mrp)}</TableCell>
