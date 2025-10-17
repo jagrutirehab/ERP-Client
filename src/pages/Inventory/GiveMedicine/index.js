@@ -256,7 +256,7 @@ const Givemedicine = ({
                   {med.unitType}, stock:{" "}
                   {med.centers?.find((c) => c.centerId?._id === selectedCenter)
                     ?.stock ?? 0}
-                  )
+                  ), Exp: {med.Expiry}
                 </li>
               ))}
             </ul>
@@ -300,6 +300,11 @@ const Givemedicine = ({
                 <span style={{ fontSize: "12px", color: "#888" }}>
                   / {med.availableStock} max
                 </span>
+                <span>
+                  Unit: {med.Strength}
+                  {med.unitType}
+                </span>
+                <span> Exp: {med.Expiry}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveMedicine(med._id)}

@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import { Route, Routes } from "react-router-dom";
 import InventoryManagement from "./InventoryManagement";
 import InventoryDashboard from "./InventoryDashboard";
+import GivenMedicine from "./GivenMedicine";
 
 const Inventory = () => {
   return (
@@ -16,6 +17,7 @@ const Inventory = () => {
               <Routes>
                 <Route path={`/dashboard`} element={<InventoryDashboard />} />
                 <Route path={`/management`} element={<InventoryManagement />} />
+                <Route path={`/given-med`} element={<GivenMedicine />} />
               </Routes>
             </div>
           </Container>

@@ -122,6 +122,7 @@ export const permissionList = [
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
       { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
+      { name: "GIVENMEDICINES", label: "Given Medicine" },
     ],
   },
   {

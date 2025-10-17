@@ -924,7 +924,7 @@ const InventoryManagement = () => {
         <Modal
           isOpen={modalOpengive}
           toggle={() => setModalOpengive(!modalOpengive)}
-          size="l"
+          size="xl"
           scrollable
           backdrop="static"
         >

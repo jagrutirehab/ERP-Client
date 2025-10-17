@@ -245,6 +245,12 @@ export const Inventory = [
     link: "/inventory/management",
     icon: "bx bx-building-house",
   },
+  {
+    id: "givenmedicines",
+    label: "Medicine Given",
+    link: "/inventory/given-med",
+    icon: "bx bx-building-house",
+  },
 ];
 
 export const setting = [
