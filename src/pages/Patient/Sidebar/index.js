@@ -167,14 +167,11 @@ const Sidebar = ({
                         <p className="text-truncate text-capitalize font-semi-bold fs-13 mb-0">
                           {pt.name || ""}
                         </p>
-                        <RenderWhen isTrue={pt.isAdmit && pt?.addmission?.addmissionDate}>
+                        <RenderWhen isTrue={pt.isAdmit && pt.addmission?.addmissionDate}>
                           <p className="text-muted mb-0" style={{ fontSize: "10px" }}>
-                            {format(
-                              new Date(
-                                pt?.addmission?.addmissionDate
-                              ),
-                              "dd MMM yyyy"
-                            )}
+                            {pt.addmission?.addmissionDate
+                              ? format(new Date(pt.addmission.addmissionDate), "dd MMM yyyy")
+                              : ""}
                           </p>
                         </RenderWhen>
                       </div>
