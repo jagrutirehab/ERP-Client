@@ -24,6 +24,7 @@ import {
   updateAdvancePayment,
   fetchPaymentAccounts,
 } from "../../../store/actions";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
 const AdvancePayment = ({
   toggleForm,
@@ -95,9 +96,9 @@ const AdvancePayment = ({
     validationSchema: Yup.object({
       totalAmount: Yup.number().moreThan(0),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (editData) {
-        dispatch(
+        const response = await dispatch(
           updateAdvancePayment({
             id: editBillData._id,
             billId: editData._id,
@@ -105,15 +106,17 @@ const AdvancePayment = ({
             paymentModes: paymentModes,
             ...values,
           })
-        );
+        ).unwrap();
+        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
       } else {
-        dispatch(
-          addAdvancePayment({
+       const response = await dispatch(
+        addAdvancePayment({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
           })
-        );
+        ).unwrap();
+        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
