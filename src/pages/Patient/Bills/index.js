@@ -24,6 +24,7 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { differenceInDays } from "date-fns";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
 const superUser = [
   // "rijutarafder000@gmail.com",
@@ -250,12 +251,14 @@ const Bills = ({
     });
   };
 
-  const deleteBill = () => {
-    dispatch(removeBill(bill.bill._id));
+  const deleteBill = async () => {
+   const response = await dispatch(removeBill(bill.bill._id)).unwrap();
+   dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
     setBill({
       bill: null,
       isOpen: false,
     });
+    
   };
 
   const getBill = (bill) => {
