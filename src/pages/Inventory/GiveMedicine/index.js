@@ -77,6 +77,7 @@ const Givemedicine = ({
     if (debouncedSearch.length >= 1) {
       fetchLocalMedicines({ q: debouncedSearch, center: selectedCenter });
     } else setMedicines([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, selectedCenter]);
 
   // Select medicine

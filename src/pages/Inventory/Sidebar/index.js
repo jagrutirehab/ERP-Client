@@ -33,6 +33,9 @@ const Sidebar = () => {
     if (page.id === "inventorymanagement" && !hasUserPermission2) {
       return false;
     }
+    if (page.id === "givenmedicines" && !hasUserPermission3) {
+      return false;
+    }
     return true;
   });
 

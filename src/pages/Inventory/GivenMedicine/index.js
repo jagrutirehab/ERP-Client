@@ -13,16 +13,17 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCenters } from "../../../store/actions";
+import { Button } from "../Components/Button";
+import { CardBody, Modal, ModalBody, ModalHeader } from "reactstrap";
+import GiveMedicine from "../GiveMedicine";
 
 const GivenMedicine = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
 
   const [givenMedicines, setGivenMedicines] = useState([]);
-  const [dropdownOpen, setDropdownOpen] = useState({});
   const [selectedCenter, setSelectedCenter] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [modalOpengive, setModalOpengive] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Pagination
@@ -33,8 +34,8 @@ const GivenMedicine = () => {
 
   const abortRef = useRef(null);
 
-  const toggleDropdown = (id) => {
-    setDropdownOpen((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleGiveMedicine = () => {
+    setModalOpengive(true);
   };
 
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
@@ -96,7 +97,7 @@ const GivenMedicine = () => {
       });
 
       const body = response || {};
-      console.log(body)
+      console.log(body);
       setGivenMedicines(Array.isArray(body.data) ? body.data : []);
       setTotalItems(Number(body.total ?? 0));
       setTotalPages(Number(body.pages ?? 1));
@@ -115,26 +116,14 @@ const GivenMedicine = () => {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  useEffect(() => {
     fetchGivenMedicines({
       page: currentPage,
       limit: pageSize,
-      q: debouncedSearch,
       center: selectedCenter || undefined,
       centers: user?.centerAccess,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    currentPage,
-    pageSize,
-    debouncedSearch,
-    selectedCenter,
-    user?.centerAccess,
-  ]);
+  }, [currentPage, pageSize, selectedCenter, user?.centerAccess]);
 
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
@@ -153,7 +142,7 @@ const GivenMedicine = () => {
   };
 
   return (
-    <div className="card p-3 bg-white" style={{ width: "81%" }}>
+    <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
           <h1 className="display-5 font-weight-bold text-primary">
@@ -162,40 +151,6 @@ const GivenMedicine = () => {
         </div>
 
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
-          {/* Search bar */}
-          {/* <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
-            <div className="position-relative w-100">
-              <Search
-                className="position-absolute"
-                style={{
-                  left: "8px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  height: "18px",
-                  width: "18px",
-                  color: "#6c757d",
-                  pointerEvents: "none",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search by patient, medicine, etc..."
-                className="form-control"
-                style={{
-                  paddingLeft: "36px",
-                  paddingRight: "12px",
-                  height: "40px",
-                }}
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-          </div> */}
-
-          {/* Center Filter */}
           <div style={{ minWidth: "220px" }}>
             <Select
               placeholder="All Centers"
@@ -211,6 +166,11 @@ const GivenMedicine = () => {
                 })) || []
               }
             />
+          </div>
+          <div className="w-100 w-md-auto" style={{ maxWidth: "140px" }}>
+            <div className="position-relative w-100">
+              <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+            </div>
           </div>
         </div>
 
@@ -276,22 +236,6 @@ const GivenMedicine = () => {
                         ))}
                       </ul>
                     </TableCell>
-                    {/* <TableCell>
-                      <Dropdown
-                        isOpen={!!dropdownOpen[item._id]}
-                        toggle={() => toggleDropdown(item._id)}
-                      >
-                        <DropdownToggle
-                          tag="button"
-                          className="btn btn-ghost p-1"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </DropdownToggle>
-                        <DropdownMenu end>
-                          <DropdownItem>View Details</DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown>
-                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
@@ -363,8 +307,30 @@ const GivenMedicine = () => {
             </ul>
           </div>
         </div>
+        <Modal
+          isOpen={modalOpengive}
+          toggle={() => setModalOpengive(!modalOpengive)}
+          size="xl"
+          scrollable
+          backdrop="static"
+        >
+          <ModalHeader toggle={() => setModalOpengive(false)}>
+            {"Give Medicine"}
+          </ModalHeader>
+          <ModalBody>
+            <GiveMedicine
+              user={user}
+              setModalOpengive={setModalOpengive}
+              fetchMedicines={fetchGivenMedicines}
+              onResetPagination={() => {
+                setCurrentPage(1);
+                setPageSize(5);
+              }}
+            />
+          </ModalBody>
+        </Modal>
       </div>
-    </div>
+    </CardBody>
   );
 };
 
