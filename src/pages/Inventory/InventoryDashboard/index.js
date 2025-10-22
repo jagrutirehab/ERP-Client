@@ -8,9 +8,10 @@ import {
   Title as ChartTitle,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
-import { RefreshCcw, Bell, X } from "lucide-react";
+import { Pie } from "react-chartjs-2";
+import { RefreshCcw, Bell } from "lucide-react";
 import { CardBody } from "reactstrap";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -19,6 +20,7 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   ChartTitle,
   Tooltip,
   Legend
@@ -553,7 +555,7 @@ const App = () => {
           </h2>
           <div style={{ height: "24rem" }}>
             {usageData.length > 0 ? (
-              <Bar
+              <Pie
                 data={{ labels: chartLabels, datasets: chartDatasets }}
                 options={chartOptions}
               />

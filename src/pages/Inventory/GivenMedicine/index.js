@@ -215,10 +215,16 @@ const GivenMedicine = () => {
                 {givenMedicines.map((item) => (
                   <TableRow key={item._id}>
                     <TableCell>
-                      {new Date(item?.createdAt).toLocaleString("en-IN")}
+                      {new Date(item?.createdAt)
+                        .toLocaleString("en-IN", { hour12: true })
+                        .replace(/am|pm/g, (match) => match.toUpperCase())}
                     </TableCell>
                     <TableCell>
-                      {display(item?.patientId?.name || "Unassigned")}
+                      {display(
+                        item?.patientId?.name
+                          ? item.patientId.name.toUpperCase()
+                          : "Unassigned"
+                      )}
                     </TableCell>
                     <TableCell>
                       {display(item?.centerInfo?.title || "-")}
@@ -259,7 +265,6 @@ const GivenMedicine = () => {
               value={pageSize}
               onChange={handlePageSizeChange}
             >
-              <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -321,10 +326,17 @@ const GivenMedicine = () => {
             <GiveMedicine
               user={user}
               setModalOpengive={setModalOpengive}
-              fetchMedicines={fetchGivenMedicines}
+              fetchMedicines={({ page = 1, limit = pageSize, q = "" } = {}) =>
+                fetchGivenMedicines({
+                  page,
+                  limit,
+                  center: selectedCenter || undefined,
+                  q,
+                })
+              }
               onResetPagination={() => {
                 setCurrentPage(1);
-                setPageSize(5);
+                setPageSize(10);
               }}
             />
           </ModalBody>

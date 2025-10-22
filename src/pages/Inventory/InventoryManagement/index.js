@@ -66,7 +66,7 @@ const InventoryManagement = () => {
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [modalOpengive, setModalOpengive] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [qfilter, setQfilter] = useState("");
@@ -538,7 +538,6 @@ const InventoryManagement = () => {
                 value={pageSize}
                 onChange={handlePageSizeChange}
               >
-                <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -938,7 +937,7 @@ const InventoryManagement = () => {
               fetchMedicines={fetchMedicines}
               onResetPagination={() => {
                 setCurrentPage(1);
-                setPageSize(5);
+                setPageSize(10);
               }}
             />
           </ModalBody>

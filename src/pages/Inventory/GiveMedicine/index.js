@@ -172,7 +172,7 @@ const Givemedicine = ({
         onResetPagination();
         fetchMedicines({
           page: 1, // Optionally reset to first page
-          limit: 5, // Match InventoryManagement's default pageSize
+          limit: 10, // Match InventoryManagement's default pageSize
           q: "",
           fillter: "",
           center: selectedCenter || undefined,
