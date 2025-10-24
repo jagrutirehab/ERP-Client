@@ -226,7 +226,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
               />
             </TabPane>
             <TabPane tabId="2">
-              <LeadDashboard leadDate={date} />
+              <LeadDashboard activeTab={activeTab} leadDate={date} />
             </TabPane>
           </TabContent>
 
