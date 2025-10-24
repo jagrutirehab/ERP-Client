@@ -9,9 +9,9 @@ const Sidebar = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("PHARMACY", "DASHBOARD", "DELETE");
-  const hasUserPermission2 = hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "DELETE");
-  const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "DELETE");
+  const hasUserPermission = hasPermission("PHARMACY", "DASHBOARD", "READ");
+  const hasUserPermission2 = hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ");
+  const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "READ");
 
   const location = useLocation();
 
