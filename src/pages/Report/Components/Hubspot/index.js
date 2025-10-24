@@ -40,7 +40,7 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
     status: "",
     assignedTo: "",
   });
-  const [visitDateFilter, setVisitDateFilter] = useState("");
+  const [visitDateFilter, setVisitDateFilter] = useState("today");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [tooltipOpen, setTooltipOpen] = useState(null);
