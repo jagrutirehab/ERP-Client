@@ -26,7 +26,7 @@ const visitDateOptions = [
   { label: "Planned Visits", value: "planned" },
 ];
 
-const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
+const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
   const dispatch = useDispatch();
   const {
     contacts = [],
@@ -70,9 +70,16 @@ const LeadDashboard = ({ leadDate, centers, centerAccess }) => {
     } else {
       params.visitDate = visitDateFilter;
     }
-    dispatch(fetchHubspotContacts(params));
+    if (activeTab === "2") dispatch(fetchHubspotContacts(params));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visitDateFilter, currentPage, itemsPerPage, dispatch, centerAccess]);
+  }, [
+    activeTab,
+    visitDateFilter,
+    currentPage,
+    itemsPerPage,
+    dispatch,
+    centerAccess,
+  ]);
 
   // Reset tooltip state and cleanup refs when data changes or component unmounts
   useEffect(() => {
