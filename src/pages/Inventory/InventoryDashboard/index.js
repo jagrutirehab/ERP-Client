@@ -324,7 +324,7 @@ const App = () => {
               letterSpacing: "-0.025em",
             }}
           >
-            Inventory Dashboard
+            Pharmacy Dashboard
           </h1>
           <div
             style={{

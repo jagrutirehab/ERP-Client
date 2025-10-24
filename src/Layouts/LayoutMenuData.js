@@ -25,7 +25,7 @@ const Navdata = () => {
       "cash",
       "setting",
       "recyclebin",
-      "inventory",
+      "pharmacy",
       "guidelines",
     ];
 
