@@ -117,11 +117,11 @@ export const permissionList = [
     ],
   },
   {
-    key: "INVENTORY",
-    label: "Inventory",
+    key: "PHARMACY",
+    label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-      { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
+      { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
     ],
   },

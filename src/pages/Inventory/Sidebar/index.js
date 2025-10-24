@@ -1,7 +1,7 @@
 import "react-perfect-scrollbar/dist/css/styles.css";
 import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { Inventory } from "../../../Components/constants/pages";
+import { Pharmacy } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Sidebar = () => {
@@ -9,9 +9,9 @@ const Sidebar = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("INVENTORY", "DASHBOARD", "DELETE");
-  const hasUserPermission2 = hasPermission("INVENTORY", "INVENTORYMANAGEMENT", "DELETE");
-  const hasUserPermission3 = hasPermission("INVENTORY", "GIVENMEDICINES", "DELETE");
+  const hasUserPermission = hasPermission("PHARMACY", "DASHBOARD", "DELETE");
+  const hasUserPermission2 = hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "DELETE");
+  const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "DELETE");
 
   const location = useLocation();
 
@@ -26,11 +26,11 @@ const Sidebar = () => {
     }
   };
 
-  const filteredSettings = (Inventory || []).filter((page) => {
-    if (page.id === "inventory-dashboard" && !hasUserPermission) {
+  const filteredSettings = (Pharmacy || []).filter((page) => {
+    if (page.id === "pharmacy-dashboard" && !hasUserPermission) {
       return false;
     }
-    if (page.id === "inventorymanagement" && !hasUserPermission2) {
+    if (page.id === "pharmacymanagement" && !hasUserPermission2) {
       return false;
     }
     if (page.id === "givenmedicines" && !hasUserPermission3) {
@@ -45,7 +45,7 @@ const Sidebar = () => {
         <div className="ps-4 pe-3 pt-4 mb-">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">
-              <h5 className="pb-0">Medical Inventory</h5>
+              <h5 className="pb-0">Pharmacy</h5>
               <button
                 onClick={toggleDataSidebar}
                 type="button"
@@ -70,7 +70,7 @@ const Sidebar = () => {
             >
               {(filteredSettings || []).map((page, idx) => (
                 <li
-                  className={Inventory.id === location.pathname ? "active" : ""}
+                  className={Pharmacy.id === location.pathname ? "active" : ""}
                 >
                   <Link to={page.link}>
                     <div className="d-flex align-items-center">

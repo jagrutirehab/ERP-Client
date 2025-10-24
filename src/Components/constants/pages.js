@@ -217,10 +217,10 @@ const pages = [
     icon: "bx bxs-report",
   },
   {
-    id: "inventory",
-    label: "Inventory",
-    name: "Inventory",
-    link: "/inventory",
+    id: "pharmacy",
+    label: "Pharmacy",
+    name: "Pharmacy",
+    link: "/pharmacy",
     icon: "bx bx-book",
   },
   {
@@ -232,23 +232,23 @@ const pages = [
   },
 ];
 
-export const Inventory = [
+export const Pharmacy = [
   {
-    id: "inventory-dashboard",
+    id: "pharmacy-dashboard",
     label: "Dashboard",
-    link: "/inventory/dashboard",
+    link: "/pharmacy/dashboard",
     icon: "bx bx-home",
   },
   {
-    id: "inventorymanagement",
+    id: "pharmacymanagement",
     label: "Pharmacy",
-    link: "/inventory/management",
+    link: "/pharmacy/management",
     icon: "bx bx-building-house",
   },
   {
     id: "givenmedicines",
     label: "Medicine Given",
-    link: "/inventory/given-med",
+    link: "/pharmacy/given-med",
     icon: "bx bx-building-house",
   },
 ];

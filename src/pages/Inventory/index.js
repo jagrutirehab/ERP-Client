@@ -6,7 +6,7 @@ import InventoryManagement from "./InventoryManagement";
 import InventoryDashboard from "./InventoryDashboard";
 import GivenMedicine from "./GivenMedicine";
 
-const Inventory = () => {
+const Pharmacy = () => {
   return (
     <React.Fragment>
       <div className="page-conten overflow-hidden">
@@ -27,4 +27,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default Pharmacy;
