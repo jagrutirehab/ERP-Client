@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
-const InternUndertakingFormPage3 = ({ register, intern, details }) => {
+const InternUndertakingFormPage3 = ({ register, intern, details, setValue }) => {
+  console.log(details)
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -51,18 +52,24 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
     verticalAlign: "middle",
   };
 
-  useEffect(() => {
-    if (intern) {
-      document.querySelector('[name="ack_intern_name"]').value =
-        intern?.name || "";
-      document.querySelector('[name="rep_name"]').value = intern?.name || "";
-    }
+  // useEffect(() => {
+    // if (intern) {
+    //   document.querySelector('[name="ack_intern_name"]').value =
+    //     intern?.name || "";
+    //   document.querySelector('[name="rep_name"]').value = intern?.name || "";
+    // }
 
-    if (details) {
-      document.querySelector('[name="rep_designation"]').value =
-        details?.position || "";
-    }
-  }, [intern, details]);
+  //   if (details) {
+  //     document.querySelector('[name="rep_designation"]').value =
+  //       details?.position || "";
+  //   }
+  // }, [intern, details]);
+
+  useEffect(() => {
+  if (details?.position) {
+    setValue("rep_designation", details.position);
+  }
+}, [details, setValue])
 
   return (
     <div style={pageContainer}>
@@ -139,7 +146,7 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
           I,
           <input
             type="text"
-            defaultValue={intern?.name}
+            // defaultValue={intern?.name}
             {...(register ? register("rep_name") : {})}
             placeholder="(representative name)"
             style={{
@@ -170,6 +177,7 @@ const InternUndertakingFormPage3 = ({ register, intern, details }) => {
           type="text"
           defaultValue={details?.position}
           {...(register ? register("rep_designation") : {})}
+           onChange={(e) => setValue("rep_designation", e.target.value)}
           style={{
             ...smallInput,
             marginLeft: "22px",
