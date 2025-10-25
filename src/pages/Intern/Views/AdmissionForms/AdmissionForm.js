@@ -33,7 +33,7 @@ const InternAddmissionForms = (intern) => {
   const togglePreview = () => setPreviewModal(!previewModal);
   const [dateModal, setDateModal] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, setValue } = useForm();
   const [openform, setOpenform] = useState(false);
   const [details, setDetails] = useState({
     from: "",
@@ -591,6 +591,7 @@ const InternAddmissionForms = (intern) => {
                   register={register}
                   intern={intern?.intern}
                   details={details}
+                  setValue={setValue}
                 />
               </div>
               <div style={{ textAlign: "center", margin: "20px" }}>
