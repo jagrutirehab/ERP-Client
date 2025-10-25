@@ -241,7 +241,7 @@ export const Pharmacy = [
   },
   {
     id: "pharmacymanagement",
-    label: "Pharmacy",
+    label: "Inventory",
     link: "/pharmacy/management",
     icon: "bx bx-building-house",
   },

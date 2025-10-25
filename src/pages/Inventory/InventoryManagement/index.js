@@ -287,7 +287,7 @@ const InventoryManagement = () => {
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-4 font-weight-bold text-primary">PHARMACY</h1>
+          <h1 className="display-4 font-weight-bold text-primary">INVENTORY</h1>
         </div>
 
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
