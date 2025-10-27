@@ -152,7 +152,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         I Mr./Mrs./Ms.
         <input
           type="text"
-          value={patient?.name}
+          value={patient?.guardianName}
           {...register("Indipendent_Admission_Support_name")}
           style={{
             fontWeight: "bold",
@@ -174,6 +174,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         Nominated representative Mr./Mrs./Ms.
         <input
           type="text"
+          value={patient?.name}
           {...register("Indipendent_Admission_Support_nominatedRep")}
           style={inputLine}
         />{" "}

@@ -31,6 +31,7 @@ const superUser = [
   "surjeet.parida@gmail.com",
   "hemanthshinde@gmail.com",
   "vikas@jagrutirehab.org",
+  "bishal@gmail.com",
 ];
 
 const Bills = ({
@@ -252,13 +253,17 @@ const Bills = ({
   };
 
   const deleteBill = async () => {
-   const response = await dispatch(removeBill(bill.bill._id)).unwrap();
-   dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+    const response = await dispatch(removeBill(bill.bill._id)).unwrap();
+    dispatch(
+      setBillingStatus({
+        patientId: patient._id,
+        billingStatus: response.billingStatus,
+      })
+    );
     setBill({
       bill: null,
       isOpen: false,
     });
-    
   };
 
   const getBill = (bill) => {

@@ -114,6 +114,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
+              editBillData.bill === null ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
               editBillData.bill === DRAFT_INVOICE ||
@@ -132,7 +133,8 @@ const BillDate = ({
               toggle();
             }}
           >
-            Advance Payment
+            {/* Advance Payment */}
+            Payment
           </Button>
           <Button
             outline
