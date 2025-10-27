@@ -16,11 +16,14 @@ import { fetchCenters } from "../../../store/actions";
 import { Button } from "../Components/Button";
 import { CardBody, Modal, ModalBody, ModalHeader } from "reactstrap";
 import GiveMedicine from "../GiveMedicine";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const GivenMedicine = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
-
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
   const [givenMedicines, setGivenMedicines] = useState([]);
   const [selectedCenter, setSelectedCenter] = useState("");
   const [modalOpengive, setModalOpengive] = useState(false);
@@ -169,7 +172,11 @@ const GivenMedicine = () => {
           </div>
           <div className="w-100 w-md-auto" style={{ maxWidth: "140px" }}>
             <div className="position-relative w-100">
+              {hasPermission("PHARMACY", "GIVENMEDICINES", "WRITE") ? (
               <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+              ) : (
+              ""
+            )}
             </div>
           </div>
         </div>

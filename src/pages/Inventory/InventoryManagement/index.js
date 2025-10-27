@@ -47,6 +47,7 @@ import ExcelJS from "exceljs";
 import JsBarcode from "jsbarcode";
 import { saveAs } from "file-saver";
 import Givemedicine from "../GiveMedicine";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 ChartJS.register(
   CategoryScale,
@@ -60,6 +61,9 @@ ChartJS.register(
 const InventoryManagement = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
@@ -283,7 +287,7 @@ const InventoryManagement = () => {
     <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-4 font-weight-bold text-primary">PHARMACY</h1>
+          <h1 className="display-4 font-weight-bold text-primary">INVENTORY</h1>
         </div>
 
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
@@ -321,173 +325,193 @@ const InventoryManagement = () => {
           </div>
 
           <div className="d-flex flex-wrap gap-2 inventory-actions">
-            <Button onClick={handleAdd}>+ Add Medicine</Button>
-            <Button
-              type="button"
-              className="btn btn-outline-primary text-primary"
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-              onClick={() => setBulkOpen(true)}
-            >
-              Bulk Actions
-            </Button>
-            <Button
-              type="button"
-              className="btn btn-outline-primary text-primary"
-              disabled={printloading}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-              onClick={async () => {
-                try {
-                  setPrintLoading(true);
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+              <Button onClick={handleAdd}>+ Add Medicine</Button>
+            ) : (
+              ""
+            )}
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+              <Button
+                type="button"
+                className="btn btn-outline-primary text-primary"
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                onClick={() => setBulkOpen(true)}
+              >
+                Bulk Actions
+              </Button>
+            ) : (
+              ""
+            )}
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
+              <Button
+                type="button"
+                className="btn btn-outline-primary text-primary"
+                disabled={printloading}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                onClick={async () => {
+                  try {
+                    setPrintLoading(true);
 
-                  const params = {
-                    search: debouncedSearch || undefined,
-                    fillter: qfilter || undefined,
-                  };
+                    const params = {
+                      search: debouncedSearch || undefined,
+                      fillter: qfilter || undefined,
+                    };
 
-                  if (selectedCenter) {
-                    params.center = selectedCenter;
-                  } else {
-                    params.centers = user?.centerAccess;
-                  }
-
-                  const response = await axios.get("/pharmacy/print", {
-                    params,
-                    headers: { "Content-Type": "application/json" },
-                  });
-
-                  const data = Array.isArray(response?.data)
-                    ? response.data
-                    : [];
-
-                  if (data.length === 0) {
-                    toast.info("No data to export");
-                    return;
-                  }
-
-                  const workbook = new ExcelJS.Workbook();
-                  const sheet = workbook.addWorksheet("Pharmacy Inventory");
-
-                  const headers = [
-                    "Barcode",
-                    "Code",
-                    "Medicine Name",
-                    "Strength",
-                    "Centre",
-                    "Unit",
-                    "Stock",
-                    "Cost Price",
-                    "Value",
-                    "MRP",
-                    "Purchase Price",
-                    "Sales Price",
-                    "Expiry Date",
-                    "Batch",
-                    "Company",
-                    "Manufacturer",
-                    "Rack",
-                    "Status",
-                  ];
-                  sheet.addRow(headers);
-
-                  sheet.getRow(1).font = {
-                    bold: true,
-                    color: { argb: "FFFFFFFF" },
-                  };
-                  sheet.getRow(1).fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: { argb: "FF007ACC" },
-                  };
-
-                  for (let i = 0; i < data.length; i++) {
-                    const med = data[i];
-
-                    let barcodeDataURL = null;
-                    if (med?.code) {
-                      const canvas = document.createElement("canvas");
-                      JsBarcode(canvas, med.code, {
-                        format: "CODE128",
-                        height: 40,
-                        displayValue: true,
-                        fontSize: 12,
-                      });
-                      barcodeDataURL = canvas.toDataURL("image/png");
+                    if (selectedCenter) {
+                      params.center = selectedCenter;
+                    } else {
+                      params.centers = user?.centerAccess;
                     }
 
-                    const rowValues = [
-                      "",
-                      med?.code || "-",
-                      med?.medicineName || "-",
-                      med?.Strength || "-",
-                      med?.centers
-                        ? med.centers.map((c) => c?.centerId?.title).join(", ")
-                        : "-",
-                      med?.unitType || med?.unit || "-",
-                      med?.stock ?? "-",
-                      med?.costprice ?? "-",
-                      med?.value ?? "-",
-                      med?.mrp ?? "-",
-                      med?.purchasePrice ?? "-",
-                      med?.SalesPrice ?? "-",
-                      med?.Expiry ?? "-",
-                      med?.Batch ?? "-",
-                      med?.company ?? "-",
-                      med?.manufacturer ?? "-",
-                      med?.RackNum ?? "-",
-                      med?.Status ?? "-",
-                    ];
-
-                    sheet.addRow(rowValues);
-
-                    if (barcodeDataURL) {
-                      const img = workbook.addImage({
-                        base64: barcodeDataURL,
-                        extension: "png",
-                      });
-
-                      sheet.addImage(img, {
-                        tl: { col: 0, row: i + 1 },
-                        ext: { width: 150, height: 40 },
-                      });
-                    }
-                  }
-
-                  sheet.columns.forEach((col) => {
-                    let maxLength = 15;
-                    col.eachCell({ includeEmpty: true }, (cell) => {
-                      const len = cell.value ? cell.value.toString().length : 0;
-                      if (len > maxLength) maxLength = len;
+                    const response = await axios.get("/pharmacy/print", {
+                      params,
+                      headers: { "Content-Type": "application/json" },
                     });
-                    col.width = maxLength + 2;
-                  });
 
-                  const buffer = await workbook.xlsx.writeBuffer();
-                  const blob = new Blob([buffer], {
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                  });
-                  saveAs(
-                    blob,
-                    `Pharmacy_Export_${new Date()
-                      .toISOString()
-                      .slice(0, 10)}.xlsx`
-                  );
+                    const data = Array.isArray(response?.data)
+                      ? response.data
+                      : [];
 
-                  toast.success(
-                    `Exported ${data.length} medicines with barcodes ✅`
-                  );
-                } catch (err) {
-                  console.error("Excel export error:", err);
-                  toast.error("Failed to export Excel file");
-                } finally {
-                  setPrintLoading(false);
-                }
-              }}
-            >
-              Export (Excel)
-            </Button>
-            <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+                    if (data.length === 0) {
+                      toast.info("No data to export");
+                      return;
+                    }
+
+                    const workbook = new ExcelJS.Workbook();
+                    const sheet = workbook.addWorksheet("Pharmacy Inventory");
+
+                    const headers = [
+                      "Barcode",
+                      "Code",
+                      "Medicine Name",
+                      "Strength",
+                      "Centre",
+                      "Unit",
+                      "Stock",
+                      "Cost Price",
+                      "Value",
+                      "MRP",
+                      "Purchase Price",
+                      "Sales Price",
+                      "Expiry Date",
+                      "Batch",
+                      "Company",
+                      "Manufacturer",
+                      "Rack",
+                      "Status",
+                    ];
+                    sheet.addRow(headers);
+
+                    sheet.getRow(1).font = {
+                      bold: true,
+                      color: { argb: "FFFFFFFF" },
+                    };
+                    sheet.getRow(1).fill = {
+                      type: "pattern",
+                      pattern: "solid",
+                      fgColor: { argb: "FF007ACC" },
+                    };
+
+                    for (let i = 0; i < data.length; i++) {
+                      const med = data[i];
+
+                      let barcodeDataURL = null;
+                      if (med?.code) {
+                        const canvas = document.createElement("canvas");
+                        JsBarcode(canvas, med.code, {
+                          format: "CODE128",
+                          height: 40,
+                          displayValue: true,
+                          fontSize: 12,
+                        });
+                        barcodeDataURL = canvas.toDataURL("image/png");
+                      }
+
+                      const rowValues = [
+                        "",
+                        med?.code || "-",
+                        med?.medicineName || "-",
+                        med?.Strength || "-",
+                        med?.centers
+                          ? med.centers
+                              .map((c) => c?.centerId?.title)
+                              .join(", ")
+                          : "-",
+                        med?.unitType || med?.unit || "-",
+                        med?.stock ?? "-",
+                        med?.costprice ?? "-",
+                        med?.value ?? "-",
+                        med?.mrp ?? "-",
+                        med?.purchasePrice ?? "-",
+                        med?.SalesPrice ?? "-",
+                        med?.Expiry ?? "-",
+                        med?.Batch ?? "-",
+                        med?.company ?? "-",
+                        med?.manufacturer ?? "-",
+                        med?.RackNum ?? "-",
+                        med?.Status ?? "-",
+                      ];
+
+                      sheet.addRow(rowValues);
+
+                      if (barcodeDataURL) {
+                        const img = workbook.addImage({
+                          base64: barcodeDataURL,
+                          extension: "png",
+                        });
+
+                        sheet.addImage(img, {
+                          tl: { col: 0, row: i + 1 },
+                          ext: { width: 150, height: 40 },
+                        });
+                      }
+                    }
+
+                    sheet.columns.forEach((col) => {
+                      let maxLength = 15;
+                      col.eachCell({ includeEmpty: true }, (cell) => {
+                        const len = cell.value
+                          ? cell.value.toString().length
+                          : 0;
+                        if (len > maxLength) maxLength = len;
+                      });
+                      col.width = maxLength + 2;
+                    });
+
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], {
+                      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    });
+                    saveAs(
+                      blob,
+                      `Pharmacy_Export_${new Date()
+                        .toISOString()
+                        .slice(0, 10)}.xlsx`
+                    );
+
+                    toast.success(
+                      `Exported ${data.length} medicines with barcodes ✅`
+                    );
+                  } catch (err) {
+                    console.error("Excel export error:", err);
+                    toast.error("Failed to export Excel file");
+                  } finally {
+                    setPrintLoading(false);
+                  }
+                }}
+              >
+                Export (Excel)
+              </Button>
+            ) : (
+              ""
+            )}
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+              <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+            ) : (
+              ""
+            )}
           </div>
         </div>
 
@@ -593,7 +617,15 @@ const InventoryManagement = () => {
                     <TableHead noWrap>Manufacturer</TableHead>
                     <TableHead noWrap>Rack Number</TableHead>
                     <TableHead noWrap>Status</TableHead>
-                    <TableHead noWrap>Actions</TableHead>
+                    {hasPermission(
+                      "PHARMACY",
+                      "PHARMACYMANAGEMENT",
+                      "WRITE"
+                    ) ? (
+                      <TableHead noWrap>Actions</TableHead>
+                    ) : (
+                      ""
+                    )}
                   </TableRow>
                 </TableHeader>
 
@@ -807,24 +839,32 @@ const InventoryManagement = () => {
                         <TableCell noWrap>
                           <StatusBadge status={med.Status} />
                         </TableCell>
-                        <TableCell noWrap>
-                          <Dropdown
-                            isOpen={!!dropdownOpen[med._id]}
-                            toggle={() => toggleDropdown(med._id)}
-                          >
-                            <DropdownToggle
-                              tag="button"
-                              className="btn btn-ghost p-1"
+                        {hasPermission(
+                          "PHARMACY",
+                          "PHARMACYMANAGEMENT",
+                          "WRITE"
+                        ) ? (
+                          <TableCell noWrap>
+                            <Dropdown
+                              isOpen={!!dropdownOpen[med._id]}
+                              toggle={() => toggleDropdown(med._id)}
                             >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </DropdownToggle>
-                            <DropdownMenu end>
-                              <DropdownItem onClick={() => handleEdit(med)}>
-                                Edit
-                              </DropdownItem>
-                            </DropdownMenu>
-                          </Dropdown>
-                        </TableCell>
+                              <DropdownToggle
+                                tag="button"
+                                className="btn btn-ghost p-1"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownToggle>
+                              <DropdownMenu end>
+                                <DropdownItem onClick={() => handleEdit(med)}>
+                                  Edit
+                                </DropdownItem>
+                              </DropdownMenu>
+                            </Dropdown>
+                          </TableCell>
+                        ) : (
+                          ""
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
