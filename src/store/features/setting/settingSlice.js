@@ -993,7 +993,11 @@ const settingSlice = createSlice({
       })
       .addCase(fetchDoctorSchedule.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.doctorAvailableSlots = payload.result;
+        state.doctorAvailableSlots = [
+          ...(payload.result?.morningSlots || []),
+          ...(payload.result?.afternoonSlots || []),
+          ...(payload.result?.eveningSlots || []),
+        ];
         // state.appointmentsInRange = payload.appointmentsInRange;
       })
       .addCase(fetchDoctorSchedule.rejected, (state) => {
