@@ -57,7 +57,7 @@ import ClinicalNote from "../Charts/ClinicalNote";
 import CounsellingNote from "../Charts/CounsellingNote";
 import LabReport from "../Charts/LabReport";
 import DetailAdmission from "../Charts/DetailAdmission";
-import PrescriptionChart from "../Charts/Prescription"
+import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
 
 const Prescription = ({
@@ -81,6 +81,8 @@ const Prescription = ({
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
 
+  // console.log(patient.referredBy, "this is patient")
+
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
@@ -103,38 +105,43 @@ const Prescription = ({
       drNotes: editPrescription
         ? editPrescription.drNotes
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.drNotes
-          : "",
+        ? patientLatestOPDPrescription?.drNotes
+        : "",
       diagnosis: editPrescription
         ? editPrescription.diagnosis
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.diagnosis
-          : "",
+        ? patientLatestOPDPrescription?.diagnosis
+        : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.notes
-          : "",
+        ? patientLatestOPDPrescription?.notes
+        : "",
       followUp: editPrescription
         ? editPrescription.followUp
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.followUp
-          : "",
+        ? patientLatestOPDPrescription?.followUp
+        : "",
+      referredby: editPrescription
+        ? editPrescription.referredby
+        : ptLatestOPDPrescription
+        ? patientLatestOPDPrescription?.referredby
+        : patient.referredBy,
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.investigationPlan
-          : "",
+        ? patientLatestOPDPrescription?.investigationPlan
+        : "",
       complaints: editPrescription
         ? editPrescription.complaints
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.complaints
-          : "",
+        ? patientLatestOPDPrescription?.complaints
+        : "",
       observation: editPrescription
         ? editPrescription.observation
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.observation
-          : "",
+        ? patientLatestOPDPrescription?.observation
+        : "",
       type,
       date: chartDate,
     },
@@ -176,7 +183,7 @@ const Prescription = ({
   useEffect(() => {
     if (type !== "OPD") return;
     dispatch(fetchLatestCharts({ patient: patient?._id }));
-  }, [patient, dispatch])
+  }, [patient, dispatch]);
 
   useEffect(() => {
     if (editPrescription) {
@@ -367,6 +374,20 @@ const Prescription = ({
                 />
               </div>
             </Col>
+            <Col xs={12} md={6}>
+              <div className="mb-3">
+                <Label className="">Referred by</Label>
+                <Input
+                  type="text"
+                  name="referredby"
+                  disabled
+                  onChange={validation.handleChange}
+                  value={validation?.values?.referredby || patient?.referredBy}
+                  className="form-control presc-border rounded"
+                  aria-label="With textarea"
+                />
+              </div>
+            </Col>
           </Row>
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
@@ -393,7 +414,13 @@ const Prescription = ({
             >
               <span className="fs-6 fs-md-5">Latest Charts</span>
               <Button color="primary" size="sm" className="btn-sm">
-                <Link to={`/patient/${patient?._id}`} onClick={() => dispatch(createEditChart({ chart: null, isOpen: false }))} className="text-white text-decoration-none">
+                <Link
+                  to={`/patient/${patient?._id}`}
+                  onClick={() =>
+                    dispatch(createEditChart({ chart: null, isOpen: false }))
+                  }
+                  className="text-white text-decoration-none"
+                >
                   <span className="">Go to Patient</span>
                 </Link>
               </Button>
@@ -406,36 +433,42 @@ const Prescription = ({
                     item={chart}
                     itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   >
-                    {chart.chart === PRESCRIPTION && <PrescriptionChart data={chart?.prescription} />}
+                    {chart.chart === PRESCRIPTION && (
+                      <PrescriptionChart data={chart?.prescription} />
+                    )}
                     {chart.chart === RELATIVE_VISIT && (
                       <div className="mt-4">
                         <RelativeVisit data={chart?.relativeVisit} />
                       </div>
                     )}
-                    {chart.chart === DISCHARGE_SUMMARY &&
+                    {chart.chart === DISCHARGE_SUMMARY && (
                       <div className="mt-4">
                         <DischargeSummary data={chart?.dischargeSummary} />
                       </div>
-                    }
+                    )}
                     {chart.chart === VITAL_SIGN && (
                       <div className="mt-4 mx-3">
                         <VitalSign data={chart.vitalSign} />
                       </div>
                     )}
-                    {chart.chart === CLINICAL_NOTE &&
+                    {chart.chart === CLINICAL_NOTE && (
                       <div className="mt-4">
                         <ClinicalNote data={chart.clinicalNote} />
                       </div>
-                    }
-                    {chart.chart === COUNSELLING_NOTE && <diV className="mt-4">
-                      <CounsellingNote data={chart.counsellingNote} />
-                    </diV>}
-                    {chart.chart === LAB_REPORT && <LabReport data={chart.labReport?.reports} />}
-                    {chart.chart === DETAIL_ADMISSION &&
+                    )}
+                    {chart.chart === COUNSELLING_NOTE && (
+                      <diV className="mt-4">
+                        <CounsellingNote data={chart.counsellingNote} />
+                      </diV>
+                    )}
+                    {chart.chart === LAB_REPORT && (
+                      <LabReport data={chart.labReport?.reports} />
+                    )}
+                    {chart.chart === DETAIL_ADMISSION && (
                       <div className="mt-4">
                         <DetailAdmission data={chart.detailAdmission} />
                       </div>
-                    }
+                    )}
                   </Wrapper>
                 </div>
               ))}

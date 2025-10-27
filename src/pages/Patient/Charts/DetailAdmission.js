@@ -30,7 +30,7 @@ const DetailAdmission = ({ data }) => {
   return (
     <React.Fragment>
       <Row>
-        {data?.detailAdmission && (
+        {/* {data?.detailAdmission && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail Admission</h6>
         )}
         {data?.detailAdmission &&
@@ -46,7 +46,7 @@ const DetailAdmission = ({ data }) => {
               </div>
             </Col>
           ))}
-        {data?.detailAdmission && <Divider />}
+        {data?.detailAdmission && <Divider />} */}
         {data?.detailHistory && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
         )}
