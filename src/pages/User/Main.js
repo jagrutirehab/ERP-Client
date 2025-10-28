@@ -356,7 +356,9 @@ const Main = ({ user, form, centerAccess }) => {
                       <div className="avatar-lg img-thumbnail rounded-circle">
                         {item.profilePicture ? (
                           <img
-                            src={item.profilePicture}
+                            src={typeof item.profilePicture === "string"
+                              ? item.profilePicture
+                              : item.profilePicture.url}
                             alt={item.name}
                             className="img-fluid d-block h-100 w-100 rounded-circle object-fit-cover"
                           />
