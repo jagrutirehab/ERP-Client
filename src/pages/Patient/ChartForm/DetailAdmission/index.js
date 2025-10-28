@@ -119,7 +119,7 @@ const DetailAdmission = ({
 }) => {
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
-  const [formStep, setFormStep] = useState(CONSET_FILES);
+  const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const validation = useFormik({
@@ -220,6 +220,9 @@ const DetailAdmission = ({
         : "",
       line3: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.line3
+        : "",
+      line4: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.line4
         : "",
 
       //mental status examination
@@ -353,30 +356,30 @@ const DetailAdmission = ({
       <div>
         <Row className="mt-3">
           <div className="arrow-buttons d-flex gap-4">
-            <Button
+            {/* <Button
               className=""
               outline={formStep !== CONSET_FILES}
               onClick={() => setFormStep(CONSET_FILES)}
             >
               Consent Files
-            </Button>{" "}
-            <Button
-              outline={formStep !== DETAIL_ADMISSION}
-              onClick={() => setFormStep(DETAIL_ADMISSION)}
-            >
-              Detail Admission
-            </Button>
-            <Button
-              outline={formStep !== DETAIL_HISTORY}
-              onClick={() => setFormStep(DETAIL_HISTORY)}
-            >
-              Detail History
-            </Button>
+            </Button>{" "} */}
             <Button
               outline={formStep !== CHIEF_COMPLAINTS}
               onClick={() => setFormStep(CHIEF_COMPLAINTS)}
             >
               Chief Complaints
+            </Button>
+            {/* <Button
+              outline={formStep !== DETAIL_ADMISSION}
+              onClick={() => setFormStep(DETAIL_ADMISSION)}
+            >
+              Detail Admission
+            </Button> */}
+            <Button
+              outline={formStep !== DETAIL_HISTORY}
+              onClick={() => setFormStep(DETAIL_HISTORY)}
+            >
+              Detail History
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
@@ -408,36 +411,36 @@ const DetailAdmission = ({
               className="needs-validation"
               action="#"
             >
-              {formStep === CONSET_FILES && (
+              {/* {formStep === CONSET_FILES && (
                 <>
                   {consentUploadedFiles}
                   <ConsentFiles
                     consentFiles={consentFiles}
                     setConsentFiles={setConsentFiles}
                     setFormStep={setFormStep}
-                    step={DETAIL_ADMISSION}
+                    step={CHIEF_COMPLAINTS}
                   />
                 </>
-              )}
+              )} */}
 
-              {formStep === DETAIL_ADMISSION && (
-                <DetailAdmissionForm
+              {formStep === CHIEF_COMPLAINTS && (
+                <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DETAIL_HISTORY}
                 />
               )}
 
-              {formStep === DETAIL_HISTORY && (
-                <DetailHistoryForm
+              {/* {formStep === DETAIL_ADMISSION && (
+                <DetailAdmissionForm
                   validation={validation}
                   setFormStep={setFormStep}
-                  step={CHIEF_COMPLAINTS}
+                  step={DETAIL_HISTORY}
                 />
-              )}
+              )} */}
 
-              {formStep === CHIEF_COMPLAINTS && (
-                <ChiefComplaintsForm
+              {formStep === DETAIL_HISTORY && (
+                <DetailHistoryForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}

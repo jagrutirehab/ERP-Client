@@ -677,6 +677,22 @@ let addPatientFields = [
     name: "address",
     type: "text",
   },
+  {
+    label: "Age",
+    name: "age",
+    type: "text",
+  },
+  {
+    label: "Religion",
+    name: "religion",
+    type: "text",
+  },
+  {
+    label: "Marital Status",
+    name: "maritalstatus",
+    type: "radio",
+    options: ["MARRIED", "UNMARRID"],
+  },
   // {
   //   label: "Provisional Diagnosis",
   //   name: "provisionalDiagnosis",
