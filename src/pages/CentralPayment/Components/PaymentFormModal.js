@@ -33,7 +33,7 @@ const PaymentFormModal = ({
     const formik = useFormik({
         initialValues: {
             transactionId: "",
-            approvalPaymentStatus: "PENDING"
+            currentPaymentStatus: "PENDING"
         },
         validationSchema: paymentValidationSchema,
         onSubmit: (values) => {
@@ -215,7 +215,7 @@ const PaymentFormModal = ({
                     <Button
                         type="submit"
                         color="primary"
-                        disabled={isProcessing || !formik.isValid}
+                        disabled={isProcessing || !formik.isValid || formik.values.currentPaymentStatus === "PENDING" || !formik.values.transactionId.trim()}
                     >
                         {isProcessing ? (
                             <>
