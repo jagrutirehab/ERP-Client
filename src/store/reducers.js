@@ -81,6 +81,9 @@ import Emergency from "./features/emergency/emergencySlice";
 // for cash management
 import Cash from "./features/cashManagement/cashSlice";
 
+// for central payment
+import CentralPayment from "./features/centralPayment/centralPaymentSlice";
+
 //for offers
 import Offers from "./features/offer/offerSlice";
 
@@ -119,6 +122,7 @@ const rootReducer = combineReducers({
   Cash,
   Taxes,
   HubspotContacts,
+  CentralPayment
 });
 
 export default rootReducer;

@@ -145,8 +145,8 @@ class APIClient {
     return axios.post(url, data, headers);
   };
 
-  update = (url, data) => {
-    return axios.patch(url, data);
+  update = (url, data, headers) => {
+    return axios.patch(url, data, headers);
   };
 
   put = (url, data, headers) => {
