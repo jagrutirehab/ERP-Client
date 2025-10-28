@@ -8,11 +8,11 @@ import PropTypes from 'prop-types';
 import Header from '../../Report/Components/Header';
 import { getDetailedReport } from '../../../store/features/centralPayment/centralPaymentSlice';
 import { toast } from 'react-toastify';
-import { downloadFile } from '../../../Components/Common/downloadFile';
 import { capitalizeWords } from '../../../utils/toCapitalize';
 import { ExpandableText } from '../../../Components/Common/ExpandableText';
 import DataTable from 'react-data-table-component';
 import { Check, Copy } from 'lucide-react';
+import AttachmentCell from './AttachmentCell';
 
 const DetailedReport = ({
   centers,
@@ -44,7 +44,7 @@ const DetailedReport = ({
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [copied, setCopied] = useState(false);
+  const [copyId, setCopiedId] = useState(false);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -72,13 +72,13 @@ const DetailedReport = ({
     }
   }, [centerAccess, centers]);
 
-  const handleCopy = async (text) => {
+  const handleCopy = async (text, id) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
-      toast.error('Failed to copy:', err);
+      toast.error('Failed to copy');
     }
   };
 
@@ -87,6 +87,8 @@ const DetailedReport = ({
       name: <div>Date</div>,
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>Center</div>,
@@ -143,11 +145,11 @@ const DetailedReport = ({
             <Button
               color="link"
               size="sm"
-              onClick={() => handleCopy(row.eNet)}
+              onClick={() => handleCopy(row.eNet, row._id)}
               className="p-0 text-muted"
               title="Copy to clipboard"
             >
-              {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+              {copyId === row._id ? <Check size={14} className="text-success" /> : <Copy size={14} />}
             </Button>
           )}
         </div>
@@ -213,6 +215,8 @@ const DetailedReport = ({
         </span>
       ),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>IFSC Code</div>,
@@ -222,6 +226,8 @@ const DetailedReport = ({
         </span>
       ),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>Initial Payment Status</div>,
@@ -258,22 +264,7 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachments</div>,
-      cell: (row) =>
-        row.attachments && row.attachments.length > 0 ? (
-          <div>
-            {row.attachments.map((attachment, index) => (
-              <p
-                key={attachment._id || index}
-                onClick={() => downloadFile(attachment)}
-                className="text-primary text-decoration-underline cursor-pointer mb-1"
-              >
-                {attachment.originalName}
-              </p>
-            ))}
-          </div>
-        ) : (
-          "-"
-        ),
+      cell: (row) => <AttachmentCell attachments={row.attachments || []} />,
       wrap: true,
     },
     {
@@ -289,25 +280,25 @@ const DetailedReport = ({
         if (status === "APPROVED") {
           return (
             <Badge color="success" style={badgeStyle}>
-              APPROVED
+              Approved
             </Badge>
           );
         } else if (status === "PENDING") {
           return (
             <Badge color="warning" style={badgeStyle}>
-              PENDING
+              Pending
             </Badge>
           );
         } else if (status === "REJECTED") {
           return (
             <Badge color="danger" style={badgeStyle}>
-              REJECTED
+              Rejected
             </Badge>
           );
         } else {
           return (
             <Badge color="secondary" style={badgeStyle}>
-              {status || "-"}
+              {capitalizeWords(status) || "-"}
             </Badge>
           );
         }
