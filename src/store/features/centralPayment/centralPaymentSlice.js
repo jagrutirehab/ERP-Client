@@ -16,19 +16,16 @@ const initialState = {
 
 export const getLastCentralPayments = createAsyncThunk(
     "centralPayment/getPayments",
-    async (data, { rejectWithValue, getState }) => {
-        const cached = getState().CentralPayment.spendings?.data;
-        if (cached && cached.length > 0) {
-            return { data: cached, fromCache: true }
-        }
+    async (data, { rejectWithValue }) => {
         try {
             const response = await getCentralPayments(data);
-            return { payload: response, fromCache: false };
+            return response;
         } catch (error) {
             return rejectWithValue(error);
         }
     }
 );
+
 
 export const getApprovals = createAsyncThunk(
     "centralPayment/getAwitingApprovals", async (data, { rejectWithValue }) => {
@@ -126,9 +123,7 @@ export const centralPaymentSlice = createSlice({
             })
             .addCase(getLastCentralPayments.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                if (!payload.fromCache) {
-                    state.spendings = payload.payload;
-                }
+                state.spendings = payload;
             })
             .addCase(getLastCentralPayments.rejected, (state) => {
                 state.loading = false;

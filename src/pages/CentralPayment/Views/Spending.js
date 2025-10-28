@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -16,7 +16,7 @@ import {
 } from "reactstrap";
 import { Share, History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
-import PropTypes, { object } from "prop-types";
+import PropTypes from "prop-types";
 
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
@@ -40,7 +40,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, roles, loading: roleLoader } = usePermissions(token);
+  const { hasPermission, roles } = usePermissions(token);
   const hasCreatePermission =
     hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "WRITE") ||
     hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "DELETE");
@@ -140,9 +140,12 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
+    
     const fetchSpendings = async () => {
       try {
-        await dispatch(getLastCentralPayments({ page: 1, limit: 10, centers: centerAccess })).unwrap();
+        await dispatch(getLastCentralPayments({
+          page: 1, limit: 10, centers: centerAccess 
+        })).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(error.message || "Failed to fetch spendings.");
