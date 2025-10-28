@@ -98,7 +98,7 @@ export const GET_INTERN_TIMELINE = "timeline/intern";
 //CHART
 export const GET_CHARTS_ADDMISSIONS = "/chart/addmission";
 export const GET_CHARTS = "/chart";
-export const GET_LATEST_CHARTS="/chart/latest";
+export const GET_LATEST_CHARTS = "/chart/latest";
 export const GET_GENERAL_CHARTS = "/chart/general";
 export const GET_DELETED_CHARTS = "/chart/deleted";
 export const POST_PRESCRIPTION = "/chart/prescription";
@@ -308,6 +308,12 @@ export const GET_LATEST_SPENDING = "/cash/spending/list";
 export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
 export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
 export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
+
+// central payment
+export const CENTRAL_PAYMENT = "/central-payment";
+export const EDIT_CENTRAL_PAYMENT = "/central-payment/edit";
+export const GET_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/detailed";
+export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT = "/central-payment/report/summary";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";

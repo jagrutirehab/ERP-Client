@@ -22,6 +22,7 @@ const EmergencyDashboad = React.lazy(() =>
   import("../pages/DashboardEmergency")
 );
 const CashManagement = React.lazy(() => import("../pages/CashManagement"));
+const CentralPayment = React.lazy(() => import("../pages/CentralPayment"));
 const Booking = React.lazy(() => import("../pages/Booking"));
 const Medicine = React.lazy(() => import("../pages/Medicine"));
 const Lead = React.lazy(() => import("../pages/Lead"));
@@ -42,6 +43,7 @@ const allElements = [
   { element: Report, label: "Report" },
   { element: Nurse, label: "Nurse" },
   { element: EmergencyDashboad, label: "Emergency" },
+  { element: CentralPayment, label: "Central Payment" },
   { element: CashManagement, label: "Cash" },
   { element: Pharmacy, label: "Pharmacy" },
   { element: Guidelines, label: "Guidelines" },
@@ -63,6 +65,7 @@ const authProtectedRoutes = [
   { path: "/emergency/*", component: EmergencyDashboad },
   { path: "/cash", component: CashManagement },
   { path: "/pharmacy/*", component: Pharmacy },
+  { path: "/centralpayment/*", component: CentralPayment },
   { path: "/guidelines/*", component: Guidelines },
   {
     path: "/",

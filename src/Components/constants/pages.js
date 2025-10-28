@@ -21,6 +21,13 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
+    id: "centralpayment",
+    label: "Central Payment",
+    name: "Central Payment",
+    link: "/centralpayment",
+    icon: "bx bx-wallet-alt",
+  },
+  {
     id: "cash",
     label: "Cash",
     name: "Cash",

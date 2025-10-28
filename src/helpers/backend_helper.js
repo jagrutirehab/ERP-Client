@@ -935,6 +935,67 @@ export const getSummaryCashReport = (params = {}) => {
   });
 };
 
+// central payment
+export const getCentralPayments = (params = {}) => {
+  return api.get(url.CENTRAL_PAYMENT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const getSummaryCentralReport = (params = {}) => {
+  return api.get(url.GET_SUMMARY_CENTRAL_PAYMENT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const getDetailedCentralReport = (params = {}) => {
+  return api.get(url.GET_DETAILED_CENTRAL_PAYMENT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+
+export const postCentralPayment = (data) => {
+  return api.create(url.CENTRAL_PAYMENT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data"
+    },
+  })
+};
+
+export const updateCentralPayment = (data) => {
+  return api.update(url.EDIT_CENTRAL_PAYMENT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    }
+  })
+};
+
+export const getCentralPaymentById = (paymentId) => {
+  return api.get(`${url.CENTRAL_PAYMENT}/${paymentId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+}
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
@@ -1018,12 +1079,16 @@ export const getAllUsers = ({
   search = "",
   role = "",
   token,
+  centerAccess
 }) => {
   return userService.get(url.USER, {
-    params: { page, limit, search, role },
+    params: { page, limit, search, role, centerAccess },
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" })
+    }
   });
 };
 
