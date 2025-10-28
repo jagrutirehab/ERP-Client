@@ -49,6 +49,14 @@ const CheifComplaint = ({ data, styles }) => {
             </Text>
           </View>
         )}
+        {data?.line4 && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Chief Complaint 4:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.line4 || ""}
+            </Text>
+          </View>
+        )}
       </View>
     </React.Fragment>
   );
