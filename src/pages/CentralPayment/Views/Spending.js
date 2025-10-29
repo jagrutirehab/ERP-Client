@@ -123,7 +123,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       values.attachments.forEach(f => formData.append("attachments", f));
 
       try {
-        await dispatch(addPayment(formData)).unwrap();
+        await dispatch(addPayment({ formData, centers: centerAccess })).unwrap();
         toast.success("Spending request submitted successfully");
         resetForm();
       } catch (error) {
@@ -140,11 +140,11 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
-    
+
     const fetchSpendings = async () => {
       try {
         await dispatch(getLastCentralPayments({
-          page: 1, limit: 10, centers: centerAccess 
+          page: 1, limit: 10, centers: centerAccess
         })).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -165,6 +165,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       </div>
     );
   }
+  const cacheKey = centerAccess?.length ? [...centerAccess].sort().join(",") : "all";
+  const data = spendings?.[cacheKey]?.data || [];
 
   return (
     <React.Fragment>
@@ -676,14 +678,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       </div>
                       <p className="h5">Fetching Spendings...</p>
                     </div>
-                  ) : spendings?.length === 0 ? (
+                  ) : data?.length === 0 ? (
                     <div className="text-center py-5 text-muted">
                       <Receipt size={48} className="mb-3" />
                       <p className="h5">No spending requests yet</p>
                       <p>Start by adding your first spending request using the form.</p>
                     </div>
                   ) : (
-                    spendings?.map((spending) => (
+                    data?.map((spending) => (
                       <ItemCard
                         key={spending._id}
                         item={spending}
@@ -704,14 +706,14 @@ Spending.prototype = {
   centerAccess: PropTypes.array,
   centers: PropTypes.array,
   loading: PropTypes.bool,
-  spendings: PropTypes.array,
+  spendings: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   loading: state.CentralPayment.loading,
-  spendings: state.CentralPayment.spendings?.data,
+  spendings: state.CentralPayment.spendings,
 });
 
 export default connect(mapStateToProps)(Spending);

@@ -97,7 +97,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       }
       formData.append("attachment", attachment);
       try {
-        await dispatch(addSpending(formData)).unwrap();
+        await dispatch(addSpending({ formData, centers: centerAccess })).unwrap();
         resetForm();
         setAttachment(null);
         setAttachmentTouched(false);
@@ -155,6 +155,8 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       </div>
     );
   }
+  const cacheKey = centerAccess?.length ? [...centerAccess].sort().join(",") : "all";
+  const data = spendings?.[cacheKey]?.data || [];
 
   return (
     <React.Fragment>
@@ -344,14 +346,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                       </div>
                       <p className="h5">Fetching Spendings...</p>
                     </div>
-                  ) : spendings?.length === 0 ? (
+                  ) : data?.length === 0 ? (
                     <div className="text-center py-5 text-muted">
                       <Receipt size={48} className="mb-3" />
                       <p className="h5">No spendings recorded yet</p>
                       <p>Start by logging your first expense using the form.</p>
                     </div>
                   ) : (
-                    spendings?.map((spending) => (
+                    data?.map((spending) => (
                       <ItemCard
                         key={spending._id}
                         item={spending}
@@ -373,14 +375,14 @@ Spending.prototype = {
   centerAccess: PropTypes.array,
   centers: PropTypes.array,
   loading: PropTypes.bool,
-  spendings: PropTypes.array,
+  spendings: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   loading: state.Cash.loading,
-  spendings: state.Cash.spendings?.data,
+  spendings: state.Cash.spendings,
 });
 
 export default connect(mapStateToProps)(Spending);

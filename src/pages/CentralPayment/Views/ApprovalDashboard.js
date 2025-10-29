@@ -1,12 +1,20 @@
 import React, { useState } from 'react'
-import { NavItem, Nav, NavLink, TabContent, TabPane, Button } from 'reactstrap';
+import { NavItem, Nav, NavLink, TabContent, TabPane } from 'reactstrap';
 import classnames from "classnames";
 import PaymentProcessing from '../Components/PaymentProcessing';
 import PendingApprovals from '../Components/PendingApprovals';
+import { usePermissions } from '../../../Components/Hooks/useRoles';
 
 const ApprovalDashboard = () => {
 
   const [activeTab, setActiveTab] = useState("approval");
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission, roles } = usePermissions(token);
+
+  const hasCreatePermission =
+    hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "WRITE") ||
+    hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "DELETE");
 
   return (
     <React.Fragment>
@@ -34,10 +42,10 @@ const ApprovalDashboard = () => {
 
       <TabContent activeTab={activeTab}>
         <TabPane tabId="approval">
-          <PendingApprovals activeTab={activeTab} />
+          <PendingApprovals activeTab={activeTab} hasCreatePermission={hasCreatePermission} roles={roles} />
         </TabPane>
         <TabPane tabId="paymentProcessing">
-          <PaymentProcessing activeTab={activeTab} />
+          <PaymentProcessing activeTab={activeTab} hasCreatePermission={hasCreatePermission} roles={roles} />
         </TabPane>
       </TabContent>
     </React.Fragment>

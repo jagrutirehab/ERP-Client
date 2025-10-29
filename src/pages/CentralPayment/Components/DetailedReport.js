@@ -8,11 +8,11 @@ import PropTypes from 'prop-types';
 import Header from '../../Report/Components/Header';
 import { getDetailedReport } from '../../../store/features/centralPayment/centralPaymentSlice';
 import { toast } from 'react-toastify';
-import { downloadFile } from '../../../Components/Common/downloadFile';
 import { capitalizeWords } from '../../../utils/toCapitalize';
 import { ExpandableText } from '../../../Components/Common/ExpandableText';
 import DataTable from 'react-data-table-component';
 import { Check, Copy } from 'lucide-react';
+import AttachmentCell from './AttachmentCell';
 
 const DetailedReport = ({
   centers,
@@ -44,7 +44,7 @@ const DetailedReport = ({
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [copied, setCopied] = useState(false);
+  const [copyId, setCopiedId] = useState(false);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -72,13 +72,29 @@ const DetailedReport = ({
     }
   }, [centerAccess, centers]);
 
-  const handleCopy = async (text) => {
+  const handleCopy = async (text, id) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
-      toast.error('Failed to copy:', err);
+      toast.error('Failed to copy');
+    }
+  };
+
+
+  const getBadgeColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case "APPROVED":
+        return "success";
+      case "COMPLETED":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "REJECTED":
+        return "danger";
+      default:
+        return "secondary";
     }
   };
 
@@ -87,6 +103,8 @@ const DetailedReport = ({
       name: <div>Date</div>,
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>Center</div>,
@@ -118,9 +136,11 @@ const DetailedReport = ({
     {
       name: <div>Description</div>,
       selector: (row) => row.description ?
-        <ExpandableText text={capitalizeWords(row.description)} /> :
+        <ExpandableText text={capitalizeWords(row.description)} limit={20} /> :
         "-",
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "200px"
     },
     {
       name: <div>Vendor</div>,
@@ -143,11 +163,11 @@ const DetailedReport = ({
             <Button
               color="link"
               size="sm"
-              onClick={() => handleCopy(row.eNet)}
+              onClick={() => handleCopy(row.eNet, row._id)}
               className="p-0 text-muted"
               title="Copy to clipboard"
             >
-              {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+              {copyId === row._id ? <Check size={14} className="text-success" /> : <Copy size={14} />}
             </Button>
           )}
         </div>
@@ -200,7 +220,7 @@ const DetailedReport = ({
       name: <div>Account Holder Name</div>,
       cell: (row) => (
         <span>
-          {row?.bankDetails?.accountHolderName || "-"}
+          {capitalizeWords(row?.bankDetails?.accountHolderName) || "-"}
         </span>
       ),
       wrap: true,
@@ -213,6 +233,8 @@ const DetailedReport = ({
         </span>
       ),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>IFSC Code</div>,
@@ -222,6 +244,8 @@ const DetailedReport = ({
         </span>
       ),
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>Initial Payment Status</div>,
@@ -238,17 +262,18 @@ const DetailedReport = ({
     },
     {
       name: <div>Current Payment Status</div>,
-      selector: (row) => {
-        const status = row.currentPaymentStatus;
-        return (
-          <Badge
-            color={status === "COMPLETED" ? "success" : status === "PENDING" ? "warning" : "secondary"}
-            style={{ display: "inline-block", whiteSpace: "normal", wordBreak: "break-word" }}
-          >
-            {status === "COMPLETED" ? "Completed" : status === "PENDING" ? "Pending" : capitalizeWords(status) || "-"}
-          </Badge>
-        );
-      },
+      selector: (row) => (
+        <Badge
+          color={getBadgeColor(row.currentPaymentStatus)}
+          style={{
+            display: "inline-block",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {capitalizeWords(row.currentPaymentStatus || "-")}
+        </Badge>
+      ),
       wrap: true,
     },
     {
@@ -258,63 +283,30 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachments</div>,
-      cell: (row) =>
-        row.attachments && row.attachments.length > 0 ? (
-          <div>
-            {row.attachments.map((attachment, index) => (
-              <p
-                key={attachment._id || index}
-                onClick={() => downloadFile(attachment)}
-                className="text-primary text-decoration-underline cursor-pointer mb-1"
-              >
-                {attachment.originalName}
-              </p>
-            ))}
-          </div>
-        ) : (
-          "-"
-        ),
+      cell: (row) => <AttachmentCell attachments={row.attachments || []} showAsButton={true} />,
       wrap: true,
+      minWidth: "140px",
+
     },
     {
       name: <div>Approval Status</div>,
       selector: (row) => {
         const status = row.approvalStatus;
-        const badgeStyle = {
-          display: "inline-block",
-          whiteSpace: "normal",
-          wordBreak: "break-word",
-        };
-
-        if (status === "APPROVED") {
-          return (
-            <Badge color="success" style={badgeStyle}>
-              APPROVED
-            </Badge>
-          );
-        } else if (status === "PENDING") {
-          return (
-            <Badge color="warning" style={badgeStyle}>
-              PENDING
-            </Badge>
-          );
-        } else if (status === "REJECTED") {
-          return (
-            <Badge color="danger" style={badgeStyle}>
-              REJECTED
-            </Badge>
-          );
-        } else {
-          return (
-            <Badge color="secondary" style={badgeStyle}>
-              {status || "-"}
-            </Badge>
-          );
-        }
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
       },
       wrap: true,
-    },
-
+    }
   ];
 
 
@@ -411,6 +403,7 @@ const DetailedReport = ({
               <option value="">All Current Payment Status</option>
               <option value="PENDING">Pending</option>
               <option value="COMPLETED">Completed</option>
+              <option value="REJECTED">Rejected</option>
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>

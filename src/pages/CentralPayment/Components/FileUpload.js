@@ -1,5 +1,5 @@
 import { Eye, FileText, Upload, X } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Badge, Button, Input, Label } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 
