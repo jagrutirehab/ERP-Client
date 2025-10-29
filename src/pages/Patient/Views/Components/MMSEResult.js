@@ -34,9 +34,18 @@ const MMSEResultComponent = ({ resultData }) => {
         restored = restored.replaceAll(placeholder, abbr);
       }
 
+      const lineText = restored.replace(/^\d+\.\s*/, "").trim();
+
+      // Highlight impairment and moderate
+      const highlightedText = lineText.split(/(impairment|moderate)/gi).map((part, i) =>
+        part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate'
+          ? <strong key={i}>{part}</strong>
+          : part
+      );
+
       return (
         <li key={index} className="mb-1">
-          {restored.replace(/^\d+\.\s*/, "").trim()}
+          {highlightedText}
         </li>
       );
     });
@@ -83,7 +92,15 @@ const MMSEResultComponent = ({ resultData }) => {
 
         <p className="text-dark fs-6 lh-lg mb-4">
           <span className="fw-bold text-primary">Interpretation:</span>{" "}
-          {interpretation || "No Interpretation"}
+          {/* Highlight Impairment and Moderate */}
+          {interpretation
+            ? interpretation.split(/(impairment|moderate)/gi).map((part, index) =>
+              part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate'
+                ? <strong key={index}>{part}</strong>
+                : part
+            )
+            : "No Interpretation"
+          }
         </p>
 
         <div className="text-dark fs-6 lh-lg mb-4">

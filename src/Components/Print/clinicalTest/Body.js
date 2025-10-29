@@ -15,11 +15,11 @@ Font.register({
 });
 
 const testInfo = [
-    { type: 6, name: "CIWA-AR", totalScore: 67 },
-    { type: 7, name: "C-SSRS", totalScore: 7 },
-    { type: 8, name: "YMRS" },
+    { type: 6, name: "CIWA-AR: Clinical Institute Withdrawal Assessment for Alcohol, Revised", totalScore: 67 },
+    { type: 7, name: "C-SSRS: Columbia–Suicide Severity Rating Scale", totalScore: 7 },
+    { type: 8, name: "YMRS: Young Mania Rating Scale" },
     {
-        type: 9, name: "MPQ-9", totalScore: 24, subScores: [
+        type: 9, name: "MPQ-9: Multidimensional Personality Questionnaire", totalScore: 24, subScores: [
             {
                 label: "Psychoticism",
                 key: "Psychoticism"
@@ -48,7 +48,7 @@ const testInfo = [
         ]
     },
     {
-        type: 10, name: "MMSE", totalScore: 30, subScores: [
+        type: 10, name: "MMSE: Mini-Mental State Examination", totalScore: 30, subScores: [
             { label: "Orientation", key: "orientation" },
             { label: "Registration", key: "registration" },
             { label: "Attention", key: "attention" },
@@ -57,12 +57,12 @@ const testInfo = [
             { label: "Drawing", key: "drawing" },
         ]
     },
-    { type: 11, name: "Y-BOCS", totalScore: 40 },
-    { type: 12, name: "ACDS", totalScore: 54 },
-    { type: 13, name: "HAM-A", totalScore: 56 },
-    { type: 14, name: "HAM-D", totalScore: 52 },
+    { type: 11, name: "Y-BOCS: Yale–Brown Obsessive–Compulsive Scale", totalScore: 40 },
+    { type: 12, name: "ACDS: Adult ADHD Clinical Diagnostic Scale", totalScore: 54 },
+    { type: 13, name: "HAM-A: Hamilton Anxiety Rating Scale", totalScore: 56 },
+    { type: 14, name: "HAM-D: Hamilton Depression Rating Scale", totalScore: 52 },
     {
-        type: 15, name: "PANSS", totalScore: 210, subScores: [
+        type: 15, name: "PANSS: Positive and Negative Syndrome Scale", totalScore: 210, subScores: [
             {
                 label: "Positive",
                 key: "Positive"
@@ -295,8 +295,25 @@ const Body = ({ clinicalTest, charts }) => {
                                 </View>
                             )
                         }
+                        <View style={{ marginTop: 16 }}>
+                            <View style={styles.divider} />
+                            <Text
+                                style={{
+                                    fontSize: 10,
+                                    color: "#555",
+                                    textAlign: "justify",
+                                    marginTop: 4,
+                                    fontStyle: "italic",
+                                }}
+                            >
+                                This Report Is To Be Used For Professional And Clinical Use Only. It Is Not To Be Used For Legal Purposes.
+                                The Results Shall Be Discussed And Interpreted By Professionals Only. Results Are Subject To The Individual’s
+                                Performance On The Given Day. Kindly Correlate Clinically.
+                            </Text>
+                        </View>
                     </View>
                 )}
+
             </View>
         </React.Fragment >
     );
