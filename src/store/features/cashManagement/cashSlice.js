@@ -28,13 +28,19 @@ const initialState = {
 export const getLastBankDeposits = createAsyncThunk(
   "cash/getLatestBankDesposits",
   async (data, { getState, dispatch, rejectWithValue }) => {
-    const cached = getState().Cash.bankDeposits?.data;
-    if (cached && cached.length > 0) {
-      return { data: cached, fromCache: true }
+    const { centers } = data;
+    const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+    const cachedBankDeposits = getState().Cash.bankDeposits?.[cacheKey];
+    if (
+      cachedBankDeposits &&
+      Array.isArray(cachedBankDeposits.data) &&
+      cachedBankDeposits.data.length > 0
+    ) {
+      return { data: cachedBankDeposits, fromCache: true, cacheKey };
     }
     try {
       const response = await getLatestBankDesposits(data);
-      return { data: response, fromCache: false };
+      return { data: response, fromCache: false, cacheKey };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -43,9 +49,9 @@ export const getLastBankDeposits = createAsyncThunk(
 
 export const addSpending = createAsyncThunk(
   "cash/addSpending",
-  async (data, { getState, rejectWithValue }) => {
+  async ({ formData }, { getState, rejectWithValue }) => {
     try {
-      const response = await postSpending(data);
+      const response = await postSpending(formData);
 
       const centers = getState().Center.data;
       const center = centers.find((cn) => cn._id === response.payload.center);
@@ -64,14 +70,23 @@ export const addSpending = createAsyncThunk(
 
 export const getLastSpendings = createAsyncThunk(
   "cash/getLatestSpendings",
-  async (data, { getState, dispatch, rejectWithValue }) => {
-    const cached = getState().Cash.spendings?.data;
-    if (cached && cached.length > 0) {
-      return { data: cached, fromCache: true };
+  async (data, { getState, rejectWithValue }) => {
+    const { centers } = data;
+    const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+
+    const cachedSpendings = getState().Cash.spendings?.[cacheKey];
+
+    if (
+      cachedSpendings &&
+      Array.isArray(cachedSpendings.data) &&
+      cachedSpendings.data.length > 0
+    ) {
+      return { data: cachedSpendings, fromCache: true, cacheKey };
     }
+
     try {
       const response = await getLatestSpendings(data);
-      return { data: response, fromCache: false };
+      return { data: response, fromCache: false, cacheKey };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -80,9 +95,9 @@ export const getLastSpendings = createAsyncThunk(
 
 export const addBankDeposit = createAsyncThunk(
   "cash/addBankDeposit",
-  async (data, { getState, rejectWithValue }) => {
+  async ({ formData }, { getState, rejectWithValue }) => {
     try {
-      const response = await postBankDeposit(data);
+      const response = await postBankDeposit(formData);
 
       const centers = getState().Center.data;
       const center = centers.find((cn) => cn._id === response.payload.center);
@@ -198,18 +213,25 @@ export const CashSlice = createSlice({
       })
       .addCase(getLastBankDeposits.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (!payload.fromCache) {
-          state.bankDeposits = payload.data;
+        const { data, cacheKey, fromCache } = payload;
+        if (!fromCache && cacheKey) {
+          state.bankDeposits = {};
+          state.bankDeposits[cacheKey] = data;
         }
       })
       .addCase(getLastBankDeposits.rejected, (state) => {
         state.loading = false;
       });
 
-    builder.addCase(addBankDeposit.fulfilled, (state, { payload }) => {
-      state.bankDeposits.data.unshift(payload);
-      if (state.bankDeposits.data.length > 10) {
-        state.bankDeposits.data.pop();
+    builder.addCase(addBankDeposit.fulfilled, (state, { payload, meta }) => {
+      const centers = meta.arg.centers;
+      const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+      if (!state.bankDeposits[cacheKey]) {
+        state.bankDeposits[cacheKey] = { data: [], pagination: {} };
+      }
+      state.bankDeposits[cacheKey].data.unshift(payload);
+      if (state.bankDeposits[cacheKey].data.length > 10) {
+        state.bankDeposits[cacheKey].data.pop();
       }
     });
     builder
@@ -218,19 +240,26 @@ export const CashSlice = createSlice({
       })
       .addCase(getLastSpendings.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (!payload.fromCache) {
-          state.spendings = payload.data;
+        const { data, cacheKey, fromCache } = payload;
+        if (!fromCache && cacheKey) {
+          state.spendings = {};
+          state.spendings[cacheKey] = data;
         }
-
       })
+
       .addCase(getLastSpendings.rejected, (state) => {
         state.loading = false;
       });
 
-    builder.addCase(addSpending.fulfilled, (state, { payload }) => {
-      state.spendings.data.unshift(payload);
-      if (state.spendings.data.length > 10) {
-        state.spendings.data.pop();
+    builder.addCase(addSpending.fulfilled, (state, { payload, meta }) => {
+      const centers = meta.arg.centers;
+      const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+      if (!state.spendings[cacheKey]) {
+        state.spendings[cacheKey] = { data: [], pagination: {} };
+      }
+      state.spendings[cacheKey].data.unshift(payload);
+      if (state.spendings[cacheKey].data.length > 10) {
+        state.spendings[cacheKey].data.pop();
       }
     });
 

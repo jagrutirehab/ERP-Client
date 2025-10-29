@@ -92,7 +92,7 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       formData.append("attachment", values.attachment);
 
       try {
-        await dispatch(addBankDeposit(formData)).unwrap();
+        await dispatch(addBankDeposit({ formData, centers: centerAccess })).unwrap();
         resetForm();
         setAttachment(null);
         setAttachmentTouched(false);
@@ -151,6 +151,9 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       </div>
     );
   }
+
+  const cacheKey = centerAccess?.length ? [...centerAccess].sort().join(",") : "all";
+  const data = deposits?.[cacheKey]?.data || [];
 
   return (
     <React.Fragment>
@@ -315,14 +318,14 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                       </div>
                       <p className="h5">Fetching deposits...</p>
                     </div>
-                  ) : deposits?.length === 0 ? (
+                  ) : data?.length === 0 ? (
                     <div className="text-center py-5 text-muted">
                       <i className="fas fa-piggy-bank fa-3x mb-3"></i>
                       <p className="h5">No deposits recorded yet</p>
                       <p>Start by adding your first deposit using the form.</p>
                     </div>
                   ) : (
-                    deposits?.map((deposit) => (
+                    data?.map((deposit) => (
                       <ItemCard
                         key={deposit._id}
                         item={deposit}
@@ -344,14 +347,14 @@ BankDeposits.prototype = {
   centerAccess: PropTypes.array,
   centers: PropTypes.array,
   loading: PropTypes.bool,
-  deposits: PropTypes.array,
+  deposits: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   loading: state.Cash.loading,
-  deposits: state.Cash.bankDeposits?.data,
+  deposits: state.Cash.bankDeposits,
 });
 
 export default connect(mapStateToProps)(BankDeposits);

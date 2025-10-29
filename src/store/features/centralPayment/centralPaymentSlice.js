@@ -16,10 +16,17 @@ const initialState = {
 
 export const getLastCentralPayments = createAsyncThunk(
     "centralPayment/getPayments",
-    async (data, { rejectWithValue }) => {
+    async (data, { getState, rejectWithValue }) => {
+        const { centers } = data;
+        const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+        const cachedPayments = getState().CentralPayment.spendings?.[cacheKey];
+
+        if (cachedPayments && Array.isArray(cachedPayments.data) && cachedPayments.data.length > 0) {
+            return { data: cachedPayments, fromCache: true, cacheKey };
+        }
         try {
             const response = await getCentralPayments(data);
-            return response;
+            return { data: response, fromCache: false, cacheKey };
         } catch (error) {
             return rejectWithValue(error);
         }
@@ -63,9 +70,9 @@ export const editCentralPayment = createAsyncThunk(
 
 export const addPayment = createAsyncThunk(
     "centralPayment/addPayment",
-    async (data, { getState, rejectWithValue }) => {
+    async ({ formData }, { getState, rejectWithValue }) => {
         try {
-            const response = await postCentralPayment(data);
+            const response = await postCentralPayment(formData);
 
             const centers = getState().Center.data;
             const center = centers.find((cn) => cn._id === response.payload.center);
@@ -123,7 +130,11 @@ export const centralPaymentSlice = createSlice({
             })
             .addCase(getLastCentralPayments.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                state.spendings = payload;
+                const { data, cacheKey, fromCache } = payload;
+                if (!fromCache && cacheKey) {
+                    state.spendings = {};
+                    state.spendings[cacheKey] = data;
+                }
             })
             .addCase(getLastCentralPayments.rejected, (state) => {
                 state.loading = false;
@@ -141,10 +152,15 @@ export const centralPaymentSlice = createSlice({
                 state.loading = false;
             });
 
-        builder.addCase(addPayment.fulfilled, (state, { payload }) => {
-            state.spendings.data.unshift(payload);
-            if (state.spendings.data.length > 10) {
-                state.spendings.data.pop();
+        builder.addCase(addPayment.fulfilled, (state, { payload, meta }) => {
+            const centers = meta.arg.centers;
+            const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+            if (!state.spendings[cacheKey]) {
+                state.spendings[cacheKey] = { data: [], pagination: {} };
+            }
+            state.spendings[cacheKey].data.unshift(payload);
+            if (state.spendings[cacheKey].data.length > 10) {
+                state.spendings[cacheKey].data.pop();
             }
         });
 
