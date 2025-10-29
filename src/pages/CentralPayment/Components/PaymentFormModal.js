@@ -11,13 +11,20 @@ import { getPaymentDetails } from "../../../store/features/centralPayment/centra
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
-        .required("Transaction ID is required")
-        .min(3, "Transaction ID must be at least 3 characters")
-        .max(50, "Transaction ID must be less than 50 characters"),
+        .when("currentPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) =>
+                schema
+                    .required("Transaction ID is required when payment is completed")
+                    .min(3, "Transaction ID must be at least 3 characters")
+                    .max(50, "Transaction ID must be less than 50 characters"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
     currentPaymentStatus: Yup.string()
         .required("Approval status is required")
-        .oneOf(["COMPLETED", "PENDING"], "Invalid Current Payment status")
+        .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
 });
+
 
 const PaymentFormModal = ({
     isOpen,
@@ -192,6 +199,7 @@ const PaymentFormModal = ({
                                 >
                                     <option value="PENDING">Pending</option>
                                     <option value="COMPLETED">Completed</option>
+                                    <option value="REJECTED">Rejected</option>
                                 </Input>
                                 {formik.touched.currentPaymentStatus && formik.errors.currentPaymentStatus && (
                                     <div className="text-danger small mt-1">
@@ -218,7 +226,13 @@ const PaymentFormModal = ({
                     <Button
                         type="submit"
                         color="primary"
-                        disabled={isProcessing || !formik.isValid || formik.values.currentPaymentStatus === "PENDING" || !formik.values.transactionId.trim()}
+                        disabled={
+                            isProcessing ||
+                            !formik.isValid ||
+                            formik.values.currentPaymentStatus === "PENDING" ||
+                            (formik.values.currentPaymentStatus === "COMPLETED" &&
+                                !formik.values.transactionId.trim())
+                        }
                     >
                         {isProcessing ? (
                             <>
@@ -226,9 +240,11 @@ const PaymentFormModal = ({
                                 Processing...
                             </>
                         ) : (
-                            'Process Payment'
+                            "Process Payment"
                         )}
                     </Button>
+
+
                 </ModalFooter>
             </Form>
         </Modal>
