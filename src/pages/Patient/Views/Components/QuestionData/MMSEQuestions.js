@@ -157,68 +157,68 @@ export const mmseQuestions = [
     id: "q1_floor_score",
     section: "orientation",
     question: {
-      en: "What floor are we on?",
-      hi: "हम किस मंजिल पर हैं?",
+      en: "What is the name of the doctor?",
+      hi: "डॉक्टर का नाम क्या है?",
     },
     guidance: {
-      en: "Ask: 'What floor are we on?'",
-      hi: "पूछें: 'हम किस मंजिल पर हैं?'",
+      en: "Ask: 'What is the name of the doctor?'",
+      hi: "पूछें: 'डॉक्टर का नाम क्या है?'",
     },
     correctAnswer: {
-      en: "Current Floor Number",
-      hi: "वर्तमान मंजिल संख्या",
+      en: "Current Doctor Name",
+      hi: "वर्तमान डॉक्टर का नाम",
     },
     options: ["Correct", "Incorrect"],
   },
   // Registration Section
   {
-    id: "q2_apple_score",
+    id: "q2_house_score",
     section: "registration",
     question: {
-      en: "Name the object: Apple",
-      hi: "वस्तु का नाम बताएं: सेब",
+      en: "Name the object: House",
+      hi: "वस्तु का नाम बताएं: घर",
     },
     guidance: {
       en: "Say: 'I am going to name three objects. I want you to repeat them after me. Remember them, because I will ask you to name them again in a few minutes.' (Say slowly, 1 second per word). Score 1 point for each correct on first attempt.",
       hi: "कहें: 'मैं तीन वस्तुओं के नाम बताने जा रहा हूँ। मैं चाहता हूँ कि आप मेरे बाद उन्हें दोहराएँ। उन्हें याद रखें, क्योंकि मैं कुछ मिनटों में आपको फिर से उनके नाम पूछूंगा।' (धीरे-धीरे कहें, प्रत्येक शब्द के लिए 1 सेकंड)। पहली कोशिश में प्रत्येक सही जवाब के लिए 1 अंक दें।",
     },
     correctAnswer: {
-      en: "Apple",
-      hi: "सेब",
+      en: "House",
+      hi: "घर",
     },
     options: ["Correct", "Incorrect"],
   },
   {
-    id: "q2_table_score",
+    id: "q2_sky_score",
     section: "registration",
     question: {
-      en: "Name the object: Table",
-      hi: "वस्तु का नाम बताएं: मेज",
+      en: "Name the object: Sky",
+      hi: "वस्तु का नाम बताएं: आकाश",
     },
     guidance: {
       en: "Say: 'I am going to name three objects. I want you to repeat them after me. Remember them, because I will ask you to name them again in a few minutes.' (Say slowly, 1 second per word). Score 1 point for each correct on first attempt.",
       hi: "कहें: 'मैं तीन वस्तुओं के नाम बताने जा रहा हूँ। मैं चाहता हूँ कि आप मेरे बाद उन्हें दोहराएँ। उन्हें याद रखें, क्योंकि मैं कुछ मिनटों में आपको फिर से उनके नाम पूछूंगा।' (धीरे-धीरे कहें, प्रत्येक शब्द के लिए 1 सेकंड)। पहली कोशिश में प्रत्येक सही जवाब के लिए 1 अंक दें।",
     },
     correctAnswer: {
-      en: "Table",
-      hi: "मेज",
+      en: "Sky",
+      hi: "आकाश",
     },
     options: ["Correct", "Incorrect"],
   },
   {
-    id: "q2_penny_score",
+    id: "q2_crow_score",
     section: "registration",
     question: {
-      en: "Name the object: Penny",
-      hi: "वस्तु का नाम बताएं: पेनी",
+      en: "Name the object: Crow",
+      hi: "वस्तु का नाम बताएं: कौवा",
     },
     guidance: {
       en: "Say: 'I am going to name three objects. I want you to repeat them after me. Remember them, because I will ask you to name them again in a few minutes.' (Say slowly, 1 second per word). Score 1 point for each correct on first attempt.",
       hi: "कहें: 'मैं तीन वस्तुओं के नाम बताने जा रहा हूँ। मैं चाहता हूँ कि आप मेरे बाद उन्हें दोहराएँ। उन्हें याद रखें, क्योंकि मैं कुछ मिनटों में आपको फिर से उनके नाम पूछूंगा।' (धीरे-धीरे कहें, प्रत्येक शब्द के लिए 1 सेकंड)। पहली कोशिश में प्रत्येक सही जवाब के लिए 1 अंक दें।",
     },
     correctAnswer: {
-      en: "Penny",
-      hi: "पेनी",
+      en: "Crow",
+      hi: "कौवा",
     },
     options: ["Correct", "Incorrect"],
   },
@@ -308,29 +308,49 @@ export const mmseQuestions = [
     },
     options: ["Correct", "Incorrect"],
   },
+  // previously version question
+  // {
+  //   id: "q3_world_total_score",
+  //   section: "attention",
+  //   question: {
+  //     en: "Spell the word 'WORLD' backwards",
+  //     hi: "'WORLD' शब्द को पीछे की ओर वर्तनी करें",
+  //   },
+  //   guidance: {
+  //     en: "Say: 'Spell the word \"WORLD\" backwards.' Score 1 point for each letter in correct order.",
+  //     hi: "कहें: '\"WORLD\" शब्द को पीछे की ओर वर्तनी करें।' सही क्रम में प्रत्येक अक्षर के लिए 1 अंक दें।",
+  //   },
+  //   correctAnswer: {
+  //     en: "D-L-R-O-W",
+  //     hi: "D-L-R-O-W",
+  //   },
+  //   options: ["0", "1", "2", "3", "4", "5"],
+  // },
+
+  // new version question
   {
-    id: "q3_world_total_score",
+    id: "q3_week_total_score",
     section: "attention",
     question: {
-      en: "Spell the word 'WORLD' backwards",
-      hi: "'WORLD' शब्द को पीछे की ओर वर्तनी करें",
+      en: "Say the days of the week backwards, starting from Sunday.",
+      hi: "सप्ताह के दिनों को रविवार से उल्टे क्रम में बोलें।",
     },
     guidance: {
-      en: "Say: 'Spell the word \"WORLD\" backwards.' Score 1 point for each letter in correct order.",
-      hi: "कहें: '\"WORLD\" शब्द को पीछे की ओर वर्तनी करें।' सही क्रम में प्रत्येक अक्षर के लिए 1 अंक दें।",
+      en: "Say: 'Now, tell me the days of the week backwards, starting from Sunday.' Score 1 point for each day said in the correct reverse order.",
+      hi: "कहें: 'अब, सप्ताह के दिनों को रविवार से उल्टे क्रम में बताएं।' सही उल्टे क्रम में बोले गए प्रत्येक दिन के लिए 1 अंक दें।",
     },
     correctAnswer: {
-      en: "D-L-R-O-W",
-      hi: "D-L-R-O-W",
+      en: "Sunday Saturday Friday Thursday Wednesday Tuesday Monday",
+      hi: "Sunday Saturday Friday Thursday Wednesday Tuesday Monday",
     },
-    options: ["0", "1", "2", "3", "4", "5"],
+    options: ["0", "1", "2", "3", "4", "5", "6", "7"],
   },
   // Recall Section
   {
-    id: "q4_apple_score",
+    id: "q4_house_score",
     section: "recall",
     question: {
-      en: "Recall the object: Apple",
+      en: "Recall the object: House",
       hi: "वस्तु याद करें: सेब",
     },
     guidance: {
@@ -338,60 +358,60 @@ export const mmseQuestions = [
       hi: "कहें: 'वह तीन वस्तुएँ जो मैंने आपको याद रखने को कहा था, वे क्या थीं?' (कोई संकेत न दें)।",
     },
     correctAnswer: {
-      en: "Apple",
-      hi: "सेब",
+      en: "House",
+      hi: "घर",
     },
     options: ["Correct", "Incorrect"],
   },
   {
-    id: "q4_table_score",
+    id: "q4_sky_score",
     section: "recall",
     question: {
-      en: "Recall the object: Table",
-      hi: "वस्तु याद करें: मेज",
+      en: "Recall the object: Sky",
+      hi: "वस्तु याद करें: आकाश",
     },
     guidance: {
       en: "Say: 'What were those three objects I asked you to remember?' (Do not give clues).",
       hi: "कहें: 'वह तीन वस्तुएँ जो मैंने आपको याद रखने को कहा था, वे क्या थीं?' (कोई संकेत न दें)।",
     },
     correctAnswer: {
-      en: "Table",
-      hi: "मेज",
+      en: "Sky",
+      hi: "आकाश",
     },
     options: ["Correct", "Incorrect"],
   },
   {
-    id: "q4_penny_score",
+    id: "q4_crow_score",
     section: "recall",
     question: {
-      en: "Recall the object: Penny",
-      hi: "वस्तु याद करें: पेनी",
+      en: "Recall the object: Crow",
+      hi: "वस्तु याद करें: कौवा",
     },
     guidance: {
       en: "Say: 'What were those three objects I asked you to remember?' (Do not give clues).",
       hi: "कहें: 'वह तीन वस्तुएँ जो मैंने आपको याद रखने को कहा था, वे क्या थीं?' (कोई संकेत न दें)।",
     },
     correctAnswer: {
-      en: "Penny",
-      hi: "पेनी",
+      en: "Crow",
+      hi: "कौवा",
     },
     options: ["Correct", "Incorrect"],
   },
   // Language Section
   {
-    id: "q5_naming_pencil_score",
+    id: "q5_naming_pen_score",
     section: "language",
     question: {
-      en: "Name the object: Pencil",
-      hi: "वस्तु का नाम बताएं: पेंसिल",
+      en: "Name the object: Pen",
+      hi: "वस्तु का नाम बताएं: पेन",
     },
     guidance: {
-      en: "Point to a pencil and ask: 'What is this?'",
-      hi: "पेंसिल की ओर इशारा करें और पूछें: 'यह क्या है?'",
+      en: "Point to a pen and ask: 'What is this?'",
+      hi: "पेन की ओर इशारा करें और पूछें: 'यह क्या है?'",
     },
     correctAnswer: {
-      en: "Pencil",
-      hi: "पेंसिल",
+      en: "Pen",
+      hi: "पेन",
     },
     options: ["Correct", "Incorrect"],
   },
