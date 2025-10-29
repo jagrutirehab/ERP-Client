@@ -318,7 +318,8 @@ const Bills = ({
                       user?.email !== "rijutarafder000@gmail.com" &&
                       user?.email !== "surjeet.parida@gmail.com" &&
                       user?.email !== "hemanthshinde@gmail.com" &&
-                      user?.email !== "vikas@jagrutirehab.org"
+                      user?.email !== "vikas@jagrutirehab.org" &&
+                      user?.email !== "bishal@gmail.com"
                         ? true
                         : bill.bill === INVOICE &&
                           superUser.includes(user.email)
