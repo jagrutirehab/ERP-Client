@@ -5,8 +5,9 @@ import ItemCard from './ItemCard';
 import { getApprovals } from '../../../store/features/centralPayment/centralPaymentSlice';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 
-const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab }) => {
+const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab, hasCreatePermission }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -33,7 +34,7 @@ const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab }) => {
         }
 
         fetchApprovedPayments();
-    }, [centerAccess, dispatch, activeTab]);
+    }, [centerAccess, dispatch, activeTab, page, limit]);
 
 
     if (loading) {
@@ -54,7 +55,7 @@ const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab }) => {
                             <Row>
                                 {(approvals?.data || []).map((payment) => (
                                     <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
-                                        <ItemCard item={payment} border={true} flag="paymentProcessing" />
+                                        <ItemCard hasCreatePermission={hasCreatePermission} item={payment} border={true} flag="paymentProcessing" />
                                     </Col>
                                 ))}
                             </Row>
@@ -62,6 +63,7 @@ const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab }) => {
                             <p className="text-muted text-center py-3">No pending payment processing requests</p>
                         )}
                     </div>
+
                     {!loading && approvals?.pagination?.totalPages > 1 && (
                         <>
                             {/* Mobile Layout */}
@@ -121,6 +123,14 @@ const PaymentProcessing = ({ loading, approvals, centerAccess, activeTab }) => {
             </div>
         </React.Fragment>
     )
+}
+
+PaymentProcessing.prototype = {
+    loading: PropTypes.bool,
+    approvals: PropTypes.object,
+    centerAccess: PropTypes.array,
+    activeTab: PropTypes.string,
+    hasCreatePermission: PropTypes.bool
 }
 
 const mapStateToProps = (state) => ({

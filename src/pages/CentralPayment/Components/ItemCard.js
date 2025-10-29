@@ -2,9 +2,8 @@ import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { Badge, Button, Card, CardBody, Col, Row, Spinner } from "reactstrap";
-import { FileText, Calendar, Tag, Check, X, CheckCheck } from "lucide-react";
+import { Calendar, Tag, Check, X, CheckCheck } from "lucide-react";
 import PropTypes from "prop-types";
-import { downloadFile } from "../../../Components/Common/downloadFile";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
@@ -12,8 +11,9 @@ import { editCentralPayment } from "../../../store/features/centralPayment/centr
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
+import AttachmentCell from "./AttachmentCell";
 
-const ItemCard = ({ item, flag, border = false }) => {
+const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -45,10 +45,6 @@ const ItemCard = ({ item, flag, border = false }) => {
         }
     }
 
-    const openPaymentModal = () => {
-        setIsPaymentModalOpen(true);
-    }
-
     const handleProcessPayment = async (formData) => {
         setUpdating({ id: item._id, type: "PROCESSING" });
         try {
@@ -67,6 +63,10 @@ const ItemCard = ({ item, flag, border = false }) => {
         } finally {
             setUpdating({ id: null, type: null });
         }
+    }
+
+    const openPaymentModal = () => {
+        setIsPaymentModalOpen(true);
     }
 
     const closePaymentModal = () => {
@@ -103,38 +103,20 @@ const ItemCard = ({ item, flag, border = false }) => {
 
                             {item.description && (
                                 <ExpandableText
-                                    text={capitalizeWords(item.description)}
+                                    text={capitalizeWords(item.description)} limit={20}
                                     className="mb-2"
                                 />
                             )}
 
                             {item.eNet && (
                                 <p>
-                                    E-Net: <span className="border-bottom border-dark">{item.eNet}</span>
+                                    <strong>E-Net: </strong><span className="border-bottom border-dark"><ExpandableText text={item.eNet} limit={140} /></span>
                                 </p>
                             )}
 
                             {item.attachments && item.attachments.length > 0 && (
                                 <div className="mt-2">
-                                    {item.attachments.map((attachment, index) => (
-                                        <div
-                                            key={index}
-                                            className="d-flex align-items-center text-primary mb-1"
-                                            style={{ cursor: "pointer" }}
-                                            onClick={() => downloadFile(attachment)}
-                                        >
-                                            <FileText size={14} className="me-1 flex-shrink-0" />
-                                            <span
-                                                className="text-break text-decoration-underline"
-                                                style={{
-                                                    wordBreak: 'break-word',
-                                                    overflowWrap: 'break-word'
-                                                }}
-                                            >
-                                                {attachment.originalName}
-                                            </span>
-                                        </div>
-                                    ))}
+                                    <AttachmentCell attachments={item.attachments} />
                                 </div>
                             )}
                         </Col>
@@ -155,7 +137,7 @@ const ItemCard = ({ item, flag, border = false }) => {
                             </div>
                         </Col>
                     </Row>
-                    {flag === "approval" && (
+                    {flag === "approval" && hasCreatePermission && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
@@ -191,7 +173,7 @@ const ItemCard = ({ item, flag, border = false }) => {
                             </div>
                         </>
                     )}
-                    {flag === "paymentProcessing" && (
+                    {flag === "paymentProcessing" && hasCreatePermission && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
@@ -229,7 +211,8 @@ const ItemCard = ({ item, flag, border = false }) => {
 ItemCard.propTypes = {
     item: PropTypes.object,
     flag: PropTypes.string,
-    border: PropTypes.bool
+    border: PropTypes.bool,
+    hasCreatePermission: PropTypes.bool
 };
 
 export default ItemCard;

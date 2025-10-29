@@ -26,7 +26,7 @@ const PaymentFormModal = ({
     onConfirm,
     isProcessing,
     paymentDetails,
-    paymentDetailsLoading
+    loading
 }) => {
     const dispatch = useDispatch();
 
@@ -63,7 +63,7 @@ const PaymentFormModal = ({
     };
 
 
-    if (paymentDetailsLoading) {
+    if (loading) {
         return (
             <Modal isOpen={isOpen} toggle={handleToggle}>
                 <ModalHeader toggle={handleToggle}>
@@ -108,7 +108,10 @@ const PaymentFormModal = ({
                                         </p>
                                     )}
                                     {paymentDetails?.eNet && (
-                                        <p className="mb-0"><strong>E-Net:</strong> <span className="border-bottom border-dark">{paymentDetails.eNet}</span></p>
+                                        <p className="mb-0 text-break">
+                                            <strong>E-Net:</strong>{" "}
+                                            <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
+                                        </p>
                                     )}
                                     {paymentDetails?.TDSRate && (
                                         <p className="mb-0"><strong>TDS Rate:</strong> {paymentDetails.TDSRate}</p>
@@ -239,7 +242,7 @@ PaymentFormModal.propTypes = {
     onConfirm: PropTypes.func.isRequired,
     isProcessing: PropTypes.bool,
     loading: PropTypes.bool,
-    paymentDetails: PropTypes.object
+    paymentDetails: PropTypes.object,
 };
 
 
