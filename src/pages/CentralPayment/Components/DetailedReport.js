@@ -82,6 +82,22 @@ const DetailedReport = ({
     }
   };
 
+
+  const getBadgeColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case "APPROVED":
+        return "success";
+      case "COMPLETED":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "REJECTED":
+        return "danger";
+      default:
+        return "secondary";
+    }
+  };
+
   const columns = [
     {
       name: <div>Date</div>,
@@ -204,7 +220,7 @@ const DetailedReport = ({
       name: <div>Account Holder Name</div>,
       cell: (row) => (
         <span>
-          {row?.bankDetails?.accountHolderName || "-"}
+          {capitalizeWords(row?.bankDetails?.accountHolderName) || "-"}
         </span>
       ),
       wrap: true,
@@ -246,17 +262,18 @@ const DetailedReport = ({
     },
     {
       name: <div>Current Payment Status</div>,
-      selector: (row) => {
-        const status = row.currentPaymentStatus;
-        return (
-          <Badge
-            color={status === "COMPLETED" ? "success" : status === "PENDING" ? "warning" : "secondary"}
-            style={{ display: "inline-block", whiteSpace: "normal", wordBreak: "break-word" }}
-          >
-            {status === "COMPLETED" ? "Completed" : status === "PENDING" ? "Pending" : capitalizeWords(status) || "-"}
-          </Badge>
-        );
-      },
+      selector: (row) => (
+        <Badge
+          color={getBadgeColor(row.currentPaymentStatus)}
+          style={{
+            display: "inline-block",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {capitalizeWords(row.currentPaymentStatus || "-")}
+        </Badge>
+      ),
       wrap: true,
     },
     {
@@ -268,48 +285,28 @@ const DetailedReport = ({
       name: <div>Attachments</div>,
       cell: (row) => <AttachmentCell attachments={row.attachments || []} showAsButton={true} />,
       wrap: true,
-      minWidth:"140px",
-      
+      minWidth: "140px",
+
     },
     {
       name: <div>Approval Status</div>,
       selector: (row) => {
         const status = row.approvalStatus;
-        const badgeStyle = {
-          display: "inline-block",
-          whiteSpace: "normal",
-          wordBreak: "break-word",
-        };
-
-        if (status === "APPROVED") {
-          return (
-            <Badge color="success" style={badgeStyle}>
-              Approved
-            </Badge>
-          );
-        } else if (status === "PENDING") {
-          return (
-            <Badge color="warning" style={badgeStyle}>
-              Pending
-            </Badge>
-          );
-        } else if (status === "REJECTED") {
-          return (
-            <Badge color="danger" style={badgeStyle}>
-              Rejected
-            </Badge>
-          );
-        } else {
-          return (
-            <Badge color="secondary" style={badgeStyle}>
-              {capitalizeWords(status) || "-"}
-            </Badge>
-          );
-        }
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
       },
       wrap: true,
-    },
-
+    }
   ];
 
 

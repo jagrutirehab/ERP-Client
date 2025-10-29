@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
 });
 
 
-const formatRecommendationsPDF = (text) => {
+const formatRecommendationsPDF = (text, testType) => {
     if (!text) return [<Text key="none">No Recommendation</Text>];
 
     const placeholderMap = {
@@ -172,16 +172,31 @@ const formatRecommendationsPDF = (text) => {
             restored = restored.replaceAll(placeholder, abbr);
         }
 
-        restored = restored.replace(/^\d+\.\s*/, "").trim();
+        const lineText = restored.replace(/^\d+\.\s*/, "").trim();
+
+        let content;
+
+        if (testType === 10) {
+            content = lineText.split(/(impairment|moderate)/gi).map((part, i) => {
+                const cap = capitalizeWords(part);
+                return part.toLowerCase() === "impairment" || part.toLowerCase() === "moderate"
+                    ? <Text key={i} style={{ fontWeight: 'bold', fontFamily: "Roboto" }}>{cap}</Text>
+                    : cap;
+            });
+        } else {
+            content = capitalizeWords(lineText);
+        }
 
         return (
             <View style={styles.bulletItem} key={idx}>
                 <Text style={styles.bullet}>•</Text>
-                <Text style={styles.recommendationText}>{capitalizeWords(restored)}</Text>
+                <Text style={styles.recommendationText}>{content}</Text>
             </View>
         );
     });
 };
+
+
 
 
 
@@ -278,8 +293,27 @@ const Body = ({ clinicalTest, charts }) => {
                                     <View wrap={false}>
                                         <Text style={styles.label}>INTERPRETATION:</Text>
                                         <Text style={styles.paragraph}>
-                                            {capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}
+                                            {clinicalTest?.testType === 10 ? (
+                                                clinicalTest.interpretation
+                                                    .split(/(impairment|moderate)/gi)
+                                                    .map((part, index) => {
+                                                        const text = capitalizeWords(part);
+                                                        const isHighlight =
+                                                            part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate';
+                                                        return (
+                                                            <Text
+                                                                key={index}
+                                                                style={isHighlight ? { fontWeight: 'bold', fontFamily: "Roboto" } : {}}
+                                                            >
+                                                                {text}
+                                                            </Text>
+                                                        );
+                                                    })
+                                            ) : (
+                                                <Text>{capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}</Text>
+                                            )}
                                         </Text>
+
                                     </View>
                                     <View style={styles.divider} />
                                 </>
@@ -290,7 +324,7 @@ const Body = ({ clinicalTest, charts }) => {
                                 <View wrap={false}>
                                     <Text style={styles.label}>RECOMMENDATION:</Text>
                                     <View style={styles.recommendationContainer}>
-                                        {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation)}
+                                        {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation, clinicalTest?.testType)}
                                     </View>
                                 </View>
                             )
