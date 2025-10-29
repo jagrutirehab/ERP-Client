@@ -120,9 +120,11 @@ const DetailedReport = ({
     {
       name: <div>Description</div>,
       selector: (row) => row.description ?
-        <ExpandableText text={capitalizeWords(row.description)} /> :
+        <ExpandableText text={capitalizeWords(row.description)} limit={20} /> :
         "-",
       wrap: true,
+      minWidth: "120px",
+      maxWidth: "200px"
     },
     {
       name: <div>Vendor</div>,
@@ -264,8 +266,10 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachments</div>,
-      cell: (row) => <AttachmentCell attachments={row.attachments || []} />,
+      cell: (row) => <AttachmentCell attachments={row.attachments || []} showAsButton={true} />,
       wrap: true,
+      minWidth:"140px",
+      
     },
     {
       name: <div>Approval Status</div>,

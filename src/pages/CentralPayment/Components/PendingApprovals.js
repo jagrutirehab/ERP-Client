@@ -5,8 +5,9 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import ItemCard from "./ItemCard";
 import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
+import PropTypes from "prop-types";
 
-const PendingApprovals = ({ centerAccess, loading, approvals, activeTab }) => {
+const PendingApprovals = ({ centerAccess, loading, approvals, activeTab, hasCreatePermission }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
@@ -30,7 +31,7 @@ const PendingApprovals = ({ centerAccess, loading, approvals, activeTab }) => {
         }
 
         fetchPendingApprovals();
-    }, [centerAccess, dispatch, activeTab]);
+    }, [centerAccess, dispatch, activeTab, page, limit]);
 
 
 
@@ -50,7 +51,7 @@ const PendingApprovals = ({ centerAccess, loading, approvals, activeTab }) => {
                             <Row>
                                 {(approvals?.data || []).map((payment) => (
                                     <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
-                                        <ItemCard item={payment} flag="approval" border={true} />
+                                        <ItemCard item={payment} flag="approval" border={true} hasCreatePermission={hasCreatePermission} />
                                     </Col>
                                 ))}
                             </Row>
@@ -118,6 +119,15 @@ const PendingApprovals = ({ centerAccess, loading, approvals, activeTab }) => {
         </React.Fragment>
     )
 }
+
+PendingApprovals.prototype = {
+    loading: PropTypes.bool,
+    approvals: PropTypes.object,
+    centerAccess: PropTypes.array,
+    activeTab: PropTypes.string,
+    hasCreatePermission: PropTypes.bool
+}
+
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,

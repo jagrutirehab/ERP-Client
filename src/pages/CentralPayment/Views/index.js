@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-// import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { APPROVAL_VIEW, BASE_BALANCE_VIEW, DEPOSITS_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
 import { Button, ButtonGroup, Spinner } from 'reactstrap';
-// import CheckPermission from '../../../Components/HOC/CheckPermission';
 import Reports from './Reports';
 import Spending from './Spending';
 import ApprovalDashboard from './ApprovalDashboard';
