@@ -403,6 +403,7 @@ const DetailedReport = ({
               <option value="">All Current Payment Status</option>
               <option value="PENDING">Pending</option>
               <option value="COMPLETED">Completed</option>
+              <option value="REJECTED">Rejected</option>
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>
