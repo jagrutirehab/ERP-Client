@@ -204,7 +204,7 @@ const DetailedReport = ({
       name: <div>Account Holder Name</div>,
       cell: (row) => (
         <span>
-          {row?.bankDetails?.accountHolderName || "-"}
+          {capitalizeWords(row?.bankDetails?.accountHolderName) || "-"}
         </span>
       ),
       wrap: true,
@@ -268,8 +268,8 @@ const DetailedReport = ({
       name: <div>Attachments</div>,
       cell: (row) => <AttachmentCell attachments={row.attachments || []} showAsButton={true} />,
       wrap: true,
-      minWidth:"140px",
-      
+      minWidth: "140px",
+
     },
     {
       name: <div>Approval Status</div>,
