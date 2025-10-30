@@ -107,16 +107,26 @@ const AdvancePayment = ({
             ...values,
           })
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          })
+        );
       } else {
-       const response = await dispatch(
-        addAdvancePayment({
+        const response = await dispatch(
+          addAdvancePayment({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
           })
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          })
+        );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
@@ -192,7 +202,7 @@ const AdvancePayment = ({
               style={{ width: "200px" }}
               size={"sm"}
               type="text"
-              disabled
+              disabled={true}
               name="paymentAgainstBillNo"
               value={validation.values.paymentAgainstBillNo || ""}
               onChange={validation.handleChange}
