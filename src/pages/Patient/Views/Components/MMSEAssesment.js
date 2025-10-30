@@ -20,6 +20,7 @@ import {
 } from "./QuestionData/MMSEQuestions";
 import jsPDF from "jspdf";
 import "svg2pdf.js";
+import { AlertTriangle } from "lucide-react";
 
 const MMSEAssessment = () => {
   const dispatch = useDispatch();
@@ -471,7 +472,7 @@ const MMSEAssessment = () => {
                   </h3>
                   {disabledReason && (
                     <div className="alert alert-warning py-2 small mb-3">
-                      <i className="fas fa-exclamation-triangle me-2"></i>
+                      <AlertTriangle className="me-2 text-warning" size={18} />
                       {disabledReason}
                     </div>
                   )}
