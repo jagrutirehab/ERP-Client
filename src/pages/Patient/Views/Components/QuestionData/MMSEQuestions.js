@@ -399,8 +399,8 @@ export const mmseQuestions = [
     },
     correctAnswer: {
       en: "Sunday Saturday Friday Thursday Wednesday",
-      hi: "Sunday Saturday Friday Thursday Wednesday",
-      mr: "Sunday Saturday Friday Thursday Wednesday"
+      hi: "रविवार, शनिवार, शुक्रवार, गुरुवार, बुधवार",
+      mr: "रविवार, शनिवार, शुक्रवार, गुरुवार, बुधवार"
     },
     options: ["0", "1", "2", "3", "4", "5"],
   },
