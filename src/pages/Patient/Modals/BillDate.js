@@ -19,7 +19,7 @@ import {
 } from "../../../Components/constants/patient";
 
 //redux
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { createEditBill, setBillDate } from "../../../store/actions";
 
 const BillDate = ({
@@ -31,6 +31,7 @@ const BillDate = ({
   admission,
 }) => {
   const dispatch = useDispatch();
+  const userCenters = useSelector((state) => state.User.centerAccess);
 
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
@@ -64,7 +65,9 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
-                    maxDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+                    maxDate: new Date(
+                      new Date().setMonth(new Date().getMonth() + 1)
+                    ),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
@@ -114,11 +117,16 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              editBillData.bill === null ||
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              userCenters.includes("668e50d6f2faa02cf9ada8e4")
+                ? editBillData.bill === null ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+                : editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
             }
             size="sm"
             onClick={() => {
@@ -133,8 +141,11 @@ const BillDate = ({
               toggle();
             }}
           >
+            {userCenters.includes("668e50d6f2faa02cf9ada8e4")
+              ? "Payment"
+              : "Advance Payment"}
             {/* Advance Payment */}
-            Payment
+            {/* Payment */}
           </Button>
           <Button
             outline

@@ -192,6 +192,7 @@ const AdvancePayment = ({
               style={{ width: "200px" }}
               size={"sm"}
               type="text"
+              disabled
               name="paymentAgainstBillNo"
               value={validation.values.paymentAgainstBillNo || ""}
               onChange={validation.handleChange}
