@@ -93,7 +93,6 @@ const PrescriptionBody = ({ chart, doctor }) => {
     return <Image src={src} style={styles.image} />;
   };
 
-
   return (
     <React.Fragment>
       <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
@@ -257,21 +256,33 @@ const PrescriptionBody = ({ chart, doctor }) => {
             {safeText(
               "",
               { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
-              doctor?.name ? `Dr. ${doctor.name}` : ""
+              doctor?.name ? `${doctor.name}` : ""
             )}
             {safeText(
               "",
-              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
               doctor?.degrees
             )}
             {safeText(
               "",
-              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
               doctor?.speciality
             )}
             {safeText(
               "Reg. No.",
-              { lineHeight: 1.2, ...styles.fontNormal, ...styles.textCapitalize },
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
               doctor?.registrationNo
             )}
           </View>
