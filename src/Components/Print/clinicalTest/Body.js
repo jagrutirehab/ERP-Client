@@ -175,7 +175,7 @@ const formatRecommendationsPDF = (text, testType) => {
         const lineText = restored.replace(/^\d+\.\s*/, "").trim();
 
         let content;
-
+        //  Hightlight Impairment & moderate in MMSE
         if (testType === 10) {
             content = lineText.split(/(impairment|moderate)/gi).map((part, i) => {
                 const cap = capitalizeWords(part);
@@ -293,6 +293,7 @@ const Body = ({ clinicalTest, charts }) => {
                                     <View wrap={false}>
                                         <Text style={styles.label}>INTERPRETATION:</Text>
                                         <Text style={styles.paragraph}>
+                                            {/* Hightlight Impairment & moderate in MMSE */}
                                             {clinicalTest?.testType === 10 ? (
                                                 clinicalTest.interpretation
                                                     .split(/(impairment|moderate)/gi)
@@ -340,7 +341,7 @@ const Body = ({ clinicalTest, charts }) => {
                                     fontStyle: "italic",
                                 }}
                             >
-                                This Report Is To Be Used For Professional And Clinical Use Only. It Is Not To Be Used For Legal Purposes.
+                                Note: This Report Is To Be Used For Professional And Clinical Use Only. It Is Not To Be Used For Legal Purposes.
                                 The Results Shall Be Discussed And Interpreted By Professionals Only. Results Are Subject To The Individual’s
                                 Performance On The Given Day. Kindly Correlate Clinically.
                             </Text>

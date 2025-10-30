@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dropdown,
@@ -80,7 +80,22 @@ const MMSEAssessment = () => {
   };
 
   const closeModal = () => {
-    const unAnswered = mmseQuestions.filter((q) => !answers[q.id]);
+    const unAnswered = mmseQuestions.filter((q) => {
+
+      if (q.section === "attention") {
+        const hasSerial7Answers = Object.keys(answers).some(key =>
+          key.startsWith("q3_s7_") && answers[key]
+        );
+        const hasWeekBackwardsAnswer = answers["q3_week_total_score"];
+
+        if (hasSerial7Answers || hasWeekBackwardsAnswer) {
+          return false;
+        }
+        return !answers[q.id];
+      }
+
+      return !answers[q.id];
+    });
     if (selectedPsychologist.id === -1 || unAnswered.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
@@ -207,7 +222,22 @@ const MMSEAssessment = () => {
       return openModal("Please choose a psychologist first");
     }
 
-    const unanswered = mmseQuestions.filter((q) => !answers[q.id]);
+    const unanswered = mmseQuestions.filter((q) => {
+      if (q.section === "attention") {
+        const hasSerial7Answers = Object.keys(answers).some(key =>
+          key.startsWith("q3_s7_") && answers[key]
+        );
+        const hasWeekBackwardsAnswer = answers["q3_week_total_score"];
+
+        if (hasSerial7Answers || hasWeekBackwardsAnswer) {
+          return false;
+        }
+        return !answers[q.id];
+      }
+
+      return !answers[q.id];
+    });
+
     if (unanswered.length > 0) {
       return openModal("Please answer all the questions");
     }
@@ -273,6 +303,59 @@ const MMSEAssessment = () => {
     ),
   }));
 
+  const handleAnswer = (questionId, answer) => {
+    const newAnswers = { ...answers };
+
+    if (questionId.startsWith("q3_s7_") || questionId === "q3_week_total_score") {
+      handleAttentionMutualExclusion(newAnswers, questionId, answer);
+    } else {
+      newAnswers[questionId] = answer;
+    }
+
+    setAnswers(newAnswers);
+  };
+
+  const handleAttentionMutualExclusion = (newAnswers, questionId, answer) => {
+    // If user is answering a Serial 7s question
+    if (questionId.startsWith("q3_s7_")) {
+      // Clear the days of week backwards answer
+      delete newAnswers["q3_week_total_score"];
+      // Set the current serial 7s answer
+      newAnswers[questionId] = answer;
+    }
+    // If user is answering days of week backwards
+    else if (questionId === "q3_week_total_score") {
+      // Clear all serial 7s answers
+      for (let i = 1; i <= 5; i++) {
+        delete newAnswers[`q3_s7_${i}_score`];
+      }
+      // Set the days of week backwards answer
+      newAnswers[questionId] = answer;
+    }
+  };
+
+
+  const getDisabledState = (question) => {
+    const isSerial7 = question.id.startsWith("q3_s7_");
+    const isWeekBackwards = question.id === "q3_week_total_score";
+
+    if (!isSerial7 && !isWeekBackwards) return false;
+
+    // If this is a Serial 7s question and week backwards has been answered
+    if (isSerial7 && answers["q3_week_total_score"]) {
+      return "Days of week backwards already selected";
+    }
+
+    // If this is week backwards question and any Serial 7s has been answered
+    if (isWeekBackwards && Object.keys(answers).some(key =>
+      key.startsWith("q3_s7_") && answers[key]
+    )) {
+      return "Serial 7s already selected";
+    }
+
+    return false;
+  };
+
   return (
     <div className="p-2 p-sm-3">
       <div className="mb-4 d-flex align-items-center justify-content-between p-3 border border-primary rounded text-primary small bg-light">
@@ -313,7 +396,7 @@ const MMSEAssessment = () => {
             toggle={toggleLanguageDropdown}
           >
             <DropdownToggle caret outline color="primary">
-              {language === "en" ? "English" : "Hindi"}
+              {language === "en" ? "English" : language === "hi" ? "Hindi" : "Marathi"}
             </DropdownToggle>
             <DropdownMenu>
               <DropdownItem onClick={() => setLanguage("en")}>
@@ -321,6 +404,9 @@ const MMSEAssessment = () => {
               </DropdownItem>
               <DropdownItem onClick={() => setLanguage("hi")}>
                 Hindi
+              </DropdownItem>
+              <DropdownItem onClick={() => setLanguage("mr")}>
+                Marathi
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -367,112 +453,131 @@ const MMSEAssessment = () => {
             {scores[sectionKeyMap[section.name]]?.current || 0}/
             {section.maxScore})
           </h2>
-          {section.questions.map((q, qIdx) => (
-            <div
-              key={q.id}
-              className="mb-4 p-4 bg-white border rounded shadow-sm"
-            >
-              <h3 className="h5 fw-semibold text-dark mb-2">
-                {idx + 1}.{qIdx + 1}. {q.question[language]}
-              </h3>
-              <p className="h6 text-primary small mb-3 fst-italic">
-                <i className="fas fa-info-circle me-1"></i>
-                {q.guidance[language]}
-              </p>
-              <p className="h6 text-success small mb-3">
-                <i className="fas fa-check-circle me-1"></i>
-                Correct Answer: {q.correctAnswer[language]}
-              </p>
+          {section.questions.map((q, qIdx) => {
+            const disabledReason = getDisabledState(q);
 
-              {q.id === "q5_reading_score" && (
-                <>
-                  <div className="mb-3 text-center">
-                    <div
-                      ref={readingTextRef}
-                      style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
-                        padding: "10px",
-                        border: "1px solid black",
-                        display: "inline-block",
-                      }}
-                    >
-                      CLOSE YOUR EYES
+            return (
+              <React.Fragment key={q.id}>
+                {q.id === "q3_week_total_score" && (
+                  <div className="text-center fw-bold fs-4 my-3 text-dark">Or</div>
+                )}
+                <div
+                  className={`mb-4 p-4 bg-white border rounded shadow-sm ${disabledReason ? "opacity-75" :
+                    ""
+                    }`}
+                >
+                  <h3 className="h5 fw-semibold text-dark mb-2">
+                    {idx + 1}.{qIdx + 1}. {q.question[language]}
+                  </h3>
+                  {disabledReason && (
+                    <div className="alert alert-warning py-2 small mb-3">
+                      <i className="fas fa-exclamation-triangle me-2"></i>
+                      {disabledReason}
                     </div>
-                  </div>
-                  <div className="d-flex justify-content-center">
-                    <button
-                      className="btn btn-primary fw-bold px-4 py-2 shadow-sm"
-                      onClick={() => handlePreviewPDF("reading")}
-                      disabled={!isTextReady}
-                    >
-                      <i className="fas fa-print me-2"></i> Print Reading
-                    </button>
-                  </div>
-                </>
-              )}
+                  )}
+                  <p className="h6 text-primary small mb-3 fst-italic">
+                    <i className="fas fa-info-circle me-1"></i>
+                    {q.guidance[language]}
+                  </p>
+                  <p className="h6 text-success small mb-3">
+                    <i className="fas fa-check-circle me-1"></i>
+                    Correct Answer: {q.correctAnswer[language]}
+                  </p>
 
-              {q.id === "q6_drawing_score" && (
-                <>
-                  <div className="mb-3 text-center">
-                    <svg
-                      ref={svgRef}
-                      className="pentagon-svg"
-                      viewBox="0 0 100 70"
-                      aria-label="Two intersecting pentagons forming a four-sided figure in their intersection."
-                      width="200"
-                      height="140"
-                    >
-                      <title>Intersecting Pentagons for MMSE</title>
-                      <polygon
-                        points="25,10 45,10 55,30 40,50 10,30"
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="2"
-                      />
-                      <polygon
-                        points="55,20 75,20 85,40 70,60 40,40"
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-                  <div className="d-flex justify-content-center">
-                    <button
-                      className="btn btn-primary fw-bold px-4 py-2 shadow-sm"
-                      onClick={() => handlePreviewPDF("svg")}
-                      disabled={!isSvgReady}
-                    >
-                      <i className="fas fa-print me-2"></i> Print Drawing
-                    </button>
-                  </div>
-                </>
-              )}
+                  {q.id === "q5_reading_score" && (
+                    <>
+                      <div className="mb-3 text-center">
+                        <div
+                          ref={readingTextRef}
+                          style={{
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                            padding: "10px",
+                            border: "1px solid black",
+                            display: "inline-block",
+                          }}
+                        >
+                          CLOSE YOUR EYES
+                        </div>
+                      </div>
+                      <div className="d-flex justify-content-center">
+                        <button
+                          className="btn btn-primary fw-bold px-4 py-2 shadow-sm"
+                          onClick={() => handlePreviewPDF("reading")}
+                          disabled={!isTextReady}
+                        >
+                          <i className="fas fa-print me-2"></i> Print Reading
+                        </button>
+                      </div>
+                    </>
+                  )}
 
-              <div className="d-flex flex-wrap gap-2">
-                {q.options.map((opt) => (
-                  <label
-                    key={opt}
-                    className={`d-flex align-items-center p-2 rounded cursor-pointer ${answers[q.id] === opt
-                      ? "bg-primary text-white"
-                      : "bg-light text-dark border"
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`q${q.id}`}
-                      value={opt}
-                      checked={answers[q.id] === opt}
-                      onChange={() => setAnswers({ ...answers, [q.id]: opt })}
-                      className="form-check-input me-2"
-                    />
-                    <span className="fs-6 text-capitalize">{opt}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
+                  {q.id === "q6_drawing_score" && (
+                    <>
+                      <div className="mb-3 text-center">
+                        <svg
+                          ref={svgRef}
+                          className="pentagon-svg"
+                          viewBox="0 0 100 70"
+                          aria-label="Two intersecting pentagons forming a four-sided figure in their intersection."
+                          width="200"
+                          height="140"
+                        >
+                          <title>Intersecting Pentagons for MMSE</title>
+                          <polygon
+                            points="25,10 45,10 55,30 40,50 10,30"
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="2"
+                          />
+                          <polygon
+                            points="55,20 75,20 85,40 70,60 40,40"
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                      </div>
+                      <div className="d-flex justify-content-center">
+                        <button
+                          className="btn btn-primary fw-bold px-4 py-2 shadow-sm"
+                          onClick={() => handlePreviewPDF("svg")}
+                          disabled={!isSvgReady}
+                        >
+                          <i className="fas fa-print me-2"></i> Print Drawing
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="d-flex flex-wrap gap-2">
+                    {q.options.map((opt) => (
+                      <label
+                        key={opt}
+                        className={`d-flex align-items-center p-2 rounded cursor-pointer ${answers[q.id] === opt
+                          ? "bg-primary text-white"
+                          : disabledReason
+                            ? "bg-light text-muted border"
+                            : "bg-light text-dark border"
+                          } ${disabledReason ? 'pe-none' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={`q${q.id}`}
+                          value={opt}
+                          checked={answers[q.id] === opt}
+                          // onChange={() => setAnswers({ ...answers, [q.id]: opt })}
+                          onChange={() => handleAnswer(q.id, opt)}
+                          className="form-check-input me-2"
+                        />
+                        <span className="fs-6 text-capitalize">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </React.Fragment>
+            )
+          })}
         </div>
       ))}
 
