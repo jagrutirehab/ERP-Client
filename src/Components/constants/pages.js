@@ -258,6 +258,12 @@ export const Pharmacy = [
     link: "/pharmacy/given-med",
     icon: "bx bx-building-house",
   },
+  {
+    id: "approval",
+    label: "Medicine Approval",
+    link: "/pharmacy/approval",
+    icon: "bx bx-checkbox-checked",
+  },
 ];
 
 export const setting = [
