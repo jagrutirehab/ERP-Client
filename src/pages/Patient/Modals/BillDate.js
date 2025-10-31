@@ -31,7 +31,9 @@ const BillDate = ({
   admission,
 }) => {
   const dispatch = useDispatch();
-  const userCenters = useSelector((state) => state.User.centerAccess);
+  const PatientCenter = useSelector(
+    (state) => state.Patient.patient.center._id
+  );
 
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
@@ -117,7 +119,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              userCenters.includes("668e50d6f2faa02cf9ada8e4")
+              PatientCenter === "668e50d6f2faa02cf9ada8e4"
                 ? editBillData.bill === null ||
                   editBillData.bill === INVOICE ||
                   editBillData.bill === REFUND ||
@@ -141,7 +143,7 @@ const BillDate = ({
               toggle();
             }}
           >
-            {userCenters.includes("668e50d6f2faa02cf9ada8e4")
+            {PatientCenter === "668e50d6f2faa02cf9ada8e4"
               ? "Payment"
               : "Advance Payment"}
             {/* Advance Payment */}
