@@ -107,16 +107,26 @@ const AdvancePayment = ({
             ...values,
           })
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          })
+        );
       } else {
-       const response = await dispatch(
-        addAdvancePayment({
+        const response = await dispatch(
+          addAdvancePayment({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
           })
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          })
+        );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
@@ -131,12 +141,17 @@ const AdvancePayment = ({
   }, [editBillData]);
 
   useEffect(() => {
-    if (userCenters) {
+    if (patient.center._id) {
       dispatch(
-        fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+        fetchPaymentAccounts({
+          centerIds: [patient.center._id],
+          page: 1,
+          limit: 1000,
+        })
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
       );
     }
-  }, [dispatch, userCenters]);
+  }, [dispatch, patient.center._id]);
 
   return (
     <React.Fragment>
