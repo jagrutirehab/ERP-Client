@@ -114,3 +114,287 @@ export const medicines = [
                         <LayoutGrid className="h-5 w-5" />
                       </Button> */
 }
+
+
+export const ipdPatients = [
+  {
+    id: "UID12452",
+    name: "Aarav Sharma",
+    createdAt: "10:15 AM",
+    prescription: {
+      drNotes: "",
+      diagnosis: "",
+      medicines: [
+        {
+          medicine: {
+            name: "TEST MEDICINE 72727",
+            type: "DROP",
+            strength: "12.5",
+            unit: "MG",
+          },
+          totalCount: 2,
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+      ],
+      notes: "",
+      investigationPlan: "",
+      observation: "",
+    },
+    center: {
+      title: "Aroha"
+    },
+    doctorName: "Dr. Bharat Mali",
+    psychologistName: "Pratik Kadlag",
+    prescriptionStartDate: "2025-10-14T12:30:03.307Z",
+    prescriptionEndDate: "2025-11-13T12:30:03.307Z",
+    deleted: false,
+  },
+  {
+    id: "UID13132",
+    name: "Priya Singh",
+    createdAt: "11:40 AM",
+    prescription: {
+      drNotes:
+        "Stubborn, violent behaviour, suicidal threat, sudden impulses, demanding behaviour, suicidal attempts, wandering away,",
+      diagnosis: "Acute and Transient Psychotic Disorder",
+      medicines: [
+        {
+          _id: "68ff686867753f27e97fab68",
+          medicine: {
+            name: "DOLO",
+            type: "TAB",
+            strength: "650",
+            unit: "MG",
+          },
+          totalCount: 2,
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+        {
+          _id: "68ff677967753f27e97fa912",
+          medicine: {
+            name: "URETHRAL CATHATER",
+            type: "SURGICAL",
+            strength: "",
+            unit: "NOS",
+          },
+          totalCount: 2,
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+        {
+          _id: "68ee404136e137c703a6cd3a",
+          medicine: {
+            name: "PARI CR PLUS",
+            type: "TAB",
+            strength: "",
+            unit: "MG",
+          },
+          totalCount: 2,
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+      ],
+      notes: "Suspicious that maternal uncle will harm him or father",
+      investigationPlan: "",
+
+      deleted: false,
+      __v: 0,
+    },
+    doctorName: "Dr. Bharat Mali",
+    psychologistName: "Pratik Kadlag",
+    center: {
+      title: "Taloja"
+    },
+    prescriptionStartDate: "2025-10-14T12:30:03.307Z",
+    prescriptionEndDate: "2025-11-13T12:30:03.307Z",
+    deleted: false,
+  },
+];
+
+
+export const opdPatients = [
+  {
+    id: 1,
+    name: "Aarav Sharma",
+    createdAt: "10:15 AM",
+    prescription: {
+      _id: "68ee424b94bc1566d65a45de",
+      drNotes: "",
+      diagnosis: "",
+      medicines: [
+        {
+          _id: "68ee424b94bc1566d65a45df",
+          medicine: {
+            name: "TEST MEDICINE 72727",
+            type: "DROP",
+            strength: "12.5",
+            unit: "MG",
+          },
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+      ],
+      notes: "",
+      investigationPlan: "",
+      observation: "",
+    },
+    center: {
+      title: "Aroha"
+    },
+    doctorName: "Dr. Bharat Mali",
+    psychologistName: "Pratik Kadlag",
+    prescriptionStartDate: "2025-10-14T12:30:03.307Z",
+    prescriptionEndDate: "2025-11-13T12:30:03.307Z",
+    deleted: false,
+  },
+  {
+    id: 2,
+    name: "Priya Singh",
+    createdAt: "11:40 AM",
+    prescription: {
+      _id: "68ff677967753f27e97fa911",
+      center: "651f8abfed3d16334ae5a908",
+      patient: "67ea4b165e3a655806ff52b8",
+      drNotes:
+        "Stubborn, violent behaviour, suicidal threat, sudden impulses, demanding behaviour, suicidal attempts, wandering away,",
+      diagnosis: "Acute and Transient Psychotic Disorder",
+      medicines: [
+        {
+          _id: "68ff686867753f27e97fab68",
+          medicine: {
+            name: "DOLO",
+            type: "TAB",
+            strength: "650",
+            unit: "MG",
+          },
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+        {
+          _id: "68ff677967753f27e97fa912",
+          medicine: {
+            name: "URETHRAL CATHATER",
+            type: "SURGICAL",
+            strength: "",
+            unit: "NOS",
+          },
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+        {
+          _id: "68ee404136e137c703a6cd3a",
+          medicine: {
+            name: "PARI CR PLUS",
+            type: "TAB",
+            strength: "",
+            unit: "MG",
+          },
+          dosageAndFrequency: {
+            morning: "1",
+            evening: "0",
+            night: "1",
+          },
+          instructions: "",
+          intake: "After food",
+          duration: "30",
+          unit: "Day(s)",
+        },
+      ],
+      notes: "Suspicious that maternal uncle will harm him or father",
+      investigationPlan: "",
+
+      deleted: false,
+      __v: 0,
+    },
+    doctorName: "Dr. Bharat Mali",
+    psychologistName: "Pratik Kadlag",
+    center: {
+      title: "Taloja"
+    },
+    prescriptionStartDate: "2025-10-14T12:30:03.307Z",
+    prescriptionEndDate: "2025-11-13T12:30:03.307Z",
+    deleted: false,
+  },
+];
+
+export const historyData = [
+  {
+
+    patient: {
+      name: "Test Name",
+      uid: "UID12547"
+    },
+    prescriptionDate: "2025-10-14T12:30:03.307Z",
+    approvalDate: "2025-10-15T10:12:45.100Z",
+    medicines: [
+      { name: "TAB DOLO 650 MG", totalCount: 10 },
+      { name: "SURGICAL URETHRAL CATHATER NOS", totalCount: 5 },
+      { name: "TAB PARI CR PLUS MG", totalCount: 1 },
+    ],
+    status: "Approved",
+  },
+  {
+    patient: {
+      name: "Riya Patel",
+      uid: "UID78569"
+    },
+    prescriptionDate: "2025-10-12T09:15:00.000Z",
+    approvalDate: "2025-10-13T14:45:00.000Z",
+    medicines: [
+      { name: "TAB Q2 TAB MG", totalCount: 8 },
+      { name: "TAB VENTAB PLUS 10 MG", totalCount: 2 },
+    ],
+    status: "Rejected",
+  },
+];

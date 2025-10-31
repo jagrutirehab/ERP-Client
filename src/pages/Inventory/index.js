@@ -5,6 +5,7 @@ import { Route, Routes } from "react-router-dom";
 import InventoryManagement from "./InventoryManagement";
 import InventoryDashboard from "./InventoryDashboard";
 import GivenMedicine from "./GivenMedicine";
+import MedicineApproval from "./MedicineApproval";
 
 const Pharmacy = () => {
   return (
@@ -18,6 +19,7 @@ const Pharmacy = () => {
                 <Route path={`/dashboard`} element={<InventoryDashboard />} />
                 <Route path={`/management`} element={<InventoryManagement />} />
                 <Route path={`/given-med`} element={<GivenMedicine />} />
+                <Route path={`/approval`} element={<MedicineApproval />} />
               </Routes>
             </div>
           </Container>

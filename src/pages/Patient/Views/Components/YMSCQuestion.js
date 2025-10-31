@@ -23,8 +23,8 @@ const YMSCQuestion = () => {
     const centerId = useSelector((state) => state.Patient.patient?.center?._id);
     const doctorDetails = useSelector((state) => state.User?.doctor);
     const counselerDetails = useSelector((state) => state.User.counsellors);
-    
-      const allMedicalStaff = [...doctorDetails, ...counselerDetails];
+
+    const allMedicalStaff = [...doctorDetails, ...counselerDetails];
     const clinicalTestLoading = useSelector((state) => state.ClinicalTest?.isLoading);
 
     const [center, setCenters] = useState('');
@@ -165,11 +165,11 @@ const YMSCQuestion = () => {
             question: 'Disruptive/Aggressive Behavior:',
             description: 'Observed by staff. Destructive, assaultive, threatening, self-injurious, uncooperative.',
             scores: [
-                { value: 0, label: 'Absent' },
-                { value: 1, label: 'Slightly uncooperative' },
-                { value: 2, label: 'Demanding, loud, argumentative' },
-                { value: 3, label: 'Threatening, assaultive, destructive' },
-                { value: 4, label: 'Violent, dangerous to self or others' },
+                { value: 0, label: 'Normal' },
+                { value: 1, label: 'Questionable plans, new interests' },
+                { value: 2, label: 'Special project(s); hyperreligious' },
+                { value: 3, label: 'Grandiose or paranoid ideas; ideas of reference' },
+                { value: 4, label: 'Delusions; hallucinations' },
             ],
         },
         {
