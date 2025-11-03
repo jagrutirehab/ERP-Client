@@ -47,24 +47,6 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.detailAdmission && <Divider />} */}
-        {data?.detailHistory && (
-          <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
-        )}
-        {data?.detailHistory &&
-          Object.entries(data.detailHistory).map((d, i) => (
-            <Col key={i} xs={12}>
-              <div className="mt-1 mb-1">
-                <p className="fs-xs-9 fs-md-11 mb-0">
-                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {convertCamelCaseToTitleCase(d[0])}:-
-                  </span>
-                  {d[1]}
-                </p>
-              </div>
-            </Col>
-          ))}
-        {data?.detailHistory && <Divider />}
-
         {data?.ChiefComplaints && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Chief Complaints</h6>
         )}
@@ -82,6 +64,23 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.ChiefComplaints && <Divider />}
+        {data?.detailHistory && (
+          <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
+        )}
+        {data?.detailHistory &&
+          Object.entries(data.detailHistory).map((d, i) => (
+            <Col key={i} xs={12}>
+              <div className="mt-1 mb-1">
+                <p className="fs-xs-9 fs-md-11 mb-0">
+                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                    {convertCamelCaseToTitleCase(d[0])}:-
+                  </span>
+                  {d[1]}
+                </p>
+              </div>
+            </Col>
+          ))}
+        {data?.detailHistory && <Divider />}
 
         {data?.mentalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
