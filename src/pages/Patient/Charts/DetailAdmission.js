@@ -81,7 +81,6 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.detailHistory && <Divider />}
-
         {data?.mentalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
             Mental Status Examination
