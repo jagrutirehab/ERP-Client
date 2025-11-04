@@ -767,6 +767,9 @@ export const getHubspotContacts = ({
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
     params: { page, limit, search, visitDate, status, centers },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
   });
 };
 
