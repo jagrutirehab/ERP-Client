@@ -398,3 +398,25 @@ export const historyData = [
     status: "Rejected",
   },
 ];
+
+
+export const audits = [
+  {
+    id: 1,
+    center: "Taloja-OPD",
+    date: "2025-10-20",
+    createdBy: "Navis",
+  },
+  {
+    id: 2,
+    center: "Pune HWH",
+    date: "2025-10-21",
+    createdBy: "Pratyush",
+  },
+  {
+    id: 3,
+    center: "Nerul",
+    date: "2025-10-22",
+    createdBy: "Amit",
+  },
+];

@@ -264,6 +264,12 @@ export const Pharmacy = [
     link: "/pharmacy/approval",
     icon: "bx bx-checkbox-checked",
   },
+  {
+    id: "audit",
+    label: "Audit",
+    link: "/pharmacy/audit",
+    icon: "bx bx-fingerprint",
+  },
 ];
 
 export const setting = [
