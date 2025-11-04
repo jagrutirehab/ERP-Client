@@ -22,7 +22,7 @@ export const fetchHubspotContacts = createAsyncThunk(
       const response = await getHubspotContacts(params);
       return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
