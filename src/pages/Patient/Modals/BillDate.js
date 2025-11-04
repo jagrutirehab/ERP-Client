@@ -119,7 +119,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              PatientCenter === "668e50d6f2faa02cf9ada8e4"
+              PatientCenter === "65b0143a5f1da510dc3094cb"
                 ? editBillData.bill === null ||
                   editBillData.bill === INVOICE ||
                   editBillData.bill === REFUND ||
@@ -143,7 +143,7 @@ const BillDate = ({
               toggle();
             }}
           >
-            {PatientCenter === "668e50d6f2faa02cf9ada8e4"
+            {PatientCenter === "65b0143a5f1da510dc3094cb"
               ? "Payment"
               : "Advance Payment"}
             {/* Advance Payment */}
