@@ -18,7 +18,13 @@ const socket = io(config.api.BASE_URL, {
   path: "/socket/search",
 });
 
-const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
+const SearchPatient = ({
+  validation,
+  disabled,
+  editEvent,
+  centerAccess,
+  showNewTag = true,
+}) => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [dropdown, setDropdown] = useState(false);
@@ -101,7 +107,7 @@ const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
                 </Button>
               </span>
             </RenderWhen>
-            <RenderWhen isTrue={isNewPatient}>
+            <RenderWhen isTrue={isNewPatient && showNewTag}>
               <span className="link-success dropdown-input-icon">
                 <span
                   id="patient-center"
