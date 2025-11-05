@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { APPROVAL_VIEW, BASE_BALANCE_VIEW, DEPOSITS_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
+import { APPROVAL_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
 import { Button, ButtonGroup, Spinner } from 'reactstrap';
 import Reports from './Reports';
 import Spending from './Spending';
@@ -8,10 +8,9 @@ import ApprovalDashboard from './ApprovalDashboard';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 
 const priorityOrder = [
-    REPORTS_VIEW,
-    BASE_BALANCE_VIEW,
-    DEPOSITS_VIEW,
     SPENDING_VIEW,
+    APPROVAL_VIEW,
+    REPORTS_VIEW,
 ];
 
 const Views = () => {
@@ -25,10 +24,11 @@ const Views = () => {
     const hasSpendingPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "READ");
 
     const availableViews = [
+        // SPENDING LATER RENAMED AS EXPENSE
         {
-            name: "Reports",
-            view: REPORTS_VIEW,
-            hasAccess: hasReportsPermission,
+            name: "Expense",
+            view: SPENDING_VIEW,
+            hasAccess: hasSpendingPermission,
             order: 0,
         },
         {
@@ -38,10 +38,10 @@ const Views = () => {
             order: 1,
         },
         {
-            name: "Spending",
-            view: SPENDING_VIEW,
-            hasAccess: hasSpendingPermission,
-            order: 3,
+            name: "Reports",
+            view: REPORTS_VIEW,
+            hasAccess: hasReportsPermission,
+            order: 2,
         },
     ]
         .filter((view) => view.hasAccess)
@@ -111,9 +111,9 @@ const Views = () => {
                         </ButtonGroup>
                     </div>
                     <div className="bg-white px-3 py-3 vh-90">
-                        {view === REPORTS_VIEW && <Reports />}
-                        {view === APPROVAL_VIEW && <ApprovalDashboard />}
                         {view === SPENDING_VIEW && <Spending />}
+                        {view === APPROVAL_VIEW && <ApprovalDashboard />}
+                        {view === REPORTS_VIEW && <Reports />}
                     </div>
                 </div>
             </div>
