@@ -131,6 +131,16 @@ export const permissionList = [
       { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
     ],
   },
+  {
+    key: "INCIDENT_REPORTING",
+    label: "Incident Reporting",
+    subModules: [
+      { name: "RAISE_INCIDENT", label: "Raise Incident" },
+      { name: "INVESTIGATE_INCIDENT", label: "Investigate Incident" },
+      { name: "APPROVE_INCIDENT", label: "Approve Incident" },
+      { name: "CLOSE_INCIDENT", label: "Close Incident" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

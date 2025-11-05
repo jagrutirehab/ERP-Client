@@ -1096,3 +1096,33 @@ export const getRoles = (token) => {
     },
   });
 };
+
+// INCIDENT
+export const getIncidents = (data) => api.get(url.GET_INCIDENTS, data);
+export const getIncidentById = (id) =>
+  api.get(`${url.GET_INCIDENT_BY_ID}/${id}`);
+export const postIncident = (data) =>
+  api.create(url.POST_INCIDENT, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const updateIncident = (id, data) =>
+  api.update(`${url.UPDATE_INCIDENT}/${id}`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteIncident = (id) =>
+  api.delete(`${url.DELETE_INCIDENT}/${id}`);
+export const investigateIncident = (id, data) =>
+  api.create(`${url.INVESTIGATE_INCIDENT}/${id}/investigate`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const approveIncident = (id, data) =>
+  api.create(`${url.APPROVE_INCIDENT}/${id}/approve`, data);
+export const closeIncident = (id, data) =>
+  api.create(`${url.CLOSE_INCIDENT}/${id}/close`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const updateIncidentStatus = (id, data) =>
+  api.update(`${url.UPDATE_INCIDENT_STATUS}/${id}/status`, data, {
+    headers: { "Content-Type": "application/json" },
+  });

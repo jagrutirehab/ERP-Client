@@ -28,6 +28,9 @@ const Lead = React.lazy(() => import("../pages/Lead"));
 const Report = React.lazy(() => import("../pages/Report"));
 const Inventory = React.lazy(() => import("../pages/Inventory"));
 const Guidelines = React.lazy(() => import("../pages/Guidelines"));
+const IncidentReporting = React.lazy(() =>
+  import("../pages/IncidentReporting")
+);
 
 const allElements = [
   { element: Register, label: "User" },
@@ -45,6 +48,7 @@ const allElements = [
   { element: CashManagement, label: "Cash" },
   { element: Inventory, label: "Inventory" },
   { element: Guidelines, label: "Guidelines" },
+  { element: IncidentReporting, label: "Incident Reporting" },
 ];
 
 const authProtectedRoutes = [
@@ -64,6 +68,7 @@ const authProtectedRoutes = [
   { path: "/cash", component: CashManagement },
   { path: "/inventory/*", component: Inventory },
   { path: "/guidelines/*", component: Guidelines },
+  { path: "/incident-reporting/*", component: IncidentReporting },
   {
     path: "/",
     exact: true,
