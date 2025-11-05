@@ -12,6 +12,7 @@ import {
   Row,
   Col,
   Button,
+  Input,
 } from "reactstrap";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 import { connect, useDispatch, useSelector } from "react-redux";
@@ -46,7 +47,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
     "READ"
   );
 
-  const [activeTab, setActiveTab] = useState("list");
+  const [activeTab, setActiveTab] = useState("all");
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewingIncident, setViewingIncident] = useState(null);
   const [filters, setFilters] = useState({
@@ -65,6 +66,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
   const incidentLoading = useSelector(
     (state) => state.Incident?.loading || false
   );
+  const pagination = useSelector((state) => state.Incident?.pagination) || {};
 
   useEffect(() => {
     if (permissionLoader) return;
@@ -77,8 +79,19 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
   }, [filters, hasIncidentPermission, permissionLoader]);
 
   const loadIncidents = () => {
+    const statusMap = {
+      all: "",
+      raised: "Raised",
+      investigation: "Under Investigation",
+      pending: "Pending Approval",
+      approved: "Approved",
+      rejected: "Rejected",
+      closed: "Closed",
+    };
+    const enforcedStatus = statusMap[activeTab] ?? "";
     const params = {
       ...filters,
+      status: activeTab === "all" ? filters.status : enforcedStatus,
       center: centerAccess?.[0]?._id || "",
     };
     dispatch(fetchIncidents(params));
@@ -138,25 +151,143 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
 
         <Row className="mb-3">
           <Col>
-            <Nav tabs className="nav-tabs-custom nav-justified">
+            <Nav
+              tabs
+              className="nav-tabs-custom nav-justified d-none d-md-flex flex-nowrap"
+              style={{ overflowX: "auto" }}
+            >
               <NavItem>
                 <NavLink
                   style={{ cursor: "pointer" }}
                   className={classnames(
-                    {
-                      active: activeTab === "list",
-                    },
+                    { active: activeTab === "all" },
                     "d-flex align-items-center"
                   )}
                   onClick={() => {
-                    setActiveTab("list");
+                    setActiveTab("all");
+                    setFilters({ ...filters, page: 1 });
                   }}
                 >
                   <i className="ri-file-list-line me-1"></i>
-                  All Incidents
+                  All
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "raised" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("raised");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-alert-line me-1"></i>
+                  Raised
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "investigation" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("investigation");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-search-line me-1"></i>
+                  Investigation
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "pending" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("pending");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-time-line me-1"></i>
+                  Pending
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "approved" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("approved");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-checkbox-circle-line me-1"></i>
+                  Approved
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "rejected" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("rejected");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-close-circle-line me-1"></i>
+                  Rejected
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  style={{ cursor: "pointer" }}
+                  className={classnames(
+                    { active: activeTab === "closed" },
+                    "d-flex align-items-center"
+                  )}
+                  onClick={() => {
+                    setActiveTab("closed");
+                    setFilters({ ...filters, page: 1 });
+                  }}
+                >
+                  <i className="ri-lock-line me-1"></i>
+                  Closed
                 </NavLink>
               </NavItem>
             </Nav>
+            {/* Mobile status switcher */}
+            <div className="d-md-none mt-2">
+              <Input
+                type="select"
+                value={activeTab}
+                onChange={(e) => {
+                  setActiveTab(e.target.value);
+                  setFilters({ ...filters, page: 1 });
+                }}
+              >
+                <option value="all">All</option>
+                <option value="raised">Raised</option>
+                <option value="investigation">Under Investigation</option>
+                <option value="pending">Pending Approval</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="closed">Closed</option>
+              </Input>
+            </div>
           </Col>
           <RenderWhen isTrue={hasIncidentCreatePermission}>
             <Col xs="auto">
@@ -169,7 +300,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
         </Row>
 
         <TabContent activeTab={activeTab}>
-          <TabPane tabId="list">
+          <TabPane tabId={activeTab}>
             <IncidentList
               incidents={incidents}
               loading={loading}
@@ -178,6 +309,8 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
               filters={filters}
               setFilters={setFilters}
               onRefresh={loadIncidents}
+              pagination={pagination}
+              showStatusFilter={activeTab === "all"}
             />
           </TabPane>
         </TabContent>
