@@ -24,6 +24,7 @@ const Navdata = () => {
       "users",
       "cash",
       "centralpayment",
+      "incidentreporting",
       "setting",
       "recyclebin",
       "pharmacy",

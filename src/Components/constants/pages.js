@@ -28,7 +28,7 @@ const pages = [
     icon: "bx bx-wallet-alt",
   },
   {
-    id: "incident",
+    id: "incidentreporting",
     label: "Incident Reporting",
     name: "Incident Reporting",
     link: "/incident-reporting",

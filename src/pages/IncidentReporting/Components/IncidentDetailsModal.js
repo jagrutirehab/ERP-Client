@@ -299,20 +299,12 @@ const IncidentDetailsModal = ({ incident, loading }) => {
                                       Patient
                                     </strong>
                                     <span>
-                                      {stage.data.patient?.name || "N/A"}
-                                      {stage.data.patient?.uid && (
-                                        <span className="text-muted ms-2">
-                                          (UID: {stage.data.patient.uid})
-                                        </span>
-                                      )}
+                                      {stage.data.patient?.name ||
+                                        stage.data.patient?.fullName ||
+                                        (typeof stage.data.patient === "string"
+                                          ? stage.data.patient
+                                          : "N/A")}
                                     </span>
-                                    {stage.data.patient?.ward && (
-                                      <div className="text-muted small mt-1">
-                                        Ward: {stage.data.patient.ward}
-                                        {stage.data.patient?.bedNo &&
-                                          ` | Bed: ${stage.data.patient.bedNo}`}
-                                      </div>
-                                    )}
                                   </Col>
                                 </>
                               )}
@@ -321,10 +313,16 @@ const IncidentDetailsModal = ({ incident, loading }) => {
                                   Reporter
                                 </strong>
                                 <span>
-                                  {stage.data.reporter?.name || "N/A"}
-                                  {stage.data.reporter?.email && (
+                                  {stage.data.reporter?.name ||
+                                    stage.data.reporter?.fullName ||
+                                    stage.data.reporter?.title ||
+                                    stage.data.reporter?.id?.name ||
+                                    "N/A"}
+                                  {(stage.data.reporter?.email ||
+                                    stage.data.reporter?.id?.email) && (
                                     <div className="text-muted small">
-                                      {stage.data.reporter.email}
+                                      {stage.data.reporter?.email ||
+                                        stage.data.reporter?.id?.email}
                                     </div>
                                   )}
                                 </span>
