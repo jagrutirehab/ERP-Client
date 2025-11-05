@@ -54,6 +54,11 @@ const IncidentList = ({
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
+  const hasIncidentDeletePermission = hasPermission(
+    "INCIDENT_REPORTING",
+    null,
+    "DELETE"
+  );
   const hasIncidentRaisePermission = hasPermission(
     "INCIDENT_REPORTING",
     "RAISE_INCIDENT",
@@ -211,15 +216,26 @@ const IncidentList = ({
                       </td>
                       <td>{getTypeBadge(incident.incidentType)}</td>
                       <td>
-                        {incident.patient?.name || (
-                          <span className="text-muted">N/A</span>
-                        )}
+                        {incident.patient?.name ||
+                          incident.patient?.fullName ||
+                          incident.patient?.title ||
+                          (typeof incident.patient === "string"
+                            ? incident.patient
+                            : null) || <span className="text-muted">N/A</span>}
                       </td>
                       <td>
                         <div>
-                          <div>{incident.reporter?.name || "N/A"}</div>
+                          <div>
+                            {incident.reporter?.name ||
+                              incident.reporter?.fullName ||
+                              incident.reporter?.title ||
+                              incident.reporter?.id?.name ||
+                              "N/A"}
+                          </div>
                           <small className="text-muted">
-                            {incident.reporter?.email || ""}
+                            {incident.reporter?.email ||
+                              incident.reporter?.id?.email ||
+                              ""}
                           </small>
                         </div>
                       </td>
@@ -250,7 +266,11 @@ const IncidentList = ({
                               <i className="ri-edit-line"></i>
                             </Button>
                           </RenderWhen>
-                          <RenderWhen isTrue={canDelete(incident)}>
+                          <RenderWhen
+                            isTrue={
+                              canDelete(incident) && hasIncidentDeletePermission
+                            }
+                          >
                             <Button
                               color="danger"
                               size="sm"
@@ -282,7 +302,9 @@ const IncidentList = ({
           setDeleteTarget(null);
         }}
         onDeleteClick={confirmDelete}
-        messsage={`Are you sure you want to delete"`}
+        messsage={`Are you sure you want to delete "${
+          deleteTarget?.title || "this incident"
+        }"? This will soft delete it.`}
         buttonMessage="Yes, Delete"
       />
     </Card>

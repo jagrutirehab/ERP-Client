@@ -21,7 +21,14 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
-    id: "incident",
+    id: "centralpayment",
+    label: "Central Payment",
+    name: "Central Payment",
+    link: "/centralpayment",
+    icon: "bx bx-wallet-alt",
+  },
+  {
+    id: "incidentreporting",
     label: "Incident Reporting",
     name: "Incident Reporting",
     link: "/incident-reporting",
