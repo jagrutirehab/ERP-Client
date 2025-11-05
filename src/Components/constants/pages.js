@@ -28,6 +28,18 @@ const pages = [
     icon: "bx bx-wallet-alt",
   },
   {
+    id: "incident",
+    label: "Incident Reporting",
+    name: "Incident Reporting",
+    link: "/incident-reporting",
+    icon: "bx bx-error",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "cash",
     label: "Cash",
     name: "Cash",

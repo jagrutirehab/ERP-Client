@@ -329,3 +329,14 @@ export const CHANGE_USER_PASSWORD = "/user/change-password";
 export const EDIT_SELF = "/user/edit-self";
 export const USER_ACTIVITY = "/activity";
 export const GET_USER_ROLES = "/user/roles";
+
+// INCIDENT
+export const GET_INCIDENTS = "/incident";
+export const GET_INCIDENT_BY_ID = "/incident";
+export const POST_INCIDENT = "/incident";
+export const UPDATE_INCIDENT = "/incident";
+export const DELETE_INCIDENT = "/incident";
+export const INVESTIGATE_INCIDENT = "/incident";
+export const APPROVE_INCIDENT = "/incident";
+export const CLOSE_INCIDENT = "/incident";
+export const UPDATE_INCIDENT_STATUS = "/incident";
