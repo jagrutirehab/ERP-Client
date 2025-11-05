@@ -542,9 +542,9 @@ const InventoryManagement = () => {
                 setCurrentPage(1);
               }}
               options={[
-                { value: "LOW", label: "Low Stock" },
+                { value: "LOW", label: "Low" },
                 { value: "NORMAL", label: "Normal" },
-                { value: "MODRATE", label: "Moderate" },
+                { value: "MODERATE", label: "Moderate" },
                 { value: "OUTOFSTOCK", label: "Out Of Stock" },
               ]}
             />
