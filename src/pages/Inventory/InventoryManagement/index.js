@@ -140,7 +140,7 @@ const InventoryManagement = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Failed to save medicine. Please try again."
+        "Failed to save medicine. Please try again."
       );
     }
   };
@@ -195,7 +195,7 @@ const InventoryManagement = () => {
     if (abortRef.current) {
       try {
         abortRef.current.abort();
-      } catch (e) {}
+      } catch (e) { }
     }
     const controller = new AbortController();
     abortRef.current = controller;
@@ -266,6 +266,75 @@ const InventoryManagement = () => {
     user?.centerAccess,
   ]);
 
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Pharmacy Inventory");
+
+      const headers = [
+        "Barcode",
+        "Code",
+        "Medicine Name",
+        "Strength",
+        "Unit",
+        "Stock",
+        "Cost Price",
+        "Value",
+        "MRP",
+        "Purchase Price",
+        "Sales Price",
+        "Expiry Date",
+        "Batch",
+        "Company",
+        "Manufacturer",
+        "Rack",
+        "Status",
+      ];
+
+      sheet.addRow(headers);
+
+      sheet.getRow(1).font = {
+        bold: true,
+        color: { argb: "FFFFFFFF" },
+      };
+      sheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF007ACC" },
+      };
+
+      sheet.columns.forEach((col) => {
+        col.width = Math.max(...headers.map((h) => h.length), 15);
+      });
+
+      const expiryDateColIndex = headers.indexOf("Expiry Date") + 1;
+      if (expiryDateColIndex > 0) {
+        sheet.getColumn(expiryDateColIndex).numFmt = "dd-mm-yyyy";
+      }
+
+      const emptyRow = headers.map(() => "");
+      sheet.addRow(emptyRow);
+
+      const now = new Date();
+      const istDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+      const dateStr = istDate.toISOString().slice(0, 10);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      saveAs(blob, `Pharmacy_Template_${dateStr}.xlsx`);
+
+      toast.success("Template downloaded successfully");
+    } catch (err) {
+      // console.error("Template export error:", err);
+      toast.error("Failed to download template");
+    }
+  };
+
+
+
   const goToPage = (page) => {
     if (page === "..." || page === currentPage) return;
     const target = Math.max(1, Math.min(totalPages, page));
@@ -330,6 +399,19 @@ const InventoryManagement = () => {
             ) : (
               ""
             )}
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
+              <Button
+                type="button"
+                className="btn btn-outline-primary text-primary"
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
+                onClick={handleDownloadTemplate}
+              >
+                Download Template
+              </Button>
+            ) : (
+              ""
+            )}
             {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
               <Button
                 type="button"
@@ -375,8 +457,7 @@ const InventoryManagement = () => {
                       : [];
 
                     if (data.length === 0) {
-                      toast.info("No data to export");
-                      return;
+                      toast.warn("No records found — exporting an empty Excel template.");
                     }
 
                     const workbook = new ExcelJS.Workbook();
@@ -436,8 +517,8 @@ const InventoryManagement = () => {
                         med?.Strength || "-",
                         med?.centers
                           ? med.centers
-                              .map((c) => c?.centerId?.title)
-                              .join(", ")
+                            .map((c) => c?.centerId?.title)
+                            .join(", ")
                           : "-",
                         med?.unitType || med?.unit || "-",
                         med?.stock ?? "-",
@@ -884,9 +965,8 @@ const InventoryManagement = () => {
               <nav>
                 <ul className="pagination mb-0">
                   <li
-                    className={`page-item ${
-                      currentPage === 1 ? "disabled" : ""
-                    }`}
+                    className={`page-item ${currentPage === 1 ? "disabled" : ""
+                      }`}
                   >
                     <button
                       className="page-link"
@@ -900,9 +980,8 @@ const InventoryManagement = () => {
                   {getPageRange(totalPages, currentPage, 7).map((p, idx) => (
                     <li
                       key={`${p}-${idx}`}
-                      className={`page-item ${
-                        p === currentPage ? "active" : ""
-                      } ${p === "..." ? "disabled" : ""}`}
+                      className={`page-item ${p === currentPage ? "active" : ""
+                        } ${p === "..." ? "disabled" : ""}`}
                     >
                       {p === "..." ? (
                         <span className="page-link">...</span>
@@ -918,9 +997,8 @@ const InventoryManagement = () => {
                   ))}
 
                   <li
-                    className={`page-item ${
-                      currentPage === totalPages ? "disabled" : ""
-                    }`}
+                    className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                      }`}
                   >
                     <button
                       className="page-link"
