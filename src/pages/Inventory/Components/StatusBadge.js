@@ -5,7 +5,7 @@ export const StatusBadge = ({ status }) => {
       : "badge bg-success bg-gradient text-white border border-success";
   return (
     <span className={`px-3 py-1 font-weight-bold rounded-pill ${styles}`}>
-      {status}
+      {status === "OUTOFSTOCK" ? "OUT OF STOCK" : status}
     </span>
   );
 };
