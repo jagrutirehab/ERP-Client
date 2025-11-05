@@ -94,6 +94,7 @@ const IncidentList = ({
   // ].incident.status
 
   const hasActionPermission = (incident) => {
+    if (incident.status === "Closed") return false;
     if (hasIncidentRaisePermission && incident.status === "Raised") return true;
     else if (
       hasIncidentInvestigatePermission &&
@@ -113,6 +114,8 @@ const IncidentList = ({
       return true;
     else return false;
   };
+
+  console.log({ hasActionPermission });
 
   // const handlePageChange = (page) => {
   //   setFilters({ ...filters, page });
@@ -256,7 +259,7 @@ const IncidentList = ({
                           >
                             <i className="ri-eye-line"></i>
                           </Button>
-                          <RenderWhen isTrue={hasActionPermission}>
+                          <RenderWhen isTrue={hasActionPermission(incident)}>
                             <Button
                               color="warning"
                               size="sm"
