@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Typeloader from "./Loader";
+import { parseExcelSerialDate } from "../../../Components/Common/ParseExcelSerialDate";
 
 const dbFields = [
   "code",
@@ -35,17 +36,37 @@ const isNumericField = (field) =>
     "SalesPrice",
   ].includes(field);
 
+const headerToDbMap = {
+  Code: "code",
+  "Medicine Name": "medicineName",
+  Strength: "Strength",
+  Unit: "unitType",
+  Stock: "stock",
+  "Cost Price": "costprice",
+  Value: "value",
+  MRP: "mrp",
+  "Purchase Price": "purchasePrice",
+  "Sales Price": "SalesPrice",
+  "Expiry Date": "Expiry",
+  Batch: "Batch",
+  Company: "company",
+  Manufacturer: "manufacturer",
+  Rack: "RackNum",
+  Status: "Status",
+};
+
+
 const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [uploadedData, setUploadedData] = useState([]);
-  const [headerRowIndex, setHeaderRowIndex] = useState(0);
+  // const [headerRowIndex, setHeaderRowIndex] = useState(0);
 
-  const emptyMapping = () =>
-    dbFields.reduce((acc, f) => {
-      acc[f] = "";
-      return acc;
-    }, {});
+  // const emptyMapping = () =>
+  //   dbFields.reduce((acc, f) => {
+  //     acc[f] = "";
+  //     return acc;
+  //   }, {});
 
-  const [columnMapping, setColumnMapping] = useState(emptyMapping());
+  // const [columnMapping, setColumnMapping] = useState(emptyMapping());
 
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -62,9 +83,9 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
 
   const containerRef = useRef(null);
-  const svgRef = useRef(null);
-  const dbRefs = useRef({});
-  const fileRefs = useRef({});
+  // const svgRef = useRef(null);
+  // const dbRefs = useRef({});
+  // const fileRefs = useRef({});
   const endpoint = "/pharmacy/bulk-insert";
 
   const uploadedRef = useRef(0);
@@ -77,8 +98,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setSelectedCenters([]);
     } else {
       setUploadedData([]);
-      setColumnMapping(emptyMapping());
-      setHeaderRowIndex(0);
+      // setColumnMapping(emptyMapping());
+      // setHeaderRowIndex(0);
       setUploadProgress(0);
       setUploadedCount(0);
       setTotalCount(0);
@@ -119,13 +140,19 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(worksheet, {
-        header: 1,
+        // header: 1,
         defval: "",
       });
 
+      json.forEach((row) => {
+        if (typeof row["Expiry Date"] === "number") {
+          row["Expiry Date"] = parseExcelSerialDate(row["Expiry Date"]);
+        }
+      });
+
       setUploadedData(json);
-      setHeaderRowIndex(0);
-      setColumnMapping(emptyMapping());
+      // setHeaderRowIndex(0);
+      // setColumnMapping(emptyMapping());
       setUploadDone(false);
       setUploadProgress(0);
       setUploadedCount(0);
@@ -139,30 +166,75 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     reader.readAsArrayBuffer(file);
   };
 
+  // const buildMappedObjects = () => {
+  //   const rows = uploadedData.slice(headerRowIndex + 1);
+  //   const mapped = rows.map((row) => {
+  //     const obj = {};
+  //     Object.entries(columnMapping).forEach(([field, colIndexStr]) => {
+  //       if (colIndexStr !== "" && colIndexStr !== undefined) {
+  //         const idx = Number(colIndexStr);
+  //         const rawVal = row?.[idx];
+  //         if (
+  //           rawVal === undefined ||
+  //           rawVal === null ||
+  //           String(rawVal).trim() === ""
+  //         ) {
+  //           return;
+  //         }
+  //         if (isNumericField(field)) {
+  //           const n = Number(String(rawVal).replace(/[^0-9.-]/g, ""));
+  //           obj[field] = Number.isFinite(n) ? n : 0;
+  //         } else {
+  //           obj[field] = String(rawVal).trim();
+  //         }
+  //       }
+  //     });
+  //     if (Array.isArray(selectedCenters) && selectedCenters.length > 0) {
+  //       const stockVal =
+  //         typeof obj.stock === "number" ? obj.stock : Number(obj.stock || 0);
+  //       obj.centers = selectedCenters.map((centerId) => ({
+  //         centerId,
+  //         stock: Number.isFinite(stockVal) ? stockVal : 0,
+  //       }));
+  //     }
+
+  //     obj.deleted = false;
+  //     obj.createdBy = user?.user?._id || user?._id || null;
+
+  //     return obj;
+  //   });
+  //   // console.log(mapped[0])
+  //   const filtered = mapped.filter((o) => {
+  //     const keys = Object.keys(o).filter(
+  //       (k) => k !== "deleted" && k !== "centers"
+  //     );
+  //     return keys.length > 0;
+  //   });
+
+  //   return filtered;
+  // };
+
+
   const buildMappedObjects = () => {
-    const rows = uploadedData.slice(headerRowIndex + 1);
-    const mapped = rows.map((row) => {
+    if (!uploadedData.length) return [];
+
+    const mapped = uploadedData.map((row) => {
       const obj = {};
-      Object.entries(columnMapping).forEach(([field, colIndexStr]) => {
-        if (colIndexStr !== "" && colIndexStr !== undefined) {
-          const idx = Number(colIndexStr);
-          const rawVal = row?.[idx];
-          if (
-            rawVal === undefined ||
-            rawVal === null ||
-            String(rawVal).trim() === ""
-          ) {
-            return;
-          }
+
+      Object.entries(headerToDbMap).forEach(([header, field]) => {
+        let val = row[header];
+
+        if (val !== undefined && val !== null && String(val).trim() !== "") {
           if (isNumericField(field)) {
-            const n = Number(String(rawVal).replace(/[^0-9.-]/g, ""));
+            const n = Number(String(val).replace(/[^0-9.-]/g, ""));
             obj[field] = Number.isFinite(n) ? n : 0;
           } else {
-            obj[field] = String(rawVal).trim();
+            obj[field] = String(val).trim();
           }
         }
       });
-      if (Array.isArray(selectedCenters) && selectedCenters.length > 0) {
+
+      if (selectedCenters?.length > 0) {
         const stockVal =
           typeof obj.stock === "number" ? obj.stock : Number(obj.stock || 0);
         obj.centers = selectedCenters.map((centerId) => ({
@@ -176,16 +248,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
       return obj;
     });
-    // console.log(mapped[0])
-    const filtered = mapped.filter((o) => {
-      const keys = Object.keys(o).filter(
-        (k) => k !== "deleted" && k !== "centers"
-      );
-      return keys.length > 0;
-    });
 
-    return filtered;
-  };
+    return mapped.filter((o) =>
+      Object.keys(o).some((k) => dbFields.includes(k))
+    );
+  }
   const sendChunkWithRetry = async (chunkData, chunkIndex, maxAttempts = 3) => {
     let attempt = 0;
     while (attempt < maxAttempts) {
@@ -391,77 +458,77 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   };
 
   // Draw mapping lines (unchanged)
-  const drawLines = () => {
-    const svg = svgRef.current;
-    const container = containerRef.current;
-    if (!svg || !container) return;
+  // const drawLines = () => {
+  //   const svg = svgRef.current;
+  //   const container = containerRef.current;
+  //   if (!svg || !container) return;
 
-    svg.innerHTML = `
-      <defs>
-        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#0d6efd" />
-        </marker>
-      </defs>
-    `;
+  //   svg.innerHTML = `
+  //     <defs>
+  //       <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+  //         <polygon points="0 0, 10 3.5, 0 7" fill="#0d6efd" />
+  //       </marker>
+  //     </defs>
+  //   `;
 
-    const parentRect = container.getBoundingClientRect();
+  //   const parentRect = container.getBoundingClientRect();
 
-    Object.entries(columnMapping).forEach(([field, colIndexStr]) => {
-      if (colIndexStr === "" || colIndexStr === undefined) return;
-      const colIndex = Number(colIndexStr);
+  //   Object.entries(columnMapping).forEach(([field, colIndexStr]) => {
+  //     if (colIndexStr === "" || colIndexStr === undefined) return;
+  //     const colIndex = Number(colIndexStr);
 
-      const dbEl = dbRefs.current[field];
-      const fileEl = fileRefs.current[colIndex];
-      if (!dbEl || !fileEl) return;
+  //     const dbEl = dbRefs.current[field];
+  //     const fileEl = fileRefs.current[colIndex];
+  //     if (!dbEl || !fileEl) return;
 
-      const dbRect = dbEl.getBoundingClientRect();
-      const fileRect = fileEl.getBoundingClientRect();
+  //     const dbRect = dbEl.getBoundingClientRect();
+  //     const fileRect = fileEl.getBoundingClientRect();
 
-      const startX = dbRect.right - parentRect.left;
-      const startY = dbRect.top + dbRect.height / 2 - parentRect.top;
-      const endX = fileRect.left - parentRect.left;
-      const endY = fileRect.top + fileRect.height / 2 - parentRect.top;
+  //     const startX = dbRect.right - parentRect.left;
+  //     const startY = dbRect.top + dbRect.height / 2 - parentRect.top;
+  //     const endX = fileRect.left - parentRect.left;
+  //     const endY = fileRect.top + fileRect.height / 2 - parentRect.top;
 
-      const line = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
-      );
-      line.setAttribute("x1", startX);
-      line.setAttribute("y1", startY);
-      line.setAttribute("x2", endX);
-      line.setAttribute("y2", endY);
-      line.setAttribute("stroke", "#0d6efd");
-      line.setAttribute("stroke-width", "2");
-      line.setAttribute("marker-end", "url(#arrowhead)");
-      svg.appendChild(line);
-    });
-  };
+  //     const line = document.createElementNS(
+  //       "http://www.w3.org/2000/svg",
+  //       "line"
+  //     );
+  //     line.setAttribute("x1", startX);
+  //     line.setAttribute("y1", startY);
+  //     line.setAttribute("x2", endX);
+  //     line.setAttribute("y2", endY);
+  //     line.setAttribute("stroke", "#0d6efd");
+  //     line.setAttribute("stroke-width", "2");
+  //     line.setAttribute("marker-end", "url(#arrowhead)");
+  //     svg.appendChild(line);
+  //   });
+  // };
 
-  useEffect(() => {
-    const id = requestAnimationFrame(() => drawLines());
-    return () => cancelAnimationFrame(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnMapping, uploadedData, headerRowIndex]);
+  // useEffect(() => {
+  //   const id = requestAnimationFrame(() => drawLines());
+  //   return () => cancelAnimationFrame(id);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [columnMapping, uploadedData, headerRowIndex]);
 
-  useEffect(() => {
-    const handler = () => drawLines();
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // useEffect(() => {
+  //   const handler = () => drawLines();
+  //   window.addEventListener("resize", handler);
+  //   return () => window.removeEventListener("resize", handler);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
-  const fileColumns = uploadedData[headerRowIndex] || [];
-  const dataPreview = uploadedData.slice(
-    headerRowIndex + 1,
-    headerRowIndex + 11
-  );
+  // const fileColumns = uploadedData[headerRowIndex] || [];
+  // const dataPreview = uploadedData.slice(
+  //   headerRowIndex + 1,
+  //   headerRowIndex + 11
+  // );
 
-  const onMapChange = (field, value) => {
-    setColumnMapping((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  // const onMapChange = (field, value) => {
+  //   setColumnMapping((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
 
   // helper: available centers = all - selected
   const allCenters = user?.userCenters || [];
@@ -658,7 +725,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         </div>
 
         {/* Header row selector */}
-        {uploadedData.length > 0 && (
+        {/* {uploadedData.length > 0 && (
           <div className="mb-3">
             <label className="form-label">Select Header Row</label>
             <select
@@ -677,10 +744,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
               ))}
             </select>
           </div>
-        )}
+        )} */}
 
         {/* Mapping inputs */}
-        {fileColumns.length > 0 && (
+        {/* {fileColumns.length > 0 && (
           <div
             style={{
               border: "1px solid #ddd",
@@ -730,83 +797,83 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
               );
             })}
           </div>
-        )}
+        )} */}
 
         {/* Mapping summary */}
-        {Object.values(columnMapping).some(
+        {/* {Object.values(columnMapping).some(
           (v) => v !== "" && v !== undefined
         ) && (
-          <div
-            ref={containerRef}
-            style={{ position: "relative", padding: 12, marginBottom: 12 }}
-          >
-            <h5 style={{ marginBottom: 12 }}>Mapping Summary</h5>
             <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 24,
-              }}
+              ref={containerRef}
+              style={{ position: "relative", padding: 12, marginBottom: 12 }}
             >
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {dbFields.map((field) => (
-                  <div
-                    key={field}
-                    ref={(el) => (dbRefs.current[field] = el)}
-                    style={{
-                      padding: "8px 12px",
-                      minWidth: 140,
-                      textAlign: "center",
-                      backgroundColor: "#0d6efd",
-                      color: "#fff",
-                      borderRadius: 6,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {field}
-                  </div>
-                ))}
+              <h5 style={{ marginBottom: 12 }}>Mapping Summary</h5>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 24,
+                }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {dbFields.map((field) => (
+                    <div
+                      key={field}
+                      ref={(el) => (dbRefs.current[field] = el)}
+                      style={{
+                        padding: "8px 12px",
+                        minWidth: 140,
+                        textAlign: "center",
+                        backgroundColor: "#0d6efd",
+                        color: "#fff",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {field}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {fileColumns.map((col, idx) => (
+                    <div
+                      key={idx}
+                      ref={(el) => (fileRefs.current[idx] = el)}
+                      style={{
+                        padding: "8px 12px",
+                        minWidth: 140,
+                        textAlign: "center",
+                        backgroundColor: "#6c757d",
+                        color: "#fff",
+                        borderRadius: 6,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {String(col).trim() === ""
+                        ? `Column ${idx + 1} (empty)`
+                        : String(col)}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {fileColumns.map((col, idx) => (
-                  <div
-                    key={idx}
-                    ref={(el) => (fileRefs.current[idx] = el)}
-                    style={{
-                      padding: "8px 12px",
-                      minWidth: 140,
-                      textAlign: "center",
-                      backgroundColor: "#6c757d",
-                      color: "#fff",
-                      borderRadius: 6,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {String(col).trim() === ""
-                      ? `Column ${idx + 1} (empty)`
-                      : String(col)}
-                  </div>
-                ))}
-              </div>
+              <svg
+                ref={svgRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                }}
+              />
             </div>
-
-            <svg
-              ref={svgRef}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
-        )}
+          )} */}
 
         {/* Data preview */}
-        {dataPreview.length > 0 && (
+        {/* {dataPreview.length > 0 && (
           <div className="mt-3">
             <h5>Data Preview (Top {dataPreview.length} rows)</h5>
             <div className="table-responsive">
@@ -825,6 +892,34 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
                     <tr key={rIdx}>
                       {fileColumns.map((_, cIdx) => (
                         <td key={cIdx}>{row[cIdx]}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )} */}
+
+        {uploadedData.length > 0 && (
+          <div className="mt-3">
+            <h5>Data Preview (Top {Math.min(uploadedData.length, 10)} rows)</h5>
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm">
+                <thead className="table-light">
+                  <tr>
+                    {Object.keys(headerToDbMap).map((header) => (
+                      <th key={header}>
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {uploadedData.slice(0, 10).map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.keys(headerToDbMap).map((header) => (
+                        <td key={header}>{row[header] ?? ""}</td>
                       ))}
                     </tr>
                   ))}
@@ -926,8 +1021,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
             onClick={() => {
               if (!uploading) {
                 setUploadedData([]);
-                setColumnMapping(emptyMapping());
-                setHeaderRowIndex(0);
+                // setColumnMapping(emptyMapping());
+                // setHeaderRowIndex(0);
                 setUploadDone(false);
                 toggle();
               }
@@ -940,10 +1035,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           <Button
             onClick={() => handleImport({ chunkSize: 50 })}
             disabled={
-              uploading ||
-              !Object.values(columnMapping).some(
-                (v) => v !== "" && v !== undefined
-              )
+              uploading || uploadedData.length === 0
+              // !Object.values(columnMapping).some(
+              //   (v) => v !== "" && v !== undefined
+              // )
             }
           >
             {uploading ? "Uploading..." : "Import Data"}
