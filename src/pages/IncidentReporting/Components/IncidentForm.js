@@ -89,7 +89,7 @@ const IncidentForm = ({ incident, onClose }) => {
         Raised: "raise",
         "Under Investigation": "investigation",
         "Pending Approval": "approval",
-        Approved: "approval",
+        Approved: "closure",
         Rejected: "approval",
         Closed: "closure",
       };
@@ -854,11 +854,7 @@ const IncidentForm = ({ incident, onClose }) => {
                       </Col>
 
                       <Col xs={12}>
-                        <Button
-                          disabled={!hasIncidentInvestigatePermission}
-                          type="submit"
-                          color="primary"
-                        >
+                        <Button type="submit" color="primary">
                           Submit Investigation
                         </Button>
                       </Col>
