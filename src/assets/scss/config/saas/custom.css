@@ -467,7 +467,7 @@ body {
 .form-control {
   -webkit-appearance: none;
   -moz-appearance: none;
-       appearance: none;
+  appearance: none;
   background-clip: padding-box;
   background-color: #fff;
   border: 1px solid #ced4da;
@@ -558,14 +558,14 @@ body {
   display: none;
 }
 
-.preview-input input[type=number] {
+.preview-input input[type="number"] {
   margin-left: 1rem;
   width: 150px;
 }
 .preview-input .first-btn {
   margin-left: 1rem;
 }
-.preview-input input[type=text] {
+.preview-input input[type="text"] {
   margin-left: 1rem;
   width: 200px !important;
 }
@@ -574,7 +574,7 @@ body {
   .preview-input h4 {
     width: 300px;
   }
-  .preview-input input[type=number] {
+  .preview-input input[type="number"] {
     margin-left: 0 !important;
   }
   .preview-input .first-btn {
@@ -626,12 +626,12 @@ body.offcanvas.show {
   cursor: pointer;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
-input[type=number] {
+input[type="number"] {
   -moz-appearance: textfield;
 }
 
@@ -832,4 +832,22 @@ input[type=number] {
 
 .rbc-event {
   z-index: 15 !important;
-}/*# sourceMappingURL=custom.css.map */
+} /*# sourceMappingURL=custom.css.map */
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+.stage-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stage-item {
+  position: relative;
+}
