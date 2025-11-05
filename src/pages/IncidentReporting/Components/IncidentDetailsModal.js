@@ -310,7 +310,7 @@ const IncidentDetailsModal = ({ incident, loading }) => {
                               )}
                               <Col md={6} className="mb-3">
                                 <strong className="text-muted d-block mb-1">
-                                  Reporter
+                                  Raised By
                                 </strong>
                                 <span>
                                   {stage.data.reporter?.name ||
