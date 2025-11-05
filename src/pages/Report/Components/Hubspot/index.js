@@ -6,8 +6,6 @@ import {
 } from "../../../../store/actions";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { Button, Tooltip } from "reactstrap";
-import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
 
 const statusBadge = {
   Planned: "bg-blue-100 text-blue-700 border-blue-300",
@@ -47,44 +45,32 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [tooltipOpen, setTooltipOpen] = useState(null);
   const buttonRefs = useRef({});
-  const handleAuthError = useAuthError();
 
   // Fetch contacts when visitDateFilter, currentPage, or itemsPerPage changes
   useEffect(() => {
-    const fetchContacts = async () => {
-      const access = centers
-        .filter((cn) => centerAccess.includes(cn._id))
-        .map((cn) => {
-          const titles = cn.title.split("-").join(",");
-          return titles;
-          // cn.title
-        })
-        .join(",");
-      const params = {
-        page: currentPage,
-        limit: itemsPerPage,
-        // leadDate: leadDate,
-        // visitDate: visitDateFilter,
-      };
-      console.log({ access });
+    const access = centers
+      .filter((cn) => centerAccess.includes(cn._id))
+      .map((cn) => {
+        const titles = cn.title.split("-").join(",");
+        return titles;
+        // cn.title
+      })
+      .join(",");
+    const params = {
+      page: currentPage,
+      limit: itemsPerPage,
+      // leadDate: leadDate,
+      // visitDate: visitDateFilter,
+    };
+    console.log({ access });
 
-      if (access) params.centers = access;
-      if (visitDateFilter === "planned") {
-        params.status = "Planned";
-      } else {
-        params.visitDate = visitDateFilter;
-      }
-      if (activeTab === "2") {
-        try {
-          await dispatch(fetchHubspotContacts(params)).unwrap();
-        } catch (error) {
-          if (!handleAuthError(error)) {
-            toast.error(error.message || "failed to fetch contacts")
-          }
-        }
-      };
+    if (access) params.centers = access;
+    if (visitDateFilter === "planned") {
+      params.status = "Planned";
+    } else {
+      params.visitDate = visitDateFilter;
     }
-    fetchContacts();
+    if (activeTab === "2") dispatch(fetchHubspotContacts(params));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeTab,
@@ -148,10 +134,11 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
           {visitDateOptions.map((opt) => (
             <button
               key={opt.value}
-              className={`px-4 py-2 rounded-lg font-medium border transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${visitDateFilter === opt.value
-                ? "bg-blue-600 text-gray-700 border-blue-600 shadow"
-                : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-blue-50"
-                }`}
+              className={`px-4 py-2 rounded-lg font-medium border transition-colors duration-150 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                visitDateFilter === opt.value
+                  ? "bg-blue-600 text-gray-700 border-blue-600 shadow"
+                  : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-blue-50"
+              }`}
               onClick={() => {
                 setVisitDateFilter(opt.value);
                 setCurrentPage(1);
@@ -304,9 +291,10 @@ const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 rounded-full border text-xs font-semibold ${statusBadge[contact.leadStatus] ||
+                      className={`px-2 py-1 rounded-full border text-xs font-semibold ${
+                        statusBadge[contact.leadStatus] ||
                         "bg-gray-100 text-gray-700 border-gray-300"
-                        }`}
+                      }`}
                     >
                       {contact.leadStatus}
                     </span>
