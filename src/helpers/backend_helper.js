@@ -111,7 +111,8 @@ export const postCenter = (data) =>
 export const getCenters = ({ centerIds, search } = {}) =>
   api.get(url.GET_CENTERS, {
     params: {
-      centerIds: data,
+      centerIds,
+      search,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
