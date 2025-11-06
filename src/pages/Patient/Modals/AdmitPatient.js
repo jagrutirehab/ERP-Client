@@ -290,7 +290,9 @@ const AdmitPatient = ({
             // Get all required fields from step 1 (excluding email)
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              ...patientGuardianFields.filter(
+                (f) => f.name !== "ipdFileNumber"
+              ),
               // ...patientGuardianFields,
             ].map((f) => f.name);
 
@@ -383,7 +385,9 @@ const AdmitPatient = ({
                 validation.handleChange(event);
               }}
               options={{
-                dateFormat: "d M, Y",
+                dateFormat: "d M, Y h:i K",
+                enableTime: true,
+                time_24hr: false,
                 // enable: [
                 //   (date) =>
                 //     patient?.addmission?.dischargeDate
@@ -462,7 +466,9 @@ const AdmitPatient = ({
             // First validate step 1 fields
             const step1Fields = [
               ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-              ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+              ...patientGuardianFields.filter(
+                (f) => f.name !== "ipdFileNumber"
+              ),
               // ...patientGuardianFields,
             ].map((f) => f.name);
 
@@ -548,7 +554,9 @@ const AdmitPatient = ({
               // Get all required fields from step 1
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                ...patientGuardianFields.filter(
+                  (f) => f.name !== "ipdFileNumber"
+                ),
                 // ...patientGuardianFields,
               ].map((f) => f.name);
 
@@ -582,7 +590,9 @@ const AdmitPatient = ({
               // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
                 ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
-                ...patientGuardianFields.filter((f) => f.name !== "ipdFileNumber"),
+                ...patientGuardianFields.filter(
+                  (f) => f.name !== "ipdFileNumber"
+                ),
                 // ...patientGuardianFields,
               ].map((f) => f.name);
 

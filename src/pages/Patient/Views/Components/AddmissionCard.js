@@ -15,6 +15,8 @@ const formatDate = (isoDateStr) => {
     timeZone: "UTC",
   });
   const year = date.getUTCFullYear();
+  // const hour = date.getHours();
+  // const minute = date.getMinutes();
 
   return `${day} ${month} ${year}`;
 };
