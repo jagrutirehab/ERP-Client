@@ -34,7 +34,10 @@ import {
 } from "../../../store/actions";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import axios from "axios";
-import { fetchCounsellingNote } from "../../../store/features/chart/chartSlice";
+import {
+  addGeneralCounsellingNote,
+  fetchCounsellingNote,
+} from "../../../store/features/chart/chartSlice";
 import { format } from "date-fns";
 
 registerPlugin(
@@ -172,6 +175,8 @@ const CounsellingNote = ({
       formData.append("id", editChartData._id);
       formData.append("chartId", editClinicalNote._id);
       dispatch(updateCounsellingNote(formData));
+    } else if (type === "GENERAL") {
+      dispatch(addGeneralCounsellingNote(formData));
     } else {
       dispatch(addCounsellingNote(formData));
     }

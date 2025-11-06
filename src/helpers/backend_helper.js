@@ -111,8 +111,7 @@ export const postCenter = (data) =>
 export const getCenters = ({ centerIds, search } = {}) =>
   api.get(url.GET_CENTERS, {
     params: {
-      centerIds,
-      search
+      centerIds: data,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -375,6 +374,10 @@ export const editClinicalNote = (data) =>
   });
 export const postCounsellingNote = (data) =>
   api.create(url.POST_COUNSELLING_NOTE, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const postGeneralCounsellingNote = (data) =>
+  api.create(url.POST_GENERAL_COUNSELLING_NOTE, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 export const editCounsellingNote = (data) =>
@@ -867,7 +870,7 @@ export const postBankDeposit = (data) => {
   return api.create(url.ADD_BANK_DEPOSIT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data"
+      "Content-Type": "multipart/form-data",
     },
   });
 };
@@ -876,7 +879,7 @@ export const getLatestBankDesposits = (params = {}) => {
   return api.create(url.GET_LATEST_BANK_DEPOSITS, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 };
@@ -885,7 +888,7 @@ export const getLatestSpendings = (params = {}) => {
   return api.create(url.GET_LATEST_SPENDING, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 };
@@ -894,26 +897,24 @@ export const postSpending = (data) => {
   return api.create(url.ADD_SPENDING, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data"
+      "Content-Type": "multipart/form-data",
     },
   });
 };
 
 export const getBaseBalanceByCenter = (centerId) => {
-  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`,
-    {
-      headers: {
-        "X-No-Cookie-Token": "true",
-      }
-    }
-  );
+  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
 };
 
 export const postBaseBalance = (data) => {
   return api.create(url.ADD_BASE_BALANCE, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data"
+      "Content-Type": "multipart/form-data",
     },
   });
 };
@@ -922,7 +923,7 @@ export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 };
@@ -930,7 +931,7 @@ export const getSummaryCashReport = (params = {}) => {
   return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
   });
 };
@@ -943,7 +944,8 @@ export const getCentralPayments = (params = {}) => {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
     },
-    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
   });
 };
 
@@ -954,7 +956,8 @@ export const getSummaryCentralReport = (params = {}) => {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
     },
-    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
   });
 };
 
@@ -965,18 +968,18 @@ export const getDetailedCentralReport = (params = {}) => {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
     },
-    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat" }),
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
   });
 };
-
 
 export const postCentralPayment = (data) => {
   return api.create(url.CENTRAL_PAYMENT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data"
+      "Content-Type": "multipart/form-data",
     },
-  })
+  });
 };
 
 export const updateCentralPayment = (data) => {
@@ -984,17 +987,17 @@ export const updateCentralPayment = (data) => {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
-    }
-  })
+    },
+  });
 };
 
 export const getCentralPaymentById = (paymentId) => {
   return api.get(`${url.CENTRAL_PAYMENT}/${paymentId}`, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
-}
+    },
+  });
+};
 
 //  User Microservices
 export const PostLoginService = (data) =>
@@ -1079,7 +1082,7 @@ export const getAllUsers = ({
   search = "",
   role = "",
   token,
-  centerAccess
+  centerAccess,
 }) => {
   return userService.get(url.USER, {
     params: { page, limit, search, role, centerAccess },
@@ -1087,8 +1090,8 @@ export const getAllUsers = ({
       Authorization: `Bearer ${token}`,
     },
     paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" })
-    }
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
   });
 };
 
