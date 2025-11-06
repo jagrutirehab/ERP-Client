@@ -86,16 +86,23 @@ const DischargePatient = ({ isOpen, patient }) => {
                 <Flatpicker
                   name="dischargeDate"
                   value={validation.values.dischargeDate || ""}
-                  onChange={([date]) => {
+                  onChange={([e]) => {
+                    const now = new Date();
+                    e.setHours(
+                      now.getHours(),
+                      now.getMinutes(),
+                      now.getSeconds(),
+                      now.getMilliseconds()
+                    );
                     const event = {
-                      target: { name: "dischargeDate", value: date },
+                      target: { name: "dischargeDate", value: e },
                     };
                     validation.handleChange(event);
                   }}
                   options={{
                     enableTime: true,
-                    time_24hr: true,
-                    dateFormat: "d M Y H:i",
+                    time_24hr: false,
+                    dateFormat: "d M Y h:i K",
                     disable: [
                       {
                         from: "1900-01-01",
