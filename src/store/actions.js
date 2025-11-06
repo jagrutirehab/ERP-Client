@@ -178,6 +178,7 @@ export {
   updateClinicalNote,
   removeClinicalNoteFile,
   addCounsellingNote,
+  addGeneralCounsellingNote,
   updateCounsellingNote,
   removeCounsellingNoteFile,
   addLabReport,

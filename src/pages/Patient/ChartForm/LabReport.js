@@ -45,7 +45,7 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
       author: author._id,
       patient: patient._id,
       center: patient.center._id,
-      addmission: patient.addmission._id,
+      addmission: patient.addmission?._id,
       reports,
       chart: LAB_REPORT,
       type,

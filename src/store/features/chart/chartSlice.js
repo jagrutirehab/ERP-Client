@@ -23,9 +23,11 @@ import {
   postCounsellingNote,
   postDetailAdmission,
   postDischargeSummary,
+  postGeneralCounsellingNote,
   postGeneralDetailAdmission,
   postGeneralLabReport,
   postGeneralPrescription,
+  postGeneralRealtiveVisit,
   postGeneralVitalSign,
   postLabReport,
   postPrescription,
@@ -455,6 +457,26 @@ export const addCounsellingNote = createAsyncThunk(
   }
 );
 
+export const addGeneralCounsellingNote = createAsyncThunk(
+  "postGeneralCounsellingNote",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralCounsellingNote(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Counselling Note Saved Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const updateCounsellingNote = createAsyncThunk(
   "editCounsellingNote",
   async (data, { rejectWithValue, dispatch }) => {
@@ -601,7 +623,7 @@ export const addGeneralRelativeVisit = createAsyncThunk(
   "postGeneralRelativeVisit",
   async (data, { rejectWithValue, dispatch }) => {
     try {
-      const response = await postRealtiveVisit(data);
+      const response = await postGeneralRealtiveVisit(data);
       dispatch(
         setAlert({
           type: "success",
@@ -896,6 +918,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchLatestCharts.pending, (state) => {
+        state.generalChartLoading = true;
+      })
+      .addCase(fetchLatestCharts.fulfilled, (state, { payload }) => {
+        state.generalChartLoading = false;
+        state.charts = payload.payload;
+      })
+      .addCase(fetchLatestCharts.rejected, (state) => {
+        state.generalChartLoading = false;
+      });
+
+    builder
       .addCase(fetchGeneralCharts.pending, (state) => {
         state.generalChartLoading = true;
       })
@@ -945,6 +979,18 @@ export const chartSlice = createSlice({
         state.charts = [payload.payload, ...(state.charts || [])];
       })
       .addCase(addGeneralPrescription.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralCounsellingNote.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralCounsellingNote.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralCounsellingNote.rejected, (state) => {
         state.loading = false;
       });
 

@@ -117,6 +117,7 @@ export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
 export const POST_COUNSELLING_NOTE = "/chart/counselling-note";
+export const POST_GENERAL_COUNSELLING_NOTE = "/chart/counselling-note/general";
 export const EDIT_COUNSELLING_NOTE = "/chart/counselling-note";
 export const GET_COUNSELLING_NOTE = "/chart/counselling-note";
 export const DELETE_COUNSELLING_NOTE_FILE = "/chart/counselling-note";
@@ -312,8 +313,10 @@ export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
 // central payment
 export const CENTRAL_PAYMENT = "/central-payment";
 export const EDIT_CENTRAL_PAYMENT = "/central-payment/edit";
-export const GET_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/detailed";
-export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT = "/central-payment/report/summary";
+export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
+  "/central-payment/report/detailed";
+export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
+  "/central-payment/report/summary";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
