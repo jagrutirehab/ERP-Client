@@ -23,11 +23,13 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
+import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
+const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -225,6 +227,11 @@ const DetailAdmission = ({
         ? detailAdmissionForm.ChiefComplaints?.line4
         : "",
 
+      //Provisional Diagnosis
+      diagnosis1: detailAdmissionForm
+        ? detailAdmissionForm.ProvisionalDiagnosis?.diagnosis1
+        : "",
+
       //mental status examination
       appearance: detailAdmissionForm
         ? detailAdmissionForm.mentalExamination?.appearance
@@ -369,6 +376,12 @@ const DetailAdmission = ({
             >
               Chief Complaints
             </Button>
+            <Button
+              outline={formStep !== PROVISIONAL_DIAGNOSIS}
+              onClick={() => setFormStep(PROVISIONAL_DIAGNOSIS)}
+            >
+              Provisional Diagnosis
+            </Button>
             {/* <Button
               outline={formStep !== DETAIL_ADMISSION}
               onClick={() => setFormStep(DETAIL_ADMISSION)}
@@ -425,6 +438,14 @@ const DetailAdmission = ({
 
               {formStep === CHIEF_COMPLAINTS && (
                 <ChiefComplaintsForm
+                  validation={validation}
+                  setFormStep={setFormStep}
+                  step={PROVISIONAL_DIAGNOSIS}
+                />
+              )}
+
+              {formStep === PROVISIONAL_DIAGNOSIS && (
+                <ProvisionalDiagnosisForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DETAIL_HISTORY}

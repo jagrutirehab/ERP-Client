@@ -199,7 +199,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_adult_parentName")}
           style={{
             fontWeight: "bold",
@@ -391,12 +391,12 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           marginTop: "20px",
         }}
       >
-        <div>Signature of Guardian:</div>
+        <div>Signature of Guardian: {patient?.guardianName}</div>
         <div>
           Name:
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_adult_guardianName2")}
             style={{
               fontWeight: "bold",

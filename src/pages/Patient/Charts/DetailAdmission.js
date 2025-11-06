@@ -64,6 +64,23 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.ChiefComplaints && <Divider />}
+        {data?.ProvisionalDiagnosis && (
+          <h6 className="fs-xs-12 fs-md-14 display-6">Provisional Daignosis</h6>
+        )}
+        {data?.ProvisionalDiagnosis &&
+          Object.entries(data.ProvisionalDiagnosis).map((d, i) => (
+            <Col key={i} xs={12}>
+              <div className="mt-1 mb-1">
+                <p className="fs-xs-9 fs-md-11 mb-0">
+                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                    Diagnosis{i + 1}:-
+                  </span>
+                  {d[1]}
+                </p>
+              </div>
+            </Col>
+          ))}
+        {data?.ProvisionalDiagnosis && <Divider />}
         {data?.detailHistory && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
         )}
