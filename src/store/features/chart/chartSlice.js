@@ -904,18 +904,6 @@ export const chartSlice = createSlice({
       .addCase(fetchCharts.rejected, (state) => {
         state.chartLoading = false;
       });
-      
-      builder
-      .addCase(fetchLatestCharts.pending, (state) => {
-        state.generalChartLoading = true;
-      })
-      .addCase(fetchLatestCharts.fulfilled, (state, { payload }) => {
-        state.generalChartLoading = false;
-        state.charts = payload.payload;
-      })
-      .addCase(fetchLatestCharts.rejected, (state) => {
-        state.generalChartLoading = false;
-      });
 
     builder
       .addCase(fetchLatestCharts.pending, (state) => {
