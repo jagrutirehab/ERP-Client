@@ -43,8 +43,8 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
   );
   const hasIncidentCreatePermission = hasPermission(
     "INCIDENT_REPORTING",
-    "RAISE_INCIDENT",
-    "READ"
+    null,
+    "WRITE"
   );
 
   const [activeTab, setActiveTab] = useState("all");

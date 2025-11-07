@@ -155,9 +155,10 @@ const IncidentForm = ({ incident, onClose }) => {
     initialValues: buildRaiseInitialValues(),
     validationSchema: Yup.object({
       incidentType: Yup.string().required("Incident type is required"),
-      patientIncidentType: Yup.string().required(
-        "Patient Incident type is required"
-      ),
+      patientIncidentType: Yup.string().when("incidentType", {
+        is: "Patient",
+        then: (schema) => schema.required("Patient incident type is required"),
+      }),
       patient: Yup.string().when("incidentType", {
         is: "Patient",
         then: (schema) => schema.required("Patient is required"),
