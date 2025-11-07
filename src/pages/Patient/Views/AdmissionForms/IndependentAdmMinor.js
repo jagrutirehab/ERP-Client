@@ -211,7 +211,7 @@ const IndependentAdmMinor = ({ register, patient, details, chartData }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_minor_parentName")}
           style={{
             fontWeight: "bold",
@@ -418,12 +418,12 @@ const IndependentAdmMinor = ({ register, patient, details, chartData }) => {
           />
         </div>
         <div>
-          Signature of Guardian:
+          Signature of Guardian: {patient?.guardianName}
           <br />
           Name
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_minor_guardianName")}
             style={{
               fontWeight: "bold",
