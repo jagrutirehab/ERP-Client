@@ -208,7 +208,7 @@ const AdmWithHighSupport2 = ({ register, patient, details, chartData }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_Support_parentName")}
           style={{
             fontWeight: "bold",
@@ -408,12 +408,12 @@ const AdmWithHighSupport2 = ({ register, patient, details, chartData }) => {
         }}
       >
         <div>
-          Signature of Guardian:
+          Signature of Guardian: {patient?.guardianName}
           <br />
           Name
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_Support_guardianName")}
             style={{
               fontWeight: "bold",
