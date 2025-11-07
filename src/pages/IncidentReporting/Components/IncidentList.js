@@ -20,6 +20,7 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import { useDispatch } from "react-redux";
 import { deleteIncidentAction } from "../../../store/features/incident/incidentSlice";
 import RenderWhen from "../../../Components/Common/RenderWhen";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const IncidentList = ({
   incidents,
@@ -67,22 +68,22 @@ const IncidentList = ({
   const hasIncidentRaisePermission = hasPermission(
     "INCIDENT_REPORTING",
     "RAISE_INCIDENT",
-    "READ"
+    "WRITE"
   );
   const hasIncidentInvestigatePermission = hasPermission(
     "INCIDENT_REPORTING",
     "INVESTIGATE_INCIDENT",
-    "READ"
+    "WRITE"
   );
   const hasIncidentApprovePermission = hasPermission(
     "INCIDENT_REPORTING",
     "APPROVE_INCIDENT",
-    "READ"
+    "WRITE"
   );
   const hasIncidentClosePermission = hasPermission(
     "INCIDENT_REPORTING",
     "CLOSE_INCIDENT",
-    "READ"
+    "WRITE"
   );
 
   // (hasIncidentRaisePermission ||
@@ -325,16 +326,13 @@ const IncidentList = ({
                   {incidents.map((incident) => (
                     <tr key={incident._id}>
                       <td>
-                        <strong>{incident.title}</strong>
+                        <strong>{capitalizeWords(incident.title)}</strong>
                       </td>
                       <td>{getTypeBadge(incident.incidentType)}</td>
                       <td>
-                        {incident.patient?.name ||
-                          incident.patient?.fullName ||
-                          incident.patient?.title ||
-                          (typeof incident.patient === "string"
-                            ? incident.patient
-                            : null) || <span className="text-muted">N/A</span>}
+                        {capitalizeWords(incident.patient?.name || "") || (
+                          <span className="text-muted">N/A</span>
+                        )}
                       </td>
                       <td>
                         <div>
