@@ -99,8 +99,11 @@ const IncidentList = ({
   //   "Closed",
   // ].incident.status
 
+  console.log({ hasIncidentRaisePermission });
+
   const hasActionPermission = (incident) => {
-    if (incident.status === "Closed") return false;
+    if (incident.status === "Closed" || incident.status === "Rejected")
+      return false;
     if (hasIncidentRaisePermission && incident.status === "Raised") return true;
     else if (
       hasIncidentInvestigatePermission &&
@@ -121,14 +124,14 @@ const IncidentList = ({
     else return false;
   };
 
-  console.log({ hasActionPermission });
+  // console.log({ hasActionPermission: hasActionPermission(incidents[1]) });
 
   const totalPages = Math.max(1, pagination?.totalPages || 1);
 
   const renderPagination = () => {
     console.log("hello");
 
-    if (!totalPages || totalPages <= 1) return null;
+    // if (!totalPages || totalPages <= 1) return null;
     const current = filters.page || 1;
     const maxButtons = 5;
     const start = Math.max(1, current - Math.floor(maxButtons / 2));
@@ -313,6 +316,7 @@ const IncidentList = ({
               <Table hover className="align-middle mb-0">
                 <thead className="table-light">
                   <tr>
+                    <th>#S.No</th>
                     <th>Title</th>
                     <th>Type</th>
                     <th>Patient</th>
@@ -323,8 +327,11 @@ const IncidentList = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {incidents.map((incident) => (
+                  {incidents.map((incident, index) => (
                     <tr key={incident._id}>
+                      <td>
+                        <strong>{index + 1}</strong>
+                      </td>
                       <td>
                         <strong>{capitalizeWords(incident.title)}</strong>
                       </td>

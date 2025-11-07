@@ -43,7 +43,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
   );
   const hasIncidentCreatePermission = hasPermission(
     "INCIDENT_REPORTING",
-    null,
+    "RAISE_INCIDENT",
     "WRITE"
   );
 
