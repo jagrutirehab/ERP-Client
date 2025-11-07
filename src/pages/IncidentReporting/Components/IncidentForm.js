@@ -56,7 +56,7 @@ const IncidentForm = ({ incident, onClose }) => {
   const hasIncidentInvestigatePermission = hasPermission(
     "INCIDENT_REPORTING",
     "INVESTIGATE_INCIDENT",
-    "READ"
+    "WRITE"
   );
   // const hasIncidentApprovePermission = hasPermission(
   //   "INCIDENT_REPORTING",
