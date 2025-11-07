@@ -902,7 +902,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 )}
                               </div>
                             </div>
-                            {/* <div>
+                            <div>
                               <Button
                                 onClick={handleUploadClick}
                                 size="sm"
@@ -916,7 +916,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   "Upload Signed Copy Of Discharge Form"
                                 )}
                               </Button>
-                            </div> */}
+                            </div>
                           </div>
                         </div>
                       </div>
