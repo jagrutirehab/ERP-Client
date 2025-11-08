@@ -131,7 +131,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
           Date:
           <input
             type="date"
-            value={new Date().toISOString().split("T")[0]}
+            defaultValue={new Date().toISOString().split("T")[0]}
             {...register("Indipendent_Admission_Support_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -425,7 +425,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
           Date & Time
           <input
             type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
+            defaultValue={new Date().toLocaleDateString("en-GB").split("/").join("/")}
             {...register("Indipendent_Admission_Support_dateTime")}
             style={fullLine}
           />
