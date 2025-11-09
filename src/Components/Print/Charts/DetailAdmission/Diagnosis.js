@@ -26,6 +26,16 @@ const Diagnosis = ({ data, styles }) => {
           ...styles.mrgnBottom10,
         }}
       >
+        {data?.provisionaldiagnosis && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>
+              Provisional Diagnosis:
+            </Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.provisionaldiagnosis || ""}
+            </Text>
+          </View>
+        )}
         {data?.diagnosis && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={{ ...styles.fontSize13, ...styles.textCapitalize }}>

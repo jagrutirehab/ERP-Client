@@ -5,9 +5,9 @@ import Divider from "../../../../Components/Common/Divider";
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import ConsentFiles from "./ConsentFiles";
+// import ConsentFiles from "./ConsentFiles";
 import convertToFormData from "../../../../utils/convertToFormData";
-import DetailAdmissionForm from "./DetailAdmissionForm";
+// import DetailAdmissionForm from "./DetailAdmissionForm";
 import DetailHistoryForm from "./DetailHistoryForm";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
@@ -23,13 +23,13 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
-import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
+// import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
-const CONSET_FILES = "CONSENT_FILES";
+// const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
-const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
+// const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -228,9 +228,9 @@ const DetailAdmission = ({
         : "",
 
       //Provisional Diagnosis
-      diagnosis1: detailAdmissionForm
-        ? detailAdmissionForm.ProvisionalDiagnosis?.diagnosis1
-        : "",
+      // diagnosis1: detailAdmissionForm
+      //   ? detailAdmissionForm.ProvisionalDiagnosis?.diagnosis1
+      //   : "",
 
       //mental status examination
       appearance: detailAdmissionForm
@@ -292,6 +292,9 @@ const DetailAdmission = ({
         ? detailAdmissionForm.physicalExamination?.formulation
         : "",
       //diagnosis & doctor signature
+      provisionaldiagnosis: detailAdmissionForm
+        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis
+        : "",
       diagnosis: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.diagnosis
         : "",
@@ -376,12 +379,12 @@ const DetailAdmission = ({
             >
               Chief Complaints
             </Button>
-            <Button
+            {/* <Button
               outline={formStep !== PROVISIONAL_DIAGNOSIS}
               onClick={() => setFormStep(PROVISIONAL_DIAGNOSIS)}
             >
               Provisional Diagnosis
-            </Button>
+            </Button> */}
             {/* <Button
               outline={formStep !== DETAIL_ADMISSION}
               onClick={() => setFormStep(DETAIL_ADMISSION)}
@@ -410,7 +413,7 @@ const DetailAdmission = ({
               outline={formStep !== DOCTOR_SIGNATURE}
               onClick={() => setFormStep(DOCTOR_SIGNATURE)}
             >
-              Diagnosis & Doctor Signature
+              Diagnosis & Plan
             </Button>
           </div>
           <div className="mt-4">
@@ -440,17 +443,17 @@ const DetailAdmission = ({
                 <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
-                  step={PROVISIONAL_DIAGNOSIS}
+                  step={DETAIL_HISTORY}
                 />
               )}
 
-              {formStep === PROVISIONAL_DIAGNOSIS && (
+              {/* {formStep === PROVISIONAL_DIAGNOSIS && (
                 <ProvisionalDiagnosisForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DETAIL_HISTORY}
                 />
-              )}
+              )} */}
 
               {/* {formStep === DETAIL_ADMISSION && (
                 <DetailAdmissionForm

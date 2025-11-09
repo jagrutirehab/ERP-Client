@@ -68,6 +68,13 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
     }
   }, [patient]);
 
+  const [today, setToday] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+  }, []);
+
   return (
     <div style={pageContainer}>
       <style>
@@ -140,7 +147,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           Date:
           <input
             type="date"
-            value={new Date().toISOString().split("T")[0]}
+            defaultValue={today}
             {...register("Indipendent_Admission_adult_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -391,7 +398,17 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           marginTop: "20px",
         }}
       >
-        <div>Signature of Guardian: {patient?.guardianName}</div>
+        <div style={{ display: "flex" }}>
+          Signature of Guardian:
+          <div
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            {patient?.guardianName}
+          </div>
+        </div>
         <div>
           Name:
           <input
@@ -407,8 +424,8 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           <br />
           Date & Time:
           <input
-            type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
+            type="date"
+            defaultValue={today}
             {...register("Indipendent_Admission_adult_dateTime")}
             style={fullLine}
           />

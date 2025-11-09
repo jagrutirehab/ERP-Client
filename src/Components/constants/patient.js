@@ -179,6 +179,34 @@ const vitalSignFields = [
     name: "respirationRate",
     type: "text",
   },
+  {
+    label: "CNS",
+    name: "cns",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "CVS",
+    name: "cvs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "RS",
+    name: "rs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "PA",
+    name: "pa",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
 ];
 
 const clinicalNoteFields = [

@@ -64,7 +64,7 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.ChiefComplaints && <Divider />}
-        {data?.ProvisionalDiagnosis && (
+        {/* {data?.ProvisionalDiagnosis && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Provisional Daignosis</h6>
         )}
         {data?.ProvisionalDiagnosis &&
@@ -80,7 +80,7 @@ const DetailAdmission = ({ data }) => {
               </div>
             </Col>
           ))}
-        {data?.ProvisionalDiagnosis && <Divider />}
+        {data?.ProvisionalDiagnosis && <Divider />} */}
         {data?.detailHistory && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
         )}
