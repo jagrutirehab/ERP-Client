@@ -1,16 +1,20 @@
 import React from "react";
-import PropTypes from "prop-types";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import { Button } from "reactstrap";
 
 const fields = [
   {
-    label: "Diagnosis",
+    label: "Provisional Diagnosis",
+    name: "provisionaldiagnosis",
+    type: "text",
+  },
+  {
+    label: "Final Diagnosis",
     name: "diagnosis",
     type: "text",
   },
   {
-    label: "Managment Plan: (INDOOR - with reason for admission)",
+    label: "Managment Plan: (INDOOR / Out Patient)",
     name: "managmentPlan",
     type: "text",
   },
@@ -26,7 +30,7 @@ const fields = [
     type: "text",
   },
   {
-    label: "Treatment",
+    label: "Psychological Testing",
     name: "treatment",
     type: "text",
   },

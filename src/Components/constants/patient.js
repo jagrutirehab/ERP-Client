@@ -90,10 +90,10 @@ const Forms = [
     name: "Consent Form",
     category: "CONSENT FORM",
   },
-  {
-    name: "Discharge Form",
-    category: "DISCHARGE FORM",
-  },
+  // {
+  //   name: "Discharge Form",
+  //   category: "DISCHARGE FORM",
+  // },
 ];
 const testRecord = [
   // { name : "ROR" },
@@ -178,6 +178,34 @@ const vitalSignFields = [
     label: "Respiration Rate (Breaths/min)",
     name: "respirationRate",
     type: "text",
+  },
+  {
+    label: "CNS",
+    name: "cns",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "CVS",
+    name: "cvs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "RS",
+    name: "rs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "PA",
+    name: "pa",
+    type: "text",
+    xs: 6,
+    md: 3,
   },
 ];
 
