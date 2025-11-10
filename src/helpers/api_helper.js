@@ -50,7 +50,7 @@ function handleLogout() {
 // main API request interceptor
 axios.interceptors.request.use((config) => {
   const microUser = localStorage.getItem("micrologin");
-    const token = microUser ? JSON.parse(microUser).token : null;
+  const token = microUser ? JSON.parse(microUser).token : null;
 
   if (config.headers["X-No-Cookie-Token"] === "true") {
     if (token) {
@@ -66,6 +66,9 @@ axios.interceptors.request.use((config) => {
 // ✅ Main API response interceptor
 axios.interceptors.response.use(
   function (response) {
+    if (response.config?.responseType === "blob") {
+      return response;
+    }
     return response.data ? response.data : response;
   },
   function (error) {

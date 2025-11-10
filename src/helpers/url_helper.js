@@ -343,3 +343,10 @@ export const INVESTIGATE_INCIDENT = "/incident";
 export const APPROVE_INCIDENT = "/incident";
 export const CLOSE_INCIDENT = "/incident";
 export const UPDATE_INCIDENT_STATUS = "/incident";
+
+// PHARMACY FAILED MEDICINES DOWNLOAD
+export const DOWNLOAD_FAILED_MEDICINES="/pharmacy/failed/download";
+// PHARMACY GET FAILED MEDICINES BATCHES LIST
+export const GET_FAILED_MEDICINES_BATCHES="/pharmacy/failed/list";
+// PHARMACY DELETE FAILED MEDICINES
+export const DELETE_FAILED_MEDICINES="/pharmacy/failed/delete";
