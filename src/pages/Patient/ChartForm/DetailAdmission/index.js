@@ -267,9 +267,9 @@ const DetailAdmission = ({
         ? detailAdmissionForm.mentalExamination?.insight
         : "",
       //physical status examination
-      generalExamination: detailAdmissionForm
-        ? detailAdmissionForm.physicalExamination?.generalExamination
-        : "",
+      // generalExamination: detailAdmissionForm
+      //   ? detailAdmissionForm.physicalExamination?.generalExamination
+      //   : "",
       cns: detailAdmissionForm
         ? detailAdmissionForm.physicalExamination?.cns
         : "",
