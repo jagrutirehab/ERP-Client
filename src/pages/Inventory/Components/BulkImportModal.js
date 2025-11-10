@@ -439,8 +439,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         toast.success(
           `Import finished: ${finalSkipped}`
         );
-        // onImport(mappedData); // Call onImport to notify parent
-        // toggle();
+        onImport(mappedData); // Call onImport to notify parent
+        if (skippedCountTotal === 0) {
+          toggle();
+        }
       } else {
         toast.warn(
           `Import finished with ${failedChunks.length} failed chunk(s). Inserted: ${finalInserted}, skipped: ${finalSkipped}`
@@ -638,12 +640,12 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
-      onImport?.();
+      onImport?.(buildMappedObjects());
       setUploadDone(false);
       setUploadedData([]);
       toggle();
     } catch (error) {
-      onImport?.();
+      onImport?.(buildMappedObjects());
       setUploadedData([]);
       setUploadDone(false);
       toggle();
@@ -1160,7 +1162,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
                 variant="outline"
                 className="px-4 fw-semibold"
                 onClick={() => {
-                  onImport?.();
+                  onImport?.(buildMappedObjects());
                   setUploadDone(false);
                   setUploadedData([]);
                   toggle();
