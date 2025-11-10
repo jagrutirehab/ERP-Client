@@ -69,11 +69,13 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
   }, [patient]);
 
   const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
 
   useEffect(() => {
     const localISODate = new Date().toISOString().split("T")[0];
     setToday(localISODate);
-  }, []);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
 
   return (
     <div style={pageContainer}>
@@ -312,7 +314,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
         Mr./Mrs/Ms.
         <input
           type="text"
-          value={patient?.guardianName}
+          defaultValue={guardianName}
           {...register("Indipendent_Admission_adult_guardianName")}
           style={{
             fontWeight: "bold",
@@ -406,7 +408,16 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
               textTransform: "uppercase",
             }}
           >
-            {patient?.guardianName}
+            <input
+              type="text"
+              defaultValue={guardianName}
+              {...register("Indipendent_Admission_adult_guardianName3")}
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                ...fullLine,
+              }}
+            />
           </div>
         </div>
         <div>
