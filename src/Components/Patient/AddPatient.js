@@ -77,9 +77,9 @@ const AddPatient = ({
       dateOfBirth,
       email,
       address: editData ? editData.address : "",
-      age: editData? editData.age: "",
-      religion: editData? editData.religion: "",
-      maritalstatus: editData? editData.maritalstatus: "",
+      age: editData ? editData.age : "",
+      religion: editData ? editData.religion : "",
+      maritalstatus: editData ? editData.maritalstatus : "",
       doctor: editData ? editData.doctor?._id : "",
       psychologist: editData ? editData.psychologist?._id : "",
       provisionalDiagnosis: editData ? editData.provisionalDiagnosis : "",
@@ -333,8 +333,6 @@ const AddPatient = ({
           {/* Aadhaar Files */}
           {editData?.aadhaarCard?.url && (
             <Col xs={12} style={{ marginBottom: "1.5rem" }}>
-              {" "}
-              {/* mb-6 */}
               <UploadedFiles
                 title="Patient Files"
                 files={[editData.aadhaarCard]}
@@ -344,52 +342,106 @@ const AddPatient = ({
               />
             </Col>
           )}
-
-          {/* Patient ID Field */}
-          <Row style={{ marginBottom: "1.5rem" }}>
-            {/* Patient ID */}
-            {/* <Col xs={12} md={6}> */}
-            <PatientId validation={validation} editData={editData} />
-            {/* </Col> */}
-
-            {/* Center Dropdown */}
-            <Col xs={12} md={6}>
-              <div className="mb-3">
-                <Label htmlFor="center" className="form-label">
-                  Center <span className="text-danger">*</span>
-                </Label>
-                <Input
-                  type="select"
-                  name="center"
-                  id="center"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.center || ""}
-                  invalid={
-                    validation.touched.center && validation.errors.center
-                      ? true
-                      : false
-                  }
-                  disabled={!!editData}
-                  className="form-control"
-                >
-                  <option value="" disabled hidden>
-                    Choose here
-                  </option>
-                  {(centers || []).map((option, idx) => (
-                    <option key={idx} value={option._id}>
-                      {option.title}
+          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+            <Row
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem",
+                marginBottom: "2rem",
+              }}
+            >
+              <PatientId validation={validation} editData={editData} />
+                <div className="mb-3">
+                  <Label htmlFor="center" className="form-label">
+                    Center <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    type="select"
+                    name="center"
+                    id="center"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.center || ""}
+                    invalid={
+                      validation.touched.center && validation.errors.center
+                        ? true
+                        : false
+                    }
+                    disabled={!!editData}
+                    className="form-control"
+                  >
+                    <option value="" disabled hidden>
+                      Choose here
                     </option>
-                  ))}
-                </Input>
-                {validation.touched.center && validation.errors.center && (
-                  <FormFeedback type="invalid">
-                    <div>{validation.errors.center}</div>
-                  </FormFeedback>
-                )}
-              </div>
-            </Col>
-          </Row>
+                    {(centers || []).map((option, idx) => (
+                      <option key={idx} value={option._id}>
+                        {option.title}
+                      </option>
+                    ))}
+                  </Input>
+                  {validation.touched.center && validation.errors.center && (
+                    <FormFeedback type="invalid">
+                      <div>{validation.errors.center}</div>
+                    </FormFeedback>
+                  )}
+                </div>
+              <Col
+                xs={12}
+                md={4}
+                style={{
+                  minWidth: "340px",
+                  width: "100%",
+                  flex: "1 1 340px",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <Label
+                  htmlFor="referredBy"
+                  className="form-label"
+                  style={{
+                    fontWeight: "500",
+                    marginBottom: "0.5rem",
+                    color: "#374151",
+                  }}
+                >
+                  Referred By <span style={{ color: "#ef4444" }}>*</span>
+                </Label>
+
+                <Input
+                  name="referredBy"
+                  className="form-control"
+                  placeholder="Enter referred by"
+                  type="text"
+                  onChange={(e) =>
+                    handleChange
+                      ? handleChange(e, "text")
+                      : validation.handleChange(e)
+                  }
+                  onBlur={validation.handleBlur}
+                  value={validation.values["referredBy"] || ""}
+                  invalid={
+                    validation.touched["referredBy"] &&
+                    validation.errors["referredBy"]
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.375rem",
+                    fontSize: "1rem",
+                    textTransform: "capitalize",
+                  }}
+                />
+
+                {validation.touched["referredBy"] &&
+                  validation.errors["referredBy"] && (
+                    <FormFeedback type="invalid" className="d-block">
+                      {validation.errors["referredBy"]}
+                    </FormFeedback>
+                  )}
+              </Col>
+            </Row>
+          </Col>
 
           {/* Main Form Fields */}
           <Col xs={12}>
@@ -401,8 +453,6 @@ const AddPatient = ({
                 marginBottom: "2rem",
               }}
             >
-              {" "}
-              {/* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mb-8 */}
               <FormField
                 fields={fields}
                 validation={validation}

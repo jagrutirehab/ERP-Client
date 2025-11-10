@@ -664,6 +664,54 @@ const dischargeSummaryFields = [
 
 let addPatientFields = [
   {
+    label: "Name",
+    name: "name",
+    type: "text",
+  },
+  {
+    label: "Gender",
+    name: "gender",
+    type: "radio",
+    options: ["MALE", "FEMALE", "OTHERS"],
+  },
+  {
+    label: "Date of Birth",
+    name: "dateOfBirth",
+    type: "date",
+  },
+  {
+    label: "Marital Status",
+    name: "maritalstatus",
+    type: "radio",
+    options: ["MARRIED", "UNMARRID", "SEPRATED"],
+  },
+  {
+    label: "Religion",
+    name: "religion",
+    type: "text",
+  },
+  {
+    label: "Socio Economic Status",
+    name: "socioeconomicstatus",
+    type: "text",
+  },
+  {
+    label: "Address",
+    name: "address",
+    type: "textarea",
+  },
+  {
+    label: "Area Type",
+    name: "areatype",
+    type: "radio",
+    options: ["Rural", "Urban", "City"],
+  },
+  {
+    label: "Phone Number",
+    name: "phoneNumber",
+    type: "number",
+  },
+  {
     label: "Aadhaar Card Number",
     name: "aadhaarCardNumber",
     type: "text",
@@ -675,52 +723,17 @@ let addPatientFields = [
     accept: "image/*",
   },
   {
-    label: "Name",
-    name: "name",
-    type: "text",
-  },
-  {
-    label: "Phone Number",
-    name: "phoneNumber",
-    type: "number",
-  },
-  {
     label: "Email",
     name: "email",
     type: "email",
-  },
-  {
-    label: "Date of Birth",
-    name: "dateOfBirth",
-    type: "date",
-  },
-  {
-    label: "Gender",
-    name: "gender",
-    type: "radio",
-    options: ["MALE", "FEMALE", "OTHERS"],
-  },
-  {
-    label: "Address",
-    name: "address",
-    type: "text",
   },
   {
     label: "Age",
     name: "age",
     type: "text",
   },
-  {
-    label: "Religion",
-    name: "religion",
-    type: "text",
-  },
-  {
-    label: "Marital Status",
-    name: "maritalstatus",
-    type: "radio",
-    options: ["MARRIED", "UNMARRID"],
-  },
+  
+  
   // {
   //   label: "Provisional Diagnosis",
   //   name: "provisionalDiagnosis",
@@ -762,18 +775,18 @@ const patientGuradianFields = [
   //   name: "dateOfAddmission",
   //   type: "date",
   // },
-  {
-    label: "Referred By",
-    name: "referredBy",
-    type: "text",
-    required: true,
-  },
-  {
-    label: "IPD File Number",
-    name: "ipdFileNumber",
-    type: "text",
-    required: false,
-  },
+  // {
+  //   label: "Referred By",
+  //   name: "referredBy",
+  //   type: "text",
+  //   required: true,
+  // },
+  // {
+  //   label: "IPD File Number",
+  //   name: "ipdFileNumber",
+  //   type: "text",
+  //   required: false,
+  // },
 ];
 
 //PATIENT TYPES
