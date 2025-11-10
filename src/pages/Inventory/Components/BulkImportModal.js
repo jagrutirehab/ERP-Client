@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, ModalHeader, ModalBody, Progress } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, Progress, Card, CardBody, CardTitle, ListGroup, ListGroupItem } from "reactstrap";
 import { Button } from "../Components/Button";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Typeloader from "./Loader";
 import { parseExcelSerialDate } from "../../../Components/Common/ParseExcelSerialDate";
+import { nanoid } from "nanoid";
+import { useSelector } from "react-redux";
+import { downloadFailedMedicines } from "../../../helpers/backend_helper";
 
 const dbFields = [
   "code",
@@ -58,6 +61,7 @@ const headerToDbMap = {
 
 const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [uploadedData, setUploadedData] = useState([]);
+  const { centerAccess } = useSelector((state) => state.User);
   // const [headerRowIndex, setHeaderRowIndex] = useState(0);
 
   // const emptyMapping = () =>
@@ -78,9 +82,15 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [failedChunks, setFailedChunks] = useState([]);
   const [uploadDone, setUploadDone] = useState(false);
   const [skippedCountTotal, setSkippedCountTotal] = useState(0);
+  const [noExisitInCentralMedicineCount, setNoExistingCentralMedicineCount] = useState(0);
+  const [medicineUpdatedCount, setMedicineUpdatedCount] = useState(0);
+  const [noChangeInMedicineCount, setNoChangeInMedicineCount] = useState(0);
+  const [batchId, setBatchId] = useState(nanoid());
 
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
+
+
 
   const containerRef = useRef(null);
   // const svgRef = useRef(null);
@@ -92,6 +102,9 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const skippedRef = useRef(0);
   const totalItemsRef = useRef(0);
   const chunksTotalRef = useRef(0);
+  const noExisitInCentralMedicineRef = useRef(0);
+  const medicineUpdatedRef = useRef(0);
+  const noChangeInMedicineRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,17 +116,23 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setUploadProgress(0);
       setUploadedCount(0);
       setTotalCount(0);
+      setNoExistingCentralMedicineCount(0);
       setCurrentChunkIndex(0);
       setTotalChunks(0);
       setFailedChunks([]);
       setUploadDone(false);
       setSkippedCountTotal(0);
+      setMedicineUpdatedCount(0);
+      setNoChangeInMedicineCount(0);
       setSelectedCenters([]);
       setCenterDropdownOpen(false);
       uploadedRef.current = 0;
       skippedRef.current = 0;
       totalItemsRef.current = 0;
       chunksTotalRef.current = 0;
+      noExisitInCentralMedicineRef.current = 0;
+      medicineUpdatedRef.current = 0;
+      noChangeInMedicineRef.current = 0;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user]);
@@ -158,10 +177,16 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setUploadedCount(0);
       setFailedChunks([]);
       setSkippedCountTotal(0);
+      setNoExistingCentralMedicineCount(0);
+      setMedicineUpdatedCount(0);
+      setNoChangeInMedicineCount(0);
       uploadedRef.current = 0;
       skippedRef.current = 0;
       totalItemsRef.current = 0;
       chunksTotalRef.current = 0;
+      noExisitInCentralMedicineRef.current = 0;
+      medicineUpdatedRef.current = 0;
+      noChangeInMedicineRef.current = 0;
     };
     reader.readAsArrayBuffer(file);
   };
@@ -258,7 +283,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     while (attempt < maxAttempts) {
       attempt++;
       try {
-        const resp = await axios.post(endpoint, chunkData, {
+        const resp = await axios.post(endpoint, { medicines: chunkData, batchId }, {
           headers: { "Content-Type": "application/json" },
           timeout: 0,
           onUploadProgress: (progressEvent) => {
@@ -279,13 +304,19 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           },
         });
 
-        const data = resp.data || {};
+        console.log("resp", resp);
+
+        const data = resp || {};
+        console.log(data)
         const inserted = Number(data.insertedCount ?? data.count ?? 0);
         const skipped =
           Number(
             data.skippedCount ?? Math.max(0, chunkData.length - inserted)
           ) || 0;
-        return { success: true, inserted, skipped };
+        const noExisitInCentralMedicine = Number(data.noExisitInCentralMedicine ?? 0);
+        const noChangeMedicine = Number(data.noChangeCount) ?? 0;
+        const updatedMedicine = Number(data.updatedCount) ?? 0;
+        return { success: true, inserted, skipped, noExisitInCentralMedicine, noChangeMedicine, updatedMedicine };
       } catch (err) {
         toast.warn(`Chunk ${chunkIndex} attempt ${attempt} failed`);
         if (attempt >= maxAttempts) {
@@ -311,11 +342,17 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     uploadedRef.current = 0;
     skippedRef.current = 0;
     totalItemsRef.current = totalItemsLocal;
+    noExisitInCentralMedicineRef.current = 0;
+    medicineUpdatedRef.current = 0;
+    noChangeInMedicineRef.current = 0;
     setUploading(true);
     setUploadProgress(0);
     setUploadedCount(0);
     setTotalCount(totalItemsLocal);
     setFailedChunks([]);
+    setNoExistingCentralMedicineCount(0);
+    setMedicineUpdatedCount(0);
+    setNoChangeInMedicineCount(0);
     setUploadDone(false);
     setSkippedCountTotal(0);
 
@@ -356,19 +393,30 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           const inserted = result.inserted ?? 0;
           const skipped =
             result.skipped ?? Math.max(0, chunk.length - inserted);
+          const noExisitInCentralMedicine = result.noExisitInCentralMedicine ?? 0;
+          const medicineUpdated = result.updatedMedicine ?? 0;
+          const noChangeInMedicine = result.noChangeMedicine ?? 0;
 
           // update refs (synchronous) and then update visible state
           uploadedRef.current += inserted;
           skippedRef.current += skipped;
+          noExisitInCentralMedicineRef.current += noExisitInCentralMedicine;
+          medicineUpdatedRef.current += medicineUpdated;
+          noChangeInMedicineRef.current += noChangeInMedicine;
+
 
           setUploadedCount(uploadedRef.current);
           setSkippedCountTotal(skippedRef.current);
+          setNoExistingCentralMedicineCount(noExisitInCentralMedicineRef.current);
+          setMedicineUpdatedCount(medicineUpdatedRef.current);
+          setNoChangeInMedicineCount(noChangeInMedicineRef.current);
           const processed = uploadedRef.current + skippedRef.current;
           let pct = Math.round(
             (processed / Math.max(1, totalItemsLocal)) * 100
           );
           pct = Math.max(0, Math.min(100, pct));
           setUploadProgress(pct);
+
 
           if (inserted < chunk.length) {
             // toast.info(
@@ -383,14 +431,16 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setUploadProgress(100);
       setUploadDone(failedChunks.length === 0);
 
+
+
       const finalInserted = uploadedRef.current;
       const finalSkipped = skippedRef.current;
       if (failedChunks.length === 0) {
         toast.success(
           `Import finished: ${finalSkipped}`
         );
-        onImport(mappedData); // Call onImport to notify parent
-        toggle();
+        // onImport(mappedData); // Call onImport to notify parent
+        // toggle();
       } else {
         toast.warn(
           `Import finished with ${failedChunks.length} failed chunk(s). Inserted: ${finalInserted}, skipped: ${finalSkipped}`
@@ -429,11 +479,23 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           const inserted = result.inserted ?? 0;
           const skipped =
             result.skipped ?? Math.max(0, item.data.length - inserted);
+          const noExisitInCentralMedicine = result.noExisitInCentralMedicine ?? 0;
+          const medicineUpdated = result.updatedCount ?? 0;
+          const noChangeInMedicine = result.noChangeCount ?? 0;
 
           uploadedRef.current += inserted;
           skippedRef.current += skipped;
+          noExisitInCentralMedicineRef.current += noExisitInCentralMedicine;
+          medicineUpdatedRef.current += medicineUpdated;
+          noChangeInMedicineRef.current += noChangeInMedicine;
+
           setUploadedCount(uploadedRef.current);
           setSkippedCountTotal(skippedRef.current);
+          setNoExistingCentralMedicineCount(noExisitInCentralMedicineRef.current);
+          setMedicineUpdatedCount(medicineUpdatedRef.current);
+          setNoChangeInMedicineCount(noExisitInCentralMedicineRef.current);
+
+
 
           const processed = uploadedRef.current + skippedRef.current;
           let pct = Math.round((processed / Math.max(1, totalCount)) * 100);
@@ -456,6 +518,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       window.removeEventListener("beforeunload", beforeUnload);
     }
   };
+
+
+  useEffect(() => {
+    if (isOpen) setBatchId(nanoid());
+  }, [isOpen]);
 
   // Draw mapping lines (unchanged)
   // const drawLines = () => {
@@ -547,6 +614,47 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     setSelectedCenters((prev) => prev.filter((id) => id !== String(centerId)));
   };
 
+  const handleFailedMedicinesDownload = async () => {
+    try {
+      const res = await downloadFailedMedicines({
+        batchId,
+        centers: centerAccess,
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const formattedDate = new Date().toISOString().split("T")[0];
+      link.download = `Failed_Medicines_${formattedDate}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      onImport?.();
+      setUploadDone(false);
+      setUploadedData([]);
+      toggle();
+    } catch (error) {
+      onImport?.();
+      setUploadedData([]);
+      setUploadDone(false);
+      toggle();
+      toast.error("Failed to download failed medicines file.");
+      console.error("Download error:", error);
+    }
+  };
+
+
+
+
   return (
     <Modal
       isOpen={isOpen}
@@ -554,175 +662,180 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       size="xl"
       backdrop="static"
     >
-      <ModalHeader toggle={() => !uploading && toggle()}>
-        Bulk Import Medicines
+      <ModalHeader {...(!uploadDone && { toggle: () => !uploading && toggle() })}>
+        {uploadDone ? "Bulk Import Summary" : "Bulk Import Medicines"}
       </ModalHeader>
       <ModalBody>
         {/* Custom Multi-select Centers */}
-        <div className="mb-3" ref={containerRef}>
-          <label
-            htmlFor="centersMultiCustom"
-            style={{
-              marginBottom: "8px",
-              fontWeight: "600",
-              fontSize: "14px",
-              color: "#4a5568",
-              display: "block",
-            }}
-          >
-            Select Centers (click to open)
-          </label>
 
-          <div
-            id="centersMultiCustom"
-            style={{
-              border: "1px solid #e2e8f0",
-              borderRadius: 8,
-              padding: "8px 10px",
-              minHeight: 44,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "wrap",
-              backgroundColor: uploading ? "#f8f9fa" : "white",
-              cursor: uploading ? "not-allowed" : "pointer",
-            }}
-            onClick={() => {
-              if (!uploading) setCenterDropdownOpen((s) => !s);
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                if (!uploading) setCenterDropdownOpen((s) => !s);
-              }
-            }}
-          >
-            {selectedCenters.length === 0 && (
-              <div style={{ color: "#6c757d" }}>No centers selected</div>
-            )}
-            {selectedCenters.map((id) => {
-              const c = allCenters.find((x) => String(x?._id) === String(id));
-              return (
-                <div
-                  key={id}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "6px 10px",
-                    backgroundColor: "#e9f2ff",
-                    border: "1px solid #d0e6ff",
-                    borderRadius: 999,
-                    fontSize: 13,
-                  }}
-                >
-                  <span>{c?.title ?? id}</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveCenter(id);
-                    }}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      padding: 0,
-                      margin: 0,
-                      lineHeight: 1,
-                      fontWeight: 700,
-                    }}
-                    aria-label={`Remove ${c?.title ?? id}`}
-                    disabled={uploading}
-                  >
-                    ×
-                  </button>
-                </div>
-              );
-            })}
-
-            <div style={{ marginLeft: "auto", paddingLeft: 8 }}>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+        {!uploadDone && (
+          <>
+            <div className="mb-3" ref={containerRef}>
+              <label
+                htmlFor="centersMultiCustom"
                 style={{
-                  transform: centerDropdownOpen ? "rotate(180deg)" : "none",
+                  marginBottom: "8px",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#4a5568",
+                  display: "block",
                 }}
               >
-                <path
-                  d="M6 9l6 6 6-6"
-                  fill="none"
-                  stroke="#495057"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </div>
+                Select Centers (click to open)
+              </label>
 
-          {centerDropdownOpen && !uploading && (
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 8,
-                marginTop: 8,
-                maxHeight: 220,
-                overflow: "auto",
-                background: "white",
-                boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                zIndex: 9999,
-                position: "relative",
-              }}
-            >
-              {availableCenters.length === 0 ? (
-                <div style={{ padding: 12, color: "#6c757d" }}>
-                  No more centers
-                </div>
-              ) : (
-                availableCenters.map((c) => (
-                  <div
-                    key={c?._id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddCenter(c?._id);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCenter(c?._id);
-                      }
-                    }}
+              <div
+                id="centersMultiCustom"
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  minHeight: 44,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  backgroundColor: uploading ? "#f8f9fa" : "white",
+                  cursor: uploading ? "not-allowed" : "pointer",
+                }}
+                onClick={() => {
+                  if (!uploading) setCenterDropdownOpen((s) => !s);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (!uploading) setCenterDropdownOpen((s) => !s);
+                  }
+                }}
+              >
+                {selectedCenters.length === 0 && (
+                  <div style={{ color: "#6c757d" }}>No centers selected</div>
+                )}
+                {selectedCenters.map((id) => {
+                  const c = allCenters.find((x) => String(x?._id) === String(id));
+                  return (
+                    <div
+                      key={id}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "6px 10px",
+                        backgroundColor: "#e9f2ff",
+                        border: "1px solid #d0e6ff",
+                        borderRadius: 999,
+                        fontSize: 13,
+                      }}
+                    >
+                      <span>{c?.title ?? id}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveCenter(id);
+                        }}
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          padding: 0,
+                          margin: 0,
+                          lineHeight: 1,
+                          fontWeight: 700,
+                        }}
+                        aria-label={`Remove ${c?.title ?? id}`}
+                        disabled={uploading}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+
+                <div style={{ marginLeft: "auto", paddingLeft: 8 }}>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                     style={{
-                      padding: "10px 12px",
-                      borderBottom: "1px solid #f1f3f5",
-                      cursor: "pointer",
+                      transform: centerDropdownOpen ? "rotate(180deg)" : "none",
                     }}
                   >
-                    {c?.title}
-                  </div>
-                ))
+                    <path
+                      d="M6 9l6 6 6-6"
+                      fill="none"
+                      stroke="#495057"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {centerDropdownOpen && !uploading && (
+                <div
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 8,
+                    marginTop: 8,
+                    maxHeight: 220,
+                    overflow: "auto",
+                    background: "white",
+                    boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+                    zIndex: 9999,
+                    position: "relative",
+                  }}
+                >
+                  {availableCenters.length === 0 ? (
+                    <div style={{ padding: 12, color: "#6c757d" }}>
+                      No more centers
+                    </div>
+                  ) : (
+                    availableCenters.map((c) => (
+                      <div
+                        key={c?._id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddCenter(c?._id);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCenter(c?._id);
+                          }
+                        }}
+                        style={{
+                          padding: "10px 12px",
+                          borderBottom: "1px solid #f1f3f5",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {c?.title}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* File selector */}
-        <div className="mb-3">
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileUpload}
-            className="form-control"
-            disabled={uploading}
-          />
-        </div>
+            {/* File selector */}
+            <div className="mb-3">
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileUpload}
+                className="form-control"
+                disabled={uploading}
+              />
+            </div>
+          </>
+        )}
 
         {/* Header row selector */}
         {/* {uploadedData.length > 0 && (
@@ -901,7 +1014,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           </div>
         )} */}
 
-        {uploadedData.length > 0 && (
+        {uploadedData.length > 0 && !uploadDone && (
           <div className="mt-3">
             <h5>Data Preview (Top {Math.min(uploadedData.length, 10)} rows)</h5>
             <div className="table-responsive">
@@ -991,10 +1104,75 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         )}
 
         {!uploading && uploadDone && (
-          <div className="alert alert-success text-center fw-bold">
-            ✅ Upload completed
-          </div>
+          <>
+            <ListGroup flush className="text-start rounded-3 overflow-hidden border">
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">Total</span>
+                <span className="fw-bold text-primary fs-6">{totalCount}</span>
+              </ListGroupItem>
+
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">New Medicines Added</span>
+                <span className="fw-bold text-success fs-6">{uploadedCount}</span>
+              </ListGroupItem>
+
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">Medicines Updated</span>
+                <span className="fw-bold text-info fs-6">{medicineUpdatedCount}</span>
+              </ListGroupItem>
+
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">No Changes</span>
+                <span className="fw-bold text-secondary fs-6">{noChangeInMedicineCount}</span>
+              </ListGroupItem>
+
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">Skipped as Not in Central Medicine</span>
+                <span className="fw-bold text-danger fs-6">{noExisitInCentralMedicineCount}</span>
+              </ListGroupItem>
+
+              <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
+                <span className="fw-semibold text-muted">Total Skipped</span>
+                <span className="fw-bold text-warning fs-6">{skippedCountTotal}</span>
+              </ListGroupItem>
+            </ListGroup>
+
+            {skippedCountTotal > 0 && (
+              <div className="p-3 bg-light rounded border">
+                <p className="mb-3 text-muted" style={{ fontSize: "14px" }}>
+                  Please download the list of failed medicines below. This file contains all entries
+                  that couldn’t be imported successfully, so you can review and correct them later.
+                </p>
+
+                <button
+                  type="button"
+                  className="btn btn-primary px-4 fw-semibold text-white"
+                  onClick={handleFailedMedicinesDownload}
+                >
+                  Download Failed Medicines
+                </button>
+              </div>
+            )}
+
+
+            <div className="d-flex justify-content-end mt-4">
+              <Button
+                variant="outline"
+                className="px-4 fw-semibold"
+                onClick={() => {
+                  onImport?.();
+                  setUploadDone(false);
+                  setUploadedData([]);
+                  toggle();
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          </>
         )}
+
+
 
         {!uploading && failedChunks.length > 0 && (
           <div className="alert alert-danger">
@@ -1016,34 +1194,32 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         )}
 
         <div className="d-flex justify-content-end mt-3" style={{ gap: 8 }}>
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (!uploading) {
-                setUploadedData([]);
-                // setColumnMapping(emptyMapping());
-                // setHeaderRowIndex(0);
-                setUploadDone(false);
-                toggle();
-              }
-            }}
-            disabled={uploading}
-          >
-            Close
-          </Button>
+          {!uploadDone ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!uploading) {
+                    setUploadedData([]);
+                    setUploadDone(false);
+                    toggle();
+                  }
+                }}
+                disabled={uploading}
+              >
+                Close
+              </Button>
 
-          <Button
-            onClick={() => handleImport({ chunkSize: 50 })}
-            disabled={
-              uploading || uploadedData.length === 0
-              // !Object.values(columnMapping).some(
-              //   (v) => v !== "" && v !== undefined
-              // )
-            }
-          >
-            {uploading ? "Uploading..." : "Import Data"}
-          </Button>
+              <Button
+                onClick={() => handleImport({ chunkSize: 50 })}
+                disabled={uploading || uploadedData.length === 0}
+              >
+                {uploading ? "Uploading..." : "Import Data"}
+              </Button>
+            </>
+          ) : null}
         </div>
+
       </ModalBody>
     </Modal>
   );
