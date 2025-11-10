@@ -63,7 +63,7 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
-        {data?.referredby && (
+        {/* {data?.referredby && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
               Referred By:
@@ -72,7 +72,7 @@ const DetailHistory = ({ data, styles }) => {
               {data?.referredby || ""}
             </Text>
           </View>
-        )}
+        )} */}
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
