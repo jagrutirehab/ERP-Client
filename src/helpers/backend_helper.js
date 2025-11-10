@@ -1225,3 +1225,43 @@ export const updateIncidentStatus = (id, data) =>
   api.update(`${url.UPDATE_INCIDENT_STATUS}/${id}/status`, data, {
     headers: { "Content-Type": "application/json" },
   });
+
+export const downloadFailedMedicines = ({ batchId, centers } = {}) => {
+  return api.get(`${url.DOWNLOAD_FAILED_MEDICINES}`, {
+    params: {
+      batchId,
+      centers
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+    responseType: "blob"
+  });
+}
+
+export const getFailedMedicinesBatches = (params = {}) => {
+  return api.get(url.GET_FAILED_MEDICINES_BATCHES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+}
+
+export const deleteFailedMedicinesByBatch = (params = {}) => {
+  return api.delete(url.DELETE_FAILED_MEDICINES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
