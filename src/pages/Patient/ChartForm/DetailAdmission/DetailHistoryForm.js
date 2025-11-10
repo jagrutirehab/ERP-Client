@@ -9,11 +9,11 @@ const fields = [
     name: "counsellor",
     type: "text",
   },
-  {
-    label: "Referred by",
-    name: "referredby",
-    type: "text",
-  },
+  // {
+  //   label: "Referred by",
+  //   name: "referredby",
+  //   type: "text",
+  // },
   {
     label: "History / Onset Duration & Progress",
     name: "history",

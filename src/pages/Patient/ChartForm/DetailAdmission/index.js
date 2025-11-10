@@ -176,9 +176,9 @@ const DetailAdmission = ({
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
         : patientData?.psychologistData?.name,
-      referredby: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.referredby
-        : "",
+      // referredby: detailAdmissionForm
+      //   ? detailAdmissionForm.detailHistory?.referredby
+      //   : "",
       reliable: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.reliable
         : "Reliable",
