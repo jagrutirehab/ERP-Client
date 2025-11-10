@@ -68,7 +68,7 @@ export const fetchMedicines = createAsyncThunk(
   "medicine/fetchMedicines",
   async ({ page = 1, limit = 10, search = "" }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await getMedicines({ page, limit, search});
+      const response = await getMedicines({ page, limit, search });
       return response;
     } catch (error) {
       const message = error?.response?.data?.message || "Something went wrong";
@@ -157,11 +157,13 @@ const medicineSlice = createSlice({
 
         const medicines = action.payload?.payload || []; // medicine array
         const totalCount = action.payload?.pagination?.total || 0;
+        const totalPages = action.payload?.pagination?.totalPages || 1;
 
         localStorage.setItem("medicines", JSON.stringify(medicines));
 
         state.data = medicines;
         state.totalCount = totalCount;
+        state.totalPages = totalPages;
       })
       .addCase(fetchMedicines.rejected, (state) => {
         state.loading = false;
