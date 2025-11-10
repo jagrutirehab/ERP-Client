@@ -63,7 +63,7 @@ ChartJS.register(
 const InventoryManagement = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
-  const { loading: centralMedicineLoading, data: centralMedicines } = useSelector((state) => state.Medicine);
+  const { loading: centralMedicineLoading, data: centralMedicines, totalPages: centralMedicineTotalPages, totalCount: centralMedicineTotalCount } = useSelector((state) => state.Medicine);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
@@ -284,9 +284,15 @@ const InventoryManagement = () => {
 
   const goToPage = (page) => {
     if (page === "..." || page === currentPage) return;
-    const target = Math.max(1, Math.min(totalPages, page));
+
+    const maxPages = showCentralMedicine
+      ? centralMedicineTotalPages || 1
+      : totalPages || 1;
+
+    const target = Math.max(1, Math.min(maxPages, page));
     setCurrentPage(target);
   };
+
 
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
@@ -439,6 +445,7 @@ const InventoryManagement = () => {
                       "Medicine Name",
                       "Strength",
                       "Centre",
+                      "Centre Wise Stock",
                       "Unit",
                       "Stock",
                       "Cost Price",
@@ -485,9 +492,16 @@ const InventoryManagement = () => {
                         med?.code || "-",
                         med?.medicineName || "-",
                         med?.Strength || "-",
-                        med?.centers
+                        med?.centersMatched && med.centersMatched.length > 0
+                          ? med.centersMatched.map((c) => c?.centerId?.title).join(", ")
+                          : "-",
+                        med?.centersMatched && med.centersMatched.length > 0
                           ? med.centersMatched
-                            .map((c) => c?.centerId?.title)
+                            .map(
+                              (c) =>
+                                `${c?.centerId?.title ?? "Unknown"}: ${c?.stock ?? 0
+                                }`
+                            )
                             .join(", ")
                           : "-",
                         med?.unitType || med?.unit || "-",
@@ -1043,18 +1057,29 @@ const InventoryManagement = () => {
             )}
             <div className="d-flex justify-content-between align-items-center">
               <div className="small text-muted">
-                Showing{" "}
-                {totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{" "}
-                {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
-                entries
+                {showCentralMedicine ? (
+                  <>
+                    Showing{" "}
+                    {centralMedicineTotalCount === 0
+                      ? 0
+                      : (currentPage - 1) * pageSize + 1}{" "}
+                    to{" "}
+                    {Math.min(currentPage * pageSize, centralMedicineTotalCount)} of{" "}
+                    {centralMedicineTotalCount} entries
+                  </>
+                ) : (
+                  <>
+                    Showing{" "}
+                    {totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{" "}
+                    {Math.min(currentPage * pageSize, totalItems)} of {totalItems} entries
+                  </>
+                )}
               </div>
 
               <nav>
                 <ul className="pagination mb-0">
-                  <li
-                    className={`page-item ${currentPage === 1 ? "disabled" : ""
-                      }`}
-                  >
+                  {/* Previous Button */}
+                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
                     <button
                       className="page-link"
                       onClick={() => goToPage(Math.max(1, currentPage - 1))}
@@ -1064,7 +1089,12 @@ const InventoryManagement = () => {
                     </button>
                   </li>
 
-                  {getPageRange(totalPages, currentPage, 7).map((p, idx) => (
+                  {/* Page Numbers */}
+                  {getPageRange(
+                    showCentralMedicine ? centralMedicineTotalPages : totalPages,
+                    currentPage,
+                    7
+                  ).map((p, idx) => (
                     <li
                       key={`${p}-${idx}`}
                       className={`page-item ${p === currentPage ? "active" : ""
@@ -1073,26 +1103,35 @@ const InventoryManagement = () => {
                       {p === "..." ? (
                         <span className="page-link">...</span>
                       ) : (
-                        <button
-                          className="page-link"
-                          onClick={() => goToPage(p)}
-                        >
+                        <button className="page-link" onClick={() => goToPage(p)}>
                           {p}
                         </button>
                       )}
                     </li>
                   ))}
 
+                  {/* Next Button */}
                   <li
-                    className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                    className={`page-item ${currentPage ===
+                      (showCentralMedicine ? centralMedicineTotalPages : totalPages)
+                      ? "disabled"
+                      : ""
                       }`}
                   >
                     <button
                       className="page-link"
                       onClick={() =>
-                        goToPage(Math.min(totalPages, currentPage + 1))
+                        goToPage(
+                          Math.min(
+                            showCentralMedicine ? centralMedicineTotalPages : totalPages,
+                            currentPage + 1
+                          )
+                        )
                       }
-                      disabled={currentPage === totalPages}
+                      disabled={
+                        currentPage ===
+                        (showCentralMedicine ? centralMedicineTotalPages : totalPages)
+                      }
                     >
                       Next
                     </button>
@@ -1100,6 +1139,7 @@ const InventoryManagement = () => {
                 </ul>
               </nav>
             </div>
+
           </>
         )}
 
