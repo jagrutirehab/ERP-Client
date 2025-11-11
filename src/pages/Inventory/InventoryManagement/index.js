@@ -370,7 +370,7 @@ const InventoryManagement = () => {
               ""
             )}
             {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
-              <Button onClick={handleViewChange}>{showCentralMedicine ? "Back to Inventory" : "Central Medicine"}</Button>
+              <Button onClick={handleViewChange}>{showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}</Button>
             ) : (
               ""
             )}

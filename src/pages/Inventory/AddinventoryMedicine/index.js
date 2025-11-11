@@ -281,9 +281,9 @@ const AddinventoryMedicine = ({
 
       {!medicineValid ? (
         <div style={{ textAlign: "center", padding: "40px 0" }}>
-          <h3 style={{ color: "#e53e3e" }}>This medicine no longer exists in the central Medicine list.</h3>
+          <h3 style={{ color: "#e53e3e" }}>This medicine no longer exists in the master medicine list.</h3>
           <p style={{ color: "#718096", marginTop: 10 }}>
-            You can’t edit this entry. Please add it in central medicine list first.
+            You can’t edit this entry. Please add it in master medicine list first.
           </p>
         </div>
       ) : (
