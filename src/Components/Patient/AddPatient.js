@@ -92,6 +92,8 @@ const AddPatient = ({
         : "",
       referredBy: editData ? editData.referredBy : "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
+      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
+      areatype: editData ? editData.areatype : "",
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -120,6 +122,7 @@ const AddPatient = ({
         "Please Enter Guardian Phone Number"
       ),
     }),
+
     onSubmit: (values) => {
       const formData = convertToFormDataPatient(values);
       if (values.aadhaarCard?.file instanceof Blob) {
@@ -153,6 +156,17 @@ const AddPatient = ({
       }
     },
   });
+
+  useEffect(() => {
+    if (validation.values.dateOfBirth) {
+      const dob = new Date(validation.values.dateOfBirth);
+      const today = new Date();
+      const age = Math.floor((today - dob) / (1000 * 60 * 60 * 24 * 365.25));
+      validation.setFieldValue("age", age);
+    } else {
+      validation.setFieldValue("age", "");
+    }
+  }, [validation.values.dateOfBirth]);
 
   const cancelForm = () => {
     validation.resetForm();
@@ -352,40 +366,40 @@ const AddPatient = ({
               }}
             >
               <PatientId validation={validation} editData={editData} />
-                <div className="mb-3">
-                  <Label htmlFor="center" className="form-label">
-                    Center <span className="text-danger">*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    name="center"
-                    id="center"
-                    onChange={validation.handleChange}
-                    onBlur={validation.handleBlur}
-                    value={validation.values.center || ""}
-                    invalid={
-                      validation.touched.center && validation.errors.center
-                        ? true
-                        : false
-                    }
-                    disabled={!!editData}
-                    className="form-control"
-                  >
-                    <option value="" disabled hidden>
-                      Choose here
+              <div className="mb-3">
+                <Label htmlFor="center" className="form-label">
+                  Center <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="select"
+                  name="center"
+                  id="center"
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.center || ""}
+                  invalid={
+                    validation.touched.center && validation.errors.center
+                      ? true
+                      : false
+                  }
+                  disabled={!!editData}
+                  className="form-control"
+                >
+                  <option value="" disabled hidden>
+                    Choose here
+                  </option>
+                  {(centers || []).map((option, idx) => (
+                    <option key={idx} value={option._id}>
+                      {option.title}
                     </option>
-                    {(centers || []).map((option, idx) => (
-                      <option key={idx} value={option._id}>
-                        {option.title}
-                      </option>
-                    ))}
-                  </Input>
-                  {validation.touched.center && validation.errors.center && (
-                    <FormFeedback type="invalid">
-                      <div>{validation.errors.center}</div>
-                    </FormFeedback>
-                  )}
-                </div>
+                  ))}
+                </Input>
+                {validation.touched.center && validation.errors.center && (
+                  <FormFeedback type="invalid">
+                    <div>{validation.errors.center}</div>
+                  </FormFeedback>
+                )}
+              </div>
               <Col
                 xs={12}
                 md={4}

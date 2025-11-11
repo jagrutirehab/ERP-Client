@@ -6,26 +6,38 @@ import "react-phone-number-input/style.css";
 
 const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
   return (
-    <React.Fragment>
+    <>
       {(fields || []).map((field, i) => {
-        // Make only the "address" field take a full-width row
+        // Special layout rules
         const isAddressFullWidth = field.name === "address";
+        const isHalfWidth = field.name === "maritalstatus";
+
+        // Base style logic
+        const colStyle = {
+          width: "100%",
+          marginBottom: "1.5rem",
+          flex: isAddressFullWidth
+            ? "0 0 100%"
+            : isHalfWidth
+            ? "0 0 120%"
+            : "1 1 340px",
+          flexBasis: isAddressFullWidth
+            ? "100%"
+            : isHalfWidth
+            ? "120%"
+            : "340px",
+          maxWidth: isAddressFullWidth ? "100%" : isHalfWidth ? "120%" : "100%",
+          minWidth: isAddressFullWidth
+            ? "100%"
+            : isHalfWidth
+            ? "420px"
+            : "340px",
+          gridColumn: isAddressFullWidth ? "1 / -1" : "auto",
+        };
 
         return (
-          <Col
-            key={i + field.name}
-            xs={12}
-            style={{
-              width: "100%",
-              // For address: force a full row. For others: keep responsive card-like behavior.
-              flex: isAddressFullWidth ? "0 0 100%" : "1 1 340px",
-              flexBasis: isAddressFullWidth ? "100%" : "340px",
-              maxWidth: isAddressFullWidth ? "100%" : "100%",
-              minWidth: isAddressFullWidth ? "100%" : "340px",
-              marginBottom: "1.5rem",
-              gridColumn: field.type === "textarea" ? "1 / -1" : "auto",
-            }}
-          >
+          <Col key={i + field.name} xs={12} style={colStyle}>
+            {/* Label */}
             <Label
               htmlFor={field.name}
               className="form-label"
@@ -39,6 +51,7 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
               {field.required && <span style={{ color: "#ef4444" }}>*</span>}
             </Label>
 
+            {/* RADIO FIELDS */}
             {field.type === "radio" ? (
               <>
                 <div className="d-flex flex-wrap">
@@ -137,7 +150,6 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                   )}
               </>
             ) : field.type === "textarea" ? (
-              // If you want every textarea to also be full width, change condition above to include textarea.
               <>
                 <Input
                   type="textarea"
@@ -212,7 +224,7 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
           </Col>
         );
       })}
-    </React.Fragment>
+    </>
   );
 };
 
