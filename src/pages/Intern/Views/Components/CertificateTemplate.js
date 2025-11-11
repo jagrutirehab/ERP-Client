@@ -44,11 +44,11 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
   let pronoun3 = "";
 
   if (gender === "MALE") {
-    pronoun1 = "Mr.";
+    // pronoun1 = "Mr.";
     pronoun2 = "his";
     pronoun3 = "he";
   } else if (gender === "FEMALE") {
-    pronoun1 = "Mrs.";
+    // pronoun1 = "Mrs.";
     pronoun2 = "her";
     pronoun3 = "she";
   } else {
@@ -82,8 +82,8 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
   };
 
   const getPsychologistTitle = (gender) => {
-    if (gender === "MALE") return "Mr.";
-    if (gender === "FEMALE") return "Mrs.";
+    // if (gender === "MALE") return "Mr.";
+    // if (gender === "FEMALE") return "Mrs.";
     return "";
   };
 
@@ -128,6 +128,8 @@ const CertificateTemplate = ({ intern = {}, type, psychologist }) => {
       ? `We wish ${intern?.name || "the intern"
       } the best of luck for future endeavors.`
       : `We wish ${pronoun2} the best of luck for ${pronoun2} future endeavors.`;
+
+  console.log({ nameWithPronoun });
 
   return (
     <div style={styles.page}>

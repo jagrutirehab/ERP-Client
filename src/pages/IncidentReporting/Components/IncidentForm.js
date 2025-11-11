@@ -363,21 +363,30 @@ const IncidentForm = ({ incident, onClose }) => {
   };
 
   // console.log(raiseForm.values);
+  console.log({ currentIncident });
 
   return (
     <Card>
       <CardBody>
-        {currentIncident && (
+        {currentIncident.title && (
           <div className="mb-3 d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-0">{currentIncident.title}</h5>
-              <small className="text-muted">
-                Created:{" "}
-                {new Date(currentIncident.createdAt).toLocaleDateString()}
-              </small>
+              {currentIncident ? (
+                <>
+                  <h5 className="mb-0">{currentIncident.title}</h5>
+                  <small className="text-muted">
+                    Created:{" "}
+                    {new Date(currentIncident.createdAt).toLocaleDateString()}
+                  </small>
+                </>
+              ) : (
+                <></>
+              )}
             </div>
             <div className="d-flex align-items-center gap-2">
-              {getStatusBadge(currentIncident.status)}
+              {currentIncident.status && currentIncident.title
+                ? getStatusBadge(currentIncident.status)
+                : ""}
               <RenderWhen isTrue={hasIncidentInvestigatePermission}>
                 {currentIncident._id && currentIncident.status === "Raised" && (
                   <Button
