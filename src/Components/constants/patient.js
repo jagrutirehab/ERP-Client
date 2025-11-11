@@ -704,7 +704,7 @@ let addPatientFields = [
     label: "Area Type",
     name: "areatype",
     type: "radio",
-    options: ["Rural", "Urban", "City"],
+    options: ["RURAL", "CITY"],
   },
   {
     label: "Phone Number",
