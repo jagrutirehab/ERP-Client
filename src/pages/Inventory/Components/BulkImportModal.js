@@ -1127,7 +1127,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
               </ListGroupItem>
 
               <ListGroupItem className="d-flex justify-content-between align-items-center py-3 bg-white">
-                <span className="fw-semibold text-muted">Skipped as Not in Central Medicine</span>
+                <span className="fw-semibold text-muted">Skipped as Not in Master Medicine List</span>
                 <span className="fw-bold text-danger fs-6">{noExisitInCentralMedicineCount}</span>
               </ListGroupItem>
 
