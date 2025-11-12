@@ -106,9 +106,9 @@ export const fetchBookingAnalytics = createAsyncThunk(
 
 export const fetchCenterBedsAnalytics = createAsyncThunk(
   "getCenterBedsAnalytics",
-  async (_, { rejectWithValue, dispatch }) => {
+  async (data, { rejectWithValue, dispatch }) => {
     try {
-      const response = await getCenterBedsAnalyticsApi();
+      const response = await getCenterBedsAnalyticsApi(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
