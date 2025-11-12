@@ -392,6 +392,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                         className="form-control"
                         placeholder={`Enter ${getFieldLabel(field)}`}
                         type="number"
+                        min={0}
                         onChange={validation.handleChange}
                         onBlur={validation.handleBlur}
                         value={validation.values[field] || ""}
