@@ -213,6 +213,9 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                         {center.branchName || ""}
                       </p>
                       <p className="mb-0 text-muted">{center.numbers || ""}</p>
+                      <p className="mb-0 text-muted">
+                        {center.numberOfBeds || ""}
+                      </p>
                     </CardBody>
                     <div className="card-footer text-center bg-white">
                       <ul className="list-inline mb-0">
