@@ -31,6 +31,7 @@ export const POST_CENTER = "/center";
 export const GET_CENTERS = "/center";
 export const GET_DELETED_CENTERS = "/center/deleted";
 export const GET_ALL_CENTERS = "/center/all";
+export const GET_CENTER_BEDS_ANALYTICS = "/center/beds";
 export const EDIT_CENTER = "/center";
 export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";
@@ -345,8 +346,8 @@ export const CLOSE_INCIDENT = "/incident";
 export const UPDATE_INCIDENT_STATUS = "/incident";
 
 // PHARMACY FAILED MEDICINES DOWNLOAD
-export const DOWNLOAD_FAILED_MEDICINES="/pharmacy/failed/download";
+export const DOWNLOAD_FAILED_MEDICINES = "/pharmacy/failed/download";
 // PHARMACY GET FAILED MEDICINES BATCHES LIST
-export const GET_FAILED_MEDICINES_BATCHES="/pharmacy/failed/list";
+export const GET_FAILED_MEDICINES_BATCHES = "/pharmacy/failed/list";
 // PHARMACY DELETE FAILED MEDICINES
-export const DELETE_FAILED_MEDICINES="/pharmacy/failed/delete";
+export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
