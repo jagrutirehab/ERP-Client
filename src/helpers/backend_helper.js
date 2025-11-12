@@ -120,8 +120,8 @@ export const getCenters = ({ centerIds, search } = {}) =>
   });
 
 export const getAllCenters = () => api.get(url.GET_ALL_CENTERS);
-export const getCenterBedsAnalytics = () =>
-  api.get(url.GET_CENTER_BEDS_ANALYTICS);
+export const getCenterBedsAnalytics = (centerAccess) =>
+  api.get(url.GET_CENTER_BEDS_ANALYTICS, { centerAccess });
 export const getDoctorsScheduleNew = (userId) =>
   api.get(`${url.GET_DOCTOR_SCHEDULE_NEW}?userId=${userId}`);
 export const createDoctorsScheduleNew = (data) =>

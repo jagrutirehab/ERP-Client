@@ -11,7 +11,7 @@ const CenterBedsAnalytics = ({ data, loading, centerAccess }) => {
 
   useEffect(() => {
     if (centerAccess && centerAccess.length) {
-      dispatch(fetchCenterBedsAnalytics());
+      dispatch(fetchCenterBedsAnalytics(centerAccess));
     }
   }, [dispatch, centerAccess]);
 
