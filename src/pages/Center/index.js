@@ -90,11 +90,17 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const changeAccess = (centerId) => {
     const checkCenter = centerAccess.includes(centerId);
     let updateAccess = [...centerAccess];
+
+    console.log({ updateAccess, checkCenter });
+
     if (checkCenter) {
       updateAccess = updateAccess.filter((id) => id !== centerId);
     } else {
       updateAccess = [centerId, ...centerAccess];
     }
+
+    console.log({ updateAccess });
+
     dispatch(changeUserAccess(updateAccess));
   };
 
@@ -143,6 +149,8 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
           <Row className="team-list grid-view-filter">
             {(centers || []).map((center, key) => {
               const checkCenter = centerAccess.includes(center._id);
+              console.log({ checkCenter, center: center.title });
+
               return (
                 <Col key={key} xl={4}>
                   <Card className="rounded-3 overflow-hidden">
