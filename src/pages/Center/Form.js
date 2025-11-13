@@ -18,6 +18,7 @@ import {
   ModalBody,
   ModalHeader,
   Row,
+  FormGroup,
 } from "reactstrap";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import Dropzone from "react-dropzone";
@@ -150,6 +151,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       state: centerData ? centerData.city?.state : "",
       localArea: centerData ? centerData.localArea : "",
       numberOfBeds: centerData ? centerData.numberOfBeds : "",
+      websiteListing: centerData ? !!centerData.websiteListing : false,
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -180,6 +182,10 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       formData.append("state", values.state);
       formData.append("localArea", values.localArea);
       formData.append("numberOfBeds", values.numberOfBeds);
+      formData.append(
+        "websiteListing",
+        values.websiteListing ? "true" : "false"
+      );
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -197,7 +203,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
   console.log({ validation });
 
   const fieldsArray = Object.keys(validation.values).filter(
-    (key) => key !== "state"
+    (key) => !["state", "websiteListing"].includes(key)
   );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
@@ -485,6 +491,30 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   </Col>
                 )
               )}
+              <Col xs={12} className="mb-3">
+                <FormGroup switch>
+                  <Input
+                    type="switch"
+                    role="switch"
+                    id="websiteListing"
+                    name="websiteListing"
+                    checked={validation.values.websiteListing}
+                    onChange={(event) =>
+                      validation.setFieldValue(
+                        "websiteListing",
+                        event.target.checked
+                      )
+                    }
+                  />
+                  <Label
+                    check
+                    className="form-check-label ms-2"
+                    htmlFor="websiteListing"
+                  >
+                    Website Listing
+                  </Label>
+                </FormGroup>
+              </Col>
               {/* 
               <Col xs={12} lg={6}>
                 <div className="mb-3">
