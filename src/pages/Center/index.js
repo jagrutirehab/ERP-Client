@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
+  Badge,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -147,7 +148,7 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                   <Card className="rounded-3 overflow-hidden">
                     <CardHeader className="bg-white p-3">
                       <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center">
+                        <div className="d-flex align-items-center gap-2">
                           <button
                             onClick={() => changeAccess(center._id)}
                             type="button"
@@ -197,6 +198,15 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </div>
+                      <Badge
+                        pill
+                        color={center.websiteListing ? "success" : "secondary"}
+                        className="mt-2"
+                      >
+                        {center.websiteListing
+                          ? "Website Listing On"
+                          : "Website Listing Off"}
+                      </Badge>
                     </CardHeader>
                     {/* <img className="img-fluid" src={img4} alt="Card cap" /> */}
                     <CardBody className="p-4 text-center">
