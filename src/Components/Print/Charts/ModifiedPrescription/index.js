@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Prescription = ({ printData, center, patient }) => {
+const Prescription = ({ printData, center, patient, admission }) => {
   return (
     <React.Fragment>
       <Document>
@@ -29,6 +29,7 @@ const Prescription = ({ printData, center, patient }) => {
             doctor={printData?.doctor}
             center={center}
             patient={patient}
+            admission={admission}
           />
           <PrescriptionBody
             printData={printData.Prescription}

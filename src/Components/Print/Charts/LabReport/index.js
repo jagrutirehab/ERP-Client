@@ -18,14 +18,19 @@ const styles = StyleSheet.create({
   },
 });
 
-const LabReport = ({ chart, center, patient }) => {
+const LabReport = ({ chart, center, patient, admission }) => {
   const reports = chart?.labReport?.reports || [];
   return (
     <React.Fragment>
       {reports.map((report, idx) => (
         <View key={idx} style={styles.page}>
           {idx === 0 && (
-            <Header patient={patient} chart={chart} center={center} />
+            <Header
+              patient={patient}
+              chart={chart}
+              center={center}
+              admission={admission || {}}
+            />
           )}
           <Body report={report} key={idx} idx={idx} />
         </View>

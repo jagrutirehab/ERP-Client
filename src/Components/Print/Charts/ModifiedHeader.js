@@ -1,8 +1,6 @@
 import React from "react";
-import { View, Text, Font, StyleSheet, Image } from "@react-pdf/renderer";
+import { View, Text, Font, StyleSheet } from "@react-pdf/renderer";
 import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
-import BrandLogo from "../../../assets/images/jagruti-logo.png";
-import DoctorLogo from "../../../assets/images/doctor-logo.jpg";
 import { differenceInYears, format } from "date-fns";
 import { safeText } from "../../../utils/safeText";
 
@@ -115,7 +113,7 @@ const styles = StyleSheet.create({
 });
 
 // const border = "1px solid #000";
-const Header = ({ chart, center, patient, doctor }) => {
+const Header = ({ chart, center, patient, doctor, admission }) => {
   const age = () =>
     patient?.dateOfBirth
       ? `${differenceInYears(new Date(), new Date(patient.dateOfBirth))} Years,`
@@ -306,6 +304,16 @@ const Header = ({ chart, center, patient, doctor }) => {
               {chart?.date && format(new Date(chart?.date), "d MMM y")}
             </Text>
           </View>
+          {admission?.Ipdnum && (
+            <View style={{ ...styles.row, ...styles.itemsCenter }}>
+              <Text style={{ ...styles.col2 }}>IPD Num:</Text>
+              <Text
+                style={{ ...styles.col9, ...styles.fontThin, ...styles.fontMd }}
+              >
+                {admission?.Ipdnum}
+              </Text>
+            </View>
+          )}
           {patient.address && (
             <View style={{ ...styles.row, ...styles.itemsCenter }}>
               <Text style={{ ...styles.col2 }}>Address:</Text>
