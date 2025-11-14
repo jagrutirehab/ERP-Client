@@ -1,72 +1,212 @@
 import { format } from "date-fns";
 import { CheckCheck, X } from "lucide-react";
-import { useState } from "react";
+import PropTypes from "prop-types";
+import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { Button, Input } from "reactstrap";
+import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "reactstrap";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
+import Select from "react-select";
+import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../../Components/HOC/CheckPermission";
 
-const MedicineApprovalSummary = () => {
-    const [data, setData] = useState([
-        {
-            patient: {
-                name: "Aarav Sharma",
-                uid: "UID2536"
-            },
-            prescriptionDate: "2025-10-14T12:30:03.307Z",
-            medicines: [
-                { name: "TAB DOLO 650 MG", totalCount: 10 },
-                { name: "SURGICAL URETHRAL CATHATER NOS", totalCount: 5 },
-                { name: "TAB PARI CR PLUS MG", totalCount: 1 },
-            ],
-        },
-        {
-            patient: {
-                name: "Riya Patel",
-                uid: "UID25456"
-            },
-            prescriptionDate: "2025-10-14T12:30:03.307Z",
-            medicines: [
-                { name: "TAB Q2 TAB MG", totalCount: 8 },
-                { name: "TAB VENTAB PLUS 10 MG", totalCount: 2 },
-            ],
-        },
-    ]);
+const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission }) => {
+    const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
+    const { medicineApprovals, loading } = useSelector((state) => state.Pharmacy);
+    const user = useSelector((state) => state.User);
+    const [updatingRowId, setUpdatingRowId] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+    const [remarkText, setRemarkText] = useState("");
+    const [actionType, setActionType] = useState("");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [tableData, setTableData] = useState([]);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const handleCountChange = (patientIndex, medIndex, value) => {
-        const updated = [...data];
-        updated[patientIndex].medicines[medIndex].totalCount = value;
-        setData(updated);
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+    const { roles } = usePermissions(token);
+
+    const centerOptions = [
+        ...(user?.centerAccess?.length > 1
+            ? [{
+                value: "ALL",
+                label: "All Centers",
+                isDisabled: false,
+            }]
+            : []
+        ),
+        ...(
+            user?.centerAccess?.map(id => {
+                const center = user?.userCenters?.find(c => c._id === id);
+                return {
+                    value: id,
+                    label: center?.title || "Unknown Center"
+                };
+            }) || []
+        )
+    ];
+
+
+    const selectedCenterOption = centerOptions.find(
+        opt => opt.value === selectedCenter
+    ) || centerOptions[0];
+
+
+
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    useEffect(() => {
+        if (activeSubTab !== "ALL" || !hasUserPermission) return;
+
+        const fetchMedicineApprovals = async () => {
+            try {
+                const centers =
+                    selectedCenter === "ALL"
+                        ? user?.centerAccess
+                        : [selectedCenter];
+
+                await dispatch(
+                    getMedicineApprovals({
+                        page,
+                        limit,
+                        type: activeTab,
+                        centers,
+                        status: "PENDING",
+                        ...search.trim() !== "" && { search: debouncedSearch }
+                    })
+                ).unwrap();
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error(error.message || "Failed to fetch medicine approvals.");
+                }
+            }
+        };
+
+        fetchMedicineApprovals();
+    }, [page, limit, activeSubTab, activeTab, selectedCenter, debouncedSearch]);
+
+    const openRemarksModal = (row, type) => {
+        setSelectedRow(row);
+        setActionType(type);
+        setRemarkText("");
+        setModalOpen(true);
     };
 
-    const handleApprove = () => {
-        toast.success("medicines approved successfully");
+
+    const handleUpdateApprovalStatus = async (status, row = null, remarksOverride = "") => {
+        try {
+
+            let payload = {};
+
+            if (row) {
+                if (status === "APPROVED") {
+                    setUpdatingRowId(`ROW-APPROVE-${row._id}`);
+                } else {
+                    setUpdatingRowId(`ROW-REJECT-${row._id}`);
+                }
+                payload.id = row._id;
+                payload.status = status;
+                payload.remarks = remarksOverride;
+
+                payload.medicines = row.medicineCounts?.map(m => ({
+                    medicineId: m.medicineId,
+                    dispensedCount: m.dispensedCount
+                }));
+            } else {
+                const centers =
+                    selectedCenter === "ALL"
+                        ? user?.centerAccess
+                        : [selectedCenter];
+
+                payload.centers = centers;
+                payload.status = status;
+                payload.id = "bulk";
+                payload.type = activeTab;
+                payload.remarks = remarksOverride;
+
+                if (status === "APPROVED") {
+                    setUpdatingRowId("BULK_APPROVE");
+                } else {
+                    setUpdatingRowId("BULK_REJECT");
+                }
+            }
+
+            await dispatch(updateApprovalStatus(payload)).unwrap();
+
+            toast.success("Updated successfully");
+            setModalOpen(false);
+            setUpdatingRowId(null);
+            setPage(1);
+        } catch (err) {
+            setUpdatingRowId(null);
+            toast.error(err.message || "Update failed");
+        }
     };
 
-    const handleReject = () => {
-        toast.success("medicines rejected successfully");
+
+    const handleDispenseChange = (approvalId, medicineId, value) => {
+        const newValue = Number(value);
+
+        setTableData(prev => {
+            return prev.map(item => {
+                if (item._id !== approvalId) return item;
+
+                return {
+                    ...item,
+                    medicineCounts: item.medicineCounts.map(med =>
+                        med.medicineId === medicineId
+                            ? { ...med, dispensedCount: newValue }
+                            : med
+                    )
+                };
+            });
+        });
     };
+
+
 
     const columns = [
         {
-            name: "Patient Name",
-            selector: (row) => row.patient.name,
+            name: <div>Patient Name</div>,
+            selector: (row) => capitalizeWords(row?.patient?.name || "-"),
+            wrap: true,
         },
         {
-            name: "Patient UID",
-            selector: (row) => row.patient.uid,
+            name: <div>Patient UID</div>,
+            selector: (row) =>
+                `${row?.patientId?.prefix || ""} ${row?.patientId?.value || ""}`,
         },
         {
-            name: "Prescription Date",
-            selector: (row) => format(new Date(row.prescriptionDate), "dd MMM yyyy, hh:mm a"),
-            wrap: true
+            name: <div>Prescription Date</div>,
+            selector: (row) =>
+                row?.prescription?.date
+                    ? format(new Date(row.prescription.date), "dd MMM yyyy, hh:mm a")
+                    : "-",
+            wrap: true,
         },
         {
-            name: "Medicines",
-            cell: (row, patientIndex) => (
+            name: <div>Medicines</div>,
+            cell: (row) => (
                 <div style={{ lineHeight: "1.8" }}>
-                    {row.medicines.map((m, i) => (
+                    {row.medicineCounts?.map((medicine) => (
                         <div
-                            key={i}
+                            key={medicine._id}
                             className="d-flex align-items-center my-1"
                             style={{ gap: "12px" }}
                         >
@@ -78,15 +218,15 @@ const MedicineApprovalSummary = () => {
                                     color: "#333",
                                 }}
                             >
-                                {m.name}
+                                {medicine.medicineName}
                             </span>
                             <Input
                                 type="number"
-                                value={m.totalCount}
-                                onChange={(e) =>
-                                    handleCountChange(patientIndex, i, e.target.value)
-                                }
+                                value={medicine.dispensedCount}
                                 bsSize="sm"
+                                onChange={(e) =>
+                                    handleDispenseChange(row._id, medicine.medicineId, e.target.value)
+                                }
                                 style={{
                                     width: "60px",
                                     height: "28px",
@@ -95,62 +235,219 @@ const MedicineApprovalSummary = () => {
                                     borderRadius: "4px",
                                 }}
                             />
+
                         </div>
                     ))}
                 </div>
             ),
             wrap: true,
-            width: "45%"
+            width: "45%",
         },
-
         {
-            name: "Actions",
+            name: <div>Remarks</div>,
+            cell: (row) => (
+                <Button
+                    onClick={() => openRemarksModal(row, "REMARK_ONLY")}
+                    color="outline"
+                >
+                    Add
+                </Button>
+
+            )
+        },
+        {
+            name: <div>Actions</div>,
             cell: (row) => (
                 <div className="d-flex flex-column align-items-center gap-2">
                     <Button
                         color="success"
                         size="sm"
-                        onClick={() => handleApprove(row.patientName)}
+                        onClick={() => handleUpdateApprovalStatus("APPROVED", row)}
+                        disabled={updatingRowId === `ROW-APPROVE-${row._id}`}
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        <CheckCheck size={14} className="me-1" />
-                        Approve
+                        {updatingRowId === `ROW-APPROVE-${row._id}` ? (
+                            <Spinner size="sm" />
+                        ) : (
+                            <>
+                                <CheckCheck size={14} className="me-1" />
+                                Approve
+                            </>
+                        )}
                     </Button>
+
 
                     <Button
                         color="danger"
                         size="sm"
-                        onClick={() => handleReject(row.patientName)}
+                        onClick={() => handleUpdateApprovalStatus("REJECTED", row)}
+                        disabled={updatingRowId === `ROW-REJECTED-${row._id}`}
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        <X size={14} className="me-1" />
-                        Reject
+                        {updatingRowId === `ROW-REJECT-${row._id}` ? (
+                            <Spinner size="sm" />
+                        ) : (
+                            <>
+                                <X size={14} className="me-1" />
+                                Reject
+                            </>
+                        )}
                     </Button>
+
                 </div>
             ),
             center: true,
         },
     ];
 
+
+    const getPageRange = (total, current, maxButtons = 7) => {
+        if (total <= maxButtons)
+            return Array.from({ length: total }, (_, i) => i + 1);
+
+        const sideButtons = Math.floor((maxButtons - 3) / 2);
+        let start = Math.max(2, current - sideButtons);
+        let end = Math.min(total - 1, current + sideButtons);
+        if (current - 1 <= sideButtons) {
+            start = 2;
+            end = Math.min(total - 1, maxButtons - 2);
+        }
+        if (total - current <= sideButtons) {
+            end = total - 1;
+            start = Math.max(2, total - (maxButtons - 3));
+        }
+
+        const range = [1];
+        if (start > 2) range.push("...");
+        for (let i = start; i <= end; i++) range.push(i);
+        if (end < total - 1) range.push("...");
+        range.push(total);
+        return range;
+    };
+
+    const pagination = medicineApprovals?.pagination || {};
+
+
+    useEffect(() => {
+        setTableData(medicineApprovals?.data);
+    }, [medicineApprovals?.data]);
+
+    useEffect(() => {
+        if (user?.centerAccess?.length <= 1) {
+            setSelectedCenter(user?.centerAccess?.[0] || "");
+        }
+    }, [user]);
+
     return (
         <div className="px-3">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Medicine Summary</h5>
-                <div className="d-flex gap-2">
-                    <button className="btn btn-outline-danger btn-sm">Reject All</button>
-                    <button className="btn btn-success btn-sm">Approve All</button>
+            <div className="mb-3">
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+                    <div className="d-flex flex-column flex-md-row gap-3 w-100">
+
+                        <div
+                            className="order-1 order-md-1 w-100 w-md-auto flex-md-grow-0"
+                            style={{ minWidth: "110px" }}
+                        >
+                            <Select
+                                value={{ value: limit, label: limit }}
+                                onChange={(option) => {
+                                    setLimit(option.value);
+                                    setPage(1);
+                                }}
+                                options={[
+                                    { value: 10, label: "10" },
+                                    { value: 20, label: "20" },
+                                    { value: 30, label: "30" },
+                                    { value: 50, label: "50" },
+                                ]}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                placeholder="Limit"
+                            />
+                        </div>
+
+                        <div
+                            className="order-2 order-md-2 flex-grow-1"
+                            style={{ minWidth: "200px" }}
+                        >
+                            <Select
+                                value={selectedCenterOption}
+                                onChange={(option) => {
+                                    setSelectedCenter(option?.value);
+                                    setPage(1);
+                                }}
+                                options={centerOptions}
+                                placeholder="All Centers"
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+
+                        <div
+                            className="order-3 order-md-3 flex-grow-1"
+                            style={{ minWidth: "220px" }}
+                        >
+                            <Input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search by patient name or UID..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="order-4 d-flex flex-row gap-2 justify-content-start justify-content-md-end w-100 w-md-auto">
+                        {!loading && pagination?.totalDocs > 0 ? (
+                            <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
+                                <>
+                                    <Button
+                                        className="btn btn-danger fw-semibold px-3 btn-sm text-white"
+                                        onClick={() => openRemarksModal(null, "BULK_REJECT")}
+                                        disabled={updatingRowId === "BULK_REJECT"}
+                                    >
+                                        {updatingRowId === "BULK_REJECT" ? <Spinner size="sm" /> : "Reject All"}
+                                    </Button>
+
+                                    <Button
+                                        className="btn btn-success fw-semibold px-3 btn-sm text-white"
+                                        onClick={() => openRemarksModal(null, "BULK_APPROVE")}
+                                        disabled={updatingRowId === "BULK_APPROVE"}
+                                    >
+                                        {updatingRowId === "BULK_APPROVE" ? <Spinner size="sm" /> : "Approve All"}
+                                    </Button>
+                                </>
+                            </CheckPermission>
+                        ) : (
+                            // placeholder keeps layout stable
+                            <div style={{ width: "1px" }}></div>
+                        )}
+                    </div>
+
                 </div>
             </div>
 
+
+
             <DataTable
                 columns={columns}
-                data={data}
+                data={tableData}
+                progressPending={loading}
+                progressComponent={<Spinner className="text-primary" />}
                 highlightOnHover
                 striped
                 responsive
+                fixedHeader
+                fixedHeaderScrollHeight="400px"
                 customStyles={{
+                    table: {
+                        style: {
+                            minHeight: "350px",
+                        },
+                    },
                     headCells: {
                         style: {
                             backgroundColor: "#f8f9fa",
@@ -166,9 +463,120 @@ const MedicineApprovalSummary = () => {
                     },
                 }}
             />
-        </div>
+            {!loading && pagination.totalDocs > 0 && <div className="d-flex justify-content-between align-items-center mt-3">
+                <div className="small text-muted">
+                    <>
+                        Showing {(page - 1) * limit + 1} to{" "}
+                        {Math.min(page * limit, pagination.totalDocs)} of{" "}
+                        {pagination.totalDocs} entries
+                    </>
 
+                </div>
+
+                <nav>
+                    <ul className="pagination mb-0">
+                        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                            <button
+                                className="page-link"
+                                onClick={() => setPage(Math.max(1, page - 1))}
+                                disabled={page === 1}
+                            >
+                                Previous
+                            </button>
+                        </li>
+
+                        {getPageRange(pagination.totalPages || 1, page, 7).map((p, idx) => (
+                            <li
+                                key={idx}
+                                className={`page-item ${p === page ? "active" : ""} ${p === "..." ? "disabled" : ""
+                                    }`}
+                            >
+                                {p === "..." ? (
+                                    <span className="page-link">...</span>
+                                ) : (
+                                    <button className="page-link" onClick={() => setPage(p)}>
+                                        {p}
+                                    </button>
+                                )}
+                            </li>
+                        ))}
+
+                        <li
+                            className={`page-item ${page === pagination.totalPages || pagination.totalDocs === 0
+                                ? "disabled"
+                                : ""
+                                }`}
+                        >
+                            <button
+                                className="page-link"
+                                onClick={() =>
+                                    setPage(Math.min(pagination.totalPages, page + 1))
+                                }
+                                disabled={
+                                    page === pagination.totalPages || pagination.totalDocs === 0
+                                }
+                            >
+                                Next
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>}
+            <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)}>
+                <ModalHeader toggle={() => setModalOpen(false)}>
+                    Add Remarks
+                </ModalHeader>
+                <ModalBody>
+                    <Input
+                        type="textarea"
+                        rows={4}
+                        value={remarkText}
+                        onChange={(e) => setRemarkText(e.target.value)}
+                        placeholder="Add your remarks..."
+                    />
+                </ModalBody>
+                <ModalFooter>
+                    <Button
+                        color="danger"
+                        className="text-white"
+                        onClick={() => {
+                            if (actionType === "BULK_REJECT") {
+                                handleUpdateApprovalStatus("REJECTED", null, remarkText);
+                            } else {
+                                handleUpdateApprovalStatus("REJECTED", selectedRow, remarkText);
+                            }
+                        }}
+                        disabled={actionType === "APPROVED"}
+                    >
+                        Save & Reject
+                    </Button>
+
+                    <Button
+                        color="success"
+                        className="text-white"
+                        onClick={() => {
+                            if (actionType === "BULK_APPROVE") {
+                                handleUpdateApprovalStatus("APPROVED", null, remarkText);
+                            } else {
+                                handleUpdateApprovalStatus("APPROVED", selectedRow, remarkText);
+                            }
+                        }}
+                        disabled={actionType === "REJECTED"}
+                    >
+                        Save & Approve
+                    </Button>
+                </ModalFooter>
+
+            </Modal>
+
+        </div>
     );
+};
+
+MedicineApprovalSummary.propTypes = {
+    activeTab: PropTypes.string,
+    activeSubTab: PropTypes.string,
+    hasUserPermission: PropTypes.bool
 };
 
 export default MedicineApprovalSummary;

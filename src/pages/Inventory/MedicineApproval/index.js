@@ -8,147 +8,115 @@ import {
     NavLink,
     TabContent,
     TabPane,
+
 } from "reactstrap";
 import PatientList from "./components/PatientList";
 import MedicineApprovalSummary from "./components/MedicineApprovalSummary";
 import History from "./components/History";
-import { ipdPatients, opdPatients } from "../dummydata";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
+
+const tabOptions = ["OPD", "IPD"];
+const subTabOptions = ["ALL", "DETAILED", "HISTORY"];
 
 const MedicineApproval = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("OPD");
     const [activeSubTab, setActiveSubTab] = useState("ALL");
 
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, loading } = usePermissions(token);
+    const hasUserPermission = hasPermission("PHARMACY", "MEDICINEAPPROVAL", "READ");
+
+
+    if (!loading && !hasUserPermission) {
+        navigate("/unauthorized");
+    }
+
+
     return (
-        <CardBody className="bg-white p-4" style={{ width: "78%" }}>
+        <CardBody className="bg-white px-4 pt-2 w-100">
             <div className="content-wrapper">
-                <div className="text-center text-md-left mb-4">
-                    <h1 className="display-5 fw-bold text-primary">APPROVE MEDICINE</h1>
+                <div className="text-center text-md-left">
+                    <h1 className="display-6 fw-bold text-primary">APPROVE MEDICINE</h1>
                 </div>
 
                 <Nav tabs className="mb-3">
-                    <NavItem>
-                        <NavLink
-                            className={activeTab === "OPD" ? "active" : ""}
-                            onClick={() => {
-                                setActiveTab("OPD");
-                                setActiveSubTab("ALL");
-                            }}
-                            style={{ cursor: "pointer", fontWeight: 500 }}
-                        >
-                            OPD
-                        </NavLink>
-                    </NavItem>
-
-                    <NavItem>
-                        <NavLink
-                            className={activeTab === "IPD" ? "active" : ""}
-                            onClick={() => {
-                                setActiveTab("IPD");
-                                setActiveSubTab("ALL");
-                            }}
-                            style={{ cursor: "pointer", fontWeight: 500 }}
-                        >
-                            IPD
-                        </NavLink>
-                    </NavItem>
+                    {tabOptions.map((tab) => (
+                        <NavItem key={tab}>
+                            <NavLink
+                                className={activeTab === tab ? "active" : ""}
+                                onClick={() => {
+                                    setActiveTab(tab);
+                                    setActiveSubTab("ALL");
+                                }}
+                                style={{ cursor: "pointer", fontWeight: 500 }}
+                            >
+                                {tab}
+                            </NavLink>
+                        </NavItem>
+                    ))}
                 </Nav>
 
-
-                <div className="d-flex justify-content-center my-3">
+                <div className="d-flex justify-content-center">
                     <ButtonGroup style={{ gap: "8px" }}>
-                        <Button
-                            color={activeSubTab === "ALL" ? "primary" : "light"}
-                            onClick={() => setActiveSubTab("ALL")}
-                            size="sm"
-                            style={{
-                                minWidth: "90px",
-                                fontWeight: 500,
-                                borderRadius: "6px",
-                                border: activeSubTab === "ALL" ? "none" : "1px solid #ccc",
-                                backgroundColor:
-                                    activeSubTab === "ALL" ? "#0d6efd" : "transparent",
-                                color: activeSubTab === "ALL" ? "#fff" : "#333",
-                                transition: "all 0.2s ease-in-out",
-                            }}
-                        >
-                            ALL
-                        </Button>
-
-                        <Button
-                            color={activeSubTab === "DETAILED" ? "primary" : "light"}
-                            onClick={() => setActiveSubTab("DETAILED")}
-                            size="sm"
-                            style={{
-                                minWidth: "90px",
-                                fontWeight: 500,
-                                borderRadius: "6px",
-                                border: activeSubTab === "DETAILED" ? "none" : "1px solid #ccc",
-                                backgroundColor:
-                                    activeSubTab === "DETAILED" ? "#0d6efd" : "transparent",
-                                color: activeSubTab === "DETAILED" ? "#fff" : "#333",
-                                transition: "all 0.2s ease-in-out",
-                            }}
-                        >
-                            Detailed
-                        </Button>
-
-                        <Button
-                            color={activeSubTab === "HISTORY" ? "primary" : "light"}
-                            onClick={() => setActiveSubTab("HISTORY")}
-                            size="sm"
-                            style={{
-                                minWidth: "90px",
-                                fontWeight: 500,
-                                borderRadius: "6px",
-                                border: activeSubTab === "HISTORY" ? "none" : "1px solid #ccc",
-                                backgroundColor:
-                                    activeSubTab === "HISTORY" ? "#0d6efd" : "transparent",
-                                color: activeSubTab === "HISTORY" ? "#fff" : "#333",
-                                transition: "all 0.2s ease-in-out",
-                            }}
-                        >
-                            History
-                        </Button>
+                        {subTabOptions.map((tab) => (
+                            <Button
+                                key={tab}
+                                color={activeSubTab === tab ? "primary" : "light"}
+                                onClick={() => setActiveSubTab(tab)}
+                                size="sm"
+                                style={{
+                                    minWidth: "90px",
+                                    fontWeight: 500,
+                                    borderRadius: "6px",
+                                    border:
+                                        activeSubTab === tab ? "none" : "1px solid #ccc",
+                                    backgroundColor:
+                                        activeSubTab === tab ? "#0d6efd" : "transparent",
+                                    color: activeSubTab === tab ? "#fff" : "#333",
+                                    transition: "all 0.2s ease-in-out",
+                                }}
+                            >
+                                {tab.charAt(0) + tab.slice(1).toLowerCase()}
+                            </Button>
+                        ))}
                     </ButtonGroup>
-
                 </div>
 
                 <TabContent activeTab={activeTab}>
                     <TabPane tabId="OPD">
                         <TabContent activeTab={activeSubTab}>
                             <TabPane tabId="ALL">
-                                <div className="p-4 text-center">
-                                    <p className="text-muted mb-0">No data available.</p>
-                                </div>
+                                <MedicineApprovalSummary activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                             <TabPane tabId="DETAILED">
-                                <PatientList patients={opdPatients} type="OPD" />
+                                <PatientList activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                             <TabPane tabId="HISTORY">
-                                <div className="p-4 text-center">
-                                    <p className="text-muted mb-0">No data available.</p>
-                                </div>
+                                <History activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                         </TabContent>
                     </TabPane>
 
-                    <TabPane abPane tabId="IPD">
+                    <TabPane tabId="IPD">
                         <TabContent activeTab={activeSubTab}>
                             <TabPane tabId="ALL">
-                                <MedicineApprovalSummary />
+                                <MedicineApprovalSummary activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                             <TabPane tabId="DETAILED">
-                                <PatientList patients={ipdPatients} type="IPD" />
+                                <PatientList activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                             <TabPane tabId="HISTORY">
-                                <History />
+                                <History activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
                             </TabPane>
                         </TabContent>
                     </TabPane>
                 </TabContent>
             </div>
         </CardBody>
-
     );
 };
 
