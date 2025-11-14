@@ -12,6 +12,7 @@ const Sidebar = () => {
   const hasUserPermission = hasPermission("PHARMACY", "DASHBOARD", "READ");
   const hasUserPermission2 = hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ");
   const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "READ");
+  const hasUserPermission4 = hasPermission("PHARMACY", "MEDICINEAPPROVAL", "READ");
 
   const location = useLocation();
 
@@ -34,6 +35,9 @@ const Sidebar = () => {
       return false;
     }
     if (page.id === "givenmedicines" && !hasUserPermission3) {
+      return false;
+    }
+    if (page.id === "medicineaApproval" && !hasUserPermission4) {
       return false;
     }
     return true;

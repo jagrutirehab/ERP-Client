@@ -351,3 +351,8 @@ export const DOWNLOAD_FAILED_MEDICINES = "/pharmacy/failed/download";
 export const GET_FAILED_MEDICINES_BATCHES = "/pharmacy/failed/list";
 // PHARMACY DELETE FAILED MEDICINES
 export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
+
+// PHARMACY MEDICINE APPROVAl
+export const MEDICINE_APPROVALS = "/pharmacy/approvals";
+export const GET_PENDING_PATIENT_APPROVALS = "/pharmacy/approvals/pending-patients";
+export const GET_DETAILED_PRESCRIPTION = "/pharmacy/approvals/detailed-prescription";

@@ -91,6 +91,8 @@ import Offers from "./features/offer/offerSlice";
 import Taxes from "./features/tax/taxSlice";
 import HubspotContacts from "./features/report/hubspotContactsSlice";
 import Incident from "./features/incident/incidentSlice";
+
+import Pharmacy from "./features/pharmacy/pharmacySlice";
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -125,6 +127,7 @@ const rootReducer = combineReducers({
   HubspotContacts,
   CentralPayment,
   Incident,
+  Pharmacy
 });
 
 export default rootReducer;

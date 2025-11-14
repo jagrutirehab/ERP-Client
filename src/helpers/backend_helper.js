@@ -1265,5 +1265,47 @@ export const deleteFailedMedicinesByBatch = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  });
-};
+  })
+}
+
+export const getMedineApprovalsByStatus = (params = {}) => {
+  return api.get(url.MEDICINE_APPROVALS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const updateMedicineApprovalStatus = (data) => {
+  if (data.id) {
+    return api.update(`${url.MEDICINE_APPROVALS}/${data.id}`, data, {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    });
+  }
+}
+
+export const getPendingPatientApprovals = (params = {}) => {
+  return api.get(url.GET_PENDING_PATIENT_APPROVALS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const getDetailedPrescription = (prescriptionId) => {
+  return api.get(`${url.GET_DETAILED_PRESCRIPTION}/${prescriptionId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
