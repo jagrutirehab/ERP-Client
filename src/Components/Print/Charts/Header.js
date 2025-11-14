@@ -64,8 +64,6 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
     doctor?.specializations ||
     doctor?.regNumber;
 
-console.log({chart,center, patient, doctor })
-
   const age = () =>
     differenceInYears(new Date(), new Date(patient?.dateOfBirth));
   return (
@@ -177,10 +175,22 @@ console.log({chart,center, patient, doctor })
               {/* {`${capitalizeWords(patient?.name)} - ${patient?.id?.prefix}${
                 patient?.id?.value
               }` || ""} */}
-              {`${patient?.name} - ${patient?.id?.prefix}${
-                patient?.id?.value
-              }` || ""}
+              {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
+                ""}
             </Text>
+            {admission?.Ipdnum ? (
+              <Text
+                style={{
+                  ...styles.fontMd,
+                  ...styles.padding5,
+                  ...styles.textCaps,
+                }}
+              >
+                IPD Num: {admission?.Ipdnum}
+              </Text>
+            ) : (
+              ""
+            )}
             <Text
               style={{
                 ...styles.fontMd,

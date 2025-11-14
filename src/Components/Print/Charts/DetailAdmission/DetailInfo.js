@@ -15,7 +15,8 @@ Font.register({
     },
   ],
 });
-const DetailInfo = ({ chart, patient, data, styles }) => {
+const DetailInfo = ({ chart, patient, data, styles, admission }) => {
+  // console.log(data)
   // const age = () =>
   //   differenceInYears(new Date(), new Date(patient?.dateOfBirth));
 
@@ -44,6 +45,8 @@ const DetailInfo = ({ chart, patient, data, styles }) => {
         label="age:"
         value={data.age.toUpperCase()}
       /> */}
+      {admission?.Ipdnum ? <Row label="IPD Num:" value={admission?.Ipdnum} /> : ""}
+
       <Row
         label="doctor consultant:"
         value={data.doctorConsultant.toUpperCase()}
@@ -52,7 +55,9 @@ const DetailInfo = ({ chart, patient, data, styles }) => {
       {data.religion && <Row label="religion:" value={data.religion} />}
       {data.age && <Row label="age:" value={data.age} />}
       {/* {age() && <Row label="age:" value={age()} />} */}
-      {patient.gender && <Row label="gender:" value={patient.gender.toLowerCase()} />}
+      {patient.gender && (
+        <Row label="gender:" value={patient.gender.toLowerCase()} />
+      )}
       {data.maritalStatus && (
         <Row label="marital status:" value={data.maritalStatus} />
       )}
