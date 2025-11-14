@@ -284,6 +284,7 @@ export {
   fetchLeadAnalytics,
   fetchOPDAnalytics,
   fetchBookingAnalytics,
+  fetchCenterBedsAnalytics,
 } from "./features/report/reportSlice";
 
 //Hubspot

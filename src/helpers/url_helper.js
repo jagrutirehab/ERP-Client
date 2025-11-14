@@ -31,6 +31,7 @@ export const POST_CENTER = "/center";
 export const GET_CENTERS = "/center";
 export const GET_DELETED_CENTERS = "/center/deleted";
 export const GET_ALL_CENTERS = "/center/all";
+export const GET_CENTER_BEDS_ANALYTICS = "/center/beds";
 export const EDIT_CENTER = "/center";
 export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";

@@ -18,6 +18,7 @@ import {
   ModalBody,
   ModalHeader,
   Row,
+  FormGroup,
 } from "reactstrap";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import Dropzone from "react-dropzone";
@@ -149,6 +150,8 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       city: centerData ? centerData.city?.city : "",
       state: centerData ? centerData.city?.state : "",
       localArea: centerData ? centerData.localArea : "",
+      numberOfBeds: centerData ? centerData.numberOfBeds : "",
+      websiteListing: centerData ? !!centerData.websiteListing : false,
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -163,6 +166,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       accountNumber: Yup.string().required("Center account number is required"),
       branchName: Yup.string().required("Center branch name is required"),
       numbers: Yup.string().required("Center contact number(s) are required"),
+      numberOfBeds: Yup.number().required("Number of beds are required"),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -177,6 +181,11 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       formData.append("city", values.city);
       formData.append("state", values.state);
       formData.append("localArea", values.localArea);
+      formData.append("numberOfBeds", values.numberOfBeds);
+      formData.append(
+        "websiteListing",
+        values.websiteListing ? "true" : "false"
+      );
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -191,13 +200,17 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
+  console.log({ validation });
+
   const fieldsArray = Object.keys(validation.values).filter(
-    (key) => key !== "state"
+    (key) => !["state", "websiteListing"].includes(key)
   );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
+
+  console.log({ fieldsArray });
 
   const closeForm = () => {
     validation.resetForm();
@@ -373,7 +386,36 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                 )} */}
               </Col>
               {(fieldsArray || []).map((field, i) =>
-                field === "city" ? (
+                field === "numberOfBeds" ? (
+                  <Col key={i + field} xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label htmlFor={field} className="form-label">
+                        {getFieldLabel(field)}
+                      </Label>
+                      <Input
+                        name={field}
+                        // disabled={field === "title" && centerData}
+                        className="form-control"
+                        placeholder={`Enter ${getFieldLabel(field)}`}
+                        type="number"
+                        min={0}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        value={validation.values[field] || ""}
+                        invalid={
+                          validation.touched[field] && validation.errors[field]
+                            ? true
+                            : false
+                        }
+                      />
+                      {validation.touched[field] && validation.errors[field] ? (
+                        <FormFeedback type="invalid">
+                          {validation.errors[field]}
+                        </FormFeedback>
+                      ) : null}
+                    </div>
+                  </Col>
+                ) : field === "city" ? (
                   <Col xs={12} lg={6}>
                     <div className="mb-3">
                       <Label htmlFor="city" className="form-label">
@@ -449,6 +491,30 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   </Col>
                 )
               )}
+              <Col xs={12} className="mb-3">
+                <FormGroup switch>
+                  <Input
+                    type="switch"
+                    role="switch"
+                    id="websiteListing"
+                    name="websiteListing"
+                    checked={validation.values.websiteListing}
+                    onChange={(event) =>
+                      validation.setFieldValue(
+                        "websiteListing",
+                        event.target.checked
+                      )
+                    }
+                  />
+                  <Label
+                    check
+                    className="form-check-label ms-2"
+                    htmlFor="websiteListing"
+                  >
+                    Website Listing
+                  </Label>
+                </FormGroup>
+              </Col>
               {/* 
               <Col xs={12} lg={6}>
                 <div className="mb-3">

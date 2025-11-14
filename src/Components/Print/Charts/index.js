@@ -50,6 +50,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 center={chart.center}
                 patient={patient}
                 doctor={doctor}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -71,6 +72,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -84,6 +86,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -97,6 +100,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -110,6 +114,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -123,6 +128,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
 
@@ -147,6 +153,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
+                admission={admission}
               />
             </RenderWhen>
           </Page>

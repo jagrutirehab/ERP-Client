@@ -22,6 +22,8 @@ import {
 import FormField from "../../../Components/Common/FormField";
 import Divider from "../../../Components/Common/Divider";
 import { format } from "date-fns";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const AdmitPatient = ({
   isOpen,
@@ -69,6 +71,7 @@ const AdmitPatient = ({
       psychologist: data ? data.psychologist?._id : "",
       doctor: data ? data.doctor?._id : "",
       provisionalDiagnosis: data ? data.provisionalDiagnosis : "",
+      Ipdnum: data ? data.Ipdnum : "",
     },
     validationSchema: Yup.object({
       //patient
@@ -107,6 +110,7 @@ const AdmitPatient = ({
       provisionalDiagnosis: Yup.string().required(
         "Please select Provisional Diagnosis"
       ),
+      Ipdnum: Yup.string().required("Please Wait for Ipd file number"),
     }),
     onSubmit: (values) => {
       if (data) dispatch(editAdmission(values));
@@ -138,6 +142,36 @@ const AdmitPatient = ({
     if (validation.values.center)
       dispatch(fetchDoctors({ center: validation.values.center }));
   }, [dispatch, validation.values.center]);
+
+  const createIpdfile = async (id) => {
+    try {
+      const { data } = await axios.post(
+        "/patient/ipdfilenum",
+        { Patientid: id }, // body data
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (data?.Ipdnum) {
+        validation.setFieldValue("Ipdnum", data.Ipdnum);
+        // toast.success(`IPD file number: ${data.data.Ipdnum}`);
+      } else {
+        toast.error("Failed to receive IPD number");
+      }
+      // toast.success("IPD file number generated successfully");
+    } catch (error) {
+      toast.error("Failed to get IPD file number");
+    }
+  };
+
+  useEffect(() => {
+    if (step === 2 && patient?._id && !validation.values.Ipdnum) {
+      createIpdfile(patient._id);
+    }
+    return;
+  }, [patient, step]);
 
   const patientFields = [
     // {
@@ -210,12 +244,12 @@ const AdmitPatient = ({
       type: "text",
       required: true,
     },
-    {
-      label: "IPD File Number",
-      name: "ipdFileNumber",
-      type: "text",
-      required: false,
-    },
+    // {
+    //   label: "IPD File Number",
+    //   name: "ipdFileNumber",
+    //   type: "text",
+    //   required: false,
+    // },
   ];
 
   const admissionFields = [
@@ -333,6 +367,27 @@ const AdmitPatient = ({
   const renderStep2 = () => (
     <>
       <Row>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="Ipdnum" className="form-label">
+              IPD file num.
+            </Label>
+            <Input
+              name="Ipdnum"
+              value={validation.values.Ipdnum || ""}
+              disabled
+              onChange={(e) => {
+                validation.handleChange(e);
+              }}
+              className="form-control shadow-none bg-light"
+            />
+            {validation.touched.Ipdnum && validation.errors.Ipdnum ? (
+              <FormFeedback className="d-block" type="invalid">
+                {validation.errors.Ipdnum}
+              </FormFeedback>
+            ) : null}
+          </div>
+        </Col>
         <Col xs={12} md={6}>
           <div className="mb-3">
             <Label className="form-label">
