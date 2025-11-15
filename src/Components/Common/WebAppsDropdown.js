@@ -25,12 +25,12 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   };
 
   const changeAccess = (centerId) => {
-    let updateAccess = [...centerAccess];
-    const checkCenter = centerAccess.includes(centerId);
+    let updateAccess = [...access];
+    const checkCenter = access.includes(centerId);
     if (checkCenter) {
       updateAccess = updateAccess.filter((id) => id !== centerId);
     } else {
-      updateAccess = [centerId, ...centerAccess];
+      updateAccess = [centerId, ...access];
     }
     setAccess(updateAccess);
   };

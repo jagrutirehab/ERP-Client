@@ -43,6 +43,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [search, setSearch] = useState("");
 
   //Modal
   // const [formModal, setFormModal] = useState(false);
@@ -165,10 +166,12 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                         </div>
                         <UncontrolledDropdown
                           direction="start"
-                          className="col text-end"
+                          className="col text-end flex-shrink-1"
                         >
                           <DropdownToggle
                             tag="a"
+                            className=""
+                            x
                             id="dropdownMenuLink2"
                             role="button"
                           >
