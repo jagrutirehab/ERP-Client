@@ -237,7 +237,16 @@ const DischargeIndependentMinor = ({ register, patient, admissions }) => {
           style={inputLine}
         />{" "}
         Email
-        <input type="text" {...register("page11_email")} style={inputLine} />
+        <input
+          type="text"
+          value={patient?.email}
+          {...register("page11_email")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />
       </p>
       <div
         style={{

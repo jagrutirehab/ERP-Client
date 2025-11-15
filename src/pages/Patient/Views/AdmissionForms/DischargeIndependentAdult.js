@@ -243,7 +243,16 @@ const DischargeIndependentAdult = ({ register, patient, admissions }) => {
           style={inputLine}
         />{" "}
         Email
-        <input type="text" {...register("page10_email")} style={inputLine} />
+        <input
+          type="text"
+          value={patient?.email}
+          {...register("page10_email")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />
       </p>
       <div
         style={{

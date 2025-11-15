@@ -145,7 +145,7 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
       color: "#000",
       outline: "none",
       width: "150px",
-      textAlign: "center",
+      // textAlign: "center",
     },
   };
 
