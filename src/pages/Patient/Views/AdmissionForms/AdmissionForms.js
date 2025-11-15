@@ -47,6 +47,7 @@ import AdmWithHighSupport2 from "./AdmWithHighSupport2";
 import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
 import ECTConsentForm2 from "./ECTConsentForm2";
+import UndertakingDischargeForm from "./UndertakingDischargeForm";
 // import { Document, Page, pdfjs } from "react-pdf";
 // import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js";
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -98,6 +99,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   // const indipendentref3 = useRef(null);
   const dischargeRefAdult = useRef(null);
   const dischargeRefMinor = useRef(null);
+  const dischargeRefUndertaking = useRef(null);
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -368,6 +370,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         await captureSection(dischargeRefAdult, pdf, true);
       if (dischargeRefMinor.current)
         await captureSection(dischargeRefMinor, pdf, true);
+      if (dischargeRefUndertaking.current)
+        await captureSection(dischargeRefUndertaking, pdf, true);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
@@ -599,46 +603,84 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
     try {
       const formData = new FormData();
-      formData.append("dischargeFormURL", file);
+
+      // ---------------------------
+      // CONDITIONAL FIELD NAME
+      // ---------------------------
+      if (admissiontype !== "DISCHARGE_UNDERTAKING") {
+        formData.append("undertakingdischargeFormURL", file);
+      } else {
+        formData.append("dischargeFormURL", file);
+      }
+
       formData.append("id", addmissionId);
-      await axios.patch("/patient/discharge-submit", formData, {
+
+      // ---------------------------
+      // CONDITIONAL API ENDPOINT
+      // ---------------------------
+      const apiUrl =
+        admissiontype !== "DISCHARGE_UNDERTAKING"
+          ? "/patient/undertaking-discharge-submit"
+          : "/patient/discharge-submit";
+
+      await axios.patch(apiUrl, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
       toast.success("Signed PDF uploaded successfully!");
-      setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
+    } finally {
       setIsGenerating2(false);
     }
   };
 
   const onSubmitDischarge = async (data) => {
     setIsGenerating2(true);
+
     try {
       const pdf = new jsPDF("p", "pt", "a4");
+
       if (dischargeRefAdult.current)
         await captureSection(dischargeRefAdult, pdf, true);
       if (dischargeRefMinor.current)
         await captureSection(dischargeRefMinor, pdf, true);
+      if (dischargeRefUndertaking.current)
+        await captureSection(dischargeRefUndertaking, pdf, true);
+
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
-      formData.append(
-        "dischargeFormRaw",
-        pdfBlob,
-        `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`
-      );
 
-      await axios.patch(
-        `/patient/discharge-submit-file/${addmissionId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      // ---------------------------
+      // APPLY CONDITIONS HERE
+      // ---------------------------
+      if (admissiontype === "DISCHARGE_UNDERTAKING") {
+        formData.append(
+          "undertakingdischargeFormRaw",
+          pdfBlob,
+          `${patient?.id?.value}-${patient?.name}-undertaking-discharge-form.pdf`
+        );
+      } else {
+        formData.append(
+          "dischargeFormRaw",
+          pdfBlob,
+          `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`
+        );
+      }
+
+      // ---------------------------
+      // SELECT API BASED ON CONDITION
+      // ---------------------------
+      const apiUrl =
+        admissiontype === "DISCHARGE_UNDERTAKING"
+          ? `/patient/undertaking-discharge-submit-file/${addmissionId}`
+          : `/patient/discharge-submit-file/${addmissionId}`;
+
+      await axios.patch(apiUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       toast.success("Consent form submitted successfully!");
       setOpenform3(false);
@@ -1063,19 +1105,96 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                               </div>
                             </div>
                             <div>
-                              <Button
-                                onClick={handleUploadClick}
-                                size="sm"
-                                color="primary"
-                                className="mr-10"
-                                disabled={isGenerating2}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
                               >
-                                {isGenerating2 ? (
-                                  <Spinner size="sm" />
-                                ) : (
-                                  "Upload Signed Copy Of Discharge Undertaking Form"
+                                <Button
+                                  onClick={handleUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Undertaking Discharge Form"
+                                  )}
+                                </Button>
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={fileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeDishcharge}
+                                />
+                                {test?.undertakingdischargeFormRaw?.length >
+                                  0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.undertakingdischargeFormRaw.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft Undertaking Discharge
+                                            Form {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
                                 )}
-                              </Button>
+                                {test?.undertakingdischargeFormURL?.length >
+                                  0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.undertakingdischargeFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed Undertaking
+                                            Discharge Form {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1364,6 +1483,16 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                     />
                   </div>
                 )}
+              {/* Undertaking Discharge */}{" "}
+              {admissiontype === "DISCHARGE_UNDERTAKING" && (
+                <div ref={dischargeRefUndertaking}>
+                  <UndertakingDischargeForm
+                    register={register}
+                    admissions={admissions[0]}
+                    patient={patient}
+                  />
+                </div>
+              )}
               <div style={{ textAlign: "center", margin: "20px" }}>
                 <Button
                   color="secondary"
