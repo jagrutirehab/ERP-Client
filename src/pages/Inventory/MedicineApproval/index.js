@@ -5,22 +5,22 @@ import {
     CardBody,
     Nav,
     NavItem,
-    NavLink,
-    TabContent,
-    TabPane,
-
+    NavLink
 } from "reactstrap";
 import PatientList from "./components/PatientList";
 import MedicineApprovalSummary from "./components/MedicineApprovalSummary";
 import History from "./components/History";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { clearMedicineApprovals } from "../../../store/features/pharmacy/pharmacySlice";
 
 const tabOptions = ["OPD", "IPD"];
 const subTabOptions = ["ALL", "DETAILED", "HISTORY"];
 
 const MedicineApproval = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState("OPD");
     const [activeSubTab, setActiveSubTab] = useState("ALL");
 
@@ -30,11 +30,54 @@ const MedicineApproval = () => {
     const { hasPermission, loading } = usePermissions(token);
     const hasUserPermission = hasPermission("PHARMACY", "MEDICINEAPPROVAL", "READ");
 
-
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
     }
 
+    const handleTabSwicth = (type, tab) => {
+        dispatch(clearMedicineApprovals());
+
+        if (type === "parent") {
+            setActiveTab(() => {
+                setActiveSubTab("ALL");
+                return tab;
+            });
+        } else {
+            setActiveSubTab(tab);
+        }
+    };
+
+    const renderComponent = () => {
+        if (activeSubTab === "ALL") {
+            return (
+                <MedicineApprovalSummary
+                    activeTab={activeTab}
+                    activeSubTab={activeSubTab}
+                    hasUserPermission={hasUserPermission}
+                />
+            );
+        }
+
+        if (activeSubTab === "DETAILED") {
+            return (
+                <PatientList
+                    activeTab={activeTab}
+                    activeSubTab={activeSubTab}
+                    hasUserPermission={hasUserPermission}
+                />
+            );
+        }
+
+        if (activeSubTab === "HISTORY") {
+            return (
+                <History
+                    activeTab={activeTab}
+                    activeSubTab={activeSubTab}
+                    hasUserPermission={hasUserPermission}
+                />
+            );
+        }
+    };
 
     return (
         <CardBody className="bg-white px-4 pt-2 w-100">
@@ -48,10 +91,7 @@ const MedicineApproval = () => {
                         <NavItem key={tab}>
                             <NavLink
                                 className={activeTab === tab ? "active" : ""}
-                                onClick={() => {
-                                    setActiveTab(tab);
-                                    setActiveSubTab("ALL");
-                                }}
+                                onClick={() => handleTabSwicth("parent", tab)}
                                 style={{ cursor: "pointer", fontWeight: 500 }}
                             >
                                 {tab}
@@ -66,7 +106,7 @@ const MedicineApproval = () => {
                             <Button
                                 key={tab}
                                 color={activeSubTab === tab ? "primary" : "light"}
-                                onClick={() => setActiveSubTab(tab)}
+                                onClick={() => handleTabSwicth("subTab", tab)}
                                 size="sm"
                                 style={{
                                     minWidth: "90px",
@@ -86,35 +126,7 @@ const MedicineApproval = () => {
                     </ButtonGroup>
                 </div>
 
-                <TabContent activeTab={activeTab}>
-                    <TabPane tabId="OPD">
-                        <TabContent activeTab={activeSubTab}>
-                            <TabPane tabId="ALL">
-                                <MedicineApprovalSummary activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                            <TabPane tabId="DETAILED">
-                                <PatientList activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                            <TabPane tabId="HISTORY">
-                                <History activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                        </TabContent>
-                    </TabPane>
-
-                    <TabPane tabId="IPD">
-                        <TabContent activeTab={activeSubTab}>
-                            <TabPane tabId="ALL">
-                                <MedicineApprovalSummary activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                            <TabPane tabId="DETAILED">
-                                <PatientList activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                            <TabPane tabId="HISTORY">
-                                <History activeTab={activeTab} activeSubTab={activeSubTab} hasUserPermission={hasUserPermission} />
-                            </TabPane>
-                        </TabContent>
-                    </TabPane>
-                </TabContent>
+                <div className="mt-4">{renderComponent()}</div>
             </div>
         </CardBody>
     );
