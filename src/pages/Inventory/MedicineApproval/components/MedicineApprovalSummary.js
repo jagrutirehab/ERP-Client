@@ -106,13 +106,11 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         };
 
         fetchMedicineApprovals();
-    }, [page, limit, activeSubTab, activeTab, selectedCenter, debouncedSearch, user.centerAccess, hasUserPermission]);
+    }, [page, limit, activeTab, selectedCenter, debouncedSearch, user.centerAccess, hasUserPermission]);
 
     useEffect(() => {
-        dispatch(clearMedicineApprovals());
         setPage(1);
-    }, [activeTab, activeSubTab, selectedCenter, debouncedSearch]);
-
+    }, [activeTab, activeSubTab]);
 
     const openRemarksModal = (row, type) => {
         setSelectedRow(row);
@@ -120,7 +118,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         setRemarkText("");
         setModalOpen(true);
     };
-
 
     const handleUpdateApprovalStatus = async (status, row = null, remarksOverride = "") => {
         try {
@@ -139,13 +136,10 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
 
                 const currentRowData = tableData.find(item => item._id === row._id);
 
-                console.log(currentRowData)
-
                 payload.medicines = currentRowData.medicineCounts.map(m => ({
                     medicineId: m.medicineId,
                     dispensedCount: m.totalQuantity
                 }));
-                console.log(payload.medicines)
             } else {
                 const centers =
                     selectedCenter === "ALL"
