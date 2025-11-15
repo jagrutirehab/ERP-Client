@@ -48,6 +48,11 @@ export const getDetailedPrescriptionById = createAsyncThunk("pharmacy/getDetaile
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
     initialState,
+    reducers: {
+        clearMedicineApprovals: (state) => {
+            state.medicineApprovals = []
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(getMedicineApprovals.pending, (state) => {
@@ -93,5 +98,7 @@ export const pharmacySlice = createSlice({
 
     }
 });
+
+export const { clearMedicineApprovals } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;

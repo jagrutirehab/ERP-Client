@@ -147,17 +147,15 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
       ? [
         {
           name: "Dispensed Count",
-          cell: (row, index) => {
+          cell: (row) => {
             return (
               <input
                 type="number"
                 min="0"
-                value={row.dispensedCount}
+                value={row.dispensedCount ?? row.totalQuantity}
                 onChange={(e) => {
-                  handleDispensedCountChange(index, {
-                    ...row,
-                    dispensedCount: Number(e.target.value),
-                  });
+                  const val = Number(e.target.value);
+                        handleDispensedCountChange(row._id, val);
                 }}
                 style={{
                   width: "70px",
