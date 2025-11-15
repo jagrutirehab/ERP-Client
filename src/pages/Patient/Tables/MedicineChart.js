@@ -106,14 +106,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 
-const MedicineChart = ({ medicines, onDosageChange, isPharmacy }) => {
-  const handleTotalChange = (index, value) => {
-    const updatedMedicine = {
-      ...medicines[index],
-      totalCount: value,
-    };
-    onDosageChange(index, updatedMedicine);
-  };
+const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) => {
   const columns = [
     {
       name: "Medicine",
@@ -153,19 +146,17 @@ const MedicineChart = ({ medicines, onDosageChange, isPharmacy }) => {
     ...(isPharmacy
       ? [
         {
-          name: "Total Count",
-          cell: (row, index) => {
-            const freq = row.dosageAndFrequency || {};
-            const defaultTotal =
-              (Number(freq.morning) || 0) +
-              (Number(freq.evening) || 0) +
-              (Number(freq.night) || 0);
+          name: "Dispensed Count",
+          cell: (row) => {
             return (
               <input
                 type="number"
                 min="0"
-                value={row.totalCount ?? defaultTotal}
-                onChange={(e) => handleTotalChange(index, e.target.value)}
+                value={row.dispensedCount ?? row.totalQuantity}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                        handleDispensedCountChange(row._id, val);
+                }}
                 style={{
                   width: "70px",
                   textAlign: "center",
@@ -237,7 +228,7 @@ const MedicineChart = ({ medicines, onDosageChange, isPharmacy }) => {
 MedicineChart.propTypes = {
   medicines: PropTypes.array.isRequired,
   isPharmacy: PropTypes.bool,
-  onDosageChange: PropTypes.func,
+  handleDispensedCountChange: PropTypes.func,
 };
 
 export default MedicineChart;

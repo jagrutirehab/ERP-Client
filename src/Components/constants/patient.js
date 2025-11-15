@@ -90,10 +90,10 @@ const Forms = [
     name: "Consent Form",
     category: "CONSENT FORM",
   },
-  // {
-  //   name: "Discharge Form",
-  //   category: "DISCHARGE FORM",
-  // },
+  {
+    name: "Discharge Form",
+    category: "DISCHARGE FORM",
+  },
 ];
 const testRecord = [
   // { name : "ROR" },

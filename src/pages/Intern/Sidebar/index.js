@@ -17,6 +17,7 @@ const Sidebar = ({
   customActiveTab = "all",
   toggleCustom,
   hasMore,
+  centerAccess
 }) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +32,7 @@ const Sidebar = ({
       page: pageNumber,
       limit: LIMIT,
       name: searchQuery,
+      centers: centerAccess
     };
     if (customActiveTab === "active") base.internStatus = "active";
     else if (customActiveTab === "completed") base.internStatus = "completed";
@@ -46,7 +48,7 @@ const Sidebar = ({
     };
 
     fetchInitial();
-  }, [customActiveTab, dispatch]);
+  }, [customActiveTab, dispatch, centerAccess]);
 
 
   useEffect(() => {
@@ -87,8 +89,8 @@ const Sidebar = ({
   }, [isVisible, hasMore]);
 
   useEffect(() => {
-      toggleDataSidebar();
-    }, []);
+    toggleDataSidebar();
+  }, []);
 
   const toggleDataSidebar = () => {
     const dataList = document.querySelector(".chat-message-list");
