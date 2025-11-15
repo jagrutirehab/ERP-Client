@@ -86,7 +86,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
         fetchMedicineApprovals();
 
-    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch])
+    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess])
 
     const columns = [
         {
@@ -98,6 +98,11 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Patient UID</div>,
             selector: (row) => `${row?.patientId?.prefix || ""} ${row?.patientId?.value || ""}`,
             wrap: true
+        },
+        {
+            name: <div>Center</div>,
+            selector: (row) => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
         },
         {
             name: <div>Medicines</div>,
@@ -215,15 +220,10 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     return (
         <div className="px-3">
             <div className="mb-3">
-                <div
-                    className="d-flex flex-column flex-md-row gap-3"
-                    style={{ alignItems: "center" }}
-                >
 
-                    <div
-                        className="order-1"
-                        style={{ width: "110px" }}
-                    >
+                {/*  DESKTOP VIEW */}
+                <div className="d-none d-md-flex flex-row align-items-center gap-3">
+                    <div style={{ width: "110px" }}>
                         <Select
                             value={{ value: limit, label: limit }}
                             onChange={(option) => {
@@ -237,16 +237,9 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 { value: 50, label: "50" },
                             ]}
                             classNamePrefix="react-select"
-                            styles={{
-                                container: base => ({ ...base, width: "100%" })
-                            }}
                         />
                     </div>
-
-                    <div
-                        className="order-2 flex-grow-1"
-                        style={{ minWidth: "200px", maxWidth: "200px" }}
-                    >
+                    <div style={{ width: "200px" }}>
                         <Select
                             value={selectedCenterOption}
                             onChange={(option) => {
@@ -256,16 +249,51 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             options={centerOptions}
                             placeholder="All Centers"
                             classNamePrefix="react-select"
-                            styles={{
-                                container: base => ({ ...base, width: "100%" })
-                            }}
                         />
                     </div>
+                    <div style={{ width: "220px" }}>
+                        <Input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by patient name or UID..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ flexGrow: 1 }}></div>
+                </div>
 
-                    <div
-                        className="order-3 flex-grow-1"
-                        style={{ minWidth: "250px", maxWidth: "220px" }}
-                    >
+                {/*  MOBILE VIEW */}
+                <div className="d-flex d-md-none flex-column gap-3">
+                    <div style={{ width: "100%" }}>
+                        <Select
+                            value={{ value: limit, label: limit }}
+                            onChange={(option) => {
+                                setLimit(option.value);
+                                setPage(1);
+                            }}
+                            options={[
+                                { value: 10, label: "10" },
+                                { value: 20, label: "20" },
+                                { value: 30, label: "30" },
+                                { value: 50, label: "50" },
+                            ]}
+                            classNamePrefix="react-select"
+                        />
+                    </div>
+                    <div style={{ width: "100%" }}>
+                        <Select
+                            value={selectedCenterOption}
+                            onChange={(option) => {
+                                setSelectedCenter(option?.value);
+                                setPage(1);
+                            }}
+                            options={centerOptions}
+                            placeholder="All Centers"
+                            classNamePrefix="react-select"
+                        />
+                    </div>
+                    <div style={{ width: "100%" }}>
                         <Input
                             type="text"
                             className="form-control"
@@ -276,7 +304,9 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     </div>
 
                 </div>
+
             </div>
+
 
             <DataTable
                 columns={columns}

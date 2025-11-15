@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import { getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
+import { clearMedicineApprovals, getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
 import Select from "react-select";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
@@ -34,6 +34,16 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const token = microUser ? JSON.parse(microUser).token : null;
     const { roles } = usePermissions(token);
 
+    const canWrite = (module, subModule) => {
+        const mod = roles?.permissions?.find(p => p.module === module);
+        if (!mod) return false;
+
+        const sm = mod.subModules?.find(s => s.name === subModule);
+        if (!sm) return false;
+
+        return ["WRITE", "DELETE"].includes(sm.type);
+    };
+
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
             ? [{
@@ -58,9 +68,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
     ) || centerOptions[0];
-
-
-
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -99,7 +106,13 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         };
 
         fetchMedicineApprovals();
-    }, [page, limit, activeSubTab, activeTab, selectedCenter, debouncedSearch]);
+    }, [page, limit, activeSubTab, activeTab, selectedCenter, debouncedSearch, user.centerAccess, hasUserPermission]);
+
+    useEffect(() => {
+        dispatch(clearMedicineApprovals());
+        setPage(1);
+    }, [activeTab, activeSubTab, selectedCenter, debouncedSearch]);
+
 
     const openRemarksModal = (row, type) => {
         setSelectedRow(row);
@@ -124,10 +137,15 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 payload.status = status;
                 payload.remarks = remarksOverride;
 
-                payload.medicines = row.medicineCounts?.map(m => ({
+                const currentRowData = tableData.find(item => item._id === row._id);
+
+                console.log(currentRowData)
+
+                payload.medicines = currentRowData.medicineCounts.map(m => ({
                     medicineId: m.medicineId,
-                    dispensedCount: m.dispensedCount
+                    dispensedCount: m.totalQuantity
                 }));
+                console.log(payload.medicines)
             } else {
                 const centers =
                     selectedCenter === "ALL"
@@ -163,23 +181,24 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const handleDispenseChange = (approvalId, medicineId, value) => {
         const newValue = Number(value);
 
-        setTableData(prev => {
-            return prev.map(item => {
-                if (item._id !== approvalId) return item;
-
-                return {
-                    ...item,
-                    medicineCounts: item.medicineCounts.map(med =>
-                        med.medicineId === medicineId
-                            ? { ...med, dispensedCount: newValue }
-                            : med
-                    )
-                };
-            });
-        });
+        setTableData(prev =>
+            prev.map(item =>
+                item._id !== approvalId
+                    ? item
+                    : {
+                        ...item,
+                        medicineCounts: item.medicineCounts.map((med, medIndex) =>
+                            med.medicineId === medicineId
+                                ? {
+                                    ...med,
+                                    totalQuantity: newValue
+                                }
+                                : med
+                        )
+                    }
+            )
+        );
     };
-
-
 
     const columns = [
         {
@@ -193,6 +212,11 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 `${row?.patientId?.prefix || ""} ${row?.patientId?.value || ""}`,
         },
         {
+            name: <div>Center</div>,
+            selector: (row) => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
+        },
+        {
             name: <div>Prescription Date</div>,
             selector: (row) =>
                 row?.prescription?.date
@@ -204,9 +228,9 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             name: <div>Medicines</div>,
             cell: (row) => (
                 <div style={{ lineHeight: "1.8" }}>
-                    {row.medicineCounts?.map((medicine) => (
+                    {row.medicineCounts?.map((medicine, index) => (
                         <div
-                            key={medicine._id}
+                            key={`${medicine.medicineId}`}
                             className="d-flex align-items-center my-1"
                             style={{ gap: "12px" }}
                         >
@@ -220,30 +244,36 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                             >
                                 {medicine.medicineName}
                             </span>
-                            <Input
-                                type="number"
-                                value={medicine.dispensedCount}
-                                bsSize="sm"
-                                onChange={(e) =>
-                                    handleDispenseChange(row._id, medicine.medicineId, e.target.value)
-                                }
-                                style={{
-                                    width: "60px",
-                                    height: "28px",
-                                    textAlign: "center",
-                                    fontSize: "13px",
-                                    borderRadius: "4px",
-                                }}
-                            />
-
+                            {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
+                                <Input
+                                    type="number"
+                                    value={medicine.totalQuantity}
+                                    bsSize="sm"
+                                    onChange={(e) =>
+                                        handleDispenseChange(row._id, medicine.medicineId, e.target.value)
+                                    }
+                                    style={{
+                                        width: "60px",
+                                        height: "28px",
+                                        textAlign: "center",
+                                        fontSize: "13px",
+                                        borderRadius: "4px",
+                                    }}
+                                />
+                            ) : (
+                                <span style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                }}>{medicine.totalQuantity}</span>
+                            )}
                         </div>
                     ))}
                 </div>
             ),
             wrap: true,
-            width: "45%",
+            width: "40%",
         },
-        {
+        canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Remarks</div>,
             cell: (row) => (
                 <Button
@@ -255,7 +285,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
 
             )
         },
-        {
+        canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Actions</div>,
             cell: (row) => (
                 <div className="d-flex flex-column align-items-center gap-2">
@@ -300,7 +330,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             ),
             center: true,
         },
-    ];
+    ].filter(Boolean);
 
 
     const getPageRange = (total, current, maxButtons = 7) => {
@@ -361,6 +391,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                     { value: 10, label: "10" },
                                     { value: 20, label: "20" },
                                     { value: 30, label: "30" },
+                                    { value: 30, label: "40" },
                                     { value: 50, label: "50" },
                                 ]}
                                 className="react-select-container"
@@ -422,7 +453,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                 </>
                             </CheckPermission>
                         ) : (
-                            // placeholder keeps layout stable
                             <div style={{ width: "1px" }}></div>
                         )}
                     </div>

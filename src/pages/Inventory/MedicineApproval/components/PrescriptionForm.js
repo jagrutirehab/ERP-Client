@@ -7,10 +7,8 @@ import CheckPermission from "../../../../Components/HOC/CheckPermission";
 
 const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles }) => {
     const [medicines, setMedicines] = useState(data?.medicines || []);
-
     const [updatedDispenseData, setUpdatedDispenseData] = useState([]);
     const [remarks, setRemarks] = useState("");
-
 
     useEffect(() => {
         onDispenseChanges(updatedDispenseData);
@@ -20,26 +18,22 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
         onRemarks(remarks);
     }, [remarks]);
 
-    const handleDispensedCountChange = (index, updatedMedicine) => {
-        setMedicines((prev) =>
-            prev.map((m, i) => (i === index ? updatedMedicine : m))
+    const handleDispensedCountChange = (rowId, value) => {
+        const num = Number(value);
+        console.log(medicines)
+        setMedicines(prev =>
+            prev.map(m =>
+                m._id === rowId
+                    ? { ...m, dispensedCount: num }
+                    : m
+            )
         );
 
         setUpdatedDispenseData(prev => {
-            const filtered = prev.filter(item => item.medicineId !== updatedMedicine._id);
-            return [
-                ...filtered,
-                {
-                    medicineId: updatedMedicine._id,
-                    dispensedCount: updatedMedicine.dispensedCount
-                }
-            ];
+            const filtered = prev.filter(item => item.medicineId !== rowId);
+            return [...filtered, { medicineId: rowId, dispensedCount: num }];
         });
     };
-
-
-
-
 
 
     return (

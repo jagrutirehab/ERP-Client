@@ -30,7 +30,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             setLoading(true);
             try {
                 await dispatch(getDetailedPrescriptionById(
-                    patient?.prescriptionChart?.[0]?.prescription
+                    patient?.prescriptionId
                 )).unwrap();
             } catch (error) {
                 console.error(error)
@@ -51,7 +51,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             setLoading(true);
 
             await dispatch(updateApprovalStatus({
-                id: patient._id,
+                id: detailedPrescription.approvalId,
                 medicines: updatedDispenseData,
                 remarks: remarks,
                 status: "APPROVED",
@@ -72,10 +72,11 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             setLoading(true);
 
             await dispatch(updateApprovalStatus({
-                id: patient._id,
+                id: detailedPrescription.approvalId,
                 medicines: updatedDispenseData,
                 remarks: remarks,
-                status: "REJECTED"
+                status: "REJECTED",
+                update: "pendingPatients"
             })).unwrap();
 
             toast.error("Medicines rejected successfully");
