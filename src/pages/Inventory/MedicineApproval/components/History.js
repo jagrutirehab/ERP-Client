@@ -103,6 +103,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
+            width:"10%"
         },
         {
             name: <div>Medicines</div>,
@@ -185,7 +186,9 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
         },
         {
             name: <div>Remarks</div>,
-            selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />
+            selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
+            wrap: true,
+            width: "20%",
         }
     ];
 
@@ -308,43 +311,53 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             </div>
 
 
-            <DataTable
-                columns={columns}
-                data={historyData}
-                progressPending={loading}
-                progressComponent={<Spinner className="text-primary" />}
-                highlightOnHover
-                striped
-                responsive
-                fixedHeader
-                fixedHeaderScrollHeight="400px"
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "350px",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "72px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            fontWeight: "600",
-                            backgroundColor: "#f8f9fa",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    cells: {
-                        style: {
-                            paddingTop: "10px",
-                            paddingBottom: "10px",
-                        },
-                    },
-                }}
-            />
+            <div style={{ width: "100%", overflowX: "visible", overflowY: "visible" }}>
+                <div
+                    style={{
+                        minWidth: "100%",
+                        overflow: "visible"
+                    }}
+                >
+                    <DataTable
+                        columns={columns}
+                        data={historyData}
+                        progressPending={loading}
+                        progressComponent={<Spinner className="text-primary" />}
+                        highlightOnHover
+                        striped
+                        responsive
+                        fixedHeader
+                        fixedHeaderScrollHeight="400px"
+                        customStyles={{
+                            table: {
+                                style: {
+                                    minHeight: "350px",
+                                },
+                            },
+                            rows: {
+                                style: {
+                                    minHeight: "72px",
+                                    borderBottom: "1px solid #f1f1f1",
+                                },
+                            },
+                            headCells: {
+                                style: {
+                                    fontWeight: "600",
+                                    backgroundColor: "#f8f9fa",
+                                    borderBottom: "2px solid #e9ecef",
+                                },
+                            },
+                            cells: {
+                                style: {
+                                    paddingTop: "10px",
+                                    paddingBottom: "10px",
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            </div>
+
             {!loading && pagination.totalDocs > 0 && <div className="d-flex justify-content-between align-items-center mt-3">
                 <div className="small text-muted">
                     <>
