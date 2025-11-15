@@ -1180,6 +1180,7 @@ const InventoryManagement = () => {
               user={user}
               isOpen={modalOpenFailedMedicineList}
               onClose={() => setModalOpenFailedMedicineList(false)}
+              hasPermission={hasPermission}
             />
           </ModalBody>
         </Modal>

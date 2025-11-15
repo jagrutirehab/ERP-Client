@@ -9,7 +9,7 @@ import { Button, Spinner } from "reactstrap";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
-const FailedMedicines = ({ isOpen }) => {
+const FailedMedicines = ({ isOpen, hasPermission }) => {
     const [loading, setLoading] = useState(false);
     const [batches, setBatches] = useState([]);
     const [page, setPage] = useState(1);
@@ -154,7 +154,7 @@ const FailedMedicines = ({ isOpen }) => {
                 </div>
             ) : (
                 <>
-                    <div className="d-flex justify-content-end mb-3">
+                    {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "DELETE") ? <div className="d-flex justify-content-end mb-3">
                         <Button
                             color="danger"
                             size="sm"
@@ -163,7 +163,7 @@ const FailedMedicines = ({ isOpen }) => {
                         >
                             Delete All Failed Batches
                         </Button>
-                    </div>
+                    </div> : ""}
 
                     {batches.map((batch) => {
                         const formattedDate = dayjs(batch.createdAt).format(
@@ -213,7 +213,7 @@ const FailedMedicines = ({ isOpen }) => {
                                                 )}
                                             </Button>
 
-                                            <Button
+                                            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "DELETE") ? <Button
                                                 color="danger"
                                                 size="sm"
                                                 className="text-white"
@@ -226,7 +226,7 @@ const FailedMedicines = ({ isOpen }) => {
                                                 ) : (
                                                     "Delete"
                                                 )}
-                                            </Button>
+                                            </Button> : ""}
                                         </div>
                                     </div>
                                 </div>
