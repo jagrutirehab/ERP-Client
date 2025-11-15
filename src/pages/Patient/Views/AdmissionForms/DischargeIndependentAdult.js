@@ -228,7 +228,7 @@ const DischargeIndependentAdult = ({ register, patient, admissions }) => {
         Mob.
         <input
           type="text"
-          value={patient?.guardianPhoneNumber}
+          value={patient?.phoneNumber}
           {...register("page10_mobile")}
           style={{
             fontWeight: "bold",

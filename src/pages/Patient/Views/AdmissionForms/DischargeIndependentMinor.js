@@ -222,7 +222,7 @@ const DischargeIndependentMinor = ({ register, patient, admissions }) => {
         Mob.
         <input
           type="text"
-          value={patient?.guardianPhoneNumber}
+          value={patient?.phoneNumber}
           {...register("page11_mobile")}
           style={{
             fontWeight: "bold",

@@ -594,45 +594,46 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     const file = e.target.files[0];
     setIsGenerating2(true);
     if (!file) return;
-
     if (file.type !== "application/pdf") {
       toast.warning("Please upload a PDF file.");
       setIsGenerating2(false);
       return;
     }
-
     try {
       const formData = new FormData();
-
-      // ---------------------------
-      // CONDITIONAL FIELD NAME
-      // ---------------------------
-      if (admissiontype !== "DISCHARGE_UNDERTAKING") {
-        formData.append("undertakingdischargeFormURL", file);
-      } else {
-        formData.append("dischargeFormURL", file);
-      }
-
+      formData.append("dischargeFormURL", file);
       formData.append("id", addmissionId);
-
-      // ---------------------------
-      // CONDITIONAL API ENDPOINT
-      // ---------------------------
-      const apiUrl =
-        admissiontype !== "DISCHARGE_UNDERTAKING"
-          ? "/patient/undertaking-discharge-submit"
-          : "/patient/discharge-submit";
-
-      await axios.patch(apiUrl, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await axios.patch("/patient/discharge-submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
       toast.success("Signed PDF uploaded successfully!");
+      setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
-    } finally {
+      setIsGenerating2(false);
+    }
+  };
+
+  const handleFileChangeundertakingDishcharge = async (e) => {
+    const file = e.target.files[0];
+    setIsGenerating2(true);
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("undertakingdischargeFormURL", file);
+      formData.append("id", addmissionId);
+      await axios.patch("/patient/undertaking-submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Signed PDF uploaded successfully!");
+      setIsGenerating2(false);
+    } catch (err) {
+      toast.error("Upload failed");
       setIsGenerating2(false);
     }
   };
@@ -1132,7 +1133,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   accept="application/pdf"
                                   ref={fileInputRef}
                                   style={{ display: "none" }}
-                                  onChange={handleFileChangeDishcharge}
+                                  onChange={
+                                    handleFileChangeundertakingDishcharge
+                                  }
                                 />
                                 {test?.undertakingdischargeFormRaw?.length >
                                   0 && (
