@@ -83,6 +83,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   });
 
   const fileInputRef = useRef(null);
+  const consentFileInputRef = useRef(null);
+  const dischargeFileInputRef = useRef(null);
+  const undertakingDischargeFileInputRef = useRef(null);
   // const page1Ref = useRef(null);
   // const page2Ref = useRef(null);
   const seriousnessRef = useRef(null);
@@ -482,8 +485,21 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       setIsGenerating2(false);
     }
   };
+
   const handleUploadClick = () => {
     fileInputRef.current.click();
+  };
+
+  const handleConsentUploadClick = () => {
+    consentFileInputRef.current.click();
+  };
+
+  const handleDischargeUploadClick = () => {
+    dischargeFileInputRef.current.click();
+  };
+
+  const handleUndertakingDischargeUploadClick = () => {
+    undertakingDischargeFileInputRef.current.click();
   };
 
   const handleFileChange = async (e) => {
@@ -846,90 +862,14 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                             }}
                           >
                             <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                gap: "30px",
-                              }}
+                            // style={{
+                            //   display: "flex",
+                            //   flexDirection: "column",
+                            //   justifyContent: "center",
+                            //   alignItems: "center",
+                            //   gap: "30px",
+                            // }}
                             >
-                              <Button
-                                onClick={handleUploadClick}
-                                size="sm"
-                                color="primary"
-                                className="mr-10"
-                                disabled={isGenerating2}
-                              >
-                                {isGenerating2 ? (
-                                  <Spinner size="sm" />
-                                ) : (
-                                  "Upload Signed Copy Of Admission Form"
-                                )}
-                              </Button>
-                              {test?.addmissionfromRaw?.length > 0 && (
-                                <div
-                                  style={{
-                                    width: "100%",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  {test.addmissionfromRaw.map((file, index) => (
-                                    <div key={index} className="mt-2">
-                                      <a
-                                        href={file?.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-primary btn-sm"
-                                      >
-                                        Download Draft Admission Form{" "}
-                                        {index + 1}{" "}
-                                        {file?.uploadedAt
-                                          ? `(${new Date(
-                                              file.uploadedAt
-                                            ).toLocaleDateString()})`
-                                          : ""}
-                                      </a>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              <input
-                                type="file"
-                                accept="application/pdf"
-                                ref={fileInputRef}
-                                style={{ display: "none" }}
-                                onChange={handleFileChange}
-                              />
-                              {test?.addmissionformURL?.length > 0 && (
-                                <div
-                                  style={{
-                                    width: "100%",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  {test.addmissionformURL.map((file, index) => (
-                                    <div key={index} className="mt-2">
-                                      <a
-                                        href={file?.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-outline-primary btn-sm"
-                                      >
-                                        Download Signed Admission Form{" "}
-                                        {index + 1}{" "}
-                                        {file?.uploadedAt
-                                          ? `(${new Date(
-                                              file.uploadedAt
-                                            ).toLocaleDateString()})`
-                                          : ""}
-                                      </a>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <div>
                               <div
                                 style={{
                                   display: "flex",
@@ -949,13 +889,103 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
+                                    "Upload Signed Copy Of Admission Form"
+                                  )}
+                                </Button>
+                                {test?.addmissionfromRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.addmissionfromRaw.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft Admission Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={fileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChange}
+                                />
+                                {test?.addmissionformURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.addmissionformURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed Admission Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleConsentUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
                                     "Upload Signed Copy Of Consent Form"
                                   )}
                                 </Button>
                                 <input
                                   type="file"
                                   accept="application/pdf"
-                                  ref={fileInputRef}
+                                  ref={consentFileInputRef}
                                   style={{ display: "none" }}
                                   onChange={handleFileChangeConsent}
                                 />
@@ -1026,11 +1056,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 }}
                               >
                                 <Button
-                                  onClick={handleUploadClick}
+                                  onClick={handleDischargeUploadClick}
                                   size="sm"
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  label="patient-discharge-form"
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1039,11 +1070,16 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                   )}
                                 </Button>
                                 <input
+                                  id="patient-discharge-form"
                                   type="file"
                                   accept="application/pdf"
-                                  ref={fileInputRef}
-                                  style={{ display: "none" }}
-                                  onChange={handleFileChangeDishcharge}
+                                  ref={dischargeFileInputRef}
+                                  className="sr-only"
+                                  // style={{ display: "none" }}
+                                  onChange={(e) => {
+                                    console.log("Discharge Form is hitted");
+                                    handleFileChangeDishcharge(e);
+                                  }}
                                 />
                                 {test?.dischargeFormRaw?.length > 0 && (
                                   <div
@@ -1116,7 +1152,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 }}
                               >
                                 <Button
-                                  onClick={handleUploadClick}
+                                  onClick={
+                                    handleUndertakingDischargeUploadClick
+                                  }
                                   size="sm"
                                   color="primary"
                                   className="mr-10"
@@ -1131,11 +1169,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 <input
                                   type="file"
                                   accept="application/pdf"
-                                  ref={fileInputRef}
-                                  style={{ display: "none" }}
-                                  onChange={
-                                    handleFileChangeundertakingDishcharge
-                                  }
+                                  ref={undertakingDischargeFileInputRef}
+                                  className="sr-only"
+                                  // style={{ display: "none" }}
+                                  onChange={(e) => {
+                                    console.log("incorrect is hitted");
+                                    handleFileChangeundertakingDishcharge(e);
+                                  }}
                                 />
                                 {test?.undertakingdischargeFormRaw?.length >
                                   0 && (
