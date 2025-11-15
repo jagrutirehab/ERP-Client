@@ -96,6 +96,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   // const indipendentref1 = useRef(null);
   // const indipendentref2 = useRef(null);
   // const indipendentref3 = useRef(null);
+  const dischargeRefAdult = useRef(null);
+  const dischargeRefMinor = useRef(null);
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -313,11 +315,14 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const [isGenerating2, setIsGenerating2] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfUrl2, setPdfUrl2] = useState(null);
+  const [pdfUrl3, setPdfUrl3] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
   const [previewModal2, setPreviewModal2] = useState(false);
+  const [previewModal3, setPreviewModal3] = useState(false);
 
   const togglePreview = () => setPreviewModal(!previewModal);
   const togglePreview2 = () => setPreviewModal2(!previewModal2);
+  const togglePreview3 = () => setPreviewModal3(!previewModal3);
 
   useEffect(() => {
     return () => {
@@ -359,29 +364,28 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     setIsGenerating(true);
     try {
       const pdf = new jsPDF("p", "pt", "a4");
-      // await captureSection(page1Ref, pdf, true);
-      // await captureSection(page2Ref, pdf);
-      // await captureSection(seriousnessRef, pdf);
-      // await captureSection(medicationRef, pdf);
-      // await captureSection(ectRef, pdf);
-      // await captureSection(admission1Ref, pdf);
-      // await captureSection(admission2Ref, pdf);
-      // if (adultRef.current) await captureSection(adultRef, pdf);
-      // if (minorRef.current) await captureSection(minorRef, pdf);
-      // if (supportRef.current) await captureSection(supportRef, pdf);
-      // await captureSection(indipendentref1, pdf);
-      // await captureSection(indipendentref2, pdf);
-      // await captureSection(indipendentref3, pdf);
+      if (dischargeRefAdult.current)
+        await captureSection(dischargeRefAdult, pdf, true);
+      if (dischargeRefMinor.current)
+        await captureSection(dischargeRefMinor, pdf, true);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(url);
-      setPreviewModal(true);
+      if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
+      setPdfUrl3(url);
+      setPreviewModal3(true);
     } catch (err) {
       console.error("PDF generation failed:", err);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleDownloadDischarge = () => {
+    if (!pdfUrl3) return;
+    const link = document.createElement("a");
+    link.href = pdfUrl3;
+    link.download = `${patient?.id?.value}-${patient?.name}-Discharge-form.pdf`;
+    link.click();
   };
 
   const handlePrintAdmission = async () => {
@@ -581,6 +585,72 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       setIsGenerating2(false);
     }
   };
+
+  const handleFileChangeDishcharge = async (e) => {
+    const file = e.target.files[0];
+    setIsGenerating2(true);
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("dischargeFormURL", file);
+      formData.append("id", addmissionId);
+      await axios.patch("/patient/discharge-submit", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Signed PDF uploaded successfully!");
+      setIsGenerating2(false);
+    } catch (err) {
+      toast.error("Upload failed");
+      setIsGenerating2(false);
+    }
+  };
+
+  const onSubmitDischarge = async (data) => {
+    setIsGenerating2(true);
+    try {
+      const pdf = new jsPDF("p", "pt", "a4");
+      if (dischargeRefAdult.current)
+        await captureSection(dischargeRefAdult, pdf, true);
+      if (dischargeRefMinor.current)
+        await captureSection(dischargeRefMinor, pdf, true);
+      const pdfBlob = pdf.output("blob");
+      const formData = new FormData();
+      formData.append(
+        "dischargeFormRaw",
+        pdfBlob,
+        `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`
+      );
+
+      await axios.patch(
+        `/patient/discharge-submit-file/${addmissionId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("Consent form submitted successfully!");
+      setOpenform3(false);
+      setAdmissiontype("");
+      setAdultationtype("");
+    } catch (error) {
+      toast.error("Failed to submit Consent form");
+    } finally {
+      setIsGenerating2(false);
+    }
+  };
+
   useEffect(() => {
     dispatch(fetchPatientById(patient?._id));
   }, [dispatch, isGenerating2, isGenerating]);
@@ -902,7 +972,97 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 )}
                               </div>
                             </div>
-                            {/* <div>
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Discharge Form"
+                                  )}
+                                </Button>
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={fileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeDishcharge}
+                                />
+                                {test?.dischargeFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.dischargeFormRaw.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft Discharge Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                                {test?.dischargeFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.dischargeFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed Discharge Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
                               <Button
                                 onClick={handleUploadClick}
                                 size="sm"
@@ -913,10 +1073,10 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 {isGenerating2 ? (
                                   <Spinner size="sm" />
                                 ) : (
-                                  "Upload Signed Copy Of Discharge Form"
+                                  "Upload Signed Copy Of Discharge Undertaking Form"
                                 )}
                               </Button>
-                            </div> */}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1164,39 +1324,70 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           )}
         </ModalBody>
       </Modal>
-      {openform3 === true ? (
-        <form>
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
-            adultationype === "ADULT" && (
-              <DischargeIndependentAdult register={register} />
-            )}{" "}
-          {/* for minor */}{" "}
-          {admissiontype === "INDEPENDENT_ADMISSION" &&
-            adultationype === "MINOR" && (
-              <DischargeIndependentMinor register={register} />
-            )}
-          <div style={{ textAlign: "center", margin: "20px" }}>
-            <Button
-              color="secondary"
-              type="submit"
-              className="me-2"
-              disabled={isGenerating2}
-            >
-              {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-            </Button>
-            <Button
-              type="button"
-              color="primary"
-              onClick={handlePrintDischarge}
-              disabled={isGenerating}
-            >
-              {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        ""
-      )}
+      <Modal
+        isOpen={openform3}
+        toggle={() => {
+          setOpenform3(false);
+        }}
+        size="xl"
+        backdrop="static"
+        keyboard={false}
+      >
+        <ModalHeader
+          toggle={() => {
+            setOpenform3(false);
+          }}
+        >
+          Discharge Form
+        </ModalHeader>
+        <ModalBody style={{ height: "80vh", overflow: "auto" }}>
+          {openform3 === true ? (
+            <form onSubmit={handleSubmit(onSubmitDischarge)}>
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "ADULT" && (
+                  <div ref={dischargeRefAdult}>
+                    <DischargeIndependentAdult
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}{" "}
+              {/* for minor */}{" "}
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "MINOR" && (
+                  <div ref={dischargeRefMinor}>
+                    <DischargeIndependentMinor
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              <div style={{ textAlign: "center", margin: "20px" }}>
+                <Button
+                  color="secondary"
+                  type="submit"
+                  className="me-2"
+                  disabled={isGenerating2}
+                >
+                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
+                </Button>
+                <Button
+                  type="button"
+                  color="primary"
+                  onClick={handlePrintDischarge}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            ""
+          )}
+        </ModalBody>
+      </Modal>
 
       {/* ===== PDF Preview Modal ===== */}
       <Modal
@@ -1274,6 +1465,46 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
             Close
           </Button>
           <Button color="primary" onClick={handleDownloadConsent}>
+            Download
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={previewModal3}
+        toggle={togglePreview3}
+        size="xl"
+        style={{ maxWidth: "90%" }}
+      >
+        <ModalHeader toggle={togglePreview3}>PDF Preview</ModalHeader>
+        <ModalBody style={{ height: "80vh" }}>
+          {pdfUrl3 ? (
+            /Mobi|Android/i.test(navigator.userAgent) ? (
+              // On mobile → show fallback message instead of iframe
+              <div className="d-flex justify-content-center align-items-center h-100">
+                <p className="text-muted">PDF opened in a new tab</p>
+              </div>
+            ) : (
+              // On desktop → show inside iframe
+              <iframe
+                src={pdfUrl3}
+                title="PDF Preview"
+                width="100%"
+                height="100%"
+                style={{ border: "none" }}
+              />
+            )
+          ) : (
+            <div className="d-flex justify-content-center align-items-center h-100">
+              <Spinner />
+            </div>
+          )}
+        </ModalBody>
+        <div className="d-flex justify-content-end p-3">
+          <Button color="secondary" onClick={togglePreview3} className="me-2">
+            Close
+          </Button>
+          <Button color="primary" onClick={handleDownloadDischarge}>
             Download
           </Button>
         </div>
