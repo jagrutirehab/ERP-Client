@@ -220,7 +220,7 @@ const DischargeIndependentAdult = ({ register, patient, admissions }) => {
           style={{
             fontWeight: "bold",
             textTransform: "uppercase",
-            ...inputLine,
+            ...fullLine,
           }}
         />
       </p>
