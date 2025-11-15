@@ -103,7 +103,6 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            width:"10%"
         },
         {
             name: <div>Medicines</div>,
@@ -141,8 +140,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     ))}
                 </div>
             ),
-            wrap: true,
-            width: "35%",
+            style: {
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+            },
+            minWidth:"200px",
+            grow: 4,
         },
         {
             name: <div>Prescription Date</div>,
@@ -188,7 +191,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Remarks</div>,
             selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
             wrap: true,
-            width: "20%",
+            minWidth:"200px"
         }
     ];
 
