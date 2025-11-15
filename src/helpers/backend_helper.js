@@ -700,9 +700,12 @@ export const addInternForm = (data) =>
   });
 
 export const fetchAllInterns = (params = {}) => {
-  const query = qs.stringify(params, { skipNulls: true });
-  return api.get(`${url.GET_INTERN_DATA}?${query}`);
+  return api.get(url.GET_INTERN_DATA, {
+    params,
+    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat", skipNulls: true })
+  });
 };
+
 
 export const getInternId = () => api.get(url.GET_INTERN_ID);
 
