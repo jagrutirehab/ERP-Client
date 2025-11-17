@@ -79,7 +79,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
                 update: "pendingPatients"
             })).unwrap();
 
-            toast.error("Medicines rejected successfully");
+            toast.success("Medicines rejected successfully");
             setModal(false);
         } catch (err) {
             toast.error(err?.message || "Failed to reject");
@@ -96,46 +96,51 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             size="xl"
             centered
         >
-            {loading && <Spinner className="text-primary" />}
-            {!loading && (
-                <>
-                    <ModalHeader toggle={() => setModal(!modal)} className="border-bottom-2">
-                        <div>
-                            <div className="fw-bold text-dark fs-5">
-                                {patient?.patient?.name}
-                            </div>
-                        </div>
-                    </ModalHeader>
-                    <ModalBody className="bg-light">
-                        <PrescriptionForm
-                            data={detailedPrescription}
-                            onDispenseChanges={setUpdatedDispenseData}
-                            onRemarks={setRemarks}
-                            roles={roles}
-                        />
-                    </ModalBody>
-                    <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
-                        <ModalFooter className="border-top-2">
-                            <Button
-                                color="danger"
-                                onClick={handleReject}
-                                className="d-flex align-items-center justify-content-center text-white"
-                            >
-                                <X size={14} className="me-1" />
-                                Reject
-                            </Button>
-                            <Button
-                                color="success"
-                                onClick={handleApprove}
-                                className="d-flex align-items-center justify-content-center text-white"
-                            >
-                                <CheckCheck size={14} className="me-1" />
-                                Approve
-                            </Button>
-                        </ModalFooter>
-                    </CheckPermission>
-                </>
-            )}
+            <div style={{ minHeight: "400px" }}>
+                {loading ?
+                    <div className="d-flex justify-content-center align-items-center w-100 h-100 py-5">
+                        <Spinner className="text-primary" />
+                    </div>
+                    : (
+                        <>
+                            <ModalHeader toggle={() => setModal(!modal)} className="border-bottom-2">
+                                <div>
+                                    <div className="fw-bold text-dark fs-5">
+                                        {patient?.patient?.name}
+                                    </div>
+                                </div>
+                            </ModalHeader>
+                            <ModalBody className="bg-light">
+                                <PrescriptionForm
+                                    data={detailedPrescription}
+                                    onDispenseChanges={setUpdatedDispenseData}
+                                    onRemarks={setRemarks}
+                                    roles={roles}
+                                />
+                            </ModalBody>
+                            <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
+                                <ModalFooter className="border-top-2">
+                                    <Button
+                                        color="danger"
+                                        onClick={handleReject}
+                                        className="d-flex align-items-center justify-content-center text-white"
+                                    >
+                                        <X size={14} className="me-1" />
+                                        Reject
+                                    </Button>
+                                    <Button
+                                        color="success"
+                                        onClick={handleApprove}
+                                        className="d-flex align-items-center justify-content-center text-white"
+                                    >
+                                        <CheckCheck size={14} className="me-1" />
+                                        Approve
+                                    </Button>
+                                </ModalFooter>
+                            </CheckPermission>
+                        </>
+                    )}
+            </div>
         </Modal>
     )
 }

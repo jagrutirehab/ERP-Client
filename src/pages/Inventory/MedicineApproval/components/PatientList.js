@@ -225,7 +225,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     <div className="d-flex justify-content-center align-items-center py-5 w-100">
                         There is no records to display
                     </div>
-                ) : patientData.map((patient) => (
+                ) : !loading && patientData.map((patient) => (
                     <Col xs={12} sm={6} lg={4} key={patient._id} className="d-flex">
                         <Card
                             className="cursor-pointer w-100 transition-all"
@@ -252,11 +252,17 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                     <div>
                                         <CardTitle
                                             tag="h5"
-                                            className="fw-semibold text-dark mb-1 text-truncate"
-                                            style={{ fontSize: "1.15rem" }}
+                                            className="fw-semibold text-dark mb-1"
+                                            style={{
+                                                fontSize: "1.15rem",
+                                                whiteSpace: "normal",
+                                                wordWrap: "break-word",
+                                                maxWidth: "220px",
+                                            }}
                                         >
                                             {patient?.patient.name}
                                         </CardTitle>
+
                                         <small className="text-muted">Patient ID: {patient?.patientId?.prefix} {patient?.patientId?.value}</small>
                                     </div>
 
@@ -304,7 +310,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                 ))}
             </Row>
 
-            {!loading && pagination.totalPages > 1 && <div className="d-flex justify-content-between align-items-center mt-3">
+            {!loading && pagination.totalPages > 1 && <div className="d-flex justify-content-between align-items-center mt-3 mb-4">
                 <div className="small text-muted">
                     <>
                         Showing {(page - 1) * limit + 1} to{" "}
@@ -372,7 +378,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
 const LoaderSkeleton = () => (
     <Row className="g-3">
-        {[...Array(6)].map((_, index) => (
+        {[...Array(9)].map((_, index) => (
             <Col xs={12} sm={6} lg={4} key={index}>
                 <div
                     style={{
