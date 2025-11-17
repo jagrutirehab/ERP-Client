@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
+import { differenceInYears } from "date-fns";
 // import { differenceInYears } from "date-fns";
 
 //table
@@ -36,6 +37,21 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
   // console.log(data)
   // const age = () =>
   //   differenceInYears(new Date(), new Date(patient?.dateOfBirth));
+
+  const age = () => {
+    if (patient?.age) return patient.age;
+
+    if (patient?.dateOfBirth) {
+      return differenceInYears(new Date(), new Date(patient.dateOfBirth));
+    }
+
+    return null;
+  };
+
+
+  const admissionDate =
+    admission?.addmissionDate ||
+    patient?.addmission?.addmissionDate;
 
   const Row = ({ label, value }) => (
     <View style={{ flexDirection: "row", marginBottom: 6 }}>
@@ -75,7 +91,9 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
         />
         <Row label="name:" value={patient?.name} />
         {data.religion && <Row label="religion:" value={data.religion} />}
-        {patient?.age && <Row label="age:" value={patient.age} />}
+        {age() !== null && (
+          <Row label="age:" value={age()} />
+        )}
         {/* {age() && <Row label="age:" value={age()} />} */}
         {patient.gender && (
           <Row label="gender:" value={patient.gender.toLowerCase()} />
@@ -97,10 +115,9 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
         )}
       </View>
       <View style={{ width: "35%", alignItems: "flex-end", ...styles.mrgnTop10 }}>
-        {admission?.addmissionDate && (
+        {admissionDate && (
           <Text>
-            Admission Date:{" "}
-            {formatDate(admission.addmissionDate)}
+            Admission Date: {formatDate(admissionDate)}
           </Text>
         )}
       </View>
