@@ -15,6 +15,23 @@ Font.register({
     },
   ],
 });
+
+const formatDate = (isoDateStr) => {
+  if (!isoDateStr) return "N/A";
+  const date = new Date(isoDateStr);
+
+  const day = date.getUTCDate().toString().padStart(2, "0");
+  const month = date.toLocaleString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  const year = date.getUTCFullYear();
+  // const hour = date.getHours();
+  // const minute = date.getMinutes();
+
+  return `${day} ${month} ${year}`;
+};
+
 const DetailInfo = ({ chart, patient, data, styles, admission }) => {
   // console.log(data)
   // const age = () =>
@@ -38,41 +55,55 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
   );
 
   return (
-    <View
-      style={{ ...styles.column, ...styles.mrgnTop10, ...styles.mrgnBottom10 }}
-    >
-      {/* <Row
+    <View style={{
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+    }}>
+      <View
+        style={{ width: "60%", ...styles.column, ...styles.mrgnTop10, ...styles.mrgnBottom10 }}
+      >
+        {/* <Row
         label="age:"
         value={data.age.toUpperCase()}
       /> */}
-      {admission?.Ipdnum ? <Row label="IPD Num:" value={admission?.Ipdnum} /> : ""}
+        {admission?.Ipdnum ? <Row label="IPD Num:" value={admission?.Ipdnum} /> : ""}
 
-      <Row
-        label="doctor consultant:"
-        value={data.doctorConsultant.toUpperCase()}
-      />
-      <Row label="name:" value={patient?.name} />
-      {data.religion && <Row label="religion:" value={data.religion} />}
-      {data.age && <Row label="age:" value={data.age} />}
-      {/* {age() && <Row label="age:" value={age()} />} */}
-      {patient.gender && (
-        <Row label="gender:" value={patient.gender.toLowerCase()} />
-      )}
-      {data.maritalStatus && (
-        <Row label="marital status:" value={data.maritalStatus} />
-      )}
-      {data.occupation && <Row label="occupation:" value={data.occupation} />}
-      {data.education && <Row label="education:" value={data.education} />}
-      {data.address && <Row label="address:" value={data.address} />}
-      {data.referral && (
-        <Row label="source of referral:" value={data.referral} />
-      )}
-      {data.provisionalDiagnosis && (
-        <Row label="provisional diagnosis:" value={data.provisionalDiagnosis} />
-      )}
-      {data.revisedDiagnosis && (
-        <Row label="revised diagnosis:" value={data.revisedDiagnosis} />
-      )}
+        <Row
+          label="doctor consultant:"
+          value={data.doctorConsultant.toUpperCase()}
+        />
+        <Row label="name:" value={patient?.name} />
+        {data.religion && <Row label="religion:" value={data.religion} />}
+        {patient?.age && <Row label="age:" value={patient.age} />}
+        {/* {age() && <Row label="age:" value={age()} />} */}
+        {patient.gender && (
+          <Row label="gender:" value={patient.gender.toLowerCase()} />
+        )}
+        {data.maritalStatus && (
+          <Row label="marital status:" value={data.maritalStatus} />
+        )}
+        {data.occupation && <Row label="occupation:" value={data.occupation} />}
+        {data.education && <Row label="education:" value={data.education} />}
+        {data.address && <Row label="address:" value={data.address} />}
+        {data.referral && (
+          <Row label="source of referral:" value={data.referral} />
+        )}
+        {data.provisionalDiagnosis && (
+          <Row label="provisional diagnosis:" value={data.provisionalDiagnosis} />
+        )}
+        {data.revisedDiagnosis && (
+          <Row label="revised diagnosis:" value={data.revisedDiagnosis} />
+        )}
+      </View>
+      <View style={{ width: "35%", alignItems: "flex-end", ...styles.mrgnTop10 }}>
+        {admission?.addmissionDate && (
+          <Text>
+            Admission Date:{" "}
+            {formatDate(admission.addmissionDate)}
+          </Text>
+        )}
+      </View>
     </View>
   );
 };
