@@ -133,6 +133,7 @@ export const permissionList = [
       { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
+      { name: "AUDIT", label: "Audit" },
     ],
   },
   {

@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getDetailedPrescription, getMedineApprovalsByStatus, getPendingPatientApprovals, updateMedicineApprovalStatus } from "../../../helpers/backend_helper";
+import { deleteAuditById, getAuditsByStatus, getDetailedPrescription, getMedineApprovalsByStatus, getPendingPatientApprovals, updateMedicineApprovalStatus } from "../../../helpers/backend_helper";
 
 const initialState = {
     loading: false,
     medicineApprovals: [],
     pendingPatients: [],
-    detailedPrescription: {}
+    detailedPrescription: {},
+    pendingAudits: [],
+    auditHistory: []
 };
 
 export const getMedicineApprovals = createAsyncThunk("pharmacy/getMedineApprovalsByStatus", async (data, { rejectWithValue }) => {
@@ -44,6 +46,26 @@ export const getDetailedPrescriptionById = createAsyncThunk("pharmacy/getDetaile
     }
 });
 
+export const getAudits = createAsyncThunk("pharmacy/getAuditsByStatus", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getAuditsByStatus(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const deleteAudit = createAsyncThunk("pharmacy/deleteAuditById", async ({ _id }, { rejectWithValue }) => {
+    try {
+        const response = await deleteAuditById(_id);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+
+
 
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
@@ -51,6 +73,17 @@ export const pharmacySlice = createSlice({
     reducers: {
         clearMedicineApprovals: (state) => {
             state.medicineApprovals = []
+        },
+        appendAuditList: (state, action) => {
+            if (!state.auditHistory.data) {
+                state.auditHistory = action.payload.data;
+            } else {
+                state.auditHistory = [...state.auditHistory.data, ...action.payload.data];
+            }
+
+            if (state.auditHistory.pagination) {
+                state.auditHistory.pagination = action.payload.pagination;
+            }
         },
     },
     extraReducers: (builder) => {
@@ -68,14 +101,12 @@ export const pharmacySlice = createSlice({
 
         builder
             .addCase(updateApprovalStatus.fulfilled, (state, { payload }) => {
-                console.log(payload)
                 if (payload.data.type === "single" && payload.update !== "pendingPatients") {
                     state.medicineApprovals.data = state.medicineApprovals.data.filter((data) => data._id !== payload.data.id);
                 } else if (payload.data.type === "bulk") {
                     state.medicineApprovals = [];
                     console.log(payload)
                 } else if (payload.update === "pendingPatients") {
-                    console.log("here")
                     state.pendingPatients.data = state.pendingPatients.data.filter((data) => data._id !== payload.data.id);
                 }
             });
@@ -94,11 +125,43 @@ export const pharmacySlice = createSlice({
 
         builder.addCase(getDetailedPrescriptionById.fulfilled, (state, { payload }) => {
             state.detailedPrescription = payload;
-        })
+        });
 
+        builder
+            .addCase(getAudits.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getAudits.fulfilled, (state, { payload }) => {
+                if (payload.status === "PENDING") {
+                    state.pendingAudits = payload;
+                } else if (payload.status === "COMPLETED") {
+                    state.auditHistory = payload;
+                }
+                state.loading = false;
+            })
+            .addCase(getAudits.rejected, (state) => {
+                state.loading = false;
+            });
+
+        builder
+            .addCase(deleteAudit.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteAudit.fulfilled, (state, { meta }) => {
+                const { _id, status } = meta.arg;
+                if (status === "PENDING") {
+                    state.pendingAudits.data = state.pendingAudits.data.filter((audit) => audit._id !== _id);
+                } else if (status === "COMPLETED") {
+                    state.auditHistory.data = state.auditHistory.data.filter((audit) => audit._id !== _id);
+                }
+                state.loading = false;
+            })
+            .addCase(deleteAudit.rejected, (state) => {
+                state.loading = false;
+            })
     }
 });
 
-export const { clearMedicineApprovals } = pharmacySlice.actions;
+export const { clearMedicineApprovals, appendAuditList } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;
