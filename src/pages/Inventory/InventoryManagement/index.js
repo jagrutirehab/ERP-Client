@@ -26,7 +26,7 @@ import {
 } from "reactstrap";
 import AddinventoryMedicine from "../AddinventoryMedicine";
 import { Button } from "../Components/Button";
-import { Select } from "../Components/Select";
+import Select from "react-select";
 import {
   Table,
   TableBody,
@@ -51,6 +51,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { downloadInventoryTemplate } from "../../../utils/downloadInventoryTemplate";
 import FailedMedicines from "../Components/FailedMedicines";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 ChartJS.register(
   CategoryScale,
@@ -69,6 +70,7 @@ const InventoryManagement = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
+  const handleAuthError = useAuthError();
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
@@ -80,7 +82,7 @@ const InventoryManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [qfilter, setQfilter] = useState("");
-  const [selectedCenter, setSelectedCenter] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [medicines, setMedicines] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -89,6 +91,50 @@ const InventoryManagement = () => {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [showCentralMedicine, setShowCentralMedicine] = useState(false);
   const abortRef = useRef(null);
+
+
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [{
+        value: "ALL",
+        label: "All Centers",
+        isDisabled: false,
+      }]
+      : []
+    ),
+    ...(
+      user?.centerAccess?.map(id => {
+        const center = user?.userCenters?.find(c => c._id === id);
+        return {
+          value: id,
+          label: center?.title || "Unknown Center"
+        };
+      }) || []
+    )
+  ];
+
+  const selectedCenterOption = centerOptions.find(
+    opt => opt.value === selectedCenter
+  ) || centerOptions[0];
+
+
+  useEffect(() => {
+    if (
+      selectedCenter !== "ALL" &&
+      !user?.centerAccess?.includes(selectedCenter)
+    ) {
+      setSelectedCenter("ALL");
+      setCurrentPage(1);
+    }
+  }, [selectedCenter, user?.centerAccess]);
+
+
+  const centers =
+    selectedCenter === "ALL"
+      ? user?.centerAccess
+      : [selectedCenter];
+
 
 
   const toggleDropdown = (id) => {
@@ -111,6 +157,7 @@ const InventoryManagement = () => {
 
   const handleFormSubmit = async (data) => {
     try {
+
       const payload = {
         ...data,
         updatedBy: editingMedicine?._id
@@ -125,12 +172,15 @@ const InventoryManagement = () => {
 
       if (editingMedicine && editingMedicine._id) {
         res = await axios.patch(`/pharmacy/${editingMedicine._id}`, payload, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
         });
         toast.success(res?.data?.message || "Medicine updated successfully");
       } else {
         res = await axios.post("/pharmacy/", payload, {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
         toast.success(res?.data?.message || "Medicine added successfully");
       }
@@ -142,14 +192,15 @@ const InventoryManagement = () => {
         limit: pageSize,
         q: debouncedSearch,
         fillter: qfilter,
-        center: selectedCenter || undefined,
-        centers: user?.centerAccess,
+        centers
       });
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-        "Failed to save medicine. Please try again."
-      );
+      if (!handleAuthError(error)) {
+        toast.error(
+          error.response?.data?.message ||
+          "Failed to save medicine. Please try again."
+        );
+      }
     }
   };
 
@@ -159,8 +210,7 @@ const InventoryManagement = () => {
       limit: pageSize,
       q: debouncedSearch,
       fillter: qfilter,
-      center: selectedCenter || undefined,
-      centers: user?.centerAccess,
+      centers,
     });
     setCurrentPage(1);
     setBulkOpen(false);
@@ -197,7 +247,7 @@ const InventoryManagement = () => {
     limit = pageSize,
     q = "",
     fillter = "",
-    center,
+    // center,
     centers,
   } = {}) {
     if (abortRef.current) {
@@ -215,17 +265,21 @@ const InventoryManagement = () => {
         limit,
         search: q || undefined,
         fillter: fillter || undefined,
+        centers,
       };
 
-      if (center) {
-        params.center = center;
-      } else if (user?.centerAccess) {
-        params.centers = user.centerAccess;
-      }
+      // if (center) {
+      //   params.center = center;
+      // } else if (user?.centerAccess) {
+      //   params.centers = user.centerAccess;
+      // }
       const response = await axios.get("/pharmacy/", {
         params,
         signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
       });
 
       const body = response || {};
@@ -238,7 +292,7 @@ const InventoryManagement = () => {
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled) {
+      if (!cancelled || !handleAuthError(err)) {
         return;
         // console.error(err);
         // toast.error("Failed to fetch medicines");
@@ -266,8 +320,7 @@ const InventoryManagement = () => {
         limit: pageSize,
         q: debouncedSearch,
         fillter: qfilter,
-        center: selectedCenter || undefined,
-        centers: user?.centerAccess,
+        centers
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -588,7 +641,7 @@ const InventoryManagement = () => {
             {/* left side: selects side by side */}
             <div className="d-flex align-items-center gap-3 flex-wrap">
               <div style={{ width: "220px" }}>
-                <Select
+                {/* <Select
                   placeholder="All Stock Levels"
                   onChange={(e) => {
                     setQfilter(e.target.value);
@@ -600,11 +653,33 @@ const InventoryManagement = () => {
                     { value: "MODERATE", label: "Moderate" },
                     { value: "OUTOFSTOCK", label: "Out Of Stock" },
                   ]}
+                /> */}
+                <Select
+                  placeholder="All Stock Levels"
+                  value={
+                    [
+                      { value: "LOW", label: "Low" },
+                      { value: "NORMAL", label: "Normal" },
+                      { value: "MODERATE", label: "Moderate" },
+                      { value: "OUTOFSTOCK", label: "Out Of Stock" },
+                    ].find(opt => opt.value === qfilter) || null
+                  }
+                  onChange={(option) => {
+                    setQfilter(option?.value || "");
+                    setCurrentPage(1);
+                  }}
+                  options={[
+                    { value: "LOW", label: "Low" },
+                    { value: "NORMAL", label: "Normal" },
+                    { value: "MODERATE", label: "Moderate" },
+                    { value: "OUTOFSTOCK", label: "Out Of Stock" },
+                  ]}
                 />
+
               </div>
 
               <div style={{ width: "220px" }}>
-                <Select
+                {/* <Select
                   placeholder="All Centers"
                   value={selectedCenter}
                   onChange={(e) => {
@@ -617,6 +692,16 @@ const InventoryManagement = () => {
                       label: center?.title ?? center?.name ?? "Unknown",
                     })) || []
                   }
+                /> */}
+                <Select
+                  value={selectedCenterOption}
+                  onChange={(option) => {
+                    setSelectedCenter(option?.value);
+                    setCurrentPage(1);
+                  }}
+                  options={centerOptions}
+                  placeholder="All Centers"
+                  classNamePrefix="react-select"
                 />
               </div>
             </div>

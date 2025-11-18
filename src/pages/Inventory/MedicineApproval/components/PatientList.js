@@ -51,6 +51,17 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     ];
 
 
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
+
+
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
     ) || centerOptions[0];

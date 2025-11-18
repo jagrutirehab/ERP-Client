@@ -113,10 +113,13 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                     status: "COMPLETED",
                     startDate: reportDate.start.toISOString(),
                     endDate: reportDate.end.toISOString(),
+                    append: false
                 })
             ).unwrap();
         } catch (err) {
-            if (!handleAuthError(err)) toast.error("Failed to load audits");
+            if (!handleAuthError(err)) {
+                toast.error("Failed to load audits")
+            };
         }
     };
 
@@ -144,11 +147,15 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                     status: "COMPLETED",
                     startDate: reportDate.start.toISOString(),
                     endDate: reportDate.end.toISOString(),
+                    append: true
                 })
             ).unwrap();
-
-            dispatch(appendAuditList(res.data));
+            dispatch(appendAuditList({
+                data: res.data,
+                pagination: res.pagination
+            }));
         } catch (err) {
+            console.log(err)
             if (!handleAuthError(err)) {
                 toast.error("Failed to load more audits");
             }
