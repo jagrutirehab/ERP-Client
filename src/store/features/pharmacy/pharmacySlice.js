@@ -7,7 +7,10 @@ const initialState = {
     pendingPatients: [],
     detailedPrescription: {},
     pendingAudits: [],
-    auditHistory: []
+    auditHistory: {
+        data: [],
+        pagination: {}
+    }
 };
 
 export const getMedicineApprovals = createAsyncThunk("pharmacy/getMedineApprovalsByStatus", async (data, { rejectWithValue }) => {
@@ -46,14 +49,19 @@ export const getDetailedPrescriptionById = createAsyncThunk("pharmacy/getDetaile
     }
 });
 
-export const getAudits = createAsyncThunk("pharmacy/getAuditsByStatus", async (data, { rejectWithValue }) => {
-    try {
-        const response = await getAuditsByStatus(data);
-        return response;
-    } catch (error) {
-        return rejectWithValue(error);
-    }
-});
+export const getAudits = createAsyncThunk(
+    "pharmacy/getAuditsByStatus",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await getAuditsByStatus(data);
+            return {
+                ...response,
+                append: data.append || false
+            };
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    });
 
 export const deleteAudit = createAsyncThunk("pharmacy/deleteAuditById", async ({ _id }, { rejectWithValue }) => {
     try {
@@ -75,16 +83,16 @@ export const pharmacySlice = createSlice({
             state.medicineApprovals = []
         },
         appendAuditList: (state, action) => {
+            const { data, pagination } = action.payload;
+
             if (!state.auditHistory.data) {
-                state.auditHistory = action.payload.data;
+                state.auditHistory.data = data;
             } else {
-                state.auditHistory = [...state.auditHistory.data, ...action.payload.data];
+                state.auditHistory.data.push(...data);
             }
 
-            if (state.auditHistory.pagination) {
-                state.auditHistory.pagination = action.payload.pagination;
-            }
-        },
+            state.auditHistory.pagination = pagination;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -135,8 +143,15 @@ export const pharmacySlice = createSlice({
                 if (payload.status === "PENDING") {
                     state.pendingAudits = payload;
                 } else if (payload.status === "COMPLETED") {
-                    state.auditHistory = payload;
+                    if (!payload.append) {
+                        state.auditHistory = {
+                            data: payload.data,
+                            pagination: payload.pagination
+                        };
+                    }
                 }
+
+
                 state.loading = false;
             })
             .addCase(getAudits.rejected, (state) => {

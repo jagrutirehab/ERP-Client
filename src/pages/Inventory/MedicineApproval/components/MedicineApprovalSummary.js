@@ -64,6 +64,16 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         )
     ];
 
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
+
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -199,7 +209,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             name: <div>Patient Name</div>,
             selector: (row) => capitalizeWords(row?.patient?.name || "-"),
             wrap: true,
-            minWidth:"100px"
+            minWidth: "100px"
         },
         {
             name: <div>Patient UID</div>,
@@ -210,7 +220,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            minWidth:"100px"
+            minWidth: "100px"
         },
         {
             name: <div>Prescription Date</div>,
@@ -260,7 +270,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 </div>
             ),
             wrap: true,
-            minWidth:"310px"
+            minWidth: "310px"
         },
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Remarks</div>,

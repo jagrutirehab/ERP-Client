@@ -43,6 +43,17 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     ];
 
 
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
+
+
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
     ) || centerOptions[0];
@@ -144,7 +155,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                 whiteSpace: "normal",
                 wordBreak: "break-word",
             },
-            minWidth:"200px",
+            minWidth: "200px",
             grow: 4,
         },
         {
@@ -191,7 +202,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Remarks</div>,
             selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
             wrap: true,
-            minWidth:"200px"
+            minWidth: "200px"
         }
     ];
 
