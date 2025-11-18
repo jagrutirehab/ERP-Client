@@ -206,9 +206,11 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
 
             setModalOpen(false);
             setModalSelectedCenter(null);
-            setAuditDate("");
+            // setAuditDate("");
         } catch (error) {
-            toast.error("Failed to download template");
+            if (!handleAuthError(error)) {
+                toast.error("Failed to download template");
+            }
         }
     };
 
@@ -291,7 +293,9 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             toast.success("Upload completed ✔");
             fetchAudits(page, limit);
         } catch (err) {
-            toast.error("Upload failed");
+            if (!handleAuthError(err)) {
+                toast.error("Upload failed");
+            }
         } finally {
             setUploading(false);
             setPreviewRows([]);
@@ -326,7 +330,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             await dispatch(deleteAudit({ _id: id, status: "PENDING" })).unwrap();
             toast.success("Audit deleted successfully");
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to delete the audit");
             }
         }
@@ -376,7 +380,11 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
                         <Button
                             color="primary"
                             className="fw-semibold d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
+                            onClick={() => {
+                                setModalOpen(true);
+                                setAuditDate(istToday);
+                                setModalSelectedCenter(null);
+                            }}
                         >
                             <Plus size={18} />
                             Create an Audit
