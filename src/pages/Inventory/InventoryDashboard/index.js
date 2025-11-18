@@ -15,6 +15,7 @@ import { RefreshCcw, Bell } from "lucide-react";
 import { CardBody } from "reactstrap";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 ChartJS.register(
   CategoryScale,
@@ -142,6 +143,7 @@ const TableCell = ({ children, style = {}, colSpan }) => (
 
 const App = () => {
   const user = useSelector((state) => state.User);
+  const isMobile = useMediaQuery("(max-width: 1000px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [usageData, setUsageData] = useState([]);
@@ -292,7 +294,7 @@ const App = () => {
   }, [usageData]);
 
   return (
-    <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
+    <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div
         style={{
           backgroundColor: "white",

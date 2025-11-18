@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import { clearMedicineApprovals, getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
+import { getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
 import Select from "react-select";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
@@ -199,6 +199,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             name: <div>Patient Name</div>,
             selector: (row) => capitalizeWords(row?.patient?.name || "-"),
             wrap: true,
+            minWidth:"100px"
         },
         {
             name: <div>Patient UID</div>,
@@ -209,6 +210,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
+            minWidth:"100px"
         },
         {
             name: <div>Prescription Date</div>,
@@ -221,51 +223,44 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         {
             name: <div>Medicines</div>,
             cell: (row) => (
-                <div style={{ lineHeight: "1.8" }}>
+                <div className="w-100">
                     {row.medicineCounts?.map((medicine, index) => (
-                        <div
-                            key={`${medicine.medicineId}`}
-                            className="d-flex align-items-center my-1"
-                            style={{ gap: "12px" }}
-                        >
-                            <span
-                                style={{
-                                    flex: 1,
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                    color: "#333",
-                                }}
+                        <div key={medicine.medicineId} className="w-100">
+                            <div
+                                className="d-flex justify-content-between align-items-center flex-wrap py-1"
                             >
-                                {medicine.medicineName}
-                            </span>
-                            {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
-                                <Input
-                                    type="number"
-                                    value={medicine.totalQuantity}
-                                    bsSize="sm"
-                                    onChange={(e) =>
-                                        handleDispenseChange(row._id, medicine.medicineId, e.target.value)
-                                    }
-                                    style={{
-                                        width: "60px",
-                                        height: "28px",
-                                        textAlign: "center",
-                                        fontSize: "13px",
-                                        borderRadius: "4px",
-                                    }}
-                                />
-                            ) : (
-                                <span style={{
-                                    fontSize: "14px",
-                                    fontWeight: "500",
-                                }}>{medicine.totalQuantity}</span>
+                                <span className="fw-semibold text-dark"
+                                    style={{ flex: "1 1 60%", wordBreak: "break-word" }}
+                                >
+                                    {medicine.medicineName}
+                                </span>
+                                {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
+                                    <Input
+                                        type="number"
+                                        bsSize="sm"
+                                        className="text-center mt-1 mt-md-0"
+                                        style={{ width: "70px" }}
+                                        value={medicine.totalQuantity}
+                                        onChange={(e) =>
+                                            handleDispenseChange(row._id, medicine.medicineId, e.target.value)
+                                        }
+                                    />
+                                ) : (
+                                    <span className="fw-semibold">
+                                        {medicine.totalQuantity}
+                                    </span>
+                                )}
+                            </div>
+
+                            {index !== row.medicineCounts.length - 1 && (
+                                <div className="border-bottom my-md-2 my-1"></div>
                             )}
                         </div>
                     ))}
                 </div>
             ),
             wrap: true,
-            width: "40%",
+            minWidth:"310px"
         },
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Remarks</div>,
@@ -282,7 +277,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Actions</div>,
             cell: (row) => (
-                <div className="d-flex flex-column align-items-center gap-2">
+                <div className="d-flex flex-column align-items-center gap-1 my-2">
                     <Button
                         color="success"
                         size="sm"
@@ -385,7 +380,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                     { value: 10, label: "10" },
                                     { value: 20, label: "20" },
                                     { value: 30, label: "30" },
-                                    { value: 30, label: "40" },
+                                    { value: 40, label: "40" },
                                     { value: 50, label: "50" },
                                 ]}
                                 className="react-select-container"

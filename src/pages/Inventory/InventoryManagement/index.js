@@ -50,6 +50,7 @@ import Givemedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { downloadInventoryTemplate } from "../../../utils/downloadInventoryTemplate";
 import FailedMedicines from "../Components/FailedMedicines";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 ChartJS.register(
   CategoryScale,
@@ -64,6 +65,7 @@ const InventoryManagement = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { loading: centralMedicineLoading, data: centralMedicines, totalPages: centralMedicineTotalPages, totalCount: centralMedicineTotalCount } = useSelector((state) => state.Medicine);
+  const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
@@ -323,7 +325,7 @@ const InventoryManagement = () => {
 
 
   return (
-    <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
+    <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
         <div className="text-center text-md-left mb-4">
           <h1 className="display-4 font-weight-bold text-primary">INVENTORY</h1>

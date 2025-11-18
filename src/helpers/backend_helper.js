@@ -1312,3 +1312,77 @@ export const getDetailedPrescription = (prescriptionId) => {
     },
   })
 }
+
+export const downloadAuditTemplate = (params) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+    responseType: "blob",
+  })
+}
+
+export const getAuditsByStatus = (params) => {
+  return api.get(url.AUDITS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const uploadAuditChunk = (data) => {
+  return api.create(url.UPLOAD_AUDIT_REPORT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+
+    },
+  })
+}
+
+export const updateAuditStatus = (params = {}) => {
+  return api.update(url.UPDATE_AUDIT_STATUS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const getAuditDetails = (params) => {
+  return api.get(url.GET_AUDIT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const deleteAuditById = (id) => {
+  return api.delete(`${url.AUDITS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const downloadAuditFailedMedicines = (id) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_FAILED_MEDICINES}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob"
+  })
+}

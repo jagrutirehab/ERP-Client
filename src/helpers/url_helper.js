@@ -356,3 +356,11 @@ export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
 export const MEDICINE_APPROVALS = "/pharmacy/approvals";
 export const GET_PENDING_PATIENT_APPROVALS = "/pharmacy/approvals/pending-patients";
 export const GET_DETAILED_PRESCRIPTION = "/pharmacy/approvals/detailed-prescription";
+
+// PHARMACY AUDIT
+export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";
+export const AUDITS = "/pharmacy/audit";
+export const UPLOAD_AUDIT_REPORT = "/pharmacy/audit/upload-chunk";
+export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
+export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
+export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
