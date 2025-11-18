@@ -148,12 +148,40 @@ const App = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [usageData, setUsageData] = useState([]);
   const [wastageData, setWastageData] = useState([]);
-  const [selectedCenter, setSelectedCenter] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [medicines, setMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const abortRef = useRef(null);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [{
+        value: "ALL",
+        label: "All Centers",
+        isDisabled: false,
+      }]
+      : []
+    ),
+    ...(
+      user?.centerAccess?.map(id => {
+        const center = user?.userCenters?.find(c => c._id === id);
+        return {
+          value: id,
+          label: center?.title || "Unknown Center"
+        };
+      }) || []
+    )
+  ];
+
+  const centers =
+    selectedCenter === "ALL"
+      ? user?.centerAccess
+      : [selectedCenter];
 
   // Debounce search input
   useEffect(() => {
@@ -168,13 +196,15 @@ const App = () => {
 
     setLoading(true);
     try {
-      const params = { search: debouncedSearch || undefined };
-      if (selectedCenter) params.center = selectedCenter;
-      else if (user?.centerAccess) params.centers = user.centerAccess;
-
+      const params = { search: debouncedSearch || undefined, centers };
+      // if (selectedCenter) params.center = selectedCenter;
+      // else if (user?.centerAccess) params.centers = user.centerAccess;
       const response = await axios.get("/pharmacy/", {
         params,
         signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       setMedicines(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
@@ -190,7 +220,7 @@ const App = () => {
 
   useEffect(() => {
     if (debouncedSearch) fetchMedicines();
-  }, [debouncedSearch, selectedCenter]);
+  }, [debouncedSearch, selectedCenter, user?.centerAccess]);
 
   const handleSelectMedicine = (med) => {
     if (!selectedMedicines.some((m) => m._id === med._id)) {
@@ -215,22 +245,28 @@ const App = () => {
       const medicineIds = selectedMedicines.map((m) => m._id);
       const usageRes = await axios.get("/pharmacy/reports/medicine-usage", {
         params: {
-          center: selectedCenter || undefined,
+          centers,
           medicine: medicineIds.length ? medicineIds : undefined,
           from: dateRange.from || undefined,
           to: dateRange.to || undefined,
           groupBy: "month",
         },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
 
       const wastageRes = await axios.get("/pharmacy/reports/wastage", {
         params: {
-          center: selectedCenter || undefined,
+          centers,
           medicine: medicineIds.length ? medicineIds : undefined,
           from: dateRange.from || undefined,
           to: dateRange.to || undefined,
           groupBy: "month",
         },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
 
       setUsageData(usageRes.data || []);
@@ -246,7 +282,7 @@ const App = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [selectedCenter, selectedMedicines, dateRange]);
+  }, [selectedCenter, selectedMedicines, dateRange, user?.centerAccess]);
 
   const { chartLabels, chartDatasets, chartOptions } = useMemo(() => {
     const labels = Array.from(new Set(usageData.map((d) => d.period))).sort();
@@ -362,7 +398,7 @@ const App = () => {
           }}
         >
           {/* Center Filter */}
-          <SelectComponent
+          {/* <SelectComponent
             placeholder="Filter by Center"
             value={selectedCenter}
             onChange={(e) => setSelectedCenter(e.target.value)}
@@ -373,6 +409,12 @@ const App = () => {
                 label: center?.title ?? center?.name ?? "Unknown",
               })) || []),
             ]}
+          /> */}
+          <SelectComponent
+            placeholder="Filter by Center"
+            value={selectedCenter}
+            onChange={(e) => setSelectedCenter(e.target.value)}
+            options={centerOptions}
           />
 
           {/* Date Filter */}

@@ -116,7 +116,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                 })
             ).unwrap();
         } catch (err) {
-            if (!handleAuthError) toast.error("Failed to load audits");
+            if (!handleAuthError(err)) toast.error("Failed to load audits");
         }
     };
 
@@ -149,7 +149,9 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
 
             dispatch(appendAuditList(res.data));
         } catch (err) {
-            toast.error("Failed to load more audits");
+            if (!handleAuthError(err)) {
+                toast.error("Failed to load more audits");
+            }
         }
     };
 
@@ -174,7 +176,9 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
             setPage(newPage);
             setLimit(newLimit);
         } catch (err) {
-            toast.error("Failed to load audit details");
+            if (!handleAuthError(err)) {
+                toast.error("Failed to load audit details");
+            }
         } finally {
             setTableLoading(false);
         }
