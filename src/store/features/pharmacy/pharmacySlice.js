@@ -82,16 +82,8 @@ export const pharmacySlice = createSlice({
         clearMedicineApprovals: (state) => {
             state.medicineApprovals = []
         },
-        appendAuditList: (state, action) => {
-            const { data, pagination } = action.payload;
-
-            if (!state.auditHistory.data) {
-                state.auditHistory.data = data;
-            } else {
-                state.auditHistory.data.push(...data);
-            }
-
-            state.auditHistory.pagination = pagination;
+        clearAuditHistory: (state) => {
+            state.auditHistory = initialState.auditHistory
         }
     },
     extraReducers: (builder) => {
@@ -177,6 +169,6 @@ export const pharmacySlice = createSlice({
     }
 });
 
-export const { clearMedicineApprovals, appendAuditList } = pharmacySlice.actions;
+export const { clearMedicineApprovals, clearAuditHistory } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;

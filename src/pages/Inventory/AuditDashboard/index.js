@@ -4,6 +4,7 @@ import {
   Nav,
   NavItem,
   NavLink,
+  Spinner,
   TabContent,
   TabPane,
 } from "reactstrap";
@@ -28,6 +29,14 @@ const AuditDashboard = () => {
 
   if (!loading && !hasUserPermission) {
     navigate("/unauthorized");
+  }
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+        <Spinner color="primary" />
+      </div>
+    )
   }
 
   const toggle = (tab) => {

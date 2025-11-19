@@ -114,6 +114,12 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
         opt => opt.value === selectedCenter
     ) || centerOptions[0];
 
+
+    const centers =
+        selectedCenter === "ALL"
+            ? user?.centerAccess
+            : !user?.centerAccess.length ? [] : [selectedCenter];
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -126,15 +132,11 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
 
     const handleDateChange = (newDate) => setReportDate(newDate);
 
-
     const fetchAudits = async (newPage = page) => {
         try {
-            const centers =
-                selectedCenter === "ALL"
-                    ? user?.centerAccess
-                    : [selectedCenter];
+
             await dispatch(getAudits({
-                centers: centers,
+                centers,
                 page: newPage,
                 limit,
                 status: "PENDING",
@@ -149,10 +151,10 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
     };
 
     useEffect(() => {
-        if (activeTab === "PENDING" || hasUserPermission) {
+        if (activeTab === "PENDING" && hasUserPermission) {
             fetchAudits();
         }
-    }, [page, selectedCenter, user?.centerAccess, reportDate, activeTab, dispatch]);
+    }, [page, selectedCenter, reportDate, activeTab, dispatch, user?.centerAccess,]);
 
 
     const getPageRange = (total, current, maxButtons = 7) => {

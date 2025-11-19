@@ -65,7 +65,6 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         end: endOfDay(new Date()),
     });
 
-    // Reset selected audit when filters change
     useEffect(() => {
         setSelectedAudit(null);
         setSelectedAuditDetails(null);
@@ -85,6 +84,12 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         centerOptions.find((o) => o.value === selectedCenter) ||
         centerOptions[0];
 
+
+    const centers =
+        selectedCenter === "ALL"
+            ? user?.centerAccess
+            : !user?.centerAccess.length ? [] : [selectedCenter];
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -95,45 +100,34 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         }
     }, [selectedCenter, user?.centerAccess]);
 
-    const loadAudits = useCallback(
-        async (pageToLoad = 1, append = false) => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
+    const loadAudits = async (pageToLoad = 1) => {
+        try {
 
-                await dispatch(
-                    getAudits({
-                        centers,
-                        page: pageToLoad,
-                        limit,
-                        status: "COMPLETED",
-                        startDate: reportDate.start.toISOString(),
-                        endDate: reportDate.end.toISOString(),
-                        append,
-                    })
-                ).unwrap();
-            } catch (err) {
-                if (!handleAuthError(err)) {
-                    toast.error("Failed to load audits");
-                }
+            await dispatch(
+                getAudits({
+                    centers,
+                    page: pageToLoad,
+                    limit,
+                    status: "COMPLETED",
+                    startDate: reportDate.start.toISOString(),
+                    endDate: reportDate.end.toISOString(),
+                })
+            ).unwrap();
+        } catch (err) {
+            if (!handleAuthError(err)) {
+                toast.error("Failed to load audits");
             }
-        },
-        [selectedCenter, reportDate, limit, dispatch, user?.centerAccess, handleAuthError]
-    );
+        }
+    };
 
-    // Load audits when dependencies change
     useEffect(() => {
         if (activeTab === "HISTORY" && hasUserPermission) {
-            loadAudits(1, false);
+            loadAudits(1);
         }
-    }, [activeTab, hasUserPermission, selectedCenter, reportDate, limit]);
-
-    const auditPagination = auditHistory?.pagination || {};
+    }, [activeTab, hasUserPermission, selectedCenter, reportDate, limit, user?.centerAccess, dispatch]);
 
     const handlePageChange = async (newPage) => {
-        await loadAudits(newPage, false);
+        await loadAudits(newPage);
     };
 
     const loadAuditDetails = async (audit, newPage = page, newLimit = limit, newSearch = search) => {
@@ -364,31 +358,29 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 })
                             )}
 
-                            <div className="d-flex justify-content-between align-items-center p-2 border-top">
-                                <Button
-                                    size="sm"
-                                    disabled={!auditHistory?.pagination?.hasPrevPage || auditListLoading}
-                                    onClick={() =>
-                                        handlePageChange(auditHistory.pagination.page - 1)
-                                    }
-                                >
-                                    Prev
-                                </Button>
+                            {(auditHistory?.pagination?.hasPrevPage || auditHistory?.pagination?.hasNextPage) && (
+                                <div className="d-flex justify-content-between align-items-center p-2 border-top">
+                                    <Button
+                                        size="sm"
+                                        disabled={!auditHistory?.pagination?.hasPrevPage || auditListLoading}
+                                        onClick={() => handlePageChange(auditHistory.pagination.page - 1)}
+                                    >
+                                        Prev
+                                    </Button>
 
-                                <span style={{ fontSize: "12px" }}>
-                                    Page {auditHistory?.pagination?.page} / {auditHistory?.pagination?.totalPages}
-                                </span>
+                                    <span style={{ fontSize: "12px" }}>
+                                        Page {auditHistory?.pagination?.page} of {auditHistory?.pagination?.totalPages}
+                                    </span>
 
-                                <Button
-                                    size="sm"
-                                    disabled={!auditHistory?.pagination?.hasNextPage || auditListLoading}
-                                    onClick={() =>
-                                        handlePageChange(auditHistory.pagination.page + 1)
-                                    }
-                                >
-                                    Next
-                                </Button>
-                            </div>
+                                    <Button
+                                        size="sm"
+                                        disabled={!auditHistory?.pagination?.hasNextPage || auditListLoading}
+                                        onClick={() => handlePageChange(auditHistory.pagination.page + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
 
                             {auditListLoading && auditListData.length > 0 && (
                                 <div className="text-center py-2">
@@ -562,11 +554,6 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                             setDeleteModalOpen(!deleteModalOpen)
                         }
                         isOpen={deleteModalOpen}
-                        onDeleteSuccess={() => {
-                            loadAudits(auditHistory.pagination.page, false);
-                            setSelectedAudit(null);
-                            setSelectedAuditDetails(null);
-                        }}
                     />
                 </div>
             </div>
