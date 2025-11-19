@@ -16,6 +16,7 @@ import { CardBody } from "reactstrap";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 ChartJS.register(
   CategoryScale,
@@ -156,6 +157,7 @@ const App = () => {
   const abortRef = useRef(null);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
+  const handleAuthError = useAuthError();
 
 
   const centerOptions = [
@@ -177,6 +179,15 @@ const App = () => {
       }) || []
     )
   ];
+
+  useEffect(() => {
+    if (
+      selectedCenter !== "ALL" &&
+      !user?.centerAccess?.includes(selectedCenter)
+    ) {
+      setSelectedCenter("ALL");
+    }
+  }, [selectedCenter, user?.centerAccess]);
 
   const centers =
     selectedCenter === "ALL"
@@ -212,7 +223,7 @@ const App = () => {
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled) toast.error("Failed to fetch medicines");
+      if (!cancelled || !handleAuthError(err)) toast.error("Failed to fetch medicines");
     } finally {
       setLoading(false);
     }
@@ -281,6 +292,11 @@ const App = () => {
   };
 
   useEffect(() => {
+    if (user?.centerAccess.length === 0) {
+      setUsageData([]);
+      setWastageData([]);
+      return;
+    };
     fetchReports();
   }, [selectedCenter, selectedMedicines, dateRange, user?.centerAccess]);
 

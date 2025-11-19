@@ -158,8 +158,9 @@ const GivenMedicine = () => {
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled) {
-        toast.error("Failed to fetch records");
+      if (!cancelled || !handleAuthError(err)) {
+        return;
+        // toast.error("Failed to fetch records");
       }
     } finally {
       setLoading(false);

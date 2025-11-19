@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getPendingApprovalsByPatient } from "../../../../store/features/pharmacy/pharmacySlice";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [modal, setModal] = useState(false);
@@ -271,7 +272,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                                 maxWidth: "220px",
                                             }}
                                         >
-                                            {patient?.patient.name}
+                                            {capitalizeWords(patient?.patient.name)}
                                         </CardTitle>
 
                                         <small className="text-muted">Patient ID: {patient?.patientId?.prefix} {patient?.patientId?.value}</small>
@@ -289,7 +290,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                                 color: "white",
                                             }}
                                         >
-                                            {patient.centerName}
+                                            {capitalizeWords(patient.centerName)}
                                         </Badge>
                                     )}
                                 </div>
@@ -300,7 +301,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                             <UserRound className="me-2 text-primary" size={16} />
                                             <div>
                                                 <small className="text-muted d-block">Doctor</small>
-                                                <span className="fw-medium text-dark">{patient.doctorName}</span>
+                                                <span className="fw-medium text-dark">{capitalizeWords(patient.doctorName)}</span>
                                             </div>
                                         </div>
                                     )}

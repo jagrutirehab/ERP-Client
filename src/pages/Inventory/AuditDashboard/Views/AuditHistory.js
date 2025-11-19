@@ -15,7 +15,7 @@ import { Menu, Trash } from "lucide-react";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import AuditDeleteModal from "../../Components/AuditDeleteModal";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
-import { useInView } from "react-intersection-observer";
+import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 
 const customStyles = {
@@ -48,7 +48,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
 
     const [tableLoading, setTableLoading] = useState(false);
     const [selectedAudit, setSelectedAudit] = useState(null);
-    const [items, setItems] = useState([]);
+    const [selectedAuditDetails, setSelectedAuditDetails] = useState(null);
     const [totalDocs, setTotalDocs] = useState(0);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -65,11 +65,11 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         end: endOfDay(new Date()),
     });
 
-    const { ref: loadMoreRef, inView } = useInView({
-        threshold: 0,
-        triggerOnce: false,
-    });
-
+    // Reset selected audit when filters change
+    useEffect(() => {
+        setSelectedAudit(null);
+        setSelectedAuditDetails(null);
+    }, [selectedCenter, reportDate]);
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -96,7 +96,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
     }, [selectedCenter, user?.centerAccess]);
 
     const loadAudits = useCallback(
-        async (usePage = 1) => {
+        async (pageToLoad = 1, append = false) => {
             try {
                 const centers =
                     selectedCenter === "ALL"
@@ -106,12 +106,12 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                 await dispatch(
                     getAudits({
                         centers,
-                        page: usePage,
+                        page: pageToLoad,
                         limit,
                         status: "COMPLETED",
                         startDate: reportDate.start.toISOString(),
                         endDate: reportDate.end.toISOString(),
-                        append: false
+                        append,
                     })
                 ).unwrap();
             } catch (err) {
@@ -120,65 +120,23 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                 }
             }
         },
-        [selectedCenter, reportDate, limit, dispatch, user?.centerAccess]
+        [selectedCenter, reportDate, limit, dispatch, user?.centerAccess, handleAuthError]
     );
 
+    // Load audits when dependencies change
     useEffect(() => {
         if (activeTab === "HISTORY" && hasUserPermission) {
-            loadAudits(1);
+            loadAudits(1, false);
         }
-    }, [activeTab, hasUserPermission]);
-
-
-    useEffect(() => {
-        if (activeTab === "HISTORY") {
-            loadAudits(1);
-        }
-    }, [selectedCenter, reportDate, user?.centerAccess]);
-
+    }, [activeTab, hasUserPermission, selectedCenter, reportDate, limit]);
 
     const auditPagination = auditHistory?.pagination || {};
 
-    const loadMoreAudits = async () => {
-        if (!auditPagination.hasNextPage) return;
-        try {
-            const nextPage = auditPagination.page + 1;
-            const centers =
-                selectedCenter === "ALL"
-                    ? user?.centerAccess
-                    : [selectedCenter];
-
-            const res = await dispatch(
-                getAudits({
-                    centers,
-                    page: nextPage,
-                    limit,
-                    status: "COMPLETED",
-                    startDate: reportDate.start.toISOString(),
-                    endDate: reportDate.end.toISOString(),
-                    append: true
-                })
-            ).unwrap();
-
-            dispatch(
-                appendAuditList({
-                    data: res.data,
-                    pagination: res.pagination
-                })
-            );
-        } catch (err) {
-            if (!handleAuthError(err)) {
-                toast.error("Failed to load more audits");
-            }
-        }
+    const handlePageChange = async (newPage) => {
+        await loadAudits(newPage, false);
     };
 
-    const loadAuditDetails = async (
-        audit,
-        newPage = page,
-        newLimit = limit,
-        newSearch = search
-    ) => {
+    const loadAuditDetails = async (audit, newPage = page, newLimit = limit, newSearch = search) => {
         try {
             setTableLoading(true);
             const res = await getAuditDetails({
@@ -188,10 +146,10 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                 search: newSearch,
             });
 
-            setItems(res.items || []);
+            setSelectedAuditDetails(res.data);
             setTotalDocs(res.pagination.totalDocs);
-            setPage(newPage);
-            setLimit(newLimit);
+            setPage(res.pagination.page);
+            setLimit(res.pagination.limit);
         } catch (err) {
             if (!handleAuthError(err)) {
                 toast.error("Failed to load audit details");
@@ -200,13 +158,6 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
             setTableLoading(false);
         }
     };
-
-    useEffect(() => {
-        if (inView && auditPagination?.hasNextPage) {
-            loadMoreAudits();
-        }
-    }, [inView, auditPagination?.hasNextPage]);
-
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -219,13 +170,11 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
-
     const onAuditClick = (audit) => {
         setSelectedAudit(audit);
         loadAuditDetails(audit, 1, limit, search);
         if (isMobile) setShowSidebar(false);
     };
-
 
     const downloadAuditFailedMedicinesFile = async (auditId) => {
         if (!auditId) return;
@@ -260,7 +209,6 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
             setFailedDownloading(false);
         }
     };
-
 
     const safe = (v) => (v == null || v === "" ? "-" : v);
 
@@ -416,7 +364,32 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 })
                             )}
 
-                            <div ref={loadMoreRef} style={{ height: "40px" }} />
+                            <div className="d-flex justify-content-between align-items-center p-2 border-top">
+                                <Button
+                                    size="sm"
+                                    disabled={!auditHistory?.pagination?.hasPrevPage || auditListLoading}
+                                    onClick={() =>
+                                        handlePageChange(auditHistory.pagination.page - 1)
+                                    }
+                                >
+                                    Prev
+                                </Button>
+
+                                <span style={{ fontSize: "12px" }}>
+                                    Page {auditHistory?.pagination?.page} / {auditHistory?.pagination?.totalPages}
+                                </span>
+
+                                <Button
+                                    size="sm"
+                                    disabled={!auditHistory?.pagination?.hasNextPage || auditListLoading}
+                                    onClick={() =>
+                                        handlePageChange(auditHistory.pagination.page + 1)
+                                    }
+                                >
+                                    Next
+                                </Button>
+                            </div>
+
                             {auditListLoading && auditListData.length > 0 && (
                                 <div className="text-center py-2">
                                     <Spinner size="sm" className="text-primary" />
@@ -437,107 +410,106 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                 >
                     {!selectedAudit ? (
                         <div className="text-center py-5 text-muted border rounded bg-light mt-3">
-                            <p className="fw-semibold mb-0">
-                                Select an audit to view details
-                            </p>
+                            <p className="fw-semibold mb-0">Select an audit to view details</p>
                         </div>
                     ) : (
                         <>
                             <div
-                                className={`mb-3 mt-2 d-flex ${isMobile
-                                    ? "flex-column"
-                                    : "justify-content-between align-items-center"
+                                className={`mb-3 mt-2 d-flex ${isMobile ? "flex-column" : "justify-content-between align-items-center"
                                     }`}
                             >
-                                <h6
-                                    className="fw-bold mb-2"
-                                    style={{
-                                        fontSize: isMobile ? "14px" : "16px",
-                                        lineHeight: "1.3",
-                                    }}
-                                >
-                                    {selectedAudit.center} —{" "}
-                                    {format(
-                                        new Date(selectedAudit.auditDate),
-                                        "dd MMM yyyy, hh:mm a"
-                                    )}{" "}
-                                    ({selectedAudit.auditId})
-                                </h6>
+                                <div style={{ minHeight: "55px" }}>
+                                    {tableLoading ? (
+                                        <></>
+                                    ) : (
+                                        <h6
+                                            className="fw-bold mb-2"
+                                            style={{
+                                                fontSize: isMobile ? "14px" : "16px",
+                                                lineHeight: "1.3",
+                                            }}
+                                        >
+                                            {selectedAuditDetails?.center?.title} —{" "}
+                                            {format(
+                                                new Date(selectedAuditDetails?.auditDate),
+                                                "dd MMM yyyy, hh:mm a"
+                                            )}{" "}
+                                            ({selectedAuditDetails?.auditId})
+                                            <br />
+                                            <span
+                                                style={{
+                                                    fontWeight: "normal",
+                                                    fontSize: isMobile ? "12px" : "14px",
+                                                }}
+                                            >
+                                                By {capitalizeWords(selectedAuditDetails?.createdBy?.name)}
+                                            </span>
+                                        </h6>
+                                    )}
+                                </div>
 
                                 <div
-                                    className={`d-flex gap-2 ${isMobile ? "mt-1 flex-wrap" : ""
-                                        }`}
+                                    className={`d-flex gap-2 ${isMobile ? "mt-1 flex-wrap" : ""}`}
                                     style={{
                                         width: isMobile ? "100%" : "auto",
-                                        justifyContent: isMobile
-                                            ? "flex-start"
-                                            : "flex-end",
+                                        justifyContent: isMobile ? "flex-start" : "flex-end",
                                     }}
                                 >
-                                    {selectedAudit.failedCount > 0 && (
-                                        <Button
-                                            size="sm"
-                                            color="primary"
-                                            className="text-white"
-                                            style={{
-                                                width: isMobile
-                                                    ? "100%"
-                                                    : "auto",
-                                            }}
-                                            onClick={() =>
-                                                downloadAuditFailedMedicinesFile(
-                                                    selectedAudit.auditId
-                                                )
-                                            }
-                                        >
-                                            {failedDownloading ? (
-                                                <Spinner size="sm" />
-                                            ) : (
-                                                `Download Failed Medicines (${selectedAudit.failedCount})`
+                                    {tableLoading ? (
+                                        <></>
+                                    ) : (
+                                        <>
+                                            {selectedAuditDetails?.failedMedicinesCount > 0 && (
+                                                <Button
+                                                    size="sm"
+                                                    color="primary"
+                                                    className="text-white"
+                                                    style={{
+                                                        width: isMobile ? "100%" : "auto",
+                                                    }}
+                                                    onClick={() =>
+                                                        downloadAuditFailedMedicinesFile(
+                                                            selectedAuditDetails.auditId
+                                                        )
+                                                    }
+                                                >
+                                                    {failedDownloading ? (
+                                                        <Spinner size="sm" />
+                                                    ) : (
+                                                        `Download Failed Medicines (${selectedAuditDetails?.failedMedicinesCount})`
+                                                    )}
+                                                </Button>
                                             )}
-                                        </Button>
+
+                                            <Button
+                                                size="sm"
+                                                color="secondary"
+                                                style={{
+                                                    width: isMobile ? "100%" : "auto",
+                                                }}
+                                                onClick={() => setSelectedAudit(null)}
+                                            >
+                                                Close
+                                            </Button>
+
+                                            <CheckPermission
+                                                accessRolePermission={roles?.permissions}
+                                                subAccess={"AUDIT"}
+                                                permission={"DELETE"}
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    color="danger"
+                                                    style={{
+                                                        width: isMobile ? "100%" : "auto",
+                                                    }}
+                                                    onClick={() => setDeleteModalOpen(true)}
+                                                >
+                                                    <Trash className="text-white" size={"16"} />
+                                                </Button>
+                                            </CheckPermission>
+                                        </>
                                     )}
-
-                                    <Button
-                                        size="sm"
-                                        color="secondary"
-                                        style={{
-                                            width: isMobile
-                                                ? "100%"
-                                                : "auto",
-                                        }}
-                                        onClick={() =>
-                                            setSelectedAudit(null)
-                                        }
-                                    >
-                                        Close
-                                    </Button>
-
-                                    <CheckPermission
-                                        accessRolePermission={
-                                            roles?.permissions
-                                        }
-                                        subAccess={"AUDIT"}
-                                        permission={"DELETE"}
-                                    >
-                                        <Button
-                                            size="sm"
-                                            color="danger"
-                                            style={{
-                                                width: isMobile
-                                                    ? "100%"
-                                                    : "auto",
-                                            }}
-                                            onClick={() =>
-                                                setDeleteModalOpen(true)
-                                            }
-                                        >
-                                            <Trash
-                                                className="text-white"
-                                                size={"16"}
-                                            />
-                                        </Button>
-                                    </CheckPermission>
                                 </div>
                             </div>
 
@@ -546,21 +518,17 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 placeholder="Search medicine..."
                                 className="mb-3"
                                 value={searchTerm}
-                                onChange={(e) =>
-                                    setSearchTerm(e.target.value)
-                                }
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
 
                             <div
                                 className="shadow-sm border rounded flex-grow-1 d-flex"
                                 style={{ overflow: "hidden" }}
                             >
-                                <div
-                                    style={{ flexGrow: 1, overflow: "auto" }}
-                                >
+                                <div style={{ flexGrow: 1, overflow: "auto" }}>
                                     <DataTable
                                         columns={columns}
-                                        data={items}
+                                        data={selectedAuditDetails?.items || []}
                                         customStyles={customStyles}
                                         highlightOnHover
                                         pagination
@@ -575,26 +543,17 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                                             </div>
                                         }
                                         onChangePage={(p) =>
-                                            loadAuditDetails(
-                                                selectedAudit,
-                                                p,
-                                                limit,
-                                                search
-                                            )
+                                            loadAuditDetails(selectedAudit, p, limit, search)
                                         }
                                         onChangeRowsPerPage={(newLimit) =>
-                                            loadAuditDetails(
-                                                selectedAudit,
-                                                1,
-                                                newLimit,
-                                                search
-                                            )
+                                            loadAuditDetails(selectedAudit, 1, newLimit, search)
                                         }
                                     />
                                 </div>
                             </div>
                         </>
                     )}
+
 
                     <AuditDeleteModal
                         selectedAudit={selectedAudit}
@@ -603,6 +562,11 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
                             setDeleteModalOpen(!deleteModalOpen)
                         }
                         isOpen={deleteModalOpen}
+                        onDeleteSuccess={() => {
+                            loadAudits(auditHistory.pagination.page, false);
+                            setSelectedAudit(null);
+                            setSelectedAuditDetails(null);
+                        }}
                     />
                 </div>
             </div>
