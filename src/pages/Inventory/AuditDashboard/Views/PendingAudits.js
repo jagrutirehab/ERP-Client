@@ -114,6 +114,16 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
         opt => opt.value === selectedCenter
     ) || centerOptions[0];
 
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
+
     const handleDateChange = (newDate) => setReportDate(newDate);
 
 

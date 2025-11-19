@@ -63,9 +63,22 @@ const GivenMedicine = () => {
   ];
 
 
+  useEffect(() => {
+    if (selectedCenter !== "ALL" && !user?.centerAccess?.includes(selectedCenter)) {
+      setSelectedCenter("ALL");
+      setCurrentPage(1);
+    }
+  }, [user?.centerAccess, selectedCenter]);
+
+
   const selectedCenterOption = centerOptions.find(
     opt => opt.value === selectedCenter
   ) || centerOptions[0];
+
+  const centers =
+    selectedCenter === "ALL"
+      ? user?.centerAccess
+      : [selectedCenter];
 
 
   const handleGiveMedicine = () => {
@@ -105,7 +118,7 @@ const GivenMedicine = () => {
     if (abortRef.current) {
       try {
         abortRef.current.abort();
-      } catch (e) {}
+      } catch (e) { }
     }
     const controller = new AbortController();
     abortRef.current = controller;
@@ -140,11 +153,12 @@ const GivenMedicine = () => {
       setTotalPages(Number(body.pages ?? 1));
       setCurrentPage(Number(body.page ?? page));
     } catch (err) {
+      console.log(err)
       const cancelled =
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled || !handleAuthError(err)) {
+      if (!cancelled) {
         toast.error("Failed to fetch records");
       }
     } finally {
@@ -153,10 +167,6 @@ const GivenMedicine = () => {
   };
 
   useEffect(() => {
-    const centers =
-      selectedCenter === "ALL"
-        ? user?.centerAccess
-        : [selectedCenter];
     fetchGivenMedicines({
       page: currentPage,
       limit: pageSize,
@@ -384,7 +394,7 @@ const GivenMedicine = () => {
                 fetchGivenMedicines({
                   page,
                   limit,
-                  center: selectedCenter || undefined,
+                  centers,
                   q,
                 })
               }

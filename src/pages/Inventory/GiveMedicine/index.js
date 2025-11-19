@@ -27,15 +27,34 @@ const Givemedicine = ({
   const [loadingPatients, setLoadingPatients] = useState(false);
   const abortRef = useRef(null);
   const [value, setValue] = useState("");
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
   const onChangeData = (value) => setValue(value);
+
+
+  const centerOptions = user?.userCenters
+    ?.filter(center => user?.centerAccess?.includes(center._id))
+    ?.map((center) => ({
+      value: center?._id ?? "",
+      label: center?.title ?? center?.name ?? "Unknown Center",
+    })) || [];
+
+  const getCenters = () => {
+    if (selectedCenter && selectedCenter !== "") {
+      return [selectedCenter];
+    }
+    return user?.centerAccess || [];
+  };
+  const centers = getCenters();
+
+
 
   // Fetch medicines
   async function fetchLocalMedicines({
     page = 1,
     limit = 10,
     q = "",
-    center,
   } = {}) {
     if (abortRef.current) abortRef.current?.abort?.();
 
@@ -44,14 +63,17 @@ const Givemedicine = ({
     setLoading(true);
 
     try {
-      const params = { page, limit, search: q || undefined };
-      if (center) params.center = center;
-      else if (user?.centerAccess) params.centers = user.centerAccess;
+      const params = { page, limit, search: q || undefined, centers };
+      // if (center) params.center = center;
+      // else if (user?.centerAccess) params.centers = user.centerAccess;
 
       const response = await axios.get("/pharmacy/", {
         params,
         signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
       });
 
       setMedicines(Array.isArray(response.data) ? response.data : []);
@@ -75,9 +97,9 @@ const Givemedicine = ({
 
   useEffect(() => {
     if (debouncedSearch.length >= 1) {
-      fetchLocalMedicines({ q: debouncedSearch, center: selectedCenter });
+      fetchLocalMedicines({ q: debouncedSearch });
     } else setMedicines([]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, selectedCenter]);
 
   // Select medicine
@@ -154,6 +176,7 @@ const Givemedicine = ({
       setLoading(true);
       const response = await axios.post("/pharmacy/give-medicine", payload, {
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -175,8 +198,7 @@ const Givemedicine = ({
           limit: 10, // Match InventoryManagement's default pageSize
           q: "",
           fillter: "",
-          center: selectedCenter || undefined,
-          centers: user?.centerAccess,
+          centers,
         });
       } else {
         toast.error(response.data.message || "Something went wrong");
@@ -203,12 +225,7 @@ const Givemedicine = ({
             setSelectedCenter(e.target.value);
             setSelectedMedicines([]);
           }}
-          options={
-            user?.userCenters?.map((center) => ({
-              value: center?._id ?? center?.id ?? "",
-              label: center?.title ?? center?.name ?? "Unknown",
-            })) || []
-          }
+          options={centerOptions}
         />
       </div>
 
@@ -385,9 +402,8 @@ const Givemedicine = ({
             }}
           >
             <span>
-              {`${selectedPatient.name} : ${
-                selectedPatient?.id?.prefix || ""
-              } ${selectedPatient?.id?.value || ""}`}
+              {`${selectedPatient.name} : ${selectedPatient?.id?.prefix || ""
+                } ${selectedPatient?.id?.value || ""}`}
             </span>
             <button
               type="button"

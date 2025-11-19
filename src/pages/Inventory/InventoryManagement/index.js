@@ -469,17 +469,21 @@ const InventoryManagement = () => {
                     const params = {
                       search: debouncedSearch || undefined,
                       fillter: qfilter || undefined,
+                      centers,
                     };
 
-                    if (selectedCenter) {
-                      params.center = selectedCenter;
-                    } else {
-                      params.centers = user?.centerAccess;
-                    }
+                    // if (selectedCenter) {
+                    //   params.center = selectedCenter;
+                    // } else {
+                    //   params.centers = user?.centerAccess;
+                    // }
 
                     const response = await axios.get("/pharmacy/print", {
                       params,
-                      headers: { "Content-Type": "application/json" },
+                      headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                      },
                     });
 
                     const data = Array.isArray(response?.data)
