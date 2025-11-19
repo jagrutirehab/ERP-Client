@@ -149,8 +149,9 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
     };
 
     useEffect(() => {
-        if (activeTab !== "PENDING" || !hasUserPermission) return;
-        fetchAudits();
+        if (activeTab === "PENDING" || hasUserPermission) {
+            fetchAudits();
+        }
     }, [page, selectedCenter, user?.centerAccess, reportDate, activeTab, dispatch]);
 
 
