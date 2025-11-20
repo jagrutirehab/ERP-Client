@@ -105,43 +105,43 @@ const Prescription = ({
       drNotes: editPrescription
         ? editPrescription.drNotes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.drNotes
-        : "",
+          ? patientLatestOPDPrescription?.drNotes
+          : "",
       diagnosis: editPrescription
         ? editPrescription.diagnosis
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.diagnosis
-        : "",
+          ? patientLatestOPDPrescription?.diagnosis
+          : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.notes
-        : "",
+          ? patientLatestOPDPrescription?.notes
+          : "",
       followUp: editPrescription
         ? editPrescription.followUp
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.followUp
-        : "",
+          ? patientLatestOPDPrescription?.followUp
+          : "",
       referredby: editPrescription
         ? editPrescription.referredby
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.referredby
-        : patient.referredBy,
+          ? patientLatestOPDPrescription?.referredby
+          : patient.referredBy,
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.investigationPlan
-        : "",
+          ? patientLatestOPDPrescription?.investigationPlan
+          : "",
       complaints: editPrescription
         ? editPrescription.complaints
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.complaints
-        : "",
+          ? patientLatestOPDPrescription?.complaints
+          : "",
       observation: editPrescription
         ? editPrescription.observation
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.observation
-        : "",
+          ? patientLatestOPDPrescription?.observation
+          : "",
       type,
       date: chartDate,
     },
@@ -151,6 +151,8 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
+        console.log("Final meds before sending →", medicines);
+
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -250,6 +252,7 @@ const Prescription = ({
         duration: "30",
         unit: "Day (s)",
       };
+      console.log(medicine)
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }
