@@ -29,9 +29,12 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
             )
         );
 
+        const selectedMed = medicines.find(m => m._id === rowId);
+        const medId = selectedMed?.medicine?._id;
+
         setUpdatedDispenseData(prev => {
-            const filtered = prev.filter(item => item.medicineId !== rowId);
-            return [...filtered, { medicineId: rowId, dispensedCount: num }];
+            const filtered = prev.filter(item => item.medicineId !== medId);
+            return [...filtered, { medicineId: medId, dispensedCount: num }];
         });
     };
 

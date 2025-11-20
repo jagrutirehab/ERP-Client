@@ -34,7 +34,7 @@ const SortableMedicine = ({ index, children }) => {
 
   return (
     <div ref={setNodeRef} style={style} className="d-flex align-items-center gap-2">
-      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20,touchAction: "none" }}>
+      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20, touchAction: "none" }}>
         <Menu />
       </span>
       {children}

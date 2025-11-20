@@ -98,19 +98,19 @@ export const pharmacySlice = createSlice({
             .addCase(getMedicineApprovals.rejected, (state) => {
                 state.loading = false;
             });
-
         builder
             .addCase(updateApprovalStatus.fulfilled, (state, { payload }) => {
-                if (payload.data.type === "single" && payload.update !== "pendingPatients") {
-                    state.medicineApprovals.data = state.medicineApprovals.data.filter((data) => data._id !== payload.data.id);
-                } else if (payload.data.type === "bulk") {
+                console.log(payload)
+                if (payload.type === "single" && payload.update !== "pendingPatients") {
+                    state.medicineApprovals.data = state.medicineApprovals.data.filter((data) => data._id !== payload._id);
+                }
+                else if (payload.type === "bulk" && payload.update === "pendingApprovals" && payload.status === "REJECTED") {
                     state.medicineApprovals = [];
-                    console.log(payload)
-                } else if (payload.update === "pendingPatients") {
-                    state.pendingPatients.data = state.pendingPatients.data.filter((data) => data._id !== payload.data.id);
+                }
+                else if (payload.update === "pendingPatients") {
+                    state.pendingPatients.data = state.pendingPatients.data.filter((data) => data._id !== payload._id);
                 }
             });
-
         builder
             .addCase(getPendingApprovalsByPatient.pending, (state) => {
                 state.loading = true

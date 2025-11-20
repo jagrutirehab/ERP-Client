@@ -17,6 +17,7 @@ const AddinventoryMedicine = ({
   } = useForm({
     defaultValues: {
       code: defaultValues.code || "",
+      medicineId: defaultValues.medicineId || "",
       medicineName: defaultValues.medicineName || "",
       unitType: defaultValues.unitType || "",
       Strength: defaultValues.Strength || "",
@@ -147,6 +148,7 @@ const AddinventoryMedicine = ({
   }, [medicineQuery]);
 
   const handleSelectMedicine = (medicine) => {
+    setValue("medicineId", medicine._id);
     setValue("medicineName", medicine.name);
     setValue("unitType", medicine.unit || "");
     setValue("Strength", medicine.strength || "");
