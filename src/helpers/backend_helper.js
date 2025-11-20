@@ -925,6 +925,27 @@ export const postBaseBalance = (data) => {
   });
 };
 
+export const postInflow = (data) => {
+  return api.create(url.ADD_INFLOW, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  })
+}
+
+export const getLatestInflows = (params = {}) => {
+  return api.get(url.GET_LASTEST_INFLOWS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
 export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {
