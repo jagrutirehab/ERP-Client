@@ -11,7 +11,18 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
     const [remarks, setRemarks] = useState("");
 
     useEffect(() => {
-        onDispenseChanges(updatedDispenseData);
+        const hasShortage = medicines.some(
+            m => Number(m.dispensedCount ?? m.totalQuantity) > (m.availableStock ?? 0)
+        );
+
+        const hasZero = medicines.some(
+            m => Number(m.dispensedCount ?? m.totalQuantity) === 0
+        );
+        onDispenseChanges({
+            hasShortage,
+            hasZero,
+            updated: updatedDispenseData
+        });
     }, [updatedDispenseData]);
 
     useEffect(() => {
