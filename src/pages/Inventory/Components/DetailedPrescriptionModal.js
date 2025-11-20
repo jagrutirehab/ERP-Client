@@ -21,6 +21,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
 
     const [shortageMode, setShortageMode] = useState(false);
     const [bulkResult, setBulkResult] = useState(null);
+    const [shortageInfo, setShortageInfo] = useState({});
 
     const { roles } = usePermissions(localStorage.getItem("micrologin") ? JSON.parse(localStorage.getItem("micrologin")).token : null);
 
@@ -69,7 +70,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
 
             const result = await dispatch(updateApprovalStatus({
                 id: detailedPrescription.approvalId,
-                medicines: updatedDispenseData,
+                medicines: shortageInfo?.updated,
                 remarks,
                 status: "APPROVED",
                 update: "pendingPatients"
@@ -106,7 +107,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
 
             await dispatch(updateApprovalStatus({
                 id: detailedPrescription.approvalId,
-                medicines: updatedDispenseData,
+                // medicines: updatedDispenseData,
                 remarks,
                 status: "REJECTED",
                 update: "pendingPatients"
@@ -148,7 +149,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
                         {!shortageMode ? (
                             <PrescriptionForm
                                 data={detailedPrescription}
-                                onDispenseChanges={setUpdatedDispenseData}
+                                onDispenseChanges={setShortageInfo}
                                 onRemarks={setRemarks}
                                 roles={roles}
                             />
@@ -205,6 +206,11 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
                             </Button>
 
                             <Button
+                                disabled={
+                                    loading ||
+                                    shortageInfo?.hasShortage ||
+                                    shortageInfo?.hasZero
+                                }
                                 color="success"
                                 onClick={handleApprove}
                                 className="text-white d-flex align-items-center"

@@ -142,12 +142,12 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     return;
                 }
 
-                for (const m of currentRowData.medicineCounts) {
-                    if (!m.totalQuantity || Number(m.totalQuantity) <= 0) {
-                        toast.error("Quantity must be greater than 0 for all medicines before approving");
-                        return;
-                    }
-                }
+                // for (const m of currentRowData.medicineCounts) {
+                //     if (!m.totalQuantity || Number(m.totalQuantity) <= 0) {
+                //         toast.error("Quantity must be greater than 0 for all medicines before approving");
+                //         return;
+                //     }
+                // }
 
                 setUpdatingRowId(`ROW-${status}-${row._id}`);
 
@@ -231,23 +231,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             toast.error("No failure data available");
             return;
         }
-
-        if (bulkResult.type === "single") {
-            const rows = bulkResult.shortages.map(s => ({
-                Center: s.centerName || "-",
-                MedicineName: s.medicineName,
-                Required: s.required,
-                Available: s.available,
-                Missing: s.required - s.available
-            }));
-
-            const ws = XLSX.utils.json_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Single_Shortages");
-            XLSX.writeFile(wb, "single_shortages.xlsx");
-            return;
-        }
-
         if (bulkResult.type === "bulk" || bulkResult.failedApprovals) {
 
             const rows = [];
@@ -309,46 +292,59 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         },
         {
             name: <div>Medicines</div>,
-            cell: (row) => (
-                <div className="w-100">
-                    {row.medicineCounts?.map((medicine, index) => (
-                        <div key={medicine.medicineId} className="w-100">
-                            <div
-                                className="d-flex justify-content-between align-items-center flex-wrap py-1"
-                            >
-                                <span className="fw-semibold text-dark"
-                                    style={{ flex: "1 1 60%", wordBreak: "break-word" }}
-                                >
-                                    {medicine.medicineName}
-                                </span>
-                                {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
-                                    <Input
-                                        type="number"
-                                        bsSize="sm"
-                                        className="text-center mt-1 mt-md-0"
-                                        style={{ width: "70px" }}
-                                        value={medicine.totalQuantity}
-                                        onChange={(e) =>
-                                            handleDispenseChange(row._id, medicine.medicineId, e.target.value)
-                                        }
-                                    />
-                                ) : (
-                                    <span className="fw-semibold">
-                                        {medicine.totalQuantity}
-                                    </span>
-                                )}
-                            </div>
+            cell: (row) => {
+                return (
+                    <div className="w-100">
+                        {row.medicineCounts?.map((medicine, index) => {
+                            const userQty = Number(medicine.totalQuantity);
+                            const stock = Number(medicine.availableStock);
+                            const isShort = stock >= 0 && userQty > stock;
 
-                            {index !== row.medicineCounts.length - 1 && (
-                                <div className="border-bottom border-black my-md-2 my-1"></div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            ),
+                            return (
+                                <div key={medicine.medicineId} className="w-100">
+                                    <div className="d-flex justify-content-between align-items-center flex-wrap py-1">
+
+                                        <div className="d-flex flex-column" style={{ flex: "1 1 60%" }}>
+                                            <span className="fw-semibold text-dark">
+                                                {medicine.medicineName}
+                                            </span>
+
+                                            {medicine.availableStock !== undefined && isShort && (
+                                                <span className="text-danger small fw-bold">
+                                                    ⚠ Only {stock} left
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
+                                            <Input
+                                                type="number"
+                                                bsSize="sm"
+                                                className={`text-center mt-1 mt-md-0 ${isShort ? "border-danger" : ""}`}
+                                                style={{ width: "70px" }}
+                                                value={userQty}
+                                                onChange={(e) =>
+                                                    handleDispenseChange(row._id, medicine.medicineId, e.target.value)
+                                                }
+                                            />
+                                        ) : (
+                                            <span className="fw-semibold">{userQty}</span>
+                                        )}
+                                    </div>
+
+                                    {index !== row.medicineCounts.length - 1 && (
+                                        <div className="border-bottom border-black my-md-2 my-1"></div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            },
             wrap: true,
             minWidth: "310px"
         },
+
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Remarks</div>,
             cell: (row) => (
@@ -369,7 +365,12 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                         color="success"
                         size="sm"
                         onClick={() => handleUpdateApprovalStatus("APPROVED", row)}
-                        disabled={updatingRowId === `ROW-APPROVED-${row._id}`}
+                        disabled={
+                            updatingRowId === `ROW-APPROVED-${row._id}` ||
+                            row.medicineCounts.some((medicine) =>
+                                Number(medicine.totalQuantity) > Number(medicine.availableStock ?? Infinity) || Number(medicine.totalQuantity) === 0
+                            )
+                        }
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
@@ -661,10 +662,17 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     >
                         Save & Reject
                     </Button>
-
                     <Button
                         color="success"
                         className="text-white"
+                        disabled={
+                            actionType === "REJECTED" ||
+                            selectedRow?.medicineCounts?.some(
+                                (m) =>
+                                    m.availableStock !== undefined &&
+                                    m.availableStock < m.totalQuantity
+                            )
+                        }
                         onClick={() => {
                             if (actionType === "BULK_APPROVE") {
                                 handleUpdateApprovalStatus("APPROVED", null, remarkText);
@@ -672,70 +680,38 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                 handleUpdateApprovalStatus("APPROVED", selectedRow, remarkText);
                             }
                         }}
-                        disabled={actionType === "REJECTED"}
                     >
                         Save & Approve
                     </Button>
+
                 </ModalFooter>
 
             </Modal>
 
             <Modal isOpen={bulkResultModal} toggle={() => resetAll(bulkResult?.type)} size="md">
                 <ModalHeader toggle={() => resetAll(bulkResult?.type)}>
-                    {bulkResult?.type === "single"
-                        ? "Approval Failed — Stock Shortage"
-                        : "Bulk Approval Failed — Stock Shortage"}
+                    Bulk Approval Failed — Stock Shortage
                 </ModalHeader>
 
                 <ModalBody>
                     {bulkResult && (
                         <>
                             <h5 className="text-danger fw-bold mb-3">Summary</h5>
-
-                            {bulkResult.type === "single" && (
-                                <>
-                                    <div className="p-3 border rounded mb-3">
-                                        <div className="fw-bold mb-2">
-                                            Medicines with shortage:{" "}
-                                            <span className="text-danger">
-                                                {bulkResult.shortages?.length || 0}
-                                            </span>
-                                        </div>
-
-                                        <div className="fw-semibold">Details:</div>
-                                        <ul className="mt-2 mb-0">
-                                            {bulkResult.shortages.map((s, idx) => (
-                                                <li key={idx} className="text-muted">
-                                                    {s.medicineName} — Required:{" "}
-                                                    <span className="text-danger fw-bold">{s.required}</span>,
-                                                    Available:{" "}
-                                                    <span className="fw-bold">{s.available}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    <p className="text-muted">
-                                        Download the XLSX report for complete details.
-                                    </p>
-                                </>
-                            )}
-
-                            {bulkResult.type !== "single" && (
+                            {bulkResult.type === "bulk" && (
                                 <>
                                     <div className="d-flex gap-4 mb-4">
                                         <div className="p-2 border rounded text-center flex-fill">
                                             <div className="fw-bold text-success fs-4">
                                                 {bulkResult.approved || 0}
                                             </div>
-                                            <div>Approved</div>
+                                            <div>Requests Approved</div>
                                         </div>
 
                                         <div className="p-2 border rounded text-center flex-fill">
                                             <div className="fw-bold text-danger fs-4">
                                                 {bulkResult.failed}
                                             </div>
-                                            <div>Patients Failed</div>
+                                            <div>Requests Failed</div>
                                         </div>
                                     </div>
                                     <p className="text-muted mb-0">
@@ -746,14 +722,12 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                         </>
                     )}
                 </ModalBody>
-
                 <ModalFooter>
-                    <Button color="primary" onClick={downloadFailedApprovalsXlsx}>
-                        Download XLSX
-                    </Button>
-
-                    <Button color="secondary" onClick={() => resetAll(bulkResult?.type)}>
+                    <Button color="danger" onClick={() => resetAll(bulkResult?.type)}>
                         Close
+                    </Button>
+                    <Button color="primary" className="text-white" onClick={downloadFailedApprovalsXlsx}>
+                        Download XLSX
                     </Button>
                 </ModalFooter>
             </Modal>
