@@ -449,7 +449,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         setBulkResultModal(false);
         setModalOpen(false);
         setPage(1);
-        if (approvalType === "BULK") {
+        if (approvalType === "bulk") {
             fetchMedicineApprovals()
         }
     }
