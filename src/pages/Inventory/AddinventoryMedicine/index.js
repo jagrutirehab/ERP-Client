@@ -36,6 +36,8 @@ const AddinventoryMedicine = ({
     },
   });
 
+  const isEditMode = !!defaultValues.medicineName;
+
   const submitHandler = (data) => {
     if (!selectedCenters.length) {
       alert("At least one valid center is required");
@@ -45,7 +47,7 @@ const AddinventoryMedicine = ({
     // Convert selectedCenters (IDs) into objects with stock = 0
     const centersPayload = selectedCenters.map((id) => ({
       centerId: id,
-      stock: data.stock,
+      stock: Number(centerStocks[id]) || 0,
     }));
     onSubmit && onSubmit({ ...data, centers: centersPayload });
     // onSubmit && onSubmit({ ...data, centers: selectedCenters });
@@ -61,13 +63,34 @@ const AddinventoryMedicine = ({
   const [medicineValidLoader, setMedicineValidLoader] = useState(false);
   const [medicineSelected, setMedicineSelected] = useState(false);
   const [medicineValid, setMedicineValid] = useState(true);
+  const [hasUserTyped, setHasUserTyped] = useState(false);
   const [selectedCenters, setSelectedCenters] = useState(
     defaultValues.centers
-      ? defaultValues.centers.map((c) =>
-        typeof c.centerId === "object" ? c.centerId._id : c.centerId
-      )
+      ? defaultValues.centers.map((c) => {
+        return typeof c.centerId === "object"
+          ? String(c.centerId._id)
+          : String(c.centerId);
+      })
       : []
   );
+  const [centerStocks, setCenterStocks] = useState(() => {
+    const map = {};
+    if (defaultValues.centers) {
+      defaultValues.centers.forEach((c) => {
+        const id =
+          typeof c.centerId === "object"
+            ? String(c.centerId._id)
+            : String(c.centerId);
+
+        map[id] = c.stock ?? "";
+      });
+    }
+    return map;
+  });
+
+
+
+
 
 
   useEffect(() => {
@@ -136,16 +159,18 @@ const AddinventoryMedicine = ({
 
 
   useEffect(() => {
+    if (isEditMode && !hasUserTyped) return;
+
     const delayDebounce = setTimeout(() => {
       if (medicineQuery.trim()) {
         handleMedicineSearch(medicineQuery);
       } else {
         setSearchResults([]);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [medicineQuery]);
+  }, [medicineQuery, hasUserTyped]);
 
   const handleSelectMedicine = (medicine) => {
     setValue("medicineId", medicine._id);
@@ -160,17 +185,34 @@ const AddinventoryMedicine = ({
   };
 
 
-  const availableCenters = user?.userCenters.filter(
+
+
+  const allowedCenters = user?.userCenters.filter((c) =>
+    user?.centerAccess?.includes(String(c._id))
+  );
+
+  const availableCenters = allowedCenters.filter(
     (c) => !selectedCenters.includes(String(c._id))
   );
 
   const handleAddCenter = (id) => {
     setSelectedCenters((prev) => [...prev, id]);
+    setCenterStocks((prev) => ({
+      ...prev,
+      [id]: prev[id] || ""   // default empty
+    }));
   };
+
 
   const handleRemoveCenter = (id) => {
     setSelectedCenters((prev) => prev.filter((x) => x !== id));
+    setCenterStocks((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
   };
+
 
   const styles = {
     title: {
@@ -306,7 +348,10 @@ const AddinventoryMedicine = ({
               type="text"
               placeholder="Search medicine..."
               value={medicineQuery}
-              onChange={(e) => setMedicineQuery(e.target.value)}
+              onChange={(e) => {
+                setMedicineQuery(e.target.value);
+                if (isEditMode) setHasUserTyped(true);
+              }}
               style={{
                 ...styles.input,
                 width: "100%",
@@ -315,7 +360,7 @@ const AddinventoryMedicine = ({
               autoComplete="off"
             />
 
-            {medicineDropdownOpen && (
+            {medicineDropdownOpen && (!isEditMode || hasUserTyped) && (
               <div
                 style={{
                   position: "absolute",
@@ -537,13 +582,85 @@ const AddinventoryMedicine = ({
           type="number"
           validation={{ required: "Stock is required" }}
         /> */}
-          <InputField
+          {/* <InputField
             label="Current Stock"
             name="stock"
             type="number"
             step="any"
             validation={{ required: "Stock is required" }}
-          />
+          /> */}
+          <div style={{ gridColumn: "1 / -1", marginTop: "20px" }}>
+
+            {selectedCenters.length === 0 ? (
+              <>
+                <label style={styles.label}>Center-wise Stock</label>
+                <p style={{ color: "#6c757d" }}>Select centers first</p>
+              </>
+            ) : (
+              <div style={{ gridColumn: "1 / -1", marginTop: "20px" }}>
+                <label style={styles.label}>Center-wise Stock</label>
+
+                {selectedCenters.length === 0 ? (
+                  <p style={{ color: "#6c757d" }}>Select centers first</p>
+                ) : (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "16px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {selectedCenters.map((id) => {
+                      const centerInfo =
+                        allowedCenters.find((x) => String(x._id) === id) ||
+                        defaultValues.centers.find((c) => {
+                          const cid = typeof c.centerId === "object" ? c.centerId._id : c.centerId;
+                          return String(cid) === id;
+                        })?.centerId;
+
+
+                      return (
+                        <div
+                          key={id}
+                          style={{
+                            padding: "12px 15px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "6px",
+                          }}
+                        >
+                          <label style={{ fontSize: "15px" }}>
+                            {centerInfo?.title || centerInfo || "Center"}
+                          </label>
+
+                          <input
+                            id={id}
+                            type="number"
+                            min="0"
+                            value={centerStocks[id] ?? ""}
+                            onChange={(e) =>
+                              setCenterStocks((prev) => ({
+                                ...prev,
+                                [id]: e.target.value,
+                              }))
+                            }
+                            style={{
+                              ...styles.input,
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+
+            )}
+          </div>
+
+
           <InputField label="Strength" name="Strength" disabled={true} />
           <InputField
             label="Cost Price"
@@ -581,7 +698,7 @@ const AddinventoryMedicine = ({
             type="number"
             step="any"
             validation={{
-              required: "Purchase Price is required",
+              // required: "Purchase Price is required",
               min: { value: 0, message: "Must be non-negative" },
             }}
           />
