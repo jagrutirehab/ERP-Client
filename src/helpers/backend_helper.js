@@ -702,10 +702,10 @@ export const addInternForm = (data) =>
 export const fetchAllInterns = (params = {}) => {
   return api.get(url.GET_INTERN_DATA, {
     params,
-    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat", skipNulls: true })
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat", skipNulls: true }),
   });
 };
-
 
 export const getInternId = () => api.get(url.GET_INTERN_ID);
 
@@ -827,6 +827,39 @@ export const getNotesByPatient = (patientId) => {
 export const createNote = (data) => {
   return api.create(url.NOTES, data, {
     headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const getRoundNotesList = (params = {}) => {
+  return api.get(url.ROUND_NOTES, {
+    params,
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const postRoundNote = (data) => {
+  return api.create(url.ROUND_NOTES, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const putRoundNote = (id, data) => {
+  return api.put(`${url.ROUND_NOTES}/${id}`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const deleteRoundNote = (id) => {
+  return api.delete(`${url.ROUND_NOTES}/${id}`);
+};
+
+export const getRoundNoteStaff = (params = {}) => {
+  return api.get(url.ROUND_NOTES_STAFF, {
+    params,
   });
 };
 
@@ -1268,8 +1301,8 @@ export const deleteFailedMedicinesByBatch = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const getMedineApprovalsByStatus = (params = {}) => {
   return api.get(url.MEDICINE_APPROVALS, {
@@ -1280,8 +1313,8 @@ export const getMedineApprovalsByStatus = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const updateMedicineApprovalStatus = (data) => {
   if (data.id) {
@@ -1291,7 +1324,7 @@ export const updateMedicineApprovalStatus = (data) => {
       },
     });
   }
-}
+};
 
 export const getPendingPatientApprovals = (params = {}) => {
   return api.get(url.GET_PENDING_PATIENT_APPROVALS, {
@@ -1302,13 +1335,13 @@ export const getPendingPatientApprovals = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const getDetailedPrescription = (prescriptionId) => {
   return api.get(`${url.GET_DETAILED_PRESCRIPTION}/${prescriptionId}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};

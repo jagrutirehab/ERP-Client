@@ -205,6 +205,18 @@ const pages = [
     ],
   },
   {
+    id: "roundnotes",
+    label: "Round Notes",
+    name: "Round Notes",
+    link: "/round-notes",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "booking",
     label: "Booking",
     name: "Booking",
