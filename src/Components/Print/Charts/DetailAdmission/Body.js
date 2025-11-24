@@ -9,7 +9,8 @@ import Diagnosis from "./Diagnosis";
 import DoctorSignature from "./DoctorSignature";
 import CheifComplaint from "./ChiefComplaint";
 import ProvisionalDiagnosis from "./ProvisionalDaignosis";
-import MentalExaminationV2 from "./MentalExaminationV2";
+import MentalExaminationBody from "../MentalExaminationBody";
+import { DETAIL_ADMISSION } from "../../../constants/patient";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -130,7 +131,7 @@ const Body = ({ chart, patient, admission }) => {
       <CheifComplaint data={data.ChiefComplaints} styles={styles} />
       {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
       <DetailHistory data={data.detailHistory} styles={styles} />
-      {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationV2 data={data.mentalExaminationV2} styles={styles} />}
+      {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationBody data={data.mentalExaminationV2} from={DETAIL_ADMISSION} />}
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
       <DoctorSignature doctor={patient} />

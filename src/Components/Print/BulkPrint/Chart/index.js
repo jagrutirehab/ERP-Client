@@ -7,6 +7,7 @@ import {
   GENERAL,
   IPD,
   LAB_REPORT,
+  MENTAL_EXAMINATION,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
@@ -23,6 +24,7 @@ import RenderWhen from "../../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
 import Header from "./Header";
 import Footer from "./Footer";
+import MentalExamination from "./MentalExamination";
 
 const styles = StyleSheet.create({
   page: {
@@ -123,6 +125,18 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                   patient={patient}
                 />
               </RenderWhen>
+               <RenderWhen
+                isTrue={
+                  chart?.chart === MENTAL_EXAMINATION
+                }
+              >
+                <MentalExamination
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                />
+              </RenderWhen>
+              
             </React.Fragment>
           ))}
 

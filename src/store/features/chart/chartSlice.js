@@ -10,6 +10,7 @@ import {
   editDetailAdmission,
   editDischargeSummary,
   editLabReport,
+  editMentalExamination,
   editPrescription,
   editRealtiveVisit,
   editVitalSign,
@@ -26,10 +27,12 @@ import {
   postGeneralCounsellingNote,
   postGeneralDetailAdmission,
   postGeneralLabReport,
+  postGeneralMentalExamintion,
   postGeneralPrescription,
   postGeneralRealtiveVisit,
   postGeneralVitalSign,
   postLabReport,
+  postMentalExamination,
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
@@ -794,6 +797,64 @@ export const updateDetailAdmission = createAsyncThunk(
   }
 );
 
+export const addMentalExamination = createAsyncThunk("postMentalExamination", async (data, { rejectWithValue, dispatch }) => {
+  try {
+    const response = await postMentalExamination(data);
+    dispatch(
+      setAlert({
+        type: "success",
+        message: "Clinical Notes V2 Saved Successfully",
+      })
+    );
+
+    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    return response;
+  } catch (error) {
+    dispatch(setAlert({ type: "error", message: error.message }));
+    return rejectWithValue("something went wrong");
+  }
+});
+
+export const addGeneralMentalExamination = createAsyncThunk("postGeneralMentalExamination", async (data, { rejectWithValue, dispatch }) => {
+  try {
+    const response = await postGeneralMentalExamintion(data);
+    dispatch(
+      setAlert({
+        type: "success",
+        message: "General Clinical Notes V2 Saved Successfully",
+      })
+    );
+
+    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    return response;
+  } catch (error) {
+    dispatch(setAlert({ type: "error", message: error.message }));
+    return rejectWithValue("something went wrong");
+  }
+});
+
+
+export const updateMentalExamination = createAsyncThunk(
+  "edit",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editMentalExamination(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Clinical Notes V2 Updated Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const removeChart = createAsyncThunk(
   "deleteChart",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1499,6 +1560,66 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateDetailAdmission.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateMentalExamination.rejected, (state) => {
         state.loading = false;
       });
 

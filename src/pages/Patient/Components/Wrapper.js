@@ -46,17 +46,17 @@ const Wrapper = ({
 
   const chartName = chart
     ? chart
-        .toLowerCase()
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
     : bill
-    ? bill
+      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
-    : "";
+      : "";
 
   return (
     <motion.div
@@ -65,11 +65,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-      // transition={{
-      //   layout: {
-      //     duration: 1.5,
-      //   },
-      // }}
+    // transition={{
+    //   layout: {
+    //     duration: 1.5,
+    //   },
+    // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -78,7 +78,7 @@ const Wrapper = ({
               {" "}
               <h6 className="fs-md-12 fs-xs-9 text-info">{itemId}</h6>
             </RenderWhen>
-            <h5 className="display-6 fs-14 text-start">{chartName}</h5>
+            <h5 className="display-6 fs-14 text-start">{chartName === "Mental Examination" ? "Clinical Note" : chartName}</h5>
           </div>
           <div className="d-flex justify-content-between ">
             <div>
@@ -121,14 +121,14 @@ const Wrapper = ({
                   className="col text-end"
                 >
                   {!hideDropDown && (
-                      <DropdownToggle
-                        tag="a"
-                        id="dropdownMenuLink14"
-                        role="button"
-                      >
-                        <i className="bx bx-dots-vertical-rounded fs-4"></i>
-                      </DropdownToggle>
-                    )}
+                    <DropdownToggle
+                      tag="a"
+                      id="dropdownMenuLink14"
+                      role="button"
+                    >
+                      <i className="bx bx-dots-vertical-rounded fs-4"></i>
+                    </DropdownToggle>
+                  )}
                   <DropdownMenu>
                     <RenderWhen isTrue={showPrint}>
                       <DropdownItem
