@@ -136,6 +136,9 @@ export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
+export const POST_MENTAL_EXAMINATION="/chart/mental-examination";
+export const POST_GENERAL_MENTAL_EXAMINATION="/chart/mental-examination/general";
+export const EDIT_MENTAL_EXAMINATION="/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";
@@ -297,6 +300,10 @@ export const MARK_ALERT_AS_READ = "/alerts/read";
 // notes
 export const NOTES = "/notes";
 
+// round notes
+export const ROUND_NOTES = "/round-notes";
+export const ROUND_NOTES_STAFF = "/round-notes/staff";
+
 // emergency
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
@@ -305,8 +312,10 @@ export const GET_EMERGENCY_PATIENTS = "/emergency";
 export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
 export const ADD_SPENDING = "/cash/spending";
 export const ADD_BASE_BALANCE = "/cash/base-balance";
+export const ADD_INFLOW = "/cash/inflow";
 export const GET_LATEST_BANK_DEPOSITS = "/cash/bank-deposit/list";
 export const GET_LATEST_SPENDING = "/cash/spending/list";
+export const GET_LASTEST_INFLOWS = "/cash/inflow/list";
 export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
 export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
 export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
@@ -354,8 +363,10 @@ export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
 
 // PHARMACY MEDICINE APPROVAl
 export const MEDICINE_APPROVALS = "/pharmacy/approvals";
-export const GET_PENDING_PATIENT_APPROVALS = "/pharmacy/approvals/pending-patients";
-export const GET_DETAILED_PRESCRIPTION = "/pharmacy/approvals/detailed-prescription";
+export const GET_PENDING_PATIENT_APPROVALS =
+  "/pharmacy/approvals/pending-patients";
+export const GET_DETAILED_PRESCRIPTION =
+  "/pharmacy/approvals/detailed-prescription";
 
 // PHARMACY AUDIT
 export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";

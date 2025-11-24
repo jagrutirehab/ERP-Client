@@ -21,6 +21,7 @@ const Navdata = () => {
       "booking",
       "intern",
       "patient",
+      "roundnotes",
       "users",
       "cash",
       "centralpayment",

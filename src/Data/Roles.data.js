@@ -68,6 +68,7 @@ export const permissionList = [
       { name: "CASHBALANCE", label: "Cash Base Balance" },
       { name: "CASHDEPOSITS", label: "Cash Deposits" },
       { name: "CASHSPENDING", label: "Cash Spending" },
+      { name: "CASHINFLOW", label: "Cash Inflow" },
     ],
   },
   {

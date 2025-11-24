@@ -111,17 +111,47 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
     {
       name: "Medicine",
       selector: (row) =>
-        `${row.medicine?.type} ${row.medicine?.name} ${row.medicine?.strength} ${row.medicine?.unit}`,
+        <div className="d-flex flex-column">
+          <span>
+            {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength} {row.medicine?.unit}
+          </span>
+          {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
+            <span className="text-danger small fw-bold">
+              ⚠ Only {row.availableStock} left
+            </span>
+          )}
+        </div>,
       style: {
         textTransform: "capitalize",
       },
       wrap: true,
     },
     {
-      name: <div>Dosage & Frequency</div>,
-      selector: (row) =>
-        `${row.dosageAndFrequency?.morning} - ${row.dosageAndFrequency?.evening} - ${row.dosageAndFrequency?.night}`,
+      name: (
+        <div style={{ textAlign: "center" }}>
+          <div>Dosage & Frequency</div>
+          <div
+            style={{
+              lineHeight: "1.2",
+              marginTop: "2px",
+              fontWeight: "600",
+            }}
+          >
+            M - A - N
+          </div>
+        </div>
+      ),
+
+      selector: (row) => (
+        <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+          {row.dosageAndFrequency?.morning} -{" "}
+          {row.dosageAndFrequency?.evening} -{" "}
+          {row.dosageAndFrequency?.night}
+        </div>
+      ),
+
       wrap: true,
+      center: true,
     },
     {
       name: "Duration",
@@ -155,7 +185,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
                 value={row.dispensedCount ?? row.totalQuantity}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                        handleDispensedCountChange(row._id, val);
+                  handleDispensedCountChange(row._id, val < 0 ? 0 : val);
                 }}
                 style={{
                   width: "70px",
@@ -166,6 +196,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
                   padding: "2px 4px",
                 }}
               />
+
             );
           },
           center: true,

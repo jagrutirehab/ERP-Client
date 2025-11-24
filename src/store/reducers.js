@@ -93,6 +93,7 @@ import HubspotContacts from "./features/report/hubspotContactsSlice";
 import Incident from "./features/incident/incidentSlice";
 
 import Pharmacy from "./features/pharmacy/pharmacySlice";
+import RoundNotes from "./features/roundNotes/roundNotesSlice";
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -127,7 +128,8 @@ const rootReducer = combineReducers({
   HubspotContacts,
   CentralPayment,
   Incident,
-  Pharmacy
+  Pharmacy,
+  RoundNotes,
 });
 
 export default rootReducer;

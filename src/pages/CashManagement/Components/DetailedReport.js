@@ -137,6 +137,12 @@ const DetailedReport = ({
               DEPOSIT-OLIVE
             </Badge>
           )
+        } else if (row.transactionCategory === "INFLOW") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              CASH INFLOW
+            </Badge>
+          )
         }
         else {
           return "-";
@@ -266,6 +272,7 @@ const DetailedReport = ({
               <option value="BASEBALANCE">Base Balances</option>
               <option value="BANKDEPOSIT">Bank Deposits</option>
               <option value="SPENDING">Spendings</option>
+              <option value="INFLOW">Cash Inflow</option>
               <option value="IPD">IPD Payments</option>
               <option value="DEPOSIT-OLIVE">Deposit-Olive payments</option>
               <option value="OPD">OPD Payments</option>

@@ -12,6 +12,7 @@ import Select from "react-select";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
+import * as XLSX from "xlsx";
 
 const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -29,6 +30,8 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const [tableData, setTableData] = useState([]);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [bulkResult, setBulkResult] = useState(null);
+    const [bulkResultModal, setBulkResultModal] = useState(false);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -64,6 +67,10 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         )
     ];
 
+    const selectedCenterOption = centerOptions.find(
+        opt => opt.value === selectedCenter
+    ) || centerOptions[0];
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -74,11 +81,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         }
     }, [selectedCenter, user?.centerAccess]);
 
-
-    const selectedCenterOption = centerOptions.find(
-        opt => opt.value === selectedCenter
-    ) || centerOptions[0];
-
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
@@ -88,33 +90,33 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         return () => clearTimeout(handler);
     }, [search]);
 
+
+    const fetchMedicineApprovals = async () => {
+        try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
+
+            await dispatch(
+                getMedicineApprovals({
+                    page,
+                    limit,
+                    type: activeTab,
+                    centers,
+                    status: "PENDING",
+                    ...search.trim() !== "" && { search: debouncedSearch }
+                })
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch medicine approvals.");
+            }
+        }
+    };
+
     useEffect(() => {
         if (activeSubTab !== "ALL" || !hasUserPermission) return;
-
-        const fetchMedicineApprovals = async () => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                await dispatch(
-                    getMedicineApprovals({
-                        page,
-                        limit,
-                        type: activeTab,
-                        centers,
-                        status: "PENDING",
-                        ...search.trim() !== "" && { search: debouncedSearch }
-                    })
-                ).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch medicine approvals.");
-                }
-            }
-        };
-
         fetchMedicineApprovals();
     }, [page, limit, activeTab, selectedCenter, debouncedSearch, user.centerAccess, hasUserPermission]);
 
@@ -131,25 +133,33 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
 
     const handleUpdateApprovalStatus = async (status, row = null, remarksOverride = "") => {
         try {
-
             let payload = {};
 
             if (row) {
-                if (status === "APPROVED") {
-                    setUpdatingRowId(`ROW-APPROVE-${row._id}`);
-                } else {
-                    setUpdatingRowId(`ROW-REJECT-${row._id}`);
+                const currentRowData = tableData.find(item => item._id === row._id);
+                if (!currentRowData) {
+                    toast.error("Selected row data not found");
+                    return;
                 }
+
+                // for (const m of currentRowData.medicineCounts) {
+                //     if (!m.totalQuantity || Number(m.totalQuantity) <= 0) {
+                //         toast.error("Quantity must be greater than 0 for all medicines before approving");
+                //         return;
+                //     }
+                // }
+
+                setUpdatingRowId(`ROW-${status}-${row._id}`);
+
                 payload.id = row._id;
                 payload.status = status;
                 payload.remarks = remarksOverride;
-
-                const currentRowData = tableData.find(item => item._id === row._id);
 
                 payload.medicines = currentRowData.medicineCounts.map(m => ({
                     medicineId: m.medicineId,
                     dispensedCount: m.totalQuantity
                 }));
+
             } else {
                 const centers =
                     selectedCenter === "ALL"
@@ -161,26 +171,38 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 payload.id = "bulk";
                 payload.type = activeTab;
                 payload.remarks = remarksOverride;
+                payload.update = "pendingApprovals"
 
-                if (status === "APPROVED") {
-                    setUpdatingRowId("BULK_APPROVE");
-                } else {
-                    setUpdatingRowId("BULK_REJECT");
-                }
+                setUpdatingRowId(`BULK-${status}`);
             }
 
-            await dispatch(updateApprovalStatus(payload)).unwrap();
+            const result = await dispatch(updateApprovalStatus(payload)).unwrap();
+
+            if (result?.shortages || result?.failed > 0) {
+                setBulkResult(result);
+                setBulkResultModal(true);
+                setUpdatingRowId(null);
+
+                return toast.error("Cannot approve due to insufficient stock.");
+            }
 
             toast.success("Updated successfully");
             setModalOpen(false);
             setUpdatingRowId(null);
             setPage(1);
+
         } catch (err) {
             setUpdatingRowId(null);
+
+            if (err?.shortages || err?.failed > 0) {
+                setBulkResult(err);
+                setBulkResultModal(true);
+                return toast.error("Cannot approve due to insufficient stock.");
+            }
+
             toast.error(err.message || "Update failed");
         }
     };
-
 
     const handleDispenseChange = (approvalId, medicineId, value) => {
         const newValue = Number(value);
@@ -203,6 +225,44 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             )
         );
     };
+
+    const downloadFailedApprovalsXlsx = () => {
+        if (!bulkResult) {
+            toast.error("No failure data available");
+            return;
+        }
+        if (bulkResult.type === "bulk" || bulkResult.failedApprovals) {
+
+            const rows = [];
+
+            (bulkResult.centersRes || []).forEach(center => {
+                center.medicines.forEach(med => {
+                    rows.push({
+                        CenterName: center.centerName,
+                        Medicine: med.medicineName,
+                        TotalRequired: med.required,
+                        TotalAvailable: med.available,
+                        TotalMissing: med.missing,
+                    });
+                });
+            });
+
+            if (rows.length === 0) {
+                toast.error("No failure data to download");
+                return;
+            }
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "BulkShortages");
+            XLSX.writeFile(wb, "bulk_shortages.xlsx");
+            return;
+        }
+
+
+        toast.error("Invalid failure structure");
+    };
+
 
     const columns = [
         {
@@ -232,46 +292,59 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         },
         {
             name: <div>Medicines</div>,
-            cell: (row) => (
-                <div className="w-100">
-                    {row.medicineCounts?.map((medicine, index) => (
-                        <div key={medicine.medicineId} className="w-100">
-                            <div
-                                className="d-flex justify-content-between align-items-center flex-wrap py-1"
-                            >
-                                <span className="fw-semibold text-dark"
-                                    style={{ flex: "1 1 60%", wordBreak: "break-word" }}
-                                >
-                                    {medicine.medicineName}
-                                </span>
-                                {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
-                                    <Input
-                                        type="number"
-                                        bsSize="sm"
-                                        className="text-center mt-1 mt-md-0"
-                                        style={{ width: "70px" }}
-                                        value={medicine.totalQuantity}
-                                        onChange={(e) =>
-                                            handleDispenseChange(row._id, medicine.medicineId, e.target.value)
-                                        }
-                                    />
-                                ) : (
-                                    <span className="fw-semibold">
-                                        {medicine.totalQuantity}
-                                    </span>
-                                )}
-                            </div>
+            cell: (row) => {
+                return (
+                    <div className="w-100">
+                        {row.medicineCounts?.map((medicine, index) => {
+                            const userQty = Number(medicine.totalQuantity);
+                            const stock = Number(medicine.availableStock);
+                            const isShort = stock >= 0 && userQty > stock;
 
-                            {index !== row.medicineCounts.length - 1 && (
-                                <div className="border-bottom my-md-2 my-1"></div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            ),
+                            return (
+                                <div key={medicine.medicineId} className="w-100">
+                                    <div className="d-flex justify-content-between align-items-center flex-wrap py-1">
+
+                                        <div className="d-flex flex-column" style={{ flex: "1 1 60%" }}>
+                                            <span className="fw-semibold text-dark">
+                                                {medicine.medicineName}
+                                            </span>
+
+                                            {medicine.availableStock !== undefined && isShort && (
+                                                <span className="text-danger small fw-bold">
+                                                    ⚠ Only {stock} left
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
+                                            <Input
+                                                type="number"
+                                                bsSize="sm"
+                                                className={`text-center mt-1 mt-md-0 ${isShort ? "border-danger" : ""}`}
+                                                style={{ width: "70px" }}
+                                                value={userQty}
+                                                onChange={(e) =>
+                                                    handleDispenseChange(row._id, medicine.medicineId, e.target.value)
+                                                }
+                                            />
+                                        ) : (
+                                            <span className="fw-semibold">{userQty}</span>
+                                        )}
+                                    </div>
+
+                                    {index !== row.medicineCounts.length - 1 && (
+                                        <div className="border-bottom border-black my-md-2 my-1"></div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                );
+            },
             wrap: true,
             minWidth: "310px"
         },
+
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Remarks</div>,
             cell: (row) => (
@@ -292,11 +365,16 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                         color="success"
                         size="sm"
                         onClick={() => handleUpdateApprovalStatus("APPROVED", row)}
-                        disabled={updatingRowId === `ROW-APPROVE-${row._id}`}
+                        disabled={
+                            updatingRowId === `ROW-APPROVED-${row._id}` ||
+                            row.medicineCounts.some((medicine) =>
+                                Number(medicine.totalQuantity) > Number(medicine.availableStock ?? Infinity) || Number(medicine.totalQuantity) === 0
+                            )
+                        }
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        {updatingRowId === `ROW-APPROVE-${row._id}` ? (
+                        {updatingRowId === `ROW-APPROVED-${row._id}` ? (
                             <Spinner size="sm" />
                         ) : (
                             <>
@@ -315,7 +393,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        {updatingRowId === `ROW-REJECT-${row._id}` ? (
+                        {updatingRowId === `ROW-REJECTED-${row._id}` ? (
                             <Spinner size="sm" />
                         ) : (
                             <>
@@ -330,7 +408,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             center: true,
         },
     ].filter(Boolean);
-
 
     const getPageRange = (total, current, maxButtons = 7) => {
         if (total <= maxButtons)
@@ -358,7 +435,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
 
     const pagination = medicineApprovals?.pagination || {};
 
-
     useEffect(() => {
         setTableData(medicineApprovals?.data);
     }, [medicineApprovals?.data]);
@@ -368,6 +444,15 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             setSelectedCenter(user?.centerAccess?.[0] || "");
         }
     }, [user]);
+
+    const resetAll = (approvalType) => {
+        setBulkResultModal(false);
+        setModalOpen(false);
+        setPage(1);
+        if (approvalType === "bulk") {
+            fetchMedicineApprovals()
+        }
+    }
 
     return (
         <div className="px-3">
@@ -437,17 +522,17 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                     <Button
                                         className="btn btn-danger fw-semibold px-3 btn-sm text-white"
                                         onClick={() => openRemarksModal(null, "BULK_REJECT")}
-                                        disabled={updatingRowId === "BULK_REJECT"}
+                                        disabled={updatingRowId === "BULK-REJECT"}
                                     >
-                                        {updatingRowId === "BULK_REJECT" ? <Spinner size="sm" /> : "Reject All"}
+                                        {updatingRowId === "BULK-REJECT" ? <Spinner size="sm" /> : "Reject All"}
                                     </Button>
 
                                     <Button
                                         className="btn btn-success fw-semibold px-3 btn-sm text-white"
                                         onClick={() => openRemarksModal(null, "BULK_APPROVE")}
-                                        disabled={updatingRowId === "BULK_APPROVE"}
+                                        disabled={updatingRowId === "BULK-APPROVED"}
                                     >
-                                        {updatingRowId === "BULK_APPROVE" ? <Spinner size="sm" /> : "Approve All"}
+                                        {updatingRowId === "BULK-APPROVED" ? <Spinner size="sm" /> : "Approve All"}
                                     </Button>
                                 </>
                             </CheckPermission>
@@ -458,8 +543,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
 
                 </div>
             </div>
-
-
 
             <DataTable
                 columns={columns}
@@ -579,10 +662,17 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     >
                         Save & Reject
                     </Button>
-
                     <Button
                         color="success"
                         className="text-white"
+                        disabled={
+                            actionType === "REJECTED" ||
+                            selectedRow?.medicineCounts?.some(
+                                (m) =>
+                                    m.availableStock !== undefined &&
+                                    m.availableStock < m.totalQuantity
+                            )
+                        }
                         onClick={() => {
                             if (actionType === "BULK_APPROVE") {
                                 handleUpdateApprovalStatus("APPROVED", null, remarkText);
@@ -590,12 +680,56 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                 handleUpdateApprovalStatus("APPROVED", selectedRow, remarkText);
                             }
                         }}
-                        disabled={actionType === "REJECTED"}
                     >
                         Save & Approve
                     </Button>
+
                 </ModalFooter>
 
+            </Modal>
+
+            <Modal isOpen={bulkResultModal} toggle={() => resetAll(bulkResult?.type)} size="md">
+                <ModalHeader toggle={() => resetAll(bulkResult?.type)}>
+                    Bulk Approval Failed — Stock Shortage
+                </ModalHeader>
+
+                <ModalBody>
+                    {bulkResult && (
+                        <>
+                            <h5 className="text-danger fw-bold mb-3">Summary</h5>
+                            {bulkResult.type === "bulk" && (
+                                <>
+                                    <div className="d-flex gap-4 mb-4">
+                                        <div className="p-2 border rounded text-center flex-fill">
+                                            <div className="fw-bold text-success fs-4">
+                                                {bulkResult.approved || 0}
+                                            </div>
+                                            <div>Requests Approved</div>
+                                        </div>
+
+                                        <div className="p-2 border rounded text-center flex-fill">
+                                            <div className="fw-bold text-danger fs-4">
+                                                {bulkResult.failed}
+                                            </div>
+                                            <div>Requests Failed</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-muted mb-0">
+                                        Download the XLSX report for centerwise details.
+                                    </p>
+                                </>
+                            )}
+                        </>
+                    )}
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="danger" onClick={() => resetAll(bulkResult?.type)}>
+                        Close
+                    </Button>
+                    <Button color="primary" className="text-white" onClick={downloadFailedApprovalsXlsx}>
+                        Download XLSX
+                    </Button>
+                </ModalFooter>
             </Modal>
 
         </div>

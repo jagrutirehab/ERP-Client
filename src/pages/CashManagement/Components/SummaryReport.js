@@ -161,6 +161,13 @@ const SummaryReport = ({
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
+                    <span className="fw-medium">Total Cash Inflow:</span>
+                    <span className="fw-semibold">
+                      + {formatCurrency(data.totalInflows)}
+                    </span>
+                  </ListGroupItem>
+
+                  <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total IPD Payments:</span>
                     <span className="fw-semibold">
                       + {formatCurrency(data.totalAdvancePayments)}

@@ -4,10 +4,12 @@ import {
   getBaseBalanceByCenter,
   getDetailedCashReport,
   getLatestBankDesposits,
+  getLatestInflows,
   getLatestSpendings,
   getSummaryCashReport,
   postBankDeposit,
   postBaseBalance,
+  postInflow,
   postSpending,
 } from "../../../helpers/backend_helper";
 
@@ -15,6 +17,7 @@ const initialState = {
   loading: false,
   bankDeposits: {},
   spendings: {},
+  inflows: {},
   baseBalance: [],
   lastBaseBalance: null,
   detailedReport: {},
@@ -22,7 +25,6 @@ const initialState = {
     data: [],
     cache: {},
   },
-  isUptoDate: true,
 };
 
 export const getLastBankDeposits = createAsyncThunk(
@@ -108,6 +110,54 @@ export const addBankDeposit = createAsyncThunk(
           title: center?.title,
         },
       };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// add inflow
+export const addInflow = createAsyncThunk(
+  "cash/addInflow",
+  async ({ formData }, { getState, rejectWithValue }) => {
+    try {
+      const response = await postInflow(formData);
+
+      const centers = getState().Center.data;
+      const center = centers.find((cn) => cn._id === response.payload.center);
+      return {
+        ...response.payload,
+        center: {
+          _id: center?._id,
+          title: center?.title,
+        },
+      };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// get last inflows
+export const getLastInflows = createAsyncThunk(
+  "cash/getLatestInflows",
+  async (data, { getState, rejectWithValue }) => {
+    const { centers } = data;
+    const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+
+    const cachedInflows = getState().Cash.inflows?.[cacheKey];
+
+    if (
+      cachedInflows &&
+      Array.isArray(cachedInflows.data) &&
+      cachedInflows.data.length > 0
+    ) {
+      return { data: cachedInflows, fromCache: true, cacheKey };
+    }
+
+    try {
+      const response = await getLatestInflows(data);
+      return { data: response, fromCache: false, cacheKey };
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -345,6 +395,36 @@ export const CashSlice = createSlice({
         }
       })
       .addCase(getSummaryReport.rejected, (state) => {
+        state.loading = false;
+      });
+
+    // inflows
+    builder
+      .addCase(addInflow.fulfilled, (state, { payload, meta }) => {
+        const centers = meta.arg.centers;
+        const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+        if (!state.inflows[cacheKey]) {
+          state.inflows[cacheKey] = { data: [], pagination: {} };
+        }
+        state.inflows[cacheKey].data.unshift(payload);
+        if (state.inflows[cacheKey].data.length > 10) {
+          state.inflows[cacheKey].data.pop();
+        }
+      });
+
+    builder
+      .addCase(getLastInflows.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getLastInflows.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const { data, cacheKey, fromCache } = payload;
+        if (!fromCache && cacheKey) {
+          state.inflows = {};
+          state.inflows[cacheKey] = data;
+        }
+      })
+      .addCase(getLastInflows.rejected, (state) => {
         state.loading = false;
       });
   },

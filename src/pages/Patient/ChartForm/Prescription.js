@@ -105,43 +105,43 @@ const Prescription = ({
       drNotes: editPrescription
         ? editPrescription.drNotes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.drNotes
-        : "",
+          ? patientLatestOPDPrescription?.drNotes
+          : "",
       diagnosis: editPrescription
         ? editPrescription.diagnosis
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.diagnosis
-        : "",
+          ? patientLatestOPDPrescription?.diagnosis
+          : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.notes
-        : "",
+          ? patientLatestOPDPrescription?.notes
+          : "",
       followUp: editPrescription
         ? editPrescription.followUp
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.followUp
-        : "",
+          ? patientLatestOPDPrescription?.followUp
+          : "",
       referredby: editPrescription
         ? editPrescription.referredby
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.referredby
-        : patient.referredBy,
+          ? patientLatestOPDPrescription?.referredby
+          : patient.referredBy,
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.investigationPlan
-        : "",
+          ? patientLatestOPDPrescription?.investigationPlan
+          : "",
       complaints: editPrescription
         ? editPrescription.complaints
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.complaints
-        : "",
+          ? patientLatestOPDPrescription?.complaints
+          : "",
       observation: editPrescription
         ? editPrescription.observation
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.observation
-        : "",
+          ? patientLatestOPDPrescription?.observation
+          : "",
       type,
       date: chartDate,
     },
@@ -151,6 +151,7 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
+
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -185,11 +186,72 @@ const Prescription = ({
     dispatch(fetchLatestCharts({ patient: patient?._id }));
   }, [patient, dispatch]);
 
+  // useEffect(() => {
+  //   if (editPrescription) {
+  //     setMedicines(_.cloneDeep(editPrescription.medicines));
+  //   } else if (ptLatestOPDPrescription) {
+  //     setMedicines(_.cloneDeep(ptLatestOPDPrescription.medicines));
+  //     validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
+  //     validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
+  //     validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
+  //     validation.setFieldValue(
+  //       "investigationPlan",
+  //       ptLatestOPDPrescription.investigationPlan
+  //     );
+  //     validation.setFieldValue(
+  //       "complaints",
+  //       ptLatestOPDPrescription.complaints
+  //     );
+  //     validation.setFieldValue(
+  //       "observation",
+  //       ptLatestOPDPrescription.observation
+  //     );
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [editPrescription, ptLatestOPDPrescription]);
+
   useEffect(() => {
-    if (editPrescription) {
-      setMedicines(_.cloneDeep(editPrescription.medicines));
-    } else if (ptLatestOPDPrescription) {
-      setMedicines(_.cloneDeep(ptLatestOPDPrescription.medicines));
+    const source =
+      editPrescription?.medicines ||
+      ptLatestOPDPrescription?.medicines;
+
+    if (!source) return;
+
+    const meds = _.cloneDeep(source);
+
+    const fixed = meds.map(med => {
+      const m = med.medicine;
+
+      // if  _id ,then skip
+      if (m?._id) return med;
+
+      // try to get _id using name + strength + unit
+      const match = drugs.find(d =>
+        d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
+        String(d.strength).trim() === String(m.strength).trim() &&
+        String(d.unit).trim().toLowerCase() === String(m.unit).trim().toLowerCase()
+      );
+
+      if (match) {
+        return {
+          ...med,
+          medicine: {
+            ...m,
+            _id: match._id,
+            name: match.name,
+            strength: match.strength,
+            unit: match.unit,
+            isNew: false
+          }
+        };
+      }
+
+      return med;
+    });
+
+    setMedicines(fixed);
+
+    if (ptLatestOPDPrescription && !editPrescription) {
       validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
       validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
@@ -197,17 +259,12 @@ const Prescription = ({
         "investigationPlan",
         ptLatestOPDPrescription.investigationPlan
       );
-      validation.setFieldValue(
-        "complaints",
-        ptLatestOPDPrescription.complaints
-      );
-      validation.setFieldValue(
-        "observation",
-        ptLatestOPDPrescription.observation
-      );
+      validation.setFieldValue("complaints", ptLatestOPDPrescription.complaints);
+      validation.setFieldValue("observation", ptLatestOPDPrescription.observation);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editPrescription, ptLatestOPDPrescription]);
+
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editPrescription, ptLatestOPDPrescription, drugs]);
 
   useEffect(() => {
     if (!editPrescription) {
@@ -250,6 +307,7 @@ const Prescription = ({
         duration: "30",
         unit: "Day (s)",
       };
+      console.log(medicine)
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }

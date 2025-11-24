@@ -50,10 +50,10 @@ const ItemCard = ({ item, type }) => {
           <Col md={4} className="text-end">
             <div className="d-flex align-items-center justify-content-end">
               <span
-                className={`h5 mb-0 fw-bold ${type === "BASEBALANCE" ? "text-success" : "text-danger"
+                className={`h5 mb-0 fw-bold ${(type === "BASEBALANCE" || type === "INFLOW") ? "text-success" : "text-danger"
                   }`}
               >
-                {type === "BASEBALANCE" ? "+" : "-"} ₹{item.amount.toFixed(2)}
+                {(type === "BASEBALANCE" || type === "INFLOW") ? "+" : "-"} ₹{item.amount.toFixed(2)}
               </span>
             </div>
           </Col>

@@ -11,7 +11,18 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
     const [remarks, setRemarks] = useState("");
 
     useEffect(() => {
-        onDispenseChanges(updatedDispenseData);
+        const hasShortage = medicines.some(
+            m => Number(m.dispensedCount ?? m.totalQuantity) > (m.availableStock ?? 0)
+        );
+
+        const hasZero = medicines.some(
+            m => Number(m.dispensedCount ?? m.totalQuantity) === 0
+        );
+        onDispenseChanges({
+            hasShortage,
+            hasZero,
+            updated: updatedDispenseData
+        });
     }, [updatedDispenseData]);
 
     useEffect(() => {
@@ -29,9 +40,12 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
             )
         );
 
+        const selectedMed = medicines.find(m => m._id === rowId);
+        const medId = selectedMed?.medicine?._id;
+
         setUpdatedDispenseData(prev => {
-            const filtered = prev.filter(item => item.medicineId !== rowId);
-            return [...filtered, { medicineId: rowId, dispensedCount: num }];
+            const filtered = prev.filter(item => item.medicineId !== medId);
+            return [...filtered, { medicineId: medId, dispensedCount: num }];
         });
     };
 

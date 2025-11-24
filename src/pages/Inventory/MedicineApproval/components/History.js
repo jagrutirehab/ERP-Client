@@ -138,14 +138,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 </span>
                             </div>
                             {index !== row.medicineCounts.length - 1 && (
-                                <div
-                                    style={{
-                                        width: "100%",
-                                        height: "1px",
-                                        backgroundColor: "#e5e5e5",
-                                        margin: "4px 0"
-                                    }}
-                                ></div>
+                                <div className="border-bottom border-black my-md-2 my-1"></div>
                             )}
                         </div>
                     ))}
@@ -251,6 +244,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 { value: 10, label: "10" },
                                 { value: 20, label: "20" },
                                 { value: 30, label: "30" },
+                                { value: 40, label: "40" },
                                 { value: 50, label: "50" },
                             ]}
                             classNamePrefix="react-select"
@@ -293,6 +287,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 { value: 10, label: "10" },
                                 { value: 20, label: "20" },
                                 { value: 30, label: "30" },
+                                { value: 40, label: "40" },
                                 { value: 50, label: "50" },
                             ]}
                             classNamePrefix="react-select"

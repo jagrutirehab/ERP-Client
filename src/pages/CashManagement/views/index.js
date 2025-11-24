@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   BASE_BALANCE_VIEW,
   DEPOSITS_VIEW,
+  INFLOW_VIEW,
   REPORTS_VIEW,
   SPENDING_VIEW,
 } from "../../../Components/constants/cash";
@@ -13,6 +14,7 @@ import Spending from "./Spending";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
+import Inflows from "./Inflows";
 
 const Views = () => {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const Views = () => {
   const hasBalancePermission = hasPermission("CASH", "CASHBALANCE", "READ");
   const hasDepositsPermission = hasPermission("CASH", "CASHDEPOSITS", "READ");
   const hasSpendingPermission = hasPermission("CASH", "CASHSPENDING", "READ");
+  const hasInflowPermission = hasPermission("CASH", "CASHINFLOW", "READ");
 
   const availableViews = [
     {
@@ -50,6 +53,12 @@ const Views = () => {
       hasAccess: hasSpendingPermission,
       order: 3,
     },
+    {
+      name: "Cash Inflow",
+      view: INFLOW_VIEW,
+      hasAccess: hasInflowPermission,
+      order: 4,
+    },
   ]
     .filter((view) => view.hasAccess)
     .sort((a, b) => a.order - b.order);
@@ -62,6 +71,7 @@ const Views = () => {
       BASE_BALANCE_VIEW,
       DEPOSITS_VIEW,
       SPENDING_VIEW,
+      INFLOW_VIEW
     ];
 
     for (const view of priorityOrder) {
@@ -118,8 +128,8 @@ const Views = () => {
                   {sub.name === "Balance"
                     ? "Set Base Balance"
                     : sub.name === "Deposits"
-                    ? "Bank Deposits"
-                    : sub.name}
+                      ? "Bank Deposits"
+                      : sub.name}
                 </Button>
               ))}
             </ButtonGroup>
@@ -155,6 +165,14 @@ const Views = () => {
               subAccess={"CASHSPENDING"}
             >
               {view === SPENDING_VIEW && <Spending />}
+            </CheckPermission>
+
+            <CheckPermission
+              accessRolePermission={roles?.permissions}
+              permission={"read"}
+              subAccess={"CASHINFLOW"}
+            >
+              {view === INFLOW_VIEW && <Inflows />}
             </CheckPermission>
           </div>
         </div>

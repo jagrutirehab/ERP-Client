@@ -98,7 +98,7 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.detailHistory && <Divider />}
-        {data?.mentalExamination && (
+        {(data?.mentalExamination || data?.mentalExaminationV2) && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
             Mental Status Examination
           </h6>
@@ -147,6 +147,71 @@ const DetailAdmission = ({ data }) => {
             );
           })}
         {data?.mentalExamination && <Divider />}
+        {data?.mentalExaminationV2 && (
+          <>
+            {Object.entries(data.mentalExaminationV2).map(([groupKey, groupValue], i) => {
+              const isObject = typeof groupValue === "object" && groupValue !== null;
+
+              const singleFieldSections = ["judgment", "remarks", "perception"];
+
+              if (isObject) {
+                return (
+                  <Col xs={12} key={i}>
+                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
+                      {convertCamelCaseToTitleCase(groupKey)}
+                    </h6>
+
+                    {Object.entries(groupValue).map(([subKey, subValue], j) => (
+                      <div className="mt-1 mb-1" key={j}>
+                        <p className="fs-xs-9 fs-md-11 mb-0">
+                          <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                            {convertCamelCaseToTitleCase(subKey)}:-
+                          </span>
+                          {subValue || ""}
+                        </p>
+                      </div>
+                    ))}
+                  </Col>
+                );
+              }
+
+              if (singleFieldSections.includes(groupKey)) {
+                return (
+                  <Col xs={12} key={i}>
+                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
+                      {convertCamelCaseToTitleCase(groupKey)}
+                    </h6>
+
+                    <div className="mt-1 mb-1">
+                      <p className="fs-xs-9 fs-md-11 mb-0">
+                        {groupValue || ""}
+                      </p>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return (
+                <Col xs={12} key={i}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        {convertCamelCaseToTitleCase(groupKey)}:
+                      </span>
+                      {groupValue}
+                    </p>
+                  </div>
+                </Col>
+              );
+            })}
+
+            <Divider />
+          </>
+        )}
+
+
+
+        {data?.mentalExaminationV2 && <Divider />}
 
         {data?.physicalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Physical Examination</h6>

@@ -13,6 +13,7 @@ import {
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
+  MENTAL_EXAMINATION
 } from "../../../Components/constants/patient";
 
 //forms
@@ -25,6 +26,7 @@ import { createEditChart } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
+import MentalExamination from "./MentalExamination";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -40,22 +42,25 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isRelativeVisit = chart.chart === RELATIVE_VISIT;
   const isDischargeSummary = chart.chart === DISCHARGE_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
+  const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
 
   const title = isPrescription
     ? "Prescription"
     : isClinicalNotes
-    ? "Clinical Notes"
-    : isCounsellingNotes
-    ? "Counselling Notes"
-    : isVitalSigns
-    ? "Vital Signs"
-    : isLabReports
-    ? "Lab Report"
-    : isDischargeSummary
-    ? "Discharge Summary"
-    : isRelativeVisit
-    ? "Relative Visit"
-    : "Detail Admission";
+      ? "Clinical Notes"
+      : isCounsellingNotes
+        ? "Counselling Notes"
+        : isVitalSigns
+          ? "Vital Signs"
+          : isLabReports
+            ? "Lab Report"
+            : isDischargeSummary
+              ? "Discharge Summary"
+              : isRelativeVisit
+                ? "Relative Visit"
+                : isMentalExamination
+                  ? "Clinical Notes"
+                  : "Detail Admission";
 
   return (
     <React.Fragment>
@@ -81,6 +86,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isRelativeVisit && <RelativeVisit {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
         {isDetailAdmission && <DetailAdmission {...rest} />}
+        {isMentalExamination && <MentalExamination {...rest} />}
       </CustomModal>
     </React.Fragment>
   );

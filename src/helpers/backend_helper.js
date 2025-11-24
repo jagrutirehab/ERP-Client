@@ -449,6 +449,18 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+
+export const postMentalExamination = (data) => {
+  return api.create(url.POST_MENTAL_EXAMINATION, data);
+}
+export const postGeneralMentalExamintion = (data) => {
+  return api.create(url.POST_GENERAL_MENTAL_EXAMINATION, data);
+}
+
+export const editMentalExamination = (data) => {
+  return api.put(url.EDIT_MENTAL_EXAMINATION, data);
+}
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);
@@ -702,10 +714,10 @@ export const addInternForm = (data) =>
 export const fetchAllInterns = (params = {}) => {
   return api.get(url.GET_INTERN_DATA, {
     params,
-    paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "repeat", skipNulls: true })
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat", skipNulls: true }),
   });
 };
-
 
 export const getInternId = () => api.get(url.GET_INTERN_ID);
 
@@ -830,6 +842,39 @@ export const createNote = (data) => {
   });
 };
 
+export const getRoundNotesList = (params = {}) => {
+  return api.get(url.ROUND_NOTES, {
+    params,
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const postRoundNote = (data) => {
+  return api.create(url.ROUND_NOTES, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const putRoundNote = (id, data) => {
+  return api.put(`${url.ROUND_NOTES}/${id}`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const deleteRoundNote = (id) => {
+  return api.delete(`${url.ROUND_NOTES}/${id}`);
+};
+
+export const getRoundNoteStaff = (params = {}) => {
+  return api.get(url.ROUND_NOTES_STAFF, {
+    params,
+  });
+};
+
 export const getPendingActiveMedicines = (patientId) => {
   return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
 };
@@ -921,6 +966,27 @@ export const postBaseBalance = (data) => {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const postInflow = (data) => {
+  return api.create(url.ADD_INFLOW, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getLatestInflows = (params = {}) => {
+  return api.get(url.GET_LASTEST_INFLOWS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
 };
@@ -1268,8 +1334,8 @@ export const deleteFailedMedicinesByBatch = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const getMedineApprovalsByStatus = (params = {}) => {
   return api.get(url.MEDICINE_APPROVALS, {
@@ -1280,8 +1346,8 @@ export const getMedineApprovalsByStatus = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const updateMedicineApprovalStatus = (data) => {
   if (data.id) {
@@ -1291,7 +1357,7 @@ export const updateMedicineApprovalStatus = (data) => {
       },
     });
   }
-}
+};
 
 export const getPendingPatientApprovals = (params = {}) => {
   return api.get(url.GET_PENDING_PATIENT_APPROVALS, {
@@ -1302,16 +1368,16 @@ export const getPendingPatientApprovals = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const getDetailedPrescription = (prescriptionId) => {
   return api.get(`${url.GET_DETAILED_PRESCRIPTION}/${prescriptionId}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const downloadAuditTemplate = (params) => {
   return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
@@ -1323,8 +1389,8 @@ export const downloadAuditTemplate = (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
     responseType: "blob",
-  })
-}
+  });
+};
 
 export const getAuditsByStatus = (params) => {
   return api.get(url.AUDITS, {
@@ -1335,17 +1401,16 @@ export const getAuditsByStatus = (params) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const uploadAuditChunk = (data) => {
   return api.create(url.UPLOAD_AUDIT_REPORT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-
     },
-  })
-}
+  });
+};
 
 export const updateAuditStatus = (params = {}) => {
   return api.update(url.UPDATE_AUDIT_STATUS, params, {
@@ -1355,8 +1420,8 @@ export const updateAuditStatus = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const getAuditDetails = (params) => {
   return api.get(url.GET_AUDIT_REPORT, {
@@ -1367,22 +1432,22 @@ export const getAuditDetails = (params) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const deleteAuditById = (id) => {
   return api.delete(`${url.AUDITS}/${id}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const downloadAuditFailedMedicines = (id) => {
   return api.get(`${url.DOWNLOAD_AUDIT_FAILED_MEDICINES}/${id}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-    responseType: "blob"
-  })
-}
+    responseType: "blob",
+  });
+};
