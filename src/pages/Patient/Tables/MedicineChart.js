@@ -127,10 +127,31 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
       wrap: true,
     },
     {
-      name: <div>Dosage & Frequency</div>,
-      selector: (row) =>
-        `${row.dosageAndFrequency?.morning} - ${row.dosageAndFrequency?.evening} - ${row.dosageAndFrequency?.night}`,
+      name: (
+        <div style={{ textAlign: "center" }}>
+          <div>Dosage & Frequency</div>
+          <div
+            style={{
+              lineHeight: "1.2",
+              marginTop: "2px",
+              fontWeight: "600",
+            }}
+          >
+            M - A - N
+          </div>
+        </div>
+      ),
+
+      selector: (row) => (
+        <div style={{ textAlign: "center", lineHeight: "1.2" }}>
+          {row.dosageAndFrequency?.morning} -{" "}
+          {row.dosageAndFrequency?.evening} -{" "}
+          {row.dosageAndFrequency?.night}
+        </div>
+      ),
+
       wrap: true,
+      center: true,
     },
     {
       name: "Duration",

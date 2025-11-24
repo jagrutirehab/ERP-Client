@@ -264,8 +264,9 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       </span>
                     </span>
                   </Col>
-                  <Col xs={3} className="">
-                    <div className="d-flex flex-nowrap align-items-center">
+                  {/* <Col xs={3} className="">
+                  
+                    <div className="d-flex flex-nowrap align-items-center justify-content-center">
                       <Input
                         bsSize={"sm"}
                         id={idx}
@@ -289,6 +290,52 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         onChange={handleChange}
                         value={medicine.dosageAndFrequency.night}
                       />
+                      <span className="ms-3">Tablets</span>
+                    </div>
+                  </Col> */}
+                  <Col xs={3}>
+                    <div className="d-flex align-items-center">
+
+                      <div className="d-flex flex-column align-items-center">
+                        <div className="fw-bold mb-1">M</div>
+                        <Input
+                          bsSize="sm"
+                          id={idx}
+                          name="morning"
+                          onChange={handleChange}
+                          value={medicine.dosageAndFrequency.morning}
+                          style={{ width: "55px" }}
+                        />
+                      </div>
+
+                      <span className="mx-2">-</span>
+
+                      <div className="d-flex flex-column align-items-center">
+                        <div className="fw-bold mb-1">A</div>
+                        <Input
+                          bsSize="sm"
+                          id={idx}
+                          name="evening"
+                          onChange={handleChange}
+                          value={medicine.dosageAndFrequency.evening}
+                          style={{ width: "55px" }}
+                        />
+                      </div>
+
+                      <span className="mx-2">-</span>
+
+                      <div className="d-flex flex-column align-items-center">
+                        <div className="fw-bold mb-1">N</div>
+                        <Input
+                          bsSize="sm"
+                          id={idx}
+                          name="night"
+                          onChange={handleChange}
+                          value={medicine.dosageAndFrequency.night}
+                          style={{ width: "55px" }}
+                        />
+                      </div>
+
                       <span className="ms-3">Tablets</span>
                     </div>
                   </Col>
