@@ -297,6 +297,10 @@ export const MARK_ALERT_AS_READ = "/alerts/read";
 // notes
 export const NOTES = "/notes";
 
+// round notes
+export const ROUND_NOTES = "/round-notes";
+export const ROUND_NOTES_STAFF = "/round-notes/staff";
+
 // emergency
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
@@ -356,8 +360,10 @@ export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
 
 // PHARMACY MEDICINE APPROVAl
 export const MEDICINE_APPROVALS = "/pharmacy/approvals";
-export const GET_PENDING_PATIENT_APPROVALS = "/pharmacy/approvals/pending-patients";
-export const GET_DETAILED_PRESCRIPTION = "/pharmacy/approvals/detailed-prescription";
+export const GET_PENDING_PATIENT_APPROVALS =
+  "/pharmacy/approvals/pending-patients";
+export const GET_DETAILED_PRESCRIPTION =
+  "/pharmacy/approvals/detailed-prescription";
 
 // PHARMACY AUDIT
 export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";

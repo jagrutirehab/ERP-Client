@@ -32,6 +32,7 @@ const Guidelines = React.lazy(() => import("../pages/Guidelines"));
 const IncidentReporting = React.lazy(() =>
   import("../pages/IncidentReporting")
 );
+const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -72,6 +73,7 @@ const authProtectedRoutes = [
   { path: "/centralpayment/*", component: CentralPayment },
   { path: "/guidelines/*", component: Guidelines },
   { path: "/incident-reporting/*", component: IncidentReporting },
+  { path: "/round-notes", component: RoundNotes },
   {
     path: "/",
     exact: true,
