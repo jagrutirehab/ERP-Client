@@ -270,6 +270,10 @@ const RoundNotes = () => {
                     setPatientOption(null);
                     setPage(1);
                     dispatch(resetRoundNotesFilters());
+                    // setRoundNotesFilters({
+                    //   startDate: null,
+                    //   endDate: null,
+                    // });
                   }}
                 >
                   Reset
@@ -306,7 +310,12 @@ const RoundNotes = () => {
                   <Label>Date range</Label>
                   <Flatpickr
                     className="form-control"
-                    options={{ mode: "range", dateFormat: "Y-m-d" }}
+                    value={[filters.startDate || null, filters.endDate || null]}
+                    options={{
+                      mode: "range",
+                      dateFormat: "d-m-Y",
+                      // allowInput: true,
+                    }}
                     onChange={handleDateRange}
                   />
                 </FormGroup>
@@ -344,7 +353,7 @@ const RoundNotes = () => {
             <div>
               <h4 className="mb-1">Round Notes</h4>
               <p className="text-muted mb-0">
-                Record, manage, and review all floor / ward rounds
+                Record, manage and review all floor / ward rounds
               </p>
             </div>
             <Button
