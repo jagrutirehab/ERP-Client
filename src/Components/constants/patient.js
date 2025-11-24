@@ -13,6 +13,7 @@ const PROCEDURE = "PROCEDURE";
 const RELATIVE_VISIT = "RELATIVE_VISIT";
 const DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
+const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -78,6 +79,10 @@ const records = [
   {
     name: "Detail History",
     category: DETAIL_ADMISSION,
+  },
+  {
+    name: "Clinical Notes V2",
+    category: MENTAL_EXAMINATION,
   },
 ];
 
@@ -732,8 +737,8 @@ let addPatientFields = [
     name: "age",
     type: "text",
   },
-  
-  
+
+
   // {
   //   label: "Provisional Diagnosis",
   //   name: "provisionalDiagnosis",
@@ -949,6 +954,7 @@ export {
   RELATIVE_VISIT,
   DISCHARGE_SUMMARY,
   DETAIL_ADMISSION,
+  MENTAL_EXAMINATION,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,

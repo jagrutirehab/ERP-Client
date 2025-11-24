@@ -593,12 +593,12 @@ const AddinventoryMedicine = ({
 
             {selectedCenters.length === 0 ? (
               <>
-                <label style={styles.label}>Center-wise Stock</label>
+                <label style={styles.label}>Center wise Stock</label>
                 <p style={{ color: "#6c757d" }}>Select centers first</p>
               </>
             ) : (
               <div style={{ gridColumn: "1 / -1", marginTop: "20px" }}>
-                <label style={styles.label}>Center-wise Stock</label>
+                <label style={styles.label}>Center wise Stock</label>
 
                 {selectedCenters.length === 0 ? (
                   <p style={{ color: "#6c757d" }}>Select centers first</p>

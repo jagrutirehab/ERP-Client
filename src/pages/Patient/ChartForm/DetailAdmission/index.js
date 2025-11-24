@@ -23,6 +23,7 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
+import MentalExaminationV2 from "./MentalExaminationV2";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 // const CONSET_FILES = "CONSENT_FILES";
@@ -124,6 +125,7 @@ const DetailAdmission = ({
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
+  const isOldMentalExamination = Boolean(detailAdmissionForm?.mentalExamination);
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -134,8 +136,8 @@ const DetailAdmission = ({
       center: center
         ? center
         : patient?.center?._id
-        ? patient.center._id
-        : patient?.center,
+          ? patient.center._id
+          : patient?.center,
       addmission: patient?.addmission?._id,
       //detail addmission form
       age: detailAdmissionForm ? detailAdmissionForm.detailAdmission?.age : "",
@@ -233,39 +235,86 @@ const DetailAdmission = ({
       //   : "",
 
       //mental status examination
-      appearance: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.appearance
-        : "",
-      ecc: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.ecc
-        : "",
-      speech: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.speech
-        : "",
-      mood: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.mood
-        : "",
-      effect: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.effect
-        : "",
-      thinking: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.thinking
-        : "",
-      perception: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.perception
-        : "",
-      memory: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.memory
-        : "",
-      abstractThinking: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.abstractThinking
-        : "",
-      socialJudgment: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.socialJudgment
-        : "",
-      insight: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.insight
-        : "",
+      ...(isOldMentalExamination ? {
+        appearance: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.appearance
+          : "",
+        ecc: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.ecc
+          : "",
+        speech: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.speech
+          : "",
+        mood: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.mood
+          : "",
+        effect: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.effect
+          : "",
+        thinking: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.thinking
+          : "",
+        perception: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.perception
+          : "",
+        memory: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.memory
+          : "",
+        abstractThinking: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.abstractThinking
+          : "",
+        socialJudgment: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.socialJudgment
+          : "",
+        insight: detailAdmissionForm
+          ? detailAdmissionForm.mentalExamination?.insight
+          : "",
+      } : {}),
+
+      ...(!isOldMentalExamination ? {
+        grooming:
+          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            ?.grooming || "",
+        eyeContact:
+          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            ?.eyeContact || "",
+        psychomotorActivity:
+          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            ?.psychomotorActivity || "",
+
+        rate:
+          detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+        volume:
+          detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+
+        affect:
+          detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+        affectNotes:
+          detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+        subjective:
+          detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+
+        delusions:
+          detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+        delusionNotes:
+          detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+        content:
+          detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+
+        perception:
+          detailAdmissionForm?.mentalExaminationV2?.perception || "",
+        orientation:
+          detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+        memory:
+          detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+
+        grade:
+          detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+        judgment:
+          detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+        remarks:
+          detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+      } : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm
       //   ? detailAdmissionForm.physicalExamination?.generalExamination
@@ -321,6 +370,9 @@ const DetailAdmission = ({
     }),
     onSubmit: (values) => {
       /* appending */
+      if (values.delusions === "none") {
+        values.delusionNotes = "";
+      }
       const formData = convertToFormData(values);
       consentFiles?.forEach((file) => formData.append("file", file.file));
       /* appending */
@@ -332,9 +384,9 @@ const DetailAdmission = ({
       } else if (type === "GENERAL") {
         dispatch(addGeneralDetailAdmission(formData));
       } else {
-        // for (let [key, value] of formData.entries()) {
-        //   console.log(key, value);
-        // }
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
         dispatch(addDetailAdmission(formData));
       }
     },
@@ -472,11 +524,21 @@ const DetailAdmission = ({
               )}
 
               {formStep === MENTAL_EXAMINATION && (
-                <MentalExamination
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={PHYSICAL_EXAMINATION}
-                />
+                isOldMentalExamination ? (
+                  <MentalExamination
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={PHYSICAL_EXAMINATION}
+                    mode="old"
+                  />
+                ) : (
+                  <MentalExaminationV2
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={PHYSICAL_EXAMINATION}
+                    mode="new"
+                  />
+                )
               )}
 
               {formStep === PHYSICAL_EXAMINATION && (
