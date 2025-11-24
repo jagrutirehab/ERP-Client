@@ -102,11 +102,21 @@ const RoundNoteForm = ({
   function getCurrentSession() {
     const hour = new Date().getHours();
 
+    console.log({ hour });
+
     if (hour >= 5 && hour < 12) return "Morning";
     if (hour >= 12 && hour < 17) return "Afternoon";
     if (hour >= 17 && hour < 21) return "Evening";
     return "Night"; // 21–4
   }
+
+  console.log("-------------------------");
+  console.log("-------------------------");
+  console.log("-------------------------");
+  console.log(getCurrentSession());
+  console.log("-------------------------");
+  console.log("-------------------------");
+  console.log("-------------------------");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -122,7 +132,7 @@ const RoundNoteForm = ({
   } = useForm({
     defaultValues: {
       date: new Date(),
-      session: getCurrentSession(),
+      session: getCurrentSession(), //{ lable: getCurrentSession(), value: getCurrentSession() },
       roundTakenBy: "",
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
@@ -219,7 +229,7 @@ const RoundNoteForm = ({
 
       reset({
         date: new Date(),
-        session: "Morning",
+        session: getCurrentSession(),
         notes: baseNotes,
       });
     }
@@ -236,7 +246,12 @@ const RoundNoteForm = ({
       center: values.center?.value,
       occursAt: values.date ? new Date(values.date) : new Date(),
       notes: (values.notes || [])
-        .filter((n) => n.note && n.note.trim().length > 0) // Only include rows with actual content
+        .filter(
+          (n) =>
+            (n.note && n.note.trim().length > 0 && n.patientsCategory) ||
+            n.patient._id ||
+            n.floor
+        ) // Only include rows with actual content
         .map((n) => ({
           floor: n.floor || "",
           patient: n.patient?._id || null,
@@ -305,7 +320,7 @@ const RoundNoteForm = ({
                 render={({ field }) => (
                   <Flatpickr
                     className="form-control"
-                    options={{ dateFormat: "Y-m-d" }}
+                    options={{ dateFormat: "d-m-Y" }}
                     value={field.value}
                     onChange={(dates) => field.onChange(dates[0])}
                   />
@@ -327,6 +342,7 @@ const RoundNoteForm = ({
                     {...field}
                     isMulti={false}
                     options={[
+                      { label: "Whole Day", value: "Whole Day" },
                       { label: "Morning", value: "Morning" },
                       { label: "Afternoon", value: "Afternoon" },
                       { label: "Evening", value: "Evening" },
@@ -433,7 +449,7 @@ const RoundNoteForm = ({
                       )
                     }
                   >
-                    + 5 Add Rows
+                    Add 5 Rows
                   </DropdownItem>
                   <DropdownItem
                     onClick={() =>
@@ -448,7 +464,7 @@ const RoundNoteForm = ({
                       )
                     }
                   >
-                    + 10 Add Rows
+                    Add 10 Rows
                   </DropdownItem>
                 </DropdownMenu>
               </ButtonDropdown>
@@ -652,7 +668,7 @@ const RoundNoteForm = ({
                       <Controller
                         name={`notes.${index}.note`}
                         control={control}
-                        rules={{ minLength: 3 }}
+                        rules={{}}
                         render={({ field }) => (
                           <Input
                             type="textarea"
@@ -663,7 +679,9 @@ const RoundNoteForm = ({
                         )}
                       />
                       {errors.notes?.[index]?.note && (
-                        <small className="text-danger d-block">Required</small>
+                        <small className="text-danger d-block">
+                          Must be atleast 3 characters
+                        </small>
                       )}
                     </td>
 
