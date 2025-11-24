@@ -478,7 +478,7 @@ const RoundNoteForm = ({
                 <tr>
                   <th style={{ width: 140 }}>Floor / Ward</th>
                   <th style={{ width: 240 }}>Patient (optional)</th>
-                  <th style={{ width: 180 }}>Patient Category</th>
+                  <th style={{ width: 180 }}>Apply To</th>
                   {/* <th>Round Taken By</th> */}
                   <th style={{ width: 320 }}>Note / Observation</th>
                   <th style={{ width: 90 }}>Actions</th>
