@@ -449,6 +449,18 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+
+export const postMentalExamination = (data) => {
+  return api.create(url.POST_MENTAL_EXAMINATION, data);
+}
+export const postGeneralMentalExamintion = (data) => {
+  return api.create(url.POST_GENERAL_MENTAL_EXAMINATION, data);
+}
+
+export const editMentalExamination = (data) => {
+  return api.put(url.EDIT_MENTAL_EXAMINATION, data);
+}
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);

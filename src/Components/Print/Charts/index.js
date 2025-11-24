@@ -9,6 +9,7 @@ import {
   GENERAL,
   IPD,
   LAB_REPORT,
+  MENTAL_EXAMINATION,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
@@ -24,6 +25,7 @@ import RenderWhen from "../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
+import MentalExamination from "./MentalExamination";
 
 const styles = StyleSheet.create({
   page: {
@@ -155,6 +157,14 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 patient={patient}
                 admission={admission}
               />
+            </RenderWhen>
+
+            <RenderWhen isTrue={chart?.chart === MENTAL_EXAMINATION}>
+              <MentalExamination
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission} />
             </RenderWhen>
           </Page>
         ))}

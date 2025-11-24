@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Font } from "@react-pdf/renderer";
-import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import separateCamelCase from "../../../../utils/separateCamelCase";
+import { View, Text, Font, StyleSheet } from "@react-pdf/renderer";
+import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
+import separateCamelCase from "../../../utils/separateCamelCase";
+import { DETAIL_ADMISSION, MENTAL_EXAMINATION } from "../../constants/patient";
 
 Font.register({
     family: "Roboto",
@@ -13,8 +14,46 @@ Font.register({
     ],
 });
 
-const MentalExaminationV2 = ({ data, styles }) => {
-    const singleFieldSections = ["judgment", "remarks"];
+const styles = StyleSheet.create({
+    row: {
+        flexDirection: "row",
+    },
+    itemsCenter: {
+        alignItems: "center",
+    },
+    column: {
+        flexDirection: "column",
+        gap: 10,
+    },
+    mrgnTop10: {
+        marginTop: 10,
+    },
+    mrgnBottom20: {
+        marginBottom: 20,
+    },
+    textCapitalize: {
+        textTransform: "capitalize",
+    },
+    fontSize13: {
+        fontSize: "13px",
+        fontFamily: "Roboto",
+        fontWeight: "heavy",
+        paddingBottom: 7,
+    },
+    w30: {
+        width: "30%",
+    },
+    mrgnBottom5: {
+        marginBottom: 5,
+    },
+    mrgnBottom3: {
+        marginBottom: 3
+    },
+})
+
+const MentalExaminationBody = ({ data, chart, from = MENTAL_EXAMINATION }) => {
+    const source = data || chart || {};
+    const singleFieldSections = ["judgment", "remarks", "perception"];
 
     return (
         <React.Fragment>
@@ -22,25 +61,31 @@ const MentalExaminationV2 = ({ data, styles }) => {
                 style={{
                     ...styles.column,
                     ...styles.mrgnTop10,
-                    ...styles.mrgnBottom10,
+                    ...styles.mrgnBottom20,
                 }}
             >
                 <Text
                     style={{
                         ...styles.textCapitalize,
-                        ...styles.mrgnBottom10,
+                        ...styles.mrgnBottom20,
                         ...styles.fontSize13,
                     }}
                 >
-                    Mental Status Examination:
+                    {from === DETAIL_ADMISSION ? "Mental Status Examination" : "Clinical Notes"}:
                 </Text>
 
-                {Object.entries(data).map(([groupKey, groupValue], i) => {
+                {Object.entries(source).map(([groupKey, groupValue], i) => {
+                    const blockedKeys = ["_id", "__v"];
+                    if (blockedKeys.includes(groupKey)) return null;
                     const isObject =
                         typeof groupValue === "object" && groupValue !== null;
 
                     // --- GROUP SECTIONS (appearance, mood, thought, cognition, insight)
                     if (isObject) {
+                        const allEmpty = Object.values(groupValue).every(
+                            v => !v || String(v).trim() === ""
+                        );
+                        if (allEmpty) return null;
                         return (
                             <View key={i} style={{ ...styles.column, ...styles.mrgnBottom5 }}>
                                 <Text
@@ -55,42 +100,45 @@ const MentalExaminationV2 = ({ data, styles }) => {
                                     {separateCamelCase(groupKey)}:
                                 </Text>
 
-                                {Object.entries(groupValue).map(([subKey, subValue], j) => (
-                                    <View
-                                        key={j}
-                                        style={{
-                                            ...styles.row,
-                                            ...styles.itemsCenter,
-                                            ...styles.checkBlock,
-                                            ...styles.paddingLeft5,
-                                        }}
-                                    >
+                                {Object.entries(groupValue)
+                                    .filter(([_, v]) => v && String(v).trim() !== "")
+                                    .map(([subKey, subValue], j) => (
                                         <View
+                                            key={j}
                                             style={{
-                                                ...styles.w30,
                                                 ...styles.row,
-                                                ...styles.textCapitalize,
+                                                ...styles.itemsCenter,
+                                                ...styles.checkBlock,
+                                                ...styles.paddingLeft5,
                                             }}
                                         >
-                                            <Text>{separateCamelCase(subKey)}:</Text>
-                                        </View>
+                                            <View
+                                                style={{
+                                                    ...styles.w30,
+                                                    ...styles.row,
+                                                    ...styles.textCapitalize,
+                                                }}
+                                            >
+                                                <Text>{separateCamelCase(subKey)}:</Text>
+                                            </View>
 
-                                        <Text
-                                            style={{
-                                                ...styles.w70,
-                                                ...styles.textCapitalize,
-                                            }}
-                                        >
-                                            {subValue || ""}
-                                        </Text>
-                                    </View>
-                                ))}
+                                            <Text
+                                                style={{
+                                                    ...styles.w70,
+                                                    ...styles.textCapitalize,
+                                                }}
+                                            >
+                                                {subValue || ""}
+                                            </Text>
+                                        </View>
+                                    ))}
                             </View>
                         );
                     }
 
                     // --- SINGLE FIELD SECTIONS (judgment, remarks)
                     if (singleFieldSections.includes(groupKey)) {
+                        if (!groupValue || String(groupValue).trim() === "") return null;
                         return (
                             <View key={i} style={{ ...styles.column, ...styles.mrgnBottom5 }}>
                                 <Text
@@ -120,6 +168,8 @@ const MentalExaminationV2 = ({ data, styles }) => {
                             </View>
                         );
                     }
+
+                    if (!groupValue || String(groupValue).trim() === "") return null;
 
                     return (
                         <View
@@ -157,4 +207,4 @@ const MentalExaminationV2 = ({ data, styles }) => {
     );
 };
 
-export default MentalExaminationV2;
+export default MentalExaminationBody;
