@@ -134,7 +134,9 @@ const SearchPatient = ({
   const isNewPatient = !validation.values.patient;
   const isClearAvai = validation.values.patient;
 
+  console.log("---------------------------");
   console.log({ values: validation.values });
+  console.log("---------------------------");
 
   return (
     <React.Fragment>

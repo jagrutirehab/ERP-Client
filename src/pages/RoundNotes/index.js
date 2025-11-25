@@ -160,19 +160,26 @@ const RoundNotes = () => {
   }, [searchTerm, filters.search, dispatch]);
 
   const handleDateRange = (selected) => {
+    // If clearing or no selection
     if (!selected || !selected.length) {
       dispatch(setRoundNotesFilters({ startDate: null, endDate: null }));
       setPage(1);
       return;
     }
+
+    // Only update if we have both dates (range is complete)
     const [start, end] = selected;
-    dispatch(
-      setRoundNotesFilters({
-        startDate: start ? moment(start).format("YYYY-MM-DD") : null,
-        endDate: end ? moment(end).format("YYYY-MM-DD") : null,
-      })
-    );
-    setPage(1);
+    if (start && end) {
+      dispatch(
+        setRoundNotesFilters({
+          startDate: moment(start).format("YYYY-MM-DD"),
+          endDate: moment(end).format("YYYY-MM-DD"),
+        })
+      );
+      setPage(1);
+    }
+    // If only start date is selected, don't update state yet
+    // This keeps the picker open for selecting the end date
   };
 
   const handleStaffChange = (options) => {
@@ -309,12 +316,15 @@ const RoundNotes = () => {
                 <FormGroup>
                   <Label>Date range</Label>
                   <Flatpickr
+                    key={`${filters.startDate}-${filters.endDate}`}
                     className="form-control"
-                    value={[filters.startDate || null, filters.endDate || null]}
+                    value={[
+                      filters.startDate ? new Date(filters.startDate) : null,
+                      filters.endDate ? new Date(filters.endDate) : null,
+                    ].filter(Boolean)}
                     options={{
                       mode: "range",
                       dateFormat: "d-m-Y",
-                      // allowInput: true,
                     }}
                     onChange={handleDateRange}
                   />
