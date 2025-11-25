@@ -240,7 +240,7 @@ const RoundNoteForm = ({
     console.log({ values });
     // Build payload matching your mongoose schema
     const payload = {
-      roundDate: moment(values.date).format("YYYY-MM-DD"),
+      roundDate: values.date,
       roundSession: values.session,
       roundTakenBy: values.roundTakenBy?.map((item) => item.value),
       center: values.center?.value,
@@ -261,6 +261,18 @@ const RoundNoteForm = ({
     };
 
     onSubmit(payload);
+    reset({
+      date: new Date(),
+      session: getCurrentSession(), //{ lable: getCurrentSession(), value: getCurrentSession() },
+      roundTakenBy: "",
+      center: "",
+      notes: Array.from({ length: 5 }).map(() => ({
+        floor: "",
+        patient: { _id: null, name: "" },
+        patientsCategory: "All Patients",
+        note: "",
+      })),
+    });
   });
 
   console.log({ data, values: getValues() });
@@ -322,7 +334,19 @@ const RoundNoteForm = ({
                     className="form-control"
                     options={{ dateFormat: "d-m-Y" }}
                     value={field.value}
-                    onChange={(dates) => field.onChange(dates[0])}
+                    onChange={(dates) => {
+                      // const d = new Date();
+                      // const hours = d.getHours();
+                      // const m = d.getMinutes();
+
+                      // const date = new Date(
+                      //   new Date(
+                      //     new Date(dates[0].setHours(hours)).setMinutes(m)
+                      //   )
+                      // );
+
+                      field.onChange(dates[0]);
+                    }}
                   />
                 )}
               />
@@ -533,19 +557,17 @@ const RoundNoteForm = ({
                                 setValue(`notes.${index}.patient.name`, value);
                               }
                             },
-                            values: () => {
+                            values: (() => {
                               const values = getValues();
-
-                              console.log({ fieldItem, index });
-
-                              console.log({ values });
+                              // console.log({ fieldItem, index });
+                              // console.log({ values });
                               return {
                                 patient:
                                   values.notes?.[index]?.patient?._id || "",
                                 patientName:
                                   values.notes?.[index]?.patient?.name || "",
                               };
-                            },
+                            })(),
                           }}
                           // disabled={currentIncident?.status !== "Raised"}
                           // editEvent={!!currentIncident}

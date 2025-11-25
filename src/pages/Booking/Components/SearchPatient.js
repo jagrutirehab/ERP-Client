@@ -134,8 +134,7 @@ const SearchPatient = ({
   const isNewPatient = !validation.values.patient;
   const isClearAvai = validation.values.patient;
 
-  console.log({values: validation.values()});
-  
+  console.log({ values: validation.values });
 
   return (
     <React.Fragment>
@@ -149,7 +148,7 @@ const SearchPatient = ({
           <DropdownToggle className="p-0 w-100 position-relative" color="light">
             <Input
               disabled={disabled}
-              value={validation.values()?.patientName}
+              value={validation.values?.patientName}
               onChange={(e) => {
                 validation.setFieldValue("patientName", e.target.value);
                 debouncedOnChange(e);

@@ -693,6 +693,7 @@ const EventForm = ({
                   <span className="text-danger">*</span>
                 </Label>
                 <SearchPatient
+                  dropdownKey={"booking-patient"}
                   validation={validation}
                   editEvent={editEvent}
                   disabled={editEvent ? true : false}
