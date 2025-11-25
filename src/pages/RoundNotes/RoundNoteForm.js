@@ -240,7 +240,7 @@ const RoundNoteForm = ({
     console.log({ values });
     // Build payload matching your mongoose schema
     const payload = {
-      roundDate: moment(values.date).format("YYYY-MM-DD"),
+      roundDate: values.date,
       roundSession: values.session,
       roundTakenBy: values.roundTakenBy?.map((item) => item.value),
       center: values.center?.value,
@@ -249,18 +249,30 @@ const RoundNoteForm = ({
         .filter(
           (n) =>
             (n.note && n.note.trim().length > 0 && n.patientsCategory) ||
-            n.patient._id ||
+            n.patient?._id ||
             n.floor
         ) // Only include rows with actual content
         .map((n) => ({
           floor: n.floor || "",
           patient: n.patient?._id || null,
-          patientsCategory: n.patientsCategory,
+          patientsCategory: n.patientsCategory || "All Patients",
           note: n.note,
         })),
     };
 
     onSubmit(payload);
+    reset({
+      date: new Date(),
+      session: getCurrentSession(), //{ lable: getCurrentSession(), value: getCurrentSession() },
+      roundTakenBy: "",
+      center: "",
+      notes: Array.from({ length: 5 }).map(() => ({
+        floor: "",
+        patient: { _id: null, name: "" },
+        patientsCategory: "All Patients",
+        note: "",
+      })),
+    });
   });
 
   console.log({ data, values: getValues() });
@@ -310,8 +322,11 @@ const RoundNoteForm = ({
         />
 
         <Form onSubmit={submit}>
-          <div className="d-flex gap-3 mb-3">
-            <FormGroup style={{ minWidth: 220, flex: "0 0 220px" }}>
+          <div className="d-flex flex-wrap gap-3">
+            <FormGroup
+              className="mb-0"
+              style={{ minWidth: 220, flex: "0 0 220px" }}
+            >
               <Label>Date</Label>
               <Controller
                 name="date"
@@ -322,7 +337,19 @@ const RoundNoteForm = ({
                     className="form-control"
                     options={{ dateFormat: "d-m-Y" }}
                     value={field.value}
-                    onChange={(dates) => field.onChange(dates[0])}
+                    onChange={(dates) => {
+                      // const d = new Date();
+                      // const hours = d.getHours();
+                      // const m = d.getMinutes();
+
+                      // const date = new Date(
+                      //   new Date(
+                      //     new Date(dates[0].setHours(hours)).setMinutes(m)
+                      //   )
+                      // );
+
+                      field.onChange(dates[0]);
+                    }}
                   />
                 )}
               />
@@ -331,7 +358,10 @@ const RoundNoteForm = ({
               )}
             </FormGroup>
 
-            <FormGroup style={{ minWidth: 220, flex: "0 0 220px" }}>
+            <FormGroup
+              className="mb-0"
+              style={{ minWidth: 220, flex: "0 0 220px" }}
+            >
               <Label>Round Session</Label>
               <Controller
                 name="session"
@@ -363,7 +393,10 @@ const RoundNoteForm = ({
               )}
             </FormGroup>
 
-            <FormGroup style={{ minWidth: 220, flex: "0 0 220px" }}>
+            <FormGroup
+              className="mb-0"
+              style={{ minWidth: 220, flex: "0 0 220px" }}
+            >
               <Label>Round Taken by</Label>
               <Controller
                 name={`roundTakenBy`}
@@ -387,7 +420,10 @@ const RoundNoteForm = ({
               )}
             </FormGroup>
 
-            <FormGroup style={{ minWidth: 220, flex: "0 0 220px" }}>
+            <FormGroup
+              className="mb-0"
+              style={{ minWidth: 220, flex: "0 0 220px" }}
+            >
               <Label>Center</Label>
               <Controller
                 name={`center`}
@@ -472,13 +508,13 @@ const RoundNoteForm = ({
           </div>
 
           {/* Table */}
-          <div className="table-responsive overflow-visible">
+          <div className="table-responsive overflow-visible mt-3">
             <table className="table align-middle">
               <thead>
                 <tr>
                   <th style={{ width: 140 }}>Floor / Ward</th>
                   <th style={{ width: 240 }}>Patient (optional)</th>
-                  <th style={{ width: 180 }}>Apply To</th>
+                  <th style={{ width: 180 }}>Notes Applicable To</th>
                   {/* <th>Round Taken By</th> */}
                   <th style={{ width: 320 }}>Note / Observation</th>
                   <th style={{ width: 90 }}>Actions</th>
@@ -510,10 +546,6 @@ const RoundNoteForm = ({
                     </td>
 
                     <td>
-                      {/* <Controller
-                        name={`notes.${index}.patient.name`}
-                        control={control}
-                        render={({ field }) => ( */}
                       <div
                         style={{ minHeight: "100%" }}
                         className="d-flex align-items-centerflex-shrink-0 mb-3"
@@ -524,39 +556,37 @@ const RoundNoteForm = ({
                             setFieldValue: (name, value) => {
                               if (name === "patient") {
                                 setValue(`notes.${index}.patient._id`, value);
-                                setValue(
-                                  `notes.${index}.patientsCategory`,
-                                  "Selected Patients"
-                                );
+                                if (value) {
+                                  // Patient selected
+                                  setValue(
+                                    `notes.${index}.patientsCategory`,
+                                    "Selected Patients"
+                                  );
+                                } else {
+                                  // Patient cleared
+                                  setValue(
+                                    `notes.${index}.patientsCategory`,
+                                    "All Patients"
+                                  );
+                                }
                               }
                               if (name === "patientName") {
                                 setValue(`notes.${index}.patient.name`, value);
                               }
                             },
-                            values: () => {
-                              const values = getValues();
-
-                              console.log({ fieldItem, index });
-
-                              console.log({ values });
-                              return {
-                                patient:
-                                  values.notes?.[index]?.patient?._id || "",
-                                patientName:
-                                  values.notes?.[index]?.patient?.name || "",
-                              };
+                            values: {
+                              patient:
+                                watch(`notes.${index}.patient._id`) || "",
+                              patientName:
+                                watch(`notes.${index}.patient.name`) || "",
                             },
                           }}
-                          // disabled={currentIncident?.status !== "Raised"}
-                          // editEvent={!!currentIncident}
                           showNewTag={false}
                         />
                         {errors.notes?.[index]?.patient && (
                           <small className="text-danger">Required</small>
                         )}
                       </div>
-                      {/* )}
-                      /> */}
 
                       {/* <Controller
                         name={`notes.${index}.patientName`}
@@ -603,14 +633,11 @@ const RoundNoteForm = ({
                         name={`notes.${index}.patientsCategory`}
                         control={control}
                         rules={{ required: true }}
-                        disabled={!!getValues().notes?.[index]?.patient?._id}
                         render={({ field }) => (
                           <Select
                             {...field}
                             isMulti={false}
-                            isDisabled={
-                              !!getValues().notes?.[index]?.patient?._id
-                            }
+                            isDisabled={!!watch(`notes.${index}.patient._id`)}
                             options={[
                               {
                                 label: "Selected Patients",
