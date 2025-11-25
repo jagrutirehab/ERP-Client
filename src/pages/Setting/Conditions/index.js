@@ -215,15 +215,15 @@ const Conditions = (props) => {
             }
           />
 
-          {totalPages > 1 && (
-            <PaginationControls
-              totalItems={filteredConditions.length}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-              onPageChange={handlePageChange}
-            />
-          )}
+          {/* {totalPages > 1 && ( */}
+          <PaginationControls
+            totalItems={filteredConditions.length}
+            itemsPerPage={itemsPerPage}
+            currentPage={currentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            onPageChange={handlePageChange}
+          />
+          {/* )} */}
         </CardBody>
       </Card>
 

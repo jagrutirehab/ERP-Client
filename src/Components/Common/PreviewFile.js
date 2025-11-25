@@ -19,6 +19,7 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle }) => {
             scrolling="auto"
             height="100%"
             width="100%"
+            style={{ minHeight: "500px" }}
           ></iframe>
         ) : file?.type.includes("image/") ? (
           <img

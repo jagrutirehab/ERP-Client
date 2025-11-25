@@ -72,8 +72,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log(user, "user");
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 
@@ -227,7 +226,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
               />
             </TabPane>
             <TabPane tabId="2">
-              <LeadDashboard leadDate={date} />
+              <LeadDashboard activeTab={activeTab} leadDate={date} />
             </TabPane>
           </TabContent>
 

@@ -174,6 +174,7 @@ const ClinicalNote = ({
     if (!editClinicalNote) {
       validation.resetForm();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, editClinicalNote]);
 
   const closeForm = () => {

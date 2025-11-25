@@ -87,11 +87,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionBody = ({ chart, doctor, author }) => {
+const PrescriptionBody = ({ chart, doctor }) => {
   const renderImage = (src, width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;
   };
+
   return (
     <React.Fragment>
       <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
@@ -240,7 +241,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
               justifyContent: "center",
             }}
           >
-            {author?.signature && (
+            {doctor?.signature && (
               <View
                 style={{
                   width: "100%",
@@ -249,19 +250,13 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 }}
                 wrap={false}
               >
-                {renderImage(author.signature, 200)}
+                {renderImage(doctor.signature, 200)}
               </View>
             )}
-            {author?.name && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  marginBottom: 3,
-                  ...styles.textCapitalize,
-                }}
-              >
-                {author?.name}
-              </Text>
+            {safeText(
+              "",
+              { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
+              doctor?.name ? `${doctor.name}` : ""
             )}
             {safeText(
               "",
@@ -270,7 +265,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              author?.degrees
+              doctor?.degrees
             )}
             {safeText(
               "",
@@ -279,7 +274,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              author?.speciality
+              doctor?.speciality
             )}
             {safeText(
               "Reg. No.",
@@ -288,7 +283,7 @@ const PrescriptionBody = ({ chart, doctor, author }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              author?.registrationNo
+              doctor?.registrationNo
             )}
           </View>
         </View>

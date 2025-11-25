@@ -73,7 +73,7 @@ const Booking = ({
         end: endOfDay(new Date()),
       })
     );
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
   }, [dispatch, user, centerAccess, patients]);
 
   useEffect(() => {

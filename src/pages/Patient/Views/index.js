@@ -22,6 +22,9 @@ import MPQQuestion from "./Components/MPQ9Question";
 import MMSEQuestion from "./Components/MMSEQuestion";
 import YBOCSQuestion from "./Components/YBOCSQuestion";
 import ACDSQuestion from "./Components/ACDSQuestion";
+import HAMAQuestion from "./Components/HAMAQuestion";
+import HAMDQuestion from "./Components/HAMDQuestion";
+import PANSSQuestion from "./Components/PANSSQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -112,6 +115,9 @@ const Views = (props) => {
             {data === "MMSE" && <MMSEQuestion />}
             {data === "Y-BOCS" && <YBOCSQuestion />}
             {data === "ACDS" && <ACDSQuestion />}
+            {data === "HAM-A" && <HAMAQuestion />}
+            {data === "HAM-D" && <HAMDQuestion />}
+            {data === "PANSS" && <PANSSQuestion />}
           </div>
         )}
       </div>

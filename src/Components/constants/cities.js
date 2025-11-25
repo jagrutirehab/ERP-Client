@@ -7944,10 +7944,10 @@ export const cities = [
     label: "Nehtaur - Uttar Pradesh",
   },
   {
-    city: "NOIDA",
+    city: "Noida",
     state: "Uttar Pradesh",
     value: "noida - uttar pradesh",
-    label: "NOIDA - Uttar Pradesh",
+    label: "Noida - Uttar Pradesh",
   },
   {
     city: "Noorpur",

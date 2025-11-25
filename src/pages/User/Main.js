@@ -104,7 +104,7 @@ const Main = ({ user, form, centerAccess }) => {
   useEffect(() => {
     if(!hasUserPermission) return;
     if (token) {
-      dispatch(fetchCenters(user?.centerAccess));
+      dispatch(fetchCenters({ centerIds: user?.centerAccess }));
       dispatch(fetchAllCenters());
     }
   }, [dispatch, user, token, roles]);
@@ -122,7 +122,7 @@ const Main = ({ user, form, centerAccess }) => {
             search: query,
             role: selectedFilter,
             token,
-            centerAccess: JSON.stringify(centerAccess),
+            centerAccess,
           });
           let users = response?.data?.data || [];
           if (
@@ -337,12 +337,10 @@ const Main = ({ user, form, centerAccess }) => {
         show={suspendModal}
         onDeleteClick={suspendUser}
         onCloseClick={closeSuspendUser}
-        messsage={`Are you sure you want to ${
-          userData?.status === "suspended" ? "restore" : "suspend"
-        } this user?`}
-        buttonMessage={`Yes, ${
-          userData?.status === "suspended" ? "Restore" : "Suspend"
-        } It!`}
+        messsage={`Are you sure you want to ${userData?.status === "suspended" ? "restore" : "suspend"
+          } this user?`}
+        buttonMessage={`Yes, ${userData?.status === "suspended" ? "Restore" : "Suspend"
+          } It!`}
       />
 
       <Row className="g-4">
@@ -359,15 +357,16 @@ const Main = ({ user, form, centerAccess }) => {
                       <div className="avatar-lg img-thumbnail rounded-circle">
                         {item.profilePicture ? (
                           <img
-                            src={item.profilePicture}
+                            src={typeof item.profilePicture === "string"
+                              ? item.profilePicture
+                              : item.profilePicture.url}
                             alt={item.name}
                             className="img-fluid d-block h-100 w-100 rounded-circle object-fit-cover"
                           />
                         ) : (
                           <div
-                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${
-                              item.bgColor || "primary"
-                            } text-${item.textColor || "primary"}`}
+                            className={`avatar-title rounded-circle h-100 w-100 bg-soft-${item.bgColor || "primary"
+                              } text-${item.textColor || "primary"}`}
                           >
                             <span className="fs-22">
                               {shortName(item.name)}

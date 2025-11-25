@@ -210,15 +210,15 @@ const Therapies = (props) => {
             }
           />
 
-          {totalPages > 1 && (
-            <PaginationControls
-              totalItems={filteredTherapies.length}
-              itemsPerPage={itemsPerPage}
-              currentPage={currentPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-              onPageChange={handlePageChange}
-            />
-          )}
+          {/* {totalPages > 1 && ( */}
+          <PaginationControls
+            totalItems={filteredTherapies.length}
+            itemsPerPage={itemsPerPage}
+            currentPage={currentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            onPageChange={handlePageChange}
+          />
+          {/* )} */}
         </CardBody>
       </Card>
 

@@ -20,7 +20,6 @@ import { timelineFilters } from "../../../Components/constants/patient";
 
 const PATIENT_CHART = "PATIENT_CHART";
 const PATIENT_BILL = "PATIENT_BILL";
-const PATIENT_CENTER = "PATIENT_CENTER";
 
 const Timeline = ({ timeline, patient }) => {
   const dispatch = useDispatch();

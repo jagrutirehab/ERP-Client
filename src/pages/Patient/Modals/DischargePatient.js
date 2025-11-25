@@ -18,6 +18,7 @@ import {
 } from "../../../store/actions";
 import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
 import { DISCHARGE_PATIENT } from "../../../Components/constants/patient";
+import { addDays, isAfter, isEqual, subDays } from "date-fns";
 
 const DischargePatient = ({ isOpen, patient }) => {
   const dispatch = useDispatch();
@@ -86,29 +87,40 @@ const DischargePatient = ({ isOpen, patient }) => {
                 <Flatpicker
                   name="dischargeDate"
                   value={validation.values.dischargeDate || ""}
-                  onChange={([date]) => {
+                  onChange={([e]) => {
+                    const now = new Date();
+                    e.setHours(
+                      now.getHours(),
+                      now.getMinutes(),
+                      now.getSeconds(),
+                      now.getMilliseconds()
+                    );
                     const event = {
-                      target: { name: "dischargeDate", value: date },
+                      target: { name: "dischargeDate", value: e },
                     };
                     validation.handleChange(event);
                   }}
                   options={{
                     enableTime: true,
-                    time_24hr: true,
-                    dateFormat: "d M Y H:i",
+                    time_24hr: false,
+                    dateFormat: "d M Y h:i K",
                     disable: [
                       {
                         from: "1900-01-01",
-                        to: patient?.addmission?.addmissionDate || new Date(),
+                        to:
+                          subDays(
+                            new Date(patient?.addmission?.addmissionDate),
+                            1
+                          ) || new Date(),
                       },
                     ],
-                    enable: [
-                      function (date) {
-                        return patient?.addmission?.addmissionDate
-                          ? date > new Date(patient?.addmission?.addmissionDate)
-                          : false;
-                      },
-                    ],
+                    // enable: [
+                    //   function (date) {
+                    //     return patient?.addmission?.addmissionDate
+                    //       ? date >= new Date(patient.addmission.addmissionDate)
+                    //       : false;
+                    //   },
+                    // ],
                   }}
                   onBlur={validation.handleBlur}
                   className="form-control shadow-none bg-light"

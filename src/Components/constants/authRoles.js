@@ -12,6 +12,22 @@ const authRoles = [
     value: "COUNSELLOR",
   },
   {
+    name: "PSYCHOLOGIST",
+    value: "PSYCHOLOGIST",
+  },
+  {
+    name: "MSW",
+    value: "MSW",
+  },
+  {
+    name: "RMO",
+    value: "RMO",
+  },
+  {
+    name: "PSYCHOTHERAPIST",
+    value: "PSYCHOTHERAPIST",
+  },
+  {
     name: "ACCOUNTANT",
     value: "ACCOUNTANT",
   },
@@ -25,7 +41,7 @@ const authRoles = [
   },
   {
     name: "ONLINE SUPPORT ADMIN",
-    value: "ONLINE SUPPORT ADMIN",
+    value: "ONLINE_SUPPORT_ADMIN",
   },
 ];
 

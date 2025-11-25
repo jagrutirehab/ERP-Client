@@ -167,7 +167,11 @@ const PrescriptionTable = ({ medicines }) => {
         >
           <Text style={styles.col1}></Text>
           <Text style={styles.col5}>Medicine</Text>
-          <Text style={styles.col3}>Dose</Text>
+          {/* <Text style={styles.col3}>Dose</Text> */}
+          <View style={styles.col3}>
+            <Text>Dose</Text>
+            <Text style={{ marginTop: 2 }}>M - A - N</Text>
+          </View>
           <Text style={styles.col6}>Timing - Freq. - Duration</Text>
           {/* <Text style={styles.col2}>Qty</Text> */}
         </View>

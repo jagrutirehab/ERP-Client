@@ -78,12 +78,22 @@ import Nurse from "./features/nurse/nurseSlice";
 // for emergency
 import Emergency from "./features/emergency/emergencySlice";
 
+// for cash management
+import Cash from "./features/cashManagement/cashSlice";
+
+// for central payment
+import CentralPayment from "./features/centralPayment/centralPaymentSlice";
+
 //for offers
 import Offers from "./features/offer/offerSlice";
 
 //for tax
 import Taxes from "./features/tax/taxSlice";
 import HubspotContacts from "./features/report/hubspotContactsSlice";
+import Incident from "./features/incident/incidentSlice";
+
+import Pharmacy from "./features/pharmacy/pharmacySlice";
+import RoundNotes from "./features/roundNotes/roundNotesSlice";
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -113,8 +123,13 @@ const rootReducer = combineReducers({
   Offers,
   Nurse,
   Emergency,
+  Cash,
   Taxes,
   HubspotContacts,
+  CentralPayment,
+  Incident,
+  Pharmacy,
+  RoundNotes,
 });
 
 export default rootReducer;

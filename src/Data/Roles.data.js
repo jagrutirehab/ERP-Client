@@ -62,6 +62,26 @@ export const permissionList = [
     ],
   },
   {
+    key: "CASH",
+    label: "Cash",
+    subModules: [
+      { name: "CASHREPORTS", label: "Cash Reports" },
+      { name: "CASHBALANCE", label: "Cash Base Balance" },
+      { name: "CASHDEPOSITS", label: "Cash Deposits" },
+      { name: "CASHSPENDING", label: "Cash Spending" },
+      { name: "CASHINFLOW", label: "Cash Inflow" },
+    ],
+  },
+  {
+    key: "CENTRALPAYMENT",
+    label: "Central Payment",
+    subModules: [
+      { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
+      { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
+    ],
+  },
+  {
     key: "SETTING",
     label: "Setting",
     subModules: [
@@ -77,6 +97,7 @@ export const permissionList = [
       { name: "ROLESSETTING", label: "Roles" },
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
+      { name: "SYMPTOMSETTING", label: "Symptoms" },
     ],
   },
   {
@@ -104,6 +125,34 @@ export const permissionList = [
       { name: "DBLOGS", label: "DB Logs" },
       { name: "LEADANALYTICS", label: "Lead Analytics" },
       { name: "OPDANALYTICS", label: "OPD Analytics" },
+    ],
+  },
+  {
+    key: "PHARMACY",
+    label: "Pharmacy",
+    subModules: [
+      { name: "DASHBOARD", label: "Dashboard" },
+      { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
+      { name: "GIVENMEDICINES", label: "Given Medicine" },
+      { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
+      { name: "AUDIT", label: "Audit" },
+    ],
+  },
+  {
+    key: "GUIDELINES",
+    label: "Guidelines",
+    subModules: [
+      { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
+    ],
+  },
+  {
+    key: "INCIDENT_REPORTING",
+    label: "Incident Reporting",
+    subModules: [
+      { name: "RAISE_INCIDENT", label: "Raise Incident" },
+      { name: "INVESTIGATE_INCIDENT", label: "Investigate Incident" },
+      { name: "APPROVE_INCIDENT", label: "Approve Incident" },
+      { name: "CLOSE_INCIDENT", label: "Close Incident" },
     ],
   },
 ];

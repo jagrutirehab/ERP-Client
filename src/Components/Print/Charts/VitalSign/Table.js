@@ -63,6 +63,10 @@ const VitalSignsTable = ({ chart }) => {
           <Text style={styles.col4}>PULSE (Heart beats/min)</Text>
           <Text style={styles.col4}>TEMPERATURE (°C)</Text>
           <Text style={styles.col4}>RESP.RATE (Breaths/min)</Text>
+          <Text style={styles.col4}>CNS</Text>
+          <Text style={styles.col4}>CVS</Text>
+          <Text style={styles.col4}>RS</Text>
+          <Text style={styles.col4}>PA</Text>
         </View>
         <View
           style={{
@@ -80,6 +84,10 @@ const VitalSignsTable = ({ chart }) => {
             <Text style={styles.col4}>{chart.pulse || ""}</Text>
             <Text style={styles.col4}>{chart.temprature || ""}</Text>
             <Text style={styles.col4}>{chart.respirationRate || ""}</Text>
+            <Text style={styles.col4}>{chart.cns || ""}</Text>
+            <Text style={styles.col4}>{chart.cvs || ""}</Text>
+            <Text style={styles.col4}>{chart.rs || ""}</Text>
+            <Text style={styles.col4}>{chart.pa || ""}</Text>
           </View>
         </View>
       </View>

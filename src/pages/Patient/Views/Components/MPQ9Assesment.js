@@ -37,8 +37,8 @@ const MPQ9Assessment = () => {
   });
 
   const patient = useSelector((state) => state.Patient.patient);
-  const doctorDetails = useSelector((state) => state.User.doctor);
-  const counselerDetails = useSelector((state) => state.User.counsellors);
+  const doctorDetails = useSelector((state) => state.User?.doctor) || [];
+  const counselerDetails = useSelector((state) => state.User.counsellors) || [];
 
   const allMedicalStaff = [...doctorDetails, ...counselerDetails];
   const centerId = patient?.center?._id;
@@ -132,7 +132,7 @@ const MPQ9Assessment = () => {
             Patient Name: {patient?.name}
           </div>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap justify-content-end">
           <Dropdown
             size="sm"
             isOpen={doctorDropdown}

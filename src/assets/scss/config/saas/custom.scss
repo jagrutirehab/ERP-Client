@@ -320,6 +320,17 @@ body {
   // }
 }
 
+//print css
+.hidden {
+  display: none;
+}
+
+@media print {
+  .print\:block {
+    display: block;
+  }
+}
+
 .z-index-1 {
   z-index: 1 !important;
 }
@@ -402,7 +413,7 @@ body {
 
 .table-responsive {
   background-color: #fff !important;
-  height: 300px !important;
+  // height: 300px !important;
 }
 
 .modal-content {

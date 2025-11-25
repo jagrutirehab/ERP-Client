@@ -405,6 +405,7 @@ export const billSlice = createSlice({
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission
         );
+        if (findIndex === -1) return;
         state.data[findIndex].bills = payload.payload;
       })
       .addCase(fetchBills.rejected, (state) => {

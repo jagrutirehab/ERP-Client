@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const IndependentAdmMinor = ({ register, patient, details }) => {
+const IndependentAdmMinor = ({ register, patient, details, chartData }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -73,6 +73,15 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
     }
   }, [patient]);
 
+  const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       <style>
@@ -130,7 +139,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           Date:
           <input
             type="date"
-            value={new Date().toISOString().split("T")[0]}
+            defaultValue={today}
             {...register("Indipendent_Admission_minor_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -196,7 +205,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         age
         <input
           type="text"
-          value={age}
+          defaultValue={chartData?.detailAdmission?.detailAdmission?.age || age}
           {...register("Indipendent_Admission_minor_age")}
           style={{
             border: "none",
@@ -211,7 +220,7 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_minor_parentName")}
           style={{
             fontWeight: "bold",
@@ -245,22 +254,37 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line1}
             {...register("Indipendent_Admission_minor_symptom1")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line2}
             {...register("Indipendent_Admission_minor_symptom2")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line3}
             {...register("Indipendent_Admission_minor_symptom3")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
@@ -396,19 +420,38 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           <br />
           Date & Time
           <input
-            type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
+            type="date"
+            defaultValue={today}
             {...register("Indipendent_Admission_minor_staffDateTime")}
             style={fullLine}
           />
         </div>
         <div>
-          Signature of Guardian:
+          <div style={{ display: "flex" }}>
+            Signature of Guardian:
+            <div
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
+              <input
+                type="text"
+                defaultValue={guardianName}
+                {...register("Indipendent_Admission_adult_guardianName3")}
+                style={{
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  ...fullLine,
+                }}
+              />
+            </div>
+          </div>
           <br />
           Name
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_minor_guardianName")}
             style={{
               fontWeight: "bold",
@@ -419,8 +462,8 @@ const IndependentAdmMinor = ({ register, patient, details }) => {
           <br />
           Date & Time
           <input
-            type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
+            type="date"
+            defaultValue={today}
             {...register("Indipendent_Admission_minor_guardianDateTime")}
             style={fullLine}
           />

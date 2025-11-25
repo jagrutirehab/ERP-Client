@@ -24,6 +24,7 @@ import {
   updateAdvancePayment,
   fetchPaymentAccounts,
 } from "../../../store/actions";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
 const AdvancePayment = ({
   toggleForm,
@@ -95,9 +96,9 @@ const AdvancePayment = ({
     validationSchema: Yup.object({
       totalAmount: Yup.number().moreThan(0),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (editData) {
-        dispatch(
+        const response = await dispatch(
           updateAdvancePayment({
             id: editBillData._id,
             billId: editData._id,
@@ -105,13 +106,25 @@ const AdvancePayment = ({
             paymentModes: paymentModes,
             ...values,
           })
+        ).unwrap();
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          })
         );
       } else {
-        dispatch(
+        const response = await dispatch(
           addAdvancePayment({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
+          })
+        ).unwrap();
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
           })
         );
       }
@@ -128,12 +141,17 @@ const AdvancePayment = ({
   }, [editBillData]);
 
   useEffect(() => {
-    if (userCenters) {
+    if (patient.center._id) {
       dispatch(
-        fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+        fetchPaymentAccounts({
+          centerIds: [patient.center._id],
+          page: 1,
+          limit: 1000,
+        })
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
       );
     }
-  }, [dispatch, userCenters]);
+  }, [dispatch, patient.center._id]);
 
   return (
     <React.Fragment>
@@ -189,6 +207,7 @@ const AdvancePayment = ({
               style={{ width: "200px" }}
               size={"sm"}
               type="text"
+              disabled={true}
               name="paymentAgainstBillNo"
               value={validation.values.paymentAgainstBillNo || ""}
               onChange={validation.handleChange}

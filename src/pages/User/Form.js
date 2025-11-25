@@ -11,18 +11,13 @@ import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import {
-  addNewUser,
-  clearUser,
-} from "../../store/features/auth/user/userSlice";
+import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { FormFeedback } from "reactstrap";
+import { Input, Label } from "reactstrap";
 
 const UserForm = ({
   isOpen,
@@ -70,24 +65,24 @@ const UserForm = ({
   const [conditions, setConditions] = useState([]);
   const [therapies, setTherapies] = useState([]);
   const [languages, setLanguages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
-  const [search, setSearch] = useState([]);
+  // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
   const fetchRoles = async () => {
     if (!token) return;
     if (!hasUserPermission) return;
     try {
-      setLoading(true);
-      const response = await getAllRoleslist({ token, search });
+      // setLoading(true);
+      const response = await getAllRoleslist({ token });
       setAcccessRoles(response?.data || []);
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error("Failed to fetch access roles.");
       }
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -105,6 +100,7 @@ const UserForm = ({
     if (!conditionOptions || conditionOptions.length === 0) {
       dispatch(fetchCondition());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     therapyOptions?.length,
     conditionOptions?.length,
@@ -234,10 +230,12 @@ const UserForm = ({
       email: userData ? userData.email : "",
       accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
+      gender: userData ? userData.gender : "",
       phoneNumber: userData ? userData.phoneNumber : "",
       degrees: userData ? userData.degrees : "",
       speciality: userData ? userData?.speciality : "",
       registrationNo: userData ? userData?.registrationNo : "",
+      unit: userData ? userData?.unit : "",
       centerAccess: userData?.centerAccess
         ? userData?.centerAccess.map((cn) => cn._id)
         : [],
@@ -266,6 +264,7 @@ const UserForm = ({
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
       name: Yup.string().required("Please Enter Your Username"),
+      gender: Yup.string().required("Please Select Gender"),
       ...(!userData && {
         password: Yup.string().required("Please Enter Your Password"),
       }),
@@ -312,10 +311,12 @@ const UserForm = ({
       formData.append("email", values.email);
       formData.append("accessroles", values.accessroles);
       formData.append("role", values.role);
+      formData.append("gender", values.gender);
       formData.append("phoneNumber", values.phoneNumber);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
+      formData.append("unit", values.unit);
       formData.append("centerAccess", values?.centerAccess.join(","));
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
@@ -348,7 +349,11 @@ const UserForm = ({
           JSON.stringify(languages?.map((o) => o.value))
         );
       if (faqs?.length) formData.append("faqs", JSON.stringify(faqs));
-      if (cropSignature?.file) formData.append("signature", cropSignature.file);
+      if (cropSignature?.file) {
+        formData.append("signature", cropSignature.file);
+      } else if (cropSignature === null) {
+        formData.append("clearSignature", "true");
+      }
       if (cropProfilePic?.file)
         formData.append("profilePicture", cropProfilePic.file);
       if (userData) {
@@ -412,6 +417,13 @@ const UserForm = ({
       label: "Phone number",
       name: "phoneNumber",
       type: "phoneNumber",
+      handleChange: (e) => validation.handleChange(e),
+    },
+    {
+      label: "Gender",
+      name: "gender",
+      type: "radio",
+      options: ["MALE", "FEMALE", "OTHERS"],
       handleChange: (e) => validation.handleChange(e),
     },
     !userData && {
@@ -881,6 +893,7 @@ const UserForm = ({
                     flexDirection: "column",
                     gap: "10px",
                   }}
+                  className="justify-end"
                 >
                   <label
                     style={{
@@ -1187,8 +1200,30 @@ const UserForm = ({
                           </p>
                         )}
                     </div>
-                  ) : // hidden input
-                  field.name === "hidden_input" ? (
+                  ) : field.type === "radio" ? (
+                    <>
+                      <div className="d-flex flex-wrap">
+                        {(field.options || []).map((item, idx) => (
+                          <div
+                            key={item + idx}
+                            className="d-flex me-4 align-items-center"
+                          >
+                            <Input
+                              className="me-2 mt-0"
+                              type="radio"
+                              name={field.name}
+                              value={item}
+                              onChange={validation.handleChange}
+                              checked={validation.values[field.name] === item}
+                            />
+                            <Label className="form-label fs-14 mb-0">
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </> // hidden input
+                  ) : field.name === "hidden_input" ? (
                     <>
                       <label style={{ display: "hidden" }}></label>
                       <input type="hidden" name={field.name} />
@@ -2037,6 +2072,65 @@ const UserForm = ({
                       {validation.errors.registrationNo}
                     </p>
                   )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
+                  Unit
+                </label>
+                <input
+                  type="text"
+                  name="unit"
+                  placeholder="Enter Unit"
+                  style={{
+                    padding: "10px",
+                    border: `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`,
+                    borderRadius: "6px",
+                    fontSize: "15px",
+                    outline: "none",
+                    width: "100%",
+                    backgroundColor: "#ffffff",
+                    transition: "border-color 0.2s",
+                  }}
+                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                  onBlur={(e) => {
+                    e.target.style.border = `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`;
+                    validation.handleBlur(e);
+                  }}
+                  onChange={validation.handleChange}
+                  value={validation.values.unit || ""}
+                />
+                {validation.touched.unit && validation.errors.unit && (
+                  <p
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "13px",
+                      marginTop: "6px",
+                    }}
+                  >
+                    {validation.errors.unit}
+                  </p>
+                )}
               </div>
 
               <div

@@ -1,8 +1,8 @@
 import React from "react";
-import PropTypes from "prop-types";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import NextButton from "./NextButton";
 
+// old
 const fields = [
   {
     label: "Appearance & Behavior",
@@ -10,7 +10,7 @@ const fields = [
     type: "text",
   },
   {
-    label: "EEC & Report",
+    label: "Eye to Eye contact and Rapport",
     name: "ecc",
     type: "text",
   },

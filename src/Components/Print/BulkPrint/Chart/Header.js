@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
 });
 
 const border = "1px solid #000";
-const Header = ({ chart, center, patient }) => {
+const Header = ({ chart, center, patient, admission }) => {
   const age = () =>
     differenceInYears(new Date(), new Date(patient?.dateOfBirth));
   return (
@@ -99,6 +99,13 @@ const Header = ({ chart, center, patient }) => {
               {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
                 ""}
             </Text>
+            {admission?.Ipdnum ? (
+              <Text style={{ ...styles.fontMd, textTransform: "capitalize" }}>
+                IPD Num: {admission?.Ipdnum}
+              </Text>
+            ) : (
+              ""
+            )}
           </View>
           <View style={{ flexShrink: 0, textAlign: "right" }}>
             {patient?.addmission?.addmissionDate && (

@@ -62,13 +62,14 @@ const Intern = ({ centerAccess }) => {
       isFirstLoad.current = false;
       dispatch(fetchInterns(getFilterParams(page)));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   document.title = "Intern";
 
   return (
     <React.Fragment>
-      <div className="page-conten overflow-hidden">
+      <div className="page-content overflow-hidden">
         <div className="intern-page">
           <Container fluid>
             <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">

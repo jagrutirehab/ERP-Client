@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Dropdown,
@@ -12,6 +12,10 @@ import PropTypes from "prop-types";
 const CenterDropdown = ({ options = [], value = [], onChange }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [tempValue, setTempValue] = useState(value);
+
+  useEffect(() => {
+    setTempValue(value);
+  }, [value, dropdownOpen]);
 
   const toggle = () => setDropdownOpen(!dropdownOpen);
 

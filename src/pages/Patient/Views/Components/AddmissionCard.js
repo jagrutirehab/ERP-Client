@@ -15,6 +15,8 @@ const formatDate = (isoDateStr) => {
     timeZone: "UTC",
   });
   const year = date.getUTCFullYear();
+  // const hour = date.getHours();
+  // const minute = date.getMinutes();
 
   return `${day} ${month} ${year}`;
 };
@@ -25,6 +27,12 @@ const AddmissionCard = ({ data, children }) => {
       <Col xs={12}>
         <div className="d-flex flex-wrap justify-content-between position-relative px-3 bg-light timeline-date border border-dark py-2">
           <div>
+            {data?.Ipdnum && (
+              <div className="d-flex align-items-center">
+                <span>IPD Num:</span>
+                <h6 className="display-6 fs-6 mb-0 ms-2">{data?.Ipdnum}</h6>
+              </div>
+            )}
             <div className="d-flex align-items-center">
               <span>Addmission Date:</span>
               <h6 className="display-6 fs-6 mb-0 ms-2">

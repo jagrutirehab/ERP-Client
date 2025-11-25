@@ -4,7 +4,6 @@ import { Col, Row } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -31,7 +30,7 @@ const DetailAdmission = ({ data }) => {
   return (
     <React.Fragment>
       <Row>
-        {data?.detailAdmission && (
+        {/* {data?.detailAdmission && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail Admission</h6>
         )}
         {data?.detailAdmission &&
@@ -47,7 +46,41 @@ const DetailAdmission = ({ data }) => {
               </div>
             </Col>
           ))}
-        {data?.detailAdmission && <Divider />}
+        {data?.detailAdmission && <Divider />} */}
+        {data?.ChiefComplaints && (
+          <h6 className="fs-xs-12 fs-md-14 display-6">Chief Complaints</h6>
+        )}
+        {data?.ChiefComplaints &&
+          Object.entries(data.ChiefComplaints).map((d, i) => (
+            <Col key={i} xs={12}>
+              <div className="mt-1 mb-1">
+                <p className="fs-xs-9 fs-md-11 mb-0">
+                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                    Chief Complaint {i + 1}:-
+                  </span>
+                  {d[1]}
+                </p>
+              </div>
+            </Col>
+          ))}
+        {data?.ChiefComplaints && <Divider />}
+        {/* {data?.ProvisionalDiagnosis && (
+          <h6 className="fs-xs-12 fs-md-14 display-6">Provisional Daignosis</h6>
+        )}
+        {data?.ProvisionalDiagnosis &&
+          Object.entries(data.ProvisionalDiagnosis).map((d, i) => (
+            <Col key={i} xs={12}>
+              <div className="mt-1 mb-1">
+                <p className="fs-xs-9 fs-md-11 mb-0">
+                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                    Diagnosis{i + 1}:-
+                  </span>
+                  {d[1]}
+                </p>
+              </div>
+            </Col>
+          ))}
+        {data?.ProvisionalDiagnosis && <Divider />} */}
         {data?.detailHistory && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
         )}
@@ -65,26 +98,120 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.detailHistory && <Divider />}
-
-        {data?.mentalExamination && (
+        {(data?.mentalExamination || data?.mentalExaminationV2) && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
             Mental Status Examination
           </h6>
         )}
-        {data?.mentalExamination &&
+        {/* {data?.mentalExamination &&
           Object.entries(data.mentalExamination).map((d, i) => (
             <Col key={i} xs={12}>
               <div className="mt-1 mb-1">
                 <p className="fs-xs-9 fs-md-11 mb-0">
                   <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    {d[0]==="effect"?"Affect":convertCamelCaseToTitleCase(d[0])}:-
+                    {d[0] === "effect"
+                      ? "Affect"
+                      : convertCamelCaseToTitleCase(d[0])}
+                    :-
                   </span>
                   {d[1]}
                 </p>
               </div>
             </Col>
-          ))}
+          ))} */}
+        {data?.mentalExamination &&
+          Object.entries(data.mentalExamination).map(([key, value], i) => {
+            // Define rename rules
+            const renameMap = {
+              ecc: "Eye to Eye contact and Rapport",
+            };
+
+            // Normalize the key for case-insensitive comparison
+            const normalizedKey = key.toLowerCase();
+
+            // Choose renamed field or convert normally
+            const formattedKey =
+              renameMap[normalizedKey] || convertCamelCaseToTitleCase(key);
+
+            return (
+              <Col key={i} xs={12}>
+                <div className="mt-1 mb-1">
+                  <p className="fs-xs-9 fs-md-11 mb-0">
+                    <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                      {formattedKey}:-
+                    </span>
+                    {value}
+                  </p>
+                </div>
+              </Col>
+            );
+          })}
         {data?.mentalExamination && <Divider />}
+        {data?.mentalExaminationV2 && (
+          <>
+            {Object.entries(data.mentalExaminationV2).map(([groupKey, groupValue], i) => {
+              const isObject = typeof groupValue === "object" && groupValue !== null;
+
+              const singleFieldSections = ["judgment", "remarks", "perception"];
+
+              if (isObject) {
+                return (
+                  <Col xs={12} key={i}>
+                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
+                      {convertCamelCaseToTitleCase(groupKey)}
+                    </h6>
+
+                    {Object.entries(groupValue).map(([subKey, subValue], j) => (
+                      <div className="mt-1 mb-1" key={j}>
+                        <p className="fs-xs-9 fs-md-11 mb-0">
+                          <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                            {convertCamelCaseToTitleCase(subKey)}:-
+                          </span>
+                          {subValue || ""}
+                        </p>
+                      </div>
+                    ))}
+                  </Col>
+                );
+              }
+
+              if (singleFieldSections.includes(groupKey)) {
+                return (
+                  <Col xs={12} key={i}>
+                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
+                      {convertCamelCaseToTitleCase(groupKey)}
+                    </h6>
+
+                    <div className="mt-1 mb-1">
+                      <p className="fs-xs-9 fs-md-11 mb-0">
+                        {groupValue || ""}
+                      </p>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return (
+                <Col xs={12} key={i}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        {convertCamelCaseToTitleCase(groupKey)}:
+                      </span>
+                      {groupValue}
+                    </p>
+                  </div>
+                </Col>
+              );
+            })}
+
+            <Divider />
+          </>
+        )}
+
+
+
+        {data?.mentalExaminationV2 && <Divider />}
 
         {data?.physicalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Physical Examination</h6>
@@ -105,9 +232,9 @@ const DetailAdmission = ({ data }) => {
         {data?.physicalExamination && <Divider />}
 
         {data?.doctorSignature && (
-          <h6 className="fs-xs-12 fs-md-14 display-6">Doctor Signature</h6>
+          <h6 className="fs-xs-12 fs-md-14 display-6">Daignosis Plan</h6>
         )}
-        {data?.doctorSignature &&
+        {/* {data?.doctorSignature &&
           Object.entries(data.doctorSignature).map((d, i) => (
             <Col key={i} xs={12}>
               <div className="mt-1 mb-1">
@@ -119,7 +246,37 @@ const DetailAdmission = ({ data }) => {
                 </p>
               </div>
             </Col>
-          ))}
+          ))} */}
+
+        {data?.doctorSignature &&
+          Object.entries(data.doctorSignature).map(([key, value], i) => {
+            // Define all your rename rules here
+            const renameMap = {
+              diagnosis: "Final Diagnosis",
+              treatment: "Psychological Testing",
+              provisionaldiagnosis: "Provisional Diagnosis",
+            };
+
+            // Normalize key for comparison
+            const normalizedKey = key.toLowerCase();
+
+            // Use mapped name if available, else convert normally
+            const formattedKey =
+              renameMap[normalizedKey] || convertCamelCaseToTitleCase(key);
+
+            return (
+              <Col key={i} xs={12}>
+                <div className="mt-1 mb-1">
+                  <p className="fs-xs-9 fs-md-11 mb-0">
+                    <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                      {formattedKey}:-
+                    </span>
+                    {value}
+                  </p>
+                </div>
+              </Col>
+            );
+          })}
         {data?.consentFiles?.length > 0 && <Divider />}
 
         {data?.consentFiles?.length > 0 && (

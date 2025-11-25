@@ -5,6 +5,7 @@ const initialState = {
   modal: false,
   patient: null,
   doctor: null,
+  clinicalTest: null,
 };
 
 export const printSlice = createSlice({
@@ -26,6 +27,7 @@ export const printSlice = createSlice({
       state.admission = payload.admission;
       state.doctor = payload.doctor;
       state.center = payload.center;
+      state.clinicalTest = payload.clinicalTest;
     },
   },
 });

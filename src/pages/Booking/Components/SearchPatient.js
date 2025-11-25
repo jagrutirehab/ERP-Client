@@ -1,3 +1,74 @@
+// import { useState } from "react";
+
+// export default function SearchPatient({
+//   dropdownKey, // unique key per row
+//   onSelectPatient,
+//   searchValue,
+//   onSearchChange,
+// }) {
+//   const [results, setResults] = useState([]);
+//   const [openDropdown, setOpenDropdown] = useState(false);
+
+//   const handleSearch = async (value) => {
+//     onSearchChange(value);
+
+//     if (value.trim().length < 2) {
+//       setResults([]);
+//       setOpenDropdown(false);
+//       return;
+//     }
+
+//     const res = await fetch(`/api/patients/search?query=${value}`);
+//     const data = await res.json();
+
+//     setResults(data);
+//     setOpenDropdown(true);
+//   };
+
+//   const handleSelect = (patient) => {
+//     onSelectPatient(patient);
+//     setOpenDropdown(false);
+//   };
+
+//   return (
+//     <div style={{ position: "relative" }}>
+//       <input
+//         className="form-control"
+//         value={searchValue}
+//         onChange={(e) => handleSearch(e.target.value)}
+//         onFocus={() => results.length > 0 && setOpenDropdown(true)}
+//       />
+
+//       {openDropdown && results.length > 0 && (
+//         <ul
+//           key={dropdownKey}
+//           style={{
+//             position: "absolute",
+//             zIndex: 10,
+//             width: "100%",
+//             maxHeight: "200px",
+//             overflowY: "auto",
+//             background: "white",
+//             border: "1px solid #ddd",
+//             borderRadius: "6px",
+//             marginTop: "4px",
+//           }}
+//         >
+//           {results.map((p) => (
+//             <li
+//               key={p._id}
+//               onClick={() => handleSelect(p)}
+//               style={{ padding: "8px", cursor: "pointer" }}
+//             >
+//               {p.name} — {p.patientId}
+//             </li>
+//           ))}
+//         </ul>
+//       )}
+//     </div>
+//   );
+// }
+
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
@@ -18,27 +89,42 @@ const socket = io(config.api.BASE_URL, {
   path: "/socket/search",
 });
 
-const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
+const SearchPatient = ({
+  dropdownKey = 0,
+  validation,
+  disabled,
+  editEvent,
+  centerAccess,
+  showNewTag = true,
+}) => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [dropdown, setDropdown] = useState(false);
   const handleChange = (e) => {
     const val = e.target.value;
     setIsSearching(true);
-    socket.emit("search", val);
+    // Include dropdownKey to identify which component made the search
+    socket.emit("search", { query: val, key: dropdownKey });
   };
 
   const debouncedOnChange = debounce(handleChange, 500);
 
   useEffect(() => {
-    socket.on("searchResults", (data) => {
-      setIsSearching(false);
-      setFilteredPatients(data);
-    });
-    return () => {
-      socket.off("searchResults");
+    const handleSearchResults = (data) => {
+      // Only update if this response is for this specific component instance
+      if (data.key === dropdownKey) {
+        setIsSearching(false);
+        setFilteredPatients(data.results || data);
+      }
     };
-  }, []);
+
+    socket.on("searchResults", handleSearchResults);
+    return () => {
+      socket.off("searchResults", handleSearchResults);
+    };
+  }, [dropdownKey]);
+
+  console.log({ filteredPatients, dropdownKey });
 
   useEffect(() => {
     if (filteredPatients?.length > 0 && !dropdown) setDropdown(true);
@@ -47,6 +133,10 @@ const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
 
   const isNewPatient = !validation.values.patient;
   const isClearAvai = validation.values.patient;
+
+  console.log("---------------------------");
+  console.log({ values: validation.values });
+  console.log("---------------------------");
 
   return (
     <React.Fragment>
@@ -60,7 +150,7 @@ const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
           <DropdownToggle className="p-0 w-100 position-relative" color="light">
             <Input
               disabled={disabled}
-              value={validation.values.patientName}
+              value={validation.values?.patientName}
               onChange={(e) => {
                 validation.setFieldValue("patientName", e.target.value);
                 debouncedOnChange(e);
@@ -101,7 +191,7 @@ const SearchPatient = ({ validation, disabled, editEvent, centerAccess }) => {
                 </Button>
               </span>
             </RenderWhen>
-            <RenderWhen isTrue={isNewPatient}>
+            <RenderWhen isTrue={isNewPatient && showNewTag}>
               <span className="link-success dropdown-input-icon">
                 <span
                   id="patient-center"

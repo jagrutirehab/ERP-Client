@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Button, Col, Row, Spinner } from "reactstrap";
 import NurseBar from "./Views/Components/NurseBar";
 import PatientCard from "./Views/Components/PatientCard";
-import { setAlertData, setAlertModal } from "../../store/actions";
+import { setAlertModal } from "../../store/actions";
 import PropTypes from "prop-types";
-import { useDispatch, connect, useSelector } from "react-redux";
+import { useDispatch, connect } from "react-redux";
 import InfoModal from "./Views/Components/InfoModal";
 import {
   allNurseAssignedPatients,
@@ -60,7 +60,11 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   }, [debouncedSearch, flag]);
 
   useEffect(() => {
-    if (!hasPermission) return;
+    if (!hasUserPermission) return;
+
+    if (!centerAccess || centerAccess.length === 0) {
+      return;
+    }
     dispatch(
       allNurseAssignedPatients({
         page,
@@ -118,65 +122,103 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
           setSearch={setSearch}
           setFlag={setFlag}
         />
-
-        {loading ? (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ height: "50vh" }}
-          >
-            <Spinner color="primary" />
-          </div>
-        ) : data.data && data.data.length > 0 ? (
-          <Row className="g-3">
-            {data.data.map((patient) => (
-              <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
-                <PatientCard
-                  toggleAlertsModal={() => {
-                    toggleAlertsModal(patient._id);
-                  }}
-                  patient={{
-                    ...patient,
-                    notes: patient.notes ?? [],
-                  }}
-                />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
-          >
-            No patients found.
-          </div>
+        {centerAccess.length === 0 && (
+         <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
+              >
+                No centers selected.
+              </div>
+        )}
+        {centerAccess.length > 0 && (
+          <>
+            {loading ? (
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh" }}
+              >
+                <Spinner color="primary" />
+              </div>
+            ) : data.data && data.data.length > 0 ? (
+              <Row className="g-3">
+                {data.data.map((patient) => (
+                  <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
+                    <PatientCard
+                      toggleAlertsModal={() => {
+                        toggleAlertsModal(patient._id);
+                      }}
+                      patient={{
+                        ...patient,
+                        notes: patient.notes ?? [],
+                      }}
+                    />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
+              >
+                No patients found.
+              </div>
+            )}</>
         )}
 
-        {data?.pagination?.totalPages > 1 && (
-          <Row className="mt-4 justify-content-center align-items-center">
-            <Col xs="auto" className="d-flex justify-content-center">
-              <Button
-                color="secondary"
-                disabled={page === 1}
-                onClick={handlePrev}
-              >
-                ← Previous
-              </Button>
-            </Col>
-            <Col xs="auto" className="text-center text-muted mx-3">
-              Showing {(page - 1) * limit + 1}–
-              {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
-              {data.pagination?.totalDocs || 0}
-            </Col>
-            <Col xs="auto" className="d-flex justify-content-center">
-              <Button
-                color="secondary"
-                disabled={page === data.pagination?.totalPages}
-                onClick={handleNext}
-              >
-                Next →
-              </Button>
-            </Col>
-          </Row>
+        {!loading && centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
+          <>
+            {/* Mobile Layout */}
+            <div className="d-block d-md-none text-center mt-3">
+              <div className="text-muted mb-2">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                {data.pagination?.totalDocs || 0}
+              </div>
+              <div className="d-flex justify-content-center gap-2">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={handlePrev}
+                >
+                  ← Previous
+                </Button>
+                <Button
+                  color="secondary"
+                  disabled={page === data.pagination?.totalPages}
+                  onClick={handleNext}
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
+              <Col xs="auto" className="d-flex justify-content-center">
+                <Button
+                  color="secondary"
+                  disabled={page === 1}
+                  onClick={handlePrev}
+                >
+                  ← Previous
+                </Button>
+              </Col>
+              <Col xs="auto" className="text-center text-muted mx-3">
+                Showing {(page - 1) * limit + 1}–
+                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                {data.pagination?.totalDocs || 0}
+              </Col>
+              <Col xs="auto" className="d-flex justify-content-center">
+                <Button
+                  color="secondary"
+                  disabled={page === data.pagination?.totalPages}
+                  onClick={handleNext}
+                >
+                  Next →
+                </Button>
+              </Col>
+            </Row>
+          </>
         )}
       </div>
 

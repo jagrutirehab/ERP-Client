@@ -53,6 +53,26 @@ const DetailHistory = ({ data, styles }) => {
             {data.reliable || ""}
           </Text>
         </View>
+        {data?.counsellor && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>
+              Counsellor:
+            </Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.counsellor || ""}
+            </Text>
+          </View>
+        )}
+        {/* {data?.referredby && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>
+              Referred By:
+            </Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.referredby || ""}
+            </Text>
+          </View>
+        )} */}
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>

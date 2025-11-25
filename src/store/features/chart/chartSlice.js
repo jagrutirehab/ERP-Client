@@ -10,6 +10,7 @@ import {
   editDetailAdmission,
   editDischargeSummary,
   editLabReport,
+  editMentalExamination,
   editPrescription,
   editRealtiveVisit,
   editVitalSign,
@@ -17,16 +18,21 @@ import {
   getChartsAddmissions,
   getCounsellingNote,
   getGeneralCharts,
+  getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
   postCounsellingNote,
   postDetailAdmission,
   postDischargeSummary,
+  postGeneralCounsellingNote,
   postGeneralDetailAdmission,
   postGeneralLabReport,
+  postGeneralMentalExamintion,
   postGeneralPrescription,
+  postGeneralRealtiveVisit,
   postGeneralVitalSign,
   postLabReport,
+  postMentalExamination,
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
@@ -71,6 +77,19 @@ export const fetchCharts = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getCharts(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchLatestCharts = createAsyncThunk(
+  "getLatestCharts",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLatestCharts(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -441,6 +460,26 @@ export const addCounsellingNote = createAsyncThunk(
   }
 );
 
+export const addGeneralCounsellingNote = createAsyncThunk(
+  "postGeneralCounsellingNote",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralCounsellingNote(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Counselling Note Saved Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const updateCounsellingNote = createAsyncThunk(
   "editCounsellingNote",
   async (data, { rejectWithValue, dispatch }) => {
@@ -587,7 +626,7 @@ export const addGeneralRelativeVisit = createAsyncThunk(
   "postGeneralRelativeVisit",
   async (data, { rejectWithValue, dispatch }) => {
     try {
-      const response = await postRealtiveVisit(data);
+      const response = await postGeneralRealtiveVisit(data);
       dispatch(
         setAlert({
           type: "success",
@@ -758,6 +797,64 @@ export const updateDetailAdmission = createAsyncThunk(
   }
 );
 
+export const addMentalExamination = createAsyncThunk("postMentalExamination", async (data, { rejectWithValue, dispatch }) => {
+  try {
+    const response = await postMentalExamination(data);
+    dispatch(
+      setAlert({
+        type: "success",
+        message: "Clinical Notes V2 Saved Successfully",
+      })
+    );
+
+    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    return response;
+  } catch (error) {
+    dispatch(setAlert({ type: "error", message: error.message }));
+    return rejectWithValue("something went wrong");
+  }
+});
+
+export const addGeneralMentalExamination = createAsyncThunk("postGeneralMentalExamination", async (data, { rejectWithValue, dispatch }) => {
+  try {
+    const response = await postGeneralMentalExamintion(data);
+    dispatch(
+      setAlert({
+        type: "success",
+        message: "General Clinical Notes V2 Saved Successfully",
+      })
+    );
+
+    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    return response;
+  } catch (error) {
+    dispatch(setAlert({ type: "error", message: error.message }));
+    return rejectWithValue("something went wrong");
+  }
+});
+
+
+export const updateMentalExamination = createAsyncThunk(
+  "edit",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editMentalExamination(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Clinical Notes V2 Updated Successfully",
+        })
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const removeChart = createAsyncThunk(
   "deleteChart",
   async (data, { rejectWithValue, dispatch }) => {
@@ -870,6 +967,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchLatestCharts.pending, (state) => {
+        state.generalChartLoading = true;
+      })
+      .addCase(fetchLatestCharts.fulfilled, (state, { payload }) => {
+        state.generalChartLoading = false;
+        state.charts = payload.payload;
+      })
+      .addCase(fetchLatestCharts.rejected, (state) => {
+        state.generalChartLoading = false;
+      });
+
+    builder
       .addCase(fetchGeneralCharts.pending, (state) => {
         state.generalChartLoading = true;
       })
@@ -919,6 +1028,18 @@ export const chartSlice = createSlice({
         state.charts = [payload.payload, ...(state.charts || [])];
       })
       .addCase(addGeneralPrescription.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralCounsellingNote.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralCounsellingNote.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralCounsellingNote.rejected, (state) => {
         state.loading = false;
       });
 
@@ -1439,6 +1560,66 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateDetailAdmission.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateMentalExamination.rejected, (state) => {
         state.loading = false;
       });
 

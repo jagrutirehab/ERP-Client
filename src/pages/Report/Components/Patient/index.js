@@ -25,6 +25,7 @@ const Patient = ({ centerAccess }) => {
   const [totaldata, setTotaldata] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [billCycle, setBillCycle] = useState(0);
 
   const [csvData, setCsvData] = useState([]);
   console.log(csvData, "this is data");
@@ -41,6 +42,7 @@ const Patient = ({ centerAccess }) => {
           filter,
           val,
           centerAccess,
+          ...(filter === "ADMITTED_PATIENTS" && billCycle > 0 ? { billCycle } : {})
         },
       });
 
@@ -49,30 +51,29 @@ const Patient = ({ centerAccess }) => {
         const formatted = fullData.map((d, i) => ({
           ...d,
           id: i + 1,
-          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${
-            d?.id?.value || d?.patient?.id?.value || ""
-          }`,
+          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${d?.id?.value || d?.patient?.id?.value || ""
+            }`,
 
           // Age
           age: d?.dateOfBirth
             ? differenceInYears(new Date(), new Date(d.dateOfBirth))
             : d?.patient?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d.patient.dateOfBirth))
-            : "",
+              ? differenceInYears(new Date(), new Date(d.patient.dateOfBirth))
+              : "",
 
           // Doctor name (from doctors[] or nested addmission)
           doctor: d?.doctors?.length
             ? d.doctors.map((doc) => doc?.name || "").pop()
             : d?.addmission?.doctors?.length
-            ? d.addmission.doctors.map((doc) => doc?.name || "").pop()
-            : d?.doctor?.name || d?.addmission?.doctor?.name || "",
+              ? d.addmission.doctors.map((doc) => doc?.name || "").pop()
+              : d?.doctor?.name || d?.addmission?.doctor?.name || "",
 
           // Psychologist name (from psychologists[] or nested addmission)
           psychologist: d?.psychologists?.length
             ? d.psychologists.map((psy) => psy?.name || "").pop()
             : d?.addmission?.psychologists?.length
-            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop()
-            : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
+              ? d.addmission.psychologists.map((psy) => psy?.name || "").pop()
+              : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
 
           // Guardian info (always inside patient)
           guardianName: d?.patient?.guardianName || "",
@@ -81,18 +82,18 @@ const Patient = ({ centerAccess }) => {
           // Dates
           addmissionDate: d?.addmission?.addmissionDate
             ? format(
-                new Date(d.addmission.addmissionDate),
-                "d MMM yyyy hh:mm a"
-              )
+              new Date(d.addmission.addmissionDate),
+              "d MMM yyyy hh:mm a"
+            )
             : d?.addmissionDate
-            ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
-            : "",
+              ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
+              : "",
 
           dischargeDate: d?.addmission?.dischargeDate
             ? format(new Date(d.addmission.dischargeDate), "d MMM yyyy hh:mm a")
             : d?.dischargeDate
-            ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
-            : "",
+              ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
+              : "",
 
           billCycleDate: d?.addmission?.addmissionDate
             ? format(new Date(d.addmission.addmissionDate), "d")
@@ -124,6 +125,7 @@ const Patient = ({ centerAccess }) => {
           filter,
           val,
           centerAccess,
+          ...(filter === "ADMITTED_PATIENTS" && billCycle > 0 ? { billCycle } : {})
         },
       });
 
@@ -139,45 +141,45 @@ const Patient = ({ centerAccess }) => {
 
   useEffect(() => {
     fetchData();
-  }, [page, reportDate, filter, limit, centerAccess, val]);
+  }, [page, reportDate, filter, limit, centerAccess, val, billCycle]);
 
   const generalColumns = [
     {
-      name: "#",
+      name: <div>#</div>,
       selector: (row, idx) => idx + 1,
     },
     {
-      name: "Center",
+      name: <div>Center</div>,
       selector: (row) => row.center?.title,
     },
     {
-      name: "Patient",
+      name: <div>Patient</div>,
       selector: (row) => row.patient?.name,
       wrap: true,
     },
     {
-      name: "UID",
+      name: <div>UID</div>,
       selector: (row) => `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
     },
     {
-      name: "Doctor",
+      name: <div>Doctor</div>,
       selector: (row) => {
         const doctorsFromArray =
           row?.doctors?.length > 0
             ? row.doctors
-                .map((d) =>
-                  d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
-                )
-                .filter(Boolean)
-                .join(", ")
+              .map((d) =>
+                d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
+              )
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const doctorsFromAdmission =
           row?.addmission?.doctors?.length > 0
             ? row.addmission.doctors
-                .map((d) => d?.name || "")
-                .filter(Boolean)
-                .join(", ")
+              .map((d) => d?.name || "")
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const fallbackDoctor =
@@ -191,28 +193,28 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Psychologist",
+      name: <div>Psychologist</div>,
       selector: (row) => {
         const psychologistsFromArray =
           row?.psychologists?.length > 0
             ? row.psychologists
-                .map((p) =>
-                  p?.name
-                    ? p.name
-                    : p?.psychologist?.name
+              .map((p) =>
+                p?.name
+                  ? p.name
+                  : p?.psychologist?.name
                     ? p.psychologist.name
                     : ""
-                )
-                .filter(Boolean)
-                .join(", ")
+              )
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const psychologistsFromAdmission =
           row?.addmission?.psychologists?.length > 0
             ? row.addmission.psychologists
-                .map((p) => p?.name || "")
-                .filter(Boolean)
-                .join(", ")
+              .map((p) => p?.name || "")
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const fallbackPsychologist =
@@ -230,36 +232,36 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Gender",
+      name: <div>Gender</div>,
       selector: (row) => row.patient?.gender,
     },
     {
-      name: "Referred By",
+      name: <div>Referred By</div>,
       selector: (row) => row.patient?.referredBy,
       wrap: true,
     },
     {
-      name: "Phone No",
+      name: <div>Phone No</div>,
       selector: (row) => row.patient?.phoneNumber,
     },
     {
-      name: "Age",
+      name: <div>Age</div>,
       selector: (row) =>
         differenceInYears(new Date(), new Date(row.patient?.dateOfBirth)) +
         " years",
     },
     {
-      name: "Guardian",
+      name: <div>Guardian</div>,
       selector: (row) => row.patient?.guardianName,
       wrap: true,
     },
     {
-      name: "Guardian Number",
+      name: <div>Guardian Number</div>,
       selector: (row) => row.patient?.guardianPhoneNumber,
       wrap: true,
     },
     {
-      name: "Admission Date",
+      name: <div>Admission Date</div>,
       selector: (row) =>
         row.addmissionDate
           ? format(new Date(row.addmissionDate), "d MMM yyyy hh:mm a")
@@ -267,7 +269,7 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
     {
-      name: "Discharge Date",
+      name: <div>Discharge Date</div>,
       selector: (row) =>
         row.dischargeDate
           ? format(new Date(row.dischargeDate), "d MMM yyyy hh:mm a")
@@ -277,7 +279,7 @@ const Patient = ({ centerAccess }) => {
   ];
 
   const billCycleDate = {
-    name: "Bill Cycle Date",
+    name: <div>Bill Cycle Date</div>,
     selector: (row) =>
       row.addmission?.addmissionDate
         ? format(new Date(row.addmission.addmissionDate), "d")
@@ -286,7 +288,7 @@ const Patient = ({ centerAccess }) => {
   };
 
   const addmissionDate = {
-    name: "Admission Date",
+    name: <div>Admission Date</div>,
     selector: (row) =>
       row.addmission?.addmissionDate
         ? format(new Date(row.addmission.addmissionDate), "d MMM yyyy hh:mm a")
@@ -295,7 +297,7 @@ const Patient = ({ centerAccess }) => {
   };
 
   const dischargeDate = {
-    name: "Discharge Date",
+    name: <div>Discharge Date</div>,
     selector: (row) =>
       row.addmission?.dischargeDate
         ? format(new Date(row.addmission.dischargeDate), "d MMM yyyy hh:mm a")
@@ -305,80 +307,80 @@ const Patient = ({ centerAccess }) => {
 
   const patientRow = [
     {
-      name: "#",
+      name: <div>#</div>,
       selector: (row, idx) => idx + 1,
     },
     {
-      name: "Center",
+      name: <div>Center</div>,
       selector: (row) => row.center?.title,
     },
     {
-      name: "Patient",
+      name: <div>Patient</div>,
       selector: (row) => row?.name,
       wrap: true,
     },
     {
-      name: "UID",
+      name: <div>UID</div>,
       selector: (row) => `${row?.uid?.prefix}${row?.uid?.value}`,
     },
     {
-      name: "Gender",
+      name: <div>Gender</div>,
       selector: (row) => row?.gender,
     },
     {
-      name: "Referred By",
+      name: <div>Referred By</div>,
       selector: (row) => row?.referredBy,
       wrap: true,
     },
     {
-      name: "Doctor",
+      name: <div>Doctor</div>,
       selector: (row) =>
         row?.addmission?.doctors?.length > 0
           ? row.addmission.doctors
-              .map((d) => d?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
+            .map((d) => d?.name || "")
+            .filter(Boolean)
+            .pop() || "—"
           : row?.addmission?.doctor?.name || row?.doctor?.name || "—",
       wrap: true,
     },
     {
-      name: "Psychologist",
+      name: <div>Psychologist</div>,
       selector: (row) =>
         row?.addmission?.psychologists?.length > 0
           ? row.addmission.psychologists
-              .map((p) => p?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
+            .map((p) => p?.name || "")
+            .filter(Boolean)
+            .pop() || "—"
           : row?.addmission?.psychologist?.name ||
-            row?.psychologist?.name ||
-            "—",
+          row?.psychologist?.name ||
+          "—",
       wrap: true,
     },
 
     {
-      name: "Phone No",
+      name: <div>Phone No</div>,
       selector: (row) => row?.phoneNumber,
     },
     //
     {
-      name: "Age",
+      name: <div>Age</div>,
       selector: (row) =>
         row?.dateOfBirth
           ? differenceInYears(new Date(), new Date(row?.dateOfBirth)) + " years"
           : "",
     },
     {
-      name: "Guardian",
+      name: <div>Guardian</div>,
       selector: (row) => row?.guardianName,
       wrap: true,
     },
     {
-      name: "Guardian Number",
+      name: <div>Guardian Number</div>,
       selector: (row) => row?.guardianPhoneNumber,
       wrap: true,
     },
     {
-      name: "IPD File NUmber",
+      name: <div>IPD File NUmber</div>,
       selector: (row) => row.ipdFileNumber,
     },
   ];
@@ -467,14 +469,15 @@ const Patient = ({ centerAccess }) => {
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between mt-3">
-            <div className="d-flex gap-2">
+          <div className="d-flex flex-column flex-md-row justify-content-between mt-3 gap-3">
+            <div className="d-flex flex-column flex-sm-row gap-2">
               <Input
                 type="select"
                 value={filter}
                 onChange={(e) => {
                   setFilter(e.target.value);
                 }}
+                className="w-auto"
               >
                 <option value={""}>General</option>
                 <option value={"ADMITTED_PATIENTS"}>Admitted Patients</option>
@@ -492,6 +495,7 @@ const Patient = ({ centerAccess }) => {
                   setPage(1);
                 }}
                 style={{ width: "100px" }}
+                className="w-100 w-sm-auto"
               >
                 {[10, 20, 30, 40, 50].map((l) => (
                   <option key={l} value={l}>
@@ -499,14 +503,34 @@ const Patient = ({ centerAccess }) => {
                   </option>
                 ))}
               </Input>
+
+              {filter === "ADMITTED_PATIENTS" && (
+                <Input
+                  type="select"
+                  value={billCycle}
+                  onChange={(e) => {
+                    setBillCycle(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  style={{ width: "200px" }}
+                  className="w-auto"
+                >
+                  <option value={0}>All Bill Cycle Date</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((bc) => (
+                    <option key={bc} value={bc}>
+                      {bc}
+                    </option>
+                  ))}
+                </Input>
+              )}
             </div>
-            <div>
+            <div className="d-flex flex-column flex-sm-row gap-2">
               {filter === "ADMITTED_PATIENTS" &&
                 (val === "ALL_ADMITTED" ? (
                   <Button
                     color="info"
                     onClick={() => setVal("")}
-                    style={{ marginRight: "10px" }}
+                    className="w-auto"
                   >
                     Back to dates
                   </Button>
@@ -514,7 +538,7 @@ const Patient = ({ centerAccess }) => {
                   <Button
                     color="info"
                     onClick={() => setVal("ALL_ADMITTED")}
-                    style={{ marginRight: "10px" }}
+                    className="w-auto"
                   >
                     Show All Admitted Patients
                   </Button>
@@ -524,6 +548,7 @@ const Patient = ({ centerAccess }) => {
                 color="info"
                 onClick={fetchFullData}
                 disabled={csvLoading}
+                className="w-auto"
               >
                 {csvLoading ? "Preparing CSV..." : "Export CSV"}
               </Button>
@@ -535,10 +560,10 @@ const Patient = ({ centerAccess }) => {
                   filter === "ADMITTED_PATIENTS"
                     ? admittedHeaders
                     : filter === "DISCHARGED_PATIENTS"
-                    ? discahrgeHeaders
-                    : filter === "ALL_PATIENTS"
-                    ? patientHeaders
-                    : generalHeaders
+                      ? discahrgeHeaders
+                      : filter === "ALL_PATIENTS"
+                        ? patientHeaders
+                        : generalHeaders
                 }
                 className="d-none"
                 ref={csvRef}
@@ -552,10 +577,10 @@ const Patient = ({ centerAccess }) => {
               filter === "ADMITTED_PATIENTS"
                 ? admittedColumns
                 : filter === "ALL_PATIENTS"
-                ? patientColumns
-                : filter === "DISCHARGED_PATIENTS"
-                ? dischargeColumns
-                : generalColumns
+                  ? patientColumns
+                  : filter === "DISCHARGED_PATIENTS"
+                    ? dischargeColumns
+                    : generalColumns
             }
             data={data?.map((d) => ({ ...d, uid: d.id, id: d._id })) || []}
             highlightOnHover

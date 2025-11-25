@@ -35,7 +35,7 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
       author: author._id,
       patient: patient._id,
       center: patient.center._id,
-      addmission: patient.addmission._id,
+      addmission: patient.addmission?._id,
       weight: editVitalSign ? editVitalSign.weight : "",
       pulse: editVitalSign ? editVitalSign.pulse : "",
       bloodPressure: editVitalSign
@@ -46,6 +46,10 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
           },
       temprature: editVitalSign ? editVitalSign.temprature : "",
       respirationRate: editVitalSign ? editVitalSign.respirationRate : "",
+      cns: editVitalSign ? editVitalSign.cns : "",
+      cvs: editVitalSign ? editVitalSign.cvs : "",
+      rs: editVitalSign ? editVitalSign.rs : "",
+      pa: editVitalSign ? editVitalSign.pa : "",
       chart: VITAL_SIGN,
       type,
       date: chartDate,
@@ -58,9 +62,22 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
         bloodPressure: { systolic, diastolic },
         temprature,
         respirationRate,
+        cns,
+        cvs,
+        rs,
+        pa,
       } = values;
 
-      if (weight || pulse || temprature || respirationRate) {
+      if (
+        weight ||
+        pulse ||
+        temprature ||
+        respirationRate ||
+        cns ||
+        cvs ||
+        rs ||
+        pa
+      ) {
         if (editVitalSign) {
           dispatch(
             updateVitalSign({

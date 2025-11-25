@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Container } from "reactstrap";
 
@@ -26,7 +26,6 @@ import Offcanvas from "./Offcanvas";
 import SwitchCenter from "./Modals/SwitchCenter";
 import DeleteModal from "../../Components/Common/DeleteModal";
 import { ALL_PATIENTS } from "../../Components/constants/patient";
-import EditAdmission from "./Modals/EditAdmission";
 
 const Patient = ({ centerAccess, patients, user }) => {
   const dispatch = useDispatch();
@@ -65,7 +64,7 @@ const Patient = ({ centerAccess, patients, user }) => {
 
   useEffect(() => {
     dispatch(fetchBillItems(centerAccess));
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
