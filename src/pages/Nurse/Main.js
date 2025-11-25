@@ -165,7 +165,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
             )}</>
         )}
 
-        {centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
+        {!loading && centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
           <>
             {/* Mobile Layout */}
             <div className="d-block d-md-none text-center mt-3">
