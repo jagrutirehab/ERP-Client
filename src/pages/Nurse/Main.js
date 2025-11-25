@@ -60,7 +60,11 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   }, [debouncedSearch, flag]);
 
   useEffect(() => {
-    if (!hasPermission) return;
+    if (!hasUserPermission) return;
+
+    if (!centerAccess || centerAccess.length === 0) {
+      return;
+    }
     dispatch(
       allNurseAssignedPatients({
         page,
@@ -118,40 +122,50 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
           setSearch={setSearch}
           setFlag={setFlag}
         />
-
-        {loading ? (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ height: "50vh" }}
-          >
-            <Spinner color="primary" />
-          </div>
-        ) : data.data && data.data.length > 0 ? (
-          <Row className="g-3">
-            {data.data.map((patient) => (
-              <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
-                <PatientCard
-                  toggleAlertsModal={() => {
-                    toggleAlertsModal(patient._id);
-                  }}
-                  patient={{
-                    ...patient,
-                    notes: patient.notes ?? [],
-                  }}
-                />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
-          >
-            No patients found.
-          </div>
+        {centerAccess.length === 0 && (
+         <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
+              >
+                No centers selected.
+              </div>
+        )}
+        {centerAccess.length > 0 && (
+          <>
+            {loading ? (
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh" }}
+              >
+                <Spinner color="primary" />
+              </div>
+            ) : data.data && data.data.length > 0 ? (
+              <Row className="g-3">
+                {data.data.map((patient) => (
+                  <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
+                    <PatientCard
+                      toggleAlertsModal={() => {
+                        toggleAlertsModal(patient._id);
+                      }}
+                      patient={{
+                        ...patient,
+                        notes: patient.notes ?? [],
+                      }}
+                    />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
+              >
+                No patients found.
+              </div>
+            )}</>
         )}
 
-        {data?.pagination?.totalPages > 1 && (
+        {centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
           <>
             {/* Mobile Layout */}
             <div className="d-block d-md-none text-center mt-3">
