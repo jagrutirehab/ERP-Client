@@ -132,21 +132,38 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
           <div>Dosage & Frequency</div>
           <div
             style={{
-              lineHeight: "1.2",
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100px",
+              margin: "0 auto",
+              fontSize: "12px",
               marginTop: "2px",
-              fontWeight: "600",
             }}
           >
-            M - A - N
+            <span>Mor</span>
+            <span>-</span>
+            <span>Aft</span>
+            <span>-</span>
+            <span>Eve</span>
           </div>
         </div>
       ),
 
       selector: (row) => (
-        <div style={{ textAlign: "center", lineHeight: "1.2" }}>
-          {row.dosageAndFrequency?.morning} -{" "}
-          {row.dosageAndFrequency?.evening} -{" "}
-          {row.dosageAndFrequency?.night}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100px",
+            margin: "0 auto",
+            textAlign: "center",
+          }}
+        >
+          <span>{row.dosageAndFrequency?.morning || "-"}</span>
+          <span>-</span>
+          <span>{row.dosageAndFrequency?.evening || "-"}</span>
+          <span>-</span>
+          <span>{row.dosageAndFrequency?.night || "-"}</span>
         </div>
       ),
 

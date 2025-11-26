@@ -91,24 +91,16 @@ const styles = StyleSheet.create({
   tableBody: {
     backgroundColor: "rgba(150, 150, 150, 0.1)",
   },
-  col3: {
-    width: "18%",
-  },
+  col3: { flex: 1.2 },
   col4: {
     width: "24%",
   },
-  col5: {
-    width: "28%",
-  },
-  col6: {
-    width: "35%",
-  },
+  col5: { flex: 3 },
+  col6: { flex: 2.2 },
   col2: {
-    width: "10%",
+    width: "30%",
   },
-  col1: {
-    width: "5%",
-  },
+  col1: { flex: 0.5, paddingLeft: 6, },
   fontBold: {
     fontFamily: "Helvetica Neue",
     fontSize: "11px",
@@ -155,7 +147,7 @@ const styles = StyleSheet.create({
 const PrescriptionTable = ({ medicines }) => {
   return (
     <React.Fragment>
-      <View style={styles.fontSm}>
+      <View style={{ ...styles.fontSm, width: "100%" }}>
         <View
           style={{
             ...styles.row,
@@ -168,11 +160,22 @@ const PrescriptionTable = ({ medicines }) => {
           <Text style={styles.col1}></Text>
           <Text style={styles.col5}>Medicine</Text>
           {/* <Text style={styles.col3}>Dose</Text> */}
-          <View style={styles.col3}>
-            <Text>Dose</Text>
-            <Text style={{ marginTop: 2 }}>M - A - N</Text>
+          <View style={{ ...styles.col3, flexDirection: "column", alignItems: "center" }}>
+            <Text style={{ fontFamily: "Helvetica Neue", fontSize: 11 }}>Dose</Text>
+
+            <View style={{ flexDirection: "row", width: "100%" }}>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text>Mor</Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text>Aft</Text>
+              </View>
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text>Eve</Text>
+              </View>
+            </View>
           </View>
-          <Text style={styles.col6}>Timing - Freq. - Duration</Text>
+          <Text style={{ ...styles.col6, textAlign: "right" }}>Timing - Freq. - Duration</Text>
           {/* <Text style={styles.col2}>Qty</Text> */}
         </View>
         <View style={{ ...styles.tableBody }}>
@@ -198,23 +201,31 @@ const PrescriptionTable = ({ medicines }) => {
                     {item.medicine.unit || ""}
                   </Text>
                 </Text>
-                <Text style={{ ...styles.col3, ...styles.fontBold }}>
-                  {item.dosageAndFrequency?.morning}
-                  {" - "}
-                  {item.dosageAndFrequency?.evening}
-                  {" - "}
-                  {item.dosageAndFrequency?.night}
-                </Text>
-                <Text
-                  style={{
-                    ...styles.col6,
-                    ...styles.fontMd,
-                    // ...styles.fontSizeMd,
-                  }}
-                >
-                  {item.instruction && `${item.instruction} - `}
-                  {item.intake} {" - "} {item.duration} {item.unit}
-                </Text>
+                <View style={{ ...styles.col3, flexDirection: "row" }}>
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text>{item.dosageAndFrequency?.morning || "-"}</Text>
+                  </View>
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text>{item.dosageAndFrequency?.evening || "-"}</Text>
+                  </View>
+                  <View style={{ flex: 1, alignItems: "center" }}>
+                    <Text>{item.dosageAndFrequency?.night || "-"}</Text>
+                  </View>
+                </View>
+
+                <View style={{ ...styles.col6, alignItems: "flex-end", marginRight: "10px" }}>
+                  <Text
+                    style={{
+                      ...styles.fontMd,
+
+                      // ...styles.fontSizeMd,
+                    }}
+                  >
+                    {item.instruction && `${item.instruction} - `}
+                    {item.intake} {" - "} {item.duration} {item.unit}
+                  </Text>
+                </View>
+
                 {/* <Text style={{ ...styles.col2, ...styles.fontMd }}>
                   {item.intake}
                 </Text> */}

@@ -297,7 +297,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                     <div className="d-flex align-items-center">
 
                       <div className="d-flex flex-column align-items-center">
-                        <div className="fw-bold mb-1">M</div>
+                        <div className="fw-bold mb-1">Mor</div>
                         <Input
                           bsSize="sm"
                           id={idx}
@@ -311,7 +311,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <span className="mx-2">-</span>
 
                       <div className="d-flex flex-column align-items-center">
-                        <div className="fw-bold mb-1">A</div>
+                        <div className="fw-bold mb-1">Aft</div>
                         <Input
                           bsSize="sm"
                           id={idx}
@@ -325,7 +325,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <span className="mx-2">-</span>
 
                       <div className="d-flex flex-column align-items-center">
-                        <div className="fw-bold mb-1">N</div>
+                        <div className="fw-bold mb-1">Eve</div>
                         <Input
                           bsSize="sm"
                           id={idx}
