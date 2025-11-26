@@ -162,6 +162,16 @@ export const permissionList = [
       // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
     ],
   },
+  {
+    key: "MI_REPORTING",
+    label: "MI Reporting",
+    subModules: [
+      { name: "VIEW_MI_REPORTING", label: "View MI Reporting" },
+      // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
+      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
+      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

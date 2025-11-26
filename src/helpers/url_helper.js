@@ -136,6 +136,10 @@ export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
+export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const POST_GENERAL_MENTAL_EXAMINATION =
+  "/chart/mental-examination/general";
+export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";
@@ -362,3 +366,14 @@ export const GET_PENDING_PATIENT_APPROVALS =
   "/pharmacy/approvals/pending-patients";
 export const GET_DETAILED_PRESCRIPTION =
   "/pharmacy/approvals/detailed-prescription";
+
+// PHARMACY AUDIT
+export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";
+export const AUDITS = "/pharmacy/audit";
+export const UPLOAD_AUDIT_REPORT = "/pharmacy/audit/upload-chunk";
+export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
+export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
+export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
+
+// MI REPORTING
+export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";

@@ -449,6 +449,18 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+
+export const postMentalExamination = (data) => {
+  return api.create(url.POST_MENTAL_EXAMINATION, data);
+};
+export const postGeneralMentalExamintion = (data) => {
+  return api.create(url.POST_GENERAL_MENTAL_EXAMINATION, data);
+};
+
+export const editMentalExamination = (data) => {
+  return api.put(url.EDIT_MENTAL_EXAMINATION, data);
+};
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);
@@ -1342,6 +1354,89 @@ export const getDetailedPrescription = (prescriptionId) => {
   return api.get(`${url.GET_DETAILED_PRESCRIPTION}/${prescriptionId}`, {
     headers: {
       "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const downloadAuditTemplate = (params) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+    responseType: "blob",
+  });
+};
+
+export const getAuditsByStatus = (params) => {
+  return api.get(url.AUDITS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const uploadAuditChunk = (data) => {
+  return api.create(url.UPLOAD_AUDIT_REPORT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updateAuditStatus = (params = {}) => {
+  return api.update(url.UPDATE_AUDIT_STATUS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getAuditDetails = (params) => {
+  return api.get(url.GET_AUDIT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const deleteAuditById = (id) => {
+  return api.delete(`${url.AUDITS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const downloadAuditFailedMedicines = (id) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_FAILED_MEDICINES}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
+// MI REPORTING
+export const getMIHubSpotContacts = (params = {}) => {
+  return api.get(url.GET_MI_HUBSPOT_CONTACTS, {
+    params,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
 };
