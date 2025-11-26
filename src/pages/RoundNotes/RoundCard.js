@@ -67,7 +67,7 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
               <tr>
                 <th>Floor</th>
                 <th>Patient</th>
-                <th>Category</th>
+                <th>Notes Applicable To</th>
                 <th>Note</th>
               </tr>
             </thead>
