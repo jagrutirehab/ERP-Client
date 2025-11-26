@@ -8,10 +8,16 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import { connect } from "react-redux";
 import { GENERAL } from "../../../Components/constants/intern";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Billing = ({ drafts }) => {
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
+
   const toggleModal = () => setDateModal(!dateModal);
 
   return (
@@ -19,7 +25,11 @@ const Billing = ({ drafts }) => {
       <div></div>
       <div className="d-flex align-items-center justify-content-between">
         <div className="flex">
-          <CheckPermission permission={"create"} subAccess={"Billing"}>
+          <CheckPermission
+            accessRolePermission={roles?.permissions}
+            subAccess={"INTERNBILLING"}
+            permission={"create"}
+          >
             <Button className="text-nowrap" onClick={toggleModal} size="sm">
               Create new Bill
             </Button>

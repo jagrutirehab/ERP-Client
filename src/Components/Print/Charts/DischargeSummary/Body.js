@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Image, Text, Font } from "@react-pdf/renderer";
+import { StyleSheet, View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 
 //components
@@ -81,16 +81,16 @@ const styles = StyleSheet.create({
   },
 });
 
-const SummaryBody = ({ chart }) => {
+const SummaryBody = ({ chart, patient }) => {
   const data = chart.dischargeSummary;
-  const splitTextIntoLines = (text) => {
-    if (typeof text !== "string" || !text.trim()) return [];
-    return text
-      .trim()
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line);
-  };
+  // const splitTextIntoLines = (text) => {
+  //   if (typeof text !== "string" || !text.trim()) return [];
+  //   return text
+  //     .trim()
+  //     .split(/\r?\n/)
+  //     .map((line) => line.trim())
+  //     .filter((line) => line);
+  // };
   return (
     <React.Fragment>
       <View style={styles.body}>

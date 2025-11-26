@@ -13,6 +13,7 @@ const PROCEDURE = "PROCEDURE";
 const RELATIVE_VISIT = "RELATIVE_VISIT";
 const DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
+const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -55,9 +56,13 @@ const records = [
     name: "Vital Signs",
     category: VITAL_SIGN,
   },
+  // {
+  //   name: "Clinical Notes",
+  //   category: CLINICAL_NOTE,
+  // },
   {
     name: "Clinical Notes",
-    category: CLINICAL_NOTE,
+    category: MENTAL_EXAMINATION,
   },
   {
     name: "Counselling Notes",
@@ -90,12 +95,11 @@ const Forms = [
     name: "Consent Form",
     category: "CONSENT FORM",
   },
-  // {
-  //   name: "Discharge Form",
-  //   category: "DISCHARGE FORM",
-  // },
-  
-]
+  {
+    name: "Discharge Form",
+    category: "DISCHARGE FORM",
+  },
+];
 const testRecord = [
   // { name : "ROR" },
   // { name : "NIMHAS" },
@@ -106,6 +110,9 @@ const testRecord = [
   { name: "MMSE" },
   { name: "Y-BOCS" },
   { name: "ACDS" },
+  { name: "HAM-A" },
+  { name: "HAM-D" },
+  { name: "PANSS" },
 ];
 
 const prescriptionFormFields = [
@@ -177,6 +184,34 @@ const vitalSignFields = [
     name: "respirationRate",
     type: "text",
   },
+  {
+    label: "CNS",
+    name: "cns",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "CVS",
+    name: "cvs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "RS",
+    name: "rs",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
+  {
+    label: "PA",
+    name: "pa",
+    type: "text",
+    xs: 6,
+    md: 3,
+  },
 ];
 
 const clinicalNoteFields = [
@@ -199,6 +234,132 @@ const clinicalNoteFields = [
     label: "Notes",
     name: "notes",
     type: "textarea",
+  },
+];
+
+const mentalExaminationFields = [
+  { label: "Appearance & Behavior", name: "", type: "header" },
+  {
+    label: "Grooming",
+    name: "grooming",
+    type: "radio",
+    options: ["good", "fair", "poor"],
+  },
+  {
+    label: "Eye Contact",
+    name: "eyeContact",
+    type: "radio",
+    options: ["normal", "avoidant", "excessive"],
+  },
+  {
+    label: "Psychomotor Activity",
+    name: "psychomotorActivity",
+    type: "radio",
+    options: ["normal", "retarded", "agitated"],
+  },
+
+  { label: "Speech", type: "header" },
+  {
+    label: "Rate",
+    name: "rate",
+    type: "radio",
+    options: ["normal", "slow", "pressured"],
+  },
+  {
+    label: "Volume",
+    name: "volume",
+    type: "radio",
+    options: ["normal", "low", "loud"],
+  },
+
+  { label: "Mood", type: "header" },
+  {
+    label: "Affect",
+    name: "affect",
+    type: "radio",
+    options: ["euthymic", "depressed", "irritable", "elated"],
+  },
+  {
+    label: "Affect Notes",
+    name: "affectNotes",
+    type: "text",
+  },
+  {
+    label: "Mood",
+    name: "subjective",
+    type: "text",
+  },
+  { label: "Thought", type: "header" },
+  {
+    label: "Delusions",
+    name: "delusions",
+    type: "radio",
+    options: ["none", "present"],
+  },
+  {
+    label: "Content",
+    name: "content",
+    type: "text",
+  },
+  {
+    label: "If Delusion Present, Specify",
+    name: "delusionNotes",
+    type: "text",
+    showIf: {
+      field: "delusions",
+      value: "present"
+    }
+  },
+
+  { label: "Perception", type: "header" },
+  {
+    label: "Perception",
+    name: "perception",
+    type: "radio",
+    options: ["normal", "hallucination", "illusion"],
+    labelHidden: true
+
+  },
+
+  { label: "Cognition", type: "header" },
+  {
+    label: "Orientation",
+    name: "orientation",
+    type: "radio",
+    options: ["time", "place", "person"],
+  },
+
+  {
+    label: "Memory",
+    name: "memory",
+    type: "radio",
+    options: ["intact", "impaired"],
+  },
+
+  { label: "Insight", type: "header" },
+  {
+    label: "Grade",
+    name: "grade",
+    type: "select",
+    options: ["I", "II", "III", "IV", "V", "VI"],
+  },
+
+  { label: "Judgment", type: "header" },
+  {
+    label: "Judgment",
+    name: "judgment",
+    type: "radio",
+    options: ["intact", "impaired"],
+    labelHidden: true
+
+  },
+
+  { label: "Remarks / Impression", type: "header" },
+  {
+    label: "Remarks",
+    name: "remarks",
+    type: "text",
+    labelHidden: true
   },
 ];
 
@@ -634,6 +795,54 @@ const dischargeSummaryFields = [
 
 let addPatientFields = [
   {
+    label: "Name",
+    name: "name",
+    type: "text",
+  },
+  {
+    label: "Gender",
+    name: "gender",
+    type: "radio",
+    options: ["MALE", "FEMALE", "OTHERS"],
+  },
+  {
+    label: "Date of Birth",
+    name: "dateOfBirth",
+    type: "date",
+  },
+  {
+    label: "Marital Status",
+    name: "maritalstatus",
+    type: "radio",
+    options: ["MARRIED", "UNMARRID", "SEPRATED"],
+  },
+  {
+    label: "Religion",
+    name: "religion",
+    type: "text",
+  },
+  {
+    label: "Socio Economic Status",
+    name: "socioeconomicstatus",
+    type: "text",
+  },
+  {
+    label: "Address",
+    name: "address",
+    type: "textarea",
+  },
+  {
+    label: "Area Type",
+    name: "areatype",
+    type: "radio",
+    options: ["RURAL", "CITY"],
+  },
+  {
+    label: "Phone Number",
+    name: "phoneNumber",
+    type: "number",
+  },
+  {
     label: "Aadhaar Card Number",
     name: "aadhaarCardNumber",
     type: "text",
@@ -645,36 +854,17 @@ let addPatientFields = [
     accept: "image/*",
   },
   {
-    label: "Name",
-    name: "name",
-    type: "text",
-  },
-  {
-    label: "Phone Number",
-    name: "phoneNumber",
-    type: "number",
-  },
-  {
     label: "Email",
     name: "email",
     type: "email",
   },
   {
-    label: "Date of Birth",
-    name: "dateOfBirth",
-    type: "date",
-  },
-  {
-    label: "Gender",
-    name: "gender",
-    type: "radio",
-    options: ["MALE", "FEMALE", "OTHERS"],
-  },
-  {
-    label: "Address",
-    name: "address",
+    label: "Age",
+    name: "age",
     type: "text",
   },
+
+
   // {
   //   label: "Provisional Diagnosis",
   //   name: "provisionalDiagnosis",
@@ -697,32 +887,37 @@ const patientGuradianFields = [
     label: "Guardian Name",
     name: "guardianName",
     type: "text",
+    required: true,
   },
   {
     label: "Relation",
     name: "guardianRelation",
     type: "text",
+    required: true,
   },
   {
     label: "Phone Number",
     name: "guardianPhoneNumber",
     type: "text",
+    required: true,
   },
   // {
   //   label: "Date Of Addmission",
   //   name: "dateOfAddmission",
   //   type: "date",
   // },
-  {
-    label: "Referred By",
-    name: "referredBy",
-    type: "text",
-  },
-  {
-    label: "IPD File Number",
-    name: "ipdFileNumber",
-    type: "text",
-  },
+  // {
+  //   label: "Referred By",
+  //   name: "referredBy",
+  //   type: "text",
+  //   required: true,
+  // },
+  // {
+  //   label: "IPD File Number",
+  //   name: "ipdFileNumber",
+  //   type: "text",
+  //   required: false,
+  // },
 ];
 
 //PATIENT TYPES
@@ -885,6 +1080,7 @@ export {
   RELATIVE_VISIT,
   DISCHARGE_SUMMARY,
   DETAIL_ADMISSION,
+  MENTAL_EXAMINATION,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -908,6 +1104,7 @@ export {
   prescriptionFormFields,
   vitalSignFields,
   clinicalNoteFields,
+  mentalExaminationFields,
   counsellingNoteFields,
   relativeVisitFields,
   dischargeSummaryFields,
@@ -930,5 +1127,5 @@ export {
   timelineFilters,
   INTERN,
   InternTimelineFilter,
-  Forms
+  Forms,
 };

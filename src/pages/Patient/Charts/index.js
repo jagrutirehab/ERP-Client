@@ -8,6 +8,7 @@ import {
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
   LAB_REPORT,
+  MENTAL_EXAMINATION,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
@@ -30,9 +31,9 @@ import LabReport from "./LabReport";
 import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
+import MentalExamination from "./MentalExamination";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
-  // console.log(addmission, "this is data");
 
   const dispatch = useDispatch();
 
@@ -120,6 +121,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === DETAIL_ADMISSION && (
                   <DetailAdmission data={chart.detailAdmission} />
+                )}
+                {chart.chart === MENTAL_EXAMINATION && (
+                  <MentalExamination data={chart.mentalExamination} />
                 )}
               </Wrapper>
             ))}

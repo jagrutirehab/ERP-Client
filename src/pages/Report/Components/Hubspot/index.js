@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector, useDispatch, connect } from "react-redux";
 import {
   fetchHubspotContacts,
   togglePatientForm,
@@ -26,7 +26,7 @@ const visitDateOptions = [
   { label: "Planned Visits", value: "planned" },
 ];
 
-const LeadDashboard = ({ leadDate }) => {
+const LeadDashboard = ({ leadDate, centers, centerAccess, activeTab }) => {
   const dispatch = useDispatch();
   const {
     contacts = [],
@@ -40,7 +40,7 @@ const LeadDashboard = ({ leadDate }) => {
     status: "",
     assignedTo: "",
   });
-  const [visitDateFilter, setVisitDateFilter] = useState("");
+  const [visitDateFilter, setVisitDateFilter] = useState("today");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [tooltipOpen, setTooltipOpen] = useState(null);
@@ -48,21 +48,38 @@ const LeadDashboard = ({ leadDate }) => {
 
   // Fetch contacts when visitDateFilter, currentPage, or itemsPerPage changes
   useEffect(() => {
+    const access = centers
+      .filter((cn) => centerAccess.includes(cn._id))
+      .map((cn) => {
+        const titles = cn.title.split("-").join(",");
+        return titles;
+        // cn.title
+      })
+      .join(",");
     const params = {
       page: currentPage,
       limit: itemsPerPage,
       // leadDate: leadDate,
       // visitDate: visitDateFilter,
     };
+    console.log({ access });
+
+    if (access) params.centers = access;
     if (visitDateFilter === "planned") {
       params.status = "Planned";
     } else {
       params.visitDate = visitDateFilter;
     }
-
-    console.log(params, "params");
-    dispatch(fetchHubspotContacts(params));
-  }, [visitDateFilter, currentPage, itemsPerPage, dispatch]);
+    if (activeTab === "2") dispatch(fetchHubspotContacts(params));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeTab,
+    visitDateFilter,
+    currentPage,
+    itemsPerPage,
+    dispatch,
+    centerAccess,
+  ]);
 
   // Reset tooltip state and cleanup refs when data changes or component unmounts
   useEffect(() => {
@@ -80,6 +97,10 @@ const LeadDashboard = ({ leadDate }) => {
 
   // Filtering (client-side for visitType, status, assignedTo)
   const filteredContacts = useMemo(() => {
+    const access = centers
+      .filter((cn) => centerAccess.includes(cn._id))
+      .map((cn) => cn.title);
+
     let filtered = contacts;
     if (filters.visitType) {
       filtered = filtered.filter((c) => c.visitType === filters.visitType);
@@ -90,10 +111,16 @@ const LeadDashboard = ({ leadDate }) => {
     if (filters.assignedTo) {
       filtered = filtered.filter((c) => c.assignedTo === filters.assignedTo);
     }
+    // if (access?.length > 0)
+    //   filtered = filtered.filter((c) =>
+    //     access.some((a) => c.center.includes(a))
+    //   );
+    // else filtered = [];
     return filtered;
-  }, [contacts, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contacts, centerAccess, filters]);
 
-  console.log(filteredContacts, "filteredContacts");
+  console.log({ filteredContacts, contacts, filters });
 
   // Pagination controls
   const totalPages = pagination?.totalPages || 1;
@@ -138,6 +165,36 @@ const LeadDashboard = ({ leadDate }) => {
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Phone
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Gender
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Lead Source
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                City
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Center
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Relation with patient
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Issues
+              </th>{" "}
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Amount
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Quality of Lead
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                OPD/IPD
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Notes
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Visit Date
@@ -197,6 +254,38 @@ const LeadDashboard = ({ leadDate }) => {
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.phone}
                   </td>
+
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.gender}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.lead_source}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.city}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.center}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.relation_with_patient}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    <div style={{ width: "300px" }}>{contact.issues}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.amount}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.quality_of_lead}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    {contact.opd_ipd}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-700">
+                    <div style={{ width: "300px" }}>{contact.notes}</div>
+                  </td>
+
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
                     {contact.visitDate}
                   </td>
@@ -211,7 +300,7 @@ const LeadDashboard = ({ leadDate }) => {
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                    {contact.contactOwner}
+                    {contact.hubspot_owner_id?.name}
                   </td>
                   <td className="px-4 py-3 text-capitalize whitespace-nowrap text-gray-700">
                     {contact.lifecyclestage}
@@ -308,4 +397,9 @@ const LeadDashboard = ({ leadDate }) => {
   );
 };
 
-export default LeadDashboard;
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+});
+
+export default connect(mapStateToProps)(LeadDashboard);

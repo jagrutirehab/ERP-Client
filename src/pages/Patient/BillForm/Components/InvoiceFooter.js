@@ -201,9 +201,9 @@ const InvoiceFooter = (props) => {
                     const value = e.target.value;
                     props.setInvoiceType(value);
                   }}
-                  disabled={
-                    props.totalAdvance < props.totalCost - props.totalDiscount
-                  }
+                  // disabled={
+                  //   props.totalAdvance < props.totalCost - props.totalDiscount
+                  // }
                 >
                   <option value={INVOICE}>Payable</option>
                   <option value={REFUND}>Refund</option>

@@ -152,11 +152,11 @@ const YMSCQuestion = () => {
             question: 'Thought Content:',
             description: 'Observed by staff (delusions, grandiosity, paranoia, persecutory ideas).',
             scores: [
-                { value: 0, label: 'Absent' },
-                { value: 1, label: 'Suspicious, guarded, defensive' },
-                { value: 2, label: 'Delusions of reference, persecution (not bizarre)' },
-                { value: 3, label: 'Bizarre delusions, hallucinations, thought broadcasting' },
-                { value: 4, label: 'Grandiose delusions, bizarre thoughts' },
+                { value: 0, label: 'Normal' },
+                { value: 1, label: 'Questionable plans, new interests' },
+                { value: 2, label: 'Special project(s); hyperreligious' },
+                { value: 3, label: 'Grandiose or paranoid ideas; ideas of reference' },
+                { value: 4, label: 'Delusions; hallucinations' },
             ],
         },
         {

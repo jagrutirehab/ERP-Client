@@ -18,6 +18,7 @@ import {
   ModalBody,
   ModalHeader,
   Row,
+  FormGroup,
 } from "reactstrap";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import Dropzone from "react-dropzone";
@@ -146,8 +147,11 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       branchName: centerData ? centerData.branchName : "",
       numbers: centerData ? centerData.numbers : "",
       centerName: centerData ? centerData.centerName : "",
-      city: centerData ? centerData.city : "",
+      city: centerData ? centerData.city?.city : "",
+      state: centerData ? centerData.city?.state : "",
       localArea: centerData ? centerData.localArea : "",
+      numberOfBeds: centerData ? centerData.numberOfBeds : "",
+      websiteListing: centerData ? !!centerData.websiteListing : false,
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -162,6 +166,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       accountNumber: Yup.string().required("Center account number is required"),
       branchName: Yup.string().required("Center branch name is required"),
       numbers: Yup.string().required("Center contact number(s) are required"),
+      numberOfBeds: Yup.number().required("Number of beds are required"),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -173,6 +178,14 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       formData.append("accountNumber", values.accountNumber);
       formData.append("branchName", values.branchName);
       formData.append("numbers", values.numbers);
+      formData.append("city", values.city);
+      formData.append("state", values.state);
+      formData.append("localArea", values.localArea);
+      formData.append("numberOfBeds", values.numberOfBeds);
+      formData.append(
+        "websiteListing",
+        values.websiteListing ? "true" : "false"
+      );
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -187,11 +200,17 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
-  const fieldsArray = Object.keys(validation.values);
+  console.log({ validation });
+
+  const fieldsArray = Object.keys(validation.values).filter(
+    (key) => !["state", "websiteListing"].includes(key)
+  );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
+
+  console.log({ fieldsArray });
 
   const closeForm = () => {
     validation.resetForm();
@@ -235,7 +254,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       setLogo(reader.result);
     };
     reader.readAsDataURL(file);
-  
+
     // const reader = new FileReader();
     // reader.addEventListener("load", () => {
     //   const imageElement = new Image();
@@ -283,7 +302,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   file={logo}
                   setLogo={setLogo}
                   setCropLogo={setCrop}
-                 
+
                   // maxHeight={150}
                   // maxWidth={150}
                   // minHeight={150}
@@ -312,30 +331,37 @@ const CenterForm = ({ author, isOpen, centerData }) => {
               <Col xs={12}>
                 {!centerData?.logo && !Boolean(cropLogo) && (
                   <Dropzone
-                    onDrop={(acceptedFiles ) =>  {
+                    onDrop={(acceptedFiles) => {
                       handleAcceptedFiles(acceptedFiles);
-                      
                     }}
                     multiple={false}
                   >
                     {({ getRootProps, getInputProps }) => (
                       <div className="dropzone dz-clickable text-center">
-                        <div 
+                        <div
                           className="dz-message needsclick btn border-dashed border-secondary"
                           {...getRootProps()}
                         >
-                           <input {...getInputProps()} />
-                           {logo ? (
-              <img src={logo} alt="Preview" style={{ width: "100%", height: "150px", objectFit: "contain" }} />
-            ) : (
-              <div>
-                          <div className="mb-3">
-                            <i className="display-4 text-muted ri-upload-cloud-2-fill" />
-                          </div>
-                          <h4>Drop Logo here or click to upload.</h4>
+                          <input {...getInputProps()} />
+                          {logo ? (
+                            <img
+                              src={logo}
+                              alt="Preview"
+                              style={{
+                                width: "100%",
+                                height: "150px",
+                                objectFit: "contain",
+                              }}
+                            />
+                          ) : (
+                            <div>
+                              <div className="mb-3">
+                                <i className="display-4 text-muted ri-upload-cloud-2-fill" />
+                              </div>
+                              <h4>Drop Logo here or click to upload.</h4>
+                            </div>
+                          )}
                         </div>
-                           )}
-          </div>
                       </div>
                     )}
                   </Dropzone>
@@ -360,7 +386,36 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                 )} */}
               </Col>
               {(fieldsArray || []).map((field, i) =>
-                field === "city" ? (
+                field === "numberOfBeds" ? (
+                  <Col key={i + field} xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label htmlFor={field} className="form-label">
+                        {getFieldLabel(field)}
+                      </Label>
+                      <Input
+                        name={field}
+                        // disabled={field === "title" && centerData}
+                        className="form-control"
+                        placeholder={`Enter ${getFieldLabel(field)}`}
+                        type="number"
+                        min={0}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        value={validation.values[field] || ""}
+                        invalid={
+                          validation.touched[field] && validation.errors[field]
+                            ? true
+                            : false
+                        }
+                      />
+                      {validation.touched[field] && validation.errors[field] ? (
+                        <FormFeedback type="invalid">
+                          {validation.errors[field]}
+                        </FormFeedback>
+                      ) : null}
+                    </div>
+                  </Col>
+                ) : field === "city" ? (
                   <Col xs={12} lg={6}>
                     <div className="mb-3">
                       <Label htmlFor="city" className="form-label">
@@ -369,15 +424,35 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                       <Select
                         className="basic-single"
                         classNamePrefix="select"
-                        defaultValue={""}
-                        isClearable={true}
-                        isSearchable={true}
-                        name="color"
-                        options={cities}
-                        onChange={(e) => {
-                          // validation.setFieldValue("city", );
-                        }}
+                        isClearable
+                        isSearchable
                         id="city"
+                        name="city"
+                        value={
+                          cities.find(
+                            (c) =>
+                              c.city === validation.values.city &&
+                              c.state === validation.values.state
+                          ) || null
+                        }
+                        options={cities}
+                        getOptionLabel={(option) => option.label}
+                        getOptionValue={(option) => option.value}
+                        onChange={(selectedOption) => {
+                          if (selectedOption) {
+                            validation.setFieldValue(
+                              "city",
+                              selectedOption.city
+                            );
+                            validation.setFieldValue(
+                              "state",
+                              selectedOption.state
+                            );
+                          } else {
+                            validation.setFieldValue("city", "");
+                            validation.setFieldValue("state", "");
+                          }
+                        }}
                       />
                       {validation.touched.city && validation.errors.city ? (
                         <FormFeedback type="invalid">
@@ -416,6 +491,30 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   </Col>
                 )
               )}
+              <Col xs={12} className="mb-3">
+                <FormGroup switch>
+                  <Input
+                    type="switch"
+                    role="switch"
+                    id="websiteListing"
+                    name="websiteListing"
+                    checked={validation.values.websiteListing}
+                    onChange={(event) =>
+                      validation.setFieldValue(
+                        "websiteListing",
+                        event.target.checked
+                      )
+                    }
+                  />
+                  <Label
+                    check
+                    className="form-check-label ms-2"
+                    htmlFor="websiteListing"
+                  >
+                    Website Listing
+                  </Label>
+                </FormGroup>
+              </Col>
               {/* 
               <Col xs={12} lg={6}>
                 <div className="mb-3">

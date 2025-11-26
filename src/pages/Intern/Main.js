@@ -5,15 +5,27 @@ import InternTopbar from "./InternTopbar";
 import Views from "./Views";
 import { connect } from "react-redux";
 import RenderWhen from "../../Components/Common/RenderWhen";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { fetchInternById } from "../../store/actions";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { Spinner } from "reactstrap";
 
 const Main = ({ intern, deleteIntern, setDeleteIntern }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id } = useParams();
-  useEffect(() => {
-    if (!id || id === "*") return;
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles,
+  } = usePermissions(token);
+  const hasUserPermission = hasPermission("INTERN", null, "READ");
 
+  useEffect(() => {
+    if (!hasUserPermission) return;
+    if (!id || id === "*") return;
     const fetchData = async () => {
       try {
         dispatch(fetchInternById(id));
@@ -23,12 +35,29 @@ const Main = ({ intern, deleteIntern, setDeleteIntern }) => {
     };
 
     fetchData();
-  }, [dispatch, id]);
+  }, [dispatch, id, roles]);
+
+  if (permissionLoader) {
+      return (
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          <Spinner
+            color="primary"
+            className="d-block"
+            style={{ width: "3rem", height: "3rem" }}
+          />
+        </div>
+      );
+    }
+  
+    if (!hasUserPermission) {
+      navigate("/unauthorized");
+      return null;
+    }
 
   return (
     <React.Fragment>
       <RenderWhen isTrue={intern ? true : false}>
-        <div className="w-100" style={{ marginTop: "25px" }}>
+        <div className="w-100">
           <InternTopbar
             deleteIntern={deleteIntern}
             setDeleteIntern={setDeleteIntern}

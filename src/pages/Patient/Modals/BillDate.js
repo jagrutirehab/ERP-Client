@@ -19,7 +19,7 @@ import {
 } from "../../../Components/constants/patient";
 
 //redux
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import { createEditBill, setBillDate } from "../../../store/actions";
 
 const BillDate = ({
@@ -31,6 +31,9 @@ const BillDate = ({
   admission,
 }) => {
   const dispatch = useDispatch();
+  const PatientCenter = useSelector(
+    (state) => state.Patient.patient.center._id
+  );
 
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
@@ -64,6 +67,9 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
+                    maxDate: new Date(
+                      new Date().setMonth(new Date().getMonth() + 1)
+                    ),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
@@ -113,10 +119,16 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              PatientCenter === "65b0143a5f1da510dc3094cb"
+                ? editBillData.bill === null ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+                : editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
             }
             size="sm"
             onClick={() => {
@@ -131,7 +143,11 @@ const BillDate = ({
               toggle();
             }}
           >
-            Advance Payment
+            {PatientCenter === "65b0143a5f1da510dc3094cb"
+              ? "Payment"
+              : "Advance Payment"}
+            {/* Advance Payment */}
+            {/* Payment */}
           </Button>
           <Button
             outline

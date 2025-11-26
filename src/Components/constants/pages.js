@@ -18,10 +18,75 @@ const pages = [
     label: "Emergency",
     name: "Emergency",
     link: "/emergency",
-   icon: "bx bxs-error" 
+    icon: "bx bxs-error",
   },
   {
-    id: "users",
+    id: "centralpayment",
+    label: "Central Payment",
+    name: "Central Payment",
+    link: "/centralpayment",
+    icon: "bx bx-wallet-alt",
+  },
+  {
+    id: "incidentreporting",
+    label: "Incident Reporting",
+    name: "Incident Reporting",
+    link: "/incident-reporting",
+    icon: "bx bx-error",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
+    id: "cash",
+    label: "Cash",
+    name: "Cash",
+    link: "/cash",
+    icon: "bx bx-rupee",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+    // children: [
+    //   {
+    //     name: "Reports",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Balance",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Deposits",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    //   {
+    //     name: "Spending",
+    //     permissions: {
+    //       create: true,
+    //       edit: true,
+    //       delete: true,
+    //     },
+    //   },
+    // ],
+  },
+  {
+    id: "user",
     label: "User",
     name: "User",
     link: "/user",
@@ -45,6 +110,7 @@ const pages = [
     },
     children: [
       {
+        id:"INTERNTIMELINE",
         name: "Timeline",
         permissions: {
           create: true,
@@ -53,6 +119,7 @@ const pages = [
         },
       },
       {
+        id:"INTERNBILLING",
         name: "Billing",
         permissions: {
           create: true,
@@ -61,13 +128,15 @@ const pages = [
         },
       },
       {
+        id:"INTERNFORMS",
         name: "Forms",
         permissions: {
           create: true,
           edit: true,
           delete: true,
         },
-      },{
+      },
+      {
         name: "Certificate",
         permissions: {
           create: true,
@@ -139,6 +208,18 @@ const pages = [
     ],
   },
   {
+    id: "roundnotes",
+    label: "Round Notes",
+    name: "Round Notes",
+    link: "/round-notes",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "booking",
     label: "Booking",
     name: "Booking",
@@ -168,6 +249,53 @@ const pages = [
     name: "Report",
     link: "/report",
     icon: "bx bxs-report",
+  },
+  {
+    id: "pharmacy",
+    label: "Pharmacy",
+    name: "Pharmacy",
+    link: "/pharmacy",
+    icon: "bx bx-book",
+  },
+  {
+    id: "guidelines",
+    label: "Guidelines",
+    name: "Guidelines",
+    link: "/guidelines",
+    icon: "bx bx-book-open",
+  },
+];
+
+export const Pharmacy = [
+  {
+    id: "pharmacy-dashboard",
+    label: "Dashboard",
+    link: "/pharmacy/dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "pharmacymanagement",
+    label: "Inventory",
+    link: "/pharmacy/management",
+    icon: "bx bx-building-house",
+  },
+  {
+    id: "givenmedicines",
+    label: "Medicine Given",
+    link: "/pharmacy/given-med",
+    icon: "bx bx-building-house",
+  },
+  {
+    id: "medicineaApproval",
+    label: "Medicine Approval",
+    link: "/pharmacy/approval",
+    icon: "bx bx-checkbox-checked",
+  },
+  {
+    id: "audit",
+    label: "Audit",
+    link: "/pharmacy/audit",
+    icon: "bx bx-fingerprint",
   },
 ];
 
@@ -218,6 +346,12 @@ export const setting = [
     id: "conditions",
     label: "Conditions",
     link: "/setting/conditions",
+    icon: "bx bx-health",
+  },
+  {
+    id: "symptoms",
+    label: "Symptoms",
+    link: "/setting/symptoms",
     icon: "bx bx-health",
   },
 ];

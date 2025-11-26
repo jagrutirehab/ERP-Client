@@ -1,11 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { StyleSheet, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
+import DoctorSignature from "./DoctorSignature";
+import CheifComplaint from "./ChiefComplaint";
+import ProvisionalDiagnosis from "./ProvisionalDaignosis";
+import MentalExaminationBody from "../MentalExaminationBody";
+import { DETAIL_ADMISSION } from "../../../constants/patient";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -110,8 +115,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const Body = ({ chart, patient }) => {
+const Body = ({ chart, patient, admission }) => {
   const data = chart.detailAdmission;
+  const isOldMentalExamination = Boolean(data?.mentalExamination);
 
   return (
     <React.Fragment>
@@ -119,12 +125,16 @@ const Body = ({ chart, patient }) => {
         chart={chart}
         patient={patient}
         data={data.detailAdmission}
+        admission={admission}
         styles={styles}
       />
+      <CheifComplaint data={data.ChiefComplaints} styles={styles} />
+      {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
       <DetailHistory data={data.detailHistory} styles={styles} />
-      <MentalExamination data={data.mentalExamination} styles={styles} />
+      {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationBody data={data.mentalExaminationV2} from={DETAIL_ADMISSION} />}
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
+      <DoctorSignature doctor={patient} />
       {/* <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
         {chart.drNotes && (
           <View>

@@ -236,7 +236,7 @@ const Pricing = ({
         }}
         className="w-100 my-4"
       >
-        <Row className="gap-4">
+        <Row className="g-4">
           <Col xs={12} md={6} className="rounded-xl py-4 px-3 shadow-lg">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="display-h5">Online Pricing</h5>
@@ -257,8 +257,8 @@ const Pricing = ({
             </div>
 
             {pricing?.online?.map((prc, idx) => (
-              <Row key={idx} className="mb-3">
-                <Col xs={2} md={5} className="d-flex align-items-end">
+              <Row key={idx} className="mb-3 g-2">
+                <Col xs={5} md={5} className="d-flex align-items-end">
                   <div className="mt-auto">
                     <Label size="sm">Session</Label>
                     <Input
@@ -285,27 +285,26 @@ const Pricing = ({
                     </Input>
                   </div>
                 </Col>
-                <Col xs={2} md={5}>
-                  <div className="mt-auto">
-                    <Label size="sm">Session Price</Label>
-                    <Input
-                      bsSize="sm"
-                      type="text"
-                      required
-                      value={prc.price}
-                      onChange={(e) =>
-                        handleChange("online", idx, "price", e.target.value)
+                <Col xs={5} md={5}>                  <div className="mt-auto">
+                  <Label size="sm">Session Price</Label>
+                  <Input
+                    bsSize="sm"
+                    type="text"
+                    required
+                    value={prc.price}
+                    onChange={(e) =>
+                      handleChange("online", idx, "price", e.target.value)
+                    }
+                    onKeyPress={(e) => {
+                      // Allow only numbers and backspace
+                      if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
+                        e.preventDefault();
                       }
-                      onKeyPress={(e) => {
-                        // Allow only numbers and backspace
-                        if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </div>
+                    }}
+                  />
+                </div>
                 </Col>
-                <Col xs={2} md={2} className="d-flex align-items-end">
+                <Col xs={2} md={2} className="d-flex align-items-end justify-content-center">
                   <Button
                     size="sm"
                     onClick={() => removeOnlineSession(idx)}
@@ -314,7 +313,7 @@ const Pricing = ({
                     type="button"
                     className="mb-1"
                   >
-                    <i className="ri-close-circle-line font-size-20"></i>
+                    <i className="ri-close-circle-line fs-16 fs-sm-20"></i>
                   </Button>
                 </Col>
               </Row>
@@ -326,14 +325,17 @@ const Pricing = ({
             {pricing?.offline?.map((prc, idx) => (
               <Row
                 key={idx}
-                className={`${
-                  idx !== pricing.offline.length - 1
-                    ? "border-bottom border-dark pb-4"
-                    : ""
-                }`}
+                className={`${idx !== pricing.offline.length - 1
+                  ? "border-bottom border-dark pb-4"
+                  : ""
+                  }`}
               >
-                <Col xs={3} md={4}>
-                  <div className="">
+                <Col
+                  xs={10}
+                  md={4}
+                  className="position-relative"
+                >
+                  <div>
                     <Label size="sm">Centers</Label>
                     <Input
                       bsSize="sm"
@@ -360,7 +362,26 @@ const Pricing = ({
                   </div>
                 </Col>
 
-                <Col xs={2} md={6} className="">
+                <Col
+                  xs={2}
+                  md={0}
+                  className="d-flex d-md-none align-items-start justify-content-center"
+                >
+                  <Button
+                    size="sm"
+                    onClick={() => removeOfflineCenter(idx)}
+                    color="danger"
+                    outline
+                    type="button"
+                  >
+                    <i className="ri-close-circle-line fs-16"></i>
+                  </Button>
+                </Col>
+
+
+
+
+                <Col xs={12} md={6}>
                   {(prc?.pricings || []).map((pricing, i) => (
                     <div className="d-flex gap-4" key={i}>
                       <div className="mt-auto">
@@ -428,16 +449,16 @@ const Pricing = ({
                     </div>
                   ))}
                 </Col>
-                <Col xs={2} className="d-flex flex-col">
+                <Col xs={12} md={2} className="d-none d-md-flex justify-content-md-start justify-content-center">
                   <Button
                     size="sm"
                     onClick={() => removeOfflineCenter(idx)}
                     color="danger"
                     outline
                     type="button"
-                    className="mt-auto"
+                    className="mt-md-auto mt-sm-1"
                   >
-                    <i className="ri-close-circle-line font-size-20 mt-auto"></i>
+                    <i className="ri-close-circle-line fs-16 fs-sm-20"></i>
                   </Button>
                 </Col>
               </Row>

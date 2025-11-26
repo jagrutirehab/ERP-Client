@@ -5,24 +5,19 @@ import CreatableSelect from "react-select/creatable";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
-import { updateUser } from "../../store/actions";
+import { fetchCondition, fetchTherapy, updateUser } from "../../store/actions";
 import authRoles from "../../Components/constants/authRoles";
 import pages from "../../Components/constants/pages";
 import PropTypes from "prop-types";
 import { getAllRoleslist } from "../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import {
-  addNewUser,
-  clearUser,
-} from "../../store/features/auth/user/userSlice";
+import { addNewUser } from "../../store/features/auth/user/userSlice";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
-import PhoneInputWithCountrySelect, {
-  isValidPhoneNumber,
-} from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { FormFeedback } from "reactstrap";
+import { Input, Label } from "reactstrap";
 
 const UserForm = ({
   isOpen,
@@ -40,6 +35,19 @@ const UserForm = ({
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
   const centers = useSelector((state) => state.Center.allCenters);
+  const therapyOptions = useSelector((state) => state.Setting.therapies).map(
+    (therapy) => ({
+      value: therapy.title,
+      label: therapy.title,
+    })
+  );
+  const conditionOptions = useSelector((state) => state.Setting.conditions).map(
+    (condition) => ({
+      value: condition.title,
+      label: condition.title,
+    })
+  );
+  const userForm = useSelector((state) => state.User.form);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const loader = useSelector((state) => state.User.loading);
@@ -57,24 +65,24 @@ const UserForm = ({
   const [conditions, setConditions] = useState([]);
   const [therapies, setTherapies] = useState([]);
   const [languages, setLanguages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [accessroles, setAcccessRoles] = useState([]);
-  const [search, setSearch] = useState([]);
+  // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
   const fetchRoles = async () => {
     if (!token) return;
     if (!hasUserPermission) return;
     try {
-      setLoading(true);
-      const response = await getAllRoleslist({ token, search });
+      // setLoading(true);
+      const response = await getAllRoleslist({ token });
       setAcccessRoles(response?.data || []);
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error("Failed to fetch access roles.");
       }
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -82,6 +90,24 @@ const UserForm = ({
     fetchRoles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  useEffect(() => {
+    if (!userForm.isOpen || userForm.data?.role !== "DOCTOR") return;
+
+    if (!therapyOptions || therapyOptions.length === 0) {
+      dispatch(fetchTherapy());
+    }
+    if (!conditionOptions || conditionOptions.length === 0) {
+      dispatch(fetchCondition());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    therapyOptions?.length,
+    conditionOptions?.length,
+    dispatch,
+    userForm.isOpen,
+    userForm.data?.role,
+  ]);
 
   const handleChange = (selectedOptions) => {
     setOptions(selectedOptions || []);
@@ -113,30 +139,44 @@ const UserForm = ({
 
   // CONDITIONS
   const handleConditionChange = (selectedOptions) => {
-    setExpertise(selectedOptions || []);
-    validation.setFieldValue("expertise", selectedOptions);
+    setConditions(selectedOptions || []);
+    validation.setFieldValue("conditions", selectedOptions);
   };
+
+  const mergedConditionOptions = [
+    ...conditionOptions,
+    ...conditions.filter(
+      (c) => !conditionOptions.some((opt) => opt.value === c.value)
+    ),
+  ];
 
   const handleConditionCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
-    setExpertise((prev) => [...prev, newOption]);
-    validation.setFieldValue("expertise", [
-      ...(validation.values.expertise || []),
+    setConditions((prev) => [...prev, newOption]);
+    validation.setFieldValue("conditions", [
+      ...(validation.values.conditions || []),
       newOption,
     ]);
   };
 
   // THERAPIES
   const handleTherapiesChange = (selectedOptions) => {
-    setExpertise(selectedOptions || []);
-    validation.setFieldValue("expertise", selectedOptions);
+    setTherapies(selectedOptions || []);
+    validation.setFieldValue("therapies", selectedOptions);
   };
+
+  const mergedTherapyOptions = [
+    ...therapyOptions,
+    ...therapies.filter(
+      (t) => !therapyOptions.some((opt) => opt.value === t.value)
+    ),
+  ];
 
   const handleTherapiesCreate = (inputValue) => {
     const newOption = { value: inputValue.toLowerCase(), label: inputValue };
-    setExpertise((prev) => [...prev, newOption]);
-    validation.setFieldValue("expertise", [
-      ...(validation.values.expertise || []),
+    setTherapies((prev) => [...prev, newOption]);
+    validation.setFieldValue("therapies", [
+      ...(validation.values.therapies || []),
       newOption,
     ]);
   };
@@ -190,15 +230,12 @@ const UserForm = ({
       email: userData ? userData.email : "",
       accessroles: userData?.accessroles?._id || "",
       role: userData ? userData.role : "",
+      gender: userData ? userData.gender : "",
       phoneNumber: userData ? userData.phoneNumber : "",
-      degrees: userData?.education?.degrees ?? userData?.degrees ?? "",
-      speciality: userData?.education
-        ? userData.education?.speciality
-        : userData?.speciality || "",
-      registrationNo: userData?.education
-        ? userData.education?.registrationNo
-        : userData?.registrationNo || "",
-
+      degrees: userData ? userData.degrees : "",
+      speciality: userData ? userData?.speciality : "",
+      registrationNo: userData ? userData?.registrationNo : "",
+      unit: userData ? userData?.unit : "",
       centerAccess: userData?.centerAccess
         ? userData?.centerAccess.map((cn) => cn._id)
         : [],
@@ -227,6 +264,7 @@ const UserForm = ({
     validationSchema: Yup.object({
       email: Yup.string().required("Please Enter Your Email"),
       name: Yup.string().required("Please Enter Your Username"),
+      gender: Yup.string().required("Please Select Gender"),
       ...(!userData && {
         password: Yup.string().required("Please Enter Your Password"),
       }),
@@ -252,16 +290,18 @@ const UserForm = ({
         }
       ),
       accessroles: Yup.string().required("Access Role is required"),
-      pageAccess: Yup.array().test(
-        "notEmpty",
-        "Pages Access is required",
-        (value) => {
-          if (!value || value.length === 0) {
-            return false;
-          }
-          return true;
-        }
-      ),
+      pageAccess: Yup.array()
+      // .test(
+      //   "notEmpty",
+      //   "Pages Access is required",
+      //   (value) => {
+      //     if (!value || value.length === 0) {
+      //       return false;
+      //     }
+      //     return true;
+      //   }
+      // )
+      ,
       role: Yup.string().required("Please Select User Role"),
     }),
     onSubmit: async (values) => {
@@ -271,23 +311,33 @@ const UserForm = ({
       formData.append("email", values.email);
       formData.append("accessroles", values.accessroles);
       formData.append("role", values.role);
+      formData.append("gender", values.gender);
       formData.append("phoneNumber", values.phoneNumber);
       formData.append("degrees", values.degrees);
       formData.append("speciality", values.speciality);
       formData.append("registrationNo", values.registrationNo);
+      formData.append("unit", values.unit);
       formData.append("centerAccess", values?.centerAccess.join(","));
       formData.append("pageAccess", JSON.stringify(values.pageAccess));
       formData.append("password", values.password);
       formData.append("bio", values.bio);
+      formData.append("availabilityMode", values.availabilityMode);
+      formData.append("experience", values.experience);
       if (expertise?.length)
         formData.append(
           "expertise",
           JSON.stringify(expertise?.map((o) => o.value))
         );
-      formData.append("availabilityMode", values.availabilityMode);
-      formData.append("experience", values.experience);
-      formData.append("conditions", values.conditions);
-      formData.append("therapies", values.therapies);
+      if (conditions?.length)
+        formData.append(
+          "conditions",
+          JSON.stringify(conditions?.map((o) => o.value))
+        );
+      if (therapies?.length)
+        formData.append(
+          "therapies",
+          JSON.stringify(therapies?.map((o) => o.value))
+        );
       if (options?.length)
         formData.append(
           "patientsConcern",
@@ -299,13 +349,17 @@ const UserForm = ({
           JSON.stringify(languages?.map((o) => o.value))
         );
       if (faqs?.length) formData.append("faqs", JSON.stringify(faqs));
-      if (cropSignature?.file) formData.append("signature", cropSignature.file);
+      if (cropSignature?.file) {
+        formData.append("signature", cropSignature.file);
+      } else if (cropSignature === null) {
+        formData.append("clearSignature", "true");
+      }
       if (cropProfilePic?.file)
         formData.append("profilePicture", cropProfilePic.file);
       if (userData) {
         formData.append("pageAccessId", userData.pageAccess?._id);
-        if (userData.education?._id)
-          formData.append("educationId", userData.education?._id);
+        // if (userData.education?._id)
+        //   formData.append("educationId", userData.education?._id);
         formData.append("id", userData._id);
 
         try {
@@ -363,6 +417,13 @@ const UserForm = ({
       label: "Phone number",
       name: "phoneNumber",
       type: "phoneNumber",
+      handleChange: (e) => validation.handleChange(e),
+    },
+    {
+      label: "Gender",
+      name: "gender",
+      type: "radio",
+      options: ["MALE", "FEMALE", "OTHERS"],
       handleChange: (e) => validation.handleChange(e),
     },
     !userData && {
@@ -832,6 +893,7 @@ const UserForm = ({
                     flexDirection: "column",
                     gap: "10px",
                   }}
+                  className="justify-end"
                 >
                   <label
                     style={{
@@ -1138,8 +1200,30 @@ const UserForm = ({
                           </p>
                         )}
                     </div>
-                  ) : // hidden input
-                  field.name === "hidden_input" ? (
+                  ) : field.type === "radio" ? (
+                    <>
+                      <div className="d-flex flex-wrap">
+                        {(field.options || []).map((item, idx) => (
+                          <div
+                            key={item + idx}
+                            className="d-flex me-4 align-items-center"
+                          >
+                            <Input
+                              className="me-2 mt-0"
+                              type="radio"
+                              name={field.name}
+                              value={item}
+                              onChange={validation.handleChange}
+                              checked={validation.values[field.name] === item}
+                            />
+                            <Label className="form-label fs-14 mb-0">
+                              {item}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </> // hidden input
+                  ) : field.name === "hidden_input" ? (
                     <>
                       <label style={{ display: "hidden" }}></label>
                       <input type="hidden" name={field.name} />
@@ -2004,6 +2088,65 @@ const UserForm = ({
                     color: "#374151",
                   }}
                 >
+                  Unit
+                </label>
+                <input
+                  type="text"
+                  name="unit"
+                  placeholder="Enter Unit"
+                  style={{
+                    padding: "10px",
+                    border: `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`,
+                    borderRadius: "6px",
+                    fontSize: "15px",
+                    outline: "none",
+                    width: "100%",
+                    backgroundColor: "#ffffff",
+                    transition: "border-color 0.2s",
+                  }}
+                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                  onBlur={(e) => {
+                    e.target.style.border = `1px solid ${
+                      validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                    }`;
+                    validation.handleBlur(e);
+                  }}
+                  onChange={validation.handleChange}
+                  value={validation.values.unit || ""}
+                />
+                {validation.touched.unit && validation.errors.unit && (
+                  <p
+                    style={{
+                      color: "#ef4444",
+                      fontSize: "13px",
+                      marginTop: "6px",
+                    }}
+                  >
+                    {validation.errors.unit}
+                  </p>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "500",
+                    color: "#374151",
+                  }}
+                >
                   Bio
                 </label>
                 <textarea
@@ -2088,7 +2231,7 @@ const UserForm = ({
                 <CreatableSelect
                   isMulti
                   name="conditions"
-                  options={conditions}
+                  options={mergedConditionOptions}
                   classNamePrefix="react-select"
                   onChange={handleConditionChange}
                   onCreateOption={handleConditionCreate}
@@ -2127,7 +2270,7 @@ const UserForm = ({
                 <CreatableSelect
                   isMulti
                   name="therapies"
-                  options={therapies}
+                  options={mergedTherapyOptions}
                   classNamePrefix="react-select"
                   onChange={handleTherapiesChange}
                   onCreateOption={handleTherapiesCreate}

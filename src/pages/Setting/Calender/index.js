@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import PropTypes from "prop-types";
 import BreadCrumb from "../../../Components/Common/BreadCrumb";
 import BookingBar from "./Components/BookingBar";
 import { useDispatch } from "react-redux";
@@ -8,10 +7,8 @@ import {
   fetchCalenderDuration,
 } from "../../../store/actions";
 import PracticeList from "./Components/PracticeList";
-import DoctorSchedule from "./Components/DoctorSchedule";
 import Schedule from "../../Booking/Components/Schedule";
 import CustomModal from "../../../Components/Common/Modal";
-import { Nav, NavItem, NavLink } from "reactstrap";
 
 const Booking = () => {
   const dispatch = useDispatch();

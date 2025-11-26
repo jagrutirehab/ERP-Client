@@ -14,6 +14,7 @@ import { useLocation } from "react-router-dom";
  * @param {permission} Permission
  * @param {subAccess} SubAccess
  * @param {pages} Pages
+ * @param {accessRoles} accessRoles
  * @param {children} Children
  * @returns Children
  */

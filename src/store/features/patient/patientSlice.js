@@ -54,7 +54,7 @@ const initialState = {
   searchLoading: false,
   phoneNumberLoading: false,
   patientRefLoading: false,
-  nurseLoading:false,
+  nurseLoading: false,
 };
 
 export const fetchPatients = createAsyncThunk(
@@ -427,6 +427,12 @@ export const patientSlice = createSlice({
     searchPatientReferralFail: (state) => {
       state.patientRefLoading = false;
     },
+    setBillingStatus: (state, { payload }) => {
+      const patient = state.data.find((p) => p._id === payload.patientId);
+      if (patient) {
+        patient.billingStatus = payload.billingStatus;
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -643,7 +649,7 @@ export const patientSlice = createSlice({
       .addCase(deletePatient.rejected, (state) => {
         state.loading = false;
       });
-    
+
     builder
       .addCase(assignNurse.pending, (state) => {
         state.nurseLoading = true;
@@ -673,13 +679,13 @@ export const patientSlice = createSlice({
       .addCase(unAssignNurse.rejected, (state) => {
         state.nurseLoading = false;
       });
-     builder.addCase(
-       assignEmergencyPatientType.fulfilled,
-       (state, { payload }) => {
-         state.patient.addmission.patientType =
-           payload.data.patientType;
-       }
-     ); 
+    builder.addCase(
+      assignEmergencyPatientType.fulfilled,
+      (state, { payload }) => {
+        state.patient.addmission.patientType =
+          payload.data.patientType;
+      }
+    );
   },
 });
 
@@ -703,6 +709,7 @@ export const {
   searchPatientReferral,
   searchPatientReferralSuccess,
   searchPatientReferralFail,
+  setBillingStatus
 } = patientSlice.actions;
 
 export default patientSlice.reducer;

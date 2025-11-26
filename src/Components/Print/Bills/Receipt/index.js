@@ -145,9 +145,7 @@ const Receipt = ({ bill, center, patient }) => {
               <Text>Created By: {bill.author?.name || ""}</Text>
               <Text>
                 On:{" "}
-                {bill.date
-                  ? format(new Date(bill.date), "dd MMM yyyy")
-                  : ""}
+                {bill.date ? format(new Date(bill.date), "dd MMM yyyy") : ""}
               </Text>
             </View>
             <View style={{ ...styles.patientSection, marginBottom: 30 }}>
@@ -268,22 +266,24 @@ const Receipt = ({ bill, center, patient }) => {
               </View>
               <Text style={styles.amount}></Text>
             </View>
-            <View
-              style={{
-                ...styles.row,
-                ...styles.border,
-                borderBottom: "none",
-                borderTop: "none",
-              }}
-            >
-              <View style={styles.slot}>
-                <Text>On Account Of:{"\n"}</Text>
-                <Text style={{ marginLeft: 20, marginTop: 10 }}>
-                  {advancePayment?.remarks}
-                </Text>
+            {advancePayment?.remarks && (
+              <View
+                style={{
+                  ...styles.row,
+                  ...styles.border,
+                  borderBottom: "none",
+                  borderTop: "none",
+                }}
+              >
+                <View style={styles.slot}>
+                  <Text>On Account Of:{"\n"}</Text>
+                  <Text style={{ marginLeft: 20, marginTop: 10 }}>
+                    Remarks: {advancePayment.remarks}
+                  </Text>
+                </View>
+                <Text style={styles.amount}></Text>
               </View>
-              <Text style={styles.amount}></Text>
-            </View>
+            )}
             <View
               style={{ ...styles.row, ...styles.border, borderTop: "none" }}
             >

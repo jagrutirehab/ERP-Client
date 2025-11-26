@@ -1,10 +1,9 @@
 import React from "react";
-import { Page, Document, StyleSheet } from "@react-pdf/renderer";
-
-//components
-import Header from "../Header";
+import { StyleSheet, View } from "@react-pdf/renderer";
 import Footer from "../Footer";
+import Header from "../Header";
 import Body from "./Body";
+// import DoctorSignature from "../DoctorSignature";
 
 const styles = StyleSheet.create({
   page: {
@@ -19,20 +18,25 @@ const styles = StyleSheet.create({
   },
 });
 
-const LabReport = ({ chart, center, patient }) => {
+const LabReport = ({ chart, center, patient, admission }) => {
+  const reports = chart?.labReport?.reports || [];
   return (
     <React.Fragment>
-      {/* <Document>
-        <Page style={{ ...styles.page }} size="A4" wrap> */}
-      {/* <Header
-            chart={chart}
-            center={center}
-            patient={patient}
-          /> */}
-      <Body chart={chart} />
-      {/* <Footer /> */}
-      {/* </Page>
-      </Document> */}
+      {reports.map((report, idx) => (
+        <View key={idx} style={styles.page}>
+          {idx === 0 && (
+            <Header
+              patient={patient}
+              chart={chart}
+              center={center}
+              admission={admission || {}}
+            />
+          )}
+          <Body report={report} key={idx} idx={idx} />
+        </View>
+      ))}
+      {/* <DoctorSignature doctor={chart?.author} /> */}
+      <Footer />
     </React.Fragment>
   );
 };

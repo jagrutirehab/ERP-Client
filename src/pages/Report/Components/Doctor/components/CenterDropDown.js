@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Col,
   Dropdown,
@@ -8,11 +8,14 @@ import {
   UncontrolledTooltip,
 } from "reactstrap";
 import PropTypes from "prop-types";
-import Hospital from "../../../../../assets/images/hospital.svg";
 
 const CenterDropdown = ({ options = [], value = [], onChange }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [tempValue, setTempValue] = useState(value);
+
+  useEffect(() => {
+    setTempValue(value);
+  }, [value, dropdownOpen]);
 
   const toggle = () => setDropdownOpen(!dropdownOpen);
 
@@ -50,15 +53,16 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
         type="button"
         className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
       >
-        <i className="bx bx-category-alt text-white fs-22"></i>
+        <i className="bx bx-category-alt text-blue fs-22"></i>
       </DropdownToggle>
 
-      <DropdownMenu className="dropdown-menu-lg p-0 dropdown-menu-end">
-        <Row className="align-items-center justify-content-center mt-2">
+      <DropdownMenu className="dropdown-menu-lg p-2 dropdown-menu-end">
+        <Row className="mb-2">
+          <p>Centers</p>
           <Col className="text-center">
             <button
               onClick={handleSelectAll}
-              id="select-all"
+              id="center-select-all"
               className="btn btn-light btn-sm m-0 fw-semibold fs-15"
             >
               <svg
@@ -103,7 +107,7 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
                 </g>
               </svg>
             </button>
-            <UncontrolledTooltip target="select-all">
+            <UncontrolledTooltip target={"center-select-all"}>
               Select All
             </UncontrolledTooltip>
           </Col>
@@ -153,8 +157,8 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
                 </g>
               </svg>
             </button>
-            <UncontrolledTooltip target="un-select-all">
-              Unselect All
+            <UncontrolledTooltip target={"un-select-all"}>
+              Un Select All
             </UncontrolledTooltip>
           </Col>
           <Col className="text-center">
@@ -194,37 +198,28 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
                 </g>
               </svg>
             </button>
-            <UncontrolledTooltip target="apply">Apply</UncontrolledTooltip>
+            <UncontrolledTooltip target={"apply"}>Apply</UncontrolledTooltip>
           </Col>
         </Row>
 
-        {/* Centers */}
-        <div className="p-2 overflow-auto" style={{ height: "180px" }}>
-          <Row className="row-gap-3">
-            {options
-              .filter((center) => center._id) // only render valid centers
-              .map((center) => (
-                <Col key={center._id} xs={4}>
-                  <div className="form-check card-radio">
-                    <input
-                      id={center._id}
-                      type="checkbox"
-                      value={center._id}
-                      checked={tempValue.includes(center._id)}
-                      onChange={() => handleCheck(center._id)}
-                      className="form-check-input"
-                    />
-                    <label
-                      htmlFor={center._id}
-                      className="form-check-label me-0 d-flex flex-column align-items-center justify-content-center text-center p-0 avatar-md"
-                    >
-                      <img className="avatar-sm" src={Hospital} alt="center" />
-                      <span className="fs-10">{center.title}</span>
-                    </label>
-                  </div>
-                </Col>
-              ))}
-          </Row>
+        <div className="p-2 overflow-auto" style={{ maxHeight: "180px" }}>
+          {options
+            .filter((center) => center._id)
+            .map((center) => (
+              <div key={center._id} className="form-check mb-2">
+                <input
+                  id={center._id}
+                  type="checkbox"
+                  value={center._id}
+                  checked={tempValue.includes(center._id)}
+                  onChange={() => handleCheck(center._id)}
+                  className="form-check-input"
+                />
+                <label htmlFor={center._id} className="form-check-label ms-2">
+                  {center.title}
+                </label>
+              </div>
+            ))}
         </div>
       </DropdownMenu>
     </Dropdown>

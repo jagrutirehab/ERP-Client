@@ -13,6 +13,7 @@ import {
   REPORT,
   BOOKING,
   DOCTOR_ANALYTICS,
+  CENTER_BEDS_ANALYTICS,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -25,6 +26,7 @@ import DBLogs from "./Components/DBLogs";
 import HubspotContacts from "./Components/Hubspot";
 import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
+import CenterBedsAnalytics from "./Components/CenterBeds";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
@@ -92,6 +94,12 @@ const Report = ({}) => {
             >
               Booking
             </Button>
+            <Button
+              outline={view !== CENTER_BEDS_ANALYTICS}
+              onClick={() => handleView(CENTER_BEDS_ANALYTICS)}
+            >
+              Center Beds Analytics
+            </Button>
             {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
@@ -110,6 +118,9 @@ const Report = ({}) => {
             {view === DB_LOGS && <DBLogs view={view} />}
             {view === HUBSPOT_CONTACTS && <HubspotContacts view={view} />}
             {view === BOOKING && <Booking view={view} />}
+            {view === CENTER_BEDS_ANALYTICS && (
+              <CenterBedsAnalytics view={view} />
+            )}
           </div>
         </Container>
       </div>

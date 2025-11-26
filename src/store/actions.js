@@ -178,6 +178,7 @@ export {
   updateClinicalNote,
   removeClinicalNoteFile,
   addCounsellingNote,
+  addGeneralCounsellingNote,
   updateCounsellingNote,
   removeCounsellingNoteFile,
   addLabReport,
@@ -270,6 +271,10 @@ export {
   updateTherapy,
   removeTherapy,
   fetchTherapy,
+  addSymptom,
+  updateSymptom,
+  removeSymptom,
+  fetchSymptom,
 } from "./features/setting/settingSlice";
 
 //Report
@@ -279,6 +284,7 @@ export {
   fetchLeadAnalytics,
   fetchOPDAnalytics,
   fetchBookingAnalytics,
+  fetchCenterBedsAnalytics,
 } from "./features/report/reportSlice";
 
 //Hubspot
@@ -330,3 +336,16 @@ export {
   setNotesModal,
   setNotesData,
 } from "./features/nurse/nurseSlice";
+
+// round notes
+export {
+  fetchRoundNotes,
+  fetchPatientRoundNotes,
+  fetchRoundNoteStaff,
+  createRoundNote,
+  updateRoundNoteEntry,
+  removeRoundNoteEntry,
+  setRoundNotesFilters,
+  resetRoundNotesFilters,
+  setRoundNoteDrawer,
+} from "./features/roundNotes/roundNotesSlice";

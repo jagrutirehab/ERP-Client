@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Accordion,
   AccordionBody,
@@ -20,6 +20,7 @@ import { EDIT_ADMISSION, IPD } from "../../../Components/constants/patient";
 
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 
 const IPDComponent = ({
@@ -81,13 +82,13 @@ const IPDComponent = ({
                       <option value={"normal"}>Normal</option>
                     </Input>
                   </RenderWhen>
-                  <RenderWhen
-                    isTrue={addmission.dischargeDate && addmission.patientType}
-                  >
-                    <Label className="mb-0 text-nowrap">
-                      Patient Category:
-                    </Label>
-                    <p>{addmission.patientType}</p>
+                  <RenderWhen isTrue={addmission.dischargeDate && addmission.patientType}>
+                    <div className="d-flex align-items-center">
+                      <Label className="mb-0 text-nowrap me-2">
+                        Patient Category:
+                      </Label>
+                      <p className="mb-0">{capitalizeWords(addmission.patientType)}</p>
+                    </div>
                   </RenderWhen>
                 </div>
                 <CheckPermission permission={"create"} subAccess={"Charting"}>
@@ -133,30 +134,30 @@ const IPDComponent = ({
                   user?.email === "owais@gmail.com" ||
                   user?.email === "bishal@gmail.com" ||
                   user?.email === "hemanthshinde@gmail.com") && (
-                  <div className="d-flex align-items-center">
-                    <UncontrolledTooltip
-                      placement="bottom"
-                      target="edit-admission"
-                    >
-                      Edit Admission
-                    </UncontrolledTooltip>
-                    <Button
-                      onClick={() => {
-                        dispatch(
-                          admitDischargePatient({
-                            data: addmission,
-                            isOpen: EDIT_ADMISSION,
-                          })
-                        );
-                      }}
-                      id="edit-admission"
-                      size="sm"
-                      outline
-                    >
-                      <i className="ri-quill-pen-line text-muted fs-6"></i>
-                    </Button>
-                  </div>
-                )}
+                    <div className="d-flex align-items-center">
+                      <UncontrolledTooltip
+                        placement="bottom"
+                        target="edit-admission"
+                      >
+                        Edit Admission
+                      </UncontrolledTooltip>
+                      <Button
+                        onClick={() => {
+                          dispatch(
+                            admitDischargePatient({
+                              data: addmission,
+                              isOpen: EDIT_ADMISSION,
+                            })
+                          );
+                        }}
+                        id="edit-admission"
+                        size="sm"
+                        outline
+                      >
+                        <i className="ri-quill-pen-line text-muted fs-6"></i>
+                      </Button>
+                    </div>
+                  )}
                 {/* </CheckPermission> */}
 
                 <div className="d-flex align-items-center">
@@ -176,11 +177,10 @@ const IPDComponent = ({
                     outline
                   >
                     <i
-                      className={`${
-                        open === idx.toString()
+                      className={`${open === idx.toString()
                           ? " ri-arrow-up-s-line"
                           : "ri-arrow-down-s-line"
-                      } fs-6`}
+                        } fs-6`}
                     ></i>
                   </Button>
                 </div>

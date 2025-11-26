@@ -1,8 +1,8 @@
 export const GENERAL = "GENERAL";
-export const BILLING_VIEW = "BILLING";
-export const TIMELINE_VIEW = "TIMELINE";
-export const FORMS_VIEW = "FORMS";
-export const CERTIFICATE_VIEW="CERTIFICATE";
+export const BILLING_VIEW = "INTERNBILLING";
+export const TIMELINE_VIEW = "INTERNTIMELINE";
+export const FORMS_VIEW = "INTERNFORMS";
+export const CERTIFICATE_VIEW="INTERNCERTIFICATE";
 const RECEIPT = "RECEIPT";
 const DEPOSIT = "DEPOSIT";
 export const DRAFT_INVOICE = "DRAFT_INVOICE";

@@ -10,7 +10,6 @@ import {
   deleteRole,
 } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import AddEditRoleModal from "../../../Components/Roles/AddEditModal";
 import DeleteConfirmationModal from "../../../Components/Roles/DeleteConfirmationModal";
 import CheckPermission from "../../../Components/HOC/CheckPermission";

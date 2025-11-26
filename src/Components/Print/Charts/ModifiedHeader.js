@@ -1,9 +1,8 @@
 import React from "react";
-import { View, Text, Font, StyleSheet, Image } from "@react-pdf/renderer";
+import { View, Text, Font, StyleSheet } from "@react-pdf/renderer";
 import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
-import BrandLogo from "../../../assets/images/jagruti-logo.png";
-import DoctorLogo from "../../../assets/images/doctor-logo.jpg";
 import { differenceInYears, format } from "date-fns";
+import { safeText } from "../../../utils/safeText";
 
 Font.register({
   family: "Roboto",
@@ -114,7 +113,7 @@ const styles = StyleSheet.create({
 });
 
 // const border = "1px solid #000";
-const Header = ({ chart, center, patient, doctor }) => {
+const Header = ({ chart, center, patient, doctor, admission }) => {
   const age = () =>
     patient?.dateOfBirth
       ? `${differenceInYears(new Date(), new Date(patient.dateOfBirth))} Years,`
@@ -196,27 +195,27 @@ const Header = ({ chart, center, patient, doctor }) => {
                 {chart?.author?.name}
               </Text>
             )}
-            {doctor?.education?.degrees && (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {doctor.education?.degrees}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.degrees,
+              chart?.author?.degrees
             )}
-            {doctor?.education?.speciality && (
-              <Text
-                style={{
-                  ...styles.fontSm,
-                  ...styles.paddingTop1,
-                  whiteSpace: "pre-line",
-                }}
-              >
-                {doctor.education?.speciality}
-              </Text>
+            {safeText(
+              "",
+              {
+                ...styles.fontSm,
+                ...styles.paddingTop1,
+                whiteSpace: "pre-line",
+                textTransform: "capitalize",
+              },
+              doctor?.speciality,
+              chart?.author?.speciality
             )}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>
@@ -284,22 +283,37 @@ const Header = ({ chart, center, patient, doctor }) => {
                 ...styles.justifyBetween,
               }}
             >
-              <Text>
-                {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
-                  ""}
-                {" - "}
-                {(patient?.age || patient.gender) &&
-                  `(${age()} ${gender(patient?.gender) || ""})`}
-              </Text>
-              <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              <View style={{ flex: 1, marginRight: 10 }}>
+                <Text>
+                  {`${patient?.name} - ${patient?.id?.prefix}${patient?.id?.value}` ||
+                    ""}
+                  {" - "}
+                  {(patient?.age || patient.gender) &&
+                    `(${age()} ${gender(patient?.gender) || ""})`}
+                </Text>
+              </View>
+              <View style={{ flexShrink: 0 }}>
+                <Text style={styles.fontThin}>{patient?.phoneNumber}</Text>
+              </View>
             </View>
           </View>
+
           <View style={{ ...styles.row }}>
             <Text style={{ ...styles.col2 }}>Date:</Text>
             <Text style={{ ...styles.col9 }}>
               {chart?.date && format(new Date(chart?.date), "d MMM y")}
             </Text>
           </View>
+          {admission?.Ipdnum && (
+            <View style={{ ...styles.row, ...styles.itemsCenter }}>
+              <Text style={{ ...styles.col2 }}>IPD Num:</Text>
+              <Text
+                style={{ ...styles.col9, ...styles.fontThin, ...styles.fontMd }}
+              >
+                {admission?.Ipdnum}
+              </Text>
+            </View>
+          )}
           {patient.address && (
             <View style={{ ...styles.row, ...styles.itemsCenter }}>
               <Text style={{ ...styles.col2 }}>Address:</Text>

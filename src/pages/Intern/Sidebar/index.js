@@ -17,12 +17,14 @@ const Sidebar = ({
   customActiveTab = "all",
   toggleCustom,
   hasMore,
+  centerAccess
 }) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [loadMoreRef, isVisible] = useInView({ defaultInView: false });
   const isFetchingRef = useRef(false);
+  const debounceTimeoutRef = useRef(null);
   const LIMIT = 20;
 
   const getFilterParams = (pageNumber) => {
@@ -30,6 +32,7 @@ const Sidebar = ({
       page: pageNumber,
       limit: LIMIT,
       name: searchQuery,
+      centers: centerAccess
     };
     if (customActiveTab === "active") base.internStatus = "active";
     else if (customActiveTab === "completed") base.internStatus = "completed";
@@ -45,7 +48,31 @@ const Sidebar = ({
     };
 
     fetchInitial();
-  }, [searchQuery, customActiveTab, dispatch]);
+  }, [customActiveTab, dispatch, centerAccess]);
+
+
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      const fetchWithSearch = async () => {
+        setPage(1);
+        isFetchingRef.current = true;
+        await dispatch(fetchInterns(getFilterParams(1)));
+        isFetchingRef.current = false;
+      };
+
+      fetchWithSearch();
+    }, 500);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchMore = async () => {
@@ -61,15 +88,21 @@ const Sidebar = ({
     fetchMore();
   }, [isVisible, hasMore]);
 
+  useEffect(() => {
+    toggleDataSidebar();
+  }, []);
+
   const toggleDataSidebar = () => {
     const dataList = document.querySelector(".chat-message-list");
-    if (document.documentElement.clientWidth < 992 && dataList) {
-      dataList.classList.toggle("show-chat-message-list");
+    if (document.documentElement.clientWidth < 992) {
+      if (dataList.classList.contains("show-chat-message-list")) {
+        dataList.classList.remove("show-chat-message-list");
+      } else dataList.classList.add("show-chat-message-list");
     }
   };
 
   return (
-    <div className="chat-leftsidebar" style={{ marginTop: 80 }}>
+    <div className="chat-leftsidebar" >
       <div className="px-4 pt-4 mb-4">
         <div className="d-flex align-items-start">
           <div className="flex-grow-1">
@@ -132,7 +165,7 @@ const Sidebar = ({
                 key={int._id}
                 className={intern?._id === int._id ? "active" : ""}
               >
-                <Link to={`/intern/${int._id}`}>
+                <Link onClick={toggleDataSidebar} to={`/intern/${int._id}`}>
                   <div className="d-flex align-items-center">
                     <div
                       className={

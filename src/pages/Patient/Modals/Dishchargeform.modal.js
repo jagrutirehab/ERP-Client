@@ -52,7 +52,7 @@ const DischargeFormModal = ({
   };
 
   return (
-    <CustomModal isOpen={isOpen} title="Admission" toggle={toggle}>
+    <CustomModal isOpen={isOpen} title="Discharge" toggle={toggle}>
       <div>
         {/* Date + Time */}
         <p className="text-muted mt-0 mb-1">Chart date and time</p>
@@ -116,9 +116,11 @@ const DischargeFormModal = ({
             >
               <option value="">Select Admission Type</option>
               <option value="INDEPENDENT_ADMISSION">
-                Independent Admission
+                Independent Discharge
               </option>
-              <option value="SUPPORTIVE_ADMISSION">Supportive Admission</option>
+              <option value="DISCHARGE_UNDERTAKING">
+                Discharge Undertaking
+              </option>
             </Input>
           </div>
 
@@ -138,7 +140,7 @@ const DischargeFormModal = ({
             </div>
           )}
 
-          {admissiontype === "SUPPORTIVE_ADMISSION" && (
+          {/* {admissiontype === "SUPPORTIVE_ADMISSION" && (
             <div className="mt-3">
               <Label className="text-muted mb-1">Support Type</Label>
               <Input
@@ -153,7 +155,7 @@ const DischargeFormModal = ({
                 </option>
               </Input>
             </div>
-          )}
+          )} */}
 
           {/* Next Button */}
           <div className="text-center mt-4">
@@ -162,8 +164,7 @@ const DischargeFormModal = ({
               color="primary"
               disabled={
                 !admissiontype ||
-                (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype) ||
-                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype)
+                (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype)
               }
               onClick={() => {
                 toggle();

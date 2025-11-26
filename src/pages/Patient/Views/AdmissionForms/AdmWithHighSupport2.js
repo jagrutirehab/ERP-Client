@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const AdmWithHighSupport2 = ({ register, patient, details }) => {
+const AdmWithHighSupport2 = ({ register, patient, details, chartData }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -9,33 +9,38 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px",
   };
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "14px",
+    fontSize: "17px",
     marginBottom: "2px",
   };
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "14px",
     marginBottom: "15px",
   };
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "300px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "12px",
   };
   const fullLine = {
     border: "none",
     borderBottom: "1px solid #000",
     width: "100%",
     marginTop: "3px",
+    fontSize: "12px",
   };
 
   const [age, setAge] = useState("");
@@ -59,24 +64,74 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
     }
   }, [patient]);
 
+  const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       <div style={heading}>Request For Admissions With High Support Needs</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 90)
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: "10px",
+        }}
+      >
         <div>
           To, <br />
           The Psychiatrist, <br />
           Unit
           <input
             type="text"
+            value={patient?.doctorData?.unit}
             {...register("Indipendent_Admission_Support_unit")}
-            style={inputLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...inputLine,
+            }}
           />{" "}
           Department of Psychiatry <br />
           Jagruti Rehabilitation Centre.
@@ -85,7 +140,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
           Date:
           <input
             type="date"
-            defaultValue={new Date().toISOString().split("T")[0]}
+            defaultValue={today}
             {...register("Indipendent_Admission_Support_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -106,7 +161,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         I Mr./Mrs./Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          defaultValue={guardianName}
           {...register("Indipendent_Admission_Support_name")}
           style={{
             fontWeight: "bold",
@@ -117,7 +172,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         residing at
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_Support_address")}
           style={{
             fontWeight: "bold",
@@ -128,14 +183,15 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         Nominated representative Mr./Mrs./Ms.
         <input
           type="text"
+          value={patient?.name}
           {...register("Indipendent_Admission_Support_nominatedRep")}
           style={inputLine}
         />{" "}
         of UID No.
         <input
           type="text"
-          // defaultValue={details?.IPDnum}
-          defaultValue={patient?.id?.value}
+          // value={details?.IPDnum}
+          value={patient?.id?.value}
           {...register("Indipendent_Admission_Support_ipd")}
           style={{
             fontWeight: "bold",
@@ -146,7 +202,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         age
         <input
           type="text"
-          defaultValue={age}
+          value={chartData?.detailAdmission?.detailAdmission?.age || age}
           {...register("Indipendent_Admission_Support_age")}
           style={{
             border: "none",
@@ -161,7 +217,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         son/daughter of
         <input
           type="text"
-          defaultValue={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_Support_parentName")}
           style={{
             fontWeight: "bold",
@@ -184,7 +240,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         Mr./Mrs./Ms.
         <input
           type="text"
-          defaultValue={patient?.name}
+          value={patient?.name}
           {...register("Indipendent_Admission_Support_patientName2")}
           style={{
             fontWeight: "bold",
@@ -203,22 +259,37 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line1}
             {...register("Indipendent_Admission_Support_symptom1")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line2}
             {...register("Indipendent_Admission_Support_symptom2")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
           <input
             type="text"
+            value={chartData?.detailAdmission?.ChiefComplaints?.line3}
             {...register("Indipendent_Admission_Support_symptom3")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </li>
         <li>
@@ -302,7 +373,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         Address
         <input
           type="text"
-          defaultValue={patient?.address}
+          value={patient?.address}
           {...register("Indipendent_Admission_Support_fullAddress")}
           style={{
             fontWeight: "bold",
@@ -315,7 +386,7 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         Mob.
         <input
           type="text"
-          defaultValue={patient?.guardianPhoneNumber}
+          value={patient?.guardianPhoneNumber}
           {...register("Indipendent_Admission_Support_mobile")}
           style={{
             fontWeight: "bold",
@@ -346,12 +417,31 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
         }}
       >
         <div>
-          Signature of Guardian:
+          <div style={{ display: "flex" }}>
+            Signature of Guardian:
+            <div
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
+              <input
+                type="text"
+                defaultValue={guardianName}
+                {...register("Indipendent_Admission_adult_guardianName3")}
+                style={{
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  ...fullLine,
+                }}
+              />
+            </div>
+          </div>
           <br />
           Name
           <input
             type="text"
-            defaultValue={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_Support_guardianName")}
             style={{
               fontWeight: "bold",
@@ -362,11 +452,8 @@ const AdmWithHighSupport2 = ({ register, patient, details }) => {
           <br />
           Date & Time
           <input
-            type="text"
-            defaultValue={new Date()
-              .toLocaleDateString("en-GB")
-              .split("/")
-              .join("/")}
+            type="date"
+            defaultValue={today}
             {...register("Indipendent_Admission_Support_dateTime")}
             style={fullLine}
           />

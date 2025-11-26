@@ -23,6 +23,16 @@ import {
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
+import { differenceInDays } from "date-fns";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
+
+const superUser = [
+  // "rijutarafder000@gmail.com",
+  "surjeet.parida@gmail.com",
+  "hemanthshinde@gmail.com",
+  "vikas@jagrutirehab.org",
+  "bishal@gmail.com",
+];
 
 const Bills = ({
   addmissions,
@@ -242,8 +252,14 @@ const Bills = ({
     });
   };
 
-  const deleteBill = () => {
-    dispatch(removeBill(bill.bill._id));
+  const deleteBill = async () => {
+    const response = await dispatch(removeBill(bill.bill._id)).unwrap();
+    dispatch(
+      setBillingStatus({
+        patientId: patient._id,
+        billingStatus: response.billingStatus,
+      })
+    );
     setBill({
       bill: null,
       isOpen: false,
@@ -262,6 +278,9 @@ const Bills = ({
       togglePrint({ data: chart, modal: true, patient, admission: addmission })
     );
   };
+
+  const newDate = new Date();
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -269,54 +288,65 @@ const Bills = ({
           <Row className="timeline-right">
             {(newBills || [])
               .sort((a, b) => new Date(b.date) - new Date(a.date))
-              .map((bill) => (
-                <Wrapper
-                  key={bill._id}
-                  item={bill}
-                  name="Billing"
-                  editItem={editBill}
-                  deleteItem={getBill}
-                  printItem={printBill}
-                  extraOptions={(item) => (
-                    <RenderWhen isTrue={item.bill === DEPOSIT}>
-                      <DropdownItem
-                        onClick={() =>
-                          setDepositToAdvance({ deposit: item, isOpen: true })
-                        }
-                        href="#"
-                      >
-                        <i className="ri-exchange-dollar-line align-bottom text-muted me-2"></i>
-                        Convert to Advance
-                      </DropdownItem>
-                    </RenderWhen>
-                  )}
-                  toggleDateModal={toggleDateModal}
-                  disableEdit={
-                    (bill.bill === ADVANCE_PAYMENT || bill.bill === DEPOSIT) &&
-                    user?.email !== "bishal@gmail.com" &&
-                    user?.email !== "rijutarafder000@gmail.com" &&
-                    user?.email !== "surjeet.parida@gmail.com" &&
-                    user?.email !== "hemanthshinde@gmail.com" &&
-                    user?.email !== "vikash@jagrutirehab.org"
-                      ? true
-                      : false
-                  }
-                  itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
-                  disableDelete={addmission?.dischargeDate ? true : false}
-                >
-                  <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT}>
-                    <AdvancePayment data={bill?.advancePayment} />
-                  </RenderWhen>
-                  <RenderWhen isTrue={bill.bill === DEPOSIT}>
-                    <Deposit data={bill?.deposit} />
-                  </RenderWhen>
-                  <RenderWhen
-                    isTrue={bill.bill === INVOICE || bill.bill === REFUND}
+              .map((bill) => {
+                return (
+                  <Wrapper
+                    key={bill._id}
+                    item={bill}
+                    name="Billing"
+                    editItem={editBill}
+                    deleteItem={getBill}
+                    printItem={printBill}
+                    extraOptions={(item) => (
+                      <RenderWhen isTrue={item.bill === DEPOSIT}>
+                        <DropdownItem
+                          onClick={() =>
+                            setDepositToAdvance({ deposit: item, isOpen: true })
+                          }
+                          href="#"
+                        >
+                          <i className="ri-exchange-dollar-line align-bottom text-muted me-2"></i>
+                          Convert to Advance
+                        </DropdownItem>
+                      </RenderWhen>
+                    )}
+                    toggleDateModal={toggleDateModal}
+                    disableEdit={
+                      (bill.bill === ADVANCE_PAYMENT ||
+                        bill.bill === DEPOSIT) &&
+                      // || bill.bill === INVOICE
+                      user?.email !== "rijutarafder000@gmail.com" &&
+                      user?.email !== "surjeet.parida@gmail.com" &&
+                      user?.email !== "hemanthshinde@gmail.com" &&
+                      user?.email !== "vikas@jagrutirehab.org" &&
+                      user?.email !== "bishal@gmail.com"
+                        ? true
+                        : bill.bill === INVOICE &&
+                          superUser.includes(user.email)
+                        ? false
+                        : bill.bill === INVOICE &&
+                          differenceInDays(newDate, new Date(bill.createdAt)) >
+                            30
+                        ? true
+                        : false
+                    }
+                    itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
+                    disableDelete={addmission?.dischargeDate ? true : false}
                   >
-                    <Invoice data={bill?.invoice} bill={bill} />
-                  </RenderWhen>
-                </Wrapper>
-              ))}
+                    <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT}>
+                      <AdvancePayment data={bill?.advancePayment} />
+                    </RenderWhen>
+                    <RenderWhen isTrue={bill.bill === DEPOSIT}>
+                      <Deposit data={bill?.deposit} />
+                    </RenderWhen>
+                    <RenderWhen
+                      isTrue={bill.bill === INVOICE || bill.bill === REFUND}
+                    >
+                      <Invoice data={bill?.invoice} bill={bill} />
+                    </RenderWhen>
+                  </Wrapper>
+                );
+              })}
           </Row>
         </div>
       </div>

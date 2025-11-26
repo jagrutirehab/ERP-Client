@@ -81,6 +81,21 @@ export const postACDSTest = (data) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+export const postHAMATest = (data) =>
+  api.create(url.POST_HAMA_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postHAMDTest = (data) =>
+  api.create(url.POST_HAMD_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postPANSSTest = (data) =>
+  api.create(url.POST_PANSS_TEST, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
@@ -93,10 +108,11 @@ export const postCenter = (data) =>
   api.create(url.POST_CENTER, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-export const getCenters = (data) =>
+export const getCenters = ({ centerIds, search } = {}) =>
   api.get(url.GET_CENTERS, {
     params: {
-      centerIds: data,
+      centerIds,
+      search,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -104,6 +120,8 @@ export const getCenters = (data) =>
   });
 
 export const getAllCenters = () => api.get(url.GET_ALL_CENTERS);
+export const getCenterBedsAnalytics = (centerAccess) =>
+  api.get(url.GET_CENTER_BEDS_ANALYTICS, { centerAccess });
 export const getDoctorsScheduleNew = (userId) =>
   api.get(`${url.GET_DOCTOR_SCHEDULE_NEW}?userId=${userId}`);
 export const createDoctorsScheduleNew = (data) =>
@@ -333,6 +351,8 @@ export const getChartsAddmissions = (data) =>
   });
 export const getCharts = (data) =>
   api.get(url.GET_CHARTS, { addmission: data });
+export const getLatestCharts = ({ patient, limit }) =>
+  api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);
 export const postPrescription = (data) =>
   api.create(url.POST_PRESCRIPTION, data);
@@ -357,6 +377,10 @@ export const editClinicalNote = (data) =>
   });
 export const postCounsellingNote = (data) =>
   api.create(url.POST_COUNSELLING_NOTE, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const postGeneralCounsellingNote = (data) =>
+  api.create(url.POST_GENERAL_COUNSELLING_NOTE, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 export const editCounsellingNote = (data) =>
@@ -425,6 +449,18 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+
+export const postMentalExamination = (data) => {
+  return api.create(url.POST_MENTAL_EXAMINATION, data);
+}
+export const postGeneralMentalExamintion = (data) => {
+  return api.create(url.POST_GENERAL_MENTAL_EXAMINATION, data);
+}
+
+export const editMentalExamination = (data) => {
+  return api.put(url.EDIT_MENTAL_EXAMINATION, data);
+}
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);
@@ -555,7 +591,6 @@ export const deleteAppointmentPermanently = (param) =>
   api.delete(`${url.DELETE_APPOINTMENT_PERMANENTLY}/${param}`);
 export const postRestoreAppointment = (data) =>
   api.update(url.RESTORE_APPOINTMENT, data);
-
 //Setting
 //Doctor schedule
 export const getAllDoctorSchedule = (data) =>
@@ -590,6 +625,13 @@ export const postCondition = (data) => api.create(url.POST_CONDITION, data);
 export const editCondition = (data) => api.put(url.EDIT_CONDITION, data);
 export const deleteCondition = (data) =>
   api.delete(`${url.DELETE_CONDITION}/${data}`);
+
+//Symptom
+export const getSymptoms = (data) => api.get(url.GET_SYMPTOMS, data);
+export const postSymptom = (data) => api.create(url.POST_SYMPTOM, data);
+export const editSymptom = (data) => api.put(url.EDIT_SYMPTOM, data);
+export const deleteSymptom = (data) =>
+  api.delete(`${url.DELETE_SYMPTOM}/${data}`);
 
 //Report
 export const getReport = (data) =>
@@ -646,6 +688,11 @@ export const getDoctorAnalytics = (params = {}) => {
     headers: { "Content-Type": "application/json" },
   });
 };
+export const getDoctorAnalyticsWP = (params = {}) => {
+  return api.create(url.GET_DOCTOR_ANALYTICS_WP, params, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
 
 //Notification
 export const getBillNotification = (data) =>
@@ -665,8 +712,11 @@ export const addInternForm = (data) =>
   });
 
 export const fetchAllInterns = (params = {}) => {
-  const query = qs.stringify(params, { skipNulls: true });
-  return api.get(`${url.GET_INTERN_DATA}?${query}`);
+  return api.get(url.GET_INTERN_DATA, {
+    params,
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat", skipNulls: true }),
+  });
 };
 
 export const getInternId = () => api.get(url.GET_INTERN_ID);
@@ -734,9 +784,10 @@ export const getHubspotContacts = ({
   search = "",
   visitDate,
   status,
+  centers,
 } = {}) => {
   return api.get(url.GET_HUBSPOT_CONTACTS, {
-    params: { page, limit, search, visitDate, status },
+    params: { page, limit, search, visitDate, status, centers },
   });
 };
 
@@ -791,6 +842,39 @@ export const createNote = (data) => {
   });
 };
 
+export const getRoundNotesList = (params = {}) => {
+  return api.get(url.ROUND_NOTES, {
+    params,
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const postRoundNote = (data) => {
+  return api.create(url.ROUND_NOTES, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const putRoundNote = (id, data) => {
+  return api.put(`${url.ROUND_NOTES}/${id}`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const deleteRoundNote = (id) => {
+  return api.delete(`${url.ROUND_NOTES}/${id}`);
+};
+
+export const getRoundNoteStaff = (params = {}) => {
+  return api.get(url.ROUND_NOTES_STAFF, {
+    params,
+  });
+};
+
 export const getPendingActiveMedicines = (patientId) => {
   return api.get(`${url.GET_PENDING_ACTIVE_MEDICINES}?patientId=${patientId}`);
 };
@@ -829,6 +913,161 @@ export const assignPatientType = ({ patientId, patientType }) => {
 export const getAllEmergencyPatients = (params = {}) => {
   return api.create(url.GET_EMERGENCY_PATIENTS, params, {
     headers: { "Content-Type": "application/json" },
+  });
+};
+
+// cash management
+export const postBankDeposit = (data) => {
+  return api.create(url.ADD_BANK_DEPOSIT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getLatestBankDesposits = (params = {}) => {
+  return api.create(url.GET_LATEST_BANK_DEPOSITS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getLatestSpendings = (params = {}) => {
+  return api.create(url.GET_LATEST_SPENDING, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const postSpending = (data) => {
+  return api.create(url.ADD_SPENDING, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getBaseBalanceByCenter = (centerId) => {
+  return api.get(`${url.GET_BASE_BALANCE_BY_CENTER}/${centerId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const postBaseBalance = (data) => {
+  return api.create(url.ADD_BASE_BALANCE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const postInflow = (data) => {
+  return api.create(url.ADD_INFLOW, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getLatestInflows = (params = {}) => {
+  return api.get(url.GET_LASTEST_INFLOWS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getDetailedCashReport = (params = {}) => {
+  return api.create(url.GET_DETAILED_CASH_REPORT, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+export const getSummaryCashReport = (params = {}) => {
+  return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+// central payment
+export const getCentralPayments = (params = {}) => {
+  return api.get(url.CENTRAL_PAYMENT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const getSummaryCentralReport = (params = {}) => {
+  return api.get(url.GET_SUMMARY_CENTRAL_PAYMENT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const getDetailedCentralReport = (params = {}) => {
+  return api.get(url.GET_DETAILED_CENTRAL_PAYMENT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const postCentralPayment = (data) => {
+  return api.create(url.CENTRAL_PAYMENT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const updateCentralPayment = (data) => {
+  return api.update(url.EDIT_CENTRAL_PAYMENT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getCentralPaymentById = (paymentId) => {
+  return api.get(`${url.CENTRAL_PAYMENT}/${paymentId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
   });
 };
 
@@ -915,11 +1154,15 @@ export const getAllUsers = ({
   search = "",
   role = "",
   token,
+  centerAccess,
 }) => {
   return userService.get(url.USER, {
-    params: { page, limit, search, role },
+    params: { page, limit, search, role, centerAccess },
     headers: {
       Authorization: `Bearer ${token}`,
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
 };
@@ -1021,5 +1264,190 @@ export const getRoles = (token) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+  });
+};
+
+// INCIDENT
+export const getIncidents = (data) => api.get(url.GET_INCIDENTS, data);
+export const getIncidentById = (id) =>
+  api.get(`${url.GET_INCIDENT_BY_ID}/${id}`);
+export const postIncident = (data) =>
+  api.create(url.POST_INCIDENT, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const updateIncident = (id, data) =>
+  api.update(`${url.UPDATE_INCIDENT}/${id}`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteIncident = (id) =>
+  api.delete(`${url.DELETE_INCIDENT}/${id}`);
+export const investigateIncident = (id, data) =>
+  api.create(`${url.INVESTIGATE_INCIDENT}/${id}/investigate`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const approveIncident = (id, data) =>
+  api.create(`${url.APPROVE_INCIDENT}/${id}/approve`, data);
+export const closeIncident = (id, data) =>
+  api.create(`${url.CLOSE_INCIDENT}/${id}/close`, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const updateIncidentStatus = (id, data) =>
+  api.update(`${url.UPDATE_INCIDENT_STATUS}/${id}/status`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+
+export const downloadFailedMedicines = ({ batchId, centers } = {}) => {
+  return api.get(`${url.DOWNLOAD_FAILED_MEDICINES}`, {
+    params: {
+      batchId,
+      centers,
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+    responseType: "blob",
+  });
+};
+
+export const getFailedMedicinesBatches = (params = {}) => {
+  return api.get(url.GET_FAILED_MEDICINES_BATCHES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const deleteFailedMedicinesByBatch = (params = {}) => {
+  return api.delete(url.DELETE_FAILED_MEDICINES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getMedineApprovalsByStatus = (params = {}) => {
+  return api.get(url.MEDICINE_APPROVALS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const updateMedicineApprovalStatus = (data) => {
+  if (data.id) {
+    return api.update(`${url.MEDICINE_APPROVALS}/${data.id}`, data, {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    });
+  }
+};
+
+export const getPendingPatientApprovals = (params = {}) => {
+  return api.get(url.GET_PENDING_PATIENT_APPROVALS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getDetailedPrescription = (prescriptionId) => {
+  return api.get(`${url.GET_DETAILED_PRESCRIPTION}/${prescriptionId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const downloadAuditTemplate = (params) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+    responseType: "blob",
+  });
+};
+
+export const getAuditsByStatus = (params) => {
+  return api.get(url.AUDITS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const uploadAuditChunk = (data) => {
+  return api.create(url.UPLOAD_AUDIT_REPORT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updateAuditStatus = (params = {}) => {
+  return api.update(url.UPDATE_AUDIT_STATUS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getAuditDetails = (params) => {
+  return api.get(url.GET_AUDIT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const deleteAuditById = (id) => {
+  return api.delete(`${url.AUDITS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const downloadAuditFailedMedicines = (id) => {
+  return api.get(`${url.DOWNLOAD_AUDIT_FAILED_MEDICINES}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
   });
 };

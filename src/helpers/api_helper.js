@@ -45,9 +45,30 @@ function handleLogout() {
     console.error("Error during logout:", err);
   }
 }
+
+
+// main API request interceptor
+axios.interceptors.request.use((config) => {
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  if (config.headers["X-No-Cookie-Token"] === "true") {
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  }
+
+  return config;
+});
+
+
 // ✅ Main API response interceptor
 axios.interceptors.response.use(
   function (response) {
+    if (response.config?.responseType === "blob") {
+      return response;
+    }
     return response.data ? response.data : response;
   },
   function (error) {
@@ -127,8 +148,8 @@ class APIClient {
     return axios.post(url, data, headers);
   };
 
-  update = (url, data) => {
-    return axios.patch(url, data);
+  update = (url, data, headers) => {
+    return axios.patch(url, data, headers);
   };
 
   put = (url, data, headers) => {

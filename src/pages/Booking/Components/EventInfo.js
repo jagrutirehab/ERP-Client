@@ -1,5 +1,5 @@
 import React from "react";
-import { differenceInMinutes, format } from "date-fns";
+import { differenceInMinutes, differenceInYears, format } from "date-fns";
 import { useDispatch } from "react-redux";
 import {
   createEditBill,
@@ -18,6 +18,7 @@ import {
 } from "../../../Components/constants/patient";
 import MeetingComponent from "../../Meeting/Components";
 import { Link } from "react-router-dom";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const EventInfo = ({
   data,
@@ -111,6 +112,12 @@ const EventInfo = ({
             </h5>
             <div className="font-size-14">
               {data?.patient?.gender && <span>{data.patient.gender}</span>}
+            </div>
+            <div className="font-size-14">
+              {data?.patient?.address && <div>Address: {capitalizeWords(data.patient.address)}</div>}
+            </div>
+            <div className="font-size-14">
+              {data?.patient?.dateOfBirth && <div>Age: {differenceInYears(new Date(), new Date(data.patient.dateOfBirth))} years</div>}
             </div>
           </div>
         </div>
@@ -225,7 +232,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                     })
                   );
@@ -279,7 +285,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                       appointment: data,
                       shouldPrintAfterSave: true,
@@ -305,7 +310,6 @@ const EventInfo = ({
                       doctor: {
                         ...data.doctor,
                         profilePicture: null,
-                        signature: null
                       },
                     })
                   );
@@ -354,10 +358,9 @@ const EventInfo = ({
                     patient: data.patient,
                     center: data.center?._id,
                     doctor: {
-                        ...data.doctor,
-                        profilePicture: null,
-                        signature: null
-                      },
+                      ...data.doctor,
+                      profilePicture: null,
+                    },
                     appointment: data._id,
                   })
                 );

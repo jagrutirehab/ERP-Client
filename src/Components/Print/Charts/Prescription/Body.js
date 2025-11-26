@@ -7,6 +7,7 @@ import PrescriptionTable from "./Table";
 import TroiDevanagariHindi from "../../../../assets/fonts/TiroDevanagariHindi-Regular.ttf";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import TroiDevanagariMarathi from "../../../../assets/fonts/TiroDevanagariMarathi-Regular.ttf";
+import { safeText } from "../../../../utils/safeText";
 
 Font.register({
   family: "Marathi",
@@ -133,10 +134,18 @@ const Body = ({ chart, doctor }) => {
                 textAlign: "center",
               }}
             >
-              <Text style={{ ...styles.textCapitalize, ...styles.instr }}>
-                Dr. {doctor?.name || ""}
-              </Text>
-              <Text>{doctor?.degrees || ""}</Text>
+              {doctor?.name && (
+                <Text style={{ ...styles.textCapitalize, ...styles.instr }}>
+                  Dr. {doctor.name}
+                </Text>
+              )}
+              {safeText("", { ...styles.textCapitalize }, doctor?.degrees)}
+              {safeText("", { ...styles.textCapitalize }, doctor?.speciality)}
+              {safeText(
+                "Reg No",
+                { ...styles.textCapitalize },
+                doctor?.registrationNo
+              )}
             </View>
           </View>
         )}

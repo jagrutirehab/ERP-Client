@@ -89,6 +89,17 @@ const Charting = ({
     }
   }, [dispatch, patient, addmissionId]);
 
+  useEffect(() => {
+    if (tab === CLINIC_TEST) {
+      // always open the first accordion item
+      setOpen("0");
+
+      // if (addmissionsCharts?.length > 0) {
+      //   setAddmissionId(addmissionsCharts[0]?._id);
+      // }
+    }
+  }, [tab, addmissionsCharts]);
+
   const onSubmitClinicalForm = (
     values,
     files,
@@ -197,29 +208,27 @@ const Charting = ({
           {pageAccess
             ?.find((pg) => pg.name === "Patient")
             ?.subAccess?.find((s) => s.name === "OPD") && (
-            <li className="nav-item">
-              <button
-                onClick={() => setTab(OPD)}
-                className={`nav-link rounded-0 ${
-                  tab === OPD
-                    ? "border-0 border-2 border-top border-primary"
-                    : "active"
-                }`}
-                aria-current="page"
-              >
-                OPD
-              </button>
-            </li>
-          )}
+              <li className="nav-item">
+                <button
+                  onClick={() => setTab(OPD)}
+                  className={`nav-link rounded-0 ${tab === OPD
+                      ? "border-0 border-2 border-top border-primary"
+                      : "active"
+                    }`}
+                  aria-current="page"
+                >
+                  OPD
+                </button>
+              </li>
+            )}
 
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(IPD)}
-              className={`nav-link rounded-0 ${
-                tab === IPD
+              className={`nav-link rounded-0 ${tab === IPD
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-              }`}
+                }`}
             >
               IPD
             </button>
@@ -227,11 +236,10 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(CLINIC_TEST)}
-              className={`nav-link rounded-0 ${
-                tab === CLINIC_TEST
+              className={`nav-link rounded-0 ${tab === CLINIC_TEST
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-              }`}
+                }`}
             >
               Clinical Test
             </button>
@@ -239,11 +247,10 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(GENERAL)}
-              className={`nav-link rounded-0 ${
-                tab === GENERAL
+              className={`nav-link rounded-0 ${tab === GENERAL
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-              }`}
+                }`}
             >
               History
             </button>
@@ -251,11 +258,10 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(NOTES)}
-              className={`nav-link rounded-0 ${
-                tab === NOTES
+              className={`nav-link rounded-0 ${tab === NOTES
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-              }`}
+                }`}
             >
               Notes
             </button>

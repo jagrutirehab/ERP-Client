@@ -11,6 +11,7 @@ import TaxManagement from "./TaxManagement";
 import RolesManagement from "./RolesManagement";
 import Therapies from "./Therapies";
 import Conditions from "./Conditions";
+import Symptom from "./Symptom";
 
 const index = (props) => {
   return (
@@ -29,6 +30,7 @@ const index = (props) => {
               <Route path={`/rolesmanagment`} element={<RolesManagement />} />
               <Route path={`/therapies`} element={<Therapies />} />
               <Route path={`/conditions`} element={<Conditions />} />
+              <Route path={`/symptoms`} element={<Symptom />} />
             </Routes>
           </div>
         </Container>

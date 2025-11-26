@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const Admissionpage2 = ({ register, patient, details }) => {
@@ -9,6 +10,8 @@ const Admissionpage2 = ({ register, patient, details }) => {
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
     fontSize: "12px",
+    width: "100%",
+    maxWidth: "800px",
   };
 
   const consentPara = {
@@ -19,9 +22,11 @@ const Admissionpage2 = ({ register, patient, details }) => {
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "100px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "12px",
   };
 
   const signatureBox = {
@@ -38,17 +43,83 @@ const Admissionpage2 = ({ register, patient, details }) => {
     marginTop: "15px",
   };
 
+  useEffect(() => {
+    if (details) {
+      document.querySelector(
+        '[name="Basic_Admission_Form_semiPrivate"]'
+      ).value = details?.toPay || "";
+      document.querySelector('[name="Basic_Admission_Form_private"]').value =
+        details?.semiprivate || "";
+      document.querySelector('[name="Basic_Admission_Form_roomtype"]').value =
+        details?.roomtype || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_advanceDeposit"]'
+      ).value = details?.advDeposit || "";
+    }
+
+    if (patient) {
+      document.querySelector('[name="Basic_Admission_Form_patientRep"]').value =
+        patient?.name || "";
+      document.querySelector('[name="Basic_Admission_Form_relation"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_witnessName"]'
+      ).value = patient?.guardianName || "";
+      document.querySelector(
+        '[name="Basic_Admission_Form_relationWitness"]'
+      ).value = patient?.guardianRelation || "";
+    }
+
+    document.querySelector('[name="Basic_Admission_Form_dateWitness"]').value =
+      new Date().toISOString().split("T")[0] || "";
+
+    document.querySelector('[name="Basic_Admission_Form_dateStaff"]').value =
+      new Date().toISOString().split("T")[0] || "";
+
+    document.querySelector('[name="Basic_Admission_Form_dateRep"]').value =
+      new Date().toISOString().split("T")[0] || "";
+  }, [details, patient]);
+
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
       <div style={{ marginBottom: "20px" }}>
-        <PrintHeader patient={patient} />
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
       {/* Points 10-19 */}
       <div style={consentPara}>
         10) I am informed and I am willing to pay Rs
         <input
           type="text"
-          value={details?.toPay}
+          defaultValue={details?.toPay}
           {...register("Basic_Admission_Form_semiPrivate")}
           style={{
             fontWeight: "bold",
@@ -59,7 +130,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Monthly and
         <input
           type="text"
-          value={details?.semiprivate}
+          defaultValue={details?.semiprivate}
           {...register("Basic_Admission_Form_private")}
           style={{
             fontWeight: "bold",
@@ -70,7 +141,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Daily for
         <input
           type="text"
-          value={details?.roomtype}
+          defaultValue={details?.roomtype}
           {...register("Basic_Admission_Form_roomtype")}
           style={{
             fontWeight: "bold",
@@ -81,7 +152,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
         Room as residential charges, a refundable advance deposit of
         <input
           type="text"
-          value={details?.advDeposit}
+          defaultValue={details?.advDeposit}
           {...register("Basic_Admission_Form_advanceDeposit")}
           style={{
             fontWeight: "bold",

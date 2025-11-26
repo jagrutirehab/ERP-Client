@@ -37,8 +37,8 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
   });
 
   const patient = useSelector((state) => state.Patient.patient);
-  const doctorDetails = useSelector((state) => state.User.doctor);
-  const counselerDetails = useSelector((state) => state.User.counsellors);
+  const doctorDetails = useSelector((state) => state.User?.doctor) || [];
+  const counselerDetails = useSelector((state) => state.User?.counsellors) || [];
 
   const allMedicalStaff = [...doctorDetails, ...counselerDetails];
   const centerId = useSelector((state) => state.Patient.patient?.center?._id);
@@ -147,7 +147,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
             Patient Name: {patient?.name}
           </span>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 flex-wrap justify-content-end">
           <Dropdown size="sm" isOpen={dummyDrop} toggle={toggle3}>
             <DropdownToggle caret outline color="primary">
               {selectedDoctor.name}

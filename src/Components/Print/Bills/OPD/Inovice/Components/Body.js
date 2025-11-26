@@ -145,6 +145,7 @@ const Body = ({ bill }) => {
                 </Text>
                 <View style={{ ...styles.col5, ...styles.textCenter }}>
                   <Text style={styles.paddingBottom5}>{item.slot}</Text>
+                  <Text style={{ whiteSpace: "pre-line" }}>{item.comments}</Text>
                   {/* <Text>Date 05 Mar, 2023</Text> */}
                 </View>
                 <Text style={{ ...styles.col4, ...styles.textCenter }}>

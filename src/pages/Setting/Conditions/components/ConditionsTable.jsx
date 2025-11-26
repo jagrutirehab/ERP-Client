@@ -20,13 +20,13 @@ const ConditionsTable = ({ conditions, userRoles, onEdit, onDelete }) => {
           {conditions.length > 0 ? (
             conditions.map((condition) => (
               <tr key={condition.id}>
-                <td>
-                  <h6 className="mb-0">{condition.title}</h6>
+                <td style={{ width: "300px" }}>
+                  <h6 className="mb-0 text-wrap">{condition.title}</h6>
                 </td>
                 <td>
                   <p className="mb-0 text-muted">
-                    {condition.description.length > 100
-                      ? `${condition.description.substring(0, 100)}...`
+                    {condition.description.length > 90
+                      ? `${condition.description.substring(0, 90)}...`
                       : condition.description}
                   </p>
                 </td>

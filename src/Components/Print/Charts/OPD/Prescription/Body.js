@@ -6,6 +6,7 @@ import RXIcon from "../../../../../assets/images/small/rx.jpeg";
 //table
 import PrescriptionTable from "./Table";
 import { format } from "date-fns";
+import { safeText } from "../../../../../utils/safeText";
 
 Font.register({
   family: "Roboto",
@@ -87,7 +88,11 @@ const styles = StyleSheet.create({
 });
 
 const PrescriptionBody = ({ chart, doctor }) => {
-  const renderImage = (src, width) => <Image src={src} style={styles.image} />;
+  const renderImage = (src, width) => {
+    if (!src) return null;
+    return <Image src={src} style={styles.image} />;
+  };
+
   return (
     <React.Fragment>
       <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
@@ -234,7 +239,6 @@ const PrescriptionBody = ({ chart, doctor }) => {
             style={{
               flexDirection: "column",
               justifyContent: "center",
-              // border: "1px solid green",
             }}
           >
             {doctor?.signature && (
@@ -243,38 +247,43 @@ const PrescriptionBody = ({ chart, doctor }) => {
                   width: "100%",
                   ...styles.row,
                   justifyContent: "center",
-                  // border: "1px solid red",
-                  // textAlign: 'center',
-                  // paddingRight: "5rem",
                 }}
                 wrap={false}
               >
                 {renderImage(doctor.signature, 200)}
               </View>
             )}
-            {doctor?.name && (
-              <Text style={{ lineHeight: 1.2 }}>{doctor.name}</Text>
+            {safeText(
+              "",
+              { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
+              doctor?.name ? `${doctor.name}` : ""
             )}
-            {doctor?.education?.degrees && (
-              <Text
-                style={{
-                  lineHeight: 1.2,
-                  ...styles.fontNormal,
-                  marginTop: "5px",
-                }}
-              >
-                {doctor.education?.degrees}
-              </Text>
+            {safeText(
+              "",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.degrees
             )}
-            {doctor?.education?.speciality && (
-              <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
-                {doctor.education?.speciality}
-              </Text>
+            {safeText(
+              "",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.speciality
             )}
-            {doctor?.education?.registrationNo && (
-              <Text style={{ lineHeight: 1.2, ...styles.fontNormal }}>
-                Reg. No. -{doctor.education?.registrationNo}
-              </Text>
+            {safeText(
+              "Reg. No.",
+              {
+                lineHeight: 1.2,
+                ...styles.fontNormal,
+                ...styles.textCapitalize,
+              },
+              doctor?.registrationNo
             )}
           </View>
         </View>
