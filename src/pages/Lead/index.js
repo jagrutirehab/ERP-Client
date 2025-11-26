@@ -72,8 +72,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log(user, "user");
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 

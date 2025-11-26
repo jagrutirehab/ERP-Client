@@ -31,6 +31,7 @@ export const POST_CENTER = "/center";
 export const GET_CENTERS = "/center";
 export const GET_DELETED_CENTERS = "/center/deleted";
 export const GET_ALL_CENTERS = "/center/all";
+export const GET_CENTER_BEDS_ANALYTICS = "/center/beds";
 export const EDIT_CENTER = "/center";
 export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";
@@ -98,6 +99,7 @@ export const GET_INTERN_TIMELINE = "timeline/intern";
 //CHART
 export const GET_CHARTS_ADDMISSIONS = "/chart/addmission";
 export const GET_CHARTS = "/chart";
+export const GET_LATEST_CHARTS = "/chart/latest";
 export const GET_GENERAL_CHARTS = "/chart/general";
 export const GET_DELETED_CHARTS = "/chart/deleted";
 export const POST_PRESCRIPTION = "/chart/prescription";
@@ -116,6 +118,7 @@ export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
 export const POST_COUNSELLING_NOTE = "/chart/counselling-note";
+export const POST_GENERAL_COUNSELLING_NOTE = "/chart/counselling-note/general";
 export const EDIT_COUNSELLING_NOTE = "/chart/counselling-note";
 export const GET_COUNSELLING_NOTE = "/chart/counselling-note";
 export const DELETE_COUNSELLING_NOTE_FILE = "/chart/counselling-note";
@@ -133,6 +136,10 @@ export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
+export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const POST_GENERAL_MENTAL_EXAMINATION =
+  "/chart/mental-examination/general";
+export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";
@@ -294,6 +301,10 @@ export const MARK_ALERT_AS_READ = "/alerts/read";
 // notes
 export const NOTES = "/notes";
 
+// round notes
+export const ROUND_NOTES = "/round-notes";
+export const ROUND_NOTES_STAFF = "/round-notes/staff";
+
 // emergency
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
@@ -307,6 +318,14 @@ export const GET_LATEST_SPENDING = "/cash/spending/list";
 export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
 export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
 export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
+
+// central payment
+export const CENTRAL_PAYMENT = "/central-payment";
+export const EDIT_CENTRAL_PAYMENT = "/central-payment/edit";
+export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
+  "/central-payment/report/detailed";
+export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
+  "/central-payment/report/summary";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
@@ -333,3 +352,28 @@ export const INVESTIGATE_INCIDENT = "/incident";
 export const APPROVE_INCIDENT = "/incident";
 export const CLOSE_INCIDENT = "/incident";
 export const UPDATE_INCIDENT_STATUS = "/incident";
+
+// PHARMACY FAILED MEDICINES DOWNLOAD
+export const DOWNLOAD_FAILED_MEDICINES = "/pharmacy/failed/download";
+// PHARMACY GET FAILED MEDICINES BATCHES LIST
+export const GET_FAILED_MEDICINES_BATCHES = "/pharmacy/failed/list";
+// PHARMACY DELETE FAILED MEDICINES
+export const DELETE_FAILED_MEDICINES = "/pharmacy/failed/delete";
+
+// PHARMACY MEDICINE APPROVAl
+export const MEDICINE_APPROVALS = "/pharmacy/approvals";
+export const GET_PENDING_PATIENT_APPROVALS =
+  "/pharmacy/approvals/pending-patients";
+export const GET_DETAILED_PRESCRIPTION =
+  "/pharmacy/approvals/detailed-prescription";
+
+// PHARMACY AUDIT
+export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";
+export const AUDITS = "/pharmacy/audit";
+export const UPLOAD_AUDIT_REPORT = "/pharmacy/audit/upload-chunk";
+export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
+export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
+export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
+
+// MI REPORTING
+export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";

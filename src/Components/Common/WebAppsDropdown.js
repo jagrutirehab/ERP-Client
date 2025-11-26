@@ -62,9 +62,15 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
     };
   }, []);
 
+  useEffect(() => {
+    setAccess(centerAccess || []);
+  }, [centerAccess]);
+
   // useEffect(() => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
+
+  console.log({ centerAccess });
 
   return (
     <React.Fragment>
@@ -210,7 +216,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                   id="apply"
                   onClick={() => {
                     dispatch(changeUserAccess(access));
-                    toggleWebAppDropdown()
+                    toggleWebAppDropdown();
                   }}
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
                 >

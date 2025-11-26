@@ -71,6 +71,15 @@ export const permissionList = [
     ],
   },
   {
+    key: "CENTRALPAYMENT",
+    label: "Central Payment",
+    subModules: [
+      { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
+      { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
+    ],
+  },
+  {
     key: "SETTING",
     label: "Setting",
     subModules: [
@@ -117,11 +126,13 @@ export const permissionList = [
     ],
   },
   {
-    key: "INVENTORY",
-    label: "Inventory",
+    key: "PHARMACY",
+    label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-      { name: "INVENTORYMANAGEMENT", label: "Inventory Management" },
+      { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
+      { name: "GIVENMEDICINES", label: "Given Medicine" },
+      { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
     ],
   },
   {
@@ -139,6 +150,26 @@ export const permissionList = [
       { name: "INVESTIGATE_INCIDENT", label: "Investigate Incident" },
       { name: "APPROVE_INCIDENT", label: "Approve Incident" },
       { name: "CLOSE_INCIDENT", label: "Close Incident" },
+    ],
+  },
+  {
+    key: "ROUND_NOTES",
+    label: "Round Notes",
+    subModules: [
+      // { name: "VIEW_ROUND_NOTES", label: "View Round Notes" },
+      // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
+      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
+      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+    ],
+  },
+  {
+    key: "MI_REPORTING",
+    label: "MI Reporting",
+    subModules: [
+      { name: "VIEW_MI_REPORTING", label: "View MI Reporting" },
+      // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
+      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
+      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
     ],
   },
 ];

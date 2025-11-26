@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, Font, StyleSheet } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import { differenceInYears, format } from "date-fns";
 
 Font.register({
   family: "Roboto",

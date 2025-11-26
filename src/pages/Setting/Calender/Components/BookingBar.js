@@ -56,7 +56,7 @@ const BookingBar = ({ loading, centerAccess }) => {
                 </RenderWhen>
               </div>
             </Col>
-            <Col className="col-sm-auto ms-auto">
+            {/* <Col className="col-sm-auto ms-auto">
               <div className="list-grid-nav hstack gap-1">
                 <Button
                   className="text-white"
@@ -66,7 +66,7 @@ const BookingBar = ({ loading, centerAccess }) => {
                   <i className="ri-add-fill me-1 align-bottom"></i> Add Item
                 </Button>
               </div>
-            </Col>
+            </Col> */}
           </Row>
         </CardBody>
       </Card>

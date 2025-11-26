@@ -15,6 +15,7 @@ import {
 } from "../../../store/actions";
 import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
 import Inovice from "../Dropdowns/Inovice";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
 const DuePayment = ({
   author,
@@ -102,9 +103,9 @@ const DuePayment = ({
       }),
       bill: Yup.string().required("Bill type required!"),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (editData) {
-        dispatch(
+        const response = await dispatch(
           updateInvoice({
             id: editBillData._id,
             billId: editData._id,
@@ -113,16 +114,18 @@ const DuePayment = ({
             ...values,
             paymentModes,
           })
-        );
+        ).unwrap();
+        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
       } else {
-        dispatch(
+       const response = await dispatch(
           addInvoice({
             ...values,
             appointment: appointment?._id,
             paymentModes,
             shouldPrintAfterSave,
           })
-        );
+        ).unwrap();
+        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();

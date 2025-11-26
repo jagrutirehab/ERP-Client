@@ -1,8 +1,112 @@
+// import React from "react";
+// import PropTypes from "prop-types";
+// import DataTable from "react-data-table-component";
+
+// const MedicineChart = ({ medicines, isPharmacy, onDosageChange }) => {
+//   const handleTotalChange = (index, value) => {
+//     const updatedMedicine = {
+//       ...medicines[index],
+//       totalCount: value,
+//     };
+//     onDosageChange(index, updatedMedicine);
+//   };
+
+//   const columns = [
+//     {
+//       name: "Medicine",
+//       selector: (row) =>
+//         `${row.medicine?.type || ""} ${row.medicine?.name || ""} ${row.medicine?.strength || ""} ${row.medicine?.unit || ""}`,
+//       style: { textTransform: "capitalize" },
+//       wrap: true,
+//     },
+//     {
+//       name: <div>Dosage & Frequency</div>,
+//       cell: (row) => {
+//         const freq = row.dosageAndFrequency || {};
+//         return (
+//           <div>{`${freq.morning || 0} - ${freq.evening || 0} - ${freq.night || 0}`}</div>
+//         );
+//       },
+//       wrap: true,
+//     },
+//     {
+//       name: "Duration",
+//       selector: (row) => `${row?.duration || ""} ${row?.unit || ""}`,
+//       wrap: true,
+//     },
+//     {
+//       name: "Intake",
+//       cell: (row) => (
+//         <div style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+//           {row?.instructions ? `${row?.instructions}, ` : ""}
+//           {row?.intake || ""}
+//         </div>
+//       ),
+//       wrap: true,
+//     },
+//     ...(isPharmacy
+//       ? [
+//         {
+//           name: "Total Count",
+//           cell: (row, index) => {
+//             const freq = row.dosageAndFrequency || {};
+//             const defaultTotal =
+//               (Number(freq.morning) || 0) +
+//               (Number(freq.evening) || 0) +
+//               (Number(freq.night) || 0);
+//             return (
+//               <input
+//                 type="number"
+//                 min="0"
+//                 value={row.totalCount ?? defaultTotal}
+//                 onChange={(e) => handleTotalChange(index, e.target.value)}
+//                 style={{
+//                   width: "70px",
+//                   textAlign: "center",
+//                   border: "1px solid #ccc",
+//                   borderRadius: "4px",
+//                   fontSize: "13px",
+//                   padding: "2px 4px",
+//                 }}
+//               />
+//             );
+//           },
+//           center: true,
+//           wrap: true,
+//         },
+//       ]
+//       : []),
+//   ];
+
+//   return (
+//     <div className="px-2">
+//       <DataTable
+//         columns={columns}
+//         data={medicines}
+//         customStyles={{
+//           cells: {
+//             style: { minHeight: "48px", alignItems: "center" },
+//           },
+//         }}
+//       />
+//     </div>
+//   );
+// };
+
+// MedicineChart.propTypes = {
+//   medicines: PropTypes.array.isRequired,
+//   isPharmacy: PropTypes.bool,
+//   onDosageChange: PropTypes.func,
+// };
+
+// export default MedicineChart;
+
+
 import React from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 
-const MedicineChart = ({ medicines }) => {
+const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) => {
   const columns = [
     {
       name: "Medicine",
@@ -39,6 +143,36 @@ const MedicineChart = ({ medicines }) => {
       //   whiteSpace: "normal",
       // },
     },
+    ...(isPharmacy
+      ? [
+        {
+          name: "Dispensed Count",
+          cell: (row) => {
+            return (
+              <input
+                type="number"
+                min="0"
+                value={row.dispensedCount ?? row.totalQuantity}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                        handleDispensedCountChange(row._id, val);
+                }}
+                style={{
+                  width: "70px",
+                  textAlign: "center",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  fontSize: "13px",
+                  padding: "2px 4px",
+                }}
+              />
+            );
+          },
+          center: true,
+          wrap: true,
+        },
+      ]
+      : []),
   ];
 
   return (
@@ -93,6 +227,8 @@ const MedicineChart = ({ medicines }) => {
 
 MedicineChart.propTypes = {
   medicines: PropTypes.array.isRequired,
+  isPharmacy: PropTypes.bool,
+  handleDispensedCountChange: PropTypes.func,
 };
 
 export default MedicineChart;

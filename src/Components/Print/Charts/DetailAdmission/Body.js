@@ -8,6 +8,7 @@ import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
 import DoctorSignature from "./DoctorSignature";
 import CheifComplaint from "./ChiefComplaint";
+import ProvisionalDiagnosis from "./ProvisionalDaignosis";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Body = ({ chart, patient }) => {
+const Body = ({ chart, patient, admission }) => {
   const data = chart.detailAdmission;
 
   return (
@@ -121,9 +122,11 @@ const Body = ({ chart, patient }) => {
         chart={chart}
         patient={patient}
         data={data.detailAdmission}
+        admission={admission}
         styles={styles}
       />
       <CheifComplaint data={data.ChiefComplaints} styles={styles} />
+      {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
       <DetailHistory data={data.detailHistory} styles={styles} />
       <MentalExamination data={data.mentalExamination} styles={styles} />
       <PhysicalExamination data={data.physicalExamination} styles={styles} />

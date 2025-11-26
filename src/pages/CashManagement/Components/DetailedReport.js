@@ -20,6 +20,8 @@ import { getDetailedReport } from "../../../store/features/cashManagement/cashSl
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
 
 const DetailedReport = ({
   centers,
@@ -31,6 +33,7 @@ const DetailedReport = ({
   roles,
 }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
@@ -92,19 +95,50 @@ const DetailedReport = ({
     {
       name: "Type",
       selector: (row) => {
-        if (row.type === "BASEBALANCE") {
+        const badgeStyle = {
+          display: "inline-block",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+        };
+        if (row.transactionCategory === "BASEBALANCE") {
           return (
-            <Badge color="warning" className="text-dark">
+            <Badge color="warning" className="text-dark" style={badgeStyle}>
               BASE BALANCE
             </Badge>
           );
-        } else if (row.type === "SPENDING" || row.type === "BANKDEPOSIT") {
+        } else if (row.transactionCategory === "SPENDING" || row.transactionCategory === "BANKDEPOSIT") {
           return (
-            <Badge color="danger">
-              {row.type.charAt(0).toUpperCase() + row.type.slice(1)}
+            <Badge color="danger" style={badgeStyle}>
+              {row.transactionCategory}
+            </Badge>
+          )
+        }
+        else if (row.transactionCategory === "RECEIPT" && row.source === "INTERNBILL") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              INTERN RECEIPT
             </Badge>
           );
-        } else {
+        } else if (row.transactionCategory === "INVOICE" && row.transactionType === "OPD") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              OPD
+            </Badge>
+          );
+        } else if (row.transactionCategory === "ADVANCE_PAYMENT") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              IPD
+            </Badge>
+          );
+        } else if (row.transactionCategory === "DEPOSIT") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              DEPOSIT-OLIVE
+            </Badge>
+          )
+        }
+        else {
           return "-";
         }
       },
@@ -156,16 +190,27 @@ const DetailedReport = ({
 
   useEffect(() => {
     if (activeTab === "detail" && hasUserPermission) {
-      dispatch(
-        getDetailedReport({
-          page,
-          limit,
-          transactionType: selectedTransactionType,
-          centers: selectedCentersIds,
-          startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString(),
-        })
-      );
+
+      const fetchDetailReport = async () => {
+        try {
+          await dispatch(
+            getDetailedReport({
+              page,
+              limit,
+              transactionType: selectedTransactionType,
+              centers: selectedCentersIds,
+              startDate: reportDate.start.toISOString(),
+              endDate: reportDate.end.toISOString(),
+            })
+          ).unwrap();
+        } catch (error) {
+          if (!handleAuthError(error)) {
+            toast.error(error.message || "Failed to fetch detail report.");
+          }
+        }
+      }
+
+      fetchDetailReport();
     }
   }, [
     page,
@@ -193,48 +238,56 @@ const DetailedReport = ({
   };
 
   return (
-    <TabPane tabId="detail">
-      <div className="d-flex justify-content-between align-items-center mt-3">
-        <div className="d-flex gap-2 align-items-center">
-          <Input
-            type="select"
-            value={limit}
-            onChange={(e) =>
-              handleFilterChange("limit", Number(e.target.value))
-            }
-            style={{ width: "100px" }}
-          >
-            {[10, 20, 30, 40, 50].map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </Input>
-          <Input
-            type="select"
-            value={selectedTransactionType}
-            onChange={(e) =>
-              handleFilterChange("transactionType", e.target.value)
-            }
-            style={{ width: "200px" }}
-          >
-            <option value="">All</option>
-            <option value="BASEBALANCE">Base Balances</option>
-            <option value="BANKDEPOSIT">Bank Deposits</option>
-            <option value="SPENDING">Spendings</option>
-          </Input>
-          <Header reportDate={reportDate} setReportDate={handleDateChange} />
-          <CenterDropdown
-            options={centerOptions}
-            value={selectedCentersIds}
-            onChange={(ids) => {
-              setPage(1);
-              setSelectedCentersIds(ids);
-              setSelectedCenters(
-                centerOptions.filter((c) => ids.includes(c._id))
-              );
-            }}
-          />
+    <TabPane tabId="detail" style={{ padding: 0 }}>
+      <div className="mt-3">
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <div style={{ minWidth: "100px", maxWidth: "120px" }}>
+            <Input
+              type="select"
+              value={limit}
+              onChange={(e) => handleFilterChange("limit", Number(e.target.value))}
+            >
+              {[10, 20, 30, 40, 50].map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </Input>
+          </div>
+          <div style={{ minWidth: "150px", maxWidth: "200px" }}>
+            <Input
+              type="select"
+              value={selectedTransactionType}
+              onChange={(e) =>
+                handleFilterChange("transactionType", e.target.value)
+              }
+            >
+              <option value="">All</option>
+              <option value="BASEBALANCE">Base Balances</option>
+              <option value="BANKDEPOSIT">Bank Deposits</option>
+              <option value="SPENDING">Spendings</option>
+              <option value="IPD">IPD Payments</option>
+              <option value="DEPOSIT-OLIVE">Deposit-Olive payments</option>
+              <option value="OPD">OPD Payments</option>
+              <option value="INTERN">Intern Payments</option>
+            </Input>
+          </div>
+          <div style={{ minWidth: "150px" }}>
+            <Header reportDate={reportDate} setReportDate={handleDateChange} />
+          </div>
+          <div style={{ minWidth: "200px", maxWidth: "250px" }}>
+            <CenterDropdown
+              options={centerOptions}
+              value={selectedCentersIds}
+              onChange={(ids) => {
+                setPage(1);
+                setSelectedCentersIds(ids);
+                setSelectedCenters(
+                  centerOptions.filter((c) => ids.includes(c._id))
+                );
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -255,34 +308,59 @@ const DetailedReport = ({
             />
           )}
           {!loading && detailedReport?.pagination?.totalPages > 1 && (
-            <Row className="mt-4 justify-content-center align-items-center">
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  ← Previous
-                </Button>
-              </Col>
-              <Col xs="auto" className="text-center text-muted mx-3">
-                Showing {(page - 1) * limit + 1}–
-                {Math.min(
-                  page * limit,
-                  detailedReport?.pagination?.totalDocs || 0
-                )}{" "}
-                of {detailedReport?.pagination?.totalDocs || 0}
-              </Col>
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === detailedReport?.pagination?.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Next →
-                </Button>
-              </Col>
-            </Row>
+            <>
+              {/* Mobile Layout */}
+              <div className="d-block d-md-none text-center mt-3">
+                <div className="text-muted mb-2">
+                  Showing {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
+                  {detailedReport?.pagination?.totalDocs || 0}
+                </div>
+                <div className="d-flex justify-content-center gap-2">
+                  <Button
+                    color="secondary"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    ← Previous
+                  </Button>
+                  <Button
+                    color="secondary"
+                    disabled={page === detailedReport?.pagination?.totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next →
+                  </Button>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
+                <Col xs="auto" className="d-flex justify-content-center">
+                  <Button
+                    color="secondary"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    ← Previous
+                  </Button>
+                </Col>
+                <Col xs="auto" className="text-center text-muted mx-3">
+                  Showing {(page - 1) * limit + 1}–
+                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
+                  {detailedReport?.pagination?.totalDocs || 0}
+                </Col>
+                <Col xs="auto" className="d-flex justify-content-center">
+                  <Button
+                    color="secondary"
+                    disabled={page === detailedReport?.pagination?.totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next →
+                  </Button>
+                </Col>
+              </Row>
+            </>
           )}
         </CardBody>
       </Card>

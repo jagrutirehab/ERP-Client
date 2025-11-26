@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
+  Badge,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -42,6 +43,7 @@ import DeleteModal from "../../Components/Common/DeleteModal";
 const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [search, setSearch] = useState("");
 
   //Modal
   // const [formModal, setFormModal] = useState(false);
@@ -57,8 +59,16 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const [centerData, setCenterData] = useState();
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
-  }, [dispatch, user]);
+    if (!user) {
+      dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+      return;
+    }
+    const handler = setTimeout(() => {
+      dispatch(fetchCenters({ centerIds: user?.centerAccess, search }));
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [dispatch, user, search]);
 
   useEffect(() => {
     dispatch(fetchMedicines());
@@ -80,11 +90,17 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
   const changeAccess = (centerId) => {
     const checkCenter = centerAccess.includes(centerId);
     let updateAccess = [...centerAccess];
+
+    console.log({ updateAccess, checkCenter });
+
     if (checkCenter) {
       updateAccess = updateAccess.filter((id) => id !== centerId);
     } else {
       updateAccess = [centerId, ...centerAccess];
     }
+
+    console.log({ updateAccess });
+
     dispatch(changeUserAccess(updateAccess));
   };
 
@@ -100,6 +116,8 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                   <div className="search-box">
                     <Input
                       type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                       className="form-control"
                       placeholder="Search for title, address"
                     />
@@ -131,12 +149,14 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
           <Row className="team-list grid-view-filter">
             {(centers || []).map((center, key) => {
               const checkCenter = centerAccess.includes(center._id);
+              console.log({ checkCenter, center: center.title });
+
               return (
                 <Col key={key} xl={4}>
                   <Card className="rounded-3 overflow-hidden">
                     <CardHeader className="bg-white p-3">
                       <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center">
+                        <div className="d-flex align-items-center gap-2">
                           <button
                             onClick={() => changeAccess(center._id)}
                             type="button"
@@ -156,10 +176,12 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                         </div>
                         <UncontrolledDropdown
                           direction="start"
-                          className="col text-end"
+                          className="col text-end flex-shrink-1"
                         >
                           <DropdownToggle
                             tag="a"
+                            className=""
+                            x
                             id="dropdownMenuLink2"
                             role="button"
                           >
@@ -186,6 +208,15 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </div>
+                      <Badge
+                        pill
+                        color={center.websiteListing ? "success" : "secondary"}
+                        className="mt-2"
+                      >
+                        {center.websiteListing
+                          ? "Website Listing On"
+                          : "Website Listing Off"}
+                      </Badge>
                     </CardHeader>
                     {/* <img className="img-fluid" src={img4} alt="Card cap" /> */}
                     <CardBody className="p-4 text-center">
@@ -213,6 +244,9 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                         {center.branchName || ""}
                       </p>
                       <p className="mb-0 text-muted">{center.numbers || ""}</p>
+                      <p className="mb-0 text-muted">
+                        {center.numberOfBeds || ""}
+                      </p>
                     </CardBody>
                     <div className="card-footer text-center bg-white">
                       <ul className="list-inline mb-0">

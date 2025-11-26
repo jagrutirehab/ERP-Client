@@ -17,6 +17,7 @@ import {
 import PatientPlaceholder from "./PatientPlaceholder";
 
 const SearchOption = ({ loading, patients, centerAccess }) => {
+  
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
   const onChangeData = (value) => {
@@ -91,17 +92,6 @@ const SearchOption = ({ loading, patients, centerAccess }) => {
         </div>
         <div className="dropdown-menu dropdown-menu-lg" id="search-dropdown">
           <SimpleBar style={{ height: "200px" }}>
-            {/* <div className="dropdown-header">
-                            <h6 className="text-overflow text-muted mb-0 text-uppercase">Recent Searches</h6>
-                        </div>
-
-                        <div className="dropdown-item bg-transparent text-wrap">
-                            <Link to="/" className="btn btn-soft-secondary btn-sm btn-rounded">how to setup <i
-                                className="mdi mdi-magnify ms-1"></i></Link>
-                            <Link to="/" className="btn btn-soft-secondary btn-sm btn-rounded">buttons <i
-                                className="mdi mdi-magnify ms-1"></i></Link>
-                        </div> */}
-
             <div className="dropdown-header mt-2">
               <h6 className="text-overflow text-muted mb-1 text-uppercase">
                 Patients
@@ -130,77 +120,13 @@ const SearchOption = ({ loading, patients, centerAccess }) => {
                 >
                   <i className="ri-bubble-chart-line align-middle fs-18 text-muted me-2"></i>
                   <Highlighter
-                    // highlightClassName="bg-warning"
                     searchWords={[value]}
                     autoEscape={true}
                     textToHighlight={`${pt?.name} (${pt?.center?.title})`}
                   />
-                  {/* <span>{pt.name}</span> */}
                 </Link>
               ))}
             </RenderWhen>
-
-            {/* <Link to="#" className="dropdown-item notify-item">
-              <i className="ri-lifebuoy-line align-middle fs-18 text-muted me-2"></i>
-              <span>Help Center</span>
-            </Link>
-
-            <Link to="#" className="dropdown-item notify-item">
-              <i className="ri-user-settings-line align-middle fs-18 text-muted me-2"></i>
-              <span>My account settings</span>
-            </Link> */}
-
-            {/* <div className="dropdown-header mt-2">
-              <h6 className="text-overflow text-muted mb-2 text-uppercase">
-                Members
-              </h6>
-            </div> */}
-            {/* 
-            <div className="notification-list">
-              <Link to="#" className="dropdown-item notify-item py-2">
-                <div className="d-flex">
-                  <img
-                    src={image2}
-                    className="me-3 rounded-circle avatar-xs"
-                    alt="user-pic"
-                  />
-                  <div className="flex-1">
-                    <h6 className="m-0">Angela Bernier</h6>
-                    <span className="fs-11 mb-0 text-muted">Manager</span>
-                  </div>
-                </div>
-              </Link>
-
-              <Link to="#" className="dropdown-item notify-item py-2">
-                <div className="d-flex">
-                  <img
-                    src={image3}
-                    className="me-3 rounded-circle avatar-xs"
-                    alt="user-pic"
-                  />
-                  <div className="flex-1">
-                    <h6 className="m-0">David Grasso</h6>
-                    <span className="fs-11 mb-0 text-muted">Web Designer</span>
-                  </div>
-                </div>
-              </Link>
-
-              <Link to="#" className="dropdown-item notify-item py-2">
-                <div className="d-flex">
-                  <img
-                    src={image5}
-                    className="me-3 rounded-circle avatar-xs"
-                    alt="user-pic"
-                  />
-                  <div className="flex-1">
-                    <h6 className="m-0">Mike Bunch</h6>
-                    <span className="fs-11 mb-0 text-muted">
-                      React Developer
-                    </span>
-                  </div>
-                </div>
-              </Link> 
-            </div>*/}
           </SimpleBar>
         </div>
       </form>

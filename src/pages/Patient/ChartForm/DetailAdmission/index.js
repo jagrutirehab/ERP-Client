@@ -5,9 +5,9 @@ import Divider from "../../../../Components/Common/Divider";
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import ConsentFiles from "./ConsentFiles";
+// import ConsentFiles from "./ConsentFiles";
 import convertToFormData from "../../../../utils/convertToFormData";
-import DetailAdmissionForm from "./DetailAdmissionForm";
+// import DetailAdmissionForm from "./DetailAdmissionForm";
 import DetailHistoryForm from "./DetailHistoryForm";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
@@ -23,11 +23,13 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
+// import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
-const CONSET_FILES = "CONSENT_FILES";
+// const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
+// const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -119,7 +121,7 @@ const DetailAdmission = ({
 }) => {
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
-  const [formStep, setFormStep] = useState(CONSET_FILES);
+  const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const validation = useFormik({
@@ -174,9 +176,9 @@ const DetailAdmission = ({
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
         : patientData?.psychologistData?.name,
-      referredby: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.referredby
-        : "",
+      // referredby: detailAdmissionForm
+      //   ? detailAdmissionForm.detailHistory?.referredby
+      //   : "",
       reliable: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.reliable
         : "Reliable",
@@ -221,6 +223,14 @@ const DetailAdmission = ({
       line3: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.line3
         : "",
+      line4: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.line4
+        : "",
+
+      //Provisional Diagnosis
+      // diagnosis1: detailAdmissionForm
+      //   ? detailAdmissionForm.ProvisionalDiagnosis?.diagnosis1
+      //   : "",
 
       //mental status examination
       appearance: detailAdmissionForm
@@ -257,9 +267,9 @@ const DetailAdmission = ({
         ? detailAdmissionForm.mentalExamination?.insight
         : "",
       //physical status examination
-      generalExamination: detailAdmissionForm
-        ? detailAdmissionForm.physicalExamination?.generalExamination
-        : "",
+      // generalExamination: detailAdmissionForm
+      //   ? detailAdmissionForm.physicalExamination?.generalExamination
+      //   : "",
       cns: detailAdmissionForm
         ? detailAdmissionForm.physicalExamination?.cns
         : "",
@@ -282,6 +292,9 @@ const DetailAdmission = ({
         ? detailAdmissionForm.physicalExamination?.formulation
         : "",
       //diagnosis & doctor signature
+      provisionaldiagnosis: detailAdmissionForm
+        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis
+        : "",
       diagnosis: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.diagnosis
         : "",
@@ -353,30 +366,36 @@ const DetailAdmission = ({
       <div>
         <Row className="mt-3">
           <div className="arrow-buttons d-flex gap-4">
-            <Button
+            {/* <Button
               className=""
               outline={formStep !== CONSET_FILES}
               onClick={() => setFormStep(CONSET_FILES)}
             >
               Consent Files
-            </Button>{" "}
-            <Button
-              outline={formStep !== DETAIL_ADMISSION}
-              onClick={() => setFormStep(DETAIL_ADMISSION)}
-            >
-              Detail Admission
-            </Button>
-            <Button
-              outline={formStep !== DETAIL_HISTORY}
-              onClick={() => setFormStep(DETAIL_HISTORY)}
-            >
-              Detail History
-            </Button>
+            </Button>{" "} */}
             <Button
               outline={formStep !== CHIEF_COMPLAINTS}
               onClick={() => setFormStep(CHIEF_COMPLAINTS)}
             >
               Chief Complaints
+            </Button>
+            {/* <Button
+              outline={formStep !== PROVISIONAL_DIAGNOSIS}
+              onClick={() => setFormStep(PROVISIONAL_DIAGNOSIS)}
+            >
+              Provisional Diagnosis
+            </Button> */}
+            {/* <Button
+              outline={formStep !== DETAIL_ADMISSION}
+              onClick={() => setFormStep(DETAIL_ADMISSION)}
+            >
+              Detail Admission
+            </Button> */}
+            <Button
+              outline={formStep !== DETAIL_HISTORY}
+              onClick={() => setFormStep(DETAIL_HISTORY)}
+            >
+              Detail History
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
@@ -394,7 +413,7 @@ const DetailAdmission = ({
               outline={formStep !== DOCTOR_SIGNATURE}
               onClick={() => setFormStep(DOCTOR_SIGNATURE)}
             >
-              Diagnosis & Doctor Signature
+              Diagnosis & Plan
             </Button>
           </div>
           <div className="mt-4">
@@ -408,36 +427,44 @@ const DetailAdmission = ({
               className="needs-validation"
               action="#"
             >
-              {formStep === CONSET_FILES && (
+              {/* {formStep === CONSET_FILES && (
                 <>
                   {consentUploadedFiles}
                   <ConsentFiles
                     consentFiles={consentFiles}
                     setConsentFiles={setConsentFiles}
                     setFormStep={setFormStep}
-                    step={DETAIL_ADMISSION}
+                    step={CHIEF_COMPLAINTS}
                   />
                 </>
-              )}
+              )} */}
 
-              {formStep === DETAIL_ADMISSION && (
-                <DetailAdmissionForm
+              {formStep === CHIEF_COMPLAINTS && (
+                <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DETAIL_HISTORY}
                 />
               )}
 
-              {formStep === DETAIL_HISTORY && (
-                <DetailHistoryForm
+              {/* {formStep === PROVISIONAL_DIAGNOSIS && (
+                <ProvisionalDiagnosisForm
                   validation={validation}
                   setFormStep={setFormStep}
-                  step={CHIEF_COMPLAINTS}
+                  step={DETAIL_HISTORY}
                 />
-              )}
+              )} */}
 
-              {formStep === CHIEF_COMPLAINTS && (
-                <ChiefComplaintsForm
+              {/* {formStep === DETAIL_ADMISSION && (
+                <DetailAdmissionForm
+                  validation={validation}
+                  setFormStep={setFormStep}
+                  step={DETAIL_HISTORY}
+                />
+              )} */}
+
+              {formStep === DETAIL_HISTORY && (
+                <DetailHistoryForm
                   validation={validation}
                   setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}

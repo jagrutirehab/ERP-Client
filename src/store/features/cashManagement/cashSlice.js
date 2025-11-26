@@ -18,28 +18,40 @@ const initialState = {
   baseBalance: [],
   lastBaseBalance: null,
   detailedReport: {},
-  summaryReport: [],
+  summaryReport: {
+    data: [],
+    cache: {},
+  },
   isUptoDate: true,
 };
 
 export const getLastBankDeposits = createAsyncThunk(
   "cash/getLatestBankDesposits",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (data, { getState, dispatch, rejectWithValue }) => {
+    const { centers } = data;
+    const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+    const cachedBankDeposits = getState().Cash.bankDeposits?.[cacheKey];
+    if (
+      cachedBankDeposits &&
+      Array.isArray(cachedBankDeposits.data) &&
+      cachedBankDeposits.data.length > 0
+    ) {
+      return { data: cachedBankDeposits, fromCache: true, cacheKey };
+    }
     try {
       const response = await getLatestBankDesposits(data);
-      return response;
+      return { data: response, fromCache: false, cacheKey };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch deposits");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const addSpending = createAsyncThunk(
   "cash/addSpending",
-  async (data, { getState, rejectWithValue }) => {
+  async ({ formData }, { getState, rejectWithValue }) => {
     try {
-      const response = await postSpending(data);
+      const response = await postSpending(formData);
 
       const centers = getState().Center.data;
       const center = centers.find((cn) => cn._id === response.payload.center);
@@ -51,29 +63,41 @@ export const addSpending = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to log spending");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const getLastSpendings = createAsyncThunk(
   "cash/getLatestSpendings",
-  async (data, { dispatch, rejectWithValue }) => {
+  async (data, { getState, rejectWithValue }) => {
+    const { centers } = data;
+    const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+
+    const cachedSpendings = getState().Cash.spendings?.[cacheKey];
+
+    if (
+      cachedSpendings &&
+      Array.isArray(cachedSpendings.data) &&
+      cachedSpendings.data.length > 0
+    ) {
+      return { data: cachedSpendings, fromCache: true, cacheKey };
+    }
+
     try {
       const response = await getLatestSpendings(data);
-      return response;
+      return { data: response, fromCache: false, cacheKey };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const addBankDeposit = createAsyncThunk(
   "cash/addBankDeposit",
-  async (data, { getState, rejectWithValue }) => {
+  async ({ formData }, { getState, rejectWithValue }) => {
     try {
-      const response = await postBankDeposit(data);
+      const response = await postBankDeposit(formData);
 
       const centers = getState().Center.data;
       const center = centers.find((cn) => cn._id === response.payload.center);
@@ -85,7 +109,7 @@ export const addBankDeposit = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to add deposit");
+      return rejectWithValue(error);
     }
   }
 );
@@ -106,7 +130,7 @@ export const addBaseBalance = createAsyncThunk(
         },
       };
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to add base balance");
+      return rejectWithValue(error);
     }
   }
 );
@@ -127,8 +151,7 @@ export const getLastBaseBalanceByCenter = createAsyncThunk(
       const response = await getBaseBalanceByCenter(centerId);
       return { payload: response.payload, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch base balance");
+      return rejectWithValue(error);
     }
   }
 );
@@ -140,21 +163,24 @@ export const getDetailedReport = createAsyncThunk(
       const response = await getDetailedCashReport(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
 
 export const getSummaryReport = createAsyncThunk(
   "cash/getSummaryCashReport",
-  async (data, { dispatch, rejectWithValue }) => {
+  async ({ centers, refetch = false }, { getState, dispatch, rejectWithValue }) => {
+    const cacheKey = [...centers].sort().join(",");
+    const cached = getState().Cash.summaryReport?.cache?.[cacheKey];
+    if (!refetch && cached) {
+      return { data: cached, fromCache: true };
+    }
     try {
-      const response = await getSummaryCashReport(data);
-      return response;
+      const response = await getSummaryCashReport({ centers });
+      return { data: response, cacheKey, fromCache: false };
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch spendings");
+      return rejectWithValue(error);
     }
   }
 );
@@ -186,17 +212,26 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLastBankDeposits.fulfilled, (state, { payload }) => {
-        state.bankDeposits = payload;
         state.loading = false;
+        const { data, cacheKey, fromCache } = payload;
+        if (!fromCache && cacheKey) {
+          state.bankDeposits = {};
+          state.bankDeposits[cacheKey] = data;
+        }
       })
       .addCase(getLastBankDeposits.rejected, (state) => {
         state.loading = false;
       });
 
-    builder.addCase(addBankDeposit.fulfilled, (state, { payload }) => {
-      state.bankDeposits.data.unshift(payload);
-      if (state.bankDeposits.data.length > 10) {
-        state.bankDeposits.data.pop();
+    builder.addCase(addBankDeposit.fulfilled, (state, { payload, meta }) => {
+      const centers = meta.arg.centers;
+      const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+      if (!state.bankDeposits[cacheKey]) {
+        state.bankDeposits[cacheKey] = { data: [], pagination: {} };
+      }
+      state.bankDeposits[cacheKey].data.unshift(payload);
+      if (state.bankDeposits[cacheKey].data.length > 10) {
+        state.bankDeposits[cacheKey].data.pop();
       }
     });
     builder
@@ -204,17 +239,27 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLastSpendings.fulfilled, (state, { payload }) => {
-        state.spendings = payload;
         state.loading = false;
+        const { data, cacheKey, fromCache } = payload;
+        if (!fromCache && cacheKey) {
+          state.spendings = {};
+          state.spendings[cacheKey] = data;
+        }
       })
+
       .addCase(getLastSpendings.rejected, (state) => {
         state.loading = false;
       });
 
-    builder.addCase(addSpending.fulfilled, (state, { payload }) => {
-      state.spendings.data.unshift(payload);
-      if (state.spendings.data.length > 10) {
-        state.spendings.data.pop();
+    builder.addCase(addSpending.fulfilled, (state, { payload, meta }) => {
+      const centers = meta.arg.centers;
+      const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+      if (!state.spendings[cacheKey]) {
+        state.spendings[cacheKey] = { data: [], pagination: {} };
+      }
+      state.spendings[cacheKey].data.unshift(payload);
+      if (state.spendings[cacheKey].data.length > 10) {
+        state.spendings[cacheKey].data.pop();
       }
     });
 
@@ -291,8 +336,13 @@ export const CashSlice = createSlice({
         state.loading = true;
       })
       .addCase(getSummaryReport.fulfilled, (state, { payload }) => {
-        state.summaryReport = payload.payload;
         state.loading = false;
+        if (!payload.fromCache) {
+          state.summaryReport.cache = {
+            [payload.cacheKey]: payload.data.payload,
+          };
+          state.summaryReport.data = payload.data.payload
+        }
       })
       .addCase(getSummaryReport.rejected, (state) => {
         state.loading = false;

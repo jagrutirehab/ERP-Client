@@ -76,6 +76,10 @@ const OPDAnalytics = ({ data, centerAccess }) => {
       selector: (row) => (row?.chart ? "Yes" : "No"),
     },
     {
+      name: "OPD Charges",
+      selector: (row) => row?.opdCharges,
+    },
+    {
       name: "Paid Amount",
       selector: (row) => row.bill?.receiptInvoice?.payable,
     },
@@ -102,29 +106,51 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     // },
   ];
 
+  const opdChargesLabels = [
+    "doctor consultation charges",
+    "general physician consultation",
+    "ortho consultation",
+    "physician consultation",
+    "opd charges",
+  ];
+
   const csvOPD = () => {
-    return data?.map((d, i) => ({
-      ...d,
-      id: i + 1,
-      uid: `${d.patient?.id?.prefix}${d.patient?.id?.value}`,
-      paymentMode: d.bill?.receiptInvoice?.paymentModes
-        ?.map(
-          (pm) =>
-            `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-              pm.bank || ""
-            } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
-        )
-        .join(", "),
-      prescribed: d?.chart ? "Yes" : "No",
-      paidAmount: d.bill?.receiptInvoice?.payable,
-      date: `On ${format(new Date(d.startDate), "dd MMM yyyy")} at \n ${format(
-        new Date(d.startDate),
-        "hh:mm a"
-      )} for ${differenceInMinutes(
-        new Date(d?.endDate),
-        new Date(d?.startDate)
-      )} mins`,
-    }));
+    return data?.map((d, i) => {
+      console.log({ opd: d });
+
+      const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
+        opdChargesLabels.includes(inv.slot)
+      );
+
+      console.log({ opdCharges });
+
+      return {
+        ...d,
+        id: i + 1,
+        uid: `${d.patient?.id?.prefix}${d.patient?.id?.value}`,
+        paymentMode: d.bill?.receiptInvoice?.paymentModes
+          ?.map(
+            (pm) =>
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
+                pm.bank || ""
+              } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
+          )
+          .join(", "),
+        opdCharges: (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
+        prescribed: d?.chart ? "Yes" : "No",
+        paidAmount: d.bill?.receiptInvoice?.payable,
+        date: `On ${format(
+          new Date(d.startDate),
+          "dd MMM yyyy"
+        )} at \n ${format(
+          new Date(d.startDate),
+          "hh:mm a"
+        )} for ${differenceInMinutes(
+          new Date(d?.endDate),
+          new Date(d?.startDate)
+        )} mins`,
+      };
+    });
   };
 
   const headers = [
@@ -137,6 +163,7 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     { label: "Appointment Type", key: "consultationType" },
     { label: "Patient Phone No", key: "patient.phoneNumber" },
     { label: "Prescribed", key: "prescribed" },
+    { label: "OPD Charges", key: "opdCharges" },
     { label: "Paid Amount", key: "paidAmount" },
     { label: "Payment Mode", key: "paymentMode" },
   ];
@@ -161,7 +188,20 @@ const OPDAnalytics = ({ data, centerAccess }) => {
           <DataTable
             fixedHeader
             columns={columns}
-            data={data?.map((d) => ({ ...d, id: d._id })) || []}
+            data={
+              data?.map((d) => {
+                const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find(
+                  (inv) => opdChargesLabels.includes(inv.slot)
+                );
+
+                return {
+                  ...d,
+                  id: d._id,
+                  opdCharges:
+                    (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
+                };
+              }) || []
+            }
             highlightOnHover
           />
         </div>

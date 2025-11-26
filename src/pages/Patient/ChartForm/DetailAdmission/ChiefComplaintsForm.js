@@ -18,6 +18,11 @@ const fields = [
     name: "line3",
     type: "text",
   },
+  {
+    label: "Complaint 4",
+    name: "line4",
+    type: "text",
+  },
 ];
 
 const ChiefComplaintsForm = ({ validation, setFormStep, step }) => {

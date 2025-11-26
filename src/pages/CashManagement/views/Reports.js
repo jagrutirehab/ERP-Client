@@ -26,7 +26,7 @@ const Reports = () => {
     <React.Fragment>
       <h5 className="fw-bold mb-3">Financial Reports</h5>
 
-      <Nav tabs className="mb-4">
+      <Nav tabs className="mb-2">
         <NavItem>
           <NavLink
             className={classnames({ active: activeTab === "summary" })}

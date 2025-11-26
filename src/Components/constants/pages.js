@@ -21,7 +21,14 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
-    id: "incident",
+    id: "centralpayment",
+    label: "Central Payment",
+    name: "Central Payment",
+    link: "/centralpayment",
+    icon: "bx bx-wallet-alt",
+  },
+  {
+    id: "incidentreporting",
     label: "Incident Reporting",
     name: "Incident Reporting",
     link: "/incident-reporting",
@@ -198,6 +205,18 @@ const pages = [
     ],
   },
   {
+    id: "roundnotes",
+    label: "Round Notes",
+    name: "Round Notes",
+    link: "/round-notes",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "booking",
     label: "Booking",
     name: "Booking",
@@ -229,10 +248,10 @@ const pages = [
     icon: "bx bxs-report",
   },
   {
-    id: "inventory",
-    label: "Inventory",
-    name: "Inventory",
-    link: "/inventory",
+    id: "pharmacy",
+    label: "Pharmacy",
+    name: "Pharmacy",
+    link: "/pharmacy",
     icon: "bx bx-book",
   },
   {
@@ -244,19 +263,37 @@ const pages = [
   },
 ];
 
-export const Inventory = [
+export const Pharmacy = [
   {
-    id: "inventory-dashboard",
+    id: "pharmacy-dashboard",
     label: "Dashboard",
-    link: "/inventory/dashboard",
+    link: "/pharmacy/dashboard",
     icon: "bx bx-home",
   },
   {
-    id: "inventorymanagement",
+    id: "pharmacymanagement",
     label: "Inventory",
-    link: "/inventory/management",
+    link: "/pharmacy/management",
     icon: "bx bx-building-house",
   },
+  {
+    id: "givenmedicines",
+    label: "Medicine Given",
+    link: "/pharmacy/given-med",
+    icon: "bx bx-building-house",
+  },
+  {
+    id: "medicineaApproval",
+    label: "Medicine Approval",
+    link: "/pharmacy/approval",
+    icon: "bx bx-checkbox-checked",
+  },
+  // {
+  //   id: "audit",
+  //   label: "Audit",
+  //   link: "/pharmacy/audit",
+  //   icon: "bx bx-fingerprint",
+  // },
 ];
 
 export const setting = [

@@ -1,4 +1,7 @@
-const DischargeIndependentMinor = ({ register }) => {
+import { useEffect, useState } from "react";
+import PrintHeader from "./printheader";
+
+const DischargeIndependentMinor = ({ register, patient, admissions }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -6,37 +9,83 @@ const DischargeIndependentMinor = ({ register }) => {
     backgroundColor: "#fff",
     pageBreakAfter: "always",
     fontFamily: "Arial, sans-serif",
-    fontSize: "12px",
+    fontSize: "14px",
     lineHeight: "1.5",
+    width: "100%",
+    maxWidth: "800px", // keeps it neat on large screens
   };
   const heading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "14px",
+    fontSize: "17px",
     marginBottom: "2px",
   };
   const subHeading = {
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "15px",
     marginBottom: "15px",
   };
   const inputLine = {
     border: "none",
     borderBottom: "1px solid #000",
-    width: "150px",
-    marginLeft: "5px",
-    marginRight: "5px",
+    flex: "1",
+    minWidth: "100px",
+    maxWidth: "250px",
+    margin: "0 5px",
+    fontSize: "14px",
   };
   const fullLine = {
     border: "none",
     borderBottom: "1px solid #000",
     width: "100%",
     marginTop: "3px",
+    fontSize: "12px",
   };
+
+  const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
 
   return (
     <div style={pageContainer}>
+      <style>
+        {`
+          /* Responsive adjustments */
+          @media (max-width: 768px) {
+            input {
+              width: 100% !important;
+              margin: 5px 0 !important;
+              display: block;
+            }
+            ol {
+              padding-left: 20px !important;
+            }
+          }
+
+          /* Print-specific styles */
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            input {
+              border: none;
+              border-bottom: 1px solid #000;
+              font-size: 12px;
+              text-transform: uppercase;
+            }
+          }
+        `}
+      </style>
+      <div style={{ marginBottom: "20px" }}>
+        <PrintHeader patient={patient} pageWidth={window.innerWidth} />
+      </div>
       <div style={heading}>Request For Discharge of Minor Patient</div>
       <div style={subHeading}>
         Jagruti Rehabilitation Centre (MHCA 2017 Section 87)
@@ -53,7 +102,14 @@ const DischargeIndependentMinor = ({ register }) => {
           Date:
           <input
             type="date"
-            {...register("page11_date")}
+            defaultValue={today}
+            {...register("page11_date", {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`;
+              },
+            })}
             style={{
               border: "none",
               borderBottom: "1px solid #000",
@@ -65,11 +121,31 @@ const DischargeIndependentMinor = ({ register }) => {
       <p>Sir/Madam : Request for Discharge.</p>
       <p>
         I, Mr./Mrs.
-        <input type="text" {...register("page11_name")} style={fullLine} /> IPD
-        No.
-        <input type="text" {...register("page11_ipd")} style={inputLine} /> aged
         <input
           type="text"
+          value={patient?.name}
+          {...register("page11_name")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
+        />{" "}
+        IPD No.
+        <input
+          type="text"
+          value={admissions?.Ipdnum}
+          {...register("page11_ipd")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />{" "}
+        aged
+        <input
+          type="text"
+          value={patient?.age}
           {...register("page11_age")}
           style={{
             border: "none",
@@ -77,6 +153,8 @@ const DischargeIndependentMinor = ({ register }) => {
             width: "60px",
             marginLeft: "5px",
             marginRight: "5px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
           }}
         />{" "}
         son/daughter of
@@ -88,15 +166,29 @@ const DischargeIndependentMinor = ({ register }) => {
         residing at
         <input
           type="text"
+          value={patient?.address}
           {...register("page11_address")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />{" "}
         was admitted in your mental health establishment as an Minor admission
         on
         <input
           type="text"
+          value={
+            admissions?.addmissionDate
+              ? new Date(admissions.addmissionDate).toLocaleDateString("en-GB")
+              : ""
+          }
           {...register("page11_admissionDate")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         Now he/she feel better and wish to be discharged. If any other reason's
         for discharge, please mention below :
@@ -117,16 +209,26 @@ const DischargeIndependentMinor = ({ register }) => {
         Address
         <input
           type="text"
+          value={patient?.address}
           {...register("page11_fullAddress")}
-          style={fullLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...fullLine,
+          }}
         />
       </p>
       <p>
         Mob.
         <input
           type="text"
+          value={patient?.phoneNumber}
           {...register("page11_mobile")}
-          style={inputLine}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
         />{" "}
         Alternate Mob./Landline No.
         <input
@@ -135,7 +237,16 @@ const DischargeIndependentMinor = ({ register }) => {
           style={inputLine}
         />{" "}
         Email
-        <input type="text" {...register("page11_email")} style={inputLine} />
+        <input
+          type="text"
+          value={patient?.email}
+          {...register("page11_email")}
+          style={{
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            ...inputLine,
+          }}
+        />
       </p>
       <div
         style={{
@@ -161,9 +272,20 @@ const DischargeIndependentMinor = ({ register }) => {
           <br />
           Date & Time
           <input
-            type="text"
-            {...register("page11_staffDateTime")}
-            style={fullLine}
+            type="date"
+            defaultValue={today}
+            {...register("page11_staffDateTime", {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`;
+              },
+            })}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </div>
         <div>
@@ -177,15 +299,31 @@ const DischargeIndependentMinor = ({ register }) => {
           Name
           <input
             type="text"
+            defaultValue={guardianName}
             {...register("page11_guardianName")}
-            style={fullLine}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
           <br />
           Date & Time
           <input
-            type="text"
-            {...register("page11_guardianDateTime")}
-            style={fullLine}
+            type="date"
+            defaultValue={today}
+            {...register("page11_guardianDateTime", {
+              setValueAs: (val) => {
+                if (!val) return "";
+                const [year, month, day] = val.split("-");
+                return `${day}/${month}/${year}`;
+              },
+            })}
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              ...fullLine,
+            }}
           />
         </div>
       </div>

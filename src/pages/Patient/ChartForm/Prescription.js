@@ -9,6 +9,7 @@ import {
   Button,
   FormFeedback,
   Label,
+  CardHeader,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -23,10 +24,17 @@ import { useFormik } from "formik";
 
 //constant
 import {
+  CLINICAL_NOTE,
+  COUNSELLING_NOTE,
+  DETAIL_ADMISSION,
+  DISCHARGE_SUMMARY,
   IPD,
+  LAB_REPORT,
   OPD,
   PRESCRIPTION,
   prescriptionFormFields,
+  RELATIVE_VISIT,
+  VITAL_SIGN,
 } from "../../../Components/constants/patient";
 import MedicineDropdown from "../Dropdowns/Medicine";
 import MedicineTable from "../Tables/MedicineForm";
@@ -37,8 +45,20 @@ import {
   createEditChart,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
+  toggleAppointmentForm,
   updatePrescription,
 } from "../../../store/actions";
+import { fetchLatestCharts } from "../../../store/features/chart/chartSlice";
+import Wrapper from "../Components/Wrapper";
+import RelativeVisit from "../Charts/RelativeVisit";
+import DischargeSummary from "../Charts/DischargeSummary";
+import VitalSign from "../Charts/VitalSign";
+import ClinicalNote from "../Charts/ClinicalNote";
+import CounsellingNote from "../Charts/CounsellingNote";
+import LabReport from "../Charts/LabReport";
+import DetailAdmission from "../Charts/DetailAdmission";
+import PrescriptionChart from "../Charts/Prescription";
+import { Link } from "react-router-dom";
 
 const Prescription = ({
   drugs,
@@ -50,6 +70,7 @@ const Prescription = ({
   editChartData,
   type,
   appointment,
+  charts,
   patientLatestOPDPrescription,
   populatePreviousAppointment = false,
   shouldPrintAfterSave = false,
@@ -59,6 +80,8 @@ const Prescription = ({
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
+
+  // console.log(patient.referredBy, "this is patient")
 
   useEffect(() => {
     if (populatePreviousAppointment)
@@ -99,6 +122,11 @@ const Prescription = ({
         : ptLatestOPDPrescription
         ? patientLatestOPDPrescription?.followUp
         : "",
+      referredby: editPrescription
+        ? editPrescription.referredby
+        : ptLatestOPDPrescription
+        ? patientLatestOPDPrescription?.referredby
+        : patient.referredBy,
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
@@ -136,7 +164,7 @@ const Prescription = ({
           })
         );
       } else if (type === "GENERAL") {
-        dispatch(addGeneralPrescription({...values, medicines}));
+        dispatch(addGeneralPrescription({ ...values, medicines }));
       } else {
         dispatch(
           addPrescription({
@@ -151,6 +179,11 @@ const Prescription = ({
       dispatch(setPtLatestOPDPrescription(null));
     },
   });
+
+  useEffect(() => {
+    if (type !== "OPD") return;
+    dispatch(fetchLatestCharts({ patient: patient?._id }));
+  }, [patient, dispatch]);
 
   useEffect(() => {
     if (editPrescription) {
@@ -341,6 +374,20 @@ const Prescription = ({
                 />
               </div>
             </Col>
+            <Col xs={12} md={6}>
+              <div className="mb-3">
+                <Label className="">Referred by</Label>
+                <Input
+                  type="text"
+                  name="referredby"
+                  disabled
+                  onChange={validation.handleChange}
+                  value={validation?.values?.referredby || patient?.referredBy}
+                  className="form-control presc-border rounded"
+                  aria-label="With textarea"
+                />
+              </div>
+            </Col>
           </Row>
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
@@ -359,6 +406,75 @@ const Prescription = ({
             </div>
           </div>
         </Form>
+        {type === OPD && (
+          <Card className="mt-3">
+            <CardHeader
+              tag="h5"
+              className="mb-0 d-flex justify-content-between align-items-center"
+            >
+              <span className="fs-6 fs-md-5">Latest Charts</span>
+              <Button color="primary" size="sm" className="btn-sm">
+                <Link
+                  to={`/patient/${patient?._id}`}
+                  onClick={() =>
+                    dispatch(createEditChart({ chart: null, isOpen: false }))
+                  }
+                  className="text-white text-decoration-none"
+                >
+                  <span className="">Go to Patient</span>
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardBody>
+              {(charts || []).slice(0, 5).map((chart, idx) => (
+                <div className="mb-4" key={chart._id}>
+                  <Wrapper
+                    hideDropDown
+                    item={chart}
+                    itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
+                  >
+                    {chart.chart === PRESCRIPTION && (
+                      <PrescriptionChart data={chart?.prescription} />
+                    )}
+                    {chart.chart === RELATIVE_VISIT && (
+                      <div className="mt-4">
+                        <RelativeVisit data={chart?.relativeVisit} />
+                      </div>
+                    )}
+                    {chart.chart === DISCHARGE_SUMMARY && (
+                      <div className="mt-4">
+                        <DischargeSummary data={chart?.dischargeSummary} />
+                      </div>
+                    )}
+                    {chart.chart === VITAL_SIGN && (
+                      <div className="mt-4 mx-3">
+                        <VitalSign data={chart.vitalSign} />
+                      </div>
+                    )}
+                    {chart.chart === CLINICAL_NOTE && (
+                      <div className="mt-4">
+                        <ClinicalNote data={chart.clinicalNote} />
+                      </div>
+                    )}
+                    {chart.chart === COUNSELLING_NOTE && (
+                      <diV className="mt-4">
+                        <CounsellingNote data={chart.counsellingNote} />
+                      </diV>
+                    )}
+                    {chart.chart === LAB_REPORT && (
+                      <LabReport data={chart.labReport?.reports} />
+                    )}
+                    {chart.chart === DETAIL_ADMISSION && (
+                      <div className="mt-4">
+                        <DetailAdmission data={chart.detailAdmission} />
+                      </div>
+                    )}
+                  </Wrapper>
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        )}
       </div>
     </React.Fragment>
   );
@@ -374,6 +490,7 @@ Prescription.propTypes = {
   type: PropTypes.string.isRequired,
   appointment: PropTypes.object,
   patientLatestOPDPrescription: PropTypes.object,
+  charts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -388,6 +505,7 @@ const mapStateToProps = (state) => ({
     state.Chart.chartForm.populatePreviousAppointment,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
   appointment: state.Chart.chartForm.appointment,
+  charts: state.Chart.charts,
   patientLatestOPDPrescription: state.Chart.patientLatestOPDPrescription,
 });
 

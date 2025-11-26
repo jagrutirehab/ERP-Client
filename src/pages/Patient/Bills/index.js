@@ -24,12 +24,14 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { differenceInDays } from "date-fns";
+import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
 const superUser = [
   // "rijutarafder000@gmail.com",
   "surjeet.parida@gmail.com",
   "hemanthshinde@gmail.com",
   "vikas@jagrutirehab.org",
+  "bishal@gmail.com",
 ];
 
 const Bills = ({
@@ -250,8 +252,14 @@ const Bills = ({
     });
   };
 
-  const deleteBill = () => {
-    dispatch(removeBill(bill.bill._id));
+  const deleteBill = async () => {
+    const response = await dispatch(removeBill(bill.bill._id)).unwrap();
+    dispatch(
+      setBillingStatus({
+        patientId: patient._id,
+        billingStatus: response.billingStatus,
+      })
+    );
     setBill({
       bill: null,
       isOpen: false,
@@ -310,7 +318,8 @@ const Bills = ({
                       user?.email !== "rijutarafder000@gmail.com" &&
                       user?.email !== "surjeet.parida@gmail.com" &&
                       user?.email !== "hemanthshinde@gmail.com" &&
-                      user?.email !== "vikas@jagrutirehab.org"
+                      user?.email !== "vikas@jagrutirehab.org" &&
+                      user?.email !== "bishal@gmail.com"
                         ? true
                         : bill.bill === INVOICE &&
                           superUser.includes(user.email)

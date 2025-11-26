@@ -77,6 +77,9 @@ const AddPatient = ({
       dateOfBirth,
       email,
       address: editData ? editData.address : "",
+      age: editData ? editData.age : "",
+      religion: editData ? editData.religion : "",
+      maritalstatus: editData ? editData.maritalstatus : "",
       doctor: editData ? editData.doctor?._id : "",
       psychologist: editData ? editData.psychologist?._id : "",
       provisionalDiagnosis: editData ? editData.provisionalDiagnosis : "",
@@ -89,6 +92,8 @@ const AddPatient = ({
         : "",
       referredBy: editData ? editData.referredBy : "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
+      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
+      areatype: editData ? editData.areatype : "",
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -117,6 +122,7 @@ const AddPatient = ({
         "Please Enter Guardian Phone Number"
       ),
     }),
+
     onSubmit: (values) => {
       const formData = convertToFormDataPatient(values);
       if (values.aadhaarCard?.file instanceof Blob) {
@@ -150,6 +156,17 @@ const AddPatient = ({
       }
     },
   });
+
+  useEffect(() => {
+    if (validation.values.dateOfBirth) {
+      const dob = new Date(validation.values.dateOfBirth);
+      const today = new Date();
+      const age = Math.floor((today - dob) / (1000 * 60 * 60 * 24 * 365.25));
+      validation.setFieldValue("age", age);
+    } else {
+      validation.setFieldValue("age", "");
+    }
+  }, [validation.values.dateOfBirth]);
 
   const cancelForm = () => {
     validation.resetForm();
@@ -330,8 +347,6 @@ const AddPatient = ({
           {/* Aadhaar Files */}
           {editData?.aadhaarCard?.url && (
             <Col xs={12} style={{ marginBottom: "1.5rem" }}>
-              {" "}
-              {/* mb-6 */}
               <UploadedFiles
                 title="Patient Files"
                 files={[editData.aadhaarCard]}
@@ -341,16 +356,16 @@ const AddPatient = ({
               />
             </Col>
           )}
-
-          {/* Patient ID Field */}
-          <Row style={{ marginBottom: "1.5rem" }}>
-            {/* Patient ID */}
-            {/* <Col xs={12} md={6}> */}
-            <PatientId validation={validation} editData={editData} />
-            {/* </Col> */}
-
-            {/* Center Dropdown */}
-            <Col xs={12} md={6}>
+          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+            <Row
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem",
+                marginBottom: "2rem",
+              }}
+            >
+              <PatientId validation={validation} editData={editData} />
               <div className="mb-3">
                 <Label htmlFor="center" className="form-label">
                   Center <span className="text-danger">*</span>
@@ -385,8 +400,62 @@ const AddPatient = ({
                   </FormFeedback>
                 )}
               </div>
-            </Col>
-          </Row>
+              <Col
+                xs={12}
+                md={4}
+                style={{
+                  minWidth: "340px",
+                  width: "100%",
+                  flex: "1 1 340px",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <Label
+                  htmlFor="referredBy"
+                  className="form-label"
+                  style={{
+                    fontWeight: "500",
+                    marginBottom: "0.5rem",
+                    color: "#374151",
+                  }}
+                >
+                  Referred By <span style={{ color: "#ef4444" }}>*</span>
+                </Label>
+
+                <Input
+                  name="referredBy"
+                  className="form-control"
+                  placeholder="Enter referred by"
+                  type="text"
+                  onChange={(e) =>
+                    handleChange
+                      ? handleChange(e, "text")
+                      : validation.handleChange(e)
+                  }
+                  onBlur={validation.handleBlur}
+                  value={validation.values["referredBy"] || ""}
+                  invalid={
+                    validation.touched["referredBy"] &&
+                    validation.errors["referredBy"]
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.375rem",
+                    fontSize: "1rem",
+                    textTransform: "capitalize",
+                  }}
+                />
+
+                {validation.touched["referredBy"] &&
+                  validation.errors["referredBy"] && (
+                    <FormFeedback type="invalid" className="d-block">
+                      {validation.errors["referredBy"]}
+                    </FormFeedback>
+                  )}
+              </Col>
+            </Row>
+          </Col>
 
           {/* Main Form Fields */}
           <Col xs={12}>
@@ -398,8 +467,6 @@ const AddPatient = ({
                 marginBottom: "2rem",
               }}
             >
-              {" "}
-              {/* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 mb-8 */}
               <FormField
                 fields={fields}
                 validation={validation}

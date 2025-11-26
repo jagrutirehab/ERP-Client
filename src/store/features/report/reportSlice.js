@@ -6,6 +6,7 @@ import {
   getOPDAnalytics,
   getPatientAnalytics,
   getReport,
+  getCenterBedsAnalytics as getCenterBedsAnalyticsApi,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -16,8 +17,10 @@ const initialState = {
   lead: null,
   opd: null,
   booking: null,
-  doctor:null,
+  doctor: null,
+  centerBeds: [],
   loading: false,
+  centerBedsLoading: false,
   totalPages: 0,
   currentPage: 0,
   limit: 0,
@@ -93,6 +96,19 @@ export const fetchBookingAnalytics = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getBookingAnalytics(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchCenterBedsAnalytics = createAsyncThunk(
+  "getCenterBedsAnalytics",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getCenterBedsAnalyticsApi(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -179,6 +195,17 @@ const reportSlice = createSlice({
       })
       .addCase(fetchDoctorAnalytics.rejected, (state) => {
         state.loading = false;
+      });
+    builder
+      .addCase(fetchCenterBedsAnalytics.pending, (state) => {
+        state.centerBedsLoading = true;
+      })
+      .addCase(fetchCenterBedsAnalytics.fulfilled, (state, { payload }) => {
+        state.centerBedsLoading = false;
+        state.centerBeds = payload.payload || [];
+      })
+      .addCase(fetchCenterBedsAnalytics.rejected, (state) => {
+        state.centerBedsLoading = false;
       });
   },
 });

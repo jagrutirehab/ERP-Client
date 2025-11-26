@@ -64,6 +64,15 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
     }
   }, [patient]);
 
+  const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       <style>
@@ -131,7 +140,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
           Date:
           <input
             type="date"
-            value={new Date().toISOString().split("T")[0]}
+            defaultValue={today}
             {...register("Indipendent_Admission_Support_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -152,7 +161,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         I Mr./Mrs./Ms.
         <input
           type="text"
-          value={patient?.name}
+          defaultValue={guardianName}
           {...register("Indipendent_Admission_Support_name")}
           style={{
             fontWeight: "bold",
@@ -174,6 +183,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         Nominated representative Mr./Mrs./Ms.
         <input
           type="text"
+          value={patient?.name}
           {...register("Indipendent_Admission_Support_nominatedRep")}
           style={inputLine}
         />{" "}
@@ -207,7 +217,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_Support_parentName")}
           style={{
             fontWeight: "bold",
@@ -407,12 +417,31 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
         }}
       >
         <div>
-          Signature of Guardian:
+          <div style={{ display: "flex" }}>
+            Signature of Guardian:
+            <div
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+              }}
+            >
+              <input
+                type="text"
+                defaultValue={guardianName}
+                {...register("Indipendent_Admission_adult_guardianName3")}
+                style={{
+                  fontWeight: "bold",
+                  textTransform: "uppercase",
+                  ...fullLine,
+                }}
+              />
+            </div>
+          </div>
           <br />
           Name
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_Support_guardianName")}
             style={{
               fontWeight: "bold",
@@ -422,12 +451,7 @@ const AdmWithHighSupport = ({ register, patient, details, chartData }) => {
           />
           <br />
           Date & Time
-          <input
-            type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
-            {...register("Indipendent_Admission_Support_dateTime")}
-            style={fullLine}
-          />
+          <input type="date" defaultValue={today} style={fullLine} />
         </div>
       </div>
       <p style={{ marginTop: "20px", fontSize: "11px" }}>

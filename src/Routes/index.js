@@ -35,9 +35,9 @@ const Index = () => {
     );
 
     return {
-      id: pageInfo.id,
-      path: pageInfo.link,
-      component: allElements[elementIndex].element,
+      id: pageInfo?.id,
+      path: pageInfo?.link,
+      component: allElements[elementIndex]?.element,
     };
   });
   const userAuthRoutes = [...authProtectedRoutes, ...userDynamicRoutes];

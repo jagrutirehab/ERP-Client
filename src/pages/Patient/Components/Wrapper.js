@@ -30,6 +30,7 @@ const Wrapper = ({
   printItem,
   name,
   toggleDateModal,
+  hideDropDown = false,
   showId = true,
   showPrint = true,
   disableEdit = false,
@@ -119,8 +120,7 @@ const Wrapper = ({
                   direction="start"
                   className="col text-end"
                 >
-                  {!item.clinicalTest &&
-                    item.clinicalTest !== "ClinicalTest" && (
+                  {!hideDropDown && (
                       <DropdownToggle
                         tag="a"
                         id="dropdownMenuLink14"
@@ -223,6 +223,7 @@ Wrapper.propTypes = {
   deleteItem: PropTypes.func.isRequired,
   printItem: PropTypes.func.isRequired,
   patient: PropTypes.object.isRequired,
+  hideDropDown: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

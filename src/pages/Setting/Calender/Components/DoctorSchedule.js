@@ -31,9 +31,8 @@ const Option = (props) => {
     <div
       ref={innerRef}
       {...innerProps}
-      className={`p-2 ${
-        isSelected ? "bg-primary text-white" : "hover:bg-light"
-      }`}
+      className={`p-2 ${isSelected ? "bg-primary text-white" : "hover:bg-light"
+        }`}
     >
       {children}
     </div>
@@ -87,8 +86,8 @@ const TimeSelect = ({
             backgroundColor: state.isSelected
               ? "#0d6efd"
               : state.isFocused
-              ? "#f8f9fa"
-              : "white",
+                ? "#f8f9fa"
+                : "white",
             color: state.isSelected ? "white" : "#212529",
             cursor: "pointer",
             "&:hover": {
@@ -188,8 +187,8 @@ const SessionTypeSelect = ({
             backgroundColor: state.isSelected
               ? "#0d6efd"
               : state.isFocused
-              ? "#f8f9fa"
-              : "white",
+                ? "#f8f9fa"
+                : "white",
             color: state.isSelected ? "white" : "#212529",
             cursor: "pointer",
             "&:hover": {
@@ -359,146 +358,167 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
             <React.Fragment key={idx}>
               <Col xs={12}>
                 <div className="mb-3">
-                  <div className="d-flex justify-content-between flex-wrap align-items-center mb-n4 mt-2">
-                    {" "}
-                    <Label className="form-label">
+                  <div className="d-flex justify-content-between flex-wrap align-items-center mb-1">
+                    <Label className="form-label fs-6 fs-md-5">
                       Days <span className="text-danger">*</span>
                     </Label>
                     <Button
                       onClick={() => removeSchedule(idx)}
                       color="danger"
                       size="sm"
+                      className="mt-2 mt-md-0"
                     >
-                      <i className="ri-close-circle-line fs-9 text-white"></i>
+                      <i className="ri-close-circle-line fs-16 text-white"></i>
                     </Button>
                   </div>
-                  <div className="d-flex flex-wrap">
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={1}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(1)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Monday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={2}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(2)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Tuesday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={3}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(3)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Wednesday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={4}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(4)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Thursday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={5}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(5)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Friday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={6}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(6)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Saturday
-                      </Label>
-                    </div>
-                    <div className="d-flex me-3 align-items-center mt-2">
-                      <Input
-                        className="me-2 mt-0"
-                        type="checkbox"
-                        name="days"
-                        value={0}
-                        onChange={(e) => handleChange(e, idx)}
-                        checked={item.days?.includes(0)}
-                      />
-                      <Label className="form-label fs-9 text-black mb-0">
-                        Sunday
-                      </Label>
-                    </div>
 
-                    <div className="mb-3 ms-md-3">
-                      <Label size="sm">Centers</Label>
-                      <Input
-                        bsSize="sm"
-                        type="select"
-                        required
-                        value={item.center}
-                        onChange={(e) => {
-                          const schedules = [...workingSchedule];
-                          schedules[idx]["center"] = e.target.value;
-                          setWorkingSchedule(schedules);
-                        }}
-                      >
-                        <option value="" selected disabled hidden>
-                          Choose here
-                        </option>
-                        {(userCenters || []).map((option, idx) => (
-                          <option key={idx} value={option._id}>
-                            {option.title}
+                  <Row className="g-2 g-md-3">
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={1}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(1)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Monday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={2}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(2)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Tuesday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={3}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(3)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Wednesday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={4}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(4)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Thursday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={5}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(5)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Friday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={6}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(6)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Saturday
+                        </Label>
+                      </div>
+                    </Col>
+                    <Col xs={6} sm={4} md={3} lg={2}>
+                      <div className="d-flex align-items-center">
+                        <Input
+                          className="me-2 flex-shrink-0"
+                          type="checkbox"
+                          name="days"
+                          value={0}
+                          onChange={(e) => handleChange(e, idx)}
+                          checked={item.days?.includes(0)}
+                        />
+                        <Label className="form-label fs-14 fs-md-15 text-black mb-0">
+                          Sunday
+                        </Label>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <div className="mt-3 mt-md-4">
+                    <Row className="align-items-center">
+                      <Col xs={12} md={6} lg={4}>
+                        <Label size="sm" className="fs-14 fs-md-15">Centers</Label>
+                        <Input
+                          bsSize="sm"
+                          type="select"
+                          required
+                          value={item.center}
+                          onChange={(e) => {
+                            const schedules = [...workingSchedule];
+                            schedules[idx]["center"] = e.target.value;
+                            setWorkingSchedule(schedules);
+                          }}
+                          className="fs-14 fs-md-15"
+                        >
+                          <option value="" selected disabled hidden>
+                            Choose here
                           </option>
-                        ))}
-                      </Input>
-                    </div>
+                          {(userCenters || []).map((option, idx) => (
+                            <option key={idx} value={option._id}>
+                              {option.title}
+                            </option>
+                          ))}
+                        </Input>
+                      </Col>
+                    </Row>
                   </div>
                 </div>
               </Col>
+
               <RenderWhen isTrue={item?.days?.length > 0}>
                 <Col xs={12}>
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h6 className="mb-0 text-primary">Sessions</h6>
+                    <h6 className="mb-0 text-primary fs-16 fs-md-18">Sessions</h6>
                     <Button
                       color="light"
                       size="sm"
-                      className="d-flex align-items-center"
+                      className="d-flex align-items-center fs-14 fs-md-15"
                       onClick={() => {
                         const list = [...workingSchedule];
                         list[idx].sessions.push({
@@ -513,65 +533,67 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
                     </Button>
                   </div>
                 </Col>
-                {(item.sessions || []).map((sess, i) => (
-                  <Col key={i} md={6}>
-                    <div className="card shadow-sm mb-3">
-                      <div className="card-body p-3">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <div className="d-flex align-items-center">
-                            <div
-                              className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                              style={{ width: "28px", height: "28px" }}
-                            >
-                              {i + 1}
-                            </div>
-                            <h6 className="mb-0 text-primary fw-semibold">
-                              Session {i + 1}
-                            </h6>
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <SessionTypeSelect
-                              value={sess.type}
-                              onChange={(value) => {
-                                const list = [...workingSchedule];
-                                list[idx].sessions[i].type = value;
-                                setWorkingSchedule(list);
-                              }}
-                              sessions={item.sessions}
-                              currentIndex={i}
-                              setSessionErrors={setSessionErrors}
-                              validateSessionOverlap={validateSessionOverlap}
-                            />
-                            {i > 0 && (
-                              <Button
-                                color="link"
-                                className="p-0 text-danger opacity-75 hover-opacity-100 ms-2"
-                                onClick={() => {
-                                  const updatedSessions = [...item.sessions];
-                                  updatedSessions.splice(i, 1);
-                                  const updatedSchedule = [...workingSchedule];
-                                  updatedSchedule[idx].sessions =
-                                    updatedSessions;
-                                  setWorkingSchedule(updatedSchedule);
-                                  // Clear error when session is removed
-                                  // setSessionErrors((prev) => {
-                                  //   const newErrors = { ...prev };
-                                  //   delete newErrors[`${i}`];
-                                  //   return newErrors;
-                                  // });
+
+                <Row className="g-1">
+                  {(item.sessions || []).map((sess, i) => (
+                    <Col key={i} xs={12} md={6} lg={4}>
+                      <div className="card shadow-sm mb-3">
+                        <div className="card-body p-3">
+                          <div className="d-flex justify-content-between align-items-center mb-3">
+                            <div className="d-flex align-items-center">
+                              <div
+                                className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  fontSize: "14px"
                                 }}
                               >
-                                <i className="ri-close-circle-line fs-5"></i>
-                              </Button>
-                            )}
+                                {i + 1}
+                              </div>
+                              <h6 className="mb-0 text-primary fw-semibold fs-14 fs-md-16">
+                                Session {i + 1}
+                              </h6>
+                            </div>
+                            <div className="d-flex align-items-center">
+                              <div className="me-2" style={{ minWidth: "120px" }}>
+                                <SessionTypeSelect
+                                  value={sess.type}
+                                  onChange={(value) => {
+                                    const list = [...workingSchedule];
+                                    list[idx].sessions[i].type = value;
+                                    setWorkingSchedule(list);
+                                  }}
+                                  sessions={item.sessions}
+                                  currentIndex={i}
+                                  setSessionErrors={setSessionErrors}
+                                  validateSessionOverlap={validateSessionOverlap}
+                                />
+                              </div>
+                              {i > 0 && (
+                                <Button
+                                  color="link"
+                                  className="p-0 text-danger opacity-75 hover-opacity-100"
+                                  onClick={() => {
+                                    const updatedSessions = [...item.sessions];
+                                    updatedSessions.splice(i, 1);
+                                    const updatedSchedule = [...workingSchedule];
+                                    updatedSchedule[idx].sessions = updatedSessions;
+                                    setWorkingSchedule(updatedSchedule);
+                                  }}
+                                >
+                                  <i className="ri-close-circle-line fs-18"></i>
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <Row className="g-3">
-                          <Col xs={6}>
-                            <TimeSelect
-                              value={
-                                sess.startTime
-                                  ? {
+
+                          <Row className="g-2">
+                            <Col xs={12} sm={6}>
+                              <TimeSelect
+                                value={
+                                  sess.startTime
+                                    ? {
                                       label: format(
                                         new Date(sess.startTime),
                                         "hh:mm a"
@@ -584,55 +606,55 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
                                         0
                                       ).toISOString(),
                                     }
-                                  : null
-                              }
-                              onChange={(e) => {
-                                if (e) {
-                                  const dt = new Date(e.value);
-                                  const startTime = format(dt, "HH:mm");
-
-                                  if (sess.endTime) {
-                                    const endTime = format(
-                                      new Date(sess.endTime),
-                                      "HH:mm"
-                                    );
-                                    if (startTime >= endTime) {
-                                      return;
-                                    }
-                                  }
-
-                                  handleTime(
-                                    {
-                                      target: {
-                                        name: "startTime",
-                                        value: dt,
-                                      },
-                                    },
-                                    idx,
-                                    i
-                                  );
+                                    : null
                                 }
-                              }}
-                              options={generateTimes({
-                                date: sess.endTime || new Date(),
-                                endHour: sess.endTime
-                                  ? new Date(sess.endTime).getHours()
-                                  : 0,
-                                endMinutes: sess.endTime
-                                  ? new Date(sess.endTime).getMinutes()
-                                  : 0,
-                              })}
-                              label="Start Time"
-                              required
-                              disabled={!sess.type}
-                              placeholder="start time"
-                            />
-                          </Col>
-                          <Col xs={6}>
-                            <TimeSelect
-                              value={
-                                sess.endTime
-                                  ? {
+                                onChange={(e) => {
+                                  if (e) {
+                                    const dt = new Date(e.value);
+                                    const startTime = format(dt, "HH:mm");
+
+                                    if (sess.endTime) {
+                                      const endTime = format(
+                                        new Date(sess.endTime),
+                                        "HH:mm"
+                                      );
+                                      if (startTime >= endTime) {
+                                        return;
+                                      }
+                                    }
+
+                                    handleTime(
+                                      {
+                                        target: {
+                                          name: "startTime",
+                                          value: dt,
+                                        },
+                                      },
+                                      idx,
+                                      i
+                                    );
+                                  }
+                                }}
+                                options={generateTimes({
+                                  date: sess.endTime || new Date(),
+                                  endHour: sess.endTime
+                                    ? new Date(sess.endTime).getHours()
+                                    : 0,
+                                  endMinutes: sess.endTime
+                                    ? new Date(sess.endTime).getMinutes()
+                                    : 0,
+                                })}
+                                label="Start Time"
+                                required
+                                disabled={!sess.type}
+                                placeholder="start time"
+                              />
+                            </Col>
+                            <Col xs={12} sm={6}>
+                              <TimeSelect
+                                value={
+                                  sess.endTime
+                                    ? {
                                       label: format(
                                         new Date(sess.endTime),
                                         "hh:mm a"
@@ -645,74 +667,71 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
                                         0
                                       ).toISOString(),
                                     }
-                                  : null
-                              }
-                              onChange={(e) => {
-                                if (e) {
-                                  const dt = new Date(e.value);
-                                  const endTime = format(dt, "HH:mm");
-
-                                  if (sess.startTime) {
-                                    const startTime = format(
-                                      new Date(sess.startTime),
-                                      "HH:mm"
-                                    );
-                                    if (endTime <= startTime) {
-                                      return;
-                                    }
-                                  }
-
-                                  handleTime(
-                                    {
-                                      target: {
-                                        name: "endTime",
-                                        value: dt,
-                                      },
-                                    },
-                                    idx,
-                                    i
-                                  );
+                                    : null
                                 }
-                              }}
-                              options={generateTimes({
-                                date: sess.startTime || new Date(),
-                                startHour: sess.startTime
-                                  ? new Date(sess.startTime).getHours()
-                                  : 0,
-                                startMinutes: sess.startTime
-                                  ? new Date(sess.startTime).getMinutes()
-                                  : 0,
-                              })}
-                              label="End Time"
-                              required
-                              disabled={!sess.type}
-                              placeholder="End time"
-                            />
-                          </Col>
-                        </Row>
-                        {/* {sessionErrors[`${i}`] && (
-                          <div className="mt-2">
-                            <small className="text-danger d-flex align-items-center">
-                              <i className="ri-error-warning-line me-1"></i>
-                              {sessionErrors[`${i}`]}
-                            </small>
-                          </div>
-                        )} */}
+                                onChange={(e) => {
+                                  if (e) {
+                                    const dt = new Date(e.value);
+                                    const endTime = format(dt, "HH:mm");
+
+                                    if (sess.startTime) {
+                                      const startTime = format(
+                                        new Date(sess.startTime),
+                                        "HH:mm"
+                                      );
+                                      if (endTime <= startTime) {
+                                        return;
+                                      }
+                                    }
+
+                                    handleTime(
+                                      {
+                                        target: {
+                                          name: "endTime",
+                                          value: dt,
+                                        },
+                                      },
+                                      idx,
+                                      i
+                                    );
+                                  }
+                                }}
+                                options={generateTimes({
+                                  date: sess.startTime || new Date(),
+                                  startHour: sess.startTime
+                                    ? new Date(sess.startTime).getHours()
+                                    : 0,
+                                  startMinutes: sess.startTime
+                                    ? new Date(sess.startTime).getMinutes()
+                                    : 0,
+                                })}
+                                label="End Time"
+                                required
+                                disabled={!sess.type}
+                                placeholder="End time"
+                              />
+                            </Col>
+                          </Row>
+                        </div>
                       </div>
-                    </div>
-                  </Col>
-                ))}
+                    </Col>
+                  ))}
+                </Row>
               </RenderWhen>
             </React.Fragment>
           ))}
+
           {error && (
-            <div className="mt-2">
-              <small className="text-danger d-flex align-items-center">
-                <i className="ri-error-warning-line me-1"></i>
-                {error}
-              </small>
-            </div>
+            <Col xs={12}>
+              <div className="mt-2">
+                <small className="text-danger d-flex align-items-center fs-14 fs-md-15">
+                  <i className="ri-error-warning-line me-1"></i>
+                  {error}
+                </small>
+              </div>
+            </Col>
           )}
+
           <Col xs={12}>
             <div className="text-end my-3">
               <button
@@ -727,22 +746,22 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
                   ]);
                 }}
                 type="button"
-                className="btn btn-primary btn-sm btn-outline ms-auto"
+                className="btn btn-primary btn-sm btn-outline fs-14 fs-md-15"
               >
                 Add more timings
               </button>
             </div>
           </Col>
+
           <Col xs={12}>
             <div className="d-flex justify-content-end mt-3">
-              <button type="submit" className="btn btn-primary btn-sm">
+              <button type="submit" className="btn btn-primary btn-sm fs-14 fs-md-15">
                 Save
               </button>
             </div>
           </Col>
         </Row>
       </Form>
-      {/* </CustomModal> */}
     </React.Fragment>
   );
 };

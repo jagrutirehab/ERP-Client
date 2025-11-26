@@ -13,6 +13,8 @@ import {
   REPORT,
   BOOKING,
   DOCTOR_ANALYTICS,
+  CENTER_BEDS_ANALYTICS,
+  MI_REPORTING,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -25,11 +27,21 @@ import DBLogs from "./Components/DBLogs";
 import HubspotContacts from "./Components/Hubspot";
 import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
+import CenterBedsAnalytics from "./Components/CenterBeds";
+import MIReporting from "./Components/MIReporting";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
 
   const handleView = (v) => setView(v);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasMiReportingPermission = hasPermission("MI_REPORTING", null, "READ");
 
   return (
     <React.Fragment>
@@ -92,6 +104,20 @@ const Report = ({}) => {
             >
               Booking
             </Button>
+            <Button
+              outline={view !== CENTER_BEDS_ANALYTICS}
+              onClick={() => handleView(CENTER_BEDS_ANALYTICS)}
+            >
+              Center Beds Analytics
+            </Button>
+            <RenderWhen isTrue={hasMiReportingPermission}>
+              <Button
+                outline={view !== MI_REPORTING}
+                onClick={() => handleView(MI_REPORTING)}
+              >
+                MI Reporting
+              </Button>
+            </RenderWhen>
             {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
@@ -110,6 +136,12 @@ const Report = ({}) => {
             {view === DB_LOGS && <DBLogs view={view} />}
             {view === HUBSPOT_CONTACTS && <HubspotContacts view={view} />}
             {view === BOOKING && <Booking view={view} />}
+            {view === CENTER_BEDS_ANALYTICS && (
+              <CenterBedsAnalytics view={view} />
+            )}
+            {view === MI_REPORTING && hasMiReportingPermission && (
+              <MIReporting view={view} />
+            )}
           </div>
         </Container>
       </div>

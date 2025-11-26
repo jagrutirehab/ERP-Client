@@ -68,6 +68,15 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
     }
   }, [patient]);
 
+  const [today, setToday] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+
+  useEffect(() => {
+    const localISODate = new Date().toISOString().split("T")[0];
+    setToday(localISODate);
+    setGuardianName(patient?.guardianName);
+  }, [patient]);
+
   return (
     <div style={pageContainer}>
       <style>
@@ -140,7 +149,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           Date:
           <input
             type="date"
-            value={new Date().toISOString().split("T")[0]}
+            defaultValue={today}
             {...register("Indipendent_Admission_adult_date", {
               setValueAs: (val) => {
                 if (!val) return "";
@@ -199,7 +208,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
         son/daughter of
         <input
           type="text"
-          value={patient?.guardianName}
+          // value={patient?.guardianName}
           {...register("Indipendent_Admission_adult_parentName")}
           style={{
             fontWeight: "bold",
@@ -305,7 +314,7 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
         Mr./Mrs/Ms.
         <input
           type="text"
-          value={patient?.guardianName}
+          defaultValue={guardianName}
           {...register("Indipendent_Admission_adult_guardianName")}
           style={{
             fontWeight: "bold",
@@ -391,12 +400,31 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           marginTop: "20px",
         }}
       >
-        <div>Signature of Guardian:</div>
+        <div style={{ display: "flex" }}>
+          Signature of Guardian:
+          <div
+            style={{
+              fontWeight: "bold",
+              textTransform: "uppercase",
+            }}
+          >
+            <input
+              type="text"
+              defaultValue={guardianName}
+              {...register("Indipendent_Admission_adult_guardianName3")}
+              style={{
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                ...fullLine,
+              }}
+            />
+          </div>
+        </div>
         <div>
           Name:
           <input
             type="text"
-            value={patient?.guardianName}
+            value={patient?.name}
             {...register("Indipendent_Admission_adult_guardianName2")}
             style={{
               fontWeight: "bold",
@@ -407,8 +435,8 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
           <br />
           Date & Time:
           <input
-            type="text"
-            value={new Date().toLocaleDateString("en-GB").split("/").join("/")}
+            type="date"
+            defaultValue={today}
             {...register("Indipendent_Admission_adult_dateTime")}
             style={fullLine}
           />

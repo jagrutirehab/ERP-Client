@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Charts = ({ charts, patient, doctor }) => {
+const Charts = ({ charts, patient, doctor, admission }) => {
 
   const chartChunks = _.chunk(charts || [], 5);
   
@@ -51,6 +51,7 @@ const Charts = ({ charts, patient, doctor }) => {
               chart={charts[0]}
               center={charts[0]?.center}
               patient={patient}
+              admission={admission}
             />
           )}
           {chunk.map((chart) => (

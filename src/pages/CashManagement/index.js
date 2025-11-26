@@ -4,7 +4,7 @@ import BreadCrumb from "../../Components/Common/BreadCrumb";
 import { Route, Routes } from "react-router-dom";
 import Main from "./Main";
 
-const Nurse = () => {
+const CashManagement = () => {
   return (
     <React.Fragment>
       <div className="page-content">
@@ -19,4 +19,4 @@ const Nurse = () => {
   );
 };
 
-export default Nurse;
+export default CashManagement;

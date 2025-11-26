@@ -14,7 +14,6 @@ import WebAppsDropdown from "../Components/Common/WebAppsDropdown";
 import FullScreenDropdown from "../Components/Common/FullScreenDropdown";
 import NotificationDropdown from "../Components/Common/NotificationDropdown";
 import ProfileDropdown from "../Components/Common/ProfileDropdown";
-import LightDark from "../Components/Common/LightDark";
 import { connect, useDispatch, useSelector } from "react-redux";
 import { fetchCenters, searchPatient, viewPatient } from "../store/actions";
 import Highlighter from "react-highlight-words";
@@ -139,7 +138,7 @@ const Header = ({
   };
 
   useEffect(() => {
-    dispatch(fetchCenters(user?.centerAccess));
+    dispatch(fetchCenters({centerIds: user?.centerAccess}));
   }, [dispatch, user]);
 
   useEffect(() => {

@@ -30,9 +30,11 @@ import { downloadFile } from "../../../Components/Common/downloadFile";
 import { format, subDays } from "date-fns";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
     .map((c) => ({
@@ -162,11 +164,20 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
 
   useEffect(() => {
     if (!hasReadPermission) return;
-    if (formik.values.center) {
-      dispatch(getLastBaseBalanceByCenter(formik.values.center));
-    } else {
-      dispatch(clearLastBaseBalance());
+    const fetchBaseBalance = async () => {
+      try {
+        if (formik.values.center) {
+          await dispatch(getLastBaseBalanceByCenter(formik.values.center)).unwrap();
+        } else {
+          dispatch(clearLastBaseBalance());
+        }
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch base balance.");
+        }
+      }
     }
+    fetchBaseBalance();
   }, [formik.values.center, dispatch, hasReadPermission]);
 
   const hasSelectedCenter = !!formik.values.center;
@@ -187,7 +198,7 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
   return (
     <React.Fragment>
       <h5 className="fw-bold mb-3">{getHeading()}</h5>
-      <Row className="h-100">
+      <Row className="h-80">
         <Col lg={4}>
           <Card className="h-100 shadow-sm">
             <CardHeader className="bg-transparent border-bottom">
@@ -229,121 +240,149 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                       </div>
                     )}
                   </FormGroup>
+
                   <CheckPermission
                     accessRolePermission={roles?.permissions}
                     permission={"create"}
                     subAccess={"CASHBALANCE"}
                   >
-                    <FormGroup className="mb-3">
-                      <Label for="amount" className="fw-medium text-muted">
-                        EOD Balance Amount
-                      </Label>
-                      <Input
-                        type="number"
-                        id="amount"
-                        name="amount"
-                        value={formik.values.amount}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="e.g., 25000.00"
-                        step="0.01"
-                        min="0"
-                        className={`form-control ${formik.touched.amount && formik.errors.amount
-                          ? "is-invalid"
-                          : ""
-                          }`}
-                      />
-                      {formik.touched.amount && formik.errors.amount && (
-                        <div className="invalid-feedback d-block">
-                          <i className="fas fa-exclamation-circle me-1"></i>
-                          {formik.errors.amount}
-                        </div>
-                      )}
-                    </FormGroup>
-
-                    <FormGroup className="mb-4">
-                      <Label for="date" className="fw-medium text-muted">
-                        Date
-                      </Label>
-                      <Input
-                        type="date"
-                        id="date"
-                        name="date"
-                        value={formik.values.date}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        max={format(subDays(new Date(), 1), "yyyy-MM-dd")}
-                        className={`form-control ${formik.touched.date && formik.errors.date
-                          ? "is-invalid"
-                          : ""
-                          }`}
-                      />
-                      {formik.touched.date && formik.errors.date && (
-                        <div className="invalid-feedback d-block">
-                          <i className="fas fa-exclamation-circle me-1"></i>
-                          {formik.errors.date}
-                        </div>
-                      )}
-                    </FormGroup>
-
-                    <FormGroup>
-                      <Label className="fw-medium">Attachment</Label>
-                      <FileUpload
-                        attachment={attachment}
-                        setAttachment={handleAttachmentChange}
-                      />
-                      {attachmentError && (
-                        <div className="invalid-feedback d-block">
-                          <i className="fas fa-exclamation-circle me-1"></i>
-                          {attachmentError}
-                        </div>
-                      )}
-                    </FormGroup>
-
-                    <div
-                      className="p-3 mb-4 border-start rounded"
-                      style={{
-                        backgroundColor: "rgba(255, 243, 205, 0.5)",
-                        borderColor: "#b45309",
-                      }}
-                    >
-                      <small
-                        className="fw-semibold"
-                        style={{ color: "#78350f" }}
+                    {!hasBalanceOverridePermission && lastBaseBalance?.amount ? (
+                      <div
+                        className="p-3 mb-3 text-center"
+                        style={{
+                          minHeight: "400px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
                       >
-                        Note: The amount added needs to be the End of Day (EOD)
-                        balance of the date selected.
-                      </small>
-                    </div>
+                        {/* <div>
+                          <i className="fas fa-info-circle fa-2x mb-3" style={{ color: "#3b82f6" }}></i>
+                          <p className="fw-semibold mb-0" style={{ color: "#1e40af" }}>
+                            Base balance already set for this center.
+                          </p>
+                          <small className="text-muted d-block mt-2">
+                            You don't have permission to override the existing balance.
+                          </small>
+                        </div> */}
+                      </div>
+                    ) : (
+                      <>
+                        <FormGroup className="mb-3">
+                          <Label for="amount" className="fw-medium text-muted">
+                            EOD Balance Amount
+                          </Label>
+                          <Input
+                            type="text"
+                            id="amount"
+                            name="amount"
+                            value={formik.values.amount}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="e.g., 25000.00"
+                            className={`form-control ${formik.touched.amount && formik.errors.amount
+                              ? "is-invalid"
+                              : ""
+                              }`}
+                          />
+                          {formik.touched.amount && formik.errors.amount && (
+                            <div className="invalid-feedback d-block">
+                              <i className="fas fa-exclamation-circle me-1"></i>
+                              {formik.errors.amount}
+                            </div>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup className="mb-4">
+                          <Label for="date" className="fw-medium text-muted">
+                            Date
+                          </Label>
+                          <Input
+                            type="date"
+                            id="date"
+                            name="date"
+                            value={formik.values.date}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            max={format(subDays(new Date(), 1), "yyyy-MM-dd")}
+                            className={`form-control ${formik.touched.date && formik.errors.date
+                              ? "is-invalid"
+                              : ""
+                              }`}
+                          />
+                          {formik.touched.date && formik.errors.date && (
+                            <div className="invalid-feedback d-block">
+                              <i className="fas fa-exclamation-circle me-1"></i>
+                              {formik.errors.date}
+                            </div>
+                          )}
+                        </FormGroup>
+
+                        <FormGroup className="mb-3">
+                          <Label className="fw-medium">Attachment</Label>
+                          <FileUpload
+                            attachment={attachment}
+                            setAttachment={handleAttachmentChange}
+                          />
+                          {attachmentError && (
+                            <div className="invalid-feedback d-block">
+                              <i className="fas fa-exclamation-circle me-1"></i>
+                              {attachmentError}
+                            </div>
+                          )}
+                        </FormGroup>
+
+                        <div
+                          className="p-3 mb-4 border-start rounded"
+                          style={{
+                            backgroundColor: "rgba(255, 243, 205, 0.5)",
+                            borderColor: "#b45309",
+                          }}
+                        >
+                          <small
+                            className="fw-semibold"
+                            style={{ color: "#78350f" }}
+                          >
+                            Note: The amount added needs to be the End of Day
+                            (EOD) balance of the date selected.
+                          </small>
+                        </div>
+                      </>
+                    )}
                   </CheckPermission>
                 </div>
 
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  permission={"create"}
-                  subAccess={"CASHBALANCE"}
-                >
-                  <Button
-                    color="primary"
-                    type="submit"
-                    className="w-100 mt-auto"
-                    disabled={formik.isSubmitting || (!hasBalanceOverridePermission && lastBaseBalance?.amount)}
+                {!hasBalanceOverridePermission && lastBaseBalance?.amount ? null : (
+                  <CheckPermission
+                    accessRolePermission={roles?.permissions}
+                    permission={"create"}
+                    subAccess={"CASHBALANCE"}
                   >
-                    {formik.isSubmitting ? (
-                      <Spinner size="sm" />
-                    ) : (
-                      <>
-                        <Check size={18} className="me-2" />
-                        Set Balance
-                      </>
-                    )}
-                  </Button>
-                </CheckPermission>
+                    <Button
+                      color="primary"
+                      type="submit"
+                      className="w-100 mt-auto"
+                      disabled={
+                        formik.isSubmitting ||
+                        (!hasBalanceOverridePermission && lastBaseBalance?.amount)
+                      }
+                    >
+                      {formik.isSubmitting ? (
+                        <Spinner size="sm" />
+                      ) : (
+                        <>
+                          <Check size={18} className="me-2" />
+                          Set Balance
+                        </>
+                      )}
+                    </Button>
+                  </CheckPermission>
+                )}
               </Form>
             </CardBody>
           </Card>
         </Col>
-        <Col lg={8}>
+        <Col lg={8} className="gap-sm-2">
           <Card className="h-100 shadow-sm">
             <CardBody className="d-flex flex-column justify-content-center text-center p-4 h-100">
               <CardTitle tag="h5" className="fw-semibold text-secondary mb-3">
@@ -387,8 +426,13 @@ const BaseBalance = ({ centers, centerAccess, loading, lastBaseBalance }) => {
                   {lastBaseBalance.attachment && (
                     <p
                       className="text-center text-primary"
-                      style={{ textDecoration: "underline", cursor: "pointer" }}
-                      onClick={() => downloadFile(lastBaseBalance.attachment)}
+                      style={{
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                      onClick={() =>
+                        downloadFile(lastBaseBalance.attachment)
+                      }
                     >
                       <FileText size={14} className="me-1" />
                       {lastBaseBalance.attachment.originalName}

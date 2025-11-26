@@ -21,11 +21,14 @@ const Navdata = () => {
       "booking",
       "intern",
       "patient",
+      "roundnotes",
       "users",
       "cash",
+      "centralpayment",
+      "incidentreporting",
       "setting",
       "recyclebin",
-      "inventory",
+      "pharmacy",
       "guidelines",
     ];
 

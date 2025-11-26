@@ -6,7 +6,7 @@ const VitalSign = ({ data }) => {
     <React.Fragment>
       <div>
         <div className="table-auto">
-          <div className="table-responsive h-auto table-card mb-1">
+          <div className="table-responsive h-auto table-card mb-1 ">
             <table
               className="bill-table table table-sm align-middle table-nowrap"
               id="customerTable"
@@ -27,6 +27,18 @@ const VitalSign = ({ data }) => {
                   </th>
                   <th className="sort" colSpan={2} data-sort="discount">
                     RESP. RATE (Breaths/min)
+                  </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    CNS
+                  </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    CVS
+                  </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    RS
+                  </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    PA
                   </th>
                 </tr>
               </thead>
@@ -67,6 +79,34 @@ const VitalSign = ({ data }) => {
                     className="text-wrap font-size-14"
                   >
                     {data?.respirationRate || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.cns || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.cvs || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.rs || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.pa || ""}
                   </td>
                 </tr>
               </tbody>

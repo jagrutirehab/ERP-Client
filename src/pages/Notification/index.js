@@ -9,6 +9,7 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
+  Spinner
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import backgroundImg from "../../assets/images/404-error.png";
@@ -19,7 +20,7 @@ import { connect, useDispatch } from "react-redux";
 import { fetchBillNotification, viewPatient } from "../../store/actions";
 import { addMonths, format } from "date-fns";
 
-const Notification = ({ bill, userCenters }) => {
+const Notification = ({ bill, userCenters, loading }) => {
   const dispatch = useDispatch();
 
   //   const createBill = (item) => {
@@ -33,6 +34,16 @@ const Notification = ({ bill, userCenters }) => {
   useEffect(() => {
     dispatch(fetchBillNotification(userCenters));
   }, [dispatch, userCenters]);
+
+  if(loading){
+    return(
+    <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+      <Spinner color="primary" style={{ width: '3rem', height: '3rem' }}>
+        Loading...
+      </Spinner>
+    </div>
+    )
+  }
 
   return (
     <React.Fragment>
@@ -177,16 +188,10 @@ const Notification = ({ bill, userCenters }) => {
                             <Col xs={6}>
                               <p className="text-muted mb-0">Bill Cycle Date</p>
                               <h5 className="mb-1">
-                                {item?.addmission
+                                {item?.lastBillingCycleDate
                                   ? format(
-                                      Math.abs(
-                                        new Date(
-                                          new Date().setDate(
-                                            new Date(
-                                              item.addmission.addmissionDate
-                                            ).getDate()
-                                          )
-                                        )
+                                      new Date(
+                                        item?.lastBillingCycleDate
                                       ),
                                       "dd MMM"
                                     )
@@ -228,6 +233,7 @@ const Notification = ({ bill, userCenters }) => {
 const mapStateToProps = (state) => ({
   bill: state.Notification?.bill,
   userCenters: state.User?.centerAccess,
+  loading: state.Notification?.loading,
 });
 
 export default connect(mapStateToProps)(Notification);

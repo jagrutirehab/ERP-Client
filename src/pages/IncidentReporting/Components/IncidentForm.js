@@ -52,22 +52,22 @@ const IncidentForm = ({ incident, onClose }) => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasIncidentInvestigatePermission = hasPermission(
     "INCIDENT_REPORTING",
     "INVESTIGATE_INCIDENT",
-    "READ"
+    "WRITE"
   );
-  const hasIncidentApprovePermission = hasPermission(
-    "INCIDENT_REPORTING",
-    "APPROVE_INCIDENT",
-    "READ"
-  );
-  const hasIncidentClosePermission = hasPermission(
-    "INCIDENT_REPORTING",
-    "CLOSE_INCIDENT",
-    "READ"
-  );
+  // const hasIncidentApprovePermission = hasPermission(
+  //   "INCIDENT_REPORTING",
+  //   "APPROVE_INCIDENT",
+  //   "READ"
+  // );
+  // const hasIncidentClosePermission = hasPermission(
+  //   "INCIDENT_REPORTING",
+  //   "CLOSE_INCIDENT",
+  //   "READ"
+  // );
 
   console.log({ currentIncident });
 
@@ -89,7 +89,7 @@ const IncidentForm = ({ incident, onClose }) => {
         Raised: "raise",
         "Under Investigation": "investigation",
         "Pending Approval": "approval",
-        Approved: "approval",
+        Approved: "closure",
         Rejected: "approval",
         Closed: "closure",
       };
@@ -129,13 +129,17 @@ const IncidentForm = ({ incident, onClose }) => {
     patientIncidentType: currentIncident?.patientIncidentType || "",
     patientIncidentOther: currentIncident?.patientIncidentOther || "",
     patient:
-      currentIncident?.patient?.id?._id || currentIncident?.patient?.id || "",
-    patientName: currentIncident?.patient?.name || "",
-    uid: currentIncident?.patient?.uid || "",
-    phoneNumber: "",
-    gender: "",
-    patientWard: currentIncident?.patient?.ward || "",
-    patientBedNo: currentIncident?.patient?.bedNo || "",
+      (typeof currentIncident?.patient === "object"
+        ? currentIncident?.patient?._id
+        : currentIncident?.patient) || "",
+    patientName:
+      (typeof currentIncident?.patient === "object"
+        ? currentIncident?.patient?.name || ""
+        : "") || "",
+    uid:
+      (typeof currentIncident?.patient === "object"
+        ? currentIncident?.patient?.uid || ""
+        : "") || "",
     title: currentIncident?.title || "",
     description: currentIncident?.description || "",
     occurrenceDate: currentIncident?.occurrenceDate
@@ -143,7 +147,7 @@ const IncidentForm = ({ incident, onClose }) => {
       : new Date(),
     location: currentIncident?.location || "",
     immediateAction: currentIncident?.immediateAction || "",
-    center: currentIncident?.center?._id || "",
+    center: currentIncident?.center?._id || currentIncident?.center || "",
   });
 
   const raiseForm = useFormik({
@@ -151,6 +155,10 @@ const IncidentForm = ({ incident, onClose }) => {
     initialValues: buildRaiseInitialValues(),
     validationSchema: Yup.object({
       incidentType: Yup.string().required("Incident type is required"),
+      patientIncidentType: Yup.string().when("incidentType", {
+        is: "Patient",
+        then: (schema) => schema.required("Patient incident type is required"),
+      }),
       patient: Yup.string().when("incidentType", {
         is: "Patient",
         then: (schema) => schema.required("Patient is required"),
@@ -182,11 +190,7 @@ const IncidentForm = ({ incident, onClose }) => {
       }
 
       if (values.incidentType === "Patient" && values.patient) {
-        formData.append("patient[id]", values.patient);
-        formData.append("patient[uid]", values.uid || "");
-        formData.append("patient[name]", values.patientName || "");
-        formData.append("patient[ward]", values.patientWard || "");
-        formData.append("patient[bedNo]", values.patientBedNo || "");
+        formData.append("patient", values.patient);
       }
 
       files.forEach((fileItem) => {
@@ -359,21 +363,30 @@ const IncidentForm = ({ incident, onClose }) => {
   };
 
   // console.log(raiseForm.values);
+  console.log({ currentIncident });
 
   return (
     <Card>
       <CardBody>
-        {currentIncident && (
+        {currentIncident.title && (
           <div className="mb-3 d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-0">{currentIncident.title}</h5>
-              <small className="text-muted">
-                Created:{" "}
-                {new Date(currentIncident.createdAt).toLocaleDateString()}
-              </small>
+              {currentIncident ? (
+                <>
+                  <h5 className="mb-0">{currentIncident.title}</h5>
+                  <small className="text-muted">
+                    Created:{" "}
+                    {new Date(currentIncident.createdAt).toLocaleDateString()}
+                  </small>
+                </>
+              ) : (
+                <></>
+              )}
             </div>
             <div className="d-flex align-items-center gap-2">
-              {getStatusBadge(currentIncident.status)}
+              {currentIncident.status && currentIncident.title
+                ? getStatusBadge(currentIncident.status)
+                : ""}
               <RenderWhen isTrue={hasIncidentInvestigatePermission}>
                 {currentIncident._id && currentIncident.status === "Raised" && (
                   <Button
@@ -561,6 +574,7 @@ const IncidentForm = ({ incident, onClose }) => {
                           validation={raiseForm}
                           disabled={currentIncident?.status !== "Raised"}
                           editEvent={!!currentIncident}
+                          showNewTag={false}
                         />
                         {raiseForm.touched.patient &&
                           raiseForm.errors.patient && (
@@ -568,30 +582,6 @@ const IncidentForm = ({ incident, onClose }) => {
                               {raiseForm.errors.patient}
                             </FormFeedback>
                           )}
-                      </div>
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <div className="mb-3">
-                        <Label>Patient UID</Label>
-                        <Input
-                          type="text"
-                          name="uid"
-                          value={raiseForm.values.uid}
-                          disabled
-                        />
-                      </div>
-                    </Col>
-                    <Col xs={12} md={6}>
-                      <div className="mb-3">
-                        <Label>Ward / Bed No.</Label>
-                        <Input
-                          type="text"
-                          name="patientWard"
-                          value={raiseForm.values.patientWard}
-                          onChange={raiseForm.handleChange}
-                          disabled={currentIncident?.status !== "Raised"}
-                          placeholder="Ward / Bed No."
-                        />
                       </div>
                     </Col>
                   </>
@@ -874,11 +864,7 @@ const IncidentForm = ({ incident, onClose }) => {
                       </Col>
 
                       <Col xs={12}>
-                        <Button
-                          disabled={!hasIncidentInvestigatePermission}
-                          type="submit"
-                          color="primary"
-                        >
+                        <Button type="submit" color="primary">
                           Submit Investigation
                         </Button>
                       </Col>
