@@ -20,6 +20,7 @@ import {
   Row,
   Spinner,
 } from "reactstrap";
+import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Flatpickr from "react-flatpickr";
@@ -43,9 +44,11 @@ import { useLocation } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import RoundNoteForm, { CarryForwardStrip } from "./RoundNoteForm";
 import RoundNoteCard from "./RoundCard";
+import { usePermissions } from "../../Components/Hooks/useRoles";
 
 const RoundNotes = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const {
     list,
@@ -63,10 +66,23 @@ const RoundNotes = () => {
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
   const [patientOption, setPatientOption] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
-
   const centerAccess = useSelector((state) => state.Center.data);
 
-  console.log({ centerAccess });
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasIncidentPermission = hasPermission("ROUND_NOTES", null, "READ");
+  const hasIncidentCreatePermission = hasPermission("ROUND_NOTES", "", "WRITE");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasIncidentPermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, hasIncidentPermission, permissionLoader]);
 
   const staffOptions = useMemo(
     () =>
@@ -366,21 +382,23 @@ const RoundNotes = () => {
                 Record, manage and review all floor / ward rounds
               </p>
             </div>
-            <Button
-              color="primary"
-              onClick={() =>
-                dispatch(
-                  setRoundNoteDrawer({
-                    isOpen: true,
-                    mode: "create",
-                    data: null,
-                    carryForwardSource: null,
-                  })
-                )
-              }
-            >
-              Create New Round Note
-            </Button>
+            {hasIncidentCreatePermission && (
+              <Button
+                color="primary"
+                onClick={() =>
+                  dispatch(
+                    setRoundNoteDrawer({
+                      isOpen: true,
+                      mode: "create",
+                      data: null,
+                      carryForwardSource: null,
+                    })
+                  )
+                }
+              >
+                Create New Round Note
+              </Button>
+            )}
           </div>
           {loading ? (
             <div className="text-center py-5">

@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import { Badge, Button, Card, CardBody } from "reactstrap";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const RoundNoteCard = ({ round, onEdit, onDelete }) => {
   console.log({ round });
@@ -8,6 +10,17 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
     ?.map((member) => member?.name)
     .filter(Boolean)
     .join(", ");
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasIncidentUpdatePermission = hasPermission("ROUND_NOTES", "", "WRITE");
+  const hasIncidentDeletePermission = hasPermission(
+    "ROUND_NOTES",
+    "",
+    "DELETE"
+  );
 
   return (
     <Card className="mb-3 shadow-sm">
@@ -34,12 +47,16 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
 
           {/* Actions */}
           <div className="d-flex flex-wrap gap-2">
-            <Button color="light" size="sm" onClick={() => onEdit(round)}>
-              Edit
-            </Button>
-            <Button color="danger" size="sm" onClick={() => onDelete(round)}>
-              Delete
-            </Button>
+            <RenderWhen isTrue={hasIncidentUpdatePermission}>
+              <Button color="light" size="sm" onClick={() => onEdit(round)}>
+                Edit
+              </Button>
+            </RenderWhen>
+            <RenderWhen isTrue={hasIncidentDeletePermission}>
+              <Button color="danger" size="sm" onClick={() => onDelete(round)}>
+                Delete
+              </Button>
+            </RenderWhen>
           </div>
         </div>
 
@@ -50,7 +67,7 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
               <tr>
                 <th>Floor</th>
                 <th>Patient</th>
-                <th>Category</th>
+                <th>Notes Applicable To</th>
                 <th>Note</th>
               </tr>
             </thead>
