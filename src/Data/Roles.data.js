@@ -154,6 +154,16 @@ export const permissionList = [
       { name: "CLOSE_INCIDENT", label: "Close Incident" },
     ],
   },
+  {
+    key: "ROUND_NOTES",
+    label: "Round Notes",
+    subModules: [
+      // { name: "VIEW_ROUND_NOTES", label: "View Round Notes" },
+      // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
+      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
+      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];
