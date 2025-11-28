@@ -37,12 +37,6 @@ const Report = ({}) => {
 
   const handleView = (v) => setView(v);
 
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
-
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
-  const hasMiReportingPermission = hasPermission("MI_REPORTING", null, "READ");
-
   return (
     <React.Fragment>
       <div className="page-content">
@@ -110,14 +104,14 @@ const Report = ({}) => {
             >
               Center Beds Analytics
             </Button>
-            <RenderWhen isTrue={hasMiReportingPermission}>
+            {/* <RenderWhen isTrue={hasMiReportingPermission}>
               <Button
                 outline={view !== MI_REPORTING}
                 onClick={() => handleView(MI_REPORTING)}
               >
                 MI Reporting
               </Button>
-            </RenderWhen>
+            </RenderWhen> */}
             {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
@@ -139,9 +133,9 @@ const Report = ({}) => {
             {view === CENTER_BEDS_ANALYTICS && (
               <CenterBedsAnalytics view={view} />
             )}
-            {view === MI_REPORTING && hasMiReportingPermission && (
+            {/* {view === MI_REPORTING && hasMiReportingPermission && (
               <MIReporting view={view} />
-            )}
+            )} */}
           </div>
         </Container>
       </div>

@@ -377,3 +377,13 @@ export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
+export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";
+export const GET_CENTER_LEADS_MTD = "/mi-reporting/center-leads-mtd";
+export const GET_OWNER_LEADS_MOM = "/mi-reporting/owner-leads-mom";
+export const GET_OWNER_LEADS_MTD = "/mi-reporting/owner-leads-mtd";
+export const GET_CITY_QUALITY_BREAKDOWN = "/mi-reporting/city-quality";
+export const GET_OWNER_QUALITY_BREAKDOWN = "/mi-reporting/owner-quality";
+export const GET_CITY_VISIT_DATE = "/mi-reporting/city-visit-date";
+export const GET_OWNER_VISIT_DATE = "/mi-reporting/owner-visit-date";
+export const GET_CITY_VISITED_DATE = "/mi-reporting/city-visited-date";
+export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";

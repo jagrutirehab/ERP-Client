@@ -1440,3 +1440,63 @@ export const getMIHubSpotContacts = (params = {}) => {
     },
   });
 };
+
+export const getCenterLeadsMoM = (params = {}) => {
+  return api.get(url.GET_CENTER_LEADS_MOM, {
+    params,
+  });
+};
+
+export const getCenterLeadsMTD = (params = {}) => {
+  return api.get(url.GET_CENTER_LEADS_MTD, {
+    params,
+  });
+};
+
+export const getOwnerLeadsMoM = (params = {}) => {
+  return api.get(url.GET_OWNER_LEADS_MOM, {
+    params,
+  });
+};
+
+export const getOwnerLeadsMTD = (params = {}) => {
+  return api.get(url.GET_OWNER_LEADS_MTD, {
+    params,
+  });
+};
+
+export const getCityQualityBreakdown = (params = {}) => {
+  return api.get(url.GET_CITY_QUALITY_BREAKDOWN, {
+    params,
+  });
+};
+
+export const getOwnerQualityBreakdown = (params = {}) => {
+  return api.get(url.GET_OWNER_QUALITY_BREAKDOWN, {
+    params,
+  });
+};
+
+export const getCityVisitDate = (params = {}) => {
+  return api.get(url.GET_CITY_VISIT_DATE, {
+    params,
+  });
+};
+
+export const getOwnerVisitDate = (params = {}) => {
+  return api.get(url.GET_OWNER_VISIT_DATE, {
+    params,
+  });
+};
+
+export const getCityVisitedDate = (params = {}) => {
+  return api.get(url.GET_CITY_VISITED_DATE, {
+    params,
+  });
+};
+
+export const getOwnerVisitedDate = (params = {}) => {
+  return api.get(url.GET_OWNER_VISITED_DATE, {
+    params,
+  });
+};
