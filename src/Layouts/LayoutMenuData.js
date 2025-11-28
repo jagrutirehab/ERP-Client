@@ -22,6 +22,7 @@ const Navdata = () => {
       "intern",
       "patient",
       "roundnotes",
+      "mireporting",
       "users",
       "cash",
       "centralpayment",
@@ -64,6 +65,8 @@ const Navdata = () => {
     },
     ...sortPages(dynamicPages),
   ];
+
+  console.log({ menuItems });
 
   return <React.Fragment>{menuItems}</React.Fragment>;
 };
