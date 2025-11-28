@@ -14,10 +14,12 @@ import { endOfDay, startOfDay } from "date-fns";
 
 const Header = ({ reportDate, setReportDate }) => {
   const changeDate = (days) => {
-  const today = new Date();
-  const start = days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days) : today;
-  setReportDate({ start: startOfDay(start), end: endOfDay(today) });
-};
+    const today = new Date();
+    const start = days
+      ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
+      : today;
+    setReportDate({ start: startOfDay(start), end: endOfDay(today) });
+  };
 
   const changeToMonth = () => {
     const date = new Date(),
@@ -61,7 +63,7 @@ const Header = ({ reportDate, setReportDate }) => {
                       onChange={([e]) => {
                         setReportDate({
                           ...reportDate,
-                          start: e,
+                          start: startOfDay(e),
                         });
                       }}
                       options={{
@@ -84,7 +86,7 @@ const Header = ({ reportDate, setReportDate }) => {
                       onChange={([e]) => {
                         setReportDate({
                           ...reportDate,
-                          end: e,
+                          end: endOfDay(e),
                         });
                       }}
                       options={{
