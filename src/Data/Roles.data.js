@@ -165,6 +165,19 @@ export const permissionList = [
     ],
   },
   {
+    key: "MI_REPORTING",
+    label: "MI Reporting",
+    subModules: [
+      { name: "VIEW_MI_REPORTING", label: "View MI Reporting" },
+      { name: "MI_CENTER_LEADS_COUNT", label: "Center Leads Count" },
+      { name: "MI_OWNER_LEADS_COUNT", label: "Owner Leads Count" },
+      { name: "MI_CITY_QUALITY_BREAKDOWN", label: "City Quality Breakdown" },
+      { name: "MI_OWNER_QUALITY_BREAKDOWN", label: "Owner Quality Breakdown" },
+      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
+      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+    ],
+  },
+  {
     key: "HR",
     label: "HR",
     subModules: [

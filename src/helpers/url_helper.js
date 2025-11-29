@@ -137,7 +137,8 @@ export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
 export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
-export const POST_GENERAL_MENTAL_EXAMINATION = "/chart/mental-examination/general";
+export const POST_GENERAL_MENTAL_EXAMINATION =
+  "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
@@ -376,7 +377,19 @@ export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
 export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 
-// HR MASTER EMPLOYEE
+// HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
 export const NEW_JOINING_ACTION="/hr/employee/new-joining";
+// MI REPORTING
+export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
+export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";
+export const GET_CENTER_LEADS_MTD = "/mi-reporting/center-leads-mtd";
+export const GET_OWNER_LEADS_MOM = "/mi-reporting/owner-leads-mom";
+export const GET_OWNER_LEADS_MTD = "/mi-reporting/owner-leads-mtd";
+export const GET_CITY_QUALITY_BREAKDOWN = "/mi-reporting/city-quality";
+export const GET_OWNER_QUALITY_BREAKDOWN = "/mi-reporting/owner-quality";
+export const GET_CITY_VISIT_DATE = "/mi-reporting/city-visit-date";
+export const GET_OWNER_VISIT_DATE = "/mi-reporting/owner-visit-date";
+export const GET_CITY_VISITED_DATE = "/mi-reporting/city-visited-date";
+export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";

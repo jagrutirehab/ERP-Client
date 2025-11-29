@@ -217,6 +217,18 @@ const pages = [
     },
   },
   {
+    id: "mireporting",
+    label: "Mi Reporting",
+    name: "Mi Reporting",
+    link: "/mi-reporting",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "booking",
     label: "Booking",
     name: "Booking",
@@ -300,6 +312,69 @@ export const Pharmacy = [
     label: "Audit",
     link: "/pharmacy/audit",
     icon: "bx bx-fingerprint",
+  },
+];
+
+export const MIReporting = [
+  {
+    id: "center-leads-mom",
+    label: "Center Leads (MoM)",
+    link: "/mi-reporting/center-leads-mom",
+    icon: "bx bx-bar-chart-alt-2",
+  },
+  {
+    id: "center-leads-mtd",
+    label: "Center Leads (MTD)",
+    link: "/mi-reporting/center-leads-mtd",
+    icon: "bx bx-line-chart",
+  },
+  {
+    id: "owner-leads-mom",
+    label: "Owner Leads (MoM)",
+    link: "/mi-reporting/owner-leads-mom",
+    icon: "bx bx-bar-chart-square",
+  },
+  {
+    id: "owner-leads-mtd",
+    label: "Owner Leads (MTD)",
+    link: "/mi-reporting/owner-leads-mtd",
+    icon: "bx bx-trending-up",
+  },
+  {
+    id: "city-quality",
+    label: "City Quality Breakdown",
+    link: "/mi-reporting/city-quality",
+    icon: "bx bx-map",
+  },
+  {
+    id: "owner-quality",
+    label: "Owner Quality Breakdown",
+    link: "/mi-reporting/owner-quality",
+    icon: "bx bx-user-check",
+  },
+  {
+    id: "city-visit-date",
+    label: "City Visit Date",
+    link: "/mi-reporting/city-visit-date",
+    icon: "bx bx-calendar",
+  },
+  {
+    id: "owner-visit-date",
+    label: "Owner Visit Date",
+    link: "/mi-reporting/owner-visit-date",
+    icon: "bx bx-calendar-check",
+  },
+  {
+    id: "city-visited-date",
+    label: "City Visited Date",
+    link: "/mi-reporting/city-visited-date",
+    icon: "bx bx-calendar-event",
+  },
+  {
+    id: "owner-visited-date",
+    label: "Owner Visited Date",
+    link: "/mi-reporting/owner-visited-date",
+    icon: "bx bx-calendar-star",
   },
 ];
 
