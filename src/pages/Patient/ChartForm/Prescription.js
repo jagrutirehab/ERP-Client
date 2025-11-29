@@ -228,7 +228,9 @@ const Prescription = ({
   const addMdicine = (med, data) => {
     if (!med) return;
 
-    const checkMedicine = data.find((val) => val.medicine?.name === med?.name);
+    const checkMedicine = data.find(
+      (val) => val.medicine?.name === med?.name || val.medicine?.name === med
+    );
 
     if (!checkMedicine) {
       const medicine = {
