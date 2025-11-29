@@ -33,6 +33,8 @@ const IncidentReporting = React.lazy(() =>
   import("../pages/IncidentReporting")
 );
 const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
+const HR = React.lazy(() => import("../pages/HR"));
+const MIReporting = React.lazy(() => import("../pages/MIReporting"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -52,6 +54,8 @@ const allElements = [
   { element: Pharmacy, label: "Pharmacy" },
   { element: Guidelines, label: "Guidelines" },
   { element: IncidentReporting, label: "Incident Reporting" },
+  { element: HR, label: "HR" },
+  { element: MIReporting, label: "MI Reporting" },
 ];
 
 const authProtectedRoutes = [
@@ -74,6 +78,9 @@ const authProtectedRoutes = [
   { path: "/guidelines/*", component: Guidelines },
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
+  { path: "/hr/*", component: HR },
+  { path: "/mi-reporting", component: MIReporting },
+  { path: "/mi-reporting/*", component: MIReporting },
   {
     path: "/",
     exact: true,

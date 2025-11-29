@@ -452,14 +452,14 @@ export const deleteDetailAdmissionFile = (data) =>
 
 export const postMentalExamination = (data) => {
   return api.create(url.POST_MENTAL_EXAMINATION, data);
-}
+};
 export const postGeneralMentalExamintion = (data) => {
   return api.create(url.POST_GENERAL_MENTAL_EXAMINATION, data);
-}
+};
 
 export const editMentalExamination = (data) => {
   return api.put(url.EDIT_MENTAL_EXAMINATION, data);
-}
+};
 
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
@@ -1449,5 +1449,129 @@ export const downloadAuditFailedMedicines = (id) => {
       "X-No-Cookie-Token": "true",
     },
     responseType: "blob",
+  });
+};
+
+
+// HR
+export const getEmployeeId = () => {
+  return api.get(url.GET_EMPLOYEE_ID, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+export const postEmployee = (data) => {
+  return api.create(url.EMPLOYEE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const editEmployee = (id, data) => {
+  return api.update(`${url.EMPLOYEE}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const getEmployees = (params = {}) => {
+  return api.get(url.EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const deleteEmployee = (id) => {
+  return api.delete(`${url.EMPLOYEE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const updateNewJoiningStatus = (id, data) => {
+  return api.update(`${url.NEW_JOINING_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+// MI REPORTING
+export const getMIHubSpotContacts = (params = {}) => {
+  return api.get(url.GET_MI_HUBSPOT_CONTACTS, {
+    params,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getCenterLeadsMoM = (params = {}) => {
+  return api.get(url.GET_CENTER_LEADS_MOM, {
+    params,
+  });
+};
+
+export const getCenterLeadsMTD = (params = {}) => {
+  return api.get(url.GET_CENTER_LEADS_MTD, {
+    params,
+  });
+};
+
+export const getOwnerLeadsMoM = (params = {}) => {
+  return api.get(url.GET_OWNER_LEADS_MOM, {
+    params,
+  });
+};
+
+export const getOwnerLeadsMTD = (params = {}) => {
+  return api.get(url.GET_OWNER_LEADS_MTD, {
+    params,
+  });
+};
+
+export const getCityQualityBreakdown = (params = {}) => {
+  return api.get(url.GET_CITY_QUALITY_BREAKDOWN, {
+    params,
+  });
+};
+
+export const getOwnerQualityBreakdown = (params = {}) => {
+  return api.get(url.GET_OWNER_QUALITY_BREAKDOWN, {
+    params,
+  });
+};
+
+export const getCityVisitDate = (params = {}) => {
+  return api.get(url.GET_CITY_VISIT_DATE, {
+    params,
+  });
+};
+
+export const getOwnerVisitDate = (params = {}) => {
+  return api.get(url.GET_OWNER_VISIT_DATE, {
+    params,
+  });
+};
+
+export const getCityVisitedDate = (params = {}) => {
+  return api.get(url.GET_CITY_VISITED_DATE, {
+    params,
+  });
+};
+
+export const getOwnerVisitedDate = (params = {}) => {
+  return api.get(url.GET_OWNER_VISITED_DATE, {
+    params,
   });
 };
