@@ -62,10 +62,10 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
             }}
           />
           <span
-            // onClick={() => {
-            //   addItem(searchItem, data);
-            //   setSearchItem("");
-            // }}
+            onClick={() => {
+              addItem(searchItem, data);
+              setSearchItem("");
+            }}
             className="link-success ri-send-plane-2-fill dropdown-input-icon"
             style={{
               position: "absolute",
