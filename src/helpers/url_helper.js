@@ -377,6 +377,10 @@ export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
 export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 
+// HR
+export const GET_EMPLOYEE_ID = "/hr/employee-id";
+export const EMPLOYEE = "/hr/employee";
+export const NEW_JOINING_ACTION="/hr/employee/new-joining";
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";

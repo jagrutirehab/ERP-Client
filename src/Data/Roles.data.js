@@ -177,6 +177,15 @@ export const permissionList = [
       // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
     ],
   },
+  {
+    key: "HR",
+    label: "HR",
+    subModules: [
+      { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      { name: "NEW_JOININGS", label: "New Joinings" },
+      // { name: "EXIT_EMPLOYEES", label: "Exit Employees" },
+    ]
+  }
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

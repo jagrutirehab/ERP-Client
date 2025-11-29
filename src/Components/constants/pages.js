@@ -273,6 +273,13 @@ const pages = [
     link: "/guidelines",
     icon: "bx bx-book-open",
   },
+  {
+    id: "hr",
+    label: "HR",
+    name: "HR",
+    link: "/hr",
+    icon: "bx bx-body"
+  }
 ];
 
 export const Pharmacy = [
@@ -472,5 +479,33 @@ export const recyclebin = [
     icon: "bx bx-capsule",
   },
 ];
+
+export const HR = [
+  // {
+  //   id: "hr-dashboard",
+  //   label: "Dashboard",
+  //   link: "/hr/dashboard",
+  //   icon: "bx bx-home",
+  // },
+  {
+    id: "master-employee",
+    label: "Master Employee",
+    link: "/hr/employee",
+    icon: "bx bx-group",
+  },
+  {
+    id: "new-joinings",
+    label: "New Joinings",
+    link: "/hr/new-joinings",
+    icon: "bx  bx-arrow-to-left",
+  },
+  // {
+  //   id: "exit-employees",
+  //   label: "Exit Employees",
+  //   link: "/hr/exit",
+  //   icon: "bx bx-arrow-from-left",
+  // },
+
+]
 
 export default pages;

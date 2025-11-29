@@ -31,6 +31,7 @@ const Navdata = () => {
       "recyclebin",
       "pharmacy",
       "guidelines",
+      "hr"
     ];
 
     routes?.sort((a, b) => {
