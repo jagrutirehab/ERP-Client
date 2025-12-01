@@ -193,7 +193,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                 const formData = new FormData();
 
                 Object.keys(values).forEach((key) => {
-                    if (!["panFile", "adharFile", "offerLetter"].includes(key)) {
+                    if (!["panFile", "adharFile", "offerLetterFile"].includes(key)) {
                         if (key === "eCode" && mode === "NEW_JOINING") return;
                         formData.append(key, values[key] ?? "");
                     }
@@ -201,7 +201,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                 if (values.panFile) formData.append("panFile", values.panFile);
                 if (values.adharFile) formData.append("adharFile", values.adharFile);
-                if (values.offerLetter) formData.append("offerLetter", values.offerLetter);
+                if (values.offerLetterFile) formData.append("offerLetterFile", values.offerLetterFile);
 
                 if (initialData?._id) {
                     formData.delete("eCode");
