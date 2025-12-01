@@ -117,13 +117,13 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             name: <div>Reason of Leaving</div>,
             selector: row => capitalizeWords(row?.exitWorkflow?.reason || "-"),
             wrap: true,
-            minWidth: "120px"
+            minWidth: "140px"
         },
         {
             name: <div>Other Reason(If Any)</div>,
             selector: row => <ExpandableText text={capitalizeWords(row?.exitWorkflow?.otherReason || "-")} />,
             wrap: true,
-            minWidth: "120px"
+            minWidth: "160px"
         },
         {
             name: <div>Last Working Day</div>,
