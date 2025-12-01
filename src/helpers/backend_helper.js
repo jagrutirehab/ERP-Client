@@ -1621,4 +1621,16 @@ export const exitEmployeeAction = (id, data) => {
       "X-No-Cookie-Token": "true",
     },
   })
+};
+
+export const searchExitEmployee = (params = {}) => {
+  return api.get(url.SEARCH_EXIT_EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
 }

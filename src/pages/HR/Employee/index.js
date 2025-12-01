@@ -227,6 +227,12 @@ const Employee = () => {
         },
 
         {
+            name: <div>Exit Date</div>,
+            selector: row => row?.exitDate || "-",
+            wrap: true,
+        },
+
+        {
             name: <div>Status</div>,
             selector: row =>
                 row?.status === "ACTIVE" ? "Active" :
