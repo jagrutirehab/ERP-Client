@@ -98,10 +98,10 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
 
                 if (isEdit) {
                     await editExitEmployee(payload);
-                    toast.success("Exit Record updated successfully");
+                    toast.success("Employee Exit Record updated successfully");
                 } else {
                     await postExitEmployee(payload);
-                    toast.success("Exit Record added successfully");
+                    toast.success("Employee Exit Record added successfully");
                 }
 
                 toggle();
@@ -128,7 +128,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
     return (
         <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
             <ModalHeader toggle={toggle}>
-                {isEdit ? "Edit Exit Record" : "Add Exit Record"}
+                {isEdit ? "Edit Employee Exit Record" : "Add Employee Exit Record"}
             </ModalHeader>
 
             <ModalBody>

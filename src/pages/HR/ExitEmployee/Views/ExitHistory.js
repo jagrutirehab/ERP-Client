@@ -141,7 +141,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "150px"
+            minWidth: "200px"
         },
         {
             name: <div>Filled At</div>,
@@ -153,7 +153,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth: "150px"
+            minWidth: "180px"
         },
         {
             name: <div>Action Taken By</div>,
@@ -166,7 +166,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "150px"
+            minWidth: "200px"
         },
         {
             name: <div>Action Taken At</div>,
@@ -179,7 +179,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth: "150px"
+            minWidth: "180px"
         },
         {
             name: <div>Action Note</div>,

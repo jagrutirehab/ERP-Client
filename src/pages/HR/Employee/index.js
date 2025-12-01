@@ -515,17 +515,35 @@ const Employee = () => {
                             classNamePrefix="react-select"
                         />
                     </div>
+
                     <div style={{ width: "100%" }}>
                         <Input
                             type="text"
                             className="form-control"
-                            placeholder="Search by name name or Ecode..."
+                            placeholder="Search by name or Ecode..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-
                 </div>
+
+                <div className="d-flex d-md-none justify-content-end mt-3">
+                    <CheckPermission
+                        accessRolePermission={roles?.permissions}
+                        subAccess={"MASTER_EMPLOYEE"}
+                        permission={"create"}
+                    >
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-2 text-white"
+                            onClick={() => setModalOpen(true)}
+                        >
+                            + Add Employee
+                        </Button>
+                    </CheckPermission>
+                </div>
+
+
 
             </div>
 

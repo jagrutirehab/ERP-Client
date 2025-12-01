@@ -125,6 +125,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
         textTransform: "capitalize",
       },
       wrap: true,
+      minWidth:"120px"
     },
     {
       name: (
@@ -169,6 +170,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
 
       wrap: true,
       center: true,
+      minWidth:"200px"
     },
     {
       name: "Duration",

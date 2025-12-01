@@ -643,6 +643,15 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                     >
                                         Preview New File
                                     </Button>
+
+                                    <Button
+                                        size="sm"
+                                        color="primary"
+                                        className="text-white"
+                                        onClick={() => adharFileRef.current.click()}
+                                    >
+                                        Upload New File
+                                    </Button>
                                 </div>
                             )}
 
@@ -673,7 +682,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 </div>
                             )}
 
-                            {!values.adharFile && !values.adharOld && (
+                            {!isEdit && !values.adharFile && !values.adharOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
@@ -690,6 +699,8 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.adharFile}</div>
                             )}
                         </Col>
+
+
 
                         {/* PAN NO*/}
                         <Col md={6}>
@@ -744,6 +755,14 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                         Preview New File
                                     </Button>
 
+                                    <Button
+                                        size="sm"
+                                        color="primary"
+                                        className="text-white"
+                                        onClick={() => panFileRef.current.click()}
+                                    >
+                                        Upload New File
+                                    </Button>
                                 </div>
                             )}
 
@@ -774,7 +793,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 </div>
                             )}
 
-                            {!values.panFile && !values.panOld && (
+                            {!isEdit && !values.panFile && !values.panOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
@@ -790,6 +809,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.panFile}</div>
                             )}
                         </Col>
+
 
 
 
@@ -878,9 +898,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                         {/* OFFER LETTER FILE */}
                         <Col md={6}>
-                            <Label>
-                                Offer Letter <span className="text-danger">*</span>
-                            </Label>
+                            <Label>Offer Letter <span className="text-danger">*</span></Label>
 
                             <input
                                 type="file"
@@ -916,6 +934,14 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                         Preview New File
                                     </Button>
 
+                                    <Button
+                                        size="sm"
+                                        color="primary"
+                                        className="text-white"
+                                        onClick={() => offerLetterRef.current.click()}
+                                    >
+                                        Upload New File
+                                    </Button>
                                 </div>
                             )}
 
@@ -946,7 +972,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 </div>
                             )}
 
-                            {!values.offerLetterFile && !values.offerLetterOld && (
+                            {!isEdit && !values.offerLetterFile && !values.offerLetterOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
@@ -962,6 +988,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.offerLetterFile}</div>
                             )}
                         </Col>
+
                     </Row>
                 </ModalBody>
 
