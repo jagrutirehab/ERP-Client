@@ -3,7 +3,7 @@ import HRFilter from '../../components/HRFilter'
 import { endOfDay, startOfDay } from 'date-fns';
 import { ExpandableText } from '../../../../Components/Common/ExpandableText';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { exitEmployees, salaryAdvances } from '../../dummyData';
+// import { exitEmployees, salaryAdvances } from '../../dummyData';
 import DataTable from 'react-data-table-component';
 import { CheckCheck, Trash2, X } from 'lucide-react';
 import { Badge, Button } from 'reactstrap';
