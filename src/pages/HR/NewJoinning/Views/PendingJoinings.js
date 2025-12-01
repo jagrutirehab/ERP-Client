@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { Button, CardBody, Input, Spinner } from 'reactstrap';
+import { Button, Input, Spinner } from 'reactstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import DataTable from 'react-data-table-component';
@@ -16,6 +16,7 @@ import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import { deleteEmployee, updateNewJoiningStatus } from '../../../../helpers/backend_helper';
 import ApproveModal from '../../components/ApproveModal';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
+import { downloadFile } from '../../../../Components/Common/downloadFile';
 
 const customStyles = {
     table: {
@@ -39,11 +40,11 @@ const customStyles = {
 };
 
 
-const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
+const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
 
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
-    const { employees, loading } = useSelector((state) => state.HR);
+    const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
@@ -119,7 +120,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to fetch master employee list");
             }
         }
@@ -136,9 +137,10 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
         try {
             await deleteEmployee(selectedEmployee._id);
             toast.success("Employee deleted successfully");
+            setPage(1);
             fetchMasterEmployeeList();
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to delete employee")
             }
         } finally {
@@ -176,14 +178,17 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
     const columns = [
         {
             name: <div>Date</div>,
-            selector: row => format(new Date(row?.createdAt), "dd MMM yyyy, hh:mm a") || "-",
+            selector: row =>
+                row?.createdAt
+                    ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
+                    : "-",
             sortable: true,
             wrap: true,
             minWidth: "180px"
         },
         {
             name: <div>Name</div>,
-            selector: row => capitalizeWords(row?.name || "-"),
+            selector: row => row?.name?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
@@ -205,6 +210,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
             wrap: true,
             minWidth: "100px"
         },
+
         {
             name: <div>First Location</div>,
             selector: row => capitalizeWords(row?.firstLocation?.title || "-"),
@@ -217,6 +223,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
             wrap: true,
             minWidth: "120px"
         },
+
         {
             name: <div>State</div>,
             selector: row => capitalizeWords(row?.state || "-"),
@@ -225,46 +232,53 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Payroll</div>,
-            selector: row => row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
-            wrap: true,
+            selector: row =>
+                row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
+            wrap: true
         },
         {
             name: <div>Joining Date</div>,
             selector: row => row?.joinningDate || "-",
-            wrap: true,
+            wrap: true
         },
         {
             name: <div>Gender</div>,
             selector: row => capitalizeWords(row?.gender || "-"),
-            wrap: true,
+            wrap: true
         },
         {
             name: <div>Date of Birth</div>,
             selector: row => row?.dateOfBirth || "-",
-            wrap: true,
+            wrap: true
         },
         {
             name: <div>Bank Name</div>,
-            selector: row => capitalizeWords(row?.bankDetails?.bankName || "-"),
+            selector: row =>
+                capitalizeWords(row?.bankDetails?.bankName || "-"),
             wrap: true,
             minWidth: "160px"
         },
         {
             name: <div>Bank Account No</div>,
-            selector: row => row?.bankDetails?.bankAccount || "-",
+            selector: row => row?.bankDetails?.accountNo || "-",
             wrap: true,
             minWidth: "180px"
         },
         {
             name: <div>IFSC Code</div>,
-            selector: row => row?.bankDetails?.ifscCode || "-",
+            selector: row => row?.bankDetails?.IFSCCode || "-",
             wrap: true,
             minWidth: "150px"
         },
         {
             name: <div>PF Applicable</div>,
-            selector: row => row?.pfApplication === true ? "Yes" : row?.pfApplication === false ? "No" : "-",
-            wrap: true,
+            selector: row =>
+                row?.pfApplicable === true
+                    ? "Yes"
+                    : row?.pfApplicable === false
+                        ? "No"
+                        : "-",
+            wrap: true
         },
         {
             name: <div>UAN No</div>,
@@ -284,21 +298,61 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
             wrap: true,
             minWidth: "160px"
         },
+
         {
             name: <div>Aadhaar No</div>,
-            selector: row => row?.adharNo || "-",
+            selector: row => row?.adhar?.number || "-",
             wrap: true,
             minWidth: "180px"
         },
         {
+            name: <div>Aadhaar File</div>,
+            cell: row =>
+                typeof row?.adhar?.url === "string" ? (
+                    <span
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem"
+                        }}
+                        onClick={() => downloadFile({ url: row.adhar.url })}
+                    >
+                        Download
+                    </span>
+                ) : (
+                    "-"
+                ),
+            wrap: true,
+        },
+        {
             name: <div>PAN</div>,
-            selector: row => row?.pan || "-",
+            selector: row => row?.pan?.number || "-",
             wrap: true,
             minWidth: "140px"
         },
         {
+            name: <div>PAN File</div>,
+            cell: row =>
+                typeof row?.pan?.url === "string" ? (
+                    <button
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem"
+                        }}
+                        onClick={() => downloadFile({ url: row.pan.url })}
+                    >
+                        Download
+                    </button>
+                ) : (
+                    "-"
+                )
+        },
+        {
             name: <div>Father's Name</div>,
-            selector: row => row?.father || "-",
+            selector: row => capitalizeWords(row?.father || "-"),
             wrap: true,
             minWidth: "180px"
         },
@@ -320,87 +374,109 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
             wrap: true,
             minWidth: "200px"
         },
+
         {
             name: <div>Monthly CTC</div>,
-            selector: row => `₹${row?.monthlyCTC?.toLocaleString()}`,
+            selector: row =>
+                typeof row?.monthlyCTC === "number"
+                    ? `₹${row.monthlyCTC.toLocaleString()}`
+                    : "-",
             sortable: true,
             wrap: true,
             minWidth: "100px"
         },
         {
-            name: <div>Actions</div>,
-            cell: (row) => (
-                <div className="d-flex gap-2">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOININGS"}
-                        permission={"edit"}
+            name: <div>Offer Letter</div>,
+            cell: row =>
+                typeof row?.offerLetter === "string" ? (
+                    <button
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem"
+                        }}
+                        onClick={() => downloadFile({ url: row.offerLetter })}
                     >
-                        <Button
-                            color="success"
-                            className="text-white"
-                            size="sm"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setActionType("APPROVE");
-                                setApproveModalOpen(true);
-                            }}
-                        >
-                            <CheckCheck size={18} />
-                        </Button>
+                        Download
+                    </button>
+                ) : (
+                    "-"
+                )
+        },
+        ...(hasPermission("HR", "NEW_JOININGS", "WRITE")
+            ? [
+                {
+                    name: <div>Actions</div>,
+                    cell: row => (
+                        <div className="d-flex gap-2">
+                            <CheckPermission
+                                accessRolePermission={roles?.permissions}
+                                subAccess="NEW_JOININGS"
+                                permission="edit"
+                            >
+                                <Button
+                                    color="success"
+                                    className="text-white"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setActionType("APPROVE");
+                                        setApproveModalOpen(true);
+                                    }}
+                                >
+                                    <CheckCheck size={18} />
+                                </Button>
 
-                        <Button
-                            color="danger"
-                            className="text-white"
-                            size="sm"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setActionType("REJECT");
-                                setApproveModalOpen(true);
-                            }}
-                        >
-                            <X size={16} />
-                        </Button>
+                                <Button
+                                    color="danger"
+                                    className="text-white"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setActionType("REJECT");
+                                        setApproveModalOpen(true);
+                                    }}
+                                >
+                                    <X size={16} />
+                                </Button>
 
-                        <button
-                            className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setModalOpen(true)
-                            }}
-                        >
-                            <Pencil size={16} />
-                        </button>
-                    </CheckPermission>
+                                <button
+                                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setModalOpen(true);
+                                    }}
+                                >
+                                    <Pencil size={16} />
+                                </button>
+                            </CheckPermission>
 
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOININGS"}
-                        permission={"delete"}
-                    >
-                        <button
-                            className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setDeleteModalOpen(true);
-                            }}
-                        >
-                            <Trash2 size={16} />
-                        </button>
-                    </CheckPermission>
-                </div>
-            ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
-            minWidth: "180px"
-        }
+                            <CheckPermission
+                                accessRolePermission={roles?.permissions}
+                                subAccess="NEW_JOININGS"
+                                permission="delete"
+                            >
+                                <button
+                                    className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setDeleteModalOpen(true);
+                                    }}
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </CheckPermission>
+                        </div>
+                    ),
+                    ignoreRowClick: true,
+                    allowOverflow: true,
+                    button: true,
+                    minWidth: "180px"
+                }
+            ]
+            : [])
     ];
-
-
-
-    const employeeData = employees?.data;
-    const pagination = employees?.pagination;
 
     return (
 
@@ -481,7 +557,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, roles }) => {
 
             <DataTable
                 columns={columns}
-                data={employeeData}
+                data={data}
                 highlightOnHover
                 pagination
                 paginationServer

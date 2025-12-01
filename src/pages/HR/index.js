@@ -1,14 +1,33 @@
 import React from 'react'
-import { Container } from 'reactstrap';
-import { Route, Routes } from 'react-router-dom';
+import { Container, Spinner } from 'reactstrap';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 
 import Sidebar from './Sidebar';
 import Employee from './Employee';
-import HRDashboard from './HRDashboard';
-import ApprovalDashboard from './ApprovalDashboard';
 import NewJoining from './NewJoinning';
+import ExitEmployees from './ExitEmployee';
+import { usePermissions } from '../../Components/Hooks/useRoles';
 
 const HR = () => {
+    const navigate = useNavigate();
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, loading: permissionLoader } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", null, "READ");
+
+    if (permissionLoader) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+                <Spinner color="primary" />
+            </div>
+        )
+    }
+
+    if (!permissionLoader && !hasUserPermission) {
+        navigate("/unauthorized");
+    }
     return (
         <React.Fragment>
             <div className="page-conten overflow-hidden">
@@ -21,6 +40,7 @@ const HR = () => {
                                 <Route path={`/employee`} element={<Employee />} />
                                 {/* <Route path={`/approvals`} element={<ApprovalDashboard />} /> */}
                                 <Route path={`/new-joinings`} element={<NewJoining />} />
+                                <Route path={`/exit-employees`} element={<ExitEmployees />} />
                             </Routes>
                         </div>
                     </Container>

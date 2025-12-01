@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
-import { CardBody, Input, Spinner } from 'reactstrap';
+import { Button, CardBody, Input, Spinner } from 'reactstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import DataTable from 'react-data-table-component';
@@ -16,6 +16,8 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import { deleteEmployee } from '../../../helpers/backend_helper';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
+import { useNavigate } from 'react-router-dom';
+import { downloadFile } from '../../../Components/Common/downloadFile';
 
 const customStyles = {
     table: {
@@ -40,9 +42,10 @@ const customStyles = {
 
 
 const Employee = () => {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
-    const { employees, loading } = useSelector((state) => state.HR);
+    const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
@@ -120,7 +123,7 @@ const Employee = () => {
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to fetch master employee list");
             }
         }
@@ -139,7 +142,7 @@ const Employee = () => {
             toast.success("Employee deleted successfully");
             fetchMasterEmployeeList();
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to delete employee")
             }
         } finally {
@@ -164,7 +167,7 @@ const Employee = () => {
         },
         {
             name: <div>Name</div>,
-            selector: row => capitalizeWords(row?.name || "-"),
+            selector: row => row?.name.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
@@ -283,19 +286,60 @@ const Employee = () => {
         },
         {
             name: <div>Aadhaar No</div>,
-            selector: row => row?.adharNo || "-",
+            selector: row => row?.adhar?.number || "-",
             wrap: true,
             minWidth: "180px"
         },
         {
-            name: <div>PAN</div>,
-            selector: row => row?.pan || "-",
+            name: <div>Aadhaar File</div>,
+            selector: (row) =>
+                row?.adhar?.url ? (
+                    <span
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                        }}
+                        onClick={() => downloadFile({
+                            url: row.adhar.url,
+                        })}
+                    >
+                        Download
+                    </span>
+                ) : (
+                    "-"
+                ),
+        },
+        {
+            name: <div>PAN No</div>,
+            selector: row => row?.pan?.number || "-",
             wrap: true,
             minWidth: "140px"
         },
         {
+            name: <div>PAN File</div>,
+            selector: (row) =>
+                row?.pan?.url ? (
+                    <span
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                        }}
+                        onClick={() => downloadFile({ url: row.pan.url })}
+                    >
+                        Download
+                    </span>
+                ) : (
+                    "-"
+                ),
+            wrap: true,
+        },
+        {
             name: <div>Father's Name</div>,
-            selector: row => row?.father || "-",
+            selector: row => capitalizeWords(row?.father) || "-",
             wrap: true,
             minWidth: "180px"
         },
@@ -309,13 +353,13 @@ const Employee = () => {
             name: <div>Official Email ID</div>,
             selector: row => row?.officialEmail || "-",
             wrap: true,
-            minWidth: "200px"
+            minWidth: "210px"
         },
         {
             name: <div>Email ID</div>,
             selector: row => row?.email || "-",
             wrap: true,
-            minWidth: "200px"
+            minWidth: "210px"
         },
         {
             name: <div>Monthly CTC</div>,
@@ -325,53 +369,73 @@ const Employee = () => {
             minWidth: "100px"
         },
         {
-            name: <div>Actions</div>,
-            cell: (row) => (
-                <div className="d-flex gap-2">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"MASTER_EMPLOYEE"}
-                        permission={"edit"}
+            name: <div>Offer Letter</div>,
+            selector: (row) =>
+                row?.offerLetter ? (
+                    <span
+                        style={{
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                        }}
+                        onClick={() => downloadFile({ url: row.offerLetter })}
                     >
-                        <button
-                            className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setModalOpen(true)
-                            }}
+                        Download
+                    </span>
+                ) : (
+                    "-"
+                ),
+        },
+        ...(hasPermission("HR", "MASTER_EMPLOYEE", "WRITE") ? [
+            {
+                name: <div>Actions</div>,
+                cell: (row) => (
+                    <div className="d-flex gap-2">
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess={"MASTER_EMPLOYEE"}
+                            permission={"edit"}
                         >
-                            <Pencil size={16} />
-                        </button>
-                    </CheckPermission>
+                            <button
+                                className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                onClick={() => {
+                                    setSelectedEmployee(row);
+                                    setModalOpen(true)
+                                }}
+                            >
+                                <Pencil size={16} />
+                            </button>
+                        </CheckPermission>
 
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"MASTER_EMPLOYEE"}
-                        permission={"delete"}
-                    >
-                        <button
-                            className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                            onClick={() => {
-                                setSelectedEmployee(row);
-                                setDeleteModalOpen(true);
-                            }}
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess={"MASTER_EMPLOYEE"}
+                            permission={"delete"}
                         >
-                            <Trash2 size={16} />
-                        </button>
-                    </CheckPermission>
-                </div>
-            ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
-            minWidth: "140px"
-        }
+                            <button
+                                className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                onClick={() => {
+                                    setSelectedEmployee(row);
+                                    setDeleteModalOpen(true);
+                                }}
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </CheckPermission>
+                    </div>
+                ),
+                ignoreRowClick: true,
+                allowOverflow: true,
+                button: true,
+                minWidth: "140px"
+            }
+        ] : [])
     ];
 
-
-
-    const employeeData = employees?.data;
-    const pagination = employees?.pagination;
+    if (!permissionLoader && !hasUserPermission) {
+        navigate("/unathorized");
+    }
 
     return (
         <CardBody
@@ -415,12 +479,19 @@ const Employee = () => {
 
                     </div>
 
-                    <button
-                        className="btn btn-primary d-flex align-items-center gap-2 text-white"
-                        onClick={() => setModalOpen(true)}
+                    <CheckPermission
+                        accessRolePermission={roles?.permissions}
+                        subAccess={"MASTER_EMPLOYEE"}
+                        permission={"create"}
                     >
-                        + Add Employee
-                    </button>
+                        <Button
+                            color={"primary"}
+                            className="d-flex align-items-center gap-2 text-white"
+                            onClick={() => setModalOpen(true)}
+                        >
+                            + Add Employee
+                        </Button>
+                    </CheckPermission>
 
                 </div>
 
@@ -454,7 +525,7 @@ const Employee = () => {
 
             <DataTable
                 columns={columns}
-                data={employeeData}
+                data={data}
                 highlightOnHover
                 pagination
                 paginationServer
