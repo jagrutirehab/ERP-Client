@@ -499,12 +499,12 @@ export const HR = [
     link: "/hr/new-joinings",
     icon: "bx  bx-arrow-to-left",
   },
-  // {
-  //   id: "exit-employees",
-  //   label: "Exit Employees",
-  //   link: "/hr/exit-employees",
-  //   icon: "bx bx-arrow-from-left",
-  // },
+  {
+    id: "exit-employees",
+    label: "Exit Employees",
+    link: "/hr/exit-employees",
+    icon: "bx bx-arrow-from-left",
+  },
 
 ]
 
