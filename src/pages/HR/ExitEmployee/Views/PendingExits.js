@@ -15,6 +15,7 @@ import DataTable from 'react-data-table-component';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ApproveModal from '../../components/ApproveModal';
 import Select from "react-select";
+import AddExitEmployeeModal from '../../components/AddExitEmployeeModal';
 
 const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
     const dispatch = useDispatch();
@@ -392,6 +393,16 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                 }
                 onChangePage={(newPage) => setPage(newPage)}
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+            />
+
+            <AddExitEmployeeModal
+                isOpen={modalOpen}
+                toggle={() => {
+                    setModalOpen(!modalOpen);
+                    setSelectedEmployee(null);
+                }}
+                initialData={selectedEmployee}
+                onUpdate={fetchPendingExitEmployeeList}
             />
 
             <DeleteConfirmModal

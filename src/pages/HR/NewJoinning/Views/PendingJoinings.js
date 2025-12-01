@@ -335,7 +335,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
             name: <div>PAN File</div>,
             cell: row =>
                 typeof row?.pan?.url === "string" ? (
-                    <button
+                    <span
                         style={{
                             color: "#007bff",
                             textDecoration: "underline",
@@ -345,7 +345,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                         onClick={() => downloadFile({ url: row.pan.url })}
                     >
                         Download
-                    </button>
+                    </span>
                 ) : (
                     "-"
                 )
@@ -389,7 +389,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
             name: <div>Offer Letter</div>,
             cell: row =>
                 typeof row?.offerLetter === "string" ? (
-                    <button
+                    <span
                         style={{
                             color: "#007bff",
                             textDecoration: "underline",
@@ -399,7 +399,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                         onClick={() => downloadFile({ url: row.offerLetter })}
                     >
                         Download
-                    </button>
+                    </span>
                 ) : (
                     "-"
                 )

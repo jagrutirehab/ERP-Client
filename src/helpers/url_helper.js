@@ -397,3 +397,4 @@ export const NEW_JOINING_ACTION="/hr/employee/new-joining";
 export const EXIT_EMPLOYEE="/hr/exit";
 export const EDIT_EXIT_EMPLOYEE="/hr/exit/edit";
 export const EXIT_EMPLOYEE_ACTION="/hr/exit/action";
+export const SEARCH_EXIT_EMPLOYEE="/hr/exit/search";

@@ -153,7 +153,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth:"150px"
+            minWidth: "150px"
         },
         {
             name: <div>Action Taken By</div>,
@@ -179,12 +179,13 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth:"150px"
+            minWidth: "150px"
         },
         {
             name: <div>Action Note</div>,
             selector: row => <ExpandableText text={capitalizeWords(row?.exitWorkflow?.actionNote || "-")} />,
             wrap: true,
+            minWidth: "300px"
         },
         {
             name: <div>Status</div>,
