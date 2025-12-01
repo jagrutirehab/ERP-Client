@@ -77,6 +77,7 @@ const NewJoining = () => {
                         <PendingJoinings
                             activeTab={activeTab}
                             hasUserPermission={hasUserPermission}
+                            hasPermission={hasPermission}
                             roles={roles}
                         />
                     </TabPane>

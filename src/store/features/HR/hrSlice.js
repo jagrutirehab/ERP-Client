@@ -1,13 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getEmployees, postEmployee } from "../../../helpers/backend_helper";
+import { getEmployees, getExitEmployees, postEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
-    employees: {
-        data: [],
-        pagination: {}
-    },
+    data: [],
+    pagination: {},
     loading: false
 };
+
 export const getMasterEmployees = createAsyncThunk("hr/getEmployees", async (data, { rejectWithValue }) => {
     try {
         const response = await getEmployees(data);
@@ -15,7 +14,16 @@ export const getMasterEmployees = createAsyncThunk("hr/getEmployees", async (dat
     } catch (error) {
         return rejectWithValue(error);
     }
-})
+});
+
+export const fetchExitEmployees = createAsyncThunk("hr/exitEmployees", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getExitEmployees(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
 
 export const hrSlice = createSlice({
     name: "HR",
@@ -27,9 +35,23 @@ export const hrSlice = createSlice({
             })
             .addCase(getMasterEmployees.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                state.employees = payload;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
             })
             .addCase(getMasterEmployees.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder
+            .addCase(fetchExitEmployees.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchExitEmployees.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchExitEmployees.rejected, (state) => {
                 state.loading = false
             })
     }

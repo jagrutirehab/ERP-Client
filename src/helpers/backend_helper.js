@@ -1452,60 +1452,6 @@ export const downloadAuditFailedMedicines = (id) => {
   });
 };
 
-
-// HR
-export const getEmployeeId = () => {
-  return api.get(url.GET_EMPLOYEE_ID, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    }
-  })
-};
-
-export const postEmployee = (data) => {
-  return api.create(url.EMPLOYEE, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const editEmployee = (id, data) => {
-  return api.update(`${url.EMPLOYEE}/${id}`, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const getEmployees = (params = {}) => {
-  return api.get(url.EMPLOYEE, {
-    params,
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
-  })
-};
-
-export const deleteEmployee = (id) => {
-  return api.delete(`${url.EMPLOYEE}/${id}`, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const updateNewJoiningStatus = (id, data) => {
-  return api.update(`${url.NEW_JOINING_ACTION}/${id}`, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-}
-
 // MI REPORTING
 export const getMIHubSpotContacts = (params = {}) => {
   return api.get(url.GET_MI_HUBSPOT_CONTACTS, {
@@ -1575,3 +1521,104 @@ export const getOwnerVisitedDate = (params = {}) => {
     params,
   });
 };
+
+
+// HR
+export const getEmployeeId = () => {
+  return api.get(url.GET_EMPLOYEE_ID, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+export const postEmployee = (data) => {
+  return api.create(url.EMPLOYEE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+
+    },
+  })
+};
+
+export const editEmployee = (id, data) => {
+  return api.update(`${url.EMPLOYEE}/${id}`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const getEmployees = (params = {}) => {
+  return api.get(url.EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const deleteEmployee = (id) => {
+  return api.delete(`${url.EMPLOYEE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const updateNewJoiningStatus = (id, data) => {
+  return api.update(`${url.NEW_JOINING_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getExitEmployees = (params = {}) => {
+  return api.get(url.EXIT_EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const postExitEmployee = (data) => {
+  return api.create(url.EXIT_EMPLOYEE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const editExitEmployee = (data) => {
+  return api.update(`${url.EDIT_EXIT_EMPLOYEE}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const deleteExitEmployee = (id) => {
+  return api.delete(`${url.EXIT_EMPLOYEE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const exitEmployeeAction = (id, data) => {
+  return api.update(`${url.EXIT_EMPLOYEE_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}

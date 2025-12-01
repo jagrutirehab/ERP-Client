@@ -502,7 +502,7 @@ export const HR = [
   // {
   //   id: "exit-employees",
   //   label: "Exit Employees",
-  //   link: "/hr/exit",
+  //   link: "/hr/exit-employees",
   //   icon: "bx bx-arrow-from-left",
   // },
 

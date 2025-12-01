@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { getMasterEmployees } from '../../../../store/features/HR/hrSlice';
@@ -10,6 +10,7 @@ import { Badge, Input, Spinner } from 'reactstrap';
 import DataTable from 'react-data-table-component';
 import Select from "react-select";
 import { ExpandableText } from '../../../../Components/Common/ExpandableText';
+import { downloadFile } from '../../../../Components/Common/downloadFile';
 
 const customStyles = {
   table: {
@@ -35,7 +36,7 @@ const customStyles = {
 const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
-  const { employees, loading } = useSelector((state) => state.HR);
+  const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [page, setPage] = useState(1);
@@ -103,7 +104,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...search.trim() !== "" && { search: debouncedSearch }
       })).unwrap();
     } catch (error) {
-      if (!handleAuthError) {
+      if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch master employee list");
       }
     }
@@ -130,7 +131,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Name</div>,
-      selector: row => capitalizeWords(row?.name || "-"),
+      selector: row => row?.name.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px"
     },
@@ -193,26 +194,32 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Bank Name</div>,
-      selector: row => capitalizeWords(row?.bankDetails?.bankName || "-"),
+      selector: row =>
+        capitalizeWords(row?.bankDetails?.bankName || "-"),
       wrap: true,
       minWidth: "160px"
     },
     {
       name: <div>Bank Account No</div>,
-      selector: row => row?.bankDetails?.bankAccount || "-",
+      selector: row => row?.bankDetails?.accountNo || "-",
       wrap: true,
       minWidth: "180px"
     },
     {
       name: <div>IFSC Code</div>,
-      selector: row => row?.bankDetails?.ifscCode || "-",
+      selector: row => row?.bankDetails?.IFSCCode || "-",
       wrap: true,
       minWidth: "150px"
     },
     {
       name: <div>PF Applicable</div>,
-      selector: row => row?.pfApplication === true ? "Yes" : row?.pfApplication === false ? "No" : "-",
-      wrap: true,
+      selector: row =>
+        row?.pfApplicable === true
+          ? "Yes"
+          : row?.pfApplicable === false
+            ? "No"
+            : "-",
+      wrap: true
     },
     {
       name: <div>UAN No</div>,
@@ -234,15 +241,56 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Aadhaar No</div>,
-      selector: row => row?.adharNo || "-",
+      selector: row => row?.adhar?.number || "-",
       wrap: true,
       minWidth: "180px"
     },
     {
-      name: <div>PAN</div>,
-      selector: row => row?.pan || "-",
+      name: <div>Aadhaar File</div>,
+      selector: (row) =>
+        row?.adhar?.url ? (
+          <span
+            style={{
+              color: "#007bff",
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+            onClick={() => downloadFile({
+              url: row.adhar.url,
+            })}
+          >
+            Download
+          </span>
+        ) : (
+          "-"
+        ),
+    },
+    {
+      name: <div>PAN No</div>,
+      selector: row => row?.pan?.number || "-",
       wrap: true,
       minWidth: "140px"
+    },
+    {
+      name: <div>PAN File</div>,
+      selector: (row) =>
+        row?.pan?.url ? (
+          <span
+            style={{
+              color: "#007bff",
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+            onClick={() => downloadFile({ url: row.pan.url })}
+          >
+            Download
+          </span>
+        ) : (
+          "-"
+        ),
+      wrap: true,
     },
     {
       name: <div>Father's Name</div>,
@@ -275,6 +323,25 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
       sortable: true,
       wrap: true,
       minWidth: "100px"
+    },
+    {
+      name: <div>Offer Letter</div>,
+      selector: (row) =>
+        row?.offerLetter ? (
+          <span
+            style={{
+              color: "#007bff",
+              textDecoration: "underline",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+            onClick={() => downloadFile({ url: row.offerLetter })}
+          >
+            Download
+          </span>
+        ) : (
+          "-"
+        ),
     },
     {
       name: <div>Approval Status</div>,
@@ -321,8 +388,6 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     }
   ];
 
-  const employeeData = employees?.data;
-  const pagination = employees?.pagination;
   return (
     <>
       <div className="mb-3">
@@ -388,7 +453,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
 
       <DataTable
         columns={columns}
-        data={employeeData}
+        data={data}
         highlightOnHover
         pagination
         paginationServer
