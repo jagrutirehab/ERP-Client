@@ -16,11 +16,8 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
-    employeeId: Yup.string()
-        .required("Please select an employee"),
-
-    exitDate: Yup.string()
-        .required("Exit date is required"),
+    lastWorkingDay: Yup.string()
+        .required("Last working day date is required"),
 
     reason: Yup.string()
         .required("Reason is required"),
@@ -46,13 +43,16 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
 
     const searchEmployees = async (text) => {
         setSearching(true);
-        await dispatch(
-            getExitEmployeesBySearch({
-                query: text,
-                centers: centerAccess,
-            })
-        ).unwrap();
-        setSearching(false)
+        try {
+            await dispatch(
+                getExitEmployeesBySearch({
+                    query: text,
+                    centers: centerAccess,
+                })
+            ).unwrap();
+        } finally {
+            setSearching(false);
+        }
     };
 
     const debouncedSearch = debounce(searchEmployees, 400);
@@ -73,31 +73,35 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
         setSearchText("");
         setShowList(false);
     };
+
     const form = useFormik({
         enableReinitialize: true,
         initialValues: {
-            employeeId: initialData?._id || "",
-            name: initialData?.name || "",
-            eCode: initialData
-                ? `${initialData.eCode?.prefix || ""}${initialData.eCode?.value || ""}`
-                : "",
-            currentLocation: initialData?.currentLocation?.title || "",
-            exitDate: initialData?.exitWorkflow?.lastWorkingDay || "",
-            reason: initialData?.exitWorkflow?.reason || "",
-            otherReason: initialData?.exitWorkflow?.otherReason || "",
+            employeeId: "",
+            name: initialData?.employeeName || "",
+            eCode: initialData?.eCode || "",
+            currentLocation: initialData?.center || initialData?.currentLocation?.title || "",
+            lastWorkingDay: initialData?.lastWorkingDay || "",
+            reason: initialData?.reason || "",
+            otherReason: initialData?.otherReason || "",
         },
         validationSchema,
         onSubmit: async (values) => {
             try {
+                if (!isEdit && !values.employeeId) {
+                    toast.error("Please select an employee");
+                    return;
+                }
+
                 const payload = {
                     employeeId: values.employeeId,
-                    exitDate: values.exitDate,
+                    lastWorkingDay: values.lastWorkingDay,
                     reason: values.reason,
                     otherReason: values.otherReason,
                 };
 
                 if (isEdit) {
-                    await editExitEmployee(payload);
+                    await editExitEmployee(initialData._id, payload);
                     toast.success("Employee Exit Record updated successfully");
                 } else {
                     await postExitEmployee(payload);
@@ -106,7 +110,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
 
                 toggle();
                 resetAll();
-                onUpdate();
+                if (onUpdate) onUpdate();
 
             } catch (error) {
                 if (!handleAuthError(error)) {
@@ -120,7 +124,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
         form.setFieldValue("employeeId", emp._id);
         form.setFieldValue("name", emp.name);
         form.setFieldValue("eCode", emp.eCode);
-        form.setFieldValue("currentLocation", emp.currentLocation)
+        form.setFieldValue("currentLocation", emp.currentLocation);
         setShowList(false);
         setSearchText("");
     };
@@ -229,16 +233,16 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
 
                 {/* EXIT DATE */}
                 <div className="mb-3">
-                    <label>Exit Date</label>
+                    <label>Last Working Day</label>
                     <input
                         type="date"
-                        name="exitDate"
-                        value={form.values.exitDate}
+                        name="lastWorkingDay"
+                        value={form.values.lastWorkingDay}
                         onChange={form.handleChange}
                         className="form-control"
                     />
-                    {form.touched.exitDate && form.errors.exitDate && (
-                        <div className="text-danger small">{form.errors.exitDate}</div>
+                    {form.touched.lastWorkingDay && form.errors.lastWorkingDay && (
+                        <div className="text-danger small">{form.errors.lastWorkingDay}</div>
                     )}
                 </div>
 
@@ -285,10 +289,15 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                 <Button
                     color="primary"
                     onClick={form.handleSubmit}
-                    disabled={!form.values.employeeId}
+                    disabled={
+                        form.isSubmitting ||
+                        !form.isValid ||
+                        (!isEdit && !form.values.employeeId)
+                    }
                 >
                     {isEdit ? "Update Exit" : "Add Exit"}
                 </Button>
+
             </ModalFooter>
         </Modal>
     );

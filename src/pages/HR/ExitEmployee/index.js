@@ -77,9 +77,6 @@ const ExitEmployees = () => {
                     <TabPane tabId="PENDING">
                         <PendingExits
                             activeTab={activeTab}
-                            hasUserPermission={hasUserPermission}
-                            hasPermission={hasPermission}
-                            roles={roles}
                         />
                     </TabPane>
                     <TabPane tabId="HISTORY">

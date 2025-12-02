@@ -118,20 +118,13 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
 
   const columns = [
     {
-      name: <div>Date</div>,
-      selector: row => format(new Date(row?.createdAt), "dd MMM yyyy, hh:mm a") || "-",
-      sortable: true,
-      wrap: true,
-      minWidth: "180px"
-    },
-    {
       name: <div>ECode</div>,
-      selector: row => `${row?.eCode?.prefix || ""}${row?.eCode?.value || "-"}`,
+      selector: row => row?.eCode || "-",
       sortable: true,
     },
     {
       name: <div>Name</div>,
-      selector: row => row?.name.toUpperCase() || "-",
+      selector: row => row?.name?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px"
     },
@@ -361,10 +354,44 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
       wrap: true,
     },
     {
-      name: <div>Acted By</div>,
-      selector: row => capitalizeWords(row?.newJoiningWorkflow?.actedBy?.name || "-"),
+      name: <div>Filled By</div>,
+      selector: row => (
+        <div>
+          <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            {row?.newJoiningWorkflow?.filledBy?.email || "-"}
+          </div>
+        </div>
+      ),
       wrap: true,
-      minWidth: "100px"
+      minWidth: "200px"
+    },
+    {
+      name: <div>Filled At</div>,
+      selector: row => {
+        const filledAt = row?.newJoiningWorkflow?.filledAt;
+
+        if (!filledAt || isNaN(new Date(filledAt))) {
+          return "-";
+        }
+
+        return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
+      },
+      wrap: true,
+      minWidth: "180px"
+    },
+    {
+      name: <div>Acted By</div>,
+      selector: row => (
+        <div>
+          <div>{capitalizeWords(row?.newJoiningWorkflow?.actedBy?.name || "-")}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            {row?.newJoiningWorkflow?.actedBy?.email || "-"}
+          </div>
+        </div>
+      ),
+      wrap: true,
+      minWidth: "200px"
     },
     {
       name: <div>Acted At</div>,

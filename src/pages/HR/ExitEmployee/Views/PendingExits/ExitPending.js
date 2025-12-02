@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../Components/Hooks/useAuthError';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
+import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
+import { usePermissions } from '../../../../../Components/Hooks/useRoles';
+import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
+import { fetchExitEmployees } from '../../../../../store/features/HR/hrSlice';
 import { toast } from 'react-toastify';
+import { deleteExitEmployee, exitEmployeeExitAction } from '../../../../../helpers/backend_helper';
+import { capitalizeWords } from '../../../../../utils/toCapitalize';
+import { ExpandableText } from '../../../../../Components/Common/ExpandableText';
 import { format } from 'date-fns';
-import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { deleteExitEmployee, exitEmployeeAction } from '../../../../helpers/backend_helper';
-import { Trash2, Pencil, CheckCheck, X } from 'lucide-react';
-import CheckPermission from '../../../../Components/HOC/CheckPermission';
-import { Button, Spinner, Input } from 'reactstrap';
+import CheckPermission from '../../../../../Components/HOC/CheckPermission';
+import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
+import { Button, Input, Spinner } from 'reactstrap';
 import DataTable from 'react-data-table-component';
-import DeleteConfirmModal from '../../components/DeleteConfirmModal';
-import ApproveModal from '../../components/ApproveModal';
+import AddExitEmployeeModal from '../../../components/AddExitEmployeeModal';
+import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
+import ApproveModal from '../../../components/ApproveModal';
 import Select from "react-select";
-import AddExitEmployeeModal from '../../components/AddExitEmployeeModal';
 
-const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
+
+const ExitPending = ({ activeTab, activeSubTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -34,6 +36,12 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, roles } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEES", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -91,7 +99,7 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                 page,
                 limit,
                 centers,
-                status: "PENDING",
+                stage: "EXIT_PENDING",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
@@ -102,10 +110,10 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
     };
 
     useEffect(() => {
-        if (activeTab === "PENDING" && hasUserPermission) {
+        if (activeTab === "PENDING" && activeSubTab === "EXIT" && hasUserPermission) {
             fetchPendingExitEmployeeList();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, activeSubTab]);
 
     const handleDelete = async () => {
         setModalLoading(true);
@@ -127,7 +135,7 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
     const handleAction = async () => {
         setModalLoading(true);
         try {
-            const response = await exitEmployeeAction(selectedEmployee._id, {
+            const response = await exitEmployeeExitAction(selectedEmployee._id, {
                 action: actionType,
                 note,
             });
@@ -143,45 +151,47 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
     const columns = [
         {
             name: <div>ECode</div>,
-            selector: row => `${row?.eCode?.prefix || ""}${row?.eCode?.value || "-"}`,
+            selector: row => row?.eCode || "-",
             sortable: true,
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.name.toUpperCase() || "-",
+            selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
+            selector: row => capitalizeWords(row?.center || "-"),
             wrap: true,
             minWidth: "120px"
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => row?.exitWorkflow?.reason || "-",
+            selector: row => row?.reason || "-",
             wrap: true,
             minWidth: "130px"
         },
         {
-            name: <div>Other Reason(If Any)</div>,
-            selector: row => <ExpandableText text={capitalizeWords(row?.exitWorkflow?.otherReason || "-")} />,
+            name: <div>Other Reason (If Any)</div>,
+            selector: row => (
+                <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
+            ),
             wrap: true,
             minWidth: "120px"
         },
         {
             name: <div>Last Working Day</div>,
-            selector: row => row?.exitWorkflow?.lastWorkingDay || "-",
+            selector: row => row?.lastWorkingDay || "-",
             wrap: true,
         },
         {
             name: <div>Filled By</div>,
             selector: row => (
                 <div>
-                    <div>{capitalizeWords(row?.exitWorkflow?.filledBy?.name || "-")}</div>
+                    <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
                     <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.exitWorkflow?.filledBy?.email || "-"}
+                        {row?.filledBy?.email || "-"}
                     </div>
                 </div>
             ),
@@ -189,22 +199,24 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
             minWidth: "150px"
         },
         {
-            name: <div>Filled At</div>,
+            name: <div>Filled Time</div>,
             selector: row => {
-                const filledAt = row?.exitWorkflow?.filledAt;
-                if (!filledAt) return "-";
-                const date = new Date(filledAt);
+                if (!row?.filledAt) return "-";
+                const date = new Date(row.filledAt);
                 if (isNaN(date)) return "-";
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
         },
+
         ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
             ? [
                 {
                     name: <div>Actions</div>,
                     cell: row => (
                         <div className="d-flex gap-2">
+
+                            {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
                                 subAccess="EXIT_EMPLOYEES"
@@ -223,6 +235,7 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                                     <CheckCheck size={18} />
                                 </Button>
 
+                                {/* REJECT EXIT */}
                                 <Button
                                     color="danger"
                                     className="text-white"
@@ -236,6 +249,7 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                                     <X size={16} />
                                 </Button>
 
+                                {/* EDIT EXIT REQUEST */}
                                 <button
                                     className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                                     onClick={() => {
@@ -247,6 +261,7 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                                 </button>
                             </CheckPermission>
 
+                            {/* DELETE REQUEST */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
                                 subAccess="EXIT_EMPLOYEES"
@@ -271,8 +286,8 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
                 }
             ]
             : [])
+    ];
 
-    ]
 
 
     return (
@@ -449,4 +464,4 @@ const PendingExits = ({ activeTab, hasUserPermission, hasPermission, roles }) =>
     )
 }
 
-export default PendingExits
+export default ExitPending;
