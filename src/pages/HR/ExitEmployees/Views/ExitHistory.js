@@ -159,7 +159,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
 
         {
-            name: <div>Exit Approved By</div>,
+            name: <div>Exit By</div>,
             selector: row => (
                 <div>
                     <div>{capitalizeWords(row?.exitApprovedBy?.name || "-")}</div>
@@ -172,7 +172,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             minWidth: "200px",
         },
         {
-            name: <div>Exit Approval Time</div>,
+            name: <div>Exit Time</div>,
             selector: row => {
                 const t = row?.exitApprovedAt;
                 if (!t) return "-";
@@ -185,7 +185,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
 
         {
-            name: <div>FNF Approved By</div>,
+            name: <div>FNF By</div>,
             selector: row => (
                 <div>
                     <div>{capitalizeWords(row?.fnfApprovedBy?.name || "-")}</div>
@@ -198,7 +198,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             minWidth: "200px",
         },
         {
-            name: <div>FNF Approval Time</div>,
+            name: <div>FNF Time</div>,
             selector: row => {
                 const t = row?.fnfApprovedAt;
                 if (!t) return "-";
@@ -211,14 +211,14 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
 
         {
-            name: <div>Exit Approval Note</div>,
+            name: <div>Exit Note</div>,
             selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
             wrap: true,
             minWidth: "180px",
         },
 
         {
-            name: <div>FNF Approval Note</div>,
+            name: <div>FNF Note</div>,
             selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
             wrap: true,
             minWidth: "180px",

@@ -39,6 +39,10 @@ export const renderStatusBadge = (stage) => {
             text: "None",
             color: "warning"
         },
+        PENDING: {
+            text: "Pending",
+            color: "warning"
+        },
         APPROVED: {
             text: "Approved",
             color: "success"

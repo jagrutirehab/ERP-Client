@@ -449,7 +449,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                     setActionType(null);
                 }}
                 onSubmit={handleAction}
-                mode="EXIT_EMPLOYEES"
+                mode="EXIT_EMPLOYEES_FNF_PENDING"
                 actionType={actionType}
                 setActionType={setActionType}
                 note={note}

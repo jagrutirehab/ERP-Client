@@ -209,6 +209,23 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
             },
             wrap: true,
         },
+        {
+            name: <div>FNF Rejection Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+        {
+            name: <div>FNF Rejection Time</div>,
+            selector: row => {
+                if (!row?.fnfApprovedAt) return "-";
+                const date = new Date(row.fnfApprovedAt);
+                if (isNaN(date)) return "-";
+                return format(date, "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "180px",
+        },
 
         ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
             ? [
@@ -461,7 +478,7 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
                     setActionType(null);
                 }}
                 onSubmit={handleAction}
-                mode="EXIT_EMPLOYEES"
+                mode="EXIT_EMPLOYEES_EXIT_PENDING"
                 actionType={actionType}
                 setActionType={setActionType}
                 note={note}
