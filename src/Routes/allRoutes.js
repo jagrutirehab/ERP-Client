@@ -56,6 +56,7 @@ const allElements = [
   { element: Pharmacy, label: "Pharmacy" },
   { element: Guidelines, label: "Guidelines" },
   { element: IncidentReporting, label: "Incident Reporting" },
+  { element: HR, label: "HR" },
   { element: HubspotReporting, label: "Hubspot Reporting" },
 ];
 

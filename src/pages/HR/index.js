@@ -4,12 +4,14 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 
 import Sidebar from './Sidebar';
 import Employee from './Employee';
-import NewJoining from './NewJoinning';
-import ExitEmployees from './ExitEmployee';
+import NewJoining from './NewJoining';
 import { usePermissions } from '../../Components/Hooks/useRoles';
+import ExitEmployees from './ExitEmployees';
 
 const HR = () => {
     const navigate = useNavigate();
+    console.log({ Sidebar, Employee, NewJoining, ExitEmployees });
+
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
