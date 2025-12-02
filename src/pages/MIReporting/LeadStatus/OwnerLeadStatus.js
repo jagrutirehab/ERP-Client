@@ -41,107 +41,118 @@ const OwnerLeadStatus = () => {
 
   return (
     <React.Fragment>
-      <div className="w-100 overflow-hidden user-chat mt-4 mt-sm-0 ms-lg-1">
-        <div className="chat-content d-lg-flex">
-          <div className="w-100 overflow-hidden position-relative">
-            <div className="position-relative">
-              <div className="p-3 user-chat-topbar">
-                <div className="row align-items-center">
-                  <div className="col-sm-6 col-8">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-grow-1 overflow-hidden">
-                        <div className="d-flex align-items-center">
-                          <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
-                            <i className="bx bx-user-check fs-1"></i>
-                          </div>
-                          <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-truncate mb-0 fs-18">
-                              Owner Lead Status Analytics
-                            </h6>
-                          </div>
+      <div className="w-100 mt-4 mt-sm-0">
+        <div className="row">
+          <div className="col-12">
+            <div className="p-3">
+              <div className="row align-items-center">
+                <div className="col-sm-6 col-8">
+                  <div className="d-flex align-items-center">
+                    <div className="flex-grow-1 overflow-hidden">
+                      <div className="d-flex align-items-center">
+                        <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
+                          <i className="bx bx-user-check fs-1"></i>
+                        </div>
+                        <div className="flex-grow-1 overflow-hidden">
+                          <h6 className="text-truncate mb-0 fs-18">
+                            Owner Lead Status Analytics
+                          </h6>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="col-sm-6 col-4">
-                    <div className="d-flex gap-2 justify-content-end">
-                      <Flatpickr
-                        className="form-control"
-                        options={{
-                          mode: "single",
-                          dateFormat: "Y-m",
-                          defaultDate: [date],
-                          plugins: [
-                            new monthSelectPlugin({
-                              shorthand: true,
-                              dateFormat: "Y-m",
-                              altFormat: "F Y",
-                              theme: "light",
-                            }),
-                          ],
-                        }}
-                        onChange={handleDateChange}
-                      />
-                    </div>
+                </div>
+                <div className="col-sm-6 col-4">
+                  <div className="d-flex gap-2 justify-content-end">
+                    <Flatpickr
+                      className="form-control"
+                      options={{
+                        disableMobile: true,
+                        mode: "single",
+                        dateFormat: "Y-m",
+                        defaultDate: [date],
+                        plugins: [
+                          monthSelectPlugin({
+                            shorthand: true,
+                            dateFormat: "Y-m",
+                            altFormat: "F Y",
+                            theme: "light",
+                          }),
+                        ],
+                      }}
+                      onChange={handleDateChange}
+                    />
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="position-relative" id="users-chat">
-                <div className="p-3 p-lg-4">
-                  <Card>
-                    <CardBody>
-                      {loading ? (
-                        <Loader />
-                      ) : (
-                        <div className="table-responsive">
-                          <Table className="table-bordered table-nowrap table-hover">
-                            <thead>
-                              <tr>
-                                <th>Owner Name</th>
+            <div className="p-3 p-lg-4">
+              <Card>
+                <CardBody>
+                  {loading ? (
+                    <Loader />
+                  ) : (
+                    <div
+                      className="table-responsive"
+                      style={{
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch",
+                      }}
+                    >
+                      <Table className="table-bordered table-nowrap table-hover">
+                        <thead>
+                          <tr>
+                            <th className="text-center">Owner Name</th>
+                            {uniqueStatuses.map((s) => (
+                              <th key={s} className="text-center">
+                                {s}
+                              </th>
+                            ))}
+                            <th className="text-center">
+                              Total excluding Unrelated
+                            </th>
+                            <th className="text-center">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ownerLeadStatus.length > 0 ? (
+                            ownerLeadStatus.map((item, index) => (
+                              <tr key={index}>
+                                <td className="text-center">
+                                  {item.ownerName}
+                                </td>
                                 {uniqueStatuses.map((s) => (
-                                  <th key={s}>{s}</th>
-                                ))}
-                                <th>Total excluding Unrelated</th>
-                                <th>Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {ownerLeadStatus.length > 0 ? (
-                                ownerLeadStatus.map((item, index) => (
-                                  <tr key={index}>
-                                    <td>{item.ownerName}</td>
-                                    {uniqueStatuses.map((s) => (
-                                      <td key={s}>
-                                        {item.leadStatus && item.leadStatus[s]
-                                          ? item.leadStatus[s]
-                                          : 0}
-                                      </td>
-                                    ))}
-                                    <td className="fw-bold">
-                                      {item["Total excluding Unrelated"]}
-                                    </td>
-                                    <td className="fw-bold">{item.overall}</td>
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td
-                                    colSpan={uniqueStatuses.length + 3}
-                                    className="text-center"
-                                  >
-                                    No data available
+                                  <td key={s} className="text-center">
+                                    {item.leadStatus && item.leadStatus[s]
+                                      ? item.leadStatus[s]
+                                      : 0}
                                   </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </Table>
-                        </div>
-                      )}
-                    </CardBody>
-                  </Card>
-                </div>
-              </div>
+                                ))}
+                                <td className="text-center fw-bold">
+                                  {item["Total excluding Unrelated"]}
+                                </td>
+                                <td className="text-center fw-bold">
+                                  {item.overall}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan={uniqueStatuses.length + 3}
+                                className="text-center"
+                              >
+                                No data available
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
             </div>
           </div>
         </div>
