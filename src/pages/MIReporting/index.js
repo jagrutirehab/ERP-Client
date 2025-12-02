@@ -22,7 +22,7 @@ import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
 import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 
-const HubspotReporting = () => {
+const MiReporting = () => {
   const navigate = useNavigate();
 
   const microUser = localStorage.getItem("micrologin");
@@ -171,5 +171,5 @@ const HubspotReporting = () => {
 
 const mapStateToProps = (state) => ({});
 
-// export default connect(mapStateToProps)(HubspotReporting);
-export default HubspotReporting;
+// export default connect(mapStateToProps)(Hu§§bspotReporting);
+export default MiReporting;

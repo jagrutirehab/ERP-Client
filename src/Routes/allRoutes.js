@@ -34,9 +34,7 @@ const IncidentReporting = React.lazy(() =>
 );
 const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 const HR = React.lazy(() => import("../pages/HR"));
-const HubspotReporting = React.lazy(() =>
-  import("../pages/HubspotReporting/index.js")
-);
+const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -56,8 +54,8 @@ const allElements = [
   { element: Pharmacy, label: "Pharmacy" },
   { element: Guidelines, label: "Guidelines" },
   { element: IncidentReporting, label: "Incident Reporting" },
+  { element: MiReporting, label: "Hubspot Reporting" },
   { element: HR, label: "HR" },
-  { element: HubspotReporting, label: "Hubspot Reporting" },
 ];
 
 const authProtectedRoutes = [
@@ -81,8 +79,8 @@ const authProtectedRoutes = [
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
-  { path: "/hubspot-reporting", component: HubspotReporting },
-  { path: "/hubspot-reporting/*", component: HubspotReporting },
+  { path: "/mi-reporting", component: MiReporting },
+  { path: "/mi-reporting/*", component: MiReporting },
   {
     path: "/",
     exact: true,
