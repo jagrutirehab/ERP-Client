@@ -217,10 +217,10 @@ const pages = [
     },
   },
   {
-    id: "mireporting",
-    label: "Mi Reporting",
-    name: "Mi Reporting",
-    link: "/mi-reporting",
+    id: "hubspotreporting",
+    label: "Hubspot Reporting",
+    name: "Hubspot Reporting",
+    link: "/hubspot-reporting",
     icon: "ri-sticky-note-line",
     permissions: {
       create: true,
@@ -272,6 +272,13 @@ const pages = [
     name: "Guidelines",
     link: "/guidelines",
     icon: "bx bx-book-open",
+  },
+  {
+    id: "hr",
+    label: "HR",
+    name: "HR",
+    link: "/hr",
+    icon: "bx bx-body",
   },
 ];
 
@@ -470,6 +477,33 @@ export const recyclebin = [
     label: "Intern",
     link: "/recyclebin/intern",
     icon: "bx bx-capsule",
+  },
+];
+
+export const HR = [
+  // {
+  //   id: "hr-dashboard",
+  //   label: "Dashboard",
+  //   link: "/hr/dashboard",
+  //   icon: "bx bx-home",
+  // },
+  {
+    id: "master-employee",
+    label: "Master Employee",
+    link: "/hr/employee",
+    icon: "bx bx-group",
+  },
+  {
+    id: "new-joinings",
+    label: "New Joinings",
+    link: "/hr/new-joinings",
+    icon: "bx  bx-arrow-to-left",
+  },
+  {
+    id: "exit-employees",
+    label: "Exit Employees",
+    link: "/hr/exit-employees",
+    icon: "bx bx-arrow-from-left",
   },
 ];
 
