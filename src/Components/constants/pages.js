@@ -217,10 +217,10 @@ const pages = [
     },
   },
   {
-    id: "hubspotreporting",
-    label: "Hubspot Reporting",
-    name: "Hubspot Reporting",
-    link: "/hubspot-reporting",
+    id: "mireporting",
+    label: "Mi Reporting",
+    name: "Mi Reporting",
+    link: "/mi-reporting",
     icon: "ri-sticky-note-line",
     permissions: {
       create: true,
