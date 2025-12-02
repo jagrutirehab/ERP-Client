@@ -136,10 +136,11 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
         setModalLoading(true);
         try {
             const response = await exitEmployeeExitAction(selectedEmployee._id, {
-                action: actionType,
+                action: actionType.value,
                 note,
             });
             toast.success(response.message);
+            setPage(1);
             fetchPendingExitEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -236,7 +237,7 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
                                 </Button>
 
                                 {/* REJECT EXIT */}
-                                <Button
+                                {/* <Button
                                     color="danger"
                                     className="text-white"
                                     size="sm"
@@ -247,18 +248,21 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
                                     }}
                                 >
                                     <X size={16} />
-                                </Button>
+                                </Button> */}
 
                                 {/* EDIT EXIT REQUEST */}
-                                <button
-                                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                <Button
+                                    color="primary"
+                                    outline
+                                    size="sm"
+                                    className="d-flex align-items-center gap-1"
                                     onClick={() => {
                                         setSelectedEmployee(row);
                                         setModalOpen(true);
                                     }}
                                 >
                                     <Pencil size={16} />
-                                </button>
+                                </Button>
                             </CheckPermission>
 
                             {/* DELETE REQUEST */}
@@ -434,7 +438,10 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
                     setSelectedEmployee(null);
                 }}
                 initialData={selectedEmployee}
-                onUpdate={fetchPendingExitEmployeeList}
+                onUpdate={() => {
+                    setPage(1);
+                    fetchPendingExitEmployeeList();
+                }}
             />
 
             <DeleteConfirmModal
@@ -456,6 +463,7 @@ const ExitPending = ({ activeTab, activeSubTab }) => {
                 onSubmit={handleAction}
                 mode="EXIT_EMPLOYEES"
                 actionType={actionType}
+                setActionType={setActionType}
                 note={note}
                 setNote={setNote}
 

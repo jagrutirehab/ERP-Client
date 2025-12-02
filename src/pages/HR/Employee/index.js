@@ -18,6 +18,7 @@ import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
 import { useNavigate } from 'react-router-dom';
 import { downloadFile } from '../../../Components/Common/downloadFile';
+import { renderStatusBadge } from '../components/renderStatusBadge';
 
 const customStyles = {
     table: {
@@ -140,6 +141,7 @@ const Employee = () => {
         try {
             await deleteEmployee(selectedEmployee._id);
             toast.success("Employee deleted successfully");
+            setPage(1);
             fetchMasterEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -226,12 +228,29 @@ const Employee = () => {
         },
 
         {
-            name: <div>Status</div>,
+            name: <div>Current Status</div>,
             selector: row =>
                 row?.status === "ACTIVE" ? "Active" :
                     row?.status === "FNF_CLOSED" ? "FNF Closed" : "Resigned",
             wrap: true,
         },
+
+        {
+            name: <div>Exit Status</div>,
+            selector: row => renderStatusBadge(row?.exitStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: true
+        },
+
+        {
+            name: <div>FNF Status</div>,
+            selector: row => renderStatusBadge(row?.fnfStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: true
+        },
+
         {
             name: <div>Gender</div>,
             selector: row => capitalizeWords(row?.gender || "-"),
@@ -595,7 +614,10 @@ const Employee = () => {
                     setSelectedEmployee(null);
                 }}
                 initialData={selectedEmployee}
-                onUpdate={fetchMasterEmployeeList}
+                onUpdate={() => {
+                    setPage(1);
+                    fetchMasterEmployeeList();
+                }}
                 loading={modalLoading}
                 setLoading={setModalLoading}
                 mode={"MASTER"}

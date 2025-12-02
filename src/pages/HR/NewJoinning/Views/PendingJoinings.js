@@ -162,6 +162,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
             );
 
             toast.success(response.message);
+            setPage(1)
             fetchMasterEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -630,7 +631,10 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                     setSelectedEmployee(null);
                 }}
                 initialData={selectedEmployee}
-                onUpdate={fetchMasterEmployeeList}
+                onUpdate={() => {
+                    setPage(1);
+                    fetchMasterEmployeeList();
+                }}
                 loading={modalLoading}
                 setLoading={setModalLoading}
                 mode={"NEW_JOINING"}
