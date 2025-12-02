@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { Collapse } from "reactstrap";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-// import { MIReporting } from "../../../Components/constants/pages";
+// import { HubspotReporting } from "../../../Components/constants/pages";
 
 // MI_CENTER_LEADS_COUNT
 
@@ -29,100 +29,154 @@ const Sidebar = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
-  const hasMiCenterLeadsPermission = hasPermission(
-    "MI_REPORTING",
-    "MI_CENTER_LEADS_COUNT",
+  const hasHubspotCenterLeadsPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CENTER_LEADS_COUNT",
     "READ"
   );
-  const hasMiOwnerLeadsPermission = hasPermission(
-    "MI_REPORTING",
-    "MI_OWNER_LEADS_COUNT",
+  const hasHubspotOwnerLeadsPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_LEADS_COUNT",
     "READ"
   );
-  const hasMiCityQualityPermission = hasPermission(
-    "MI_REPORTING",
-    "MI_CITY_QUALITY_BREAKDOWN",
+  const hasHubspotCityQualityPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_QUALITY_BREAKDOWN",
     "READ"
   );
-  const hasMiOwnerQualityPermission = hasPermission(
-    "MI_REPORTING",
-    "MI_OWNER_QUALITY_BREAKDOWN",
+  const hasHubspotOwnerQualityPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_QUALITY_BREAKDOWN",
+    "READ"
+  );
+  const hasHubspotCityVisitPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_VISIT_DATE",
+    "READ"
+  );
+  const hasHubspotOwnerVisitPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_VISIT_DATE",
+    "READ"
+  );
+  const hasHubspotCityVisitedPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_VISITED_DATE",
+    "READ"
+  );
+  const hasHubspotOwnerVisitedPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_VISITED_DATE",
+    "READ"
+  );
+  const hasHubspotCityLeadStatusPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_LEAD_STATUS",
+    "READ"
+  );
+  const hasHubspotOwnerLeadStatusPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_LEAD_STATUS",
     "READ"
   );
 
-  const MIReporting = [
-    hasMiCenterLeadsPermission
+  const HubspotReporting = [
+    hasHubspotCenterLeadsPermission
       ? {
           id: "center-leads-mom",
           label: "Center Leads (MoM)",
-          link: "/mi-reporting/center-leads-mom",
+          link: "/hubspot-reporting/center-leads-mom",
           icon: "bx bx-bar-chart-alt-2",
         }
       : null,
-    hasMiCenterLeadsPermission
+    hasHubspotCenterLeadsPermission
       ? {
           id: "center-leads-mtd",
           label: "Center Leads (MTD)",
-          link: "/mi-reporting/center-leads-mtd",
+          link: "/hubspot-reporting/center-leads-mtd",
           icon: "bx bx-line-chart",
         }
       : null,
-    hasMiOwnerLeadsPermission
+    hasHubspotOwnerLeadsPermission
       ? {
           id: "owner-leads-mom",
           label: "Owner Leads (MoM)",
-          link: "/mi-reporting/owner-leads-mom",
+          link: "/hubspot-reporting/owner-leads-mom",
           icon: "bx bx-bar-chart-square",
         }
       : null,
-    hasMiOwnerLeadsPermission
+    hasHubspotOwnerLeadsPermission
       ? {
           id: "owner-leads-mtd",
           label: "Owner Leads (MTD)",
-          link: "/mi-reporting/owner-leads-mtd",
+          link: "/hubspot-reporting/owner-leads-mtd",
           icon: "bx bx-trending-up",
         }
       : null,
-    hasMiCityQualityPermission
+    hasHubspotCityQualityPermission
       ? {
           id: "city-quality",
           label: "City Quality Breakdown",
-          link: "/mi-reporting/city-quality",
+          link: "/hubspot-reporting/city-quality",
           icon: "bx bx-map",
         }
       : null,
-    hasMiOwnerQualityPermission
+    hasHubspotOwnerQualityPermission
       ? {
           id: "owner-quality",
           label: "Owner Quality Breakdown",
-          link: "/mi-reporting/owner-quality",
+          link: "/hubspot-reporting/owner-quality",
           icon: "bx bx-user-check",
         }
       : null,
-    {
-      id: "city-visit-date",
-      label: "City Visit Date",
-      link: "/mi-reporting/city-visit-date",
-      icon: "bx bx-calendar",
-    },
-    {
-      id: "owner-visit-date",
-      label: "Owner Visit Date",
-      link: "/mi-reporting/owner-visit-date",
-      icon: "bx bx-calendar-check",
-    },
-    {
-      id: "city-visited-date",
-      label: "City Visited Date",
-      link: "/mi-reporting/city-visited-date",
-      icon: "bx bx-calendar-event",
-    },
-    {
-      id: "owner-visited-date",
-      label: "Owner Visited Date",
-      link: "/mi-reporting/owner-visited-date",
-      icon: "bx bx-calendar-star",
-    },
+    hasHubspotCityVisitPermission
+      ? {
+          id: "city-visit-date",
+          label: "City Visit Date",
+          link: "/hubspot-reporting/city-visit-date",
+          icon: "bx bx-calendar",
+        }
+      : null,
+    hasHubspotOwnerVisitPermission
+      ? {
+          id: "owner-visit-date",
+          label: "Owner Visit Date",
+          link: "/hubspot-reporting/owner-visit-date",
+          icon: "bx bx-calendar-check",
+        }
+      : null,
+    hasHubspotCityVisitedPermission
+      ? {
+          id: "city-visited-date",
+          label: "City Visited Date",
+          link: "/hubspot-reporting/city-visited-date",
+          icon: "bx bx-calendar-event",
+        }
+      : null,
+    hasHubspotOwnerVisitedPermission
+      ? {
+          id: "owner-visited-date",
+          label: "Owner Visited Date",
+          link: "/hubspot-reporting/owner-visited-date",
+          icon: "bx bx-calendar-star",
+        }
+      : null,
+    hasHubspotCityLeadStatusPermission
+      ? {
+          id: "city-lead-status",
+          label: "City Lead Status",
+          link: "/hubspot-reporting/city-lead-status",
+          icon: "bx bx-bar-chart",
+        }
+      : null,
+    hasHubspotOwnerLeadStatusPermission
+      ? {
+          id: "owner-lead-status",
+          label: "Owner Lead Status",
+          link: "/hubspot-reporting/owner-lead-status",
+          icon: "bx bx-bar-chart-square",
+        }
+      : null,
   ];
 
   return (
@@ -136,7 +190,7 @@ const Sidebar = () => {
                 className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
                 style={{ cursor: "pointer" }}
               >
-                <h5 className="pb-0 mb-0">Mi Reporting</h5>
+                <h5 className="pb-0 mb-0">Hubspot Reporting</h5>
                 <i
                   className={`mdi mdi-chevron-${isOpen ? "up" : "down"} fs-4`}
                 ></i>
@@ -164,7 +218,7 @@ const Sidebar = () => {
                 className="list-unstyled chat-list chat-user-list users-list"
                 id="userList"
               >
-                {(MIReporting || [])
+                {(HubspotReporting || [])
                   .filter((m) => m)
                   .map((page, idx) => (
                     <li

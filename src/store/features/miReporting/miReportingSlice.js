@@ -11,6 +11,8 @@ import {
   getOwnerVisitDate as fetchOwnerVisit,
   getCityVisitedDate as fetchCityVisited,
   getOwnerVisitedDate as fetchOwnerVisited,
+  getCityLeadStatus,
+  getOwnerLeadStatus,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -31,6 +33,8 @@ const initialState = {
   ownerVisitDate: [],
   cityVisitedDate: [],
   ownerVisitedDate: [],
+  cityLeadStatus: [],
+  ownerLeadStatus: [],
   loading: false,
   error: null,
 };
@@ -202,6 +206,36 @@ export const fetchOwnerVisitedDate = createAsyncThunk(
   }
 );
 
+// City Lead Status
+export const fetchCityLeadStatus = createAsyncThunk(
+  "miReporting/fetchCityLeadStatus",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getCityLeadStatus(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch city lead status analytics"
+      );
+    }
+  }
+);
+
+// Owner Lead Status
+export const fetchOwnerLeadStatus = createAsyncThunk(
+  "miReporting/fetchOwnerLeadStatus",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getOwnerLeadStatus(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch owner lead status analytics"
+      );
+    }
+  }
+);
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -362,6 +396,32 @@ const miReportingSlice = createSlice({
         state.ownerVisitedDate = action.payload.payload || [];
       })
       .addCase(fetchOwnerVisitedDate.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // City Lead Status
+      .addCase(fetchCityLeadStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCityLeadStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cityLeadStatus = action.payload.payload || [];
+      })
+      .addCase(fetchCityLeadStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Owner Lead Status
+      .addCase(fetchOwnerLeadStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOwnerLeadStatus.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ownerLeadStatus = action.payload.payload || [];
+      })
+      .addCase(fetchOwnerLeadStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
