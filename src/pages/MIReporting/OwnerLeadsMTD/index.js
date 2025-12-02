@@ -34,94 +34,98 @@ const OwnerLeadsMTD = () => {
   };
 
   return (
-    <div className="w-100 overflow-hidden user-chat mt-4 mt-sm-0 ms-lg-1">
-      <div className="chat-content d-lg-flex">
-        <div className="w-100 overflow-hidden position-relative">
-          <div className="position-relative">
-            <div className="p-3 user-chat-topbar">
-              <div className="row align-items-center">
-                <div className="col-sm-6 col-8">
-                  <div className="d-flex align-items-center">
-                    <div className="flex-grow-1 overflow-hidden">
-                      <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
-                          <i className="bx bx-trending-up fs-1"></i>
-                        </div>
-                        <div className="flex-grow-1 overflow-hidden">
-                          <h6 className="text-truncate mb-0 fs-18">
-                            Owner Leads - Month Till Date
-                          </h6>
-                        </div>
+    <div className="w-100 mt-4 mt-sm-0">
+      <div className="row">
+        <div className="col-12">
+          <div className="p-3">
+            <div className="row align-items-center">
+              <div className="col-sm-6 col-8">
+                <div className="d-flex align-items-center">
+                  <div className="flex-grow-1 overflow-hidden">
+                    <div className="d-flex align-items-center">
+                      <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
+                        <i className="bx bx-trending-up fs-1"></i>
+                      </div>
+                      <div className="flex-grow-1 overflow-hidden">
+                        <h6 className="text-truncate mb-0 fs-18">
+                          Owner Leads - Month Till Date
+                        </h6>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="position-relative" id="users-chat">
-              <div className="p-3 p-lg-4">
-                <Card>
-                  <CardBody>
-                    {loading && (
-                      <div className="text-center py-5">
-                        <Spinner color="primary" />
-                        <p className="mt-2 text-muted">Loading data...</p>
-                      </div>
-                    )}
+          <div className="p-3 p-lg-4">
+            <Card>
+              <CardBody>
+                {loading && (
+                  <div className="text-center py-5">
+                    <Spinner color="primary" />
+                    <p className="mt-2 text-muted">Loading data...</p>
+                  </div>
+                )}
 
-                    {error && !loading && <Alert color="danger">{error}</Alert>}
+                {error && !loading && <Alert color="danger">{error}</Alert>}
 
-                    {!loading && !error && (
-                      <div className="table-responsive">
-                        <Table className="table table-bordered table-hover mb-0 align-middle">
-                          <thead className="table-light">
-                            <tr>
-                              <th>#</th>
-                              <th>Owner</th>
-                              {months.map((month) => (
-                                <th key={month} className="text-end">
-                                  {formatMonth(month)}
-                                </th>
-                              ))}
+                {!loading && !error && (
+                  <div
+                    className="table-responsive"
+                    style={{
+                      overflowX: "auto",
+                      WebkitOverflowScrolling: "touch",
+                    }}
+                  >
+                    <Table className="table table-bordered table-hover mb-0 align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th className="text-center">#</th>
+                          <th className="text-center">Owner</th>
+                          {months.map((month) => (
+                            <th key={month} className="text-center">
+                              {formatMonth(month)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ownerLeadsMTD && ownerLeadsMTD.length > 0 ? (
+                          ownerLeadsMTD.map((item, idx) => (
+                            <tr key={idx}>
+                              <td className="text-center">{idx + 1}</td>
+                              <td className="text-center">
+                                {item.ownerName || "Not Assigned"}
+                              </td>
+                              {months.map((month) => {
+                                const stat = item.stats?.find(
+                                  (s) => s.month === month
+                                );
+                                return (
+                                  <td key={month} className="text-center">
+                                    <strong>{stat ? stat.count : 0}</strong>
+                                  </td>
+                                );
+                              })}
                             </tr>
-                          </thead>
-                          <tbody>
-                            {ownerLeadsMTD && ownerLeadsMTD.length > 0 ? (
-                              ownerLeadsMTD.map((item, idx) => (
-                                <tr key={idx}>
-                                  <td>{idx + 1}</td>
-                                  <td>{item.ownerName || "Not Assigned"}</td>
-                                  {months.map((month) => {
-                                    const stat = item.stats?.find(
-                                      (s) => s.month === month
-                                    );
-                                    return (
-                                      <td key={month} className="text-end">
-                                        <strong>{stat ? stat.count : 0}</strong>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td
-                                  colSpan={months.length + 2}
-                                  className="text-center text-muted"
-                                >
-                                  No data available
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardBody>
-                </Card>
-              </div>
-            </div>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={months.length + 2}
+                              className="text-center text-muted"
+                            >
+                              No data available
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
           </div>
         </div>
       </div>
