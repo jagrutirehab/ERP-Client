@@ -41,12 +41,17 @@ const OwnerLeadStatus = () => {
 
   return (
     <React.Fragment>
-      <div className="w-100 mt-4 mt-sm-0">
+      <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
         <div className="row">
           <div className="col-12">
-            <div className="p-3">
+            <div
+              // style={{
+              //   maxWidth: "calc(100% - 280px)",
+              // }}
+              className="p-3"
+            >
               <div className="row align-items-center">
-                <div className="col-sm-6 col-8">
+                <div className="col-sm-8 col-8">
                   <div className="d-flex align-items-center">
                     <div className="flex-grow-1 overflow-hidden">
                       <div className="d-flex align-items-center">
@@ -55,14 +60,14 @@ const OwnerLeadStatus = () => {
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                           <h6 className="text-truncate mb-0 fs-18">
-                            Owner Lead Status Analytics
+                            Owner Lead Status
                           </h6>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="col-sm-6 col-4">
+                <div className="col-sm-4 col-4">
                   <div className="d-flex gap-2 justify-content-end">
                     <Flatpickr
                       className="form-control"
@@ -100,7 +105,10 @@ const OwnerLeadStatus = () => {
                         WebkitOverflowScrolling: "touch",
                       }}
                     >
-                      <Table className="table-bordered table-nowrap table-hover">
+                      <Table
+                        className="table table-bordered table-hover mb-0 align-middle"
+                        style={{ minWidth: "max-content" }}
+                      >
                         <thead>
                           <tr>
                             <th className="text-center">Owner Name</th>

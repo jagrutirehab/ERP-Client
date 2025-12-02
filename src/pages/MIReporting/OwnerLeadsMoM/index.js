@@ -34,7 +34,7 @@ const OwnerLeadsMoM = () => {
   };
 
   return (
-    <div className="w-100 mt-4 mt-sm-0">
+    <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
       <div className="row">
         <div className="col-12">
           <div className="p-3">
@@ -76,9 +76,14 @@ const OwnerLeadsMoM = () => {
                     style={{
                       overflowX: "auto",
                       WebkitOverflowScrolling: "touch",
+                      maxWidth: "100%",
+                      display: "block",
                     }}
                   >
-                    <Table className="table table-bordered table-hover mb-0 align-middle">
+                    <Table
+                      className="table table-bordered table-hover mb-0 align-middle"
+                      style={{ minWidth: "max-content" }}
+                    >
                       <thead className="table-light">
                         <tr>
                           <th className="text-center">#</th>

@@ -39,7 +39,7 @@ const OwnerVisitedDate = () => {
 
   return (
     <React.Fragment>
-      <div className="w-100 mt-4 mt-sm-0">
+      <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
         <div className="row">
           <div className="col-12">
             <div className="p-3">
@@ -53,7 +53,7 @@ const OwnerVisitedDate = () => {
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                           <h6 className="text-truncate mb-0 fs-18">
-                            Owner Visited Date Analytics
+                            Owner Visited Date
                           </h6>
                         </div>
                       </div>
@@ -96,9 +96,14 @@ const OwnerVisitedDate = () => {
                       style={{
                         overflowX: "auto",
                         WebkitOverflowScrolling: "touch",
+                        maxWidth: "100%",
+                        display: "block",
                       }}
                     >
-                      <Table className="table-bordered table-nowrap table-hover">
+                      <Table
+                        className="table table-bordered table-hover mb-0 align-middle"
+                        style={{ minWidth: "max-content" }}
+                      >
                         <thead>
                           <tr>
                             <th className="text-center">Owner Name</th>

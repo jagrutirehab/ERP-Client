@@ -880,3 +880,9 @@ input[type="number"] {
 .rbc-event {
   z-index: 15 !important;
 }
+
+.chat-main-container-width {
+  @media (min-width: 992px) {
+    max-width: calc(100% - 280px) !important;
+  }
+}
