@@ -154,20 +154,13 @@ const Employee = () => {
 
     const columns = [
         {
-            name: <div>Date</div>,
-            selector: row => format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a"),
-            sortable: true,
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
             name: <div>ECode</div>,
-            selector: row => `${row?.eCode?.prefix || ""}${row?.eCode?.value || ""}`,
+            selector: row => row?.eCode || "",
             sortable: true,
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.name.toUpperCase() || "-",
+            selector: row => row?.name?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
@@ -227,7 +220,7 @@ const Employee = () => {
         },
 
         {
-            name: <div>Exit Date</div>,
+            name: <div>Last Working Day</div>,
             selector: row => row?.exitDate || "-",
             wrap: true,
         },
@@ -393,6 +386,32 @@ const Employee = () => {
                     "-"
                 ),
         },
+        {
+            name: <div>Created By</div>,
+            selector: row => (
+                <div>
+                    <div>{capitalizeWords(row?.author?.name || "-")}</div>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                        {row?.author?.email || "-"}
+                    </div>
+                </div>
+            ),
+            wrap: true,
+            minWidth: "200px"
+        },
+        {
+            name: <div>Created At</div>,
+            selector: row => {
+                const createdAt = row?.createdAt;
+                if (!createdAt || isNaN(new Date(createdAt))) {
+                    return "-"
+                }
+                return format(new Date(createdAt), "dd MMM yyyy, hh:mm a");
+            },
+            sortable: true,
+            wrap: true,
+            minWidth: "180px"
+        },
         ...(hasPermission("HR", "MASTER_EMPLOYEE", "WRITE") ? [
             {
                 name: <div>Actions</div>,
@@ -542,9 +561,6 @@ const Employee = () => {
                         </Button>
                     </CheckPermission>
                 </div>
-
-
-
             </div>
 
             <DataTable

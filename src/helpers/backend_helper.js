@@ -1599,8 +1599,8 @@ export const postExitEmployee = (data) => {
   })
 };
 
-export const editExitEmployee = (data) => {
-  return api.update(`${url.EDIT_EXIT_EMPLOYEE}`, data, {
+export const editExitEmployee = (id, data) => {
+  return api.update(`${url.EXIT_EMPLOYEE}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -1615,8 +1615,16 @@ export const deleteExitEmployee = (id) => {
   })
 };
 
-export const exitEmployeeAction = (id, data) => {
-  return api.update(`${url.EXIT_EMPLOYEE_ACTION}/${id}`, data, {
+export const exitEmployeeExitAction = (id, data) => {
+  return api.update(`${url.EXIT_EMPLOYEE_EXIT_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const exitEmployeeFNFAction = (id, data) => {
+  return api.update(`${url.EXIT_EMPLOYEE_FNF_ACTION}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },

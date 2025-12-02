@@ -151,9 +151,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
             eCode:
                 mode === "NEW_JOINING"
                     ? ""
-                    : initialData?.eCode
-                        ? `${initialData.eCode.prefix}${initialData.eCode.value}`
-                        : "",
+                    : initialData?.eCode,
             panOld: initialData?.pan?.url || "",
             adharOld: initialData?.adhar?.url || "",
             offerLetterOld: initialData?.offerLetter || "",
@@ -166,7 +164,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
         }
         : null;
 
-
     const form = useFormik({
         enableReinitialize: true,
         initialValues: cleanedInitialData || {
@@ -178,6 +175,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
             currentLocation: "",
             employmentType: "",
             state: "",
+            exitDate: "",
             payrollType: "",
             joinningDate: "",
             status: mode === "NEW_JOINING" ? "NEW_JOINING" : "",
@@ -240,6 +238,8 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                     formData.delete("createdAt");
                     formData.delete("updatedAt");
                     formData.delete("offerLetter");
+                    formData.delete("exitStatus");
+                    formData.delete("fnfStatus");
                     await editEmployee(initialData._id, formData);
                     toast.success("Employee updated successfully");
                 } else {
@@ -456,6 +456,19 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 invalid={touched.joinningDate && errors.joinningDate}
                             />
                             <FormFeedback>{errors.joinningDate}</FormFeedback>
+                        </Col>
+
+                        {/* EXIT DATE */}
+                        <Col md={6}>
+                            <Label>
+                                Last Working Day
+                            </Label>
+                            <Input
+                                type="date"
+                                name="exitDate"
+                                value={values.exitDate}
+                                onChange={handleChange}
+                            />
                         </Col>
 
                         {/* STATUS */}

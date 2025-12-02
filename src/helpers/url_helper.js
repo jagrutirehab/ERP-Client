@@ -393,8 +393,8 @@ export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
-export const NEW_JOINING_ACTION="/hr/employee/new-joining";
-export const EXIT_EMPLOYEE="/hr/exit";
-export const EDIT_EXIT_EMPLOYEE="/hr/exit/edit";
-export const EXIT_EMPLOYEE_ACTION="/hr/exit/action";
-export const SEARCH_EXIT_EMPLOYEE="/hr/exit/search";
+export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
+export const EXIT_EMPLOYEE = "/hr/exit";
+export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
+export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
+export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";

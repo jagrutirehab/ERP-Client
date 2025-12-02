@@ -404,6 +404,33 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                     "-"
                 )
         },
+        {
+            name: <div>Filled By</div>,
+            selector: row => (
+                <div>
+                    <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                        {row?.newJoiningWorkflow?.filledBy?.email || "-"}
+                    </div>
+                </div>
+            ),
+            wrap: true,
+            minWidth: "200px"
+        },
+        {
+            name: <div>Filled At</div>,
+            selector: row => {
+                const filledAt = row?.newJoiningWorkflow?.filledAt;
+
+                if (!filledAt || isNaN(new Date(filledAt))) {
+                    return "-";
+                }
+
+                return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "180px",
+        },
         ...(hasPermission("HR", "NEW_JOININGS", "WRITE")
             ? [
                 {
