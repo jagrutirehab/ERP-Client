@@ -71,7 +71,7 @@ const ApproveModal = ({
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered>
       <ModalHeader toggle={toggle}>
-        {actionType === "APPROVE" ? "Approve Request" : "Reject Request"}
+        {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? "Action Required" : actionType === "APPROVE" ? "Approve Request" : "Reject Request"}
       </ModalHeader>
 
       <ModalBody>
@@ -97,7 +97,7 @@ const ApproveModal = ({
             onChange={(e) => setNote(e.target.value)}
           />
         </div>
-        {mode === "EXIT_EMPLOYEES" && (
+        {mode === "EXIT_EMPLOYEES_EXIT_PENDING" && (
           <div className="mb-3">
             <Label htmlFor="action" className="fw-bold">
               Action <span className="text-danger">*</span>
@@ -105,7 +105,26 @@ const ApproveModal = ({
             <Select
               id="action"
               options={[
-                { label: "Closed", value: "APPROVE" },
+                { label: "Approve", value: "APPROVE" },
+                { label: "Reject", value: "REJECT" },
+              ]}
+              placeholder="Select Action..."
+              value={actionType}
+              onChange={(option) => setActionType(option)}
+              className="mt-2"
+            />
+          </div>
+        )}
+
+        {mode === "EXIT_EMPLOYEES_FNF_PENDING" && (
+          <div className="mb-3">
+            <Label htmlFor="action" className="fw-bold">
+              Action <span className="text-danger">*</span>
+            </Label>
+            <Select
+              id="action"
+              options={[
+                { label: "FNF Closed", value: "APPROVE" },
                 { label: "Reject", value: "REJECT" },
                 { label: "Reject and Active Employee", value: "REJECT_AND_ACTIVE_EMPLOYEE" },
               ]}
@@ -152,7 +171,7 @@ const ApproveModal = ({
           Cancel
         </Button>
 
-        {mode === "EXIT_EMPLOYEES" ? (
+        {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? (
           <Button color="warning" className="text-white" disabled={!actionType || !actionType.value} onClick={handleSubmit}>
             Confirm
           </Button>
