@@ -1,29 +1,29 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert } from "reactstrap";
-import { fetchCenterLeadsMoM } from "../../../store/features/miReporting/miReportingSlice";
+import { fetchOwnerLeadsMTD } from "../../../store/features/miReporting/miReportingSlice";
 
-const CenterLeadsMoM = () => {
+const OwnerLeadsMTD = () => {
   const dispatch = useDispatch();
-  const { centerLeadsMoM, loading, error } = useSelector(
+  const { ownerLeadsMTD, loading, error } = useSelector(
     (state) => state.MIReporting
   );
 
   useEffect(() => {
-    dispatch(fetchCenterLeadsMoM());
+    dispatch(fetchOwnerLeadsMTD());
   }, [dispatch]);
 
   // Extract unique months and sort them descending
   const months = React.useMemo(() => {
-    if (!centerLeadsMoM || centerLeadsMoM.length === 0) return [];
+    if (!ownerLeadsMTD || ownerLeadsMTD.length === 0) return [];
     const allMonths = new Set();
-    centerLeadsMoM.forEach((item) => {
+    ownerLeadsMTD.forEach((item) => {
       if (item.stats) {
         item.stats.forEach((stat) => allMonths.add(stat.month));
       }
     });
     return Array.from(allMonths).sort().reverse();
-  }, [centerLeadsMoM]);
+  }, [ownerLeadsMTD]);
 
   // Helper to format month (e.g., "2025-11" -> "Nov 2025")
   const formatMonth = (monthStr) => {
@@ -40,16 +40,16 @@ const CenterLeadsMoM = () => {
           <div className="position-relative">
             <div className="p-3 user-chat-topbar">
               <div className="row align-items-center">
-                <div className="col-sm-4 col-8">
+                <div className="col-sm-6 col-8">
                   <div className="d-flex align-items-center">
                     <div className="flex-grow-1 overflow-hidden">
                       <div className="d-flex align-items-center">
                         <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
-                          <i className="bx bx-bar-chart-alt-2 fs-1"></i>
+                          <i className="bx bx-trending-up fs-1"></i>
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
-                          <h6 className="mb-0 fs-18">
-                            Center Leads - Month on Month
+                          <h6 className="text-truncate mb-0 fs-18">
+                            Owner Leads - Month Till Date
                           </h6>
                         </div>
                       </div>
@@ -78,7 +78,7 @@ const CenterLeadsMoM = () => {
                           <thead className="table-light">
                             <tr>
                               <th>#</th>
-                              <th>Center</th>
+                              <th>Owner</th>
                               {months.map((month) => (
                                 <th key={month} className="text-end">
                                   {formatMonth(month)}
@@ -87,11 +87,11 @@ const CenterLeadsMoM = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {centerLeadsMoM && centerLeadsMoM.length > 0 ? (
-                              centerLeadsMoM.map((item, idx) => (
+                            {ownerLeadsMTD && ownerLeadsMTD.length > 0 ? (
+                              ownerLeadsMTD.map((item, idx) => (
                                 <tr key={idx}>
                                   <td>{idx + 1}</td>
-                                  <td>{item.center}</td>
+                                  <td>{item.ownerName || "Not Assigned"}</td>
                                   {months.map((month) => {
                                     const stat = item.stats?.find(
                                       (s) => s.month === month
@@ -129,4 +129,4 @@ const CenterLeadsMoM = () => {
   );
 };
 
-export default CenterLeadsMoM;
+export default OwnerLeadsMTD;

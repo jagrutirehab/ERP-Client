@@ -1500,3 +1500,10 @@ export const getOwnerVisitedDate = (params = {}) => {
     params,
   });
 };
+export const getCityLeadStatus = (params) => {
+  return api.get(url.GET_CITY_LEAD_STATUS, { params });
+};
+
+export const getOwnerLeadStatus = (params) => {
+  return api.get(url.GET_OWNER_LEAD_STATUS, { params });
+};
