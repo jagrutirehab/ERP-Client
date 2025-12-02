@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import InternBg from "../../../../assets/images/intern-bg-template.jpg";
+import InternBg from "../../../../assets/images/intern-bg-template2.jpg";
+import UndertakingDischargeFormFooter from "./UndertakingDischargeFormFooter";
 
 const UndertakingDischargeForm = ({ patient, admissions }) => {
-  console.log(patient)
-  // Helper to title case names
   const toTitleCase = (text) => {
     if (!text) return "";
     return text
@@ -171,7 +170,8 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
             }}
             placeholder="Patient Name"
           />
-          , was admitted at Jagruti Rehabilitation Centre, {patient?.center?.title} from{" "}
+          , was admitted at Jagruti Rehabilitation Centre,{" "}
+          {patient?.center?.title} from{" "}
           <input
             type="text" // using text type to allow "12th Nov" format flexibility
             name="admissionDate"
@@ -309,6 +309,7 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
             </label>
           </div>
         </div>
+        <UndertakingDischargeFormFooter center={patient.center} />
       </div>
     </div>
   );

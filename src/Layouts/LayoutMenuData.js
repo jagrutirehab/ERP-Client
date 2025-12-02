@@ -67,8 +67,6 @@ const Navdata = () => {
     ...sortPages(dynamicPages),
   ];
 
-  console.log({ menuItems });
-
   return <React.Fragment>{menuItems}</React.Fragment>;
 };
 export default Navdata;
