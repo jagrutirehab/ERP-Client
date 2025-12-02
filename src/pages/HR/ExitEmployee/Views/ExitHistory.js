@@ -7,9 +7,10 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
 import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { Badge, Input, Spinner } from 'reactstrap';
+import { Input, Spinner } from 'reactstrap';
 import Select from "react-select";
 import DataTable from 'react-data-table-component';
+import { renderStatusBadge } from '../../components/renderStatusBadge';
 
 const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
@@ -209,29 +210,27 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             minWidth: "180px",
         },
 
-        // STATUS BADGE
+        {
+            name: <div>Exit Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+
+        {
+            name: <div>FNF Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+
         {
             name: <div>Status</div>,
-            selector: row => {
-                const stage = row?.stage;
-
-                if (stage === "EXIT_APPROVED")
-                    return <Badge color="success">Exit Approved</Badge>;
-
-                if (stage === "EXIT_REJECTED")
-                    return <Badge color="danger">Exit Rejected</Badge>;
-
-                if (stage === "FNF_APPROVED")
-                    return <Badge color="success">FNF Approved</Badge>;
-
-                if (stage === "FNF_REJECTED")
-                    return <Badge color="danger">FNF Rejected</Badge>;
-
-                return "-";
-            },
+            selector: row => renderStatusBadge(row?.stage) || "-",
             wrap: true,
-            minWidth: "120px"
+            minWidth: "140px"
         }
+
     ];
 
 

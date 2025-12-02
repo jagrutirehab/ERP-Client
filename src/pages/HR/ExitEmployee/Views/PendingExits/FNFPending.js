@@ -136,10 +136,11 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
         setModalLoading(true);
         try {
             const response = await exitEmployeeFNFAction(selectedEmployee._id, {
-                action: actionType,
+                action: actionType.value,
                 note,
             });
             toast.success(response.message);
+            setPage(1);
             fetchFNFExitEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -237,6 +238,13 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
             wrap: true,
         },
 
+        {
+            name: <div>Exit Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+
         ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
             ? [
                 {
@@ -255,7 +263,6 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                                     size="sm"
                                     onClick={() => {
                                         setSelectedEmployee(row);
-                                        setActionType("APPROVE");
                                         setApproveModalOpen(true);
                                     }}
                                 >
@@ -263,7 +270,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                                 </Button>
 
                                 {/* REJECT EXIT */}
-                                <Button
+                                {/* <Button
                                     color="danger"
                                     className="text-white"
                                     size="sm"
@@ -274,7 +281,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                                     }}
                                 >
                                     <X size={16} />
-                                </Button>
+                                </Button> */}
                             </CheckPermission>
                         </div>
                     ),
@@ -321,20 +328,6 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                         </div>
 
                     </div>
-
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEES"}
-                        permission={"create"}
-                    >
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </button>
-                    </CheckPermission>
-
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -433,7 +426,10 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                     setSelectedEmployee(null);
                 }}
                 initialData={selectedEmployee}
-                onUpdate={fetchFNFExitEmployeeList}
+                onUpdate={() => {
+                    setPage(1);
+                    fetchFNFExitEmployeeList();
+                }}
             />
 
             <DeleteConfirmModal
@@ -455,6 +451,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 onSubmit={handleAction}
                 mode="EXIT_EMPLOYEES"
                 actionType={actionType}
+                setActionType={setActionType}
                 note={note}
                 setNote={setNote}
 
