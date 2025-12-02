@@ -480,6 +480,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                     options={statusOptions}
                                     value={statusOptions.find(opt => opt.value === values.status) || null}
                                     onChange={(opt) => setFieldValue("status", opt.value)}
+                                    isDisabled={isEdit && initialData?.status === "FNF_CLOSED"}
                                 />
                                 {errorText("status")}
                             </Col>
