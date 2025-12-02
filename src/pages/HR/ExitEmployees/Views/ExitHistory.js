@@ -1,47 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
-import { usePermissions } from '../../../../../Components/Hooks/useRoles';
-import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../../store/features/HR/hrSlice';
+import { useAuthError } from '../../../../Components/Hooks/useAuthError';
+import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
+import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
 import { toast } from 'react-toastify';
-import { deleteExitEmployee, exitEmployeeFNFAction } from '../../../../../helpers/backend_helper';
-import { capitalizeWords } from '../../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../../Components/Common/ExpandableText';
 import { format } from 'date-fns';
-import CheckPermission from '../../../../../Components/HOC/CheckPermission';
-import { CheckCheck, X } from 'lucide-react';
-import { Button, Input, Spinner } from 'reactstrap';
-import DataTable from 'react-data-table-component';
-import AddExitEmployeeModal from '../../../components/AddExitEmployeeModal';
-import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
-import ApproveModal from '../../../components/ApproveModal';
+import { capitalizeWords } from '../../../../utils/toCapitalize';
+import { ExpandableText } from '../../../../Components/Common/ExpandableText';
+import { Input, Spinner } from 'reactstrap';
 import Select from "react-select";
+import DataTable from 'react-data-table-component';
+import { renderStatusBadge } from '../../components/renderStatusBadge';
 
-
-const FNFPending = ({ activeTab, activeSubTab }) => {
+const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [modalLoading, setModalLoading] = useState(false);
-    const [approveModalOpen, setApproveModalOpen] = useState(false);
-    const [actionType, setActionType] = useState(null); // APPROVE | REJECT
-    const [note, setNote] = useState("");
-
-    const microUser = localStorage.getItem("micrologin");
-    const token = microUser ? JSON.parse(microUser).token : null;
-
-    const { hasPermission, roles } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEES", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -88,7 +68,8 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    const fetchFNFExitEmployeeList = async () => {
+
+    const fetchExitEmployeeListHistory = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -99,7 +80,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 page,
                 limit,
                 centers,
-                stage: "FNF_PENDING",
+                stage: "HISTORY",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
@@ -110,43 +91,10 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
     };
 
     useEffect(() => {
-        if (activeTab === "PENDING" && activeSubTab === "FNF" && hasUserPermission) {
-            fetchFNFExitEmployeeList();
+        if (activeTab === "HISTORY" && hasUserPermission) {
+            fetchExitEmployeeListHistory();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, activeSubTab]);
-
-    const handleDelete = async () => {
-        setModalLoading(true);
-        try {
-            await deleteExitEmployee(selectedEmployee._id);
-            toast.success("Employee deleted successfully");
-            setPage(1);
-            fetchFNFExitEmployeeList();
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to delete employee")
-            }
-        } finally {
-            setDeleteModalOpen(false);
-            setModalLoading(false);
-        }
-    }
-
-    const handleAction = async () => {
-        setModalLoading(true);
-        try {
-            const response = await exitEmployeeFNFAction(selectedEmployee._id, {
-                action: actionType,
-                note,
-            });
-            toast.success(response.message);
-            fetchFNFExitEmployeeList();
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Action failed");
-            }
-        }
-    }
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
     const columns = [
         {
@@ -158,19 +106,19 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
             name: <div>Name</div>,
             selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,
-            minWidth: "160px"
+            minWidth: "160px",
         },
         {
             name: <div>Current Location</div>,
             selector: row => capitalizeWords(row?.center || "-"),
             wrap: true,
-            minWidth: "120px"
+            minWidth: "120px",
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => row?.reason || "-",
+            selector: row => capitalizeWords(row?.reason || "-"),
             wrap: true,
-            minWidth: "130px"
+            minWidth: "140px",
         },
         {
             name: <div>Other Reason (If Any)</div>,
@@ -178,16 +126,11 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
             ),
             wrap: true,
-            minWidth: "120px"
+            minWidth: "160px",
         },
         {
             name: <div>Last Working Day</div>,
             selector: row => row?.lastWorkingDay || "-",
-            wrap: true,
-        },
-        {
-            name: <div>Employee Status</div>,
-            selector: row => row?.employeeStatus || "-",
             wrap: true,
         },
         {
@@ -201,10 +144,10 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "150px"
+            minWidth: "200px",
         },
         {
-            name: <div>Filled Time</div>,
+            name: <div>Filled At</div>,
             selector: row => {
                 if (!row?.filledAt) return "-";
                 const date = new Date(row.filledAt);
@@ -212,7 +155,9 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
+            minWidth: "180px",
         },
+
         {
             name: <div>Exit Approved By</div>,
             selector: row => (
@@ -224,69 +169,69 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "150px"
+            minWidth: "200px",
         },
         {
             name: <div>Exit Approval Time</div>,
             selector: row => {
-                if (!row?.exitApprovedAt) return "-";
-                const date = new Date(row.exitApprovedAt);
+                const t = row?.exitApprovedAt;
+                if (!t) return "-";
+                const date = new Date(t);
                 if (isNaN(date)) return "-";
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
+            minWidth: "180px",
         },
 
-        ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
-            ? [
-                {
-                    name: <div>Actions</div>,
-                    cell: row => (
-                        <div className="d-flex gap-2">
-                            {/* APPROVE EXIT */}
-                            <CheckPermission
-                                accessRolePermission={roles?.permissions}
-                                subAccess="EXIT_EMPLOYEES"
-                                permission="edit"
-                            >
-                                <Button
-                                    color="success"
-                                    className="text-white"
-                                    size="sm"
-                                    onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setActionType("APPROVE");
-                                        setApproveModalOpen(true);
-                                    }}
-                                >
-                                    <CheckCheck size={18} />
-                                </Button>
+        {
+            name: <div>FNF Approved By</div>,
+            selector: row => (
+                <div>
+                    <div>{capitalizeWords(row?.fnfApprovedBy?.name || "-")}</div>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                        {row?.fnfApprovedBy?.email || "-"}
+                    </div>
+                </div>
+            ),
+            wrap: true,
+            minWidth: "200px",
+        },
+        {
+            name: <div>FNF Approval Time</div>,
+            selector: row => {
+                const t = row?.fnfApprovedAt;
+                if (!t) return "-";
+                const date = new Date(t);
+                if (isNaN(date)) return "-";
+                return format(date, "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "180px",
+        },
 
-                                {/* REJECT EXIT */}
-                                <Button
-                                    color="danger"
-                                    className="text-white"
-                                    size="sm"
-                                    onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setActionType("REJECT");
-                                        setApproveModalOpen(true);
-                                    }}
-                                >
-                                    <X size={16} />
-                                </Button>
-                            </CheckPermission>
-                        </div>
-                    ),
-                    ignoreRowClick: true,
-                    allowOverflow: true,
-                    button: true,
-                    minWidth: "180px"
-                }
-            ]
-            : [])
+        {
+            name: <div>Exit Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+
+        {
+            name: <div>FNF Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+
+        {
+            name: <div>Status</div>,
+            selector: row => renderStatusBadge(row?.stage) || "-",
+            wrap: true,
+            minWidth: "140px"
+        }
+
     ];
-
 
 
     return (
@@ -322,19 +267,6 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
 
                     </div>
 
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEES"}
-                        permission={"create"}
-                    >
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </button>
-                    </CheckPermission>
-
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -351,37 +283,17 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                             classNamePrefix="react-select"
                         />
                     </div>
-
                     <div style={{ width: "100%" }}>
                         <Input
                             type="text"
                             className="form-control"
-                            placeholder="Search by name or Ecode..."
+                            placeholder="Search by name name or Ecode..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
-
-                <div className="d-flex d-md-none justify-content-end mt-3">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEES"}
-                        permission={"create"}
-                    >
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </Button>
-                    </CheckPermission>
-                </div>
-
-
             </div>
-
             <DataTable
                 columns={columns}
                 data={data}
@@ -425,42 +337,8 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 onChangePage={(newPage) => setPage(newPage)}
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
-
-            <AddExitEmployeeModal
-                isOpen={modalOpen}
-                toggle={() => {
-                    setModalOpen(!modalOpen);
-                    setSelectedEmployee(null);
-                }}
-                initialData={selectedEmployee}
-                onUpdate={fetchFNFExitEmployeeList}
-            />
-
-            <DeleteConfirmModal
-                isOpen={deleteModalOpen}
-                toggle={() => {
-                    setDeleteModalOpen(!deleteModalOpen);
-                    setSelectedEmployee(null);
-                }}
-                onConfirm={handleDelete}
-                loading={modalLoading}
-            />
-            <ApproveModal
-                isOpen={approveModalOpen}
-                toggle={() => {
-                    setApproveModalOpen(false);
-                    setNote("");
-                    setActionType(null);
-                }}
-                onSubmit={handleAction}
-                mode="EXIT_EMPLOYEES"
-                actionType={actionType}
-                note={note}
-                setNote={setNote}
-
-            />
         </>
     )
 }
 
-export default FNFPending;
+export default ExitHistory;

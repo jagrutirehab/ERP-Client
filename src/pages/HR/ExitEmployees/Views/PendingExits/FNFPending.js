@@ -1,26 +1,47 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../Components/Hooks/useAuthError';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
+import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
+import { usePermissions } from '../../../../../Components/Hooks/useRoles';
+import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
+import { fetchExitEmployees } from '../../../../../store/features/HR/hrSlice';
 import { toast } from 'react-toastify';
+import { deleteExitEmployee, exitEmployeeFNFAction } from '../../../../../helpers/backend_helper';
+import { capitalizeWords } from '../../../../../utils/toCapitalize';
+import { ExpandableText } from '../../../../../Components/Common/ExpandableText';
 import { format } from 'date-fns';
-import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { Badge, Input, Spinner } from 'reactstrap';
-import Select from "react-select";
+import CheckPermission from '../../../../../Components/HOC/CheckPermission';
+import { CheckCheck, X } from 'lucide-react';
+import { Button, Input, Spinner } from 'reactstrap';
 import DataTable from 'react-data-table-component';
+import AddExitEmployeeModal from '../../../components/AddExitEmployeeModal';
+import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
+import ApproveModal from '../../../components/ApproveModal';
+import Select from "react-select";
 
-const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
+
+const FNFPending = ({ activeTab, activeSubTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [modalLoading, setModalLoading] = useState(false);
+    const [approveModalOpen, setApproveModalOpen] = useState(false);
+    const [actionType, setActionType] = useState(null); // APPROVE | REJECT
+    const [note, setNote] = useState("");
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, roles } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEES", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -67,8 +88,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-
-    const fetchExitEmployeeListHistory = async () => {
+    const fetchFNFExitEmployeeList = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -79,7 +99,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 page,
                 limit,
                 centers,
-                stage: "HISTORY",
+                stage: "FNF_PENDING",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
@@ -90,10 +110,44 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     };
 
     useEffect(() => {
-        if (activeTab === "HISTORY" && hasUserPermission) {
-            fetchExitEmployeeListHistory();
+        if (activeTab === "PENDING" && activeSubTab === "FNF" && hasUserPermission) {
+            fetchFNFExitEmployeeList();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, activeSubTab]);
+
+    const handleDelete = async () => {
+        setModalLoading(true);
+        try {
+            await deleteExitEmployee(selectedEmployee._id);
+            toast.success("Employee deleted successfully");
+            setPage(1);
+            fetchFNFExitEmployeeList();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to delete employee")
+            }
+        } finally {
+            setDeleteModalOpen(false);
+            setModalLoading(false);
+        }
+    }
+
+    const handleAction = async () => {
+        setModalLoading(true);
+        try {
+            const response = await exitEmployeeFNFAction(selectedEmployee._id, {
+                action: actionType.value,
+                note,
+            });
+            toast.success(response.message);
+            setPage(1);
+            fetchFNFExitEmployeeList();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Action failed");
+            }
+        }
+    }
 
     const columns = [
         {
@@ -105,19 +159,19 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             name: <div>Name</div>,
             selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,
-            minWidth: "160px",
+            minWidth: "160px"
         },
         {
             name: <div>Current Location</div>,
             selector: row => capitalizeWords(row?.center || "-"),
             wrap: true,
-            minWidth: "120px",
+            minWidth: "120px"
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => capitalizeWords(row?.reason || "-"),
+            selector: row => row?.reason || "-",
             wrap: true,
-            minWidth: "140px",
+            minWidth: "130px"
         },
         {
             name: <div>Other Reason (If Any)</div>,
@@ -125,11 +179,16 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
             ),
             wrap: true,
-            minWidth: "160px",
+            minWidth: "120px"
         },
         {
             name: <div>Last Working Day</div>,
             selector: row => row?.lastWorkingDay || "-",
+            wrap: true,
+        },
+        {
+            name: <div>Employee Status</div>,
+            selector: row => row?.employeeStatus || "-",
             wrap: true,
         },
         {
@@ -143,10 +202,10 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "200px",
+            minWidth: "150px"
         },
         {
-            name: <div>Filled At</div>,
+            name: <div>Filled Time</div>,
             selector: row => {
                 if (!row?.filledAt) return "-";
                 const date = new Date(row.filledAt);
@@ -154,9 +213,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth: "180px",
         },
-
         {
             name: <div>Exit Approved By</div>,
             selector: row => (
@@ -168,71 +225,75 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 </div>
             ),
             wrap: true,
-            minWidth: "200px",
+            minWidth: "150px"
         },
         {
             name: <div>Exit Approval Time</div>,
             selector: row => {
-                const t = row?.exitApprovedAt;
-                if (!t) return "-";
-                const date = new Date(t);
+                if (!row?.exitApprovedAt) return "-";
+                const date = new Date(row.exitApprovedAt);
                 if (isNaN(date)) return "-";
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth: "180px",
         },
 
         {
-            name: <div>FNF Approved By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.fnfApprovedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.fnfApprovedBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "200px",
-        },
-        {
-            name: <div>FNF Approval Time</div>,
-            selector: row => {
-                const t = row?.fnfApprovedAt;
-                if (!t) return "-";
-                const date = new Date(t);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
+            name: <div>Exit Approval Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
             wrap: true,
             minWidth: "180px",
         },
 
-        // STATUS BADGE
-        {
-            name: <div>Status</div>,
-            selector: row => {
-                const stage = row?.stage;
+        ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
+            ? [
+                {
+                    name: <div>Actions</div>,
+                    cell: row => (
+                        <div className="d-flex gap-2">
+                            {/* APPROVE EXIT */}
+                            <CheckPermission
+                                accessRolePermission={roles?.permissions}
+                                subAccess="EXIT_EMPLOYEES"
+                                permission="edit"
+                            >
+                                <Button
+                                    color="success"
+                                    className="text-white"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setApproveModalOpen(true);
+                                    }}
+                                >
+                                    <CheckCheck size={18} />
+                                </Button>
 
-                if (stage === "EXIT_APPROVED")
-                    return <Badge color="success">Exit Approved</Badge>;
-
-                if (stage === "EXIT_REJECTED")
-                    return <Badge color="danger">Exit Rejected</Badge>;
-
-                if (stage === "FNF_APPROVED")
-                    return <Badge color="success">FNF Approved</Badge>;
-
-                if (stage === "FNF_REJECTED")
-                    return <Badge color="danger">FNF Rejected</Badge>;
-
-                return "-";
-            },
-            wrap: true,
-            minWidth: "120px"
-        }
+                                {/* REJECT EXIT */}
+                                {/* <Button
+                                    color="danger"
+                                    className="text-white"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSelectedEmployee(row);
+                                        setActionType("REJECT");
+                                        setApproveModalOpen(true);
+                                    }}
+                                >
+                                    <X size={16} />
+                                </Button> */}
+                            </CheckPermission>
+                        </div>
+                    ),
+                    ignoreRowClick: true,
+                    allowOverflow: true,
+                    button: true,
+                    minWidth: "180px"
+                }
+            ]
+            : [])
     ];
+
 
 
     return (
@@ -267,7 +328,6 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                         </div>
 
                     </div>
-
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -284,17 +344,37 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                             classNamePrefix="react-select"
                         />
                     </div>
+
                     <div style={{ width: "100%" }}>
                         <Input
                             type="text"
                             className="form-control"
-                            placeholder="Search by name name or Ecode..."
+                            placeholder="Search by name or Ecode..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
+
+                <div className="d-flex d-md-none justify-content-end mt-3">
+                    <CheckPermission
+                        accessRolePermission={roles?.permissions}
+                        subAccess={"EXIT_EMPLOYEES"}
+                        permission={"create"}
+                    >
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-2 text-white"
+                            onClick={() => setModalOpen(true)}
+                        >
+                            + Add Employee
+                        </Button>
+                    </CheckPermission>
+                </div>
+
+
             </div>
+
             <DataTable
                 columns={columns}
                 data={data}
@@ -338,8 +418,46 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 onChangePage={(newPage) => setPage(newPage)}
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
+
+            <AddExitEmployeeModal
+                isOpen={modalOpen}
+                toggle={() => {
+                    setModalOpen(!modalOpen);
+                    setSelectedEmployee(null);
+                }}
+                initialData={selectedEmployee}
+                onUpdate={() => {
+                    setPage(1);
+                    fetchFNFExitEmployeeList();
+                }}
+            />
+
+            <DeleteConfirmModal
+                isOpen={deleteModalOpen}
+                toggle={() => {
+                    setDeleteModalOpen(!deleteModalOpen);
+                    setSelectedEmployee(null);
+                }}
+                onConfirm={handleDelete}
+                loading={modalLoading}
+            />
+            <ApproveModal
+                isOpen={approveModalOpen}
+                toggle={() => {
+                    setApproveModalOpen(false);
+                    setNote("");
+                    setActionType(null);
+                }}
+                onSubmit={handleAction}
+                mode="EXIT_EMPLOYEES"
+                actionType={actionType}
+                setActionType={setActionType}
+                note={note}
+                setNote={setNote}
+
+            />
         </>
     )
 }
 
-export default ExitHistory;
+export default FNFPending;

@@ -11,13 +11,15 @@ import {
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getEmployeeId } from "../../../helpers/backend_helper";
+import Select from "react-select";
 
 const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
   mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES
-  actionType,     // APPROVE | REJECT
+  actionType,
+  setActionType,
   note,
   setNote,
   eCode, setECode
@@ -55,7 +57,7 @@ const ApproveModal = ({
       approvedBy: mode === "TECH_ISSUES" ? approvedBy : undefined,
       paymentType: mode === "SALARY_ADVANCE" ? paymentType : undefined,
       action: actionType,
-      eCode: mode === "NEW_JOINING" ? eCode : undefined
+      eCode: mode === "NEW_JOINING" ? eCode : undefined,
     });
 
     setNote("");
@@ -63,6 +65,8 @@ const ApproveModal = ({
     setPaymentType("");
     toggle();
   };
+
+  console.log(actionType)
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered>
@@ -93,6 +97,26 @@ const ApproveModal = ({
             onChange={(e) => setNote(e.target.value)}
           />
         </div>
+        {mode === "EXIT_EMPLOYEES" && (
+          <div className="mb-3">
+            <Label htmlFor="action" className="fw-bold">
+              Action <span className="text-danger">*</span>
+            </Label>
+            <Select
+              id="action"
+              options={[
+                { label: "Closed", value: "APPROVE" },
+                { label: "Reject", value: "REJECT" },
+                { label: "Reject and Active Employee", value: "REJECT_AND_ACTIVE_EMPLOYEE" },
+              ]}
+              placeholder="Select Action..."
+              value={actionType}
+              onChange={(option) => setActionType(option)}
+              className="mt-2"
+            />
+          </div>
+        )}
+
 
         {mode === "SALARY_ADVANCE" && actionType === "APPROVE" && (
           <div className="mb-3">
@@ -128,7 +152,11 @@ const ApproveModal = ({
           Cancel
         </Button>
 
-        {actionType === "APPROVE" ? (
+        {mode === "EXIT_EMPLOYEES" ? (
+          <Button color="warning" className="text-white" disabled={!actionType || !actionType.value} onClick={handleSubmit}>
+            Confirm
+          </Button>
+        ) : actionType === "APPROVE" ? (
           <Button color="success" className="text-white" onClick={handleSubmit}>
             Approve
           </Button>
@@ -137,6 +165,7 @@ const ApproveModal = ({
             Reject
           </Button>
         )}
+
       </ModalFooter>
     </Modal>
   );

@@ -240,6 +240,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                     formData.delete("offerLetter");
                     formData.delete("exitStatus");
                     formData.delete("fnfStatus");
+                    formData.delete("author");
                     await editEmployee(initialData._id, formData);
                     toast.success("Employee updated successfully");
                 } else {

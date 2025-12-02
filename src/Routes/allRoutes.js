@@ -55,6 +55,7 @@ const allElements = [
   { element: Guidelines, label: "Guidelines" },
   { element: IncidentReporting, label: "Incident Reporting" },
   { element: MiReporting, label: "Hubspot Reporting" },
+  { element: HR, label: "HR" },
 ];
 
 const authProtectedRoutes = [
