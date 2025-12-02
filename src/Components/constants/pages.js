@@ -278,8 +278,8 @@ const pages = [
     label: "HR",
     name: "HR",
     link: "/hr",
-    icon: "bx bx-body"
-  }
+    icon: "bx bx-body",
+  },
 ];
 
 export const Pharmacy = [
@@ -505,7 +505,6 @@ export const HR = [
     link: "/hr/exit-employees",
     icon: "bx bx-arrow-from-left",
   },
-
-]
+];
 
 export default pages;

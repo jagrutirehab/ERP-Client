@@ -85,7 +85,7 @@ const Sidebar = () => {
       ? {
           id: "center-leads-mom",
           label: "Center Leads (MoM)",
-          link: "/hubspot-reporting/center-leads-mom",
+          link: "/mi-reporting/center-leads-mom",
           icon: "bx bx-bar-chart-alt-2",
         }
       : null,
@@ -93,7 +93,7 @@ const Sidebar = () => {
       ? {
           id: "center-leads-mtd",
           label: "Center Leads (MTD)",
-          link: "/hubspot-reporting/center-leads-mtd",
+          link: "/mi-reporting/center-leads-mtd",
           icon: "bx bx-line-chart",
         }
       : null,
@@ -101,7 +101,7 @@ const Sidebar = () => {
       ? {
           id: "owner-leads-mom",
           label: "Owner Leads (MoM)",
-          link: "/hubspot-reporting/owner-leads-mom",
+          link: "/mi-reporting/owner-leads-mom",
           icon: "bx bx-bar-chart-square",
         }
       : null,
@@ -109,7 +109,7 @@ const Sidebar = () => {
       ? {
           id: "owner-leads-mtd",
           label: "Owner Leads (MTD)",
-          link: "/hubspot-reporting/owner-leads-mtd",
+          link: "/mi-reporting/owner-leads-mtd",
           icon: "bx bx-trending-up",
         }
       : null,
@@ -117,7 +117,7 @@ const Sidebar = () => {
       ? {
           id: "city-quality",
           label: "City Quality Breakdown",
-          link: "/hubspot-reporting/city-quality",
+          link: "/mi-reporting/city-quality",
           icon: "bx bx-map",
         }
       : null,
@@ -125,7 +125,7 @@ const Sidebar = () => {
       ? {
           id: "owner-quality",
           label: "Owner Quality Breakdown",
-          link: "/hubspot-reporting/owner-quality",
+          link: "/mi-reporting/owner-quality",
           icon: "bx bx-user-check",
         }
       : null,
@@ -133,7 +133,7 @@ const Sidebar = () => {
       ? {
           id: "city-visit-date",
           label: "City Visit Date",
-          link: "/hubspot-reporting/city-visit-date",
+          link: "/mi-reporting/city-visit-date",
           icon: "bx bx-calendar",
         }
       : null,
@@ -141,7 +141,7 @@ const Sidebar = () => {
       ? {
           id: "owner-visit-date",
           label: "Owner Visit Date",
-          link: "/hubspot-reporting/owner-visit-date",
+          link: "/mi-reporting/owner-visit-date",
           icon: "bx bx-calendar-check",
         }
       : null,
@@ -149,7 +149,7 @@ const Sidebar = () => {
       ? {
           id: "city-visited-date",
           label: "City Visited Date",
-          link: "/hubspot-reporting/city-visited-date",
+          link: "/mi-reporting/city-visited-date",
           icon: "bx bx-calendar-event",
         }
       : null,
@@ -157,7 +157,7 @@ const Sidebar = () => {
       ? {
           id: "owner-visited-date",
           label: "Owner Visited Date",
-          link: "/hubspot-reporting/owner-visited-date",
+          link: "/mi-reporting/owner-visited-date",
           icon: "bx bx-calendar-star",
         }
       : null,
@@ -165,7 +165,7 @@ const Sidebar = () => {
       ? {
           id: "city-lead-status",
           label: "City Lead Status",
-          link: "/hubspot-reporting/city-lead-status",
+          link: "/mi-reporting/city-lead-status",
           icon: "bx bx-bar-chart",
         }
       : null,
@@ -173,7 +173,7 @@ const Sidebar = () => {
       ? {
           id: "owner-lead-status",
           label: "Owner Lead Status",
-          link: "/hubspot-reporting/owner-lead-status",
+          link: "/mi-reporting/owner-lead-status",
           icon: "bx bx-bar-chart-square",
         }
       : null,
