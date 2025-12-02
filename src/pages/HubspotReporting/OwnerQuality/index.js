@@ -63,16 +63,6 @@ const OwnerQuality = () => {
                       placeholder="Select Month & Year"
                       onChange={(date, str) => setSelectedMonth(str)}
                     />
-
-                    <button
-                      className="btn btn-sm btn-primary"
-                      onClick={() =>
-                        dispatch(fetchOwnerQualityBreakdown(selectedMonth))
-                      }
-                      disabled={loading}
-                    >
-                      <i className="mdi mdi-filter me-1"></i>Apply
-                    </button>
                   </div>
                 </div>
               </div>

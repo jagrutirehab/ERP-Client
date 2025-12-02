@@ -1522,14 +1522,21 @@ export const getOwnerVisitedDate = (params = {}) => {
   });
 };
 
+export const getCityLeadStatus = (params) => {
+  return api.get(url.GET_CITY_LEAD_STATUS, { params });
+};
+
+export const getOwnerLeadStatus = (params) => {
+  return api.get(url.GET_OWNER_LEAD_STATUS, { params });
+};
 
 // HR
 export const getEmployeeId = () => {
   return api.get(url.GET_EMPLOYEE_ID, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 export const postEmployee = (data) => {
@@ -1537,9 +1544,8 @@ export const postEmployee = (data) => {
     headers: {
       "Content-Type": "multipart/form-data",
       "X-No-Cookie-Token": "true",
-
     },
-  })
+  });
 };
 
 export const editEmployee = (id, data) => {
@@ -1548,7 +1554,7 @@ export const editEmployee = (id, data) => {
       "Content-Type": "multipart/form-data",
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getEmployees = (params = {}) => {
@@ -1560,7 +1566,7 @@ export const getEmployees = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const deleteEmployee = (id) => {
@@ -1568,7 +1574,7 @@ export const deleteEmployee = (id) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const updateNewJoiningStatus = (id, data) => {
@@ -1576,8 +1582,8 @@ export const updateNewJoiningStatus = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getExitEmployees = (params = {}) => {
   return api.get(url.EXIT_EMPLOYEE, {
@@ -1588,7 +1594,7 @@ export const getExitEmployees = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const postExitEmployee = (data) => {
@@ -1596,7 +1602,7 @@ export const postExitEmployee = (data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const editExitEmployee = (id, data) => {
@@ -1604,7 +1610,7 @@ export const editExitEmployee = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const deleteExitEmployee = (id) => {
@@ -1612,7 +1618,7 @@ export const deleteExitEmployee = (id) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const exitEmployeeExitAction = (id, data) => {
@@ -1620,7 +1626,7 @@ export const exitEmployeeExitAction = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const exitEmployeeFNFAction = (id, data) => {
@@ -1628,7 +1634,7 @@ export const exitEmployeeFNFAction = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const searchExitEmployee = (params = {}) => {
@@ -1640,5 +1646,5 @@ export const searchExitEmployee = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};

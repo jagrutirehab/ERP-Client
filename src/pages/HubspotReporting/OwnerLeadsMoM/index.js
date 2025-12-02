@@ -40,7 +40,7 @@ const OwnerLeadsMoM = () => {
           <div className="position-relative">
             <div className="p-3 user-chat-topbar">
               <div className="row align-items-center">
-                <div className="col-sm-4 col-8">
+                <div className="col-sm-6 col-8">
                   <div className="d-flex align-items-center">
                     <div className="flex-grow-1 overflow-hidden">
                       <div className="d-flex align-items-center">
