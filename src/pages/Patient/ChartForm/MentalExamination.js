@@ -4,18 +4,30 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { connect } from "react-redux";
 import { useDispatch } from 'react-redux';
-import { MENTAL_EXAMINATION, mentalExaminationFields } from '../../../Components/constants/patient';
-import convertToFormData from "../../../utils/convertToFormData";
+import { MENTAL_EXAMINATION, mentalExaminationV2Fields } from '../../../Components/constants/patient';
 import RenderFields from "../../../Components/Common/RenderFields";
 import { createEditChart } from "../../../store/actions";
-import { addGeneralMentalExamination, addMentalExamination, updateMentalExamination } from "../../../store/features/chart/chartSlice";
+import { addGeneralMentalExamination, addMentalExamination, fetchLastMentalExamination, updateMentalExamination } from "../../../store/features/chart/chartSlice";
 import PropTypes from "prop-types";
 
-const MentalExamination = ({ author, patient, chartDate, editChartData, type, shouldPrintAfterSave }) => {
+const MentalExamination = ({ author, patient, chartDate, editChartData, type, shouldPrintAfterSave, patientLatestMentalExamination, populate }) => {
     console.log(type)
 
     const dispatch = useDispatch();
     const editMentalExamination = editChartData?.mentalExamination;
+    const ptLatestMentalExamination = patientLatestMentalExamination?.mentalExamination;
+    console.log(ptLatestMentalExamination)
+
+    useEffect(() => {
+        if (!editMentalExamination && patient?._id) {
+            dispatch(fetchLastMentalExamination({
+                id: patient._id,
+                type: type === "IPD" ? "IPD" : "GENERAL"
+            }))
+        }
+    }, [editMentalExamination, patient?._id, type, dispatch]);
+
+
 
     const validation = useFormik({
         enableReinitialize: true,
@@ -25,28 +37,60 @@ const MentalExamination = ({ author, patient, chartDate, editChartData, type, sh
             center: patient.center._id,
             addmission: patient.addmission._id,
 
-            grooming: editMentalExamination?.appearanceAndBehavior?.grooming || "",
-            eyeContact: editMentalExamination?.appearanceAndBehavior?.eyeContact || "",
-            psychomotorActivity: editMentalExamination?.appearanceAndBehavior?.psychomotorActivity || "",
+            chiefComplaints: editMentalExamination ? editMentalExamination?.chiefComplaints : ptLatestMentalExamination ? ptLatestMentalExamination?.chiefComplaints : "",
 
-            rate: editMentalExamination?.speech?.rate || "",
-            volume: editMentalExamination?.speech?.volume || "",
+            grooming: editMentalExamination ? editMentalExamination?.appearanceAndBehavior?.grooming : ptLatestMentalExamination ? ptLatestMentalExamination?.appearanceAndBehavior?.grooming : "",
+            generalAppearance: editMentalExamination ? editMentalExamination?.appearanceAndBehavior?.generalAppearance : ptLatestMentalExamination ? ptLatestMentalExamination?.appearanceAndBehavior?.generalAppearance : "",
+            surroundingTouch: editMentalExamination ? editMentalExamination?.appearanceAndBehavior?.surroundingTouch : ptLatestMentalExamination ? ptLatestMentalExamination?.appearanceAndBehavior?.surroundingTouch : "",
+            eyeContact: editMentalExamination ? editMentalExamination?.appearanceAndBehavior?.eyeContact : ptLatestMentalExamination ? ptLatestMentalExamination?.appearanceAndBehavior?.eyeContact : "",
+            psychomotorActivity: editMentalExamination ? editMentalExamination?.appearanceAndBehavior?.psychomotorActivity : ptLatestMentalExamination ? ptLatestMentalExamination?.appearanceAndBehavior?.psychomotorActivity : "",
 
-            affect: editMentalExamination?.mood?.affect || "",
-            affectNotes: editMentalExamination?.mood?.affectNotes || "",
-            subjective: editMentalExamination?.mood?.subjective || "",
+            rate: editMentalExamination ? editMentalExamination?.speech?.rate : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.rate : "",
+            tone: editMentalExamination ? editMentalExamination?.speech?.tone : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.tone : "",
+            volume: editMentalExamination ? editMentalExamination?.speech?.volume : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.volume : "",
+            reactionTime: editMentalExamination ? editMentalExamination?.speech?.reactionTime : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.reactionTime : "",
+            productivity: editMentalExamination ? editMentalExamination?.speech?.productivity : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.productivity : "",
+            speed: editMentalExamination ? editMentalExamination?.speech?.speed : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.speed : "",
+            relevance: editMentalExamination ? editMentalExamination?.speech?.relevance : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.relevance : "",
+            coherence: editMentalExamination ? editMentalExamination?.speech?.coherence : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.coherence : "",
+            goalDirection: editMentalExamination ? editMentalExamination?.speech?.goalDirection : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.goalDirection : "",
 
-            delusions: editMentalExamination?.thought?.delusions || "",
-            delusionNotes: editMentalExamination?.thought?.delusionNotes || "",
-            content: editMentalExamination?.thought?.content || "",
+            affect: editMentalExamination ? editMentalExamination?.mood?.affect : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.affect : "",
+            affectNotes: editMentalExamination ? editMentalExamination?.mood?.affectNotes : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.affectNotes : "",
+            subjective: editMentalExamination ? editMentalExamination?.mood?.subjective : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.subjective : "",
+            objective: editMentalExamination ? editMentalExamination?.mood?.objective : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.objective : "",
+            lability: editMentalExamination ? editMentalExamination?.mood?.lability : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.lability : "",
+            appropriateness1: editMentalExamination ? editMentalExamination?.mood?.appropriateness : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.appropriateness : "",
 
-            perception: editMentalExamination?.perception || "",
-            orientation: editMentalExamination?.cognition?.orientation || "",
-            memory: editMentalExamination?.cognition?.memory || "",
+            quality: editMentalExamination ? editMentalExamination?.affectV2?.quality : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.quality : "",
+            intensity: editMentalExamination ? editMentalExamination?.affectV2?.intensity : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.intensity : "",
+            mobility: editMentalExamination ? editMentalExamination?.affectV2?.mobility : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.mobility : "",
+            range: editMentalExamination ? editMentalExamination?.affectV2?.range : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.range : "",
+            reactivity: editMentalExamination ? editMentalExamination?.affectV2?.reactivity : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.reactivity : "",
+            communicability: editMentalExamination ? editMentalExamination?.affectV2?.communicability : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.communicability : "",
+            diurnalVariation: editMentalExamination ? editMentalExamination?.affectV2?.diurnalVariation : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.diurnalVariation : "",
+            appropriateness2: editMentalExamination ? editMentalExamination?.affectV2?.appropriateness : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.appropriateness : "",
 
-            grade: editMentalExamination?.insight?.grade || "",
-            judgment: editMentalExamination?.judgment || "",
-            remarks: editMentalExamination?.remarks || "",
+            delusions: editMentalExamination ? editMentalExamination?.thought?.delusions : ptLatestMentalExamination ? ptLatestMentalExamination?.thought?.delusions : "",
+            delusionNotes: editMentalExamination ? editMentalExamination?.thought?.delusionNotes : ptLatestMentalExamination ? ptLatestMentalExamination?.thought?.delusionNotes : "",
+            content: editMentalExamination ? editMentalExamination?.thought?.content : ptLatestMentalExamination ? ptLatestMentalExamination?.thought?.content : "",
+            process: editMentalExamination ? editMentalExamination?.thought?.process : ptLatestMentalExamination ? ptLatestMentalExamination?.thought?.process : "",
+
+            perception: editMentalExamination ? editMentalExamination?.perception : ptLatestMentalExamination ? ptLatestMentalExamination?.perception : "",
+            perceptionNotes: editMentalExamination ? editMentalExamination?.perceptionNotes : ptLatestMentalExamination ? ptLatestMentalExamination?.perceptionNotes : "",
+
+            orientation: editMentalExamination ? editMentalExamination?.cognition?.orientation : ptLatestMentalExamination ? ptLatestMentalExamination?.cognition?.orientation : "",
+            attention: editMentalExamination ? editMentalExamination?.cognition?.attention : ptLatestMentalExamination ? ptLatestMentalExamination?.cognition?.attention : "",
+            concentration: editMentalExamination ? editMentalExamination?.cognition?.concentration : ptLatestMentalExamination ? ptLatestMentalExamination?.cognition?.concentration : "",
+            memory: editMentalExamination ? editMentalExamination?.cognition?.memory : ptLatestMentalExamination ? ptLatestMentalExamination?.cognition?.memory : "",
+
+            grade: editMentalExamination ? editMentalExamination?.insight?.grade : ptLatestMentalExamination ? ptLatestMentalExamination?.insight?.grade : "",
+
+            judgment: editMentalExamination ? editMentalExamination?.judgment : ptLatestMentalExamination ? ptLatestMentalExamination?.judgment : "",
+
+            remarks: editMentalExamination ? editMentalExamination?.remarks : ptLatestMentalExamination ? ptLatestMentalExamination?.remarks : "",
+
+            observation: editMentalExamination ? editMentalExamination?.observation : ptLatestMentalExamination ? ptLatestMentalExamination?.observation : "",
 
             date: chartDate,
             shouldPrintAfterSave,
@@ -86,7 +130,7 @@ const MentalExamination = ({ author, patient, chartDate, editChartData, type, sh
 
     return (
         <Form onSubmit={validation.handleSubmit}>
-            <RenderFields fields={mentalExaminationFields} validation={validation} />
+            <RenderFields fields={mentalExaminationV2Fields} validation={validation} />
 
             <div className="mt-3">
                 <div className="d-flex gap-3 justify-content-end">
@@ -114,6 +158,7 @@ MentalExamination.propTypes = {
     chartDate: PropTypes.any,
     editChartData: PropTypes.object,
     type: PropTypes.string.isRequired,
+    patientLatestMentalExamination: PropTypes.object
 };
 
 const mapStateToProps = (state) => ({
@@ -121,6 +166,7 @@ const mapStateToProps = (state) => ({
     author: state.User.user,
     chartDate: state.Chart.chartDate,
     editChartData: state.Chart.chartForm?.data,
+    patientLatestMentalExamination: state.Chart.patientLatestMentalExamination
 });
 
 export default connect(mapStateToProps)(MentalExamination);

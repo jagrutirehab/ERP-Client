@@ -18,6 +18,7 @@ import {
   getChartsAddmissions,
   getCounsellingNote,
   getGeneralCharts,
+  getLastMentalExamination,
   getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
@@ -53,6 +54,7 @@ const initialState = {
     isOpen: false,
   },
   patientLatestOPDPrescription: null,
+  patientLatestMentalExamination: null,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -835,7 +837,7 @@ export const addGeneralMentalExamination = createAsyncThunk("postGeneralMentalEx
 
 
 export const updateMentalExamination = createAsyncThunk(
-  "edit",
+  "editMentalExamination",
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await editMentalExamination(data);
@@ -854,6 +856,21 @@ export const updateMentalExamination = createAsyncThunk(
     }
   }
 );
+
+
+export const fetchLastMentalExamination = createAsyncThunk(
+  "getLastMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLastMentalExamination(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 
 export const removeChart = createAsyncThunk(
   "deleteChart",
@@ -1620,6 +1637,18 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchLastMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLastMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestMentalExamination = payload.payload;
+      })
+      .addCase(fetchLastMentalExamination.rejected, (state) => {
         state.loading = false;
       });
 

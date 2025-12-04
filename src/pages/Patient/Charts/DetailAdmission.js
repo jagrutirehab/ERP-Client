@@ -4,6 +4,8 @@ import { Col, Row } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
+import { mentalExaminationV2Fields } from "../../../Components/constants/patient";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -26,6 +28,14 @@ const DetailAdmission = ({ data }) => {
         .join(" ")
     );
   }
+
+  const mentalExaminationV2FieldsMap = {};
+  mentalExaminationV2Fields.forEach(f => {
+    if (f.name) {
+      mentalExaminationV2FieldsMap[f.name] = f.label;
+    }
+  });
+
 
   return (
     <React.Fragment>
@@ -147,71 +157,143 @@ const DetailAdmission = ({ data }) => {
             );
           })}
         {data?.mentalExamination && <Divider />}
-        {data?.mentalExaminationV2 && (
-          <>
-            {Object.entries(data.mentalExaminationV2).map(([groupKey, groupValue], i) => {
-              const isObject = typeof groupValue === "object" && groupValue !== null;
+        {data?.mentalExaminationV2 && (() => {
+          const v2 = data.mentalExaminationV2;
 
-              const singleFieldSections = ["judgment", "remarks", "perception"];
+          const groupOrder = [
+            "appearanceAndBehavior",
+            "speech",
+            "mood",
+            "affect",
+            "thought",
+            "perception",
+            "cognition",
+            "insight",
+            "judgment",
+            "remarks",
+          ];
 
-              if (isObject) {
-                return (
-                  <Col xs={12} key={i}>
-                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
-                      {convertCamelCaseToTitleCase(groupKey)}
-                    </h6>
+          const mergedAffect = {
+            affect: v2.mood?.affect || "",
+            affectNotes: v2.mood?.affectNotes || "",
+            ...(v2.affectV2 || {}),
+          };
 
-                    {Object.entries(groupValue).map(([subKey, subValue], j) => (
-                      <div className="mt-1 mb-1" key={j}>
-                        <p className="fs-xs-9 fs-md-11 mb-0">
-                          <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                            {convertCamelCaseToTitleCase(subKey)}:-
+          return (
+            <>
+              {groupOrder.map((groupKey, index) => {
+                if (!v2[groupKey] && groupKey !== "affect") return null;
+
+                const groupValue = v2[groupKey];
+                const isObject = typeof groupValue === "object" && groupValue !== null;
+
+                // MOOD + AFFECT
+                if (groupKey === "mood") {
+                  const filteredMood = { ...groupValue };
+                  delete filteredMood.affect;
+                  delete filteredMood.affectNotes;
+
+                  return (
+                    <Col xs={12} key={index}>
+                      <h6 className="mt-3 mb-2">Mood</h6>
+
+                      {Object.entries(filteredMood).map(([k, v], j) => (
+                        <p key={j} className="mb-1">
+                          <span className="fw-semibold me-2">
+                            {mentalExaminationV2FieldsMap[k] ??
+                              convertCamelCaseToTitleCase(k)}:
                           </span>
-                          {subValue || ""}
+                          {convertSnakeToTitle(v)}
                         </p>
-                      </div>
-                    ))}
-                  </Col>
-                );
-              }
+                      ))}
 
-              if (singleFieldSections.includes(groupKey)) {
-                return (
-                  <Col xs={12} key={i}>
-                    <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
-                      {convertCamelCaseToTitleCase(groupKey)}
-                    </h6>
+                      <h6 className="mt-3 mb-2">Affect</h6>
 
-                    <div className="mt-1 mb-1">
-                      <p className="fs-xs-9 fs-md-11 mb-0">
-                        {groupValue || ""}
-                      </p>
-                    </div>
-                  </Col>
-                );
-              }
+                      {Object.entries(mergedAffect).map(([k, v], j) => (
+                        <p key={j} className="mb-1">
+                          <span className="fw-semibold me-2">
+                            {mentalExaminationV2FieldsMap[k] ??
+                              convertCamelCaseToTitleCase(k)}:
+                          </span>
+                          {convertSnakeToTitle(v)}
+                        </p>
+                      ))}
+                    </Col>
+                  );
+                }
 
-              return (
-                <Col xs={12} key={i}>
-                  <div className="mt-1 mb-1">
-                    <p className="fs-xs-9 fs-md-11 mb-0">
-                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                        {convertCamelCaseToTitleCase(groupKey)}:
-                      </span>
-                      {groupValue}
-                    </p>
-                  </div>
-                </Col>
-              );
-            })}
+                // PERCEPTION
+                if (groupKey === "perception") {
+                  const perceptionObj = {};
 
-            <Divider />
-          </>
-        )}
+                  if (v2.perception && String(v2.perception).trim() !== "")
+                    perceptionObj.perception = v2.perception;
 
+                  if (v2.perceptionNotes && String(v2.perceptionNotes).trim() !== "")
+                    perceptionObj.perceptionNotes = v2.perceptionNotes;
 
+                  if (Object.keys(perceptionObj).length === 0) return null;
 
-        {data?.mentalExaminationV2 && <Divider />}
+                  return (
+                    <Col xs={12} key={index}>
+                      <h6 className="mt-3 mb-2">Perception</h6>
+
+                      {Object.entries(perceptionObj).map(([k, v], j) => (
+                        <p key={j} className="mb-1">
+                          <span className="fw-semibold me-2">
+                            {mentalExaminationV2FieldsMap[k] ??
+                              convertCamelCaseToTitleCase(k)}:
+                          </span>
+                          {convertSnakeToTitle(v)}
+                        </p>
+                      ))}
+                    </Col>
+                  );
+                }
+
+                // simple fields
+                if (["judgment", "remarks"].includes(groupKey)) {
+                  if (!groupValue || String(groupValue).trim() === "") return null;
+
+                  return (
+                    <Col xs={12} key={index}>
+                      <h6 className="mt-3 mb-2">
+                        {convertCamelCaseToTitleCase(groupKey)}
+                      </h6>
+                      <p className="mb-1">{convertSnakeToTitle(groupValue)}</p>
+                    </Col>
+                  );
+                }
+
+                // NORMAL OBJECT GROUPS
+                if (isObject) {
+                  return (
+                    <Col xs={12} key={index}>
+                      <h6 className="mt-3 mb-2">
+                        {convertCamelCaseToTitleCase(groupKey)}
+                      </h6>
+
+                      {Object.entries(groupValue).map(([k, v], j) => (
+                        <p key={j} className="mb-1">
+                          <span className="fw-semibold me-2">
+                            {mentalExaminationV2FieldsMap[k] ??
+                              convertCamelCaseToTitleCase(k)}:
+                          </span>
+                          {convertSnakeToTitle(v)}
+                        </p>
+                      ))}
+                    </Col>
+                  );
+                }
+
+                return null;
+              })}
+
+              <Divider />
+            </>
+          );
+        })()}
+
 
         {data?.physicalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Physical Examination</h6>
