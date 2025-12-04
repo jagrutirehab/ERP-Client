@@ -83,11 +83,8 @@ const RenderFields = ({ fields, validation }) => {
                         {(field.options || []).map((item, idx) => {
                           return (
                             <React.Fragment key={idx}>
-                              <div className="">
-                                <div
-                                  // key={item[field.value]}
-                                  className="d-flex me-3 mb-2 align-items-center"
-                                >
+                              <div>
+                                <div className="d-flex me-3 mb-2 align-items-center">
                                   <Input
                                     className="me-2 mt-0"
                                     type={field.type}
@@ -99,16 +96,15 @@ const RenderFields = ({ fields, validation }) => {
                                       validation.values[field.name].includes(item)
                                     }
                                   />
-                                  <Label className="form-label fs-9 mb-0">
-                                    {item}
+                                  <Label className="form-label fs-6 mb-0">
+                                    {item.charAt(0).toUpperCase() + item.slice(1)}
                                   </Label>
                                 </div>
                               </div>
                             </React.Fragment>
                           );
                         })}
-                        {validation.touched[field.name] &&
-                          validation.errors[field.name] ? (
+                        {validation.touched[field.name] && validation.errors[field.name] ? (
                           <FormFeedback type="invalid" className="d-block">
                             {validation.errors[field.name]}
                           </FormFeedback>
