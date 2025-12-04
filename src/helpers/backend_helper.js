@@ -461,6 +461,10 @@ export const editMentalExamination = (data) => {
   return api.put(url.EDIT_MENTAL_EXAMINATION, data);
 };
 
+export const getLastMentalExamination = (params = {}) => {
+  return api.get(url.LAST_MENTAL_EXAMINATION, params)
+}
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);

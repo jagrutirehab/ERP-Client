@@ -140,6 +140,7 @@ export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";

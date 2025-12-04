@@ -1,82 +1,167 @@
-import React from "react";
 import { Col } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
-
+import { mentalExaminationV2Fields } from "../../../Components/constants/patient";
+import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
 
 const MentalExamination = ({ data }) => {
     if (!data) return null;
 
-    function convertCamelCaseToTitleCase(str) {
-        return (
-            str
-                // Split the string at each uppercase letter
-                .split(/(?=[A-Z])/)
-                // Capitalize the first letter of each word
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                // Join the words with a space
-                .join(" ")
-        );
-    }
+    const convertCamelCaseToTitleCase = (str) =>
+        str
+            .split(/(?=[A-Z])/)
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ");
 
+    const fieldLabelMap = {};
+    mentalExaminationV2Fields.forEach((f) => {
+        if (f.name) fieldLabelMap[f.name] = f.label;
+    });
 
-    const singleFieldSections = ["judgment", "remarks", "perception"];
+    const mergedAffect = {
+        affect: data.mood?.affect || "",
+        affectNotes: data.mood?.affectNotes || "",
+        ...(data.affectV2 || {}),
+    };
+
+    const groupOrder = [
+        "chiefComplaints",
+        "appearanceAndBehavior",
+        "speech",
+        "mood",
+        "affect",
+        "thought",
+        "perception",
+        "cognition",
+        "insight",
+        "judgment",
+        "remarks",
+        "observation",
+    ];
 
     return (
         <>
-            {Object.entries(data).map(([groupKey, groupValue], i) => {
-                const blockedKeys = ["_id", "__v"];
-                if (blockedKeys.includes(groupKey)) return null;
+            {groupOrder.map((groupKey, index) => {
+                const groupValue = data[groupKey];
+                if (!groupValue) return null;
+
                 const isObject =
                     typeof groupValue === "object" && groupValue !== null;
 
-                // ⭐ CASE 1: GROUP SECTION (appearance, speech, mood…)  
-                if (isObject) {
-                    return (
-                        <Col xs={12} key={i}>
-                            <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
-                                {convertCamelCaseToTitleCase(groupKey)}
-                            </h6>
+                // MOOD + AFFECT
+                if (groupKey === "mood") {
+                    const { affect, affectNotes, ...filteredMood } = groupValue;
 
-                            {Object.entries(groupValue).map(([subKey, subValue], j) => (
-                                <div className="mt-1 mb-1" key={j}>
-                                    <p className="fs-xs-9 fs-md-11 mb-0">
-                                        <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                                            {convertCamelCaseToTitleCase(subKey)}:-
-                                        </span>
-                                        {subValue || ""}
-                                    </p>
-                                </div>
+                    return (
+                        <Col xs={12} key={index}>
+                            <h6 className="mt-3 mb-2">Mood</h6>
+
+                            {Object.entries(filteredMood).map(([k, v], j) => (
+                                <p key={j} className="mb-1">
+                                    <span className="fw-semibold me-2">
+                                        {fieldLabelMap[k] ??
+                                            convertCamelCaseToTitleCase(k)}
+                                        :
+                                    </span>
+                                    {convertSnakeToTitle(v)}
+                                </p>
+                            ))}
+
+                            <h6 className="mt-3 mb-2">Affect</h6>
+
+                            {Object.entries(mergedAffect).map(([k, v], j) => (
+                                <p key={j} className="mb-1">
+                                    <span className="fw-semibold me-2">
+                                        {fieldLabelMap[k] ??
+                                            convertCamelCaseToTitleCase(k)}
+                                        :
+                                    </span>
+                                    {convertSnakeToTitle(v)}
+                                </p>
                             ))}
                         </Col>
                     );
                 }
 
-                // ⭐ CASE 2: SINGLE FIELD SECTIONS (judgment, remarks)
-                if (singleFieldSections.includes(groupKey)) {
-                    return (
-                        <Col xs={12} key={i}>
-                            <h6 className="mt-3 mb-2 fs-xs-12 fs-md-14 display-7">
-                                {convertCamelCaseToTitleCase(groupKey)}
-                            </h6>
+                // PERCEPTION
+                if (groupKey === "perception") {
+                    const perceptionObj = {};
 
-                            <div className="mt-1 mb-1">
-                                <p className="fs-xs-9 fs-md-11 mb-0">{groupValue || ""}</p>
-                            </div>
+                    if (data.perception && String(data.perception).trim() !== "") {
+                        perceptionObj.perception = data.perception;
+                    }
+
+                    if (
+                        data.perceptionNotes &&
+                        String(data.perceptionNotes).trim() !== ""
+                    ) {
+                        perceptionObj.perceptionNotes = data.perceptionNotes;
+                    }
+
+                    if (Object.keys(perceptionObj).length === 0) return null;
+
+                    return (
+                        <Col xs={12} key={index}>
+                            <h6 className="mt-3 mb-2">Perception</h6>
+
+                            {Object.entries(perceptionObj).map(([k, v], j) => (
+                                <p key={j} className="mb-1">
+                                    <span className="fw-semibold me-2">
+                                        {fieldLabelMap[k] ??
+                                            convertCamelCaseToTitleCase(k)}
+                                        :
+                                    </span>
+                                    {convertSnakeToTitle(v)}
+                                </p>
+                            ))}
                         </Col>
                     );
                 }
 
-                // ⭐ CASE 3: fallback (should not be common)
+                // SIMPLE SINGLE FIELDS
+                if (["judgment", "remarks", "chiefComplaints", "observation"].includes(groupKey)) {
+                    if (!groupValue || String(groupValue).trim() === "") return null;
+
+                    return (
+                        <Col xs={12} key={index}>
+                            <h6 className="mt-3 mb-2">
+                                {convertCamelCaseToTitleCase(groupKey)}
+                            </h6>
+                            <p className="mb-1">{convertSnakeToTitle(groupValue)}</p>
+                        </Col>
+                    );
+                }
+
+                //  NORMAL OBJECT GROUP
+                if (isObject) {
+                    return (
+                        <Col xs={12} key={index}>
+                            <h6 className="mt-3 mb-2">
+                                {convertCamelCaseToTitleCase(groupKey)}
+                            </h6>
+
+                            {Object.entries(groupValue).map(([k, v], j) => (
+                                <p key={j} className="mb-1">
+                                    <span className="fw-semibold me-2">
+                                        {fieldLabelMap[k] ??
+                                            convertCamelCaseToTitleCase(k)}
+                                        :
+                                    </span>
+                                    {convertSnakeToTitle(v)}
+                                </p>
+                            ))}
+                        </Col>
+                    );
+                }
+
+                // SIMPLE VALUE
                 return (
-                    <Col xs={12} key={i}>
-                        <div className="mt-1 mb-1">
-                            <p className="fs-xs-9 fs-md-11 mb-0">
-                                <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                                    {convertCamelCaseToTitleCase(groupKey)}:
-                                </span>
-                                {groupValue}
-                            </p>
-                        </div>
+                    <Col xs={12} key={index}>
+                        <p className="mb-1">
+                            <span className="fw-semibold me-2">
+                                {convertCamelCaseToTitleCase(groupKey)}:
+                            </span>
+                            {convertSnakeToTitle(groupValue)}
+                        </p>
                     </Col>
                 );
             })}
