@@ -552,10 +552,10 @@ const mentalExaminationV2Fields = [
     options: ["shallow", "blunted", "flat"]
   },
   {
-    label: "Mobility of affect",
+    label: "Mobility of Affect",
     name: "mobility",
     type: "radio",
-    options: ["shallow", "blunted", "flat"]
+    options: ["constricted", "fixed", "labile "]
   },
   {
     label: "Range",
@@ -576,10 +576,13 @@ const mentalExaminationV2Fields = [
     options: ["present", "absent"]
   },
   {
-    label: "Diurnal variation of affect",
+    label: "Diurnal Variation of Affect",
     name: "diurnalVariation",
     type: "radio",
-    options: ["present", "absent"]
+    options: [
+      { label: "Worse in Morning", value: "worse_in_morning" },
+      { label: "Worse in Evening", value: "worse_in_evening" },
+    ]
   },
   {
     label: "Appropriateness",
