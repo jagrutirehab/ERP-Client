@@ -67,6 +67,9 @@ const RoundNotes = () => {
   const [patientOption, setPatientOption] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
   const centerAccess = useSelector((state) => state.Center.data);
+  const [centerIds, setCenterIds] = useState(
+    centerAccess?.map((center) => center._id) || []
+  );
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -83,6 +86,12 @@ const RoundNotes = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, hasIncidentPermission, permissionLoader]);
+
+  useEffect(() => {
+    if (centerAccess && !drawer.isOpen) {
+      setCenterIds(centerAccess?.map((center) => center._id) || []);
+    }
+  }, [centerAccess, drawer.isOpen]);
 
   const staffOptions = useMemo(
     () =>
@@ -140,9 +149,16 @@ const RoundNotes = () => {
     }
   }, [filters.patientId, formatPatientFilterOption, patientOption]);
 
+  console.log({ centerAccess });
+
   useEffect(() => {
-    dispatch(fetchRoundNoteStaff());
-  }, [dispatch]);
+    if (centerIds?.length)
+      dispatch(
+        fetchRoundNoteStaff({
+          centerAccess: JSON.stringify(centerIds),
+        })
+      );
+  }, [dispatch, centerIds]);
 
   const queryPayload = useMemo(() => {
     const payload = {
@@ -508,6 +524,8 @@ const RoundNotes = () => {
         isOpen={drawer.isOpen}
         mode={drawer.mode}
         data={drawer.data}
+        staffLoading={staffLoading}
+        setCenterIds={setCenterIds}
         carryForwardSource={drawer.carryForwardSource}
         staffOptions={staffOptions}
         floors={floors}
