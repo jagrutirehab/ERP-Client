@@ -494,40 +494,35 @@ const mentalExaminationV2Fields = [
   },
 
   { label: "Mood", type: "header" },
-  {
-    label: "Objective Mood",
-    name: "objective",
-    type: "textarea",
-  },
+  // {
+  //   label: "Objective Mood",
+  //   name: "objective",
+  //   type: "textarea",
+  // },
   {
     label: "Subjective Mood",
     name: "subjective",
     type: "textarea",
   },
-  {
-    label: "Lability",
-    name: "lability",
-    type: "radio",
-    options: ["present", "absent"],
-  },
-  {
-    label: "Appropriateness",
-    name: "appropriateness1",
-    type: "text",
-  },
+  // {
+  //   label: "Lability",
+  //   name: "lability",
+  //   type: "radio",
+  //   options: ["present", "absent"],
+  // },
+  // {
+  //   label: "Appropriateness",
+  //   name: "appropriateness1",
+  //   type: "text",
+  // },
 
   { label: "Affect", type: "header" },
-  {
-    label: "Affect",
-    name: "affect",
-    type: "radio",
-    options: ["euthymic", "depressed", "irritable", "elated"],
-  },
-  {
-    label: "Affect Notes",
-    name: "affectNotes",
-    type: "textarea",
-  },
+  // {
+  //   label: "Affect",
+  //   name: "affect",
+  //   type: "radio",
+  //   options: ["euthymic", "depressed", "irritable", "elated"],
+  // },
   {
     label: "Quality",
     name: "quality",
@@ -588,6 +583,11 @@ const mentalExaminationV2Fields = [
     label: "Appropriateness",
     name: "appropriateness2",
     type: "text"
+  },
+  {
+    label: "Affect Notes",
+    name: "affectNotes",
+    type: "textarea",
   },
 
 
@@ -673,11 +673,31 @@ const mentalExaminationV2Fields = [
     name: "grade",
     type: "select",
     options: [
-      { label: "Grade 1 - Complete Denial of Illness", value: "grade_1-_complete_denial_of_illness" },
-      { label: "Grade 2 - Slight Awareness But Still Denying", value: "grade_2-_slight_awareness_byt_still_denying" },
-      { label: "Grade 3 - Awareness of Being Sick, But Blaming External Factors", value: "grade_3-_awareness_of_being_sick_but_blaming_external_factors" },
-      { label: "Grade 4 - Intellectual insight", value: "grade_4-_intellectual_insight" },
-      { label: "Grade 5 - True emotional insight", value: "grade_5-_true_emotional_insight" }
+      {
+        label: "Grade 1 - Complete Denial of Illness",
+        value: "grade_1-_complete_denial_of_illness"
+      },
+      {
+        label: "Grade 2 - Slight Awareness But Still Denying",
+        value: "grade_2-_slight_awareness_byt_still_denying"
+      },
+      {
+        label: "Grade 3 - Awareness of Being Sick, But Blaming External Factors",
+        value: "grade_3-_awareness_of_being_sick_but_blaming_external_factors"
+      },
+      {
+        label: "Grade 4 - Aware Something Is Wrong And Self Is Involved, But Feels Helpless And Attributes It To Unknown/Organic Factors.",
+        value: "grade_4-_aware_something_is_wrong_and_self_is_involved,_but_feels_helpless_and_attributes_it_to_unknown/organic_factors"
+      },
+      {
+        label: "Grade 5 - Understands They're Contributing To the Issue But Has No Clue How To Fix It.",
+        value: "grade_5-_understands_they're_contributing_to_the_issue_but_has_no_clue_how_to_fix_it"
+      },
+      {
+        label: "Grade 6 - Fully Aware Of The Problem, Accepts Responsibility, And Is Willing To Take Help And Make Changes.",
+        value: "grade_6-_fully_aware_of_the_problem,_accepts_responsibility,_and_willing_to_help_and_make_changes"
+      }
+
     ],
     labelHidden: true
   },

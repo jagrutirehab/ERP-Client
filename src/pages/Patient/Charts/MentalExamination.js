@@ -18,7 +18,7 @@ const MentalExamination = ({ data }) => {
     });
 
     const mergedAffect = {
-        affect: data.mood?.affect || "",
+        ...data.mood?.affect && { affect: data.mood.affect },
         affectNotes: data.mood?.affectNotes || "",
         ...(data.affectV2 || {}),
     };
