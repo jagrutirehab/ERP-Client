@@ -45,6 +45,7 @@ import { useForm, Controller } from "react-hook-form";
 import RoundNoteForm, { CarryForwardStrip } from "./RoundNoteForm";
 import RoundNoteCard from "./RoundCard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
+import { getRoundNoteStaff } from "../../helpers/backend_helper";
 
 const RoundNotes = () => {
   const dispatch = useDispatch();
@@ -92,15 +93,6 @@ const RoundNotes = () => {
       setCenterIds(centerAccess?.map((center) => center._id) || []);
     }
   }, [centerAccess, drawer.isOpen]);
-
-  const staffOptions = useMemo(
-    () =>
-      staff.map((member) => ({
-        label: `${member.name} (${member.role})`,
-        value: member._id,
-      })),
-    [staff]
-  );
 
   const loadPatientOptions = useCallback(async (inputValue) => {
     if (!inputValue) return [];
@@ -150,15 +142,6 @@ const RoundNotes = () => {
   }, [filters.patientId, formatPatientFilterOption, patientOption]);
 
   console.log({ centerAccess });
-
-  useEffect(() => {
-    if (centerIds?.length)
-      dispatch(
-        fetchRoundNoteStaff({
-          centerAccess: JSON.stringify(centerIds),
-        })
-      );
-  }, [dispatch, centerIds]);
 
   const queryPayload = useMemo(() => {
     const payload = {
@@ -375,15 +358,35 @@ const RoundNotes = () => {
                 </FormGroup> */}
                 <FormGroup>
                   <Label>Round taken by</Label>
-                  <Select
+                  <AsyncSelect
                     isMulti
-                    isLoading={staffLoading}
-                    options={staffOptions}
-                    value={staffOptions.filter((option) =>
-                      filters.staffIds?.includes(option.value)
-                    )}
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={async (inputValue) => {
+                      const selectedCenterIds =
+                        filters.center?.length > 0
+                          ? filters.center
+                          : centerAccess.map((c) => c._id);
+
+                      const response = await getRoundNoteStaff({
+                        search: inputValue,
+                        centerAccess: JSON.stringify(selectedCenterIds),
+                      });
+                      return response.data.map((member) => ({
+                        label: `${member.name} (${member.role})`,
+                        value: member._id,
+                      }));
+                    }}
                     onChange={handleStaffChange}
                     classNamePrefix="select2"
+                    value={
+                      filters.staffIds?.length
+                        ? filters.staffIds.map((id) => ({
+                            label: "Selected Staff", // Placeholder as we don't have the name
+                            value: id,
+                          }))
+                        : []
+                    }
                   />
                 </FormGroup>
               </Form>
@@ -527,7 +530,6 @@ const RoundNotes = () => {
         staffLoading={staffLoading}
         setCenterIds={setCenterIds}
         carryForwardSource={drawer.carryForwardSource}
-        staffOptions={staffOptions}
         floors={floors}
         onClose={() =>
           dispatch(
