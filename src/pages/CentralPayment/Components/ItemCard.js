@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
 
-const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
+const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -75,8 +75,70 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
 
     return (
         <React.Fragment>
-            <Card className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}>
-                <CardBody className="py-3">
+            <Card
+                className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}
+                style={{
+                    position: "relative",
+                    ...(flag === "paymentProcessing" && { minHeight: 265 })
+                }}
+            >
+                <CardBody className="py-3" style={{ position: "relative", paddingTop: 28 }}>
+                    {showSelect && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 12,
+                                right: 12,
+                                zIndex: 50,
+                            }}
+                        >
+                            <label
+                                style={{
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center"
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={() => onSelect(item._id)}
+                                    style={{
+                                        opacity: 0,
+                                        position: "absolute",
+                                        width: 0,
+                                        height: 0,
+                                        cursor: "pointer"
+                                    }}
+                                />
+
+                                <span
+                                    style={{
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: "50%",
+                                        border: selected ? "2px solid #28a745" : "2px solid #aaa",
+                                        backgroundColor: selected ? "#28a745" : "transparent",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        transition: "all 0.15s ease"
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: "50%",
+                                            backgroundColor: "white",
+                                            opacity: selected ? 1 : 0,
+                                            transition: "opacity 0.15s ease"
+                                        }}
+                                    />
+                                </span>
+                            </label>
+                        </div>
+                    )}
                     <Row className="align-items-center">
                         <Col md={8}>
                             <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
