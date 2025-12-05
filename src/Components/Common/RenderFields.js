@@ -76,6 +76,43 @@ const RenderFields = ({ fields, validation }) => {
                       })}
                     </Input>
                   </>
+                ) : field.type === "select2" ? (
+                  <Select
+                    name={field.name}
+                    options={(field.options || []).map(opt => ({
+                      value: typeof opt === "string" ? opt : opt.value,
+                      label: typeof opt === "string" ? opt : opt.label,
+                    }))}
+                    value={
+                      (field.options || [])
+                        .map(opt => ({
+                          value: typeof opt === "string" ? opt : opt.value,
+                          label: typeof opt === "string" ? opt : opt.label,
+                        }))
+                        .find(option => option.value === validation.values[field.name]) || null
+                    }
+                    onChange={(selected) =>
+                      validation.setFieldValue(field.name, selected ? selected.value : "")
+                    }
+                    onBlur={() => validation.setFieldTouched(field.name, true)}
+                    placeholder={`Enter ${field.label}`}
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: 45,
+                        borderColor:
+                          validation.touched[field.name] && validation.errors[field.name]
+                            ? "red"
+                            : base.borderColor,
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        whiteSpace: "normal",
+                        lineHeight: "20px",
+                      }),
+                    }}
+                  />
                 )
                   : field.type === "checkbox" ? (
                     <>
