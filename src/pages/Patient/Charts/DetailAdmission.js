@@ -174,7 +174,7 @@ const DetailAdmission = ({ data }) => {
           ];
 
           const mergedAffect = {
-            affect: v2.mood?.affect || "",
+            ...data.mood?.affect && { affect: data.mood.affect },
             affectNotes: v2.mood?.affectNotes || "",
             ...(v2.affectV2 || {}),
           };

@@ -55,14 +55,20 @@ const MentalExamination = ({ author, patient, chartDate, editChartData, type, sh
             coherence: editMentalExamination ? editMentalExamination?.speech?.coherence : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.coherence : "",
             goalDirection: editMentalExamination ? editMentalExamination?.speech?.goalDirection : ptLatestMentalExamination ? ptLatestMentalExamination?.speech?.goalDirection : "",
 
-            affect: editMentalExamination ? editMentalExamination?.mood?.affect : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.affect : "",
+            // affect: editMentalExamination ? editMentalExamination?.mood?.affect : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.affect : "",
             affectNotes: editMentalExamination ? editMentalExamination?.mood?.affectNotes : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.affectNotes : "",
             subjective: editMentalExamination ? editMentalExamination?.mood?.subjective : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.subjective : "",
-            objective: editMentalExamination ? editMentalExamination?.mood?.objective : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.objective : "",
-            lability: editMentalExamination ? editMentalExamination?.mood?.lability : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.lability : "",
-            appropriateness1: editMentalExamination ? editMentalExamination?.mood?.appropriateness : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.appropriateness : "",
+            // objective: editMentalExamination ? editMentalExamination?.mood?.objective : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.objective : "",
+            // lability: editMentalExamination ? editMentalExamination?.mood?.lability : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.lability : "",
+            // appropriateness1: editMentalExamination ? editMentalExamination?.mood?.appropriateness : ptLatestMentalExamination ? ptLatestMentalExamination?.mood?.appropriateness : "",
 
-            quality: editMentalExamination ? editMentalExamination?.affectV2?.quality : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.quality : "",
+            // quality: editMentalExamination ? editMentalExamination?.affectV2?.quality : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.quality : "",
+            quality:
+                editMentalExamination?.affectV2?.quality ??
+                editMentalExamination?.mood?.affect ??
+                ptLatestMentalExamination?.affectV2?.quality ??
+                ptLatestMentalExamination?.mood?.affect ??
+                "",
             intensity: editMentalExamination ? editMentalExamination?.affectV2?.intensity : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.intensity : "",
             mobility: editMentalExamination ? editMentalExamination?.affectV2?.mobility : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.mobility : "",
             range: editMentalExamination ? editMentalExamination?.affectV2?.range : ptLatestMentalExamination ? ptLatestMentalExamination?.affectV2?.range : "",
@@ -117,11 +123,11 @@ const MentalExamination = ({ author, patient, chartDate, editChartData, type, sh
         }
     });
 
-    useEffect(() => {
-        if (!editMentalExamination) {
-            validation.resetForm();
-        }
-    }, [dispatch, editMentalExamination]);
+    // useEffect(() => {
+    //     if (!editMentalExamination) {
+    //         validation.resetForm();
+    //     }
+    // }, [dispatch, editMentalExamination]);
 
     const closeForm = () => {
         dispatch(createEditChart({ data: null, chart: null, isOpen: false }));

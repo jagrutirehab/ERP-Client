@@ -82,7 +82,7 @@ const MentalExaminationBody = ({ data, chart, from = MENTAL_EXAMINATION }) => {
     });
 
     const mergedAffect = {
-        affect: source.mood?.affect || "",
+        ...data.mood?.affect && { affect: data.mood.affect },
         affectNotes: source.mood?.affectNotes || "",
         ...(source.affectV2 || {}),
     };
