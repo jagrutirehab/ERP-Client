@@ -105,41 +105,43 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
             <div className="d-flex flex-column">
                 <Container fluid>
                     <div className="mb-5">
-                        <div className='d-flex justify-content-end mb-2 gap-2'>
-                            <Button
-                                onClick={handleCopyAllEnets}
-                                color='primary'
-                                className='text-white'
-                            >
-                                {eNetCopyLoader ? <Spinner className="me-1" size={"sm"} /> : <Copy className="me-1" size={16} />}
-                                Copy ALl E-Nets
-                            </Button>
-                            <Button
-                                onClick={handleCopySelectedENets}
-                                color='primary'
-                                className='text-white'
-                                disabled={selectedItems.length === 0}
-                            >
-                                <CopyCheck className="me-1" size={16} />
-                                Copy Selected E-Nets ({selectedItems.length})
-                            </Button>
-                        </div>
                         {approvals?.data?.length > 0 ? (
-                            <Row>
-                                {(approvals?.data || []).map((payment) => (
-                                    <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
-                                        <ItemCard
-                                            hasCreatePermission={hasCreatePermission}
-                                            item={payment}
-                                            border={true}
-                                            flag="paymentProcessing"
-                                            showSelect={true}
-                                            selected={selectedItems.includes(payment._id)}
-                                            onSelect={toggleItemSelection}
-                                        />
-                                    </Col>
-                                ))}
-                            </Row>
+                            <>
+                                <div className='d-flex justify-content-end mb-2 gap-2'>
+                                    <Button
+                                        onClick={handleCopyAllEnets}
+                                        color='primary'
+                                        className='text-white'
+                                    >
+                                        {eNetCopyLoader ? <Spinner className="me-1" size={"sm"} /> : <Copy className="me-1" size={16} />}
+                                        Copy ALl E-Nets
+                                    </Button>
+                                    <Button
+                                        onClick={handleCopySelectedENets}
+                                        color='primary'
+                                        className='text-white'
+                                        disabled={selectedItems.length === 0}
+                                    >
+                                        <CopyCheck className="me-1" size={16} />
+                                        Copy Selected E-Nets ({selectedItems.length})
+                                    </Button>
+                                </div>
+                                <Row>
+                                    {(approvals?.data || []).map((payment) => (
+                                        <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
+                                            <ItemCard
+                                                hasCreatePermission={hasCreatePermission}
+                                                item={payment}
+                                                border={true}
+                                                flag="paymentProcessing"
+                                                showSelect={true}
+                                                selected={selectedItems.includes(payment._id)}
+                                                onSelect={toggleItemSelection}
+                                            />
+                                        </Col>
+                                    ))}
+                                </Row>
+                            </>
                         ) : (
                             <p className="text-muted text-center py-3">No pending payment processing requests</p>
                         )}
