@@ -24,6 +24,7 @@ import moment from "moment";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useSelector } from "react-redux";
 import SearchPatient from "../Booking/Components/SearchPatient";
+import { getRoundNoteStaff } from "../../helpers/backend_helper";
 
 export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
   if (!notes?.length) return null;
@@ -438,11 +439,25 @@ const RoundNoteForm = ({
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Select
+                  <AsyncSelect
                     {...field}
                     isMulti
-                    isLoading={staffLoading}
-                    options={staffOptions}
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={async (inputValue) => {
+                      const currentCenter = getValues("center");
+                      const centerId = currentCenter?.value;
+                      const response = await getRoundNoteStaff({
+                        search: inputValue,
+                        centerAccess: centerId
+                          ? JSON.stringify([centerId])
+                          : JSON.stringify([]),
+                      });
+                      return response.data.map((member) => ({
+                        label: `${member.name} (${member.role})`,
+                        value: member._id,
+                      }));
+                    }}
                     classNamePrefix="select2"
                     onChange={(val) => field.onChange(val)}
                     value={field.value}
@@ -514,16 +529,28 @@ const RoundNoteForm = ({
           </div>
 
           {/* Table */}
-          <div className="table-responsive overflow-visible mt-3">
-            <table className="table align-middle">
+          <div
+            className="mt-3"
+            style={{
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            <table className="table align-middle" style={{ minWidth: "900px" }}>
               <thead>
                 <tr>
-                  <th style={{ width: 140 }}>Floor / Ward</th>
-                  <th style={{ width: 240 }}>Patient (optional)</th>
-                  <th style={{ width: 180 }}>Notes Applicable To</th>
+                  <th style={{ width: 140, minWidth: 140 }}>Floor / Ward</th>
+                  <th style={{ width: 240, minWidth: 240 }}>
+                    Patient (optional)
+                  </th>
+                  <th style={{ width: 180, minWidth: 180 }}>
+                    Notes Applicable To
+                  </th>
                   {/* <th>Round Taken By</th> */}
-                  <th style={{ width: 320 }}>Note / Observation</th>
-                  <th style={{ width: 90 }}>Actions</th>
+                  <th style={{ width: 320, minWidth: 320 }}>
+                    Note / Observation
+                  </th>
+                  <th style={{ width: 90, minWidth: 90 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>

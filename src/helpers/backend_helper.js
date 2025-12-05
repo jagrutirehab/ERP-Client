@@ -874,9 +874,7 @@ export const deleteRoundNote = (id) => {
 };
 
 export const getRoundNoteStaff = (params = {}) => {
-  return api.get(url.ROUND_NOTES_STAFF, {
-    params,
-  });
+  return api.get(url.ROUND_NOTES_STAFF, params);
 };
 
 export const getPendingActiveMedicines = (patientId) => {
