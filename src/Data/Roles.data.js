@@ -77,6 +77,7 @@ export const permissionList = [
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },

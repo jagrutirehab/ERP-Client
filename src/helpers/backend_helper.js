@@ -1075,6 +1075,17 @@ export const getCentralPaymentById = (paymentId) => {
   });
 };
 
+export const getAllENets = (params = {}) => {
+  return api.get(`${url.GET_ALL_ENETS}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
