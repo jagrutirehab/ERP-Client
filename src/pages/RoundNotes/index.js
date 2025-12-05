@@ -66,6 +66,7 @@ const RoundNotes = () => {
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
   const [patientOption, setPatientOption] = useState(null);
+  const [selectedStaffOptions, setSelectedStaffOptions] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
   const centerAccess = useSelector((state) => state.Center.data);
   const [centerIds, setCenterIds] = useState(
@@ -198,6 +199,7 @@ const RoundNotes = () => {
   };
 
   const handleStaffChange = (options) => {
+    setSelectedStaffOptions(options || []);
     dispatch(
       setRoundNotesFilters({
         staffIds: options?.map((option) => option.value) || [],
@@ -360,9 +362,8 @@ const RoundNotes = () => {
                   <Label>Round taken by</Label>
                   <AsyncSelect
                     isMulti
-                    cacheOptions
-                    defaultOptions
                     loadOptions={async (inputValue) => {
+                      if (!inputValue) return [];
                       const selectedCenterIds =
                         filters.center?.length > 0
                           ? filters.center
@@ -379,13 +380,10 @@ const RoundNotes = () => {
                     }}
                     onChange={handleStaffChange}
                     classNamePrefix="select2"
-                    value={
-                      filters.staffIds?.length
-                        ? filters.staffIds.map((id) => ({
-                            label: "Selected Staff", // Placeholder as we don't have the name
-                            value: id,
-                          }))
-                        : []
+                    value={selectedStaffOptions}
+                    placeholder="Type to search staff..."
+                    noOptionsMessage={({ inputValue }) =>
+                      inputValue ? "No staff found" : "Type to search..."
                     }
                   />
                 </FormGroup>

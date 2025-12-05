@@ -348,8 +348,11 @@ const RoundNoteForm = ({
                       //     new Date(dates[0].setHours(hours)).setMinutes(m)
                       //   )
                       // );
+                      const date = new Date(dates[0]);
+                      date.setHours(new Date().getHours());
+                      date.setMinutes(new Date().getMinutes());
 
-                      field.onChange(dates[0]);
+                      field.onChange(new Date(date));
                     }}
                   />
                 )}
@@ -442,9 +445,8 @@ const RoundNoteForm = ({
                   <AsyncSelect
                     {...field}
                     isMulti
-                    cacheOptions
-                    defaultOptions
                     loadOptions={async (inputValue) => {
+                      if (!inputValue) return [];
                       const currentCenter = getValues("center");
                       const centerId = currentCenter?.value;
                       const response = await getRoundNoteStaff({
@@ -461,6 +463,10 @@ const RoundNoteForm = ({
                     classNamePrefix="select2"
                     onChange={(val) => field.onChange(val)}
                     value={field.value}
+                    placeholder="Type to search staff..."
+                    noOptionsMessage={({ inputValue }) =>
+                      inputValue ? "No staff found" : "Type to search..."
+                    }
                   />
                 )}
               />

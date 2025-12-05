@@ -873,8 +873,14 @@ export const deleteRoundNote = (id) => {
   return api.delete(`${url.ROUND_NOTES}/${id}`);
 };
 
-export const getRoundNoteStaff = (params = {}) => {
-  return api.get(url.ROUND_NOTES_STAFF, params);
+export const getRoundNoteStaff = ({
+  search = "",
+  centerAccess = "[]",
+} = {}) => {
+  const params = new URLSearchParams();
+  if (search) params.append("search", search);
+  params.append("centerAccess", centerAccess);
+  return api.get(`${url.ROUND_NOTES_STAFF}?${params.toString()}`);
 };
 
 export const getPendingActiveMedicines = (patientId) => {
