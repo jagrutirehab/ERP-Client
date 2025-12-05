@@ -297,7 +297,7 @@ const fields = [
     {
         label: "Grade",
         name: "grade",
-        type: "select",
+        type: "select2",
         options: [
             {
                 label: "Grade 1 - Complete Denial of Illness",
