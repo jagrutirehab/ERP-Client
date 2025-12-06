@@ -136,6 +136,8 @@ const CounsellingNote = ({
 
   const noteSource = editCounsellingNote || fetchedNote;
 
+  console.log({ noteSource });
+
   const onSubmitClinicalForm = (
     values,
     files,
@@ -248,9 +250,9 @@ const CounsellingNote = ({
   }, [editChartData, editCounsellingNote, appointment]);
 
   useEffect(() => {
-    if (patientLatestCounsellingNote) {
-      setFetchedNote(patientLatestCounsellingNote.counsellingNote);
-    }
+    // if (patientLatestCounsellingNote) {
+    setFetchedNote(patientLatestCounsellingNote?.counsellingNote || null);
+    // }
   }, [patientLatestCounsellingNote]);
 
   console.log(patientLatestCounsellingNote, "counselling note");

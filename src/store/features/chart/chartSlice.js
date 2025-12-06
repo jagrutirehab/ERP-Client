@@ -958,6 +958,8 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchCounsellingNote.fulfilled, (state, { payload }) => {
+        console.log({ payload });
+
         state.loading = false;
         state.patientLatestCounsellingNote = payload.payload;
       })

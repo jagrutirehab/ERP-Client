@@ -737,12 +737,7 @@ const mentalExaminationV2Fields = [
 
 const counsellingNoteFields = [
   {
-    label: "Conclusion",
-    name: "conclusion",
-    type: "textarea",
-  },
-  {
-    label: "Objective of The Session",
+    label: "Objective of the session",
     name: "objective",
     type: "textarea",
   },
@@ -762,7 +757,7 @@ const counsellingNoteFields = [
     type: "textarea",
   },
   {
-    label: "Homework/ Task assigned",
+    label: "Homework/Task assigned",
     name: "homework",
     type: "textarea",
   },
@@ -772,7 +767,12 @@ const counsellingNoteFields = [
     type: "textarea",
   },
   {
-    label: "End goal for next session",
+    label: "Conclusion",
+    name: "conclusion",
+    type: "textarea",
+  },
+  {
+    label: "Goal for next session",
     name: "nextEndGoal",
     type: "textarea",
   },
