@@ -18,21 +18,9 @@ const CounsellingNote = ({ data }) => {
   return (
     <React.Fragment>
       <div>
-        {data?.conclusion && (
-          <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Conclusion:-</h6>
-            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.conclusion}</p>
-          </div>
-        )}
-        {data?.endGoalAchieved && (
-          <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">End Goal Achieved:-</h6>
-            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.endGoalAchieved}</p>
-          </div>
-        )}
         {data?.objective && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Objective of The Session:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Objective of The session:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.objective}</p>
           </div>
         )}
@@ -56,7 +44,7 @@ const CounsellingNote = ({ data }) => {
         )}
         {data?.homework && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Homework/ Task assigned:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Homework/Task assigned:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.homework}</p>
           </div>
         )}
@@ -68,15 +56,29 @@ const CounsellingNote = ({ data }) => {
             </p>
           </div>
         )}
+        {data?.conclusion && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Conclusion:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.conclusion}</p>
+          </div>
+        )}
         {data?.nextEndGoal && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Next End Goal:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Goal for next session:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.nextEndGoal}</p>
           </div>
         )}
+        {/* Previos schema field for previos data */}
+        {data?.endGoalAchieved && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">End goal achieved:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.endGoalAchieved}</p>
+          </div>
+        )}
+        {/* Previos schema field for previos data */}
         {data?.nextSessionDate && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Next Session Date:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Next session date:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">
               {format(new Date(data.nextSessionDate), "dd MMM yyyy")}
             </p>
