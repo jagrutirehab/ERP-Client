@@ -292,6 +292,7 @@ const RoundNotes = () => {
                     setPatientOption(null);
                     setPage(1);
                     dispatch(resetRoundNotesFilters());
+                    setSelectedStaffOptions([]);
                     // setRoundNotesFilters({
                     //   startDate: null,
                     //   endDate: null,
