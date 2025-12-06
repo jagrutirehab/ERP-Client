@@ -10,7 +10,7 @@ const getSessionTheme = (session) => {
     case "morning":
       return {
         background: "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)",
-        icon: <Sun size={24} className="text-warning" />,
+        icon: <Sun size={24} className="text-white" />,
         textColor: "text-dark",
         badgeColor: "warning",
         borderColor: "#FF9A9E",
@@ -19,7 +19,7 @@ const getSessionTheme = (session) => {
     case "afternoon":
       return {
         background: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
-        icon: <CloudSun size={24} className="text-primary" />,
+        icon: <CloudSun size={24} className="text-white" />,
         textColor: "text-dark",
         badgeColor: "info",
         borderColor: "#66a6ff",
@@ -31,7 +31,7 @@ const getSessionTheme = (session) => {
           "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)", // Adjusted for sunset vibe
         // Let's try a better sunset gradient
         background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-        icon: <Sunset size={24} className="text-danger" />,
+        icon: <Sunset size={24} className="text-white" />,
         textColor: "text-dark",
         badgeColor: "danger",
         borderColor: "#fa709a",
@@ -40,7 +40,7 @@ const getSessionTheme = (session) => {
     case "night":
       return {
         background: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
-        icon: <Moon size={24} className="text-black" />,
+        icon: <Moon size={24} className="text-white" />,
         textColor: "text-white",
         badgeColor: "primary",
         borderColor: "#330867",
@@ -50,7 +50,7 @@ const getSessionTheme = (session) => {
     default:
       return {
         background: "#ffffff",
-        icon: <Sun size={24} />,
+        icon: <Sun size={24} className="text-black" />,
         textColor: "text-dark",
         badgeColor: "secondary",
         borderColor: "#e9ecef",
@@ -92,14 +92,19 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
       <div
         className="p-3 d-flex justify-content-between align-items-center"
         style={{
-          background: theme.background,
+          // background: theme.background,
+          borderBottom: `1px solid ${theme.borderColor}`,
           color: theme.isDark ? "#fff" : "#343a40",
         }}
       >
         <div className="d-flex align-items-center gap-3">
           <div
             className="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm"
-            style={{ width: 45, height: 45 }}
+            style={{
+              background: theme.background,
+              width: 45,
+              height: 45,
+            }}
           >
             {theme.icon}
           </div>
