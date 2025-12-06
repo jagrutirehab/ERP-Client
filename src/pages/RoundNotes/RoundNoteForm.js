@@ -25,6 +25,7 @@ import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useSelector } from "react-redux";
 import SearchPatient from "../Booking/Components/SearchPatient";
 import { getRoundNoteStaff } from "../../helpers/backend_helper";
+import { setHours, setMinutes } from "date-fns";
 
 export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
   if (!notes?.length) return null;
@@ -242,12 +243,20 @@ const RoundNoteForm = ({
   const submit = handleSubmit((values) => {
     console.log({ values });
     // Build payload matching your mongoose schema
+    const date = new Date(values.date);
+    setHours(date, new Date().getHours());
+    setMinutes(date, new Date().getMinutes());
+    // date.setHours(new Date().getHours());
+    // date.setMinutes(new Date().getMinutes());
+
     const payload = {
-      roundDate: values.date,
+      roundDate: date.toISOString(),
       roundSession: values.session,
       roundTakenBy: values.roundTakenBy?.map((item) => item.value),
       center: values.center?.value,
-      occursAt: values.date ? new Date(values.date) : new Date(),
+      occursAt: values.date
+        ? new Date(values.date).toISOString()
+        : new Date().toISOString(),
       notes: (values.notes || [])
         .filter(
           (n) =>
@@ -339,20 +348,7 @@ const RoundNoteForm = ({
                     options={{ dateFormat: "d-m-Y" }}
                     value={field.value}
                     onChange={(dates) => {
-                      // const d = new Date();
-                      // const hours = d.getHours();
-                      // const m = d.getMinutes();
-
-                      // const date = new Date(
-                      //   new Date(
-                      //     new Date(dates[0].setHours(hours)).setMinutes(m)
-                      //   )
-                      // );
-                      const date = new Date(dates[0]);
-                      date.setHours(new Date().getHours());
-                      date.setMinutes(new Date().getMinutes());
-
-                      field.onChange(new Date(date));
+                      field.onChange(dates[0]);
                     }}
                   />
                 )}
