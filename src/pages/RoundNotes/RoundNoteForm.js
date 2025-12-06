@@ -250,13 +250,11 @@ const RoundNoteForm = ({
     // date.setMinutes(new Date().getMinutes());
 
     const payload = {
-      roundDate: date.toISOString(),
+      roundDate: date,
       roundSession: values.session,
       roundTakenBy: values.roundTakenBy?.map((item) => item.value),
       center: values.center?.value,
-      occursAt: values.date
-        ? new Date(values.date).toISOString()
-        : new Date().toISOString(),
+      occursAt: values.date ? new Date(values.date) : new Date(),
       notes: (values.notes || [])
         .filter(
           (n) =>
