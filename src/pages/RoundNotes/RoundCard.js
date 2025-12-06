@@ -174,7 +174,7 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
                   Patient
                 </th>
                 <th className="py-3" style={{ width: "15%" }}>
-                  Category
+                  Notes Applicable To
                 </th>
                 <th className="pe-4 py-3" style={{ width: "50%" }}>
                   Note
