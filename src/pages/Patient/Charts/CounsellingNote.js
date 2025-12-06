@@ -30,6 +30,44 @@ const CounsellingNote = ({ data }) => {
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.endGoalAchieved}</p>
           </div>
         )}
+        {data?.objective && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Objective of The Session:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.objective}</p>
+          </div>
+        )}
+        {data?.shortTermGoals && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Short term goals:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.shortTermGoals}</p>
+          </div>
+        )}
+        {data?.longTermGoals && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Long term goals:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.longTermGoals}</p>
+          </div>
+        )}
+        {data?.notes && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Notes:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.notes}</p>
+          </div>
+        )}
+        {data?.homework && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Homework/ Task assigned:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.homework}</p>
+          </div>
+        )}
+        {data?.reviewPreviousTask && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Review of previous task:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">
+              {data.reviewPreviousTask}
+            </p>
+          </div>
+        )}
         {data?.nextEndGoal && (
           <div className="d-flex">
             <h6 className="fs-xs-10 fs-md-14">Next End Goal:-</h6>
