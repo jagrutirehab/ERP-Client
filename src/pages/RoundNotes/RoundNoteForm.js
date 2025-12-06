@@ -687,6 +687,11 @@ const RoundNoteForm = ({
                               },
                             ]}
                             classNamePrefix="select2"
+                            menuPortalTarget={document.body}
+                            menuPosition="fixed"
+                            styles={{
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            }}
                             onChange={(opt) => field.onChange(opt.value)}
                             value={
                               field.value
