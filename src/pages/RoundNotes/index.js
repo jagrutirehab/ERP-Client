@@ -276,8 +276,6 @@ const RoundNotes = () => {
 
   const totalPages = pagination.totalPages || 1;
 
-  console.log({ list });
-
   return (
     <div className="page-content">
       <Row>
