@@ -24,6 +24,8 @@ import moment from "moment";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useSelector } from "react-redux";
 import SearchPatient from "../Booking/Components/SearchPatient";
+import { getRoundNoteStaff } from "../../helpers/backend_helper";
+import { setHours, setMinutes } from "date-fns";
 
 export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
   if (!notes?.length) return null;
@@ -91,10 +93,12 @@ const RoundNoteForm = ({
   mode,
   data,
   carryForwardSource,
+  staffLoading,
   staffOptions = [],
   floors = [],
   onClose,
   onSubmit,
+  setCenterIds,
   loadPatientOptions,
   carryForwardNotes,
   onCloseCarryForward,
@@ -239,8 +243,14 @@ const RoundNoteForm = ({
   const submit = handleSubmit((values) => {
     console.log({ values });
     // Build payload matching your mongoose schema
+    const date = new Date(values.date);
+    setHours(date, new Date().getHours());
+    setMinutes(date, new Date().getMinutes());
+    // date.setHours(new Date().getHours());
+    // date.setMinutes(new Date().getMinutes());
+
     const payload = {
-      roundDate: values.date,
+      roundDate: date,
       roundSession: values.session,
       roundTakenBy: values.roundTakenBy?.map((item) => item.value),
       center: values.center?.value,
@@ -274,8 +284,6 @@ const RoundNoteForm = ({
       })),
     });
   });
-
-  console.log({ data, values: getValues() });
 
   return (
     <Modal size="xl" toggle={onClose} isOpen={isOpen} direction="end">
@@ -338,16 +346,6 @@ const RoundNoteForm = ({
                     options={{ dateFormat: "d-m-Y" }}
                     value={field.value}
                     onChange={(dates) => {
-                      // const d = new Date();
-                      // const hours = d.getHours();
-                      // const m = d.getMinutes();
-
-                      // const date = new Date(
-                      //   new Date(
-                      //     new Date(dates[0].setHours(hours)).setMinutes(m)
-                      //   )
-                      // );
-
                       field.onChange(dates[0]);
                     }}
                   />
@@ -397,18 +395,26 @@ const RoundNoteForm = ({
               className="mb-0"
               style={{ minWidth: 220, flex: "0 0 220px" }}
             >
-              <Label>Round Taken by</Label>
+              <Label>Center</Label>
               <Controller
-                name={`roundTakenBy`}
+                name={`center`}
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <Select
                     {...field}
-                    isMulti
-                    options={staffOptions}
+                    isMulti={false}
+                    options={centers.map((cn) => ({
+                      label: cn.title,
+                      value: cn._id,
+                    }))}
                     classNamePrefix="select2"
-                    onChange={(val) => field.onChange(val)}
+                    onChange={(val) => {
+                      field.onChange(val);
+                      console.log({ val });
+
+                      setCenterIds([val.value]);
+                    }}
                     value={field.value}
                   />
                 )}
@@ -424,22 +430,37 @@ const RoundNoteForm = ({
               className="mb-0"
               style={{ minWidth: 220, flex: "0 0 220px" }}
             >
-              <Label>Center</Label>
+              <Label>Round Taken by</Label>
               <Controller
-                name={`center`}
+                name={`roundTakenBy`}
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Select
+                  <AsyncSelect
                     {...field}
-                    isMulti={false}
-                    options={centers.map((cn) => ({
-                      label: cn.title,
-                      value: cn._id,
-                    }))}
+                    isMulti
+                    loadOptions={async (inputValue) => {
+                      if (!inputValue) return [];
+                      const currentCenter = getValues("center");
+                      const centerId = currentCenter?.value;
+                      const response = await getRoundNoteStaff({
+                        search: inputValue,
+                        centerAccess: centerId
+                          ? JSON.stringify([centerId])
+                          : JSON.stringify([]),
+                      });
+                      return response.data.map((member) => ({
+                        label: `${member.name} (${member.role})`,
+                        value: member._id,
+                      }));
+                    }}
                     classNamePrefix="select2"
                     onChange={(val) => field.onChange(val)}
                     value={field.value}
+                    placeholder="Type to search staff..."
+                    noOptionsMessage={({ inputValue }) =>
+                      inputValue ? "No staff found" : "Type to search..."
+                    }
                   />
                 )}
               />
@@ -508,16 +529,28 @@ const RoundNoteForm = ({
           </div>
 
           {/* Table */}
-          <div className="table-responsive overflow-visible mt-3">
-            <table className="table align-middle">
+          <div
+            className="mt-3"
+            style={{
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            <table className="table align-middle" style={{ minWidth: "900px" }}>
               <thead>
                 <tr>
-                  <th style={{ width: 140 }}>Floor / Ward</th>
-                  <th style={{ width: 240 }}>Patient (optional)</th>
-                  <th style={{ width: 180 }}>Notes Applicable To</th>
+                  <th style={{ width: 140, minWidth: 140 }}>Floor / Ward</th>
+                  <th style={{ width: 240, minWidth: 240 }}>
+                    Patient (optional)
+                  </th>
+                  <th style={{ width: 180, minWidth: 180 }}>
+                    Notes Applicable To
+                  </th>
                   {/* <th>Round Taken By</th> */}
-                  <th style={{ width: 320 }}>Note / Observation</th>
-                  <th style={{ width: 90 }}>Actions</th>
+                  <th style={{ width: 320, minWidth: 320 }}>
+                    Note / Observation
+                  </th>
+                  <th style={{ width: 90, minWidth: 90 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -654,6 +687,11 @@ const RoundNoteForm = ({
                               },
                             ]}
                             classNamePrefix="select2"
+                            menuPortalTarget={document.body}
+                            menuPosition="fixed"
+                            styles={{
+                              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                            }}
                             onChange={(opt) => field.onChange(opt.value)}
                             value={
                               field.value
@@ -746,398 +784,3 @@ const RoundNoteForm = ({
 };
 
 export default RoundNoteForm;
-
-// import React, { useEffect } from "react";
-// import {
-//   Badge,
-//   Button,
-//   Card,
-//   CardBody,
-//   Form,
-//   FormGroup,
-//   Input,
-//   Label,
-//   Modal,
-//   ModalBody,
-//   ModalHeader,
-// } from "reactstrap";
-// import Select from "react-select";
-// import AsyncSelect from "react-select/async";
-// import Flatpickr from "react-flatpickr";
-// import moment from "moment";
-// import { useForm, Controller } from "react-hook-form";
-
-// export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
-//   if (!notes?.length) return null;
-//   return (
-//     <Card className="mb-3 border-warning">
-//       <CardBody>
-//         <div className="d-flex justify-content-between align-items-center mb-2">
-//           <h6 className="text-warning mb-0">Previous carried forward notes</h6>
-//           <small className="text-muted">
-//             Use a note to pre-fill the form or close it if resolved.
-//           </small>
-//         </div>
-//         <div className="d-flex flex-wrap gap-2">
-//           {notes.map((note) => (
-//             <div
-//               key={note._id}
-//               className="border rounded p-2 flex-grow-1"
-//               style={{ minWidth: 230 }}
-//             >
-//               <div className="d-flex justify-content-between align-items-start gap-2">
-//                 <div>
-//                   <strong>{moment(note.occursAt).format("MMM D, YYYY")}</strong>
-//                   <div className="text-muted small">
-//                     {note.patient?.name || "General Round"}
-//                   </div>
-//                 </div>
-//                 <Badge color="warning" pill>
-//                   Open
-//                 </Badge>
-//               </div>
-//               <p
-//                 className="text-muted small mb-2 mt-2"
-//                 style={{ minHeight: 40 }}
-//               >
-//                 {note.notes?.slice(0, 90)}
-//                 {note.notes?.length > 90 ? "..." : ""}
-//               </p>
-//               <div className="d-flex gap-2">
-//                 <Button
-//                   color="primary"
-//                   size="sm"
-//                   onClick={() => onUse(note)}
-//                   className="flex-grow-1"
-//                 >
-//                   Use in new note
-//                 </Button>
-//                 <Button
-//                   color="light"
-//                   size="sm"
-//                   onClick={() => onCloseCarryForward(note)}
-//                 >
-//                   Close
-//                 </Button>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </CardBody>
-//     </Card>
-//   );
-// };
-
-// const RoundNoteForm = ({
-//   isOpen,
-//   mode,
-//   data,
-//   carryForwardSource,
-//   staffOptions,
-//   floors,
-//   onClose,
-//   onSubmit,
-//   loadPatientOptions,
-//   carryForwardNotes,
-//   onCloseCarryForward,
-// }) => {
-//   const {
-//     control,
-//     handleSubmit,
-//     reset,
-//     watch,
-//     setValue,
-//     formState: { errors },
-//   } = useForm({
-//     defaultValues: {
-//       date: new Date(),
-//       session: moment().format("HH:mm"),
-//       floor: "",
-//       patient: null,
-//       roundTakenBy: [],
-//       carryForward: Boolean(carryForwardSource),
-//       notes: carryForwardSource?.notes || "",
-//       carryForwardSource: carryForwardSource?._id || null,
-//     },
-//   });
-
-//   const selectedCarryForward = watch("carryForward");
-
-//   useEffect(() => {
-//     if (mode === "edit" && data) {
-//       reset({
-//         date: new Date(data.roundDate || data.occursAt),
-//         session: data.roundSession,
-//         floor: data.floor || "",
-//         patient: data.patient
-//           ? {
-//               label: `${data.patient.name} (${data.patient.patientId || ""})`,
-//               value: data.patient._id,
-//             }
-//           : null,
-//         roundTakenBy:
-//           data.roundTakenBy?.map((member) => ({
-//             label: `${member.name} (${member.role})`,
-//             value: member._id,
-//           })) || [],
-//         carryForward: Boolean(data.carryForward),
-//         notes: data.notes || "",
-//         carryForwardSource: data.carryForwardSource || null,
-//       });
-//     } else {
-//       reset({
-//         date: new Date(),
-//         session: "",
-//         floor: carryForwardSource?.floor || "",
-//         patient: carryForwardSource?.patient
-//           ? {
-//               label: `${carryForwardSource.patient.name} (${
-//                 carryForwardSource.patient.patientId || ""
-//               })`,
-//               value: carryForwardSource.patient._id,
-//             }
-//           : null,
-//         roundTakenBy: [],
-//         carryForward: Boolean(carryForwardSource),
-//         notes: carryForwardSource?.notes || "",
-//         carryForwardSource: carryForwardSource?._id || null,
-//       });
-//     }
-//   }, [data, mode, carryForwardSource, reset]);
-
-//   const submit = handleSubmit((values) => {
-//     const payload = {
-//       date: moment(values.date).format("YYYY-MM-DD"),
-//       session: values.session,
-//       floor: values.floor || undefined,
-//       patientId: values.patient?.value || undefined,
-//       roundTakenBy: values.roundTakenBy.map((member) => member.value),
-//       carryForward: values.carryForward,
-//       notes: values.notes,
-//       carryForwardSource: values.carryForwardSource || undefined,
-//     };
-//     onSubmit(payload);
-//   });
-
-//   useEffect(() => {
-//     if (!selectedCarryForward) {
-//       setValue("carryForwardSource", null);
-//     } else if (carryForwardSource?._id) {
-//       setValue("carryForwardSource", carryForwardSource._id);
-//     }
-//   }, [selectedCarryForward, carryForwardSource, setValue]);
-
-//   return (
-//     <Modal size="lg" toggle={onClose} isOpen={isOpen} direction="end">
-//       <ModalHeader toggle={onClose}>
-//         {mode === "edit" ? "Edit Round Note" : "Create Round Note"}
-//       </ModalHeader>
-//       <ModalBody>
-//         <CarryForwardStrip
-//           notes={carryForwardNotes}
-//           onUse={(note) => {
-//             setValue("notes", note.notes);
-//             setValue("floor", note.floor || "");
-//             if (note.patient) {
-//               const option = {
-//                 label: `${note.patient.name} (${note.patient.patientId || ""})`,
-//                 value: note.patient._id,
-//               };
-//               setValue("patient", option);
-//             }
-//             setValue("carryForward", true);
-//             setValue("carryForwardSource", note._id);
-//           }}
-//           onCloseCarryForward={(note) => onCloseCarryForward(note)}
-//         />
-//         <Form onSubmit={submit} className="d-flex flex-column gap-3">
-//           <FormGroup>
-//             <Label>Date</Label>
-//             <Controller
-//               name="date"
-//               control={control}
-//               rules={{ required: true }}
-//               render={({ field }) => (
-//                 <Flatpickr
-//                   className="form-control"
-//                   options={{ dateFormat: "Y-m-d" }}
-//                   value={field.value}
-//                   onChange={(dates) => field.onChange(dates[0])}
-//                 />
-//               )}
-//             />
-//             {errors.date && (
-//               <small className="text-danger">Date is required</small>
-//             )}
-//           </FormGroup>
-//           <FormGroup>
-//             <Label>Round Session</Label>
-//             <Controller
-//               name="session"
-//               control={control}
-//               rules={{ required: true }}
-//               render={({ field }) => (
-//                 <Select
-//                   {...field}
-//                   isMulti={false}
-//                   options={[
-//                     { label: "Morning", value: "Morning" },
-//                     { label: "Afternoon", value: "Afternoon" },
-//                     { label: "Evening", value: "Evening" },
-//                     { label: "Night", value: "Night" },
-//                   ]}
-//                   classNamePrefix="select2"
-//                 />
-//               )}
-//             />
-//             {errors.roundTakenBy && (
-//               <small className="text-danger">
-//                 Please select at least one staff member
-//               </small>
-//             )}
-//           </FormGroup>
-//           <FormGroup>
-//             <Label>Floor / Ward</Label>
-//             <Controller
-//               name="floor"
-//               control={control}
-//               render={({ field }) => (
-//                 <Input
-//                   type="text"
-//                   list="floor-options"
-//                   placeholder="e.g. IPD 2"
-//                   {...field}
-//                 />
-//               )}
-//             />
-//             {floors?.length ? (
-//               <datalist id="floor-options">
-//                 {floors.map((floor) => (
-//                   <option value={floor} key={floor} />
-//                 ))}
-//               </datalist>
-//             ) : null}
-//           </FormGroup>
-//           <FormGroup>
-//             <Label>Patient (optional)</Label>
-//             <Controller
-//               name="patient"
-//               control={control}
-//               render={({ field }) => (
-//                 <AsyncSelect
-//                   cacheOptions
-//                   defaultOptions
-//                   loadOptions={loadPatientOptions}
-//                   value={field.value}
-//                   onChange={(option) => {
-//                     field.onChange(option);
-//                   }}
-//                   isClearable
-//                 />
-//               )}
-//             />
-//           </FormGroup>
-//           <FormGroup>
-//             <Label>Patient Category</Label>
-//             <Controller
-//               name="patientCategory"
-//               control={control}
-//               rules={{ required: true }}
-//               render={({ field }) => (
-//                 <Select
-//                   {...field}
-//                   isMulti={false}
-//                   options={[
-//                     { label: "All Patients", value: "All Patients" },
-//                     { label: "All Male Patients", value: "All Male Patients" },
-//                     {
-//                       label: "All Female Patients",
-//                       value: "All Female Patients",
-//                     },
-//                   ]}
-//                   classNamePrefix="select2"
-//                 />
-//               )}
-//             />
-//             {errors.roundTakenBy && (
-//               <small className="text-danger">
-//                 Please select at least one staff member
-//               </small>
-//             )}
-//           </FormGroup>
-//           <FormGroup>
-//             <Label>Round Taken By</Label>
-//             <Controller
-//               name="roundTakenBy"
-//               control={control}
-//               rules={{ required: true }}
-//               render={({ field }) => (
-//                 <Select
-//                   {...field}
-//                   isMulti
-//                   options={staffOptions}
-//                   classNamePrefix="select2"
-//                 />
-//               )}
-//             />
-//             {errors.roundTakenBy && (
-//               <small className="text-danger">
-//                 Please select at least one staff member
-//               </small>
-//             )}
-//           </FormGroup>
-//           <FormGroup switch>
-//             <Controller
-//               name="carryForward"
-//               control={control}
-//               render={({ field }) => (
-//                 <Input
-//                   type="switch"
-//                   checked={field.value}
-//                   onChange={(e) => field.onChange(e.target.checked)}
-//                 />
-//               )}
-//             />
-//             <Label check className="ms-2">
-//               Mark for carry forward
-//             </Label>
-//           </FormGroup>
-//           <Controller
-//             name="carryForwardSource"
-//             control={control}
-//             render={({ field }) => <input type="hidden" {...field} />}
-//           />
-//           <FormGroup>
-//             <Label>Notes / Observations</Label>
-//             <Controller
-//               name="notes"
-//               control={control}
-//               rules={{ required: true, minLength: 3 }}
-//               render={({ field }) => (
-//                 <Input
-//                   type="textarea"
-//                   rows="6"
-//                   placeholder="Detailed notes..."
-//                   {...field}
-//                 />
-//               )}
-//             />
-//             {errors.notes && (
-//               <small className="text-danger">Notes are required</small>
-//             )}
-//           </FormGroup>
-//           <div className="d-flex gap-2 justify-content-end">
-//             <Button color="light" onClick={onClose} type="button">
-//               Cancel
-//             </Button>
-//             <Button color="primary" type="submit">
-//               {mode === "edit" ? "Update" : "Save"}
-//             </Button>
-//           </div>
-//         </Form>
-//       </ModalBody>
-//     </Modal>
-//   );
-// };
-
-// export default RoundNoteForm;
