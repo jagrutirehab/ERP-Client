@@ -152,7 +152,12 @@ const CounsellingNote = ({
       type,
       date,
       conclusion,
-      endGoalAchieved,
+      objective,
+      shortTermGoals,
+      longTermGoals,
+      notes,
+      homework,
+      reviewPreviousTask,
       nextEndGoal,
       nextSessionDate,
     } = values;
@@ -166,7 +171,12 @@ const CounsellingNote = ({
     formData.append("type", type);
     formData.append("date", date);
     formData.append("conclusion", conclusion);
-    formData.append("endGoalAchieved", endGoalAchieved);
+    formData.append("objective", objective);
+    formData.append("shortTermGoals", shortTermGoals);
+    formData.append("longTermGoals", longTermGoals);
+    formData.append("notes", notes);
+    formData.append("homework", homework);
+    formData.append("reviewPreviousTask", reviewPreviousTask);
     formData.append("nextEndGoal", nextEndGoal);
     formData.append("nextSessionDate", nextSessionDate);
     files.forEach((file) => formData.append("file", file.file));
@@ -193,7 +203,12 @@ const CounsellingNote = ({
       addmission: patient.addmission?._id,
       chart: COUNSELLING_NOTE,
       conclusion: noteSource?.conclusion || "",
-      endGoalAchieved: noteSource?.endGoalAchieved || "",
+      objective: noteSource?.objective || "",
+      shortTermGoals: noteSource?.shortTermGoals || "",
+      longTermGoals: noteSource?.longTermGoals || "",
+      notes: noteSource?.notes || "",
+      homework: noteSource?.homework || "",
+      reviewPreviousTask: noteSource?.reviewPreviousTask || "",
       nextEndGoal: noteSource?.nextEndGoal || "",
       nextSessionDate: noteSource?.nextSessionDate
         ? format(new Date(noteSource?.nextSessionDate), "yyyy-MM-dd")
