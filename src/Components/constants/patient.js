@@ -308,8 +308,8 @@ const mentalExaminationFields = [
     type: "text",
     showIf: {
       field: "delusions",
-      value: "present"
-    }
+      value: "present",
+    },
   },
 
   { label: "Perception", type: "header" },
@@ -318,8 +318,7 @@ const mentalExaminationFields = [
     name: "perception",
     type: "radio",
     options: ["normal", "hallucination", "illusion"],
-    labelHidden: true
-
+    labelHidden: true,
   },
 
   { label: "Cognition", type: "header" },
@@ -351,8 +350,7 @@ const mentalExaminationFields = [
     name: "judgment",
     type: "radio",
     options: ["intact", "impaired"],
-    labelHidden: true
-
+    labelHidden: true,
   },
 
   { label: "Remarks / Impression", type: "header" },
@@ -360,10 +358,9 @@ const mentalExaminationFields = [
     label: "Remarks",
     name: "remarks",
     type: "text",
-    labelHidden: true
+    labelHidden: true,
   },
 ];
-
 
 const mentalExaminationV2Fields = [
   { label: "Cheif Complaints", type: "header" },
@@ -371,7 +368,7 @@ const mentalExaminationV2Fields = [
     label: "Cheif Complaint",
     name: "chiefComplaints",
     type: "textarea",
-    labelHidden: true
+    labelHidden: true,
   },
 
   { label: "Appearance & Behavior", type: "header" },
@@ -390,8 +387,8 @@ const mentalExaminationV2Fields = [
       { label: "Unkempt and untidy", value: "unkempt_and_untidy" },
       { label: "Overtly made up", value: "overtly_made_up" },
       { label: "Fair", value: "fair" },
-      { label: "Poor", value: "poor" }
-    ]
+      { label: "Poor", value: "poor" },
+    ],
   },
   {
     label: "In Touch With Surroundings",
@@ -419,9 +416,8 @@ const mentalExaminationV2Fields = [
       { label: "Grimace", value: "grimace" },
       { label: "Hallucinatory Behaviour", value: "hallucinatory_behaviour" },
       { label: "Silly Smiling", value: "silly_smiling" },
-      { label: "Aggressive", value: "aggressive" }
-    ]
-
+      { label: "Aggressive", value: "aggressive" },
+    ],
   },
 
   { label: "Speech", type: "header" },
@@ -537,38 +533,38 @@ const mentalExaminationV2Fields = [
       "elated",
       "exalted",
       "ecstatic",
-      "euthymic"
+      "euthymic",
     ],
   },
   {
     label: "Intensity of Affect",
     name: "intensity",
     type: "radio",
-    options: ["shallow", "blunted", "flat"]
+    options: ["shallow", "blunted", "flat"],
   },
   {
     label: "Mobility of Affect",
     name: "mobility",
     type: "radio",
-    options: ["constricted", "fixed", "labile "]
+    options: ["constricted", "fixed", "labile "],
   },
   {
     label: "Range",
     name: "range",
     type: "radio",
-    options: ["full", "constricted"]
+    options: ["full", "constricted"],
   },
   {
     label: "Reactivity",
     name: "reactivity",
     type: "radio",
-    options: ["present", "absent"]
+    options: ["present", "absent"],
   },
   {
     label: "Communicability",
     name: "communicability",
     type: "radio",
-    options: ["present", "absent"]
+    options: ["present", "absent"],
   },
   {
     label: "Diurnal Variation of Affect",
@@ -577,19 +573,18 @@ const mentalExaminationV2Fields = [
     options: [
       { label: "Worse in Morning", value: "worse_in_morning" },
       { label: "Worse in Evening", value: "worse_in_evening" },
-    ]
+    ],
   },
   {
     label: "Appropriateness",
     name: "appropriateness2",
-    type: "text"
+    type: "text",
   },
   {
     label: "Affect Notes",
     name: "affectNotes",
     type: "textarea",
   },
-
 
   { label: "Thought", type: "header" },
 
@@ -615,8 +610,8 @@ const mentalExaminationV2Fields = [
     type: "textarea",
     showIf: {
       field: "delusions",
-      value: "present"
-    }
+      value: "present",
+    },
   },
 
   { label: "Perception", type: "header" },
@@ -625,13 +620,13 @@ const mentalExaminationV2Fields = [
     name: "perception",
     type: "radio",
     options: ["normal", "hallucination", "illusion"],
-    labelHidden: true
+    labelHidden: true,
   },
   {
     label: "Perception Notes",
     name: "perceptionNotes",
     type: "textarea",
-    labelHidden: true
+    labelHidden: true,
   },
 
   { label: "Cognition", type: "header" },
@@ -648,17 +643,23 @@ const mentalExaminationV2Fields = [
     options: [
       { label: "Easily Distractible", value: "easily_distractible" },
       { label: "Attention Maintained", value: "attention_maintained" },
-      { label: "Disturbance in Attention", value: "disturbance_in_attention" }
-    ]
+      { label: "Disturbance in Attention", value: "disturbance_in_attention" },
+    ],
   },
   {
     label: "Concentration",
     name: "concentration",
     type: "radio",
     options: [
-      { label: "Able to Concentrate and Focus", value: "able_to_concentrate_and_focus" },
-      { label: "Unable to Concentrate and Focus", value: "unable_to_concentrate_and_focus" }
-    ]
+      {
+        label: "Able to Concentrate and Focus",
+        value: "able_to_concentrate_and_focus",
+      },
+      {
+        label: "Unable to Concentrate and Focus",
+        value: "unable_to_concentrate_and_focus",
+      },
+    ],
   },
   {
     label: "Memory",
@@ -675,31 +676,37 @@ const mentalExaminationV2Fields = [
     options: [
       {
         label: "Grade 1 - Complete Denial of Illness",
-        value: "grade_1-_complete_denial_of_illness"
+        value: "grade_1-_complete_denial_of_illness",
       },
       {
         label: "Grade 2 - Slight Awareness But Still Denying",
-        value: "grade_2-_slight_awareness_byt_still_denying"
+        value: "grade_2-_slight_awareness_byt_still_denying",
       },
       {
-        label: "Grade 3 - Awareness of Being Sick, But Blaming External Factors",
-        value: "grade_3-_awareness_of_being_sick_but_blaming_external_factors"
+        label:
+          "Grade 3 - Awareness of Being Sick, But Blaming External Factors",
+        value: "grade_3-_awareness_of_being_sick_but_blaming_external_factors",
       },
       {
-        label: "Grade 4 - Aware Something Is Wrong And Self Is Involved, But Feels Helpless And Attributes It To Unknown/Organic Factors.",
-        value: "grade_4-_aware_something_is_wrong_and_self_is_involved,_but_feels_helpless_and_attributes_it_to_unknown/organic_factors"
+        label:
+          "Grade 4 - Aware Something Is Wrong And Self Is Involved, But Feels Helpless And Attributes It To Unknown/Organic Factors.",
+        value:
+          "grade_4-_aware_something_is_wrong_and_self_is_involved,_but_feels_helpless_and_attributes_it_to_unknown/organic_factors",
       },
       {
-        label: "Grade 5 - Understands They're Contributing To the Issue But Has No Clue How To Fix It.",
-        value: "grade_5-_understands_they're_contributing_to_the_issue_but_has_no_clue_how_to_fix_it"
+        label:
+          "Grade 5 - Understands They're Contributing To the Issue But Has No Clue How To Fix It.",
+        value:
+          "grade_5-_understands_they're_contributing_to_the_issue_but_has_no_clue_how_to_fix_it",
       },
       {
-        label: "Grade 6 - Fully Aware Of The Problem, Accepts Responsibility, And Is Willing To Take Help And Make Changes.",
-        value: "grade_6-_fully_aware_of_the_problem,_accepts_responsibility,_and_willing_to_help_and_make_changes"
-      }
-
+        label:
+          "Grade 6 - Fully Aware Of The Problem, Accepts Responsibility, And Is Willing To Take Help And Make Changes.",
+        value:
+          "grade_6-_fully_aware_of_the_problem,_accepts_responsibility,_and_willing_to_help_and_make_changes",
+      },
     ],
-    labelHidden: true
+    labelHidden: true,
   },
 
   { label: "Judgment", type: "header" },
@@ -707,9 +714,8 @@ const mentalExaminationV2Fields = [
     label: "Judgment",
     name: "judgment",
     type: "radio",
-    options: ["intact", "partial", "impaired",],
-    labelHidden: true
-
+    options: ["intact", "partial", "impaired"],
+    labelHidden: true,
   },
 
   { label: "Remarks / Impression", type: "header" },
@@ -717,7 +723,7 @@ const mentalExaminationV2Fields = [
     label: "Remarks",
     name: "remarks",
     type: "textarea",
-    labelHidden: true
+    labelHidden: true,
   },
 
   { label: "Observation", type: "header" },
@@ -725,24 +731,48 @@ const mentalExaminationV2Fields = [
     label: "Observation",
     name: "observation",
     type: "textarea",
-    labelHidden: true
+    labelHidden: true,
   },
-
 ];
 
 const counsellingNoteFields = [
+  {
+    label: "Objective of the session",
+    name: "objective",
+    type: "textarea",
+  },
+  {
+    label: "Short term goals",
+    name: "shortTermGoals",
+    type: "textarea",
+  },
+  {
+    label: "Long term goals",
+    name: "longTermGoals",
+    type: "textarea",
+  },
+  {
+    label: "Notes",
+    name: "notes",
+    type: "textarea",
+  },
+  {
+    label: "Homework/Task assigned",
+    name: "homework",
+    type: "textarea",
+  },
+  {
+    label: "Review of previous task",
+    name: "reviewPreviousTask",
+    type: "textarea",
+  },
   {
     label: "Conclusion",
     name: "conclusion",
     type: "textarea",
   },
   {
-    label: "End goal achieved",
-    name: "endGoalAchieved",
-    type: "textarea",
-  },
-  {
-    label: "End goal for next session",
+    label: "Goal for next session",
     name: "nextEndGoal",
     type: "textarea",
   },
@@ -1230,8 +1260,6 @@ let addPatientFields = [
     name: "age",
     type: "text",
   },
-
-
   // {
   //   label: "Provisional Diagnosis",
   //   name: "provisionalDiagnosis",
