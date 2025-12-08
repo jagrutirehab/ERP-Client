@@ -141,18 +141,17 @@ const AdvancePayment = ({
   }, [editBillData]);
 
   useEffect(() => {
-    // if (patient.center._id) {
-    dispatch(
-      fetchPaymentAccounts({
-        centerIds: [userCenters],
-        // centerIds: [patient.center._id],
-        page: 1,
-        limit: 1000,
-      })
-      // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
-    );
-    // }
-  }, [dispatch, userCenters]);
+    if (patient.center._id) {
+      dispatch(
+        fetchPaymentAccounts({
+          centerIds: [patient.center._id],
+          page: 1,
+          limit: 1000,
+        })
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+      );
+    }
+  }, [dispatch, patient.center._id]);
 
   return (
     <React.Fragment>
