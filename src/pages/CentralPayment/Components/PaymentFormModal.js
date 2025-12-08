@@ -37,7 +37,8 @@ const PaymentFormModal = ({
     isProcessing,
     paymentDetails,
     loading,
-    mode
+    mode,
+    hasCreatePermission
 }) => {
     const dispatch = useDispatch();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -104,23 +105,22 @@ const PaymentFormModal = ({
                 <Form onSubmit={formik.handleSubmit}>
                     <ModalHeader toggle={handleToggle}>
                         <div className="d-flex align-items-center gap-2">
-                            {mode === "approval" ? "Process Approval" : "Process Payment"}
-                            {mode === "approval" && (
-                                <Button
-                                    size="sm"
-                                    color="primary"
-                                    outline
-                                    onClick={() => setIsEditModalOpen(true)}
-                                >
-                                    <Pencil size={14} />
-                                </Button>
-                            )}
+                            {
+                                hasCreatePermission
+                                    ? (mode === "approval" ? "Process Approval" : "Process Payment")
+                                    : "Expense Overview"
+                            }
                         </div>
                     </ModalHeader>
                     <ModalBody>
                         <div className="mb-3">
                             <p>
-                                {mode === "approval" ? "Expense Details" : "Please provide payment details for"}:
+                                {
+                                    hasCreatePermission
+                                    && (mode === "approval"
+                                        ? "Expense Details"
+                                        : "Please provide payment details for")
+                                }
                             </p>
                             <div className="border p-3 rounded bg-light">
                                 <Row>
@@ -189,7 +189,7 @@ const PaymentFormModal = ({
                             </div>
                         </div>
 
-                        {mode === "paymentProcessing" && (
+                        {mode === "paymentProcessing" && hasCreatePermission && (
                             <>
                                 <Row>
                                     <Col md={6}>
@@ -249,74 +249,90 @@ const PaymentFormModal = ({
                             </>
                         )}
                     </ModalBody>
-                    <ModalFooter>
-                        {mode === "approval" ? (
-                            <div className="d-flex justify-content-end">
-                                <Button
-                                    onClick={() => onConfirm(item._id, "REJECTED")}
-                                    color="danger"
-                                    size="sm"
-                                    className="me-2 d-flex align-items-center text-white"
-                                    disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
-                                >
-                                    {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
-                                        <Spinner size="sm" color="light" className="me-1" />
-                                    ) : (
-                                        <X size={16} className="me-1" />
-                                    )}
-                                    Reject
-                                </Button>
 
-                                <Button
-                                    onClick={() => onConfirm(item._id, "APPROVED")}
-                                    color="success"
-                                    size="sm"
-                                    className="d-flex align-items-center text-white"
-                                    disabled={isProcessing.id === item._id && isProcessing.type === "APPROVED"}
-                                >
-                                    {isProcessing.id === item._id && isProcessing.type === "APPROVED" ? (
-                                        <Spinner size="sm" color="light" className="me-1" />
-                                    ) : (
-                                        <Check size={16} className="me-1" />
-                                    )}
-                                    Approve
-                                </Button>
-                            </div>
-                        ) : (
-                            <>
-                                <Button
-                                    type="button"
-                                    color="secondary"
-                                    onClick={handleToggle}
-                                    disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    color="primary"
-                                    className="text-white"
-                                    disabled={
-                                        (isProcessing.id === item._id && isProcessing.type === "PROCESSING") ||
-                                        !formik.isValid ||
-                                        formik.values.currentPaymentStatus === "PENDING" ||
-                                        (formik.values.currentPaymentStatus === "COMPLETED" &&
-                                            !formik.values.transactionId.trim())
-                                    }
-                                >
-                                    {(isProcessing.id === item._id && isProcessing.type === "PROCESSING") ? (
-                                        <>
-                                            <Spinner size="sm" className="me-2" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        "Process Payment"
-                                    )}
-                                </Button></>
+                    <ModalFooter>
+                        {hasCreatePermission && (
+                            mode === "approval" ? (
+                                <div className="d-flex justify-content-end">
+                                    <Button
+                                        size="sm"
+                                        color="primary"
+                                        className="me-2"
+                                        outline
+                                        onClick={() => setIsEditModalOpen(true)}
+                                    >
+                                        <Pencil size={16} className="me-1" />
+                                        Edit Expense
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => onConfirm(item._id, "REJECTED")}
+                                        color="danger"
+                                        size="sm"
+                                        className="me-2 d-flex align-items-center text-white"
+                                        disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
+                                    >
+                                        {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
+                                            <Spinner size="sm" color="light" className="me-1" />
+                                        ) : (
+                                            <X size={16} className="me-1" />
+                                        )}
+                                        Reject
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => onConfirm(item._id, "APPROVED")}
+                                        color="success"
+                                        size="sm"
+                                        className="d-flex align-items-center text-white"
+                                        disabled={isProcessing.id === item._id && isProcessing.type === "APPROVED"}
+                                    >
+                                        {isProcessing.id === item._id && isProcessing.type === "APPROVED" ? (
+                                            <Spinner size="sm" color="light" className="me-1" />
+                                        ) : (
+                                            <Check size={16} className="me-1" />
+                                        )}
+                                        Approve
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    <Button
+                                        type="button"
+                                        color="secondary"
+                                        onClick={handleToggle}
+                                        disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                    >
+                                        Cancel
+                                    </Button>
+
+                                    <Button
+                                        type="submit"
+                                        color="primary"
+                                        className="text-white"
+                                        disabled={
+                                            (isProcessing.id === item._id && isProcessing.type === "PROCESSING") ||
+                                            !formik.isValid ||
+                                            formik.values.currentPaymentStatus === "PENDING" ||
+                                            (formik.values.currentPaymentStatus === "COMPLETED" &&
+                                                !formik.values.transactionId.trim())
+                                        }
+                                    >
+                                        {(isProcessing.id === item._id && isProcessing.type === "PROCESSING") ? (
+                                            <>
+                                                <Spinner size="sm" className="me-2" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            "Process Payment"
+                                        )}
+                                    </Button>
+                                </>
+                            )
                         )}
 
-
                     </ModalFooter>
+
                 </Form>
             </Modal >
             <Modal isOpen={isEditModalOpen} toggle={() => setIsEditModalOpen(false)} size="lg">
@@ -344,7 +360,8 @@ PaymentFormModal.propTypes = {
     isProcessing: PropTypes.object,
     loading: PropTypes.bool,
     paymentDetails: PropTypes.object,
-    mode: PropTypes.string
+    mode: PropTypes.string,
+    hasCreatePermission: PropTypes.bool
 };
 
 

@@ -30,8 +30,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             title: c.title,
         }));
 
-    const existingAttachments = paymentData?.attachments || [];
-
+    const [existingFiles, setExistingFiles] = React.useState(paymentData?.attachments || []);
+    const [removedAttachments, setRemovedAttachments] = React.useState([]);
 
     const validationSchema = Yup.object({
         name: Yup.string().required("Name is required"),
@@ -98,6 +98,16 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         },
         validationSchema,
         onSubmit: async (values, { resetForm }) => {
+            const remainingExistingAttachments = existingFiles.length;
+            const newUploads = values.attachments.length;
+
+            const finalCount = remainingExistingAttachments + newUploads;
+
+            if (paymentData?._id && finalCount === 0) {
+                toast.error("You must have at least one attachment");
+                return;
+            }
+
             const formData = new FormData();
 
             Object.entries(values).forEach(([key, val]) => {
@@ -117,7 +127,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             });
 
             values.attachments.forEach(f => formData.append("attachments", f));
-
+            if (paymentData?._id && removedAttachments.length > 0) {
+                formData.append("removedAttachments", JSON.stringify(removedAttachments));
+            }
 
             try {
                 if (paymentData?._id) {
@@ -570,32 +582,37 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 )}
             </FormGroup>
 
-            {paymentData?._id && existingAttachments.length > 0 && (
+            {paymentData?._id && existingFiles.length > 0 && (
                 <FormGroup className="mb-3">
                     <Label className="fw-medium">Existing Attachments</Label>
 
                     <ul className="list-unstyled m-0 p-0">
-                        {existingAttachments.map((file, index) => (
-                            <li
-                                key={index}
-                                className="d-flex align-items-center gap-2 py-2 border-bottom"
-                            >
-                                <FileText size={18} className="text-primary" />
+                        {existingFiles.map((file, index) => (
+                            <li key={index} className="d-flex justify-content-between align-items-center py-2 border-bottom">
 
-                                <div className="d-flex flex-column">
-                                    <strong>{file.originalName || `Attachment ${index + 1}`}</strong>
-
-                                    <a
-                                        href={file.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary text-decoration-underline"
-                                    >
-                                        View File
-                                    </a>
+                                <div className="d-flex align-items-center gap-2">
+                                    <FileText size={18} className="text-primary" />
+                                    <div>
+                                        <strong className="me-2">{file.originalName || `Attachment ${index + 1}`}</strong>
+                                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
+                                            View File
+                                        </a>
+                                    </div>
                                 </div>
+
+                                <Button
+                                    size="sm"
+                                    color="danger"
+                                    onClick={() => {
+                                        setRemovedAttachments(prev => [...prev, file._id]);
+                                        setExistingFiles(prev => prev.filter(f => f._id !== file._id));
+                                    }}
+                                >
+                                    Remove
+                                </Button>
                             </li>
                         ))}
+
                     </ul>
                 </FormGroup>
             )}
