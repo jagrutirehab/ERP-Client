@@ -324,7 +324,7 @@ export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
 
 // central payment
 export const CENTRAL_PAYMENT = "/central-payment";
-export const EDIT_CENTRAL_PAYMENT = "/central-payment/edit";
+export const CENTRAL_PAYMENT_ACTION = "/central-payment/action";
 export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/detailed";
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
@@ -398,6 +398,7 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
+export const IT="/hr/it";
 export const EXIT_EMPLOYEE = "/hr/exit";
 export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";

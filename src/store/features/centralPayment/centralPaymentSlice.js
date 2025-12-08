@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getCentralPaymentById, getCentralPayments, getDetailedCentralReport, getSummaryCentralReport, postCentralPayment, updateCentralPayment } from "../../../helpers/backend_helper";
+import { centralPaymentAction, editCentralPayment, getCentralPaymentById, getCentralPayments, getDetailedCentralReport, getSummaryCentralReport, postCentralPayment } from "../../../helpers/backend_helper";
 
 const initialState = {
     loading: false,
@@ -57,11 +57,32 @@ export const getPaymentDetails = createAsyncThunk(
     }
 );
 
-export const editCentralPayment = createAsyncThunk(
-    "centralPayment/editCentralPayment", async (data, { rejectWithValue }) => {
+export const updateCentralPaymentAction = createAsyncThunk(
+    "centralPayment/updateCentralPaymentAction", async (data, { rejectWithValue }) => {
         try {
-            const response = await updateCentralPayment(data);
+            const response = await centralPaymentAction(data);
             return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const updateCentralPayment = createAsyncThunk(
+    "centralPayment/updateCentralPayment", async (data, { getState, rejectWithValue }) => {
+        try {
+            const { id, formData } = data;
+            const response = await editCentralPayment(id, formData);
+
+            const centers = getState().Center.data;
+            const center = centers.find((cn) => cn._id === response.payload.center);
+            return {
+                ...response.payload,
+                center: {
+                    _id: center?._id,
+                    title: center?.title,
+                },
+            };
         } catch (error) {
             return rejectWithValue(error);
         }
@@ -193,12 +214,23 @@ export const centralPaymentSlice = createSlice({
                 state.loading = false;
             });
 
-        builder.addCase(editCentralPayment.fulfilled, (state, { payload }) => {
+        builder.addCase(updateCentralPaymentAction.fulfilled, (state, { payload }) => {
             if (Array.isArray(state.approvals.data)) {
                 state.approvals.data = state.approvals.data.filter(
                     (approval) => approval._id !== payload.payload._id
                 );
             }
+        });
+
+        builder.addCase(updateCentralPayment.fulfilled, (state, { payload, meta }) => {
+            const centers = meta.arg.centers;
+            const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
+            state.spendings[cacheKey].data = state.spendings[cacheKey].data.map((item) =>
+                item._id === payload._id ? payload : item
+            );
+            state.approvals.data = state.approvals.data.map((approval) =>
+                approval._id === payload._id ? payload : approval
+            )
         });
 
         builder.addCase(getPaymentDetails.pending, (state) => {
