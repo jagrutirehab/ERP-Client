@@ -93,6 +93,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             accountHolderName: paymentData?.bankDetails?.accountHolderName || "",
             accountNo: paymentData?.bankDetails?.accountNo || "",
             initialPaymentStatus: paymentData?.initialPaymentStatus || "",
+            TDSRate:paymentData?.TDSRate||"",
             attachmentType: paymentData?.attachmentType || "",
             attachments: []
         },
