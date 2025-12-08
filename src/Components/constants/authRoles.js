@@ -24,8 +24,8 @@ const authRoles = [
     value: "RMO",
   },
   {
-    name: "PSYCHOTHERAPIST",
-    value: "PSYCHOTHERAPIST",
+    name: "PHYSIOTHERAPIST",
+    value: "PHYSIOTHERAPIST",
   },
   {
     name: "ACCOUNTANT",
