@@ -200,7 +200,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                             </div>
                         </Col>
                     </Row>
-                    {(flag === "approval" || flag === "paymentProcessing") && hasCreatePermission && (
+                    {(flag === "approval" || flag === "paymentProcessing") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
@@ -216,7 +216,11 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                     ) : (
                                         <CheckCheck size={16} className="me-1" />
                                     )}
-                                    {flag === "approval" ? "Process Approval" : "Process Payment"}
+                                    {
+                                        hasCreatePermission
+                                            ? (flag === "approval" ? "Process Approval" : "Process Payment")
+                                            : "Details"
+                                    }
                                 </Button>
                             </div>
                         </>
@@ -231,6 +235,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 mode={flag}
                 onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleProcessPayment}
                 isProcessing={updating}
+                hasCreatePermission={hasCreatePermission}
             />
         </React.Fragment>
     );
