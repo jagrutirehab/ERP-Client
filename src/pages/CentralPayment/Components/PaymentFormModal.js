@@ -5,9 +5,12 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { downloadFile } from "../../../Components/Common/downloadFile";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { getPaymentDetails } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { Check, Pencil, X } from "lucide-react";
+import moment from "moment";
+import SpendingForm from "./SpendingForm";
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
@@ -33,9 +36,11 @@ const PaymentFormModal = ({
     onConfirm,
     isProcessing,
     paymentDetails,
-    loading
+    loading,
+    mode
 }) => {
     const dispatch = useDispatch();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const formik = useFormik({
         initialValues: {
@@ -53,7 +58,8 @@ const PaymentFormModal = ({
         if (isOpen && item?._id) {
             dispatch(getPaymentDetails(item._id));
         }
-    }, [isOpen, item?._id, dispatch]);
+    }, [isOpen]);
+
 
     useEffect(() => {
         if (paymentDetails && paymentDetails._id === item?._id) {
@@ -69,6 +75,12 @@ const PaymentFormModal = ({
         toggle();
     };
 
+
+    const handleSpendingUpdate = () => {
+        setIsEditModalOpen(false);
+        dispatch(getPaymentDetails(item._id));
+
+    }
 
     if (loading) {
         return (
@@ -87,167 +99,240 @@ const PaymentFormModal = ({
     }
 
     return (
-        <Modal size="xl" isOpen={isOpen} toggle={handleToggle}>
-            <Form onSubmit={formik.handleSubmit}>
-                <ModalHeader toggle={handleToggle}>
-                    Process Payment
-                </ModalHeader>
-                <ModalBody>
-                    <div className="mb-3">
-                        <p>Please provide payment details for:</p>
-                        <div className="border p-3 rounded bg-light">
-                            <Row>
-                                <Col md={6}>
-                                    <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title || "Unknown Center")}</p>
-                                    <p className="mb-0"><strong>Items:</strong> {capitalizeWords(paymentDetails?.items)}</p>
-                                    <p className="mb-0"><strong>Total Amount (with GST):</strong> ₹{paymentDetails?.totalAmountWithGST?.toFixed(2) || "0.00"}</p>
-                                    <p className="mb-0"><strong>GST Amount:</strong> ₹{paymentDetails?.GSTAmount?.toFixed(2) || "0.00"}</p>
-                                    <p className="mb-0"><strong>Vendor:</strong> {capitalizeWords(paymentDetails?.vendor)}</p>
-                                    {paymentDetails?.invoiceNo && (
-                                        <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo}</p>
-                                    )}
-                                </Col>
-
-                                <Col md={6}>
-                                    {paymentDetails?.description && (
-                                        <p className="mb-0">
-                                            <strong>Description:</strong> <ExpandableText text={capitalizeWords(paymentDetails.description)} />
-                                        </p>
-                                    )}
-                                    {paymentDetails?.eNet && (
-                                        <p className="mb-0 text-break">
-                                            <strong>E-Net:</strong>{" "}
-                                            <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
-                                        </p>
-                                    )}
-                                    {paymentDetails?.TDSRate && (
-                                        <p className="mb-0"><strong>TDS Rate:</strong> {paymentDetails.TDSRate}</p>
-                                    )}
-                                    {paymentDetails?.transactionType && (
-                                        <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
-                                    )}
-                                    {paymentDetails?.bankDetails?.accountHolderName && (
-                                        <p className="mb-0"><strong>Account Holder:</strong> {paymentDetails.bankDetails.accountHolderName}</p>
-                                    )}
-                                    {paymentDetails?.bankDetails?.accountNo && (
-                                        <p className="mb-0"><strong>Account No:</strong> {paymentDetails.bankDetails.accountNo}</p>
-                                    )}
-                                    {paymentDetails?.bankDetails?.IFSCCode && (
-                                        <p className="mb-0"><strong>IFSC Code:</strong> {paymentDetails.bankDetails.IFSCCode}</p>
-                                    )}
-                                    <p className="mb-0"><strong>Initial Payment Status:</strong> {capitalizeWords(paymentDetails?.initialPaymentStatus)}</p>
-                                </Col>
-                            </Row>
-
-                            {paymentDetails?.attachments && paymentDetails?.attachments.length > 0 && (
-                                <div className="mt-3 pt-3 border-top">
-                                    <strong>{capitalizeWords(paymentDetails?.attachmentType)}</strong>
-                                    <div>
-                                        {paymentDetails?.attachments.map((attachment, index) => (
-                                            <p
-                                                key={attachment._id || index}
-                                                onClick={() => downloadFile(attachment)}
-                                                className="text-primary text-decoration-underline cursor-pointer mb-1"
-                                            >
-                                                {attachment.originalName}
-                                            </p>
-                                        ))}
-                                    </div>
-                                </div>
+        <>
+            <Modal size="xl" isOpen={isOpen} toggle={handleToggle}>
+                <Form onSubmit={formik.handleSubmit}>
+                    <ModalHeader toggle={handleToggle}>
+                        <div className="d-flex align-items-center gap-2">
+                            {mode === "approval" ? "Process Approval" : "Process Payment"}
+                            {mode === "approval" && (
+                                <Button
+                                    size="sm"
+                                    color="primary"
+                                    outline
+                                    onClick={() => setIsEditModalOpen(true)}
+                                >
+                                    <Pencil size={14} />
+                                </Button>
                             )}
                         </div>
-                    </div>
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="mb-3">
+                            <p>
+                                {mode === "approval" ? "Expense Details" : "Please provide payment details for"}:
+                            </p>
+                            <div className="border p-3 rounded bg-light">
+                                <Row>
+                                    <Col md={6}>
+                                        <p className="mb-0"><strong>Name:</strong> {capitalizeWords(paymentDetails?.name || "Unknown Center")}</p>
+                                        <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title || "Unknown Center")}</p>
+                                        <p className="mb-0"><strong>Items:</strong> {capitalizeWords(paymentDetails?.items)}</p>
+                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> ₹{paymentDetails?.totalAmountWithGST?.toFixed(2) || "0.00"}</p>
+                                        <p className="mb-0"><strong>GST Amount:</strong> ₹{paymentDetails?.GSTAmount?.toFixed(2) || "0.00"}</p>
+                                        <p className="mb-0"><strong>Vendor:</strong> {capitalizeWords(paymentDetails?.vendor)}</p>
+                                        {paymentDetails?.invoiceNo && (
+                                            <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo}</p>
+                                        )}
+                                        {paymentDetails?.date && (
+                                            <p className="mb-0"><strong>Date:</strong> {moment(paymentDetails.date).format("lll")}</p>
+                                        )}
+                                    </Col>
 
-                    <Row>
-                        <Col md={6}>
-                            <FormGroup>
-                                <Label for="transactionId">
-                                    Transaction ID/UTR *
-                                </Label>
-                                <Input
-                                    type="text"
-                                    id="transactionId"
-                                    name="transactionId"
-                                    placeholder="Enter transaction ID"
-                                    value={formik.values.transactionId}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    invalid={formik.touched.transactionId && Boolean(formik.errors.transactionId)}
-                                    disabled={isProcessing}
-                                />
-                                {formik.touched.transactionId && formik.errors.transactionId && (
-                                    <div className="text-danger small mt-1">
-                                        {formik.errors.transactionId}
+                                    <Col md={6}>
+                                        {paymentDetails?.description && (
+                                            <p className="mb-0">
+                                                <strong>Description:</strong> <ExpandableText text={capitalizeWords(paymentDetails.description)} />
+                                            </p>
+                                        )}
+                                        {paymentDetails?.eNet && (
+                                            <p className="mb-0 text-break">
+                                                <strong>E-Net:</strong>{" "}
+                                                <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
+                                            </p>
+                                        )}
+                                        {paymentDetails?.TDSRate && (
+                                            <p className="mb-0"><strong>TDS Rate:</strong> {paymentDetails.TDSRate}</p>
+                                        )}
+                                        {paymentDetails?.transactionType && (
+                                            <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
+                                        )}
+                                        {paymentDetails?.bankDetails?.accountHolderName && (
+                                            <p className="mb-0"><strong>Account Holder:</strong> {paymentDetails.bankDetails.accountHolderName}</p>
+                                        )}
+                                        {paymentDetails?.bankDetails?.accountNo && (
+                                            <p className="mb-0"><strong>Account No:</strong> {paymentDetails.bankDetails.accountNo}</p>
+                                        )}
+                                        {paymentDetails?.bankDetails?.IFSCCode && (
+                                            <p className="mb-0"><strong>IFSC Code:</strong> {paymentDetails.bankDetails.IFSCCode}</p>
+                                        )}
+                                        <p className="mb-0"><strong>Initial Payment Status:</strong> {capitalizeWords(paymentDetails?.initialPaymentStatus)}</p>
+                                    </Col>
+                                </Row>
+
+                                {paymentDetails?.attachments && paymentDetails?.attachments.length > 0 && (
+                                    <div className="mt-3 pt-3 border-top">
+                                        <strong>{capitalizeWords(paymentDetails?.attachmentType)}</strong>
+                                        <div>
+                                            {paymentDetails?.attachments.map((attachment, index) => (
+                                                <p
+                                                    key={attachment._id || index}
+                                                    onClick={() => downloadFile(attachment)}
+                                                    className="text-primary text-decoration-underline cursor-pointer mb-1"
+                                                >
+                                                    {attachment.originalName}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-                            </FormGroup>
-                        </Col>
-                        <Col md={3}>
-                            <FormGroup>
-                                <Label for="currentPaymentStatus">
-                                    Current Payment Status *
-                                </Label>
-                                <Input
-                                    type="select"
-                                    id="currentPaymentStatus"
-                                    name="currentPaymentStatus"
-                                    value={formik.values.currentPaymentStatus}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    invalid={formik.touched.currentPaymentStatus && Boolean(formik.errors.currentPaymentStatus)}
-                                    disabled={isProcessing}
-                                >
-                                    <option value="PENDING">Pending</option>
-                                    <option value="COMPLETED">Completed</option>
-                                    <option value="REJECTED">Rejected</option>
-                                </Input>
-                                {formik.touched.currentPaymentStatus && formik.errors.currentPaymentStatus && (
-                                    <div className="text-danger small mt-1">
-                                        {formik.errors.currentPaymentStatus}
-                                    </div>
-                                )}
-                            </FormGroup>
-                        </Col>
-                    </Row>
+                            </div>
+                        </div>
 
-                    <p className="mt-3 text-warning small">
-                        <strong>Note:</strong> Please verify all details before submitting. This action cannot be undone.
-                    </p>
-                </ModalBody>
-                <ModalFooter>
-                    <Button
-                        type="button"
-                        color="secondary"
-                        onClick={handleToggle}
-                        disabled={isProcessing}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        color="primary"
-                        disabled={
-                            isProcessing ||
-                            !formik.isValid ||
-                            formik.values.currentPaymentStatus === "PENDING" ||
-                            (formik.values.currentPaymentStatus === "COMPLETED" &&
-                                !formik.values.transactionId.trim())
-                        }
-                    >
-                        {isProcessing ? (
+                        {mode === "paymentProcessing" && (
                             <>
-                                <Spinner size="sm" className="me-2" />
-                                Processing...
+                                <Row>
+                                    <Col md={6}>
+                                        <FormGroup>
+                                            <Label for="transactionId">
+                                                Transaction ID/UTR *
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                id="transactionId"
+                                                name="transactionId"
+                                                placeholder="Enter transaction ID"
+                                                value={formik.values.transactionId}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                invalid={formik.touched.transactionId && Boolean(formik.errors.transactionId)}
+                                                disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            />
+                                            {formik.touched.transactionId && formik.errors.transactionId && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.transactionId}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md={3}>
+                                        <FormGroup>
+                                            <Label for="currentPaymentStatus">
+                                                Current Payment Status *
+                                            </Label>
+                                            <Input
+                                                type="select"
+                                                id="currentPaymentStatus"
+                                                name="currentPaymentStatus"
+                                                value={formik.values.currentPaymentStatus}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                invalid={formik.touched.currentPaymentStatus && Boolean(formik.errors.currentPaymentStatus)}
+                                                disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            >
+                                                <option value="PENDING">Pending</option>
+                                                <option value="COMPLETED">Completed</option>
+                                                <option value="REJECTED">Rejected</option>
+                                            </Input>
+                                            {formik.touched.currentPaymentStatus && formik.errors.currentPaymentStatus && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.currentPaymentStatus}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col>
+                                </Row>
+
+                                <p className="mt-3 text-warning small">
+                                    <strong>Note:</strong> Please verify all details before submitting. This action cannot be undone.
+                                </p>
                             </>
-                        ) : (
-                            "Process Payment"
                         )}
-                    </Button>
+                    </ModalBody>
+                    <ModalFooter>
+                        {mode === "approval" ? (
+                            <div className="d-flex justify-content-end">
+                                <Button
+                                    onClick={() => onConfirm(item._id, "REJECTED")}
+                                    color="danger"
+                                    size="sm"
+                                    className="me-2 d-flex align-items-center text-white"
+                                    disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
+                                >
+                                    {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
+                                        <Spinner size="sm" color="light" className="me-1" />
+                                    ) : (
+                                        <X size={16} className="me-1" />
+                                    )}
+                                    Reject
+                                </Button>
+
+                                <Button
+                                    onClick={() => onConfirm(item._id, "APPROVED")}
+                                    color="success"
+                                    size="sm"
+                                    className="d-flex align-items-center text-white"
+                                    disabled={isProcessing.id === item._id && isProcessing.type === "APPROVED"}
+                                >
+                                    {isProcessing.id === item._id && isProcessing.type === "APPROVED" ? (
+                                        <Spinner size="sm" color="light" className="me-1" />
+                                    ) : (
+                                        <Check size={16} className="me-1" />
+                                    )}
+                                    Approve
+                                </Button>
+                            </div>
+                        ) : (
+                            <>
+                                <Button
+                                    type="button"
+                                    color="secondary"
+                                    onClick={handleToggle}
+                                    disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    color="primary"
+                                    className="text-white"
+                                    disabled={
+                                        (isProcessing.id === item._id && isProcessing.type === "PROCESSING") ||
+                                        !formik.isValid ||
+                                        formik.values.currentPaymentStatus === "PENDING" ||
+                                        (formik.values.currentPaymentStatus === "COMPLETED" &&
+                                            !formik.values.transactionId.trim())
+                                    }
+                                >
+                                    {(isProcessing.id === item._id && isProcessing.type === "PROCESSING") ? (
+                                        <>
+                                            <Spinner size="sm" className="me-2" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        "Process Payment"
+                                    )}
+                                </Button></>
+                        )}
 
 
-                </ModalFooter>
-            </Form>
-        </Modal>
+                    </ModalFooter>
+                </Form>
+            </Modal >
+            <Modal isOpen={isEditModalOpen} toggle={() => setIsEditModalOpen(false)} size="lg">
+                <ModalHeader toggle={() => setIsEditModalOpen(false)}>
+                    Edit Spending
+                </ModalHeader>
+
+                <ModalBody>
+                    <SpendingForm
+                        paymentData={paymentDetails}
+                        onUpdate={handleSpendingUpdate}
+                    />
+                </ModalBody>
+            </Modal>
+        </>
+
     );
 };
 
@@ -256,9 +341,10 @@ PaymentFormModal.propTypes = {
     toggle: PropTypes.func.isRequired,
     item: PropTypes.object.isRequired,
     onConfirm: PropTypes.func.isRequired,
-    isProcessing: PropTypes.bool,
+    isProcessing: PropTypes.object,
     loading: PropTypes.bool,
     paymentDetails: PropTypes.object,
+    mode: PropTypes.string
 };
 
 

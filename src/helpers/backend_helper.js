@@ -1062,8 +1062,17 @@ export const postCentralPayment = (data) => {
   });
 };
 
-export const updateCentralPayment = (data) => {
-  return api.update(url.EDIT_CENTRAL_PAYMENT, data, {
+export const editCentralPayment = (id, data) => {
+  return api.update(`${url.CENTRAL_PAYMENT}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const centralPaymentAction = (data) => {
+  return api.update(url.CENTRAL_PAYMENT_ACTION, data, {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
@@ -1664,6 +1673,26 @@ export const searchExitEmployee = (params = {}) => {
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getITApprovals = (params = {}) => {
+  return api.get(url.IT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const updateITStatus = (id, data) => {
+  return api.update(`${url.IT}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
     },
   });
 };
