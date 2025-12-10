@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getEmployees, getExitEmployees, postEmployee, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getEmployees, getExitEmployees, getITApprovals, postEmployee, searchExitEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -29,6 +29,15 @@ export const fetchExitEmployees = createAsyncThunk("hr/exitEmployees", async (da
 export const getExitEmployeesBySearch = createAsyncThunk("hr/searchExitEmployee", async (data, { rejectWithValue }) => {
     try {
         const response = await searchExitEmployee(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchITApprovals = createAsyncThunk("hr/getITApprovals", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getITApprovals(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -68,7 +77,20 @@ export const hrSlice = createSlice({
         builder
             .addCase(getExitEmployeesBySearch.fulfilled, (state, { payload }) => {
                 state.employees = payload.data;
+            });
+
+        builder
+            .addCase(fetchITApprovals.pending, (state) => {
+                state.loading = true
             })
+            .addCase(fetchITApprovals.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchITApprovals.rejected, (state) => {
+                state.loading = false
+            });
     }
 });
 

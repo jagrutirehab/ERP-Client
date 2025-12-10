@@ -4,14 +4,15 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 
 import Sidebar from './Sidebar';
 import Employee from './Employee';
-import NewJoining from './NewJoining';
 import { usePermissions } from '../../Components/Hooks/useRoles';
-import ExitEmployees from './ExitEmployees';
+import NewJoiningApprovals from './NewJoining/Approvals';
+import NewJoiningIT from './NewJoining/IT';
+import FNFApproval from './ExitEmployees/FNFApproval';
+import ExitApprovals from './ExitEmployees/Approvals';
+import ExitEmployeeIT from './ExitEmployees/IT';
 
 const HR = () => {
     const navigate = useNavigate();
-    console.log({ Sidebar, Employee, NewJoining, ExitEmployees });
-
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -41,8 +42,11 @@ const HR = () => {
                                 {/* <Route path={`/dashboard`} element={<HRDashboard />} /> */}
                                 <Route path={`/employee`} element={<Employee />} />
                                 {/* <Route path={`/approvals`} element={<ApprovalDashboard />} /> */}
-                                <Route path={`/new-joinings`} element={<NewJoining />} />
-                                <Route path={`/exit-employees`} element={<ExitEmployees />} />
+                                <Route path={`/new-joinings/approval`} element={<NewJoiningApprovals />} />
+                                <Route path={`/new-joinings/it`} element={<NewJoiningIT />} />
+                                <Route path={`/exit-employees/approval`} element={<ExitApprovals />} />
+                                <Route path={`/exit-employees/fnf`} element={<FNFApproval />} />
+                                <Route path={`/exit-employees/it`} element={<ExitEmployeeIT />} />
                             </Routes>
                         </div>
                     </Container>

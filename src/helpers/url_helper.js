@@ -329,7 +329,7 @@ export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/detailed";
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/summary";
-export const GET_ALL_ENETS="/central-payment/eNets";
+export const GET_ALL_ENETS = "/central-payment/eNets";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
@@ -398,8 +398,11 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
-export const IT="/hr/it";
+export const IT = "/hr/it";
+export const IT_NEW_JOINING_ACTION = "/hr/it/joining";
+export const IT_EXIT_ACTION = "/hr/it/exit";
 export const EXIT_EMPLOYEE = "/hr/exit";
 export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
 export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
+export const EMPLOYEE_EMAILS = "/hr/employee/emails";

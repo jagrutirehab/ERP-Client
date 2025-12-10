@@ -496,14 +496,49 @@ export const HR = [
   {
     id: "new-joinings",
     label: "New Joinings",
-    link: "/hr/new-joinings",
-    icon: "bx  bx-arrow-to-left",
+    icon: "bx  bx-arrow-from-left",
+    isAccordion: true,
+    children: [
+      {
+        id: "new-joining-approval",
+        label: "Joining Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/new-joinings/approval",
+      },
+      {
+        id: "new-joining-it",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/new-joinings/it",
+      },
+    ]
   },
   {
     id: "exit-employees",
     label: "Exit Employees",
+    icon: "bx bx-arrow-to-left",
     link: "/hr/exit-employees",
-    icon: "bx bx-arrow-from-left",
+    isAccordion: true,
+    children: [
+      {
+        id: "exit-approval",
+        label: "Exit Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/exit-employees/approval",
+      },
+      {
+        id: "exit-fnf-approval",
+        label: "FNF Approvals",
+        icon: "bx bx-briefcase",
+        link: "/hr/exit-employees/fnf",
+      },
+      {
+        id: "exit-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/exit-employees/it",
+      },
+    ],
   },
 ];
 

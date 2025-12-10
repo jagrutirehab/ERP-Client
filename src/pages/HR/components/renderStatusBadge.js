@@ -54,6 +54,18 @@ export const renderStatusBadge = (stage) => {
         REJECTED_AND_ACTIVE_EMPLOYEE: {
             text: "Rejected & Active Employee",
             color: "danger"
+        },
+        USER_CREATED: {
+            text: "User Created",
+            color: "success"
+        },
+        EXIT_EMPLOYEE_PENDING: {
+            text: "Exit Employee Pending",
+            color: "warning"
+        },
+        USER_SUSPENDED: {
+            text: "User Suspended",
+            color: "danger"
         }
 
     };
