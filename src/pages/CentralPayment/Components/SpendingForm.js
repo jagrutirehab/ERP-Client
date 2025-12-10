@@ -47,7 +47,16 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         GSTAmount: Yup.number()
             .typeError("GST amount must be a number")
             .required("GST amount is required"),
-        IFSCCode: Yup.string().nullable(),
+        IFSCCode: Yup.string()
+            .nullable()
+            .test(
+                "ifsc-length",
+                "IFSC Code must be exactly 11 characters",
+                (value) => {
+                    if (!value) return true;
+                    return value.length === 11;
+                }
+            ),
         accountHolderName: Yup.string().nullable(),
         accountNo: Yup.string().nullable(),
         TDSRate: Yup.number()
@@ -93,7 +102,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             accountHolderName: paymentData?.bankDetails?.accountHolderName || "",
             accountNo: paymentData?.bankDetails?.accountNo || "",
             initialPaymentStatus: paymentData?.initialPaymentStatus || "",
-            TDSRate:paymentData?.TDSRate||"",
+            TDSRate: paymentData?.TDSRate || "",
             attachmentType: paymentData?.attachmentType || "",
             attachments: []
         },

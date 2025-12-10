@@ -61,7 +61,7 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
             .map(item => item.eNet)
             .filter(Boolean);
 
-        await navigator.clipboard.writeText(selectedECodes.join("\n\n"));
+        await navigator.clipboard.writeText(selectedECodes.join("\n"));
         toast.success("Selected E-Nets copied to clipboard");
     }
 
@@ -76,7 +76,7 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
                 return;
             }
 
-            const textToCopy = eNets.join("\n\n");
+            const textToCopy = eNets.join("\n");
 
             await navigator.clipboard.writeText(textToCopy);
 

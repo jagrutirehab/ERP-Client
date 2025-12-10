@@ -55,19 +55,30 @@ export const renderStatusBadge = (stage) => {
             text: "Rejected & Active Employee",
             color: "danger"
         },
-        USER_CREATED: {
-            text: "User Created",
+        NEW_JOINING_PENDING: {
+            text: "New Joining Pending",
+            color: "warning"
+        },
+        NEW_JOINING_USER_CREATED: {
+            text: "New Joining Approved & User Created",
             color: "success"
+        },
+        NEW_JOINING_REJECTED: {
+            text: "New Joining Rejected",
+            color: "danger"
         },
         EXIT_EMPLOYEE_PENDING: {
             text: "Exit Employee Pending",
             color: "warning"
         },
-        USER_SUSPENDED: {
-            text: "User Suspended",
+        EXIT_EMPLOYEE_APPROVED_USER_SUSPENDED: {
+            text: "Exit Employee Approved & User Suspended",
+            color: "success"
+        },
+        EXIT_EMPLOYEE_REJECTED: {
+            text: "Exit Employee Rejected",
             color: "danger"
         }
-
     };
 
     const config = map[stage];
