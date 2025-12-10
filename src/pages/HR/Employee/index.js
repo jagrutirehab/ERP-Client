@@ -534,7 +534,7 @@ const Employee = () => {
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
                         subAccess={"MASTER_EMPLOYEE"}
-                        permission={"create"}
+                        permission={"delete"}
                     >
                         <Button
                             color={"primary"}
@@ -577,7 +577,7 @@ const Employee = () => {
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
                         subAccess={"MASTER_EMPLOYEE"}
-                        permission={"create"}
+                        permission={"delete"}
                     >
                         <Button
                             color="primary"
