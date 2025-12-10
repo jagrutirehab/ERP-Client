@@ -193,8 +193,11 @@ export const permissionList = [
     label: "HR",
     subModules: [
       { name: "MASTER_EMPLOYEE", label: "Master Employee" },
-      { name: "NEW_JOININGS", label: "New Joinings" },
-      { name: "EXIT_EMPLOYEES", label: "Exit Employees" },
+      { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_IT", label: "New Joinings IT" },
+      { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
+      { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
     ]
   }
 ];

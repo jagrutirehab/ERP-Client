@@ -252,6 +252,14 @@ const Employee = () => {
         },
 
         {
+            name: <div>IT Status</div>,
+            selector: row => renderStatusBadge(row?.itStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: true
+        },
+
+        {
             name: <div>Gender</div>,
             selector: row => capitalizeWords(row?.gender || "-"),
             wrap: true,
@@ -379,13 +387,13 @@ const Employee = () => {
             wrap: true,
             minWidth: "210px"
         },
-        {
-            name: <div>Monthly CTC</div>,
-            selector: row => `₹${row?.monthlyCTC?.toLocaleString()}`,
-            sortable: true,
-            wrap: true,
-            minWidth: "100px"
-        },
+        // {
+        //     name: <div>Monthly CTC</div>,
+        //     selector: row => `₹${row?.monthlyCTC?.toLocaleString()}`,
+        //     sortable: true,
+        //     wrap: true,
+        //     minWidth: "100px"
+        // },
         {
             name: <div>Offer Letter</div>,
             selector: (row) =>

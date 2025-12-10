@@ -1,18 +1,40 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../Components/Hooks/useAuthError';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
-import { toast } from 'react-toastify';
-import { format } from 'date-fns';
-import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { Input, Spinner } from 'reactstrap';
+import { useDispatch, useSelector } from "react-redux";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
+import { toast } from "react-toastify";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { Input, Spinner } from "reactstrap";
+import { format } from "date-fns";
+import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import DataTable from "react-data-table-component";
 import Select from "react-select";
-import DataTable from 'react-data-table-component';
-import { renderStatusBadge } from '../../components/renderStatusBadge';
+import { renderStatusBadge } from "../../../components/renderStatusBadge";
 
-const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
+
+const customStyles = {
+    table: {
+        style: {
+            minHeight: "450px",
+        },
+    },
+    headCells: {
+        style: {
+            backgroundColor: "#f8f9fa",
+            fontWeight: "600",
+            borderBottom: "2px solid #e9ecef",
+        },
+    },
+    rows: {
+        style: {
+            minHeight: "60px",
+            borderBottom: "1px solid #f1f1f1",
+        },
+    },
+};
+
+const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -68,31 +90,31 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-
-    const fetchExitEmployeeListHistory = async () => {
+    const fetchITApprovalHistory = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
                     ? user?.centerAccess
                     : !user?.centerAccess.length ? [] : [selectedCenter];
 
-            await dispatch(fetchExitEmployees({
+            await dispatch(fetchITApprovals({
                 page,
                 limit,
                 centers,
-                stage: "HISTORY",
+                view: "EXIT_EMPLOYEE_HISTORY",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
+            console.log(error)
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch Exit employee records");
+                toast.error(error.message || "Failed to fetch master employee list");
             }
         }
     };
 
     useEffect(() => {
         if (activeTab === "HISTORY" && hasUserPermission) {
-            fetchExitEmployeeListHistory();
+            fetchITApprovalHistory();
         }
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
@@ -106,133 +128,97 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
             name: <div>Name</div>,
             selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,
-            minWidth: "160px",
+            minWidth: "160px"
+        },
+        {
+            name: <div>Department</div>,
+            selector: row => capitalizeWords(row?.department || "-"),
+            wrap: true,
+            minWidth: "100px"
+        },
+        {
+            name: <div>Designation</div>,
+            selector: row => capitalizeWords(row?.designation || "-"),
+            wrap: true,
+            minWidth: "100px"
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
+            selector: row => capitalizeWords(row?.currentLocationTitle || "-"),
             wrap: true,
-            minWidth: "120px",
+            minWidth: "120px"
         },
         {
-            name: <div>Reason of Leaving</div>,
-            selector: row => capitalizeWords(row?.reason || "-"),
-            wrap: true,
-            minWidth: "140px",
+            name: <div>Gender</div>,
+            selector: row => capitalizeWords(row?.gender || "-"),
+            wrap: true
         },
         {
-            name: <div>Other Reason (If Any)</div>,
-            selector: row => (
-                <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
-            ),
-            wrap: true,
-            minWidth: "160px",
-        },
-        {
-            name: <div>Last Working Day</div>,
-            selector: row => row?.lastWorkingDay || "-",
-            wrap: true,
-        },
-        {
-            name: <div>Filled By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.filledBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "200px",
-        },
-        {
-            name: <div>Filled At</div>,
-            selector: row => {
-                if (!row?.filledAt) return "-";
-                const date = new Date(row.filledAt);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        {
-            name: <div>Exit By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.exitApprovedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.exitApprovedBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "200px",
-        },
-        {
-            name: <div>Exit Time</div>,
-            selector: row => {
-                const t = row?.exitApprovedAt;
-                if (!t) return "-";
-                const date = new Date(t);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        {
-            name: <div>FNF By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.fnfApprovedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.fnfApprovedBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "200px",
-        },
-        {
-            name: <div>FNF Time</div>,
-            selector: row => {
-                const t = row?.fnfApprovedAt;
-                if (!t) return "-";
-                const date = new Date(t);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        {
-            name: <div>Exit Note</div>,
-            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        {
-            name: <div>FNF Note</div>,
-            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        {
-            name: <div>Status</div>,
-            selector: row => renderStatusBadge(row?.stage) || "-",
+            name: <div>Mobile No</div>,
+            selector: row => row?.mobile || "-",
             wrap: true,
             minWidth: "140px"
+        },
+        {
+            name: <div>Official Email ID</div>,
+            selector: row => row?.officialEmail || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Email ID</div>,
+            selector: row => row?.email || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Approval Status</div>,
+            selector: (row) => renderStatusBadge(row?.action) || "",
+        },
+        {
+            name: <div>Created At</div>,
+            selector: row =>
+                row?.createdAt
+                    ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
+                    : "-",
+            sortable: true,
+            wrap: true,
+            minWidth: "180px"
+        },
+        {
+            name: <div>Acted At</div>,
+            selector: row => {
+                const actedAt = row?.actedAt;
+
+                if (!actedAt || isNaN(new Date(actedAt))) {
+                    return "-";
+                }
+
+                return format(new Date(actedAt), "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "180px"
+        },
+        {
+            name: <div>Acted By</div>,
+            selector: (row) => (
+                <div>
+                    <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                        {row?.actedBy?.email || "-"}
+                    </div>
+                </div>
+            ),
+            wrap: true,
+            minWidth: "200px"
+        },
+        {
+            name: <div>Note</div>,
+            selector: row => <ExpandableText text={row?.note || "-"} />,
+            wrap: true,
+            minWidth: "200px"
         }
-
     ];
-
 
     return (
         <>
@@ -292,8 +278,11 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+
                 </div>
+
             </div>
+
             <DataTable
                 columns={columns}
                 data={data}
@@ -309,26 +298,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 fixedHeaderScrollHeight="500px"
                 dense={isMobile}
                 responsive
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "450px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
-                }}
+                customStyles={customStyles}
                 progressComponent={
                     <div className="py-4 text-center">
                         <Spinner className="text-primary" />
@@ -337,8 +307,9 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 onChangePage={(newPage) => setPage(newPage)}
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
+
         </>
     )
 }
 
-export default ExitHistory;
+export default ApprovalHistory;

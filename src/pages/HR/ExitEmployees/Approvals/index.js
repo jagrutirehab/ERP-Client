@@ -1,47 +1,25 @@
-import { useEffect, useState } from 'react';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { Button, Input, Spinner } from 'reactstrap';
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { format } from 'date-fns';
-import DataTable from 'react-data-table-component';
-import Select from "react-select";
-// import { employees } from '../dummyData';
-import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
-import AddEmployeeModal from '../../components/AddEmployeeModal';
-import { getMasterEmployees } from '../../../../store/features/HR/hrSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
+import { usePermissions } from '../../../../Components/Hooks/useRoles';
+import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
+import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
 import { toast } from 'react-toastify';
+import { deleteExitEmployee, exitEmployeeExitAction } from '../../../../helpers/backend_helper';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
-import DeleteConfirmModal from '../../components/DeleteConfirmModal';
-import { deleteEmployee, updateNewJoiningStatus } from '../../../../helpers/backend_helper';
-import ApproveModal from '../../components/ApproveModal';
+import { ExpandableText } from '../../../../Components/Common/ExpandableText';
+import { format } from 'date-fns';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
-import { downloadFile } from '../../../../Components/Common/downloadFile';
-
-const customStyles = {
-    table: {
-        style: {
-            minHeight: "450px",
-        },
-    },
-    headCells: {
-        style: {
-            backgroundColor: "#f8f9fa",
-            fontWeight: "600",
-            borderBottom: "2px solid #e9ecef",
-        },
-    },
-    rows: {
-        style: {
-            minHeight: "60px",
-            borderBottom: "1px solid #f1f1f1",
-        },
-    },
-};
+import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
+import { Button, CardBody, Input, Spinner } from 'reactstrap';
+import DataTable from 'react-data-table-component';
+import AddExitEmployeeModal from '../../components/AddExitEmployeeModal';
+import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import ApproveModal from '../../components/ApproveModal';
+import Select from "react-select";
 
 
-const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
-
+const ExitApprovals = () => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -57,8 +35,13 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
     const [modalLoading, setModalLoading] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
-    const [reason, setReason] = useState("");
-    const [eCode, setECode] = useState("");
+    const [note, setNote] = useState("");
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, roles } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -105,40 +88,40 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
         return () => clearTimeout(handler);
     }, [search]);
 
-    const fetchMasterEmployeeList = async () => {
+    const fetchPendingExitEmployeeList = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
                     ? user?.centerAccess
                     : !user?.centerAccess.length ? [] : [selectedCenter];
 
-            await dispatch(getMasterEmployees({
+            await dispatch(fetchExitEmployees({
                 page,
                 limit,
                 centers,
-                view: "NEW_JOINING_PENDING",
+                stage: "EXIT_PENDING",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch master employee list");
+                toast.error(error.message || "Failed to fetch Exit employee records");
             }
         }
     };
 
     useEffect(() => {
-        if (activeTab === "PENDING" && hasUserPermission) {
-            fetchMasterEmployeeList();
+        if (hasUserPermission) {
+            fetchPendingExitEmployeeList();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
     const handleDelete = async () => {
         setModalLoading(true);
         try {
-            await deleteEmployee(selectedEmployee._id);
+            await deleteExitEmployee(selectedEmployee._id);
             toast.success("Employee deleted successfully");
             setPage(1);
-            fetchMasterEmployeeList();
+            fetchPendingExitEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to delete employee")
@@ -149,269 +132,67 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
         }
     }
 
-    const handleNewJoiningAction = async () => {
+    const handleAction = async () => {
         setModalLoading(true);
         try {
-            const response = await updateNewJoiningStatus(
-                selectedEmployee._id,
-                {
-                    action: actionType,
-                    reason,
-                    ...actionType === "APPROVE" && { eCode }
-                }
-            );
-
+            const response = await exitEmployeeExitAction(selectedEmployee._id, {
+                action: actionType.value,
+                note,
+            });
             toast.success(response.message);
-            setPage(1)
-            fetchMasterEmployeeList();
+            setPage(1);
+            fetchPendingExitEmployeeList();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to update the status");
+                toast.error(error.message || "Action failed");
             }
-        } finally {
-            setModalLoading(false);
-            setApproveModalOpen(false);
-            setReason("");
-            setActionType(null);
         }
-    };
+    }
 
     const columns = [
         {
-            name: <div>Date</div>,
-            selector: row =>
-                row?.createdAt
-                    ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
-                    : "-",
+            name: <div>ECode</div>,
+            selector: row => row?.eCode || "-",
             sortable: true,
-            wrap: true,
-            minWidth: "180px"
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.name?.toUpperCase() || "-",
+            selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
-        },
-        {
-            name: <div>Department</div>,
-            selector: row => capitalizeWords(row?.department || "-"),
-            wrap: true,
-            minWidth: "100px"
-        },
-        {
-            name: <div>Designation</div>,
-            selector: row => capitalizeWords(row?.designation || "-"),
-            wrap: true,
-            minWidth: "100px"
-        },
-        {
-            name: <div>Employment</div>,
-            selector: row => capitalizeWords(row?.employmentType || "-"),
-            wrap: true,
-            minWidth: "100px"
-        },
-
-        {
-            name: <div>First Location</div>,
-            selector: row => capitalizeWords(row?.firstLocation?.title || "-"),
-            wrap: true,
-            minWidth: "120px"
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
-            wrap: true,
-            minWidth: "120px"
-        },
-
-        {
-            name: <div>State</div>,
-            selector: row => capitalizeWords(row?.state || "-"),
+            selector: row => capitalizeWords(row?.center || "-"),
             wrap: true,
             minWidth: "120px"
         },
         {
-            name: <div>Payroll</div>,
-            selector: row =>
-                row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
-            wrap: true
-        },
-        {
-            name: <div>Joining Date</div>,
-            selector: row => row?.joinningDate || "-",
-            wrap: true
-        },
-        {
-            name: <div>Gender</div>,
-            selector: row => capitalizeWords(row?.gender || "-"),
-            wrap: true
-        },
-        {
-            name: <div>Date of Birth</div>,
-            selector: row => row?.dateOfBirth || "-",
-            wrap: true
-        },
-        {
-            name: <div>Bank Name</div>,
-            selector: row =>
-                capitalizeWords(row?.bankDetails?.bankName || "-"),
-            wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>Bank Account No</div>,
-            selector: row => row?.bankDetails?.accountNo || "-",
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>IFSC Code</div>,
-            selector: row => row?.bankDetails?.IFSCCode || "-",
+            name: <div>Reason of Leaving</div>,
+            selector: row => row?.reason || "-",
             wrap: true,
             minWidth: "150px"
         },
         {
-            name: <div>PF Applicable</div>,
-            selector: row =>
-                row?.pfApplicable === true
-                    ? "Yes"
-                    : row?.pfApplicable === false
-                        ? "No"
-                        : "-",
-            wrap: true
-        },
-        {
-            name: <div>UAN No</div>,
-            selector: row => row?.uanNo || "-",
+            name: <div>Other Reason (If Any)</div>,
+            selector: row => (
+                <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
+            ),
             wrap: true,
-            minWidth: "160px"
+            minWidth: "120px"
         },
         {
-            name: <div>PF No</div>,
-            selector: row => row?.pfNo || "-",
+            name: <div>Last Working Day</div>,
+            selector: row => row?.lastWorkingDay || "-",
             wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>ESIC IP Code</div>,
-            selector: row => row?.esicIpCode || "-",
-            wrap: true,
-            minWidth: "160px"
-        },
-
-        {
-            name: <div>Aadhaar No</div>,
-            selector: row => row?.adhar?.number || "-",
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>Aadhaar File</div>,
-            cell: row =>
-                typeof row?.adhar?.url === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.adhar.url })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                ),
-            wrap: true,
-        },
-        {
-            name: <div>PAN</div>,
-            selector: row => row?.pan?.number || "-",
-            wrap: true,
-            minWidth: "140px"
-        },
-        {
-            name: <div>PAN File</div>,
-            cell: row =>
-                typeof row?.pan?.url === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.pan.url })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                )
-        },
-        {
-            name: <div>Father's Name</div>,
-            selector: row => capitalizeWords(row?.father || "-"),
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>Mobile No</div>,
-            selector: row => row?.mobile || "-",
-            wrap: true,
-            minWidth: "140px"
-        },
-        {
-            name: <div>Official Email ID</div>,
-            selector: row => row?.officialEmail || "-",
-            wrap: true,
-            minWidth: "200px"
-        },
-        {
-            name: <div>Email ID</div>,
-            selector: row => row?.email || "-",
-            wrap: true,
-            minWidth: "200px"
-        },
-
-        {
-            name: <div>Monthly CTC</div>,
-            selector: row =>
-                typeof row?.monthlyCTC === "number"
-                    ? `₹${row.monthlyCTC.toLocaleString()}`
-                    : "-",
-            sortable: true,
-            wrap: true,
-            minWidth: "100px"
-        },
-        {
-            name: <div>Offer Letter</div>,
-            cell: row =>
-                typeof row?.offerLetter === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.offerLetter })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                )
         },
         {
             name: <div>Filled By</div>,
             selector: row => (
                 <div>
-                    <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
+                    <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
                     <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.newJoiningWorkflow?.filledBy?.email || "-"}
+                        {row?.filledBy?.email || "-"}
                     </div>
                 </div>
             ),
@@ -419,28 +200,45 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
             minWidth: "200px"
         },
         {
-            name: <div>Filled At</div>,
+            name: <div>Filled Time</div>,
             selector: row => {
-                const filledAt = row?.newJoiningWorkflow?.filledAt;
-
-                if (!filledAt || isNaN(new Date(filledAt))) {
-                    return "-";
-                }
-
-                return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
+                if (!row?.filledAt) return "-";
+                const date = new Date(row.filledAt);
+                if (isNaN(date)) return "-";
+                return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
             minWidth: "180px",
         },
-        ...(hasPermission("HR", "NEW_JOININGS", "WRITE")
+        {
+            name: <div>FNF Rejection Note</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
+            wrap: true,
+            minWidth: "180px",
+        },
+        {
+            name: <div>FNF Rejection Time</div>,
+            selector: row => {
+                if (!row?.fnfApprovedAt) return "-";
+                const date = new Date(row.fnfApprovedAt);
+                if (isNaN(date)) return "-";
+                return format(date, "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "180px",
+        },
+
+        ...(hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "WRITE")
             ? [
                 {
                     name: <div>Actions</div>,
                     cell: row => (
                         <div className="d-flex gap-2">
+
+                            {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="NEW_JOININGS"
+                                subAccess="EXIT_EMPLOYEE_APPROVAL"
                                 permission="edit"
                             >
                                 <Button
@@ -456,7 +254,8 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                                     <CheckCheck size={18} />
                                 </Button>
 
-                                <Button
+                                {/* REJECT EXIT */}
+                                {/* <Button
                                     color="danger"
                                     className="text-white"
                                     size="sm"
@@ -467,22 +266,27 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                                     }}
                                 >
                                     <X size={16} />
-                                </Button>
+                                </Button> */}
 
-                                <button
-                                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                {/* EDIT EXIT REQUEST */}
+                                <Button
+                                    color="primary"
+                                    outline
+                                    size="sm"
+                                    className="d-flex align-items-center gap-1"
                                     onClick={() => {
                                         setSelectedEmployee(row);
                                         setModalOpen(true);
                                     }}
                                 >
                                     <Pencil size={16} />
-                                </button>
+                                </Button>
                             </CheckPermission>
 
+                            {/* DELETE REQUEST */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="NEW_JOININGS"
+                                subAccess="EXIT_EMPLOYEE_APPROVAL"
                                 permission="delete"
                             >
                                 <button
@@ -506,9 +310,18 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
             : [])
     ];
 
-    return (
 
-        <>
+
+    return (
+        <CardBody
+            className="p-3 bg-white"
+            style={isMobile ? { width: "100%" } : { width: "78%" }}
+        >
+            <div className="text-center text-md-left mb-4">
+                <h1 className="display-6 fw-bold text-primary">
+                    EXIT EMPLOYEE APPROVALS
+                </h1>
+            </div>
             <div className="mb-3">
                 {/*  DESKTOP VIEW */}
                 <div className="d-none d-md-flex justify-content-between align-items-center">
@@ -542,7 +355,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
 
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOININGS"}
+                        subAccess={"EXIT_EMPLOYEE_APPROVAL"}
                         permission={"create"}
                     >
                         <button
@@ -584,7 +397,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                 <div className="d-flex d-md-none justify-content-end mt-3">
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOININGS"}
+                        subAccess={"EXIT_EMPLOYEE_APPROVAL"}
                         permission={"create"}
                     >
                         <Button
@@ -596,6 +409,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                         </Button>
                     </CheckPermission>
                 </div>
+
 
             </div>
 
@@ -614,7 +428,26 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                 fixedHeaderScrollHeight="500px"
                 dense={isMobile}
                 responsive
-                customStyles={customStyles}
+                customStyles={{
+                    table: {
+                        style: {
+                            minHeight: "450px",
+                        },
+                    },
+                    headCells: {
+                        style: {
+                            backgroundColor: "#f8f9fa",
+                            fontWeight: "600",
+                            borderBottom: "2px solid #e9ecef",
+                        },
+                    },
+                    rows: {
+                        style: {
+                            minHeight: "60px",
+                            borderBottom: "1px solid #f1f1f1",
+                        },
+                    },
+                }}
                 progressComponent={
                     <div className="py-4 text-center">
                         <Spinner className="text-primary" />
@@ -624,7 +457,7 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
-            <AddEmployeeModal
+            <AddExitEmployeeModal
                 isOpen={modalOpen}
                 toggle={() => {
                     setModalOpen(!modalOpen);
@@ -633,12 +466,10 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                 initialData={selectedEmployee}
                 onUpdate={() => {
                     setPage(1);
-                    fetchMasterEmployeeList();
+                    fetchPendingExitEmployeeList();
                 }}
-                loading={modalLoading}
-                setLoading={setModalLoading}
-                mode={"NEW_JOINING"}
             />
+
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}
                 toggle={() => {
@@ -652,20 +483,19 @@ const PendingJoinings = ({ activeTab, hasUserPermission, hasPermission, roles })
                 isOpen={approveModalOpen}
                 toggle={() => {
                     setApproveModalOpen(false);
-                    setReason("");
+                    setNote("");
                     setActionType(null);
                 }}
-                onSubmit={handleNewJoiningAction}
-                mode="NEW_JOINING"
+                onSubmit={handleAction}
+                mode="EXIT_EMPLOYEES_EXIT_PENDING"
                 actionType={actionType}
-                note={reason}
-                setNote={setReason}
-                eCode={eCode}
-                setECode={setECode}
+                setActionType={setActionType}
+                note={note}
+                setNote={setNote}
+
             />
+        </CardBody>
+    )
+}
 
-        </>
-    );
-};
-
-export default PendingJoinings;
+export default ExitApprovals;

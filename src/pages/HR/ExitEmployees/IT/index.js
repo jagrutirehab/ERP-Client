@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     CardBody,
     Nav,
@@ -9,13 +9,15 @@ import {
     TabPane,
 } from "reactstrap";
 import classnames from "classnames";
-import PendingJoinings from "./Views/PendingJoinings";
-import JoiningHistory from "./Views/JoiningHistory";
-import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
-import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import PendingApprovals from "./Views/PendingApprovals";
+import ApprovalHistory from "./Views/ApprovalHistory";
 
-const NewJoining = () => {
+
+
+const ExitEmployeeIT = () => {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [activeTab, setActiveTab] = useState("PENDING");
@@ -25,11 +27,14 @@ const NewJoining = () => {
     const token = microUser ? JSON.parse(microUser).token : null;
 
     const { hasPermission, loading, roles } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "NEW_JOININGS", "READ");
+    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEE_IT", "READ");
 
-    if (!loading && !hasUserPermission) {
-        navigate("/unauthorized");
-    }
+    useEffect(() => {
+        if (!loading && !hasUserPermission) {
+            navigate("/unauthorized");
+        }
+    }, [loading, hasUserPermission, navigate]);
+
 
     if (loading) {
         return (
@@ -49,7 +54,7 @@ const NewJoining = () => {
         >
             <div className="content-wrapper">
                 <div className="text-center text-md-left">
-                    <h1 className="display-6 fw-bold text-primary">NEW JOINING EMPLOYEES</h1>
+                    <h1 className="display-6 fw-bold text-primary">EXIT EMPLOYEE IT APPROVALS</h1>
                 </div>
                 <Nav tabs className="mb-3">
                     <NavItem>
@@ -74,7 +79,7 @@ const NewJoining = () => {
 
                 <TabContent activeTab={activeTab}>
                     <TabPane tabId="PENDING">
-                        <PendingJoinings
+                        <PendingApprovals
                             activeTab={activeTab}
                             hasUserPermission={hasUserPermission}
                             hasPermission={hasPermission}
@@ -82,7 +87,7 @@ const NewJoining = () => {
                         />
                     </TabPane>
                     <TabPane tabId="HISTORY">
-                        <JoiningHistory
+                        <ApprovalHistory
                             activeTab={activeTab}
                             hasUserPermission={hasUserPermission}
                             hasPermission={hasPermission}
@@ -95,4 +100,4 @@ const NewJoining = () => {
     );
 };
 
-export default NewJoining;
+export default ExitEmployeeIT;

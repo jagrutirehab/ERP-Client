@@ -7,6 +7,7 @@ import {
   Button,
   Label,
   Input,
+  Spinner,
 } from "reactstrap";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
@@ -22,7 +23,10 @@ const ApproveModal = ({
   setActionType,
   note,
   setNote,
-  eCode, setECode
+  eCode,
+  setECode,
+  usersLinkedToEmployee,
+  loading,
 }) => {
 
   const [approvedBy, setApprovedBy] = useState("");
@@ -66,7 +70,13 @@ const ApproveModal = ({
     toggle();
   };
 
-  console.log(actionType)
+  if (loading) {
+    return (
+      <div className="py-4 text-center">
+        <Spinner className="text-primary" />
+      </div>
+    )
+  }
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered>
@@ -136,6 +146,41 @@ const ApproveModal = ({
           </div>
         )}
 
+        {
+          mode === "EXIT_EMPLOYEES_IT_PENDING" &&
+            actionType === "APPROVE" ? (
+            usersLinkedToEmployee?.length > 0 ? (
+              <div style={{ marginTop: "10px" }}>
+                <p className="text-danger fw-bold">
+                  User(s) associated with this employee will be suspended:
+                </p>
+
+                <ul style={{ paddingLeft: "20px", marginTop: "5px" }}>
+                  {usersLinkedToEmployee.map((email, idx) => (
+                    <li key={idx} className="text-muted">
+                      {email}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div
+                style={{
+                  marginTop: "10px",
+                  padding: "10px 12px",
+                  background: "#f8f9fa",
+                  borderRadius: "6px",
+                  border: "1px solid #e2e3e5",
+                }}
+              >
+                <p className="m-0 text-secondary">
+                  <i className="bx bx-info-circle me-1"></i>
+                  No user accounts are linked with this employee.
+                </p>
+              </div>
+            )
+          ) : null
+        }
 
         {mode === "SALARY_ADVANCE" && actionType === "APPROVE" && (
           <div className="mb-3">

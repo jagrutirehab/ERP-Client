@@ -241,6 +241,8 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                     formData.delete("exitStatus");
                     formData.delete("fnfStatus");
                     formData.delete("author");
+                    formData.delete("itStatus");
+                    formData.delete("users");
                     await editEmployee(initialData._id, formData);
                     toast.success("Employee updated successfully");
                 } else {
@@ -558,7 +560,9 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                         {/* PF APPLICABLE */}
                         <Col md={6}>
-                            <Label>PF Applicable</Label>
+                            <Label>
+                                PF Applicable <span className="text-danger">*</span>
+                            </Label>
                             <Select
                                 options={[
                                     { value: true, label: "YES" },

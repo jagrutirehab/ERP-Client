@@ -1689,10 +1689,26 @@ export const getITApprovals = (params = {}) => {
   })
 }
 
-export const updateITStatus = (id, data) => {
-  return api.update(`${url.IT}/${id}`, data, {
+export const updateNewJoiningITStatus = (id, data) => {
+  return api.update(`${url.IT_NEW_JOINING_ACTION}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
+
+export const updateExitITStatus = (id, data) => {
+  return api.update(`${url.IT_EXIT_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeEmails = (id) => {
+  return api.get(`${url.EMPLOYEE_EMAILS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}

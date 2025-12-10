@@ -1,25 +1,44 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
-import { usePermissions } from '../../../../../Components/Hooks/useRoles';
-import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../../store/features/HR/hrSlice';
-import { toast } from 'react-toastify';
-import { deleteExitEmployee, exitEmployeeFNFAction } from '../../../../../helpers/backend_helper';
-import { capitalizeWords } from '../../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../../Components/Common/ExpandableText';
-import { format } from 'date-fns';
-import CheckPermission from '../../../../../Components/HOC/CheckPermission';
-import { CheckCheck, X } from 'lucide-react';
-import { Button, Input, Spinner } from 'reactstrap';
-import DataTable from 'react-data-table-component';
-import AddExitEmployeeModal from '../../../components/AddExitEmployeeModal';
-import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
-import ApproveModal from '../../../components/ApproveModal';
+import { useDispatch, useSelector } from "react-redux";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
+import { Button, Input, Spinner } from "reactstrap";
+import { CheckCheck, X } from "lucide-react";
+import DataTable from "react-data-table-component";
+import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
+import { getEmployeeEmails, updateExitITStatus } from "../../../../../helpers/backend_helper";
 
 
-const FNFPending = ({ activeTab, activeSubTab }) => {
+const customStyles = {
+    table: {
+        style: {
+            minHeight: "450px",
+        },
+    },
+    headCells: {
+        style: {
+            backgroundColor: "#f8f9fa",
+            fontWeight: "600",
+            borderBottom: "2px solid #e9ecef",
+        },
+    },
+    rows: {
+        style: {
+            minHeight: "60px",
+            borderBottom: "1px solid #f1f1f1",
+        },
+    },
+};
+
+
+const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
+
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -30,18 +49,12 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalLoading, setModalLoading] = useState(false);
-    const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
-    const [note, setNote] = useState("");
+    const [reason, setReason] = useState("");
+    const [usersLinkedToEmployee, setUsersLinkedToEmployee] = useState([]);
 
-    const microUser = localStorage.getItem("micrologin");
-    const token = microUser ? JSON.parse(microUser).token : null;
-
-    const { hasPermission, roles } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEES", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -88,72 +101,84 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    const fetchFNFExitEmployeeList = async () => {
+    const fetchPendingITApprovals = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
                     ? user?.centerAccess
                     : !user?.centerAccess.length ? [] : [selectedCenter];
 
-            await dispatch(fetchExitEmployees({
+            await dispatch(fetchITApprovals({
                 page,
                 limit,
                 centers,
-                stage: "FNF_PENDING",
+                view: "EXIT_EMPLOYEE_PENDING",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch Exit employee records");
+                toast.error(error.message || "Failed to fetch IT approvals");
             }
         }
     };
 
     useEffect(() => {
-        if (activeTab === "PENDING" && activeSubTab === "FNF" && hasUserPermission) {
-            fetchFNFExitEmployeeList();
+        if (activeTab === "PENDING" && hasUserPermission) {
+            fetchPendingITApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, activeSubTab]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
-    const handleDelete = async () => {
+
+    const fetchUsersLinkedToEmployee = async (employeeId) => {
         setModalLoading(true);
         try {
-            await deleteExitEmployee(selectedEmployee._id);
-            toast.success("Employee deleted successfully");
-            setPage(1);
-            fetchFNFExitEmployeeList();
+            const res = await getEmployeeEmails(employeeId);
+            setUsersLinkedToEmployee(res.data);
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to delete employee")
+                toast.error(error.message || "Failed to fetch linked users");
             }
         } finally {
-            setDeleteModalOpen(false);
             setModalLoading(false);
         }
-    }
+    };
 
     const handleAction = async () => {
         setModalLoading(true);
         try {
-            const response = await exitEmployeeFNFAction(selectedEmployee._id, {
-                action: actionType.value,
-                note,
-            });
+            const response = await updateExitITStatus(
+                selectedEmployee._id,
+                {
+                    action: actionType,
+                    note: reason,
+                }
+            );
+
             toast.success(response.message);
-            setPage(1);
-            fetchFNFExitEmployeeList();
+            setPage(1)
+            fetchPendingITApprovals();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Action failed");
+                toast.error(error.message || "Failed to update the status");
             }
+        } finally {
+            setModalLoading(false);
+            setIsModalOpen(false);
+            setReason("");
+            setActionType(null);
         }
-    }
+    };
 
     const columns = [
         {
-            name: <div>ECode</div>,
-            selector: row => row?.eCode || "-",
+            name: <div>Date</div>,
+            selector: row =>
+                row?.createdAt
+                    ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
+                    : "-",
             sortable: true,
+            wrap: true,
+            minWidth: "180px"
         },
         {
             name: <div>Name</div>,
@@ -162,99 +187,55 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
             minWidth: "160px"
         },
         {
+            name: <div>Department</div>,
+            selector: row => capitalizeWords(row?.department || "-"),
+            wrap: true,
+            minWidth: "100px"
+        },
+        {
+            name: <div>Designation</div>,
+            selector: row => capitalizeWords(row?.designation || "-"),
+            wrap: true,
+            minWidth: "100px"
+        },
+        {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
+            selector: row => capitalizeWords(row?.currentLocationTitle || "-"),
             wrap: true,
             minWidth: "120px"
         },
         {
-            name: <div>Reason of Leaving</div>,
-            selector: row => row?.reason || "-",
-            wrap: true,
-            minWidth: "130px"
+            name: <div>Gender</div>,
+            selector: row => capitalizeWords(row?.gender || "-"),
+            wrap: true
         },
         {
-            name: <div>Other Reason (If Any)</div>,
-            selector: row => (
-                <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
-            ),
+            name: <div>Mobile No</div>,
+            selector: row => row?.mobile || "-",
             wrap: true,
-            minWidth: "120px"
+            minWidth: "140px"
         },
         {
-            name: <div>Last Working Day</div>,
-            selector: row => row?.lastWorkingDay || "-",
+            name: <div>Official Email ID</div>,
+            selector: row => row?.officialEmail || "-",
             wrap: true,
+            minWidth: "250px"
         },
         {
-            name: <div>Employee Status</div>,
-            selector: row => row?.employeeStatus || "-",
+            name: <div>Email ID</div>,
+            selector: row => row?.email || "-",
             wrap: true,
+            minWidth: "250px"
         },
-        {
-            name: <div>Filled By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.filledBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "150px"
-        },
-        {
-            name: <div>Filled Time</div>,
-            selector: row => {
-                if (!row?.filledAt) return "-";
-                const date = new Date(row.filledAt);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-        },
-        {
-            name: <div>Exit Approved By</div>,
-            selector: row => (
-                <div>
-                    <div>{capitalizeWords(row?.exitApprovedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.exitApprovedBy?.email || "-"}
-                    </div>
-                </div>
-            ),
-            wrap: true,
-            minWidth: "150px"
-        },
-        {
-            name: <div>Exit Approval Time</div>,
-            selector: row => {
-                if (!row?.exitApprovedAt) return "-";
-                const date = new Date(row.exitApprovedAt);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-        },
-
-        {
-            name: <div>Exit Approval Note</div>,
-            selector: row => <ExpandableText text={capitalizeWords(row?.exitApprovalNote || "-")} />,
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        ...(hasPermission("HR", "EXIT_EMPLOYEES", "WRITE")
+        ...(hasPermission("HR", "EXIT_EMPLOYEE_IT", "WRITE")
             ? [
                 {
                     name: <div>Actions</div>,
                     cell: row => (
                         <div className="d-flex gap-2">
-                            {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="EXIT_EMPLOYEES"
+                                subAccess="EXIT_EMPLOYEE_IT"
                                 permission="edit"
                             >
                                 <Button
@@ -263,25 +244,26 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                                     size="sm"
                                     onClick={() => {
                                         setSelectedEmployee(row);
-                                        setApproveModalOpen(true);
+                                        setActionType("APPROVE");
+                                        setIsModalOpen(true);
+                                        fetchUsersLinkedToEmployee(row?.employeeId);
                                     }}
                                 >
                                     <CheckCheck size={18} />
                                 </Button>
 
-                                {/* REJECT EXIT */}
-                                {/* <Button
+                                <Button
                                     color="danger"
                                     className="text-white"
                                     size="sm"
                                     onClick={() => {
                                         setSelectedEmployee(row);
                                         setActionType("REJECT");
-                                        setApproveModalOpen(true);
+                                        setIsModalOpen(true);
                                     }}
                                 >
                                     <X size={16} />
-                                </Button> */}
+                                </Button>
                             </CheckPermission>
                         </div>
                     ),
@@ -294,9 +276,8 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
             : [])
     ];
 
-
-
     return (
+
         <>
             <div className="mb-3">
                 {/*  DESKTOP VIEW */}
@@ -356,23 +337,6 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                     </div>
                 </div>
 
-                <div className="d-flex d-md-none justify-content-end mt-3">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEES"}
-                        permission={"create"}
-                    >
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </Button>
-                    </CheckPermission>
-                </div>
-
-
             </div>
 
             <DataTable
@@ -390,26 +354,7 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 fixedHeaderScrollHeight="500px"
                 dense={isMobile}
                 responsive
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "450px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
-                }}
+                customStyles={customStyles}
                 progressComponent={
                     <div className="py-4 text-center">
                         <Spinner className="text-primary" />
@@ -418,46 +363,25 @@ const FNFPending = ({ activeTab, activeSubTab }) => {
                 onChangePage={(newPage) => setPage(newPage)}
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
-
-            <AddExitEmployeeModal
-                isOpen={modalOpen}
-                toggle={() => {
-                    setModalOpen(!modalOpen);
-                    setSelectedEmployee(null);
-                }}
-                initialData={selectedEmployee}
-                onUpdate={() => {
-                    setPage(1);
-                    fetchFNFExitEmployeeList();
-                }}
-            />
-
-            <DeleteConfirmModal
-                isOpen={deleteModalOpen}
-                toggle={() => {
-                    setDeleteModalOpen(!deleteModalOpen);
-                    setSelectedEmployee(null);
-                }}
-                onConfirm={handleDelete}
-                loading={modalLoading}
-            />
             <ApproveModal
-                isOpen={approveModalOpen}
+                isOpen={isModalOpen}
                 toggle={() => {
-                    setApproveModalOpen(false);
-                    setNote("");
+                    setIsModalOpen(false);
+                    setReason("");
                     setActionType(null);
                 }}
+                loading={modalLoading}
                 onSubmit={handleAction}
-                mode="EXIT_EMPLOYEES_FNF_PENDING"
+                mode="EXIT_EMPLOYEES_IT_PENDING"
                 actionType={actionType}
-                setActionType={setActionType}
-                note={note}
-                setNote={setNote}
-
+                note={reason}
+                setNote={setReason}
+                usersLinkedToEmployee={usersLinkedToEmployee}
             />
-        </>
-    )
-}
 
-export default FNFPending;
+
+        </>
+    );
+};
+
+export default PendingApprovals;

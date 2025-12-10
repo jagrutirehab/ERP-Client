@@ -263,7 +263,7 @@ const Prescription = ({
       validation.setFieldValue("observation", ptLatestOPDPrescription.observation);
     }
 
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editPrescription, ptLatestOPDPrescription, drugs]);
 
   useEffect(() => {

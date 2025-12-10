@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../Components/Hooks/useAuthError';
-import { getMasterEmployees } from '../../../../store/features/HR/hrSlice';
-import { toast } from 'react-toastify';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { format } from 'date-fns';
-import { Badge, Input, Spinner } from 'reactstrap';
-import DataTable from 'react-data-table-component';
+import { useDispatch, useSelector } from "react-redux";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
+import { toast } from "react-toastify";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { Input, Spinner } from "reactstrap";
+import { format } from "date-fns";
+import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import DataTable from "react-data-table-component";
 import Select from "react-select";
-import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { downloadFile } from '../../../../Components/Common/downloadFile';
+import { renderStatusBadge } from "../../../components/renderStatusBadge";
+
 
 const customStyles = {
   table: {
@@ -33,7 +34,7 @@ const customStyles = {
   },
 };
 
-const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
+const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -89,14 +90,14 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const fetchMasterEmployeeList = async () => {
+  const fetchITApprovalHistory = async () => {
     try {
       const centers =
         selectedCenter === "ALL"
           ? user?.centerAccess
           : !user?.centerAccess.length ? [] : [selectedCenter];
 
-      await dispatch(getMasterEmployees({
+      await dispatch(fetchITApprovals({
         page,
         limit,
         centers,
@@ -104,6 +105,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...search.trim() !== "" && { search: debouncedSearch }
       })).unwrap();
     } catch (error) {
+      console.log(error)
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch master employee list");
       }
@@ -112,7 +114,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
 
   useEffect(() => {
     if (activeTab === "HISTORY" && hasUserPermission) {
-      fetchMasterEmployeeList();
+      fetchITApprovalHistory();
     }
   }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
@@ -124,7 +126,7 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Name</div>,
-      selector: row => row?.name?.toUpperCase() || "-",
+      selector: row => row?.employeeName?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px"
     },
@@ -141,155 +143,15 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
       minWidth: "100px"
     },
     {
-      name: <div>Employment</div>,
-      selector: row => capitalizeWords(row?.employmentType || "-"),
-      wrap: true,
-      minWidth: "100px"
-    },
-    {
-      name: <div>First Location</div>,
-      selector: row => capitalizeWords(row?.firstLocation?.title || "-"),
-      wrap: true,
-      minWidth: "120px"
-    },
-
-    {
       name: <div>Current Location</div>,
-      selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
+      selector: row => capitalizeWords(row?.currentLocationTitle || "-"),
       wrap: true,
       minWidth: "120px"
-    },
-    {
-      name: <div>State</div>,
-      selector: row => capitalizeWords(row?.state || "-"),
-      wrap: true,
-      minWidth: "120px"
-    },
-    {
-      name: <div>Payroll</div>,
-      selector: row => row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
-      wrap: true,
-    },
-    {
-      name: <div>Joining Date</div>,
-      selector: row => row?.joinningDate || "-",
-      wrap: true,
     },
     {
       name: <div>Gender</div>,
       selector: row => capitalizeWords(row?.gender || "-"),
-      wrap: true,
-    },
-    {
-      name: <div>Date of Birth</div>,
-      selector: row => row?.dateOfBirth || "-",
-      wrap: true,
-    },
-    {
-      name: <div>Bank Name</div>,
-      selector: row =>
-        capitalizeWords(row?.bankDetails?.bankName || "-"),
-      wrap: true,
-      minWidth: "160px"
-    },
-    {
-      name: <div>Bank Account No</div>,
-      selector: row => row?.bankDetails?.accountNo || "-",
-      wrap: true,
-      minWidth: "180px"
-    },
-    {
-      name: <div>IFSC Code</div>,
-      selector: row => row?.bankDetails?.IFSCCode || "-",
-      wrap: true,
-      minWidth: "150px"
-    },
-    {
-      name: <div>PF Applicable</div>,
-      selector: row =>
-        row?.pfApplicable === true
-          ? "Yes"
-          : row?.pfApplicable === false
-            ? "No"
-            : "-",
       wrap: true
-    },
-    {
-      name: <div>UAN No</div>,
-      selector: row => row?.uanNo || "-",
-      wrap: true,
-      minWidth: "160px"
-    },
-    {
-      name: <div>PF No</div>,
-      selector: row => row?.pfNo || "-",
-      wrap: true,
-      minWidth: "160px"
-    },
-    {
-      name: <div>ESIC IP Code</div>,
-      selector: row => row?.esicIpCode || "-",
-      wrap: true,
-      minWidth: "160px"
-    },
-    {
-      name: <div>Aadhaar No</div>,
-      selector: row => row?.adhar?.number || "-",
-      wrap: true,
-      minWidth: "180px"
-    },
-    {
-      name: <div>Aadhaar File</div>,
-      selector: (row) =>
-        row?.adhar?.url ? (
-          <span
-            style={{
-              color: "#007bff",
-              textDecoration: "underline",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
-            onClick={() => downloadFile({
-              url: row.adhar.url,
-            })}
-          >
-            Download
-          </span>
-        ) : (
-          "-"
-        ),
-    },
-    {
-      name: <div>PAN No</div>,
-      selector: row => row?.pan?.number || "-",
-      wrap: true,
-      minWidth: "140px"
-    },
-    {
-      name: <div>PAN File</div>,
-      selector: (row) =>
-        row?.pan?.url ? (
-          <span
-            style={{
-              color: "#007bff",
-              textDecoration: "underline",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
-            onClick={() => downloadFile({ url: row.pan.url })}
-          >
-            Download
-          </span>
-        ) : (
-          "-"
-        ),
-      wrap: true,
-    },
-    {
-      name: <div>Father's Name</div>,
-      selector: row => row?.father || "-",
-      wrap: true,
-      minWidth: "180px"
     },
     {
       name: <div>Mobile No</div>,
@@ -301,102 +163,32 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
       name: <div>Official Email ID</div>,
       selector: row => row?.officialEmail || "-",
       wrap: true,
-      minWidth: "200px"
+      minWidth: "250px"
     },
-
     {
       name: <div>Email ID</div>,
       selector: row => row?.email || "-",
       wrap: true,
-      minWidth: "200px"
-    },
-    {
-      name: <div>Monthly CTC</div>,
-      selector: row => `₹${row?.monthlyCTC?.toLocaleString()}`,
-      sortable: true,
-      wrap: true,
-      minWidth: "100px"
-    },
-    {
-      name: <div>Offer Letter</div>,
-      selector: (row) =>
-        row?.offerLetter ? (
-          <span
-            style={{
-              color: "#007bff",
-              textDecoration: "underline",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
-            onClick={() => downloadFile({ url: row.offerLetter })}
-          >
-            Download
-          </span>
-        ) : (
-          "-"
-        ),
+      minWidth: "250px"
     },
     {
       name: <div>Approval Status</div>,
-      selector: row => {
-        const status = row?.newJoiningWorkflow?.status;
-
-        if (status === "APPROVED") {
-          return <Badge color="success">Approved</Badge>;
-        }
-
-        if (status === "REJECTED") {
-          return <Badge color="danger">Rejected</Badge>;
-        }
-
-        return "-";
-      },
-      wrap: true,
+      selector: (row) => renderStatusBadge(row?.action) || "",
     },
     {
-      name: <div>Filled By</div>,
-      selector: row => (
-        <div>
-          <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>
-            {row?.newJoiningWorkflow?.filledBy?.email || "-"}
-          </div>
-        </div>
-      ),
-      wrap: true,
-      minWidth: "200px"
-    },
-    {
-      name: <div>Filled At</div>,
-      selector: row => {
-        const filledAt = row?.newJoiningWorkflow?.filledAt;
-
-        if (!filledAt || isNaN(new Date(filledAt))) {
-          return "-";
-        }
-
-        return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
-      },
+      name: <div>Created At</div>,
+      selector: row =>
+        row?.createdAt
+          ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
+          : "-",
+      sortable: true,
       wrap: true,
       minWidth: "180px"
     },
     {
-      name: <div>Acted By</div>,
-      selector: row => (
-        <div>
-          <div>{capitalizeWords(row?.newJoiningWorkflow?.actedBy?.name || "-")}</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>
-            {row?.newJoiningWorkflow?.actedBy?.email || "-"}
-          </div>
-        </div>
-      ),
-      wrap: true,
-      minWidth: "200px"
-    },
-    {
       name: <div>Acted At</div>,
       selector: row => {
-        const actedAt = row?.newJoiningWorkflow?.actedAt;
+        const actedAt = row?.actedAt;
 
         if (!actedAt || isNaN(new Date(actedAt))) {
           return "-";
@@ -408,8 +200,21 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
       minWidth: "180px"
     },
     {
+      name: <div>Acted By</div>,
+      selector: (row) => (
+        <div>
+          <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            {row?.actedBy?.email || "-"}
+          </div>
+        </div>
+      ),
+      wrap: true,
+      minWidth: "200px"
+    },
+    {
       name: <div>Note</div>,
-      selector: row => <ExpandableText text={row?.newJoiningWorkflow?.reason || "-"} />,
+      selector: row => <ExpandableText text={row?.note || "-"} />,
       wrap: true,
       minWidth: "200px"
     }
@@ -507,4 +312,4 @@ const JoiningHistory = ({ activeTab, hasUserPermission, roles }) => {
   )
 }
 
-export default JoiningHistory;
+export default ApprovalHistory;
