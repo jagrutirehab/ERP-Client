@@ -84,7 +84,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
     const handleCopyAllEnets = async () => {
         setENetCopyLoader(true);
         try {
-            const response = await getAllENets({ centers: centerAccess, processStatus: "NOT_STARTED" });
+            const response = await getAllENets({ centers: centerAccess, processStatus: "PENDING" });
             const { eNets } = response.data;
 
             setProcessPayload({
