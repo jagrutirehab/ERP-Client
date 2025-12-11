@@ -33,7 +33,10 @@ const AttachmentCell = ({ attachments = [], showAsButton = false }) => {
                                 key={file._id || i}
                                 onClick={() => downloadFile(file)}
                                 className="text-primary text-decoration-underline cursor-pointer mb-1 d-flex align-items-center gap-1"
-                                style={{ whiteSpace: "nowrap" }}
+                                style={{
+                                    whiteSpace: "normal",
+                                    wordBreak: "break-all"
+                                }}
                             >
                                 <Paperclip size={14} />
                                 {file.originalName}

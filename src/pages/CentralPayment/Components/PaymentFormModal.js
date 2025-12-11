@@ -14,15 +14,9 @@ import SpendingForm from "./SpendingForm";
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
-        .when("currentPaymentStatus", {
-            is: "COMPLETED",
-            then: (schema) =>
-                schema
-                    .required("Transaction ID is required when payment is completed")
-                    .min(3, "Transaction ID must be at least 3 characters")
-                    .max(50, "Transaction ID must be less than 50 characters"),
-            otherwise: (schema) => schema.notRequired(),
-        }),
+        .required("Transaction ID is required to complete the UTR confirmation")
+        .min(3, "Transaction ID must be at least 3 characters")
+        .max(50, "Transaction ID must be less than 50 characters"),
     currentPaymentStatus: Yup.string()
         .required("Approval status is required")
         .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
@@ -107,7 +101,7 @@ const PaymentFormModal = ({
                         <div className="d-flex align-items-center gap-2">
                             {
                                 hasCreatePermission
-                                    ? (mode === "approval" ? "Process Approval" : "Process Payment")
+                                    ? (mode === "approval" ? "Process Approval" : "UTR Confirmation")
                                     : "Expense Overview"
                             }
                         </div>
@@ -196,7 +190,7 @@ const PaymentFormModal = ({
                                     <Col md={6}>
                                         <FormGroup>
                                             <Label for="transactionId">
-                                                Transaction ID/UTR *
+                                                Transaction ID/UTR <span className="text-danger">*</span>
                                             </Label>
                                             <Input
                                                 type="text"
@@ -216,7 +210,7 @@ const PaymentFormModal = ({
                                             )}
                                         </FormGroup>
                                     </Col>
-                                    <Col md={3}>
+                                    {/* <Col md={3}>
                                         <FormGroup>
                                             <Label for="currentPaymentStatus">
                                                 Current Payment Status *
@@ -241,7 +235,7 @@ const PaymentFormModal = ({
                                                 </div>
                                             )}
                                         </FormGroup>
-                                    </Col>
+                                    </Col> */}
                                 </Row>
 
                                 <p className="mt-3 text-warning small">
@@ -298,7 +292,7 @@ const PaymentFormModal = ({
                                 </div>
                             ) : (
                                 <>
-                                    <Button
+                                    {/* <Button
                                         type="button"
                                         color="secondary"
                                         onClick={handleToggle}
@@ -327,7 +321,51 @@ const PaymentFormModal = ({
                                         ) : (
                                             "Process Payment"
                                         )}
-                                    </Button>
+                                    </Button> */}
+                                    <div className="d-flex justify-content-end gap-2">
+                                        <Button
+                                            color="danger"
+                                            size="sm"
+                                            className="d-flex align-items-center text-white"
+                                            disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
+                                            onClick={() => {
+                                                onConfirm({
+                                                    transactionId: formik.values.transactionId,
+                                                    currentPaymentStatus: "REJECTED"
+                                                });
+                                            }}
+                                        >
+                                            {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
+                                                <Spinner size="sm" color="light" className="me-1" />
+                                            ) : (
+                                                <X size={16} className="me-1" />
+                                            )}
+                                            Reject
+                                        </Button>
+
+                                        <Button
+                                            color="success"
+                                            size="sm"
+                                            className="d-flex align-items-center text-white"
+                                            disabled={
+                                                !formik.values.transactionId.trim() ||
+                                                (isProcessing.id === item._id && isProcessing.type === "COMPLETED")
+                                            }
+                                            onClick={() => {
+                                                onConfirm({
+                                                    transactionId: formik.values.transactionId,
+                                                    currentPaymentStatus: "COMPLETED"
+                                                });
+                                            }}
+                                        >
+                                            {isProcessing.id === item._id && isProcessing.type === "COMPLETED" ? (
+                                                <Spinner size="sm" color="light" className="me-1" />
+                                            ) : (
+                                                <Check size={16} className="me-1" />
+                                            )}
+                                            Complete
+                                        </Button>
+                                    </div>
                                 </>
                             )
                         )}

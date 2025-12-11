@@ -2,7 +2,7 @@ import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { Badge, Button, Card, CardBody, Col, Row, Spinner } from "reactstrap";
-import { Calendar, Tag, Check, X, CheckCheck } from "lucide-react";
+import { Calendar, Tag, Check, X, CheckCheck, Copy } from "lucide-react";
 import PropTypes from "prop-types";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { useDispatch } from "react-redux";
@@ -48,7 +48,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
     }
 
     const handleUTRConfirmation = async (formData) => {
-        setUpdating({ id: item._id, type: "PROCESSING" });
+        setUpdating({ id: item._id, type: formData.currentPaymentStatus });
         try {
             await dispatch(updateCentralPaymentAction({
                 paymentId: item._id,
@@ -60,7 +60,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
             setIsModalOpen(false);
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to process payment.");
+                toast.error(error.message || "Failed to update UTR confirmation.");
             }
         } finally {
             setUpdating({ id: null, type: null });
@@ -215,12 +215,13 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                     {updating.id === item._id ? (
                                         <Spinner size="sm" color="light" className="me-1" />
                                     ) : (
-                                        <CheckCheck size={16} className="me-1" />
+                                        !hasCreatePermission && flag === "processPayment" ? 
+                                        <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
                                     )}
                                     {
                                         hasCreatePermission
-                                            ? (flag === "approval" ? "Process Approval" : "Process Payment")
-                                            : "Details"
+                                            ? (flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
+                                            : flag === "processPayment" ? "Copy E-Net" : "Details"
                                     }
                                 </Button>
                             </div>
