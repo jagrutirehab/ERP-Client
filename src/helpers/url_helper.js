@@ -330,6 +330,7 @@ export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/summary";
 export const GET_ALL_ENETS = "/central-payment/eNets";
+export const PROCESS_PAYMENTS = "/central-payment/process";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";

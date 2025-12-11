@@ -6,7 +6,7 @@ import Reports from './Reports';
 import Spending from './Spending';
 import ApprovalDashboard from './ApprovalDashboard';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
-import PaymentProcessing from './PaymentProcessingDashboard';
+import PaymentProcessingDashboard from './PaymentProcessingDashboard';
 
 const priorityOrder = [
     SPENDING_VIEW,
@@ -121,7 +121,7 @@ const Views = () => {
                     <div className="bg-white px-3 py-3 vh-90">
                         {view === SPENDING_VIEW && <Spending />}
                         {view === APPROVAL_VIEW && <ApprovalDashboard />}
-                        {view === PAYMENT_PROCESSING_VIEW && <PaymentProcessing />}
+                        {view === PAYMENT_PROCESSING_VIEW && <PaymentProcessingDashboard />}
                         {view === REPORTS_VIEW && <Reports />}
                     </div>
                 </div>
