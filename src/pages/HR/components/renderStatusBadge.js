@@ -59,7 +59,7 @@ export const renderStatusBadge = (stage) => {
             text: "New Joining Pending",
             color: "warning"
         },
-        NEW_JOINING_USER_CREATED: {
+        NEW_JOINING_APPROVED_USER_CREATED: {
             text: "New Joining Approved & User Created",
             color: "success"
         },
