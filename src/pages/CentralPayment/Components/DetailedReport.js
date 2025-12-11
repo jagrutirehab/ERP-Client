@@ -36,6 +36,8 @@ const DetailedReport = ({
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
@@ -45,6 +47,7 @@ const DetailedReport = ({
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [copyId, setCopiedId] = useState(false);
+  const [dateFilterEnabled, setDateFilterEnabled] = useState(true);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -266,6 +269,42 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Approval Status</div>,
+      selector: (row) => {
+        const status = row.approvalStatus;
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
+      },
+      wrap: true,
+    },
+    {
+      name: <div>Process Status</div>,
+      selector: (row) => (
+        <Badge
+          color={getBadgeColor(row.processStatus)}
+          style={{
+            display: "inline-block",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {capitalizeWords(row.processStatus.replace(/_/g, " ")) || "-"}
+        </Badge>
+      ),
+      wrap: true,
+      minWidth: "140px"
+    },
+    {
       name: <div>Current Payment Status</div>,
       selector: (row) => (
         <Badge
@@ -293,31 +332,20 @@ const DetailedReport = ({
       minWidth: "140px",
 
     },
-    {
-      name: <div>Approval Status</div>,
-      selector: (row) => {
-        const status = row.approvalStatus;
-        return (
-          <Badge
-            color={getBadgeColor(status)}
-            style={{
-              display: "inline-block",
-              whiteSpace: "normal",
-              wordBreak: "break-word",
-            }}
-          >
-            {capitalizeWords(status || "-")}
-          </Badge>
-        );
-      },
-      wrap: true,
-    }
   ];
+
+  useEffect(() => {
+    if (search === "") return;
+
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
 
 
   useEffect(() => {
-    if (!hasUserPermission || activeTab !== "detail") return;
-
     const fetchDetailReport = async () => {
       try {
         await dispatch(
@@ -327,8 +355,11 @@ const DetailedReport = ({
             approvalStatus: selectedApprovalStatus,
             currentPaymentStatus: selectedPaymentStatus,
             centers: selectedCentersIds,
-            startDate: reportDate.start.toISOString(),
-            endDate: reportDate.end.toISOString(),
+            ...(dateFilterEnabled && {
+              startDate: reportDate.start.toISOString(),
+              endDate: reportDate.end.toISOString()
+            }),
+            ...(search !== "" && { search: parseInt(debouncedSearch) }),
           })
         ).unwrap();
       } catch (error) {
@@ -338,7 +369,9 @@ const DetailedReport = ({
       }
     }
 
-    fetchDetailReport();
+    if (hasUserPermission && activeTab === "detail") {
+      fetchDetailReport();
+    }
   }, [
     page,
     limit,
@@ -348,7 +381,9 @@ const DetailedReport = ({
     reportDate,
     dispatch,
     activeTab, ,
-    roles
+    roles,
+    debouncedSearch,
+    dateFilterEnabled
   ]);
 
   const handleFilterChange = (filterType, value) => {
@@ -412,7 +447,7 @@ const DetailedReport = ({
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>
-            <Header reportDate={reportDate} setReportDate={handleDateChange} />
+            <Header reportDate={reportDate} setReportDate={handleDateChange} disabled={!dateFilterEnabled} />
           </div>
           <div style={{ minWidth: "200px", maxWidth: "250px" }}>
             <CenterDropdown
@@ -427,6 +462,38 @@ const DetailedReport = ({
               }}
             />
           </div>
+          <div className="d-flex align-items-center gap-2 flex-grow-1 mb-3" style={{ minWidth: "250px" }}>
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                const value = e.target.value.trim();
+                setSearch(value);
+                if (value === "") {
+                  setDebouncedSearch("");
+                  setDateFilterEnabled(true);
+                } else {
+                  setDateFilterEnabled(false);
+                }
+              }}
+              className="form-control"
+              placeholder="Search by ID..."
+              style={{ flexGrow: 1 }}
+            />
+
+            {search.trim() !== "" && (
+              <Button
+                color="primary"
+                size="sm"
+                className="white-space-nowrap text-white py-2"
+                style={{ whiteSpace: "nowrap" }}
+                onClick={() => setDateFilterEnabled(!dateFilterEnabled)}
+              >
+                {dateFilterEnabled ? "Disable Date Filter" : "Enable Date Filter"}
+              </Button>
+            )}
+          </div>
+
         </div>
       </div>
       <Card>

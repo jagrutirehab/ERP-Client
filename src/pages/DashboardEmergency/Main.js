@@ -26,7 +26,7 @@ const Main = ({ loading, data, centerAccess }) => {
   const hasUserPermission = hasPermission("EMERGENCY", null, "READ");
 
   useEffect(() => {
-    if (!hasPermission) return;
+    if (!hasUserPermission) return;
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
     }, 500);
@@ -38,7 +38,7 @@ const Main = ({ loading, data, centerAccess }) => {
   }, [debouncedSearch, flag]);
 
   useEffect(() => {
-    if (!hasPermission) return;
+    if (!hasUserPermission) return;
     dispatch(
       getAllPatients({
         page,

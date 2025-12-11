@@ -125,7 +125,8 @@ const PaymentFormModal = ({
                             <div className="border p-3 rounded bg-light">
                                 <Row>
                                     <Col md={6}>
-                                        <p className="mb-0"><strong>Name:</strong> {capitalizeWords(paymentDetails?.name || "Unknown Center")}</p>
+                                        <p className="mb-0"><strong>ID:</strong> {paymentDetails?.id || "-"}</p>
+                                        <p className="mb-0"><strong>Name:</strong> {capitalizeWords(paymentDetails?.name || "-")}</p>
                                         <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title || "Unknown Center")}</p>
                                         <p className="mb-0"><strong>Items:</strong> {capitalizeWords(paymentDetails?.items)}</p>
                                         <p className="mb-0"><strong>Total Amount (with GST):</strong> ₹{paymentDetails?.totalAmountWithGST?.toFixed(2) || "0.00"}</p>
@@ -189,7 +190,7 @@ const PaymentFormModal = ({
                             </div>
                         </div>
 
-                        {mode === "paymentProcessing" && hasCreatePermission && (
+                        {mode === "UTRConfirmation" && hasCreatePermission && (
                             <>
                                 <Row>
                                     <Col md={6}>

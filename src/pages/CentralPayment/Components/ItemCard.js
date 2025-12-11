@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
 
-const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false }) => {
+const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,6 +37,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
             await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus })).unwrap();
+            toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to update approval Status.");
@@ -46,7 +47,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     }
 
-    const handleProcessPayment = async (formData) => {
+    const handleUTRConfirmation = async (formData) => {
         setUpdating({ id: item._id, type: "PROCESSING" });
         try {
             await dispatch(updateCentralPaymentAction({
@@ -80,7 +81,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}
                 style={{
                     position: "relative",
-                    ...(flag === "paymentProcessing" && { minHeight: 265 })
+                    ...((flag === "processPayment" || flag === "UTRConfirmation") && { minHeight: 265 })
                 }}
             >
                 <CardBody className="py-3" style={{ position: "relative", paddingTop: 28 }}>
@@ -200,12 +201,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                             </div>
                         </Col>
                     </Row>
-                    {(flag === "approval" || flag === "paymentProcessing") && (
+                    {(flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
                                 <Button
-                                    onClick={openPaymentModal}
+                                    onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
                                     size="sm"
                                     className="d-flex align-items-center text-white"
@@ -233,7 +234,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 toggle={closePaymentModal}
                 item={item}
                 mode={flag}
-                onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleProcessPayment}
+                onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
                 isProcessing={updating}
                 hasCreatePermission={hasCreatePermission}
             />
@@ -245,7 +246,11 @@ ItemCard.propTypes = {
     item: PropTypes.object,
     flag: PropTypes.string,
     border: PropTypes.bool,
-    hasCreatePermission: PropTypes.bool
+    hasCreatePermission: PropTypes.bool,
+    selected: PropTypes.bool,
+    onSelect: PropTypes.func,
+    showSelect: PropTypes.bool,
+    onCopyENet: PropTypes.func,
 };
 
 export default ItemCard;

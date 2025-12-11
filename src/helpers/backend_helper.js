@@ -1099,6 +1099,16 @@ export const getAllENets = (params = {}) => {
   });
 };
 
+export const updateCentralPaymentProcessStatus = (params = {}) => {
+  return api.update(url.PROCESS_PAYMENTS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  })
+}
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);

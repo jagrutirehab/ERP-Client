@@ -1,22 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { connect, useDispatch } from 'react-redux';
-import { Button, Col, Container, Row, Spinner } from "reactstrap"
-import ItemCard from '../Components/ItemCard';
-import { getApprovals } from '../../../store/features/centralPayment/centralPaymentSlice';
-import { useAuthError } from '../../../Components/Hooks/useAuthError';
-import { toast } from 'react-toastify';
-import PropTypes from 'prop-types';
-import { Copy, CopyCheck } from 'lucide-react';
-import { getAllENets } from '../../../helpers/backend_helper';
-import { usePermissions } from '../../../Components/Hooks/useRoles';
+import { useDispatch } from "react-redux";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import React, { useEffect, useState } from "react";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { getApprovals } from "../../../../../store/features/centralPayment/centralPaymentSlice";
+import { toast } from "react-toastify";
+import { getAllENets } from "../../../../../helpers/backend_helper";
+import { Button, Col, Container, Row, Spinner } from "reactstrap";
+import { Copy, CopyCheck } from "lucide-react";
+import ItemCard from "../../../Components/ItemCard";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 
-const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
+
+const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [eNetCopyLoader, setENetCopyLoader] = useState(false);
     const limit = 12;
 
     const microUser = localStorage.getItem("micrologin");
@@ -26,69 +27,29 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "WRITE") ||
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "DELETE");
 
-    useEffect(() => {
-        // approved payments whose paymentstatus is pending
-        const fetchApprovedPayments = async () => {
-            try {
-                await dispatch(getApprovals({
-                    page,
-                    limit,
-                    centers: centerAccess,
-                    approvalStatus: "APPROVED",
-                    currentPaymentStatus: "PENDING"
-                })).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch spendings.");
-                }
+    // approved payments whose paymentstatus is pending
+    const fetchApprovedPayments = async () => {
+        try {
+            await dispatch(getApprovals({
+                page,
+                limit,
+                centers: centerAccess,
+                approvalStatus: "APPROVED",
+                currentPaymentStatus: "PENDING",
+                processStatus: "COMPLETED",
+            })).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch spendings.");
             }
         }
-
-        fetchApprovedPayments();
-    }, [centerAccess, dispatch, page, limit]);
-
-
-    const toggleItemSelection = (id) => {
-        setSelectedItems(prev =>
-            prev.includes(id)
-                ? prev.filter(x => x !== id)
-                : [...prev, id]
-        );
-    };
-
-    const handleCopySelectedENets = async () => {
-        const selectedECodes = approvals?.data?.filter(item => selectedItems.includes(item._id))
-            .map(item => item.eNet)
-            .filter(Boolean);
-
-        await navigator.clipboard.writeText(selectedECodes.join("\n"));
-        toast.success("Selected E-Nets copied to clipboard");
     }
 
-    const handleCopyAllEnets = async () => {
-        setENetCopyLoader(true);
-        try {
-            const response = await getAllENets({ centers: centerAccess });
-            const { eNets, count } = response.data;
-
-            if (!eNets?.length) {
-                toast.info("No E-Nets found.");
-                return;
-            }
-
-            const textToCopy = eNets.join("\n");
-
-            await navigator.clipboard.writeText(textToCopy);
-
-            toast.success(`Copied ${count} E-Nets to clipboard!`);
-        } catch (err) {
-            console.error(err);
-            toast.error("Failed to copy E-Nets.");
-        } finally {
-            setENetCopyLoader(false);
+    useEffect(() => {
+        if (activeTab === "UTR_CONFIRMATION") {
+            fetchApprovedPayments();
         }
-    };
-
+    }, [centerAccess, dispatch, page, limit, activeTab]);
 
 
     if (loading) {
@@ -107,25 +68,6 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
                     <div className="mb-5">
                         {approvals?.data?.length > 0 ? (
                             <>
-                                <div className='d-flex justify-content-end mb-2 gap-2'>
-                                    <Button
-                                        onClick={handleCopyAllEnets}
-                                        color='primary'
-                                        className='text-white'
-                                    >
-                                        {eNetCopyLoader ? <Spinner className="me-1" size={"sm"} /> : <Copy className="me-1" size={16} />}
-                                        Copy ALl E-Nets
-                                    </Button>
-                                    <Button
-                                        onClick={handleCopySelectedENets}
-                                        color='primary'
-                                        className='text-white'
-                                        disabled={selectedItems.length === 0}
-                                    >
-                                        <CopyCheck className="me-1" size={16} />
-                                        Copy Selected E-Nets ({selectedItems.length})
-                                    </Button>
-                                </div>
                                 <Row>
                                     {(approvals?.data || []).map((payment) => (
                                         <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
@@ -133,17 +75,14 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
                                                 hasCreatePermission={hasCreatePermission}
                                                 item={payment}
                                                 border={true}
-                                                flag="paymentProcessing"
-                                                showSelect={true}
-                                                selected={selectedItems.includes(payment._id)}
-                                                onSelect={toggleItemSelection}
+                                                flag="UTRConfirmation"
                                             />
                                         </Col>
                                     ))}
                                 </Row>
                             </>
                         ) : (
-                            <p className="text-muted text-center py-3">No pending payment processing requests</p>
+                            <p className="text-muted text-center py-3">No pending UTR confirmation requests</p>
                         )}
                     </div>
 
@@ -208,10 +147,11 @@ const PaymentProcessingDashboard = ({ loading, approvals, centerAccess }) => {
     )
 }
 
-PaymentProcessingDashboard.prototype = {
+UTRCofrmation.prototype = {
     loading: PropTypes.bool,
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
+    activeTab: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
@@ -220,4 +160,4 @@ const mapStateToProps = (state) => ({
     approvals: state.CentralPayment?.approvals
 });
 
-export default connect(mapStateToProps)(PaymentProcessingDashboard);
+export default connect(mapStateToProps)(UTRCofrmation);
