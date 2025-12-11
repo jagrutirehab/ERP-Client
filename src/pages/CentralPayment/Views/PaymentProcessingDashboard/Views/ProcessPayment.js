@@ -111,13 +111,16 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
         await navigator.clipboard.writeText(cleaned.join("\n"));
         setCopiedENets(cleaned);
 
-        toast.success("E-Nets copied!");
+        toast.success(`${cleaned.length} ${cleaned.length > 1 ? "E-Nets" : "E-Net"} copied!`);
 
-        setModalOpen(true);
+        if (hasCreatePermission) {
+            setModalOpen(true);
+        }
     };
 
 
     const handleProcessENets = async () => {
+        if (!hasCreatePermission) return;
         try {
             setProcessLoader(true);
 
@@ -263,16 +266,19 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                     )}
                 </Container>
             </div>
-            <ConfirmationModal
-                isOpen={modalOpen}
-                toggle={toggleModal}
-                title="Process Payment?"
-                message={`You copied ${copiedENets.length} E-Net(s). Do you want to process them?`}
-                confirmText={processLoader ? <Spinner size="sm" /> : "Process"}
-                confirmColor="primary"
-                onConfirm={handleProcessENets}
-                onCancel={toggleModal}
-            />
+            {hasCreatePermission && (
+                <ConfirmationModal
+                    isOpen={modalOpen}
+                    toggle={toggleModal}
+                    title="Process Payment?"
+                    message={`You copied ${copiedENets.length} E-Net(s). Do you want to process them?`}
+                    confirmText={processLoader ? <Spinner size="sm" /> : "Process"}
+                    confirmColor="primary"
+                    onConfirm={handleProcessENets}
+                    onCancel={toggleModal}
+                />
+            )}
+
 
         </React.Fragment>
     )
