@@ -256,6 +256,17 @@ const DetailedReport = ({
       maxWidth: "150px",
     },
     {
+      name: <div>Transaction ID/UTR</div>,
+      cell: (row) => (
+        <span>
+          {row?.transactionId || "-"}
+        </span>
+      ),
+      wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
+    },
+    {
       name: <div>Initial Payment Status</div>,
       selector: (row) => {
         const status = row.initialPaymentStatus;
