@@ -1722,3 +1722,48 @@ export const getEmployeeEmails = (id) => {
     },
   })
 }
+
+export const getAdvanceSalaries = (params = {}) => {
+  return api.get(url.SALARY_ADVANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const deleteAdvanceSalary = (id) => {
+  return api.delete(`${url.SALARY_ADVANCE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const postAdvanceSalary = (data) => {
+  return api.create(url.SALARY_ADVANCE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const editAdvanceSalary = (id, data) => {
+  return api.update(`${url.SALARY_ADVANCE}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const advanceSalaryAction = (id,data) => {
+  return api.update(`${url.SALARY_ADVANCE_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+

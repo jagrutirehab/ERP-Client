@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getEmployees, getExitEmployees, getITApprovals, postEmployee, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getEmployees, getExitEmployees, getITApprovals, searchExitEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -43,6 +43,16 @@ export const fetchITApprovals = createAsyncThunk("hr/getITApprovals", async (dat
         return rejectWithValue(error);
     }
 });
+
+export const fetchAdvanceSalaries = createAsyncThunk("hr/getAdvanceSalaries", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getAdvanceSalaries(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
 
 export const hrSlice = createSlice({
     name: "HR",
@@ -91,6 +101,20 @@ export const hrSlice = createSlice({
             .addCase(fetchITApprovals.rejected, (state) => {
                 state.loading = false
             });
+
+        builder
+            .addCase(fetchAdvanceSalaries.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchAdvanceSalaries.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchAdvanceSalaries.rejected, (state) => {
+                state.loading = false
+            });
+
     }
 });
 

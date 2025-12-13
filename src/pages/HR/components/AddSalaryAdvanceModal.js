@@ -1,35 +1,34 @@
 import { useFormik } from "formik";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import debounce from "lodash.debounce";
 import {
     Button,
+    Input,
     Modal,
     ModalBody,
     ModalFooter,
     ModalHeader,
+    FormGroup,
+    Label
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
-import { editExitEmployee, postExitEmployee } from "../../../helpers/backend_helper";
+import {
+    editAdvanceSalary,
+    postAdvanceSalary
+} from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
-    lastWorkingDay: Yup.string()
-        .required("Last working day date is required"),
-
-    reason: Yup.string()
-        .required("Reason is required"),
-
-    otherReason: Yup.string().when("reason", (reason, schema) => {
-        return reason === "OTHER"
-            ? schema.required("Other reason is required")
-            : schema.notRequired();
-    }),
+    amount: Yup.number()
+        .typeError("Amount must be a number")
+        .required("Amount is required")
+        .min(1, "Amount must be greater than 0"),
 });
 
-const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
+const AddSalaryAdvanceModal = ({ isOpen, toggle, initialData, onUpdate, view }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -48,7 +47,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                 getExitEmployeesBySearch({
                     query: text,
                     centers: centerAccess,
-                    view: "EXIT_EMPLOYEE"
+                    view: "SALARY_ADVANCE"
                 })
             ).unwrap();
         } finally {
@@ -79,12 +78,10 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
         enableReinitialize: true,
         initialValues: {
             employeeId: "",
-            name: initialData?.employeeName || "",
-            eCode: initialData?.eCode || "",
-            currentLocation: initialData?.center || initialData?.currentLocation?.title || "",
-            lastWorkingDay: initialData?.lastWorkingDay || "",
-            reason: initialData?.reason || "",
-            otherReason: initialData?.otherReason || "",
+            name: initialData?.employeeData?.name || "",
+            eCode: initialData?.employeeData?.eCode || "",
+            currentLocation: initialData?.center?.title || "",
+            amount: initialData?.amount || "",
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -95,18 +92,16 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                 }
 
                 const payload = {
-                    employeeId: values.employeeId,
-                    lastWorkingDay: values.lastWorkingDay,
-                    reason: values.reason,
-                    otherReason: values.otherReason,
+                    ...(!isEdit && { employeeId: values.employeeId }),
+                    amount: values.amount
                 };
 
                 if (isEdit) {
-                    await editExitEmployee(initialData._id, payload);
-                    toast.success("Employee Exit Record updated successfully");
+                    await editAdvanceSalary(initialData._id, payload);
+                    toast.success("Advance Salary Request updated successfully");
                 } else {
-                    await postExitEmployee(payload);
-                    toast.success("Employee Exit Record added successfully");
+                    await postAdvanceSalary(payload);
+                    toast.success("Advance Salary Request added successfully");
                 }
 
                 toggle();
@@ -115,7 +110,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
 
             } catch (error) {
                 if (!handleAuthError(error)) {
-                    toast.error(error?.message || "Failed to save exit record");
+                    toast.error(error?.message || "Failed to save advance salary request");
                 }
             }
         },
@@ -133,18 +128,17 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
     return (
         <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
             <ModalHeader toggle={toggle}>
-                {isEdit ? "Edit Employee Exit Record" : "Add Employee Exit Record"}
+                {isEdit ? "Edit Advance Salary Request" : "Add Advance Salary Request"}
             </ModalHeader>
 
             <ModalBody>
+                {/* Search Employee */}
                 {!isEdit && (
-                    <div className="mb-3 position-relative">
-                        <label>Search Employee</label>
-
-                        <input
+                    <FormGroup className="mb-3 position-relative">
+                        <Label>Search Employee</Label>
+                        <Input
                             type="text"
                             placeholder="Search by name or eCode"
-                            className="form-control"
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
                         />
@@ -181,12 +175,6 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                                             borderBottom: "1px solid #eee",
                                         }}
                                         onClick={() => chooseEmployee(emp)}
-                                        onMouseEnter={(e) =>
-                                            (e.currentTarget.style.background = "#f7f7f7")
-                                        }
-                                        onMouseLeave={(e) =>
-                                            (e.currentTarget.style.background = "#fff")
-                                        }
                                     >
                                         <strong>{emp.name}</strong>
                                         <br />
@@ -197,98 +185,58 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </FormGroup>
                 )}
 
                 {/* NAME */}
-                <div className="mb-3">
-                    <label>Name</label>
-                    <input
-                        name="name"
-                        value={form.values.name}
-                        className="form-control"
-                        disabled
-                    />
-                </div>
+                <FormGroup className="mb-3">
+                    <Label for="name">Name</Label>
+                    <Input id="name" name="name" value={form.values.name} disabled />
+                </FormGroup>
 
-                {/* ECODE */}
-                <div className="mb-3">
-                    <label>E-Code</label>
-                    <input
-                        name="eCode"
-                        value={form.values.eCode}
-                        className="form-control"
-                        disabled
-                    />
-                </div>
+                {/* E-CODE */}
+                <FormGroup className="mb-3">
+                    <Label for="eCode">E-Code</Label>
+                    <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
+                </FormGroup>
 
-                <div className="mb-3">
-                    <label>Current Location</label>
-                    <input
+                {/* CURRENT LOCATION */}
+                <FormGroup className="mb-3">
+                    <Label for="currentLocation">Current Location</Label>
+                    <Input
+                        id="currentLocation"
                         name="currentLocation"
                         value={form.values.currentLocation}
-                        className="form-control"
                         disabled
                     />
-                </div>
+                </FormGroup>
 
-                {/* EXIT DATE */}
-                <div className="mb-3">
-                    <label>Last Working Day</label>
-                    <input
-                        type="date"
-                        name="lastWorkingDay"
-                        value={form.values.lastWorkingDay}
+                {/* AMOUNT */}
+                <FormGroup className="mb-3">
+                    <Label for="amount">Amount</Label>
+                    <Input
+                        id="amount"
+                        type="number"
+                        name="amount"
+                        value={form.values.amount}
                         onChange={form.handleChange}
-                        className="form-control"
+                        onBlur={form.handleBlur}
+                        invalid={form.touched.amount && !!form.errors.amount}
                     />
-                    {form.touched.lastWorkingDay && form.errors.lastWorkingDay && (
-                        <div className="text-danger small">{form.errors.lastWorkingDay}</div>
+                    {form.touched.amount && form.errors.amount && (
+                        <div className="text-danger small">{form.errors.amount}</div>
                     )}
-                </div>
-
-                <div className="mb-3">
-                    <label>Reason</label>
-                    <select
-                        name="reason"
-                        value={form.values.reason}
-                        onChange={form.handleChange}
-                        className="form-control"
-                    >
-                        <option disabled value="">Select</option>
-                        <option value="SELF_RESIGNING">Self Resigning</option>
-                        <option value="PERFORMANCE_ISSUE">Performance Issue</option>
-                        <option value="BEHAVIOUR_ISSUE">Behavior Issue</option>
-                        <option value="ETHICAL_ISSUE">Ethical Issue</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                    {form.touched.reason && form.errors.reason && (
-                        <div className="text-danger small">{form.errors.reason}</div>
-                    )}
-                </div>
-
-                {form.values.reason === "OTHER" && (
-                    <div className="mb-3">
-                        <label>Other Reason</label>
-                        <input
-                            name="otherReason"
-                            value={form.values.otherReason}
-                            onChange={form.handleChange}
-                            className="form-control"
-                        />
-                        {form.touched.otherReason && form.errors.otherReason && (
-                            <div className="text-danger small">{form.errors.otherReason}</div>
-                        )}
-                    </div>
-                )}
+                </FormGroup>
             </ModalBody>
 
             <ModalFooter>
                 <Button color="secondary" onClick={toggle}>
                     Cancel
                 </Button>
+
                 <Button
                     color="primary"
+                    className="text-white"
                     onClick={form.handleSubmit}
                     disabled={
                         form.isSubmitting ||
@@ -296,12 +244,11 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                         (!isEdit && !form.values.employeeId)
                     }
                 >
-                    {isEdit ? "Update Exit" : "Add Exit"}
+                    {isEdit ? "Update Request" : "Add Request"}
                 </Button>
-
             </ModalFooter>
         </Modal>
     );
 };
 
-export default AddExitEmployeeModal;
+export default AddSalaryAdvanceModal;

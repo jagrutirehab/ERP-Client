@@ -407,3 +407,5 @@ export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
 export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+export const SALARY_ADVANCE = "/hr/advance-salary";
+export const SALARY_ADVANCE_ACTION = "/hr/advance-salary/action";
