@@ -272,6 +272,33 @@ const Main = ({ user, form, centerAccess }) => {
               <div className="search-box">
                 <div className="d-flex flex-column flex-md-row gap-2 align-items-stretch">
 
+
+                  <Input
+                    type="select"
+                    value={selectedFilter}
+                    onChange={(e) => setSelectedFilter(e.target.value)}
+                    className="form-select"
+                    style={{ flex: 1, minWidth: "110px", border: "1px solid black" }}
+                  >
+                    <option value="">All Roles</option>
+                    {authRoles.map((role) => (
+                      <option key={role?.value} value={role?.value}>
+                        {role?.name}
+                      </option>
+                    ))}
+                  </Input>
+
+                  <Input
+                    type="select"
+                    value={sortFilter}
+                    onChange={(e) => setSortFilter(e.target.value)}
+                    className="form-select"
+                    style={{ flex: 1, minWidth: "160px", border: "1px solid black" }}
+                  >
+                    <option value="">Sort by Latest</option>
+                    <option value="STATUS">Sort by Status</option>
+                  </Input>
+
                   <div className="position-relative flex-grow-1" style={{ minWidth: "200px" }}>
                     <Input
                       type="text"
@@ -291,31 +318,6 @@ const Main = ({ user, form, centerAccess }) => {
                     </RenderWhen>
                   </div>
 
-                  <Input
-                    type="select"
-                    value={sortFilter}
-                    onChange={(e) => setSortFilter(e.target.value)}
-                    className="form-select"
-                    style={{ flex: 1, minWidth: "160px", border: "1px solid black" }}
-                  >
-                    <option value="">Sort by Latest</option>
-                    <option value="STATUS">Sort by Status</option>
-                  </Input>
-
-                  <Input
-                    type="select"
-                    value={selectedFilter}
-                    onChange={(e) => setSelectedFilter(e.target.value)}
-                    className="form-select"
-                    style={{ flex: 1.2, minWidth: "180px", border: "1px solid black" }}
-                  >
-                    <option value="">Please Select Role</option>
-                    {authRoles.map((role) => (
-                      <option key={role?.value} value={role?.value}>
-                        {role?.name}
-                      </option>
-                    ))}
-                  </Input>
 
                 </div>
               </div>
