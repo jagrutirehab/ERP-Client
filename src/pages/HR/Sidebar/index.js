@@ -17,6 +17,7 @@ const Sidebar = () => {
     const hasUserPermission4 = hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "READ");
     const hasUserPermission5 = hasPermission("HR", "EXIT_EMPLOYEE_FNF", "READ");
     const hasUserPermission6 = hasPermission("HR", "EXIT_EMPLOYEE_IT", "READ");
+    const hasUserPermission7 = hasPermission("HR", "SALARY_ADVANCE", "READ");
 
     const location = useLocation();
     const [openSection, setOpenSection] = useState("");
@@ -48,6 +49,8 @@ const Sidebar = () => {
             });
             return page.children.length > 0;
         }
+
+        if (page.id === "salary-advance" && !hasUserPermission7) return false;
 
         return true;
     });

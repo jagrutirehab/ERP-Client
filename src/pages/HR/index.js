@@ -10,6 +10,7 @@ import NewJoiningIT from './NewJoining/IT';
 import FNFApproval from './ExitEmployees/FNFApproval';
 import ExitApprovals from './ExitEmployees/Approvals';
 import ExitEmployeeIT from './ExitEmployees/IT';
+import SalaryAdvance from './SalaryAdvance';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -47,6 +48,7 @@ const HR = () => {
                                 <Route path={`/exit-employees/approval`} element={<ExitApprovals />} />
                                 <Route path={`/exit-employees/fnf`} element={<FNFApproval />} />
                                 <Route path={`/exit-employees/it`} element={<ExitEmployeeIT />} />
+                                <Route path={`/salary-advance`} element={<SalaryAdvance />} />
                             </Routes>
                         </div>
                     </Container>

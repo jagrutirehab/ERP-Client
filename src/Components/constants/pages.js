@@ -540,6 +540,12 @@ export const HR = [
       },
     ],
   },
+   {
+    id: "salary-advance",
+    label: "Salary Advance",
+    link: "/hr/salary-advance",
+    icon: "bx bx-rupee",
+  },
 ];
 
 export default pages;

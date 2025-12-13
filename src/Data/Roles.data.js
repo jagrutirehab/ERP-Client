@@ -198,6 +198,7 @@ export const permissionList = [
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
+      { name: "SALARY_ADVANCE", label: "Salary Advance" },
     ]
   }
 ];

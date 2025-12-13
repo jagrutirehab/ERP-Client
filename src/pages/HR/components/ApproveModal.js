@@ -21,6 +21,8 @@ const ApproveModal = ({
   mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES
   actionType,
   setActionType,
+  paymentType,
+  setPaymentType,
   note,
   setNote,
   eCode,
@@ -30,7 +32,6 @@ const ApproveModal = ({
 }) => {
 
   const [approvedBy, setApprovedBy] = useState("");
-  const [paymentType, setPaymentType] = useState("");
   const handleAuthError = useAuthError();
 
 
@@ -65,7 +66,6 @@ const ApproveModal = ({
     });
 
     setNote("");
-    setApprovedBy("");
     setPaymentType("");
     toggle();
   };
@@ -192,7 +192,7 @@ const ApproveModal = ({
             >
               <option value="">Select Payment Type</option>
               <option value="CASH">Cash</option>
-              <option value="CENTRALLY">Centrally</option>
+              <option value="CENTRAL">Central</option>
             </Input>
           </div>
         )}
