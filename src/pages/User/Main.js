@@ -268,7 +268,7 @@ const Main = ({ user, form, centerAccess }) => {
       <Card>
         <CardBody>
           <Row className="g-3 align-items-center">
-            <Col md={4}>
+            <Col md={6}>
               <div className="search-box">
                 <div className="d-flex flex-column flex-md-row gap-2 align-items-stretch">
 
@@ -278,7 +278,7 @@ const Main = ({ user, form, centerAccess }) => {
                     value={selectedFilter}
                     onChange={(e) => setSelectedFilter(e.target.value)}
                     className="form-select"
-                    style={{ flex: 1, minWidth: "110px", border: "1px solid black" }}
+                    style={{ flex: 1, minWidth: "160px", border: "1px solid black" }}
                   >
                     <option value="">All Roles</option>
                     {authRoles.map((role) => (
@@ -324,7 +324,7 @@ const Main = ({ user, form, centerAccess }) => {
             </Col>
 
 
-            <Col md={8} className="text-sm-end">
+            <Col md={6} className="text-sm-end">
               <CheckPermission
                 accessRolePermission={roles?.permissions}
                 permission="create"
