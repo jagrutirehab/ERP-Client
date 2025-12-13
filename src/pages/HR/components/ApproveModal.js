@@ -54,7 +54,7 @@ const ApproveModal = ({
 
   const handleSubmit = () => {
     if (mode === "SALARY_ADVANCE" && actionType === "APPROVE" && !paymentType) {
-      alert("Please select a payment type.");
+      toast.warn("Please select a payment type.");
       return;
     }
     onSubmit({
@@ -66,7 +66,9 @@ const ApproveModal = ({
     });
 
     setNote("");
-    setPaymentType("");
+    if (mode === "SALARY_ADVANCE") {
+      setPaymentType("");
+    }
     toggle();
   };
 
