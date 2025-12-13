@@ -1193,9 +1193,10 @@ export const getAllUsers = ({
   role = "",
   token,
   centerAccess,
+  sortBy
 }) => {
   return userService.get(url.USER, {
-    params: { page, limit, search, role, centerAccess },
+    params: { page, limit, search, role, centerAccess, sortBy },
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -1759,7 +1760,7 @@ export const editAdvanceSalary = (id, data) => {
   });
 };
 
-export const advanceSalaryAction = (id,data) => {
+export const advanceSalaryAction = (id, data) => {
   return api.update(`${url.SALARY_ADVANCE_ACTION}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
