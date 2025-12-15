@@ -133,16 +133,21 @@ const AddTransferEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, view 
         setSearchText("");
     };
 
+    console.log(initialData?.currentLocation)
     const transferLocationOptions =
-        userCenters?.map(center => ({
-            value: center._id,
-            label: center.title,
-        })) || [];
+        userCenters
+            ?.filter(
+                center => center._id !== initialData?.currentLocation?._id
+            )
+            .map(center => ({
+                value: center._id,
+                label: center.title,
+            })) || [];
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
             <ModalHeader toggle={toggle}>
-                {isEdit ? "Edit Advance Salary Request" : "Add Advance Salary Request"}
+                {isEdit ? "Edit Employee Transfer Request" : "Add Employee Transfer Request"}
             </ModalHeader>
 
             <ModalBody>
