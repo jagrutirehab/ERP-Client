@@ -11,6 +11,10 @@ import FNFApproval from './ExitEmployees/FNFApproval';
 import ExitApprovals from './ExitEmployees/Approvals';
 import ExitEmployeeIT from './ExitEmployees/IT';
 import SalaryAdvance from './SalaryAdvance';
+import TransferApprovals from './Transfer/Approvals';
+import OutgoingEmployeeApprovals from './Transfer/OutgoingEmployeeApprovals';
+import IncomingEmployeeApprovals from './Transfer/IncomingEmployeeApprovals';
+import TransferEmployeeIT from './Transfer/IT';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -32,6 +36,9 @@ const HR = () => {
     if (!permissionLoader && !hasUserPermission) {
         navigate("/unauthorized");
     }
+
+    document.title = "HR Dashboard";
+
     return (
         <React.Fragment>
             <div className="page-conten overflow-hidden">
@@ -49,6 +56,10 @@ const HR = () => {
                                 <Route path={`/exit-employees/fnf`} element={<FNFApproval />} />
                                 <Route path={`/exit-employees/it`} element={<ExitEmployeeIT />} />
                                 <Route path={`/salary-advance`} element={<SalaryAdvance />} />
+                                <Route path={`/transfer-employees/approval`} element={<TransferApprovals />} />
+                                <Route path={`/transfer-employees/outgoing`} element={<OutgoingEmployeeApprovals />} />
+                                <Route path={`/transfer-employees/incoming`} element={<IncomingEmployeeApprovals />} />
+                                <Route path={`/transfer-employees/it`} element={<TransferEmployeeIT />} />
                             </Routes>
                         </div>
                     </Container>

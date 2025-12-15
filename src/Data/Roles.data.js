@@ -199,6 +199,26 @@ export const permissionList = [
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
       { name: "SALARY_ADVANCE", label: "Salary Advance" },
+      {
+        name: "TRANSFER_EMPLOYEE_APPROVAL",
+        label: "Employee Transfer Approvals"
+      },
+
+      {
+        name: "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
+        label: "Outgoing Transfer Approvals"
+      },
+
+      {
+        name: "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
+        label: "Incoming Transfer Approvals"
+      },
+
+      {
+        name: "TRANSFER_EMPLOYEE_IT",
+        label: "Employee IT Transfer Approvals"
+      }
+
     ]
   }
 ];

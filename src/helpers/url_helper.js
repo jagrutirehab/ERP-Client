@@ -340,6 +340,7 @@ export const MICRO_FORGOTT = "/userauths/forgott-password";
 export const MICRO_LOGOUT = "/userauths/logout";
 export const CHANGE_PASSWORD = "/userauths/forgott-password";
 export const USER = "/user";
+export const GET_USER_BY_EMAIL = "/user/email";
 export const MOVE_TO_BIN = "/user/move-recyclebin";
 export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
 export const CHANGE_USER_PASSWORD = "/user/change-password";
@@ -398,14 +399,24 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
+export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
+
 export const IT = "/hr/it";
 export const IT_NEW_JOINING_ACTION = "/hr/it/joining";
 export const IT_EXIT_ACTION = "/hr/it/exit";
+export const IT_TRANSFER_ACTION = "/hr/it/transfer";
+
 export const EXIT_EMPLOYEE = "/hr/exit";
 export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
+
 export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
-export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+
 export const SALARY_ADVANCE = "/hr/advance-salary";
 export const SALARY_ADVANCE_ACTION = "/hr/advance-salary/action";
+
+export const TRANSFER_EMPLOYEE = "/hr/transfer-employee";
+export const TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION = "/hr/transfer-employee/current/action";
+export const TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION = "/hr/transfer-employee/transfer/action";

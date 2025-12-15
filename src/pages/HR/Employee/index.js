@@ -260,6 +260,14 @@ const Employee = () => {
         },
 
         {
+            name: <div>Transfer Status</div>,
+            selector: row => renderStatusBadge(row?.transferStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: true
+        },
+
+        {
             name: <div>Gender</div>,
             selector: row => capitalizeWords(row?.gender || "-"),
             wrap: true,

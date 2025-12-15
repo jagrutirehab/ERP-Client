@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getEmployees, getExitEmployees, getITApprovals, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getEmployees, getEmployeeTransfers, getExitEmployees, getITApprovals, searchExitEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -53,6 +53,14 @@ export const fetchAdvanceSalaries = createAsyncThunk("hr/getAdvanceSalaries", as
     }
 });
 
+export const fetchEmployeeTransfers = createAsyncThunk("hr/getEmployeeTransfers", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getEmployeeTransfers(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
 
 export const hrSlice = createSlice({
     name: "HR",
@@ -112,6 +120,19 @@ export const hrSlice = createSlice({
                 state.pagination = payload.pagination;
             })
             .addCase(fetchAdvanceSalaries.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder
+            .addCase(fetchEmployeeTransfers.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchEmployeeTransfers.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchEmployeeTransfers.rejected, (state) => {
                 state.loading = false
             });
 
