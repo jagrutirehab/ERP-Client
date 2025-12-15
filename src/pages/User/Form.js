@@ -76,7 +76,8 @@ const UserForm = ({
     userData?.isNewUserFromIT === true ||
     userData?.isUpdateUserFromIT === true;
 
-  const isEditing = Boolean(userData?._id);
+  const isEditing =
+    Boolean(userData?._id) && !userData?.isNewUserFromIT;
 
   const fetchRoles = async () => {
     if (!token) return;
