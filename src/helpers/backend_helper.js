@@ -1306,6 +1306,13 @@ export const getRoles = (token) => {
   });
 };
 
+export const getUserByEmail = (token, email) => {
+  return userService.get(`${url.GET_USER_BY_EMAIL}?email=${email}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+}
 // INCIDENT
 export const getIncidents = (data) => api.get(url.GET_INCIDENTS, data);
 export const getIncidentById = (id) =>
@@ -1716,6 +1723,14 @@ export const updateExitITStatus = (id, data) => {
   });
 };
 
+export const updatetransferITStatus = (id, data) => {
+  return api.update(`${url.IT_TRANSFER_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getEmployeeEmails = (id) => {
   return api.get(`${url.EMPLOYEE_EMAILS}/${id}`, {
     headers: {
@@ -1768,3 +1783,54 @@ export const advanceSalaryAction = (id, data) => {
   })
 }
 
+export const getEmployeeTransfers = (params = {}) => {
+  return api.get(url.TRANSFER_EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const postEmployeeTransfer = (data) => {
+  return api.create(url.TRANSFER_EMPLOYEE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const editEmployeeTransfer = (id, data) => {
+  return api.update(`${url.TRANSFER_EMPLOYEE}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const deleteEmployeeTransfer = (id) => {
+  return api.delete(`${url.TRANSFER_EMPLOYEE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const employeeTransferCurrentLocationAction = (id, data) => {
+  return api.update(`${url.TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const employeeTransferTransferLocationAction = (id, data) => {
+  return api.update(`${url.TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}

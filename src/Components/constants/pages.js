@@ -540,11 +540,44 @@ export const HR = [
       },
     ],
   },
-   {
+  {
     id: "salary-advance",
     label: "Salary Advance",
     link: "/hr/salary-advance",
     icon: "bx bx-rupee",
+  },
+  {
+    id: "transfer-employees",
+    label: "Transfer Employees",
+    icon: "bx bx-slider-alt",
+    link: "/hr/transfer-employees",
+    isAccordion: true,
+    children: [
+      {
+        id: "transfer-approval",
+        label: "All Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/transfer-employees/approval",
+      },
+      {
+        id: "transfer-current-location-approval",
+        label: "Outgoing Approvals",
+        icon: "bx bx-arrow-to-left",
+        link: "/hr/transfer-employees/outgoing",
+      },
+      {
+        id: "transfer-transferred-location-approval",
+        label: "Incoming Approvals",
+        icon: "bx bx-arrow-to-right",
+        link: "/hr/transfer-employees/incoming",
+      },
+      {
+        id: "transfer-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/transfer-employees/it",
+      },
+    ],
   },
 ];
 

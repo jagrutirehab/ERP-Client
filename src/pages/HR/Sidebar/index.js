@@ -18,6 +18,10 @@ const Sidebar = () => {
     const hasUserPermission5 = hasPermission("HR", "EXIT_EMPLOYEE_FNF", "READ");
     const hasUserPermission6 = hasPermission("HR", "EXIT_EMPLOYEE_IT", "READ");
     const hasUserPermission7 = hasPermission("HR", "SALARY_ADVANCE", "READ");
+    const hasUserPermission8 = hasPermission("HR", "TRANSFER_EMPLOYEE_APPROVAL", "READ");
+    const hasUserPermission9 = hasPermission("HR", "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL", "READ");
+    const hasUserPermission10 = hasPermission("HR", "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL", "READ");
+    const hasUserPermission11 = hasPermission("HR", "TRANSFER_EMPLOYEE_IT", "READ");
 
     const location = useLocation();
     const [openSection, setOpenSection] = useState("");
@@ -51,6 +55,17 @@ const Sidebar = () => {
         }
 
         if (page.id === "salary-advance" && !hasUserPermission7) return false;
+
+        if (page.id === "transfer-employees") {
+            page.children = page.children.filter((child) => {
+                if (child.id === "transfer-approval" && !hasUserPermission8) return false;
+                if (child.id === "transfer-current-location-approval" && !hasUserPermission9) return false;
+                if (child.id === "transfer-transferred-location-approval" && !hasUserPermission10) return false;
+                if (child.id === "transfer-it-approval" && !hasUserPermission11) return false;
+                return true;
+            });
+            return page.children.length > 0
+        }
 
         return true;
     });

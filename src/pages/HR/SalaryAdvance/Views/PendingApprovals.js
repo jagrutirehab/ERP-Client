@@ -5,7 +5,7 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { fetchAdvanceSalaries } from "../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { advanceSalaryAction, deleteAdvanceSalary, exitEmployeeFNFAction } from "../../../../helpers/backend_helper";
+import { advanceSalaryAction, deleteAdvanceSalary } from "../../../../helpers/backend_helper";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";

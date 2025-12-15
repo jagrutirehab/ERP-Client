@@ -72,9 +72,11 @@ const UserForm = ({
   // const [search, setSearch] = useState([]);
   const handleAuthError = useAuthError();
 
-  const isITPrefill = userData?.isNewUserFromIT === true;
+  const isITPrefill =
+    userData?.isNewUserFromIT === true ||
+    userData?.isUpdateUserFromIT === true;
 
-  const isEditing = userData && !isITPrefill;
+  const isEditing = Boolean(userData?._id);
 
   const fetchRoles = async () => {
     if (!token) return;
@@ -370,9 +372,12 @@ const UserForm = ({
         formData.append("id", userData._id);
 
         try {
-          await dispatch(
+          const updatedUser = await dispatch(
             updateUser({ data: formData, id: userData._id, token })
           ).unwrap();
+          if (onComplete) {
+            onComplete(updatedUser.data[0]._id);
+          }
           setUserData(null);
         } catch (error) {
           if (!handleAuthError(error)) {
