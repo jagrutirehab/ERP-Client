@@ -388,7 +388,7 @@ const TransferApprovals = () => {
 
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess={"SALARY_ADVANCE"}
+                                subAccess={"TRANSFER_EMPLOYEE_APPROVAL"}
                                 permission={"create"}
                             >
                                 <Button
