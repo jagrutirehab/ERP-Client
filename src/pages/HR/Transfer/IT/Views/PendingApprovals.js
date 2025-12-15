@@ -227,7 +227,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
   const handleAction = async () => {
     setModalLoading(true);
     try {
-      const response = await updateExitITStatus(
+      const response = await updatetransferITStatus(
         selectedEmployee._id,
         {
           action: actionType,
@@ -252,14 +252,9 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
 
   const columns = [
     {
-      name: <div>Date</div>,
-      selector: row =>
-        row?.createdAt
-          ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
-          : "-",
-      sortable: true,
+      name: <div>E-Code</div>,
+      selector: row => row?.eCode || "-",
       wrap: true,
-      minWidth: "180px"
     },
     {
       name: <div>Name</div>,
