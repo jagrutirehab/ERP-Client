@@ -142,7 +142,7 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.employee?.currentLocation?.title || "-"),
+            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
             minWidth: "120px"
         },
