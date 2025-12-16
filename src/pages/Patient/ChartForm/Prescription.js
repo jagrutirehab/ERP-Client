@@ -83,6 +83,10 @@ const Prescription = ({
 
   // console.log(patient.referredBy, "this is patient")
 
+  console.log("------------------");
+  console.log({ patient });
+  console.log("------------------");
+
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
@@ -98,7 +102,7 @@ const Prescription = ({
       author: author?._id,
       patient: patient?._id,
       center: center ? center : patient?.center?._id,
-      addmission: patient?.addmission?._id,
+      addmission: patient?.addmission?._id || patient?.addmission || "",
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
@@ -151,6 +155,8 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
+      console.log({ values });
+
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -166,6 +172,8 @@ const Prescription = ({
       } else if (type === "GENERAL") {
         dispatch(addGeneralPrescription({ ...values, medicines }));
       } else {
+        console.log({ values });
+
         dispatch(
           addPrescription({
             ...values,
@@ -507,6 +515,7 @@ const mapStateToProps = (state) => ({
     state.Chart.chartForm.populatePreviousAppointment,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
   appointment: state.Chart.chartForm.appointment,
+  type: state.Chart.chartForm.type,
   charts: state.Chart.charts,
   patientLatestOPDPrescription: state.Chart.patientLatestOPDPrescription,
 });

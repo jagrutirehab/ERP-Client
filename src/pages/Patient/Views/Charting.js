@@ -264,7 +264,9 @@ const Charting = ({
       </div>
       <div className="mb-2">
         <CheckPermission permission={"create"} subAccess={"Charting"}>
-          <RenderWhen isTrue={tab === OPD}>
+          <RenderWhen
+            isTrue={tab === OPD && !patient.isAdmit && patient.isDischarge}
+          >
             <Button
               onClick={() => {
                 toggleModal();
