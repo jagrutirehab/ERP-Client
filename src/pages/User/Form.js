@@ -25,7 +25,8 @@ const UserForm = ({
   userData,
   setUserData,
   hasUserPermission,
-  onComplete
+  onComplete,
+  isFromIT = false
 }) => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
@@ -35,8 +36,15 @@ const UserForm = ({
   const dummyImage =
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
-  const centers = useSelector((state) => state.User.userCenters);
-  const accessibleCenters = centers?.filter(c => author?.centerAccess?.includes(c._id)) || [];
+  const userCenters = useSelector((state) => state.User.userCenters);
+  const allCenters = useSelector((state) => state.Center.allCenters);
+
+  const centers = isFromIT ? userCenters : allCenters;
+
+  const accessibleCenters = isFromIT
+    ? centers?.filter(c => author?.centerAccess?.includes(c._id))
+    : centers;
+
   const therapyOptions = useSelector((state) => state.Setting.therapies).map(
     (therapy) => ({
       value: therapy.title,

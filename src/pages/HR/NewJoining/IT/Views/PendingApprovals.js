@@ -441,6 +441,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 setUserData={setSelectedEmployee}
                 hasUserPermission={hasUserPermission}
                 onComplete={handleUserFormComplete}
+                isFromIT={true}
             />
 
 
