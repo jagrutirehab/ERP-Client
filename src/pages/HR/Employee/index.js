@@ -297,7 +297,7 @@ const Employee = () => {
         },
         {
             name: <div>PF Applicable</div>,
-            selector: row => row?.pfApplication === true ? "Yes" : row?.pfApplication === false ? "No" : "-",
+            selector: row => row?.pfApplicable === true ? "Yes" : row?.pfApplicable === false ? "No" : "-",
             wrap: true,
         },
         {

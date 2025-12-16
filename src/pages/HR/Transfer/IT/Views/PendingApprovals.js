@@ -221,9 +221,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     }
   };
 
-
-
-
   const handleAction = async () => {
     setModalLoading(true);
     try {
@@ -448,6 +445,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         setUserData={setPrefillUser}
         hasUserPermission={hasUserPermission}
         onComplete={handleUserFormComplete}
+        isFromIT={true}
       />
 
 

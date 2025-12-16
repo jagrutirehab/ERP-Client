@@ -166,6 +166,9 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
     const form = useFormik({
         enableReinitialize: true,
+        validateOnBlur: true,
+        validateOnChange: false,
+        validateOnMount: true,
         initialValues: cleanedInitialData || {
             name: "",
             eCode: "",
@@ -203,6 +206,23 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
         },
         validationSchema: validationSchema(mode, isEdit),
         onSubmit: async (values) => {
+            const fileFields = [
+                { file: "panFile", old: "panOld" },
+                { file: "adharFile", old: "adharOld" },
+                { file: "offerLetterFile", old: "offerLetterOld" },
+            ];
+
+            let hasFileError = false;
+
+            fileFields.forEach(({ file, old }) => {
+                if (!values[file] && !values[old]) {
+                    form.setFieldTouched(file, true, false);
+                    hasFileError = true;
+                }
+            });
+
+            if (hasFileError) return;
+
             try {
                 if (mode === "NEW_JOINING") {
                     values.status = "NEW_JOINING";
@@ -225,9 +245,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                 if (initialData?._id) {
                     formData.delete("eCode");
-                }
-
-                if (initialData?._id) {
                     formData.delete("_id");
                     formData.delete("panOld");
                     formData.delete("offerLetterOld");
@@ -243,13 +260,15 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                     formData.delete("author");
                     formData.delete("itStatus");
                     formData.delete("users");
-                    formData.delete("transferStatus")
+                    formData.delete("transferStatus");
+
                     await editEmployee(initialData._id, formData);
                     toast.success("Employee updated successfully");
                 } else {
                     formData.delete("panOld");
                     formData.delete("offerLetterOld");
                     formData.delete("adharOld");
+
                     await postEmployee(formData);
                     toast.success("Employee added successfully");
                 }
@@ -263,6 +282,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                 }
             }
         }
+
 
 
 
@@ -626,7 +646,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                             <FormFeedback>{errors.adharNo}</FormFeedback>
                         </Col>
 
-                        {/* AADHAAR FILE */}
                         <Col md={6}>
                             <Label>Aadhaar File <span className="text-danger">*</span></Label>
 
@@ -648,6 +667,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 }}
                             />
 
+                            {/* ✅ NEW FILE SELECTED */}
                             {values.adharFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -661,20 +681,20 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                             setPreviewOpen(true);
                                         }}
                                     >
-                                        Preview New File
+                                        Preview File
                                     </Button>
 
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => adharFileRef.current.click()}
                                     >
-                                        Upload New File
+                                        Change File
                                     </Button>
                                 </div>
                             )}
 
+                            {/* ✅ OLD FILE EXISTS */}
                             {!values.adharFile && values.adharOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -694,7 +714,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => adharFileRef.current.click()}
                                     >
                                         Upload New File
@@ -702,15 +721,15 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 </div>
                             )}
 
-                            {!isEdit && !values.adharFile && !values.adharOld && (
+                            {/* ✅ NO FILE AT ALL (KEY FIX) */}
+                            {!values.adharFile && !values.adharOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => adharFileRef.current.click()}
                                     >
-                                        Select File
+                                        Upload File
                                     </Button>
                                 </div>
                             )}
@@ -719,6 +738,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.adharFile}</div>
                             )}
                         </Col>
+
 
 
 
@@ -759,6 +779,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 }}
                             />
 
+                            {/* ✅ NEW FILE SELECTED */}
                             {values.panFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -772,20 +793,20 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                             setPreviewOpen(true);
                                         }}
                                     >
-                                        Preview New File
+                                        Preview File
                                     </Button>
 
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => panFileRef.current.click()}
                                     >
-                                        Upload New File
+                                        Change File
                                     </Button>
                                 </div>
                             )}
 
+                            {/* ✅ OLD FILE EXISTS */}
                             {!values.panFile && values.panOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -805,7 +826,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => panFileRef.current.click()}
                                     >
                                         Upload New File
@@ -813,14 +833,15 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 </div>
                             )}
 
-                            {!isEdit && !values.panFile && !values.panOld && (
+                            {/* ✅ NO FILE AT ALL (THIS WAS MISSING) */}
+                            {!values.panFile && !values.panOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
                                         color="primary"
                                         onClick={() => panFileRef.current.click()}
                                     >
-                                        Select File
+                                        Upload File
                                     </Button>
                                 </div>
                             )}
@@ -829,9 +850,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.panFile}</div>
                             )}
                         </Col>
-
-
-
 
 
                         {/* FATHER NAME */}
@@ -938,6 +956,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 }}
                             />
 
+                            {/* ✅ NEW FILE SELECTED */}
                             {values.offerLetterFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -951,20 +970,20 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                             setPreviewOpen(true);
                                         }}
                                     >
-                                        Preview New File
+                                        Preview File
                                     </Button>
 
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => offerLetterRef.current.click()}
                                     >
-                                        Upload New File
+                                        Change File
                                     </Button>
                                 </div>
                             )}
 
+                            {/* ✅ OLD FILE EXISTS */}
                             {!values.offerLetterFile && values.offerLetterOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
@@ -984,22 +1003,25 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        className="text-white"
                                         onClick={() => offerLetterRef.current.click()}
                                     >
                                         Upload New File
                                     </Button>
+                                    {errors.offerLetter && (
+                                        <div className="text-danger small mt-1">{errors.offerLetter}</div>
+                                    )}
                                 </div>
                             )}
 
-                            {!isEdit && !values.offerLetterFile && !values.offerLetterOld && (
+                            {/* ✅ NO FILE AT ALL (KEY FIX) */}
+                            {!values.offerLetterFile && !values.offerLetterOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
                                         color="primary"
                                         onClick={() => offerLetterRef.current.click()}
                                     >
-                                        Select File
+                                        Upload File
                                     </Button>
                                 </div>
                             )}
@@ -1008,7 +1030,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 <div className="text-danger small mt-1">{errors.offerLetterFile}</div>
                             )}
                         </Col>
-
                     </Row>
                 </ModalBody>
 
