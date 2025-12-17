@@ -125,6 +125,9 @@ const PendingApprovals = ({ activeTab }) => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
+        } finally {
+            setModalLoading(false);
+            setApproveModalOpen(false);
         }
     }
 
@@ -350,8 +353,10 @@ const PendingApprovals = ({ activeTab }) => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
+                    setSelectedRecord(null);
                 }}
                 onSubmit={handleAction}
+                loading={modalLoading}
                 mode="TRANSFER_EMPLOYEE"
                 actionType={actionType}
                 setActionType={setActionType}

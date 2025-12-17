@@ -9,7 +9,8 @@ import {
     ModalFooter,
     ModalHeader,
     FormGroup,
-    Label
+    Label,
+    Spinner
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
@@ -125,8 +126,15 @@ const AddSalaryAdvanceModal = ({ isOpen, toggle, initialData, onUpdate, view }) 
         setSearchText("");
     };
 
+    useEffect(() => {
+        if (isOpen && !isEdit) {
+            resetAll();
+        }
+    }, [isOpen]);
+
     return (
-        <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
+        <Modal isOpen={isOpen} toggle={toggle} size="lg" centered backdrop="static"
+            keyboard={false}>
             <ModalHeader toggle={toggle}>
                 {isEdit ? "Edit Advance Salary Request" : "Add Advance Salary Request"}
             </ModalHeader>
@@ -230,7 +238,7 @@ const AddSalaryAdvanceModal = ({ isOpen, toggle, initialData, onUpdate, view }) 
             </ModalBody>
 
             <ModalFooter>
-                <Button color="secondary" onClick={toggle}>
+                <Button color="secondary" onClick={toggle} disabled={form.isSubmitting}>
                     Cancel
                 </Button>
 
@@ -244,6 +252,7 @@ const AddSalaryAdvanceModal = ({ isOpen, toggle, initialData, onUpdate, view }) 
                         (!isEdit && !form.values.employeeId)
                     }
                 >
+                    {form.isSubmitting && <Spinner size="sm" className="me-2" />}
                     {isEdit ? "Update Request" : "Add Request"}
                 </Button>
             </ModalFooter>

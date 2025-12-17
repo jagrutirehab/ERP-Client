@@ -16,11 +16,14 @@ import {
     Spinner,
 } from "reactstrap";
 import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { editEmployee, getEmployeeId, postEmployee } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import PhoneInputWithCountrySelect, { isValidPhoneNumber } from "react-phone-number-input";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { designationOptions } from "../../../Components/constants/HR";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 
 const validationSchema = (mode, isEdit) => Yup.object({
     name: Yup.string().required("Employee name is required"),
@@ -60,9 +63,8 @@ const validationSchema = (mode, isEdit) => Yup.object({
         "PAN file is required",
         function (value) {
             const { panOld } = this.parent;
-            if (!isEdit) return value instanceof File;
-            if (!panOld && !value) return false;
-            return true;
+            if (!isEdit) return !!value;
+            return !!value || !!panOld;
         }
     ),
 
@@ -87,11 +89,6 @@ const validationSchema = (mode, isEdit) => Yup.object({
             return true;
         }
     ),
-
-
-
-
-
 });
 
 const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
@@ -99,6 +96,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
     const { centerAccess, userCenters } = useSelector((state) => state.User);
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
+    const [eCodeLoader, setECodeLoader] = useState(false);
 
     const [previewFile, setPreviewFile] = useState(null);
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -166,8 +164,6 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
     const form = useFormik({
         enableReinitialize: true,
-        validateOnBlur: true,
-        validateOnChange: false,
         validateOnMount: true,
         initialValues: cleanedInitialData || {
             name: "",
@@ -202,26 +198,15 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
             panFile: null,
             adharFile: null,
             offerLetterFile: null,
-
         },
         validationSchema: validationSchema(mode, isEdit),
         onSubmit: async (values) => {
-            const fileFields = [
-                { file: "panFile", old: "panOld" },
-                { file: "adharFile", old: "adharOld" },
-                { file: "offerLetterFile", old: "offerLetterOld" },
-            ];
 
-            let hasFileError = false;
-
-            fileFields.forEach(({ file, old }) => {
-                if (!values[file] && !values[old]) {
-                    form.setFieldTouched(file, true, false);
-                    hasFileError = true;
-                }
-            });
-
-            if (hasFileError) return;
+            touchFileFields();
+            const errors = await form.validateForm();
+            if (errors.panFile || errors.adharFile || errors.offerLetterFile) {
+                return;
+            }
 
             try {
                 if (mode === "NEW_JOINING") {
@@ -283,29 +268,78 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
             }
         }
 
-
-
-
     });
 
-    const { values, errors, touched, isSubmitting, handleChange, setFieldValue } = form;
+    const { values, errors, isSubmitting, handleChange, setFieldValue, setTouched, touched, isValid } = form;
 
-    const errorText = (field) =>
-        touched[field] && errors[field] ? (
+    const touchFileFields = () => {
+        setTouched(
+            {
+                ...form.touched,
+                panFile: true,
+                adharFile: true,
+                offerLetterFile: true,
+            },
+            true
+        );
+    };
+
+
+    const errorText = (field) => {
+        if (isEdit) {
+            return errors[field] ? (
+                <div className="text-danger small">{errors[field]}</div>
+            ) : null;
+        }
+
+        return touched[field] && errors[field] ? (
             <div className="text-danger small">{errors[field]}</div>
         ) : null;
+    };
+
 
     const generateEmployeeId = async () => {
+        setECodeLoader(true);
         try {
             const response = await getEmployeeId();
-            console.log(response)
             form.setFieldValue("eCode", response.payload.value);
         } catch (error) {
             if (!handleAuthError) {
                 toast.error("Failed to generate employee id");
             }
+        } finally {
+            setECodeLoader(false);
         }
     }
+
+    const handleClose = () => {
+        form.resetForm();
+        toggle();
+    };
+
+    const handleDecideFilePreviewOrDownload = ({
+        file,
+        oldUrl,
+    }) => {
+        // if local file then preview
+        if (file instanceof File) {
+            setPreviewFile({
+                url: URL.createObjectURL(file),
+                type: file.type,
+            });
+            setPreviewOpen(true);
+            return;
+        }
+        console.log(oldUrl)
+        // if url then download
+        if (oldUrl) {
+
+            downloadFile({
+                url: oldUrl,
+            });
+        }
+    };
+
 
     useEffect(() => {
         if (isOpen && !initialData?._id && mode !== "NEW_JOINING") {
@@ -316,9 +350,9 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
     return (
         <>
-
-            <Modal isOpen={isOpen} toggle={toggle} size="xl" centered>
-                <ModalHeader toggle={toggle}>
+            <Modal isOpen={isOpen} toggle={handleClose} size="xl" centered backdrop="static"
+                keyboard={false}>
+                <ModalHeader toggle={handleClose}>
                     {initialData ? "Edit Employee" : "Add Employee"}
                 </ModalHeader>
 
@@ -328,17 +362,35 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                         {mode !== "NEW_JOINING" && (
                             <Col md={6}>
                                 <Label htmlFor="eCode">ECode</Label>
-                                <Input
-                                    name="eCode"
-                                    id="eCode"
-                                    disabled
-                                    value={values.eCode}
-                                    onChange={handleChange}
-                                    invalid={touched.eCode && errors.eCode}
-                                />
-                                <FormFeedback>{errors.eCode}</FormFeedback>
+
+                                <div className="position-relative">
+                                    <Input
+                                        name="eCode"
+                                        id="eCode"
+                                        disabled
+                                        value={values.eCode}
+                                        onChange={handleChange}
+                                        invalid={touched.eCode && errors.eCode}
+                                        style={{ paddingRight: eCodeLoader ? "2.5rem" : undefined }}
+                                    />
+
+                                    {eCodeLoader && (
+                                        <Spinner
+                                            size="sm"
+                                            color="primary"
+                                            className="position-absolute"
+                                            style={{
+                                                right: "10px",
+                                                top: "35%",
+                                            }}
+                                        />
+                                    )}
+                                </div>
+
+                                {errorText("eCode")}
                             </Col>
                         )}
+
 
                         <Col md={6}>
                             <Label htmlFor="name">
@@ -351,7 +403,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.name && errors.name}
                             />
-                            <FormFeedback>{errors.name}</FormFeedback>
+                            {errorText("name")}
                         </Col>
 
 
@@ -367,7 +419,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.department && errors.department}
                             />
-                            <FormFeedback>{errors.department}</FormFeedback>
+                            {errorText("department")}
                         </Col>
 
                         {/* DESIGNATION */}
@@ -375,15 +427,27 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                             <Label htmlFor="designation">
                                 Designation <span className="text-danger">*</span>
                             </Label>
-                            <Input
-                                name="designation"
-                                id="designation"
-                                value={values.designation}
-                                onChange={handleChange}
-                                invalid={touched.designation && errors.designation}
+
+                            <CreatableSelect
+                                inputId="designation"
+                                options={designationOptions}
+                                value={
+                                    values.designation
+                                        ? { label: values.designation, value: values.designation }
+                                        : null
+                                }
+                                onChange={(option) => {
+                                    setFieldValue("designation", option ? option.label : "");
+                                }}
+                                placeholder="Select or create one if not listed"
+                                isClearable
+                                classNamePrefix="react-select"
+                                formatCreateLabel={(inputValue) => `Other: "${inputValue}"`}
                             />
-                            <FormFeedback>{errors.designation}</FormFeedback>
+
+                            {errorText("designation")}
                         </Col>
+
 
                         {/* EMPLOYMENT */}
                         <Col md={6}>
@@ -397,7 +461,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.employmentType && errors.employmentType}
                             />
-                            <FormFeedback>{errors.employmentType}</FormFeedback>
+                            {errorText("employmentType")}
                         </Col>
 
 
@@ -479,7 +543,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.joinningDate && errors.joinningDate}
                             />
-                            <FormFeedback>{errors.joinningDate}</FormFeedback>
+                            {errorText("joinningDate")}
                         </Col>
 
                         {/* EXIT DATE */}
@@ -498,7 +562,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                         {/* STATUS */}
                         {mode !== "NEW_JOINING" && (
                             <Col md={6}>
-                                <Label>Status</Label>
+                                <Label>Status <span className="text-danger">*</span></Label>
                                 <Select
                                     options={statusOptions}
                                     value={statusOptions.find(opt => opt.value === values.status) || null}
@@ -536,7 +600,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.dateOfBirth && errors.dateOfBirth}
                             />
-                            <FormFeedback>{errors.dateOfBirth}</FormFeedback>
+                            {errorText("dateOfBirth")}
                         </Col>
                         {/* BANK NAME */}
                         <Col md={6}>
@@ -549,7 +613,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.bankName && errors.bankName}
                             />
-                            <FormFeedback>{errors.bankName}</FormFeedback>
+                            {errorText("bankName")}
                         </Col>
                         {/* BANK ACCOUNT */}
                         <Col md={6}>
@@ -562,7 +626,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.accountNo && errors.accountNo}
                             />
-                            <FormFeedback>{errors.accountNo}</FormFeedback>
+                            {errorText("accountNo")}
                         </Col>
 
                         {/* IFSC */}
@@ -576,7 +640,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.IFSCCode && errors.IFSCCode}
                             />
-                            <FormFeedback>{errors.IFSCCode}</FormFeedback>
+                            {errorText("IFSCCode")}
                         </Col>
 
                         {/* PF APPLICABLE */}
@@ -643,104 +707,89 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.adharNo && errors.adharNo}
                             />
-                            <FormFeedback>{errors.adharNo}</FormFeedback>
+                            {errorText("adharNo")}
                         </Col>
 
+                        {/* ADHAAR FILE */}
                         <Col md={6}>
                             <Label>Aadhaar File <span className="text-danger">*</span></Label>
 
                             <input
                                 type="file"
-                                accept="image/*,application/pdf"
                                 hidden
                                 ref={adharFileRef}
+                                accept="image/*,application/pdf"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
                                         setFieldValue("adharFile", file);
                                         setFieldValue("adharOld", "");
-                                        setPreviewFile({
-                                            url: URL.createObjectURL(file),
-                                            type: file.type,
-                                        });
+
+                                        form.setFieldTouched("adharFile", false, false);
+                                        form.setFieldError("adharFile", undefined);
                                     }
                                 }}
                             />
 
-                            {/* ✅ NEW FILE SELECTED */}
                             {values.adharFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
-                                        onClick={() => {
-                                            setPreviewFile({
-                                                url: URL.createObjectURL(values.adharFile),
-                                                type: values.adharFile.type,
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                        onClick={() =>
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.adharFile,
+                                                oldUrl: values.adharOld,
+                                            })
+                                        }
                                     >
-                                        Preview File
+                                        Preview
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => adharFileRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => adharFileRef.current.click()}>
                                         Change File
                                     </Button>
                                 </div>
                             )}
 
-                            {/* ✅ OLD FILE EXISTS */}
                             {!values.adharFile && values.adharOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
                                         onClick={() => {
-                                            setPreviewFile({
-                                                url: values.adharOld,
-                                                type: getPreviewType(values.adharOld),
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.adharFile,
+                                                oldUrl: values.adharOld,
+                                            })
+                                        }
+                                        }
                                     >
-                                        Preview Old File
+                                        Download
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => adharFileRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => adharFileRef.current.click()}>
                                         Upload New File
                                     </Button>
                                 </div>
                             )}
 
-                            {/* ✅ NO FILE AT ALL (KEY FIX) */}
                             {!values.adharFile && !values.adharOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
-                                        color="primary"
-                                        onClick={() => adharFileRef.current.click()}
+                                        onClick={() => {
+                                            form.setFieldTouched("adharFile", true, true);
+                                            adharFileRef.current.click();
+                                        }}
                                     >
                                         Upload File
                                     </Button>
                                 </div>
                             )}
 
-                            {touched.adharFile && errors.adharFile && (
-                                <div className="text-danger small mt-1">{errors.adharFile}</div>
-                            )}
+                            {errorText("adharFile")}
                         </Col>
-
-
-
 
                         {/* PAN NO*/}
                         <Col md={6}>
@@ -751,10 +800,12 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                             <Input
                                 name="pan"
                                 value={values.pan}
-                                onChange={handleChange}
+                                onChange={(e) => {
+                                    setFieldValue("pan", e.target.value.toUpperCase());
+                                }}
                                 invalid={touched.pan && errors.pan}
                             />
-                            <FormFeedback>{errors.pan}</FormFeedback>
+                            {errorText("pan")}
                         </Col>
 
                         {/* PAN FILE */}
@@ -763,92 +814,78 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                             <input
                                 type="file"
-                                accept="image/*,application/pdf"
                                 hidden
                                 ref={panFileRef}
+                                accept="image/*,application/pdf"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
                                         setFieldValue("panFile", file);
                                         setFieldValue("panOld", "");
-                                        setPreviewFile({
-                                            url: URL.createObjectURL(file),
-                                            type: file.type,
-                                        });
+
+                                        form.setFieldTouched("panFile", false, false);
+                                        form.setFieldError("panFile", undefined);
                                     }
                                 }}
                             />
 
-                            {/* ✅ NEW FILE SELECTED */}
                             {values.panFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
-                                        onClick={() => {
-                                            setPreviewFile({
-                                                url: URL.createObjectURL(values.panFile),
-                                                type: values.panFile.type,
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                        onClick={() =>
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.panFile,
+                                                oldUrl: values.panOld,
+                                            })
+                                        }
                                     >
-                                        Preview File
+                                        Preview
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => panFileRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => panFileRef.current.click()}>
                                         Change File
                                     </Button>
                                 </div>
                             )}
 
-                            {/* ✅ OLD FILE EXISTS */}
                             {!values.panFile && values.panOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
-                                        onClick={() => {
-                                            setPreviewFile({
-                                                url: values.panOld,
-                                                type: getPreviewType(values.panOld),
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                        onClick={() =>
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.panFile,
+                                                oldUrl: values.panOld,
+                                            })
+                                        }
                                     >
-                                        Preview Old File
+                                        Download
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => panFileRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => panFileRef.current.click()}>
                                         Upload New File
                                     </Button>
                                 </div>
                             )}
 
-                            {/* ✅ NO FILE AT ALL (THIS WAS MISSING) */}
                             {!values.panFile && !values.panOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
-                                        color="primary"
-                                        onClick={() => panFileRef.current.click()}
+                                        onClick={() => {
+                                            form.setFieldTouched("panFile", true, true);
+                                            panFileRef.current.click();
+                                        }}
                                     >
                                         Upload File
                                     </Button>
                                 </div>
                             )}
 
-                            {touched.panFile && errors.panFile && (
-                                <div className="text-danger small mt-1">{errors.panFile}</div>
-                            )}
+                            {errorText("panFile")}
                         </Col>
 
 
@@ -862,7 +899,7 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                                 onChange={handleChange}
                                 invalid={touched.father && errors.father}
                             />
-                            <FormFeedback>{errors.father}</FormFeedback>
+                            {errorText("father")}
                         </Col>
 
                         {/* MOBILE */}
@@ -936,108 +973,99 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 
                         {/* OFFER LETTER FILE */}
                         <Col md={6}>
-                            <Label>Offer Letter <span className="text-danger">*</span></Label>
+                            <Label>
+                                Offer Letter <span className="text-danger">*</span>
+                            </Label>
 
                             <input
                                 type="file"
-                                accept="image/*,application/pdf"
                                 hidden
                                 ref={offerLetterRef}
+                                accept="image/*,application/pdf"
                                 onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) {
                                         setFieldValue("offerLetterFile", file);
                                         setFieldValue("offerLetterOld", "");
-                                        setPreviewFile({
-                                            url: URL.createObjectURL(file),
-                                            type: file.type,
-                                        });
+
+                                        form.setFieldTouched("offerLetterFile", false, false);
+                                        form.setFieldError("offerLetterFile", undefined);
                                     }
                                 }}
                             />
 
-                            {/* ✅ NEW FILE SELECTED */}
                             {values.offerLetterFile && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
-                                        onClick={() => {
-                                            setPreviewFile({
-                                                url: URL.createObjectURL(values.offerLetterFile),
-                                                type: values.offerLetterFile.type,
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                        onClick={() =>
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.offerLetterFile,
+                                                oldUrl: values.offerLetterOld,
+                                            })
+                                        }
                                     >
-                                        Preview File
+                                        Preview
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => offerLetterRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => offerLetterRef.current.click()}>
                                         Change File
                                     </Button>
                                 </div>
                             )}
 
-                            {/* ✅ OLD FILE EXISTS */}
                             {!values.offerLetterFile && values.offerLetterOld && (
                                 <div className="d-flex gap-2 mt-2">
                                     <Button
                                         size="sm"
                                         color="info"
-                                        onClick={() => {
-                                            setPreviewFile({
-                                                url: values.offerLetterOld,
-                                                type: getPreviewType(values.offerLetterOld),
-                                            });
-                                            setPreviewOpen(true);
-                                        }}
+                                        onClick={() =>
+                                            handleDecideFilePreviewOrDownload({
+                                                file: values.offerLetterFile,
+                                                oldUrl: values.offerLetterOld,
+                                            })
+                                        }
                                     >
-                                        Preview Old File
+                                        Download
                                     </Button>
 
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        onClick={() => offerLetterRef.current.click()}
-                                    >
+                                    <Button size="sm" onClick={() => offerLetterRef.current.click()}>
                                         Upload New File
                                     </Button>
-                                    {errors.offerLetter && (
-                                        <div className="text-danger small mt-1">{errors.offerLetter}</div>
-                                    )}
                                 </div>
                             )}
 
-                            {/* ✅ NO FILE AT ALL (KEY FIX) */}
                             {!values.offerLetterFile && !values.offerLetterOld && (
                                 <div className="mt-2">
                                     <Button
                                         size="sm"
-                                        color="primary"
-                                        onClick={() => offerLetterRef.current.click()}
+                                        onClick={() => {
+                                            form.setFieldTouched("offerLetterFile", true, true);
+                                            offerLetterRef.current.click();
+                                        }}
                                     >
                                         Upload File
                                     </Button>
                                 </div>
                             )}
 
-                            {touched.offerLetterFile && errors.offerLetterFile && (
-                                <div className="text-danger small mt-1">{errors.offerLetterFile}</div>
-                            )}
+                            {errorText("offerLetterFile")}
                         </Col>
+
+
                     </Row>
                 </ModalBody>
 
                 <ModalFooter>
-                    <Button color="secondary" className="text-white" onClick={toggle}>
+                    <Button color="secondary" className="text-white" onClick={handleClose} disabled={form.isSubmitting}>
                         Cancel
                     </Button>
-                    <Button color="primary" className="text-white" onClick={form.handleSubmit}>
+                    <Button color="primary" className="text-white" onClick={form.handleSubmit} disabled={
+                        isSubmitting ||
+                        !isValid ||
+                        (isEdit && !initialData?._id)
+                    }>
                         {isSubmitting ? (
                             <Spinner size={"sm"} />
                         ) : (
@@ -1059,19 +1087,3 @@ const AddEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
 };
 
 export default AddEmployeeModal;
-const getPreviewType = (url) => {
-    if (!url) return "";
-
-    const lower = url.toLowerCase();
-
-    if (lower.endsWith(".pdf")) return "application/pdf";
-
-    if (
-        lower.endsWith(".png") ||
-        lower.endsWith(".jpg") ||
-        lower.endsWith(".jpeg") ||
-        lower.endsWith(".webp")
-    ) return "image/jpeg";
-
-    return "image/jpeg"; // fallback
-};

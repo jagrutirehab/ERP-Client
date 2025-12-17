@@ -170,13 +170,13 @@ const Employee = () => {
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "120px"
         },
         {
             name: <div>Designation</div>,
             selector: row => capitalizeWords(row?.designation || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "120px"
         },
         {
             name: <div>Employment</div>,
@@ -387,13 +387,13 @@ const Employee = () => {
             name: <div>Official Email ID</div>,
             selector: row => row?.officialEmail || "-",
             wrap: true,
-            minWidth: "210px"
+            minWidth: "230px"
         },
         {
             name: <div>Email ID</div>,
             selector: row => row?.email || "-",
             wrap: true,
-            minWidth: "210px"
+            minWidth: "230px"
         },
         // {
         //     name: <div>Monthly CTC</div>,
