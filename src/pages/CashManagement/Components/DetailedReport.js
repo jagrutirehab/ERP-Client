@@ -22,6 +22,7 @@ import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
+import { getDetailedCashReport } from "../../../helpers/backend_helper";
 
 const DetailedReport = ({
   centers,
@@ -229,6 +230,40 @@ const DetailedReport = ({
     roles,
   ]);
 
+  const getDetailedReportXlsx = async () => {
+    try {
+      const res = await getDetailedCashReport({
+        page,
+        limit,
+        transactionType: selectedTransactionType,
+        centers: selectedCentersIds,
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        exportExcel: true,
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "detailed-report.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error("Failed to download report");
+      }
+    }
+  };
+
+
   const handleFilterChange = (filterType, value) => {
     setPage(1);
     if (filterType === "transactionType") {
@@ -260,6 +295,7 @@ const DetailedReport = ({
               ))}
             </Input>
           </div>
+
           <div style={{ minWidth: "150px", maxWidth: "200px" }}>
             <Input
               type="select"
@@ -279,9 +315,11 @@ const DetailedReport = ({
               <option value="INTERN">Intern Payments</option>
             </Input>
           </div>
+
           <div style={{ minWidth: "150px" }}>
             <Header reportDate={reportDate} setReportDate={handleDateChange} />
           </div>
+
           <div style={{ minWidth: "200px", maxWidth: "250px" }}>
             <CenterDropdown
               options={centerOptions}
@@ -295,7 +333,14 @@ const DetailedReport = ({
               }}
             />
           </div>
+
+          <div className="ms-auto">
+            <Button onClick={getDetailedReportXlsx}>
+              Export Excel
+            </Button>
+          </div>
         </div>
+
       </div>
 
       <Card className="mt-4">
