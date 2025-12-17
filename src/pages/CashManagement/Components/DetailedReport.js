@@ -46,6 +46,7 @@ const DetailedReport = ({
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -231,6 +232,7 @@ const DetailedReport = ({
   ]);
 
   const getDetailedReportXlsx = async () => {
+    setIsExcelGenerating(true);
     try {
       const res = await getDetailedCashReport({
         page,
@@ -260,6 +262,8 @@ const DetailedReport = ({
       if (!handleAuthError(error)) {
         toast.error("Failed to download report");
       }
+    } finally {
+      setIsExcelGenerating(false);
     }
   };
 
@@ -335,7 +339,8 @@ const DetailedReport = ({
           </div>
 
           <div className="ms-auto">
-            <Button onClick={getDetailedReportXlsx}>
+            <Button onClick={getDetailedReportXlsx} disabled={isExcelGenerating}>
+              {isExcelGenerating && <Spinner size={"sm"} className="me-2" />}
               Export Excel
             </Button>
           </div>
