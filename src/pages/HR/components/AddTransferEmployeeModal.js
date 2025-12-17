@@ -9,7 +9,8 @@ import {
     ModalFooter,
     ModalHeader,
     FormGroup,
-    Label
+    Label,
+    Spinner
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
@@ -34,7 +35,7 @@ const validationSchema = Yup.object().shape({
         .trim("Transfer Date cannot be empty"),
 });
 
-const AddTransferEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, view }) => {
+const AddTransferEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -281,7 +282,7 @@ const AddTransferEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, view 
             </ModalBody>
 
             <ModalFooter>
-                <Button color="secondary" onClick={toggle}>
+                <Button color="secondary" onClick={toggle} disabled={form.isSubmitting}>
                     Cancel
                 </Button>
 
@@ -295,6 +296,7 @@ const AddTransferEmployeeModal = ({ isOpen, toggle, initialData, onUpdate, view 
                         (!isEdit && !form.values.employeeId)
                     }
                 >
+                    {form.isSubmitting && <Spinner size={"sm"} className="me-2"/>}
                     {isEdit ? "Update Request" : "Add Request"}
                 </Button>
             </ModalFooter>

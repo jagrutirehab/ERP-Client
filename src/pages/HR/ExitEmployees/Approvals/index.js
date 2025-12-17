@@ -146,6 +146,9 @@ const ExitApprovals = () => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
+        } finally {
+            setModalLoading(false);
+            setApproveModalOpen(false);
         }
     }
 
@@ -485,8 +488,10 @@ const ExitApprovals = () => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
+                    setSelectedEmployee(null);
                 }}
                 onSubmit={handleAction}
+                loading={modalLoading}
                 mode="EXIT_EMPLOYEES_EXIT_PENDING"
                 actionType={actionType}
                 setActionType={setActionType}

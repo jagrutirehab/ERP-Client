@@ -148,6 +148,9 @@ const PendingApprovals = ({ activeTab }) => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Action failed");
       }
+    } finally {
+      setApproveModalOpen(false);
+      setModalLoading(false);
     }
   }
 
@@ -430,6 +433,7 @@ const PendingApprovals = ({ activeTab }) => {
         }}
         initialData={selectedRecord}
         onUpdate={() => {
+          setSelectedRecord(null);
           setPage(1);
           fetchPendingAdvanceSalaryApprovals();
         }}
@@ -444,15 +448,18 @@ const PendingApprovals = ({ activeTab }) => {
         onConfirm={handleDelete}
         loading={modalLoading}
       />
+
       <ApproveModal
         isOpen={approveModalOpen}
         toggle={() => {
           setApproveModalOpen(false);
           setNote("");
           setActionType(null);
+          setSelectedRecord(null);
         }}
         onSubmit={handleAction}
         mode="SALARY_ADVANCE"
+        loading={modalLoading}
         actionType={actionType}
         setActionType={setActionType}
         note={note}

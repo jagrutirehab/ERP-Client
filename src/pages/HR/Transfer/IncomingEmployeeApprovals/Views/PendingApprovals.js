@@ -33,7 +33,6 @@ const PendingApprovals = ({ activeTab }) => {
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
-    const [paymentType, setPaymentType] = useState(""); //CASH | CENTRAL
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -127,6 +126,9 @@ const PendingApprovals = ({ activeTab }) => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
+        } finally {
+            setModalLoading(false);
+            setApproveModalOpen(false);
         }
     }
 
@@ -371,15 +373,15 @@ const PendingApprovals = ({ activeTab }) => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
+                    setSelectedRecord(null);
                 }}
                 onSubmit={handleAction}
                 mode="TRANSFER_EMPLOYEE"
                 actionType={actionType}
+                loading={modalLoading}
                 setActionType={setActionType}
                 note={note}
                 setNote={setNote}
-                paymentType={paymentType}
-                setPaymentType={setPaymentType}
 
             />
         </>

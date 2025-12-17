@@ -147,6 +147,9 @@ const PendingApprovals = ({ activeTab }) => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
+        } finally {
+            setModalLoading(false);
+            setApproveModalOpen(false);
         }
     }
 
@@ -238,7 +241,7 @@ const PendingApprovals = ({ activeTab }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-             minWidth: "180px"
+            minWidth: "180px"
         },
 
         {
@@ -413,6 +416,7 @@ const PendingApprovals = ({ activeTab }) => {
                 }}
                 initialData={selectedEmployee}
                 onUpdate={() => {
+                    setSelectedEmployee(null);
                     setPage(1);
                     fetchFNFExitEmployeeList();
                 }}
@@ -433,9 +437,11 @@ const PendingApprovals = ({ activeTab }) => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
+                    setSelectedEmployee(null)
                 }}
                 onSubmit={handleAction}
                 mode="EXIT_EMPLOYEES_EXIT_PENDING"
+                loading={modalLoading}
                 actionType={actionType}
                 setActionType={setActionType}
                 note={note}

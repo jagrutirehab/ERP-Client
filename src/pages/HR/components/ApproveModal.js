@@ -69,19 +69,12 @@ const ApproveModal = ({
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
     }
-    toggle();
+    // toggle();
   };
 
-  if (loading) {
-    return (
-      <div className="py-4 text-center">
-        <Spinner className="text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <Modal isOpen={isOpen} toggle={toggle} centered>
+    <Modal isOpen={isOpen} toggle={toggle} centered backdrop="static"
+      keyboard={false}>
       <ModalHeader toggle={toggle}>
         {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? "Action Required" : actionType === "APPROVE" ? "Approve Request" : "Reject Request"}
       </ModalHeader>
@@ -220,15 +213,15 @@ const ApproveModal = ({
 
         {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? (
           <Button color="warning" className="text-white" disabled={!actionType || !actionType.value} onClick={handleSubmit}>
-            Confirm
+            {loading ? <Spinner /> : "Confirm"}
           </Button>
         ) : actionType === "APPROVE" ? (
           <Button color="success" className="text-white" onClick={handleSubmit}>
-            Approve
+            {loading && actionType === "APPROVE" ? <Spinner size={"sm"} /> : "Approve"}
           </Button>
         ) : (
           <Button color="danger" className="text-white" onClick={handleSubmit}>
-            Reject
+            {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "REJECT"}
           </Button>
         )}
 

@@ -499,6 +499,7 @@ const TransferApprovals = () => {
                 }}
                 initialData={selectedRecord}
                 onUpdate={() => {
+                    setSelectedRecord(null);
                     setPage(1);
                     fetchPendingEmployeeTransferApprovals();
                 }}

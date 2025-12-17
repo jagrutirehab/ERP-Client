@@ -7,6 +7,7 @@ import {
     ModalBody,
     ModalFooter,
     ModalHeader,
+    Spinner,
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
@@ -131,7 +132,8 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
     };
 
     return (
-        <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
+        <Modal isOpen={isOpen} toggle={toggle} size="lg" centered backdrop="static"
+            keyboard={false}>
             <ModalHeader toggle={toggle}>
                 {isEdit ? "Edit Employee Exit Record" : "Add Employee Exit Record"}
             </ModalHeader>
@@ -284,7 +286,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
             </ModalBody>
 
             <ModalFooter>
-                <Button color="secondary" onClick={toggle}>
+                <Button color="secondary" onClick={toggle} disabled={form.isSubmitting}>
                     Cancel
                 </Button>
                 <Button
@@ -296,6 +298,7 @@ const AddExitEmployeeModal = ({ isOpen, toggle, initialData, onUpdate }) => {
                         (!isEdit && !form.values.employeeId)
                     }
                 >
+                    {form.isSubmitting && <Spinner size="sm" className="me-2" />}
                     {isEdit ? "Update Exit" : "Add Exit"}
                 </Button>
 

@@ -657,6 +657,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 }}
                 onSubmit={handleNewJoiningAction}
                 mode="NEW_JOINING"
+                loading={modalLoading}
                 actionType={actionType}
                 note={reason}
                 setNote={setReason}
