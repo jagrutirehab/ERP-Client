@@ -1000,13 +1000,19 @@ export const getLatestInflows = (params = {}) => {
 };
 
 export const getDetailedCashReport = (params = {}) => {
-  return api.create(url.GET_DETAILED_CASH_REPORT, params, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json",
-    },
-  });
+  return api.create(
+    url.GET_DETAILED_CASH_REPORT,
+    params,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+        "Content-Type": "application/json",
+      },
+      responseType: params.exportExcel ? "blob" : "json",
+    }
+  );
 };
+
 export const getSummaryCashReport = (params = {}) => {
   return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
     headers: {
