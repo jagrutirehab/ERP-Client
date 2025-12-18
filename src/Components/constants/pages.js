@@ -500,6 +500,12 @@ export const HR = [
     isAccordion: true,
     children: [
       {
+        id: "add-new-joining",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/new-joinings/add",
+      },
+      {
         id: "new-joining-approval",
         label: "Joining Approvals",
         icon: "bx bx-check-shield",
@@ -520,6 +526,12 @@ export const HR = [
     link: "/hr/exit-employees",
     isAccordion: true,
     children: [
+      {
+        id: "add-exit-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/exit-employees/add",
+      },
       {
         id: "exit-approval",
         label: "Exit Approvals",
@@ -545,6 +557,21 @@ export const HR = [
     label: "Salary Advance",
     link: "/hr/salary-advance",
     icon: "bx bx-rupee",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-salary-advance-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/salary-advance/add",
+      },
+      {
+        id: "salary-advance-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/salary-advance/approval",
+      },
+    ]
   },
   {
     id: "transfer-employees",
@@ -553,6 +580,12 @@ export const HR = [
     link: "/hr/transfer-employees",
     isAccordion: true,
     children: [
+      {
+        id: "add-transfer-reques",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/transfer-employees/add",
+      },
       {
         id: "transfer-approval",
         label: "All Approvals",

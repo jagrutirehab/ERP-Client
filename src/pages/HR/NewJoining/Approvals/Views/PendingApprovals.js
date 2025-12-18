@@ -12,7 +12,7 @@ import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input, Spinner } from "reactstrap";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
 import DataTable from "react-data-table-component";
-import AddEmployeeModal from "../../../components/AddEmployeeModal";
+import AddEmployeeModal from "../../../components/EmployeeModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
@@ -539,20 +539,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                         </div>
 
                     </div>
-
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOINING_APPROVAL"}
-                        permission={"create"}
-                    >
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </button>
-                    </CheckPermission>
-
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -579,22 +565,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                </div>
-
-                <div className="d-flex d-md-none justify-content-end mt-3">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"NEW_JOINING_APPROVAL"}
-                        permission={"create"}
-                    >
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </Button>
-                    </CheckPermission>
                 </div>
 
             </div>

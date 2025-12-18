@@ -7,7 +7,6 @@ import DataTable from 'react-data-table-component';
 import Select from "react-select";
 // import { employees } from '../dummyData';
 import { Pencil, Trash2 } from 'lucide-react';
-import AddEmployeeModal from '../components/AddEmployeeModal';
 import { getMasterEmployees } from '../../../store/features/HR/hrSlice';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
@@ -19,6 +18,7 @@ import CheckPermission from '../../../Components/HOC/CheckPermission';
 import { useNavigate } from 'react-router-dom';
 import { downloadFile } from '../../../Components/Common/downloadFile';
 import { renderStatusBadge } from '../components/renderStatusBadge';
+import EmployeeModal from '../components/EmployeeModal';
 
 const customStyles = {
     table: {
@@ -623,7 +623,7 @@ const Employee = () => {
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
-            <AddEmployeeModal
+            <EmployeeModal
                 isOpen={modalOpen}
                 toggle={() => {
                     setModalOpen(!modalOpen);
