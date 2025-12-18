@@ -31,7 +31,7 @@ const validationSchema = Yup.object().shape({
         .trim("Transfer Date cannot be empty"),
 });
 
-const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, }) => {
+const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -231,9 +231,9 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, }) => {
                 <Select
                     inputId="transferLocation"
                     options={transferLocationOptions}
-                    value={transferLocationOptions.find(
+                    value={form.values.transferLocation ? transferLocationOptions.find(
                         opt => opt.value === form.values.transferLocation
-                    )}
+                    ) : null}
                     onChange={(option) => {
                         form.setFieldValue(
                             "transferLocation",
@@ -278,7 +278,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, }) => {
                     Cancel
                 </Button>}
 
-                <Button
+                {(view !== "PAGE" || hasCreatePermission) && <Button
                     color="primary"
                     className="text-white"
                     onClick={form.handleSubmit}
@@ -290,7 +290,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, }) => {
                 >
                     {form.isSubmitting && <Spinner size={"sm"} className="me-2" />}
                     {isEdit ? "Update Request" : "Add Request"}
-                </Button>
+                </Button>}
             </ModalFooter>
         </>
     );
@@ -301,6 +301,7 @@ TransferEmployeeForm.propTypes = {
     onSuccess: PropTypes.func,
     onCancel: PropTypes.func,
     view: PropTypes.oneOf(["MODAL", "PAGE"]),
+    hasCreatePermission: PropTypes.bool
 };
 
 export default TransferEmployeeForm;

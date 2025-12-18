@@ -12,6 +12,7 @@ const AddTransferRequest = () => {
 
     const { hasPermission, loading } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_ADD_REQUEST", "READ");
+    const hasCreatePermission = hasPermission("HR", "TRANSFER_EMPLOYEE_ADD_REQUEST", "WRITE") || hasPermission("HR", "TRANSFER_EMPLOYEE_ADD_REQUEST", "DELETE");
 
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
@@ -37,7 +38,7 @@ const AddTransferRequest = () => {
             <CardBody>
                 <div className="d-flex justify-content-center">
                     <div style={{ width: "100%", maxWidth: "700px" }}>
-                        <TransferEmployeeForm view="PAGE" />
+                        <TransferEmployeeForm view="PAGE" hasCreatePermission={hasCreatePermission} />
                     </div>
                 </div>
             </CardBody>

@@ -13,6 +13,9 @@ const AddSalaryAdvanceRequest = () => {
     const { hasPermission, loading } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "READ");
 
+    const hasCreatePermission = hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "WRITE") || hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "DELETE");
+
+
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
     }
@@ -37,7 +40,7 @@ const AddSalaryAdvanceRequest = () => {
             <CardBody>
                 <div className="d-flex justify-content-center">
                     <div style={{ width: "100%", maxWidth: "700px" }}>
-                        <SalaryAdvanceForm view="PAGE" />
+                        <SalaryAdvanceForm view="PAGE" hasCreatePermission={hasCreatePermission} />
                     </div>
                 </div>
             </CardBody>

@@ -27,7 +27,8 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
-const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel }) => {
+const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
+    console.log(hasCreatePermission)
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -280,19 +281,22 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel }) => {
                 {view === "MODAL" && <Button color="secondary" onClick={onCancel} disabled={form.isSubmitting}>
                     Cancel
                 </Button>}
-                <Button
-                    color="primary"
-                    className="text-white"
-                    onClick={form.handleSubmit}
-                    disabled={
-                        form.isSubmitting ||
-                        !form.isValid ||
-                        (!isEdit && !form.values.employeeId)
-                    }
-                >
-                    {form.isSubmitting && <Spinner size="sm" className="me-2" />}
-                    {isEdit ? "Update Exit" : "Add Exit"}
-                </Button>
+                {(view !== "PAGE" || hasCreatePermission) && (
+                    <Button
+                        color="primary"
+                        className="text-white"
+                        onClick={form.handleSubmit}
+                        disabled={
+                            form.isSubmitting ||
+                            !form.isValid ||
+                            (!isEdit && !form.values.employeeId)
+                        }
+                    >
+                        {form.isSubmitting && <Spinner size="sm" className="me-2" />}
+                        {isEdit ? "Update Request" : "Add Request"}
+                    </Button>
+                )}
+
             </div>
         </>
     );
@@ -303,7 +307,8 @@ ExitEmployeeForm.propTypes = {
     initialData: PropTypes.object,
     onSuccess: PropTypes.func,
     onCancel: PropTypes.func,
-    view: PropTypes.oneOf(["MODAL", "PAGE"])
+    view: PropTypes.oneOf(["MODAL", "PAGE"]),
+    hasCreatePermission: PropTypes.bool
 };
 
 export default ExitEmployeeForm;

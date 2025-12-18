@@ -12,6 +12,7 @@ const AddNewJoiningRequest = () => {
 
     const { hasPermission, loading } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "READ");
+    const hasCreatePermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "WRITE") || hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "DELETE");
 
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
@@ -37,7 +38,7 @@ const AddNewJoiningRequest = () => {
             <CardBody>
                 <div className="d-flex justify-content-center">
                     <div style={{ width: "100%", maxWidth: "900px" }}>
-                        <EmployeeForm view="PAGE" mode="NEW_JOINING" />
+                        <EmployeeForm view="PAGE" mode="NEW_JOINING" hasCreatePermission={hasCreatePermission} />
                     </div>
                 </div>
             </CardBody>

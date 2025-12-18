@@ -13,6 +13,9 @@ const AddExitRequest = () => {
     const { hasPermission, loading } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEE_ADD_REQUEST", "READ");
 
+    const hasCreatePermission = hasPermission("HR", "EXIT_EMPLOYEE_ADD_REQUEST", "WRITE") || hasPermission("HR", "EXIT_EMPLOYEE_ADD_REQUEST", "DELETE");
+
+
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
     }
@@ -37,7 +40,7 @@ const AddExitRequest = () => {
             <CardBody>
                 <div className="d-flex justify-content-center">
                     <div style={{ width: "100%", maxWidth: "700px" }}>
-                        <ExitEmployeeForm view="PAGE" />
+                        <ExitEmployeeForm view="PAGE" hasCreatePermission={hasCreatePermission} />
                     </div>
                 </div>
             </CardBody>
