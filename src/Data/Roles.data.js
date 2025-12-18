@@ -192,31 +192,40 @@ export const permissionList = [
     key: "HR",
     label: "HR",
     subModules: [
+      // master employee
       { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      // new joining
+      { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
       { name: "NEW_JOINING_IT", label: "New Joinings IT" },
+      // exit employee
+      { name: "EXIT_EMPLOYEE_ADD_REQUEST", label: "Exit Employees Add Request" },
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
-      { name: "SALARY_ADVANCE", label: "Salary Advance" },
+      // salary advance
+      { name: "SALARY_ADVANCE_ADD_REQUEST", label: "Salary Advance Add Request" },
+      { name: "SALARY_ADVANCE_APPROVAL", label: "Salary Advance Approval" },
+      // transfer employee
+      {
+        name: "TRANSFER_EMPLOYEE_ADD_REQUEST",
+        label: "Employee Transfer Add Request"
+      },
       {
         name: "TRANSFER_EMPLOYEE_APPROVAL",
         label: "Employee Transfer Approvals"
       },
-
       {
         name: "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
-        label: "Outgoing Transfer Approvals"
+        label: "Outgoing Employee Transfer Approvals"
       },
-
       {
         name: "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
-        label: "Incoming Transfer Approvals"
+        label: "Incoming Employee Transfer Approvals"
       },
-
       {
         name: "TRANSFER_EMPLOYEE_IT",
-        label: "Employee IT Transfer Approvals"
+        label: "Employee Transfer IT"
       }
 
     ]

@@ -15,7 +15,7 @@ import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input, Spinner } from "reactstrap";
 import { CheckCheck } from "lucide-react";
 import DataTable from "react-data-table-component";
-import AddExitEmployeeModal from "../../../components/AddExitEmployeeModal";
+import AddExitEmployeeModal from "../../../components/EditExitEmployeeModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 

@@ -32,10 +32,12 @@ const ApproveModal = ({
 }) => {
 
   const [approvedBy, setApprovedBy] = useState("");
+  const [eCodeLoader, setECodeLoader] = useState(false);
   const handleAuthError = useAuthError();
 
 
   const generateEmployeeId = async () => {
+    setECodeLoader(true);
     try {
       const response = await getEmployeeId();
       setECode(response.payload.value);
@@ -43,6 +45,8 @@ const ApproveModal = ({
       if (!handleAuthError) {
         toast.error("Failed to generate employee id");
       }
+    } finally {
+      setECodeLoader(false);
     }
   }
 
@@ -50,7 +54,13 @@ const ApproveModal = ({
     if (mode === "NEW_JOINING" && actionType === "APPROVE") {
       generateEmployeeId();
     }
-  }, [actionType, mode])
+  }, [actionType, mode]);
+
+  useEffect(() => {
+    if (!isOpen && mode === "NEW_JOINING" && actionType === "APPROVE") {
+      setECode("");
+    }
+  }, [isOpen, mode, actionType]);
 
   const handleSubmit = () => {
     if (mode === "SALARY_ADVANCE" && actionType === "APPROVE" && !paymentType) {
@@ -83,12 +93,27 @@ const ApproveModal = ({
         {mode === "NEW_JOINING" && actionType === "APPROVE" && (
           <div className="mb-3">
             <Label htmlFor="eCode" className="fw-bold">ECode</Label>
-            <Input
-              id="eCode"
-              disabled
-              type="text"
-              value={eCode}
-            />
+            <div className="position-relative">
+              <Input
+                id="eCode"
+                disabled
+                type="text"
+                value={eCode}
+                style={{ paddingRight: eCodeLoader ? "2.5rem" : undefined }}
+              />
+              {eCodeLoader && (
+                <Spinner
+                  size="sm"
+                  color="primary"
+                  className="position-absolute"
+                  style={{
+                    right: "10px",
+                    top: "35%",
+                  }}
+                />
+              )}
+            </div>
+
           </div>
         )}
         <div className="mb-3">
@@ -216,7 +241,7 @@ const ApproveModal = ({
             {loading ? <Spinner /> : "Confirm"}
           </Button>
         ) : actionType === "APPROVE" ? (
-          <Button color="success" className="text-white" onClick={handleSubmit}>
+          <Button color="success" className="text-white" disabled={mode === "NEW_JOINING" && eCodeLoader} onClick={handleSubmit}>
             {loading && actionType === "APPROVE" ? <Spinner size={"sm"} /> : "Approve"}
           </Button>
         ) : (
