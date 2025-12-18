@@ -23,7 +23,7 @@ const validationSchema = Yup.object().shape({
         .min(1, "Amount must be greater than 0"),
 });
 
-const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel }) => {
+const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -224,19 +224,21 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel }) => {
                 {view === "MODAL" && <Button color="secondary" onClick={onCancel} disabled={form.isSubmitting}>
                     Cancel
                 </Button>}
-                <Button
-                    color="primary"
-                    className="text-white"
-                    onClick={form.handleSubmit}
-                    disabled={
-                        form.isSubmitting ||
-                        !form.isValid ||
-                        (!isEdit && !form.values.employeeId)
-                    }
-                >
-                    {form.isSubmitting && <Spinner size="sm" className="me-2" />}
-                    {isEdit ? "Update Request" : "Add Request"}
-                </Button>
+                {(view !== "PAGE" || hasCreatePermission) && (
+                    <Button
+                        color="primary"
+                        className="text-white"
+                        onClick={form.handleSubmit}
+                        disabled={
+                            form.isSubmitting ||
+                            !form.isValid ||
+                            (!isEdit && !form.values.employeeId)
+                        }
+                    >
+                        {form.isSubmitting && <Spinner size="sm" className="me-2" />}
+                        {isEdit ? "Update Request" : "Add Request"}
+                    </Button>
+                )}
             </div>
         </>
     );
@@ -246,7 +248,8 @@ SalaryAdvanceForm.propTypes = {
     initialData: PropTypes.object,
     onSuccess: PropTypes.func,
     onCancel: PropTypes.func,
-    view: PropTypes.oneOf(["MODAL", "PAGE"])
+    view: PropTypes.oneOf(["MODAL", "PAGE"]),
+    hasCreatePermission: PropTypes.bool
 };
 
 export default SalaryAdvanceForm;

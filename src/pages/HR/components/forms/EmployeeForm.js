@@ -20,6 +20,7 @@ import { editEmployee, getEmployeeId, postEmployee } from "../../../../helpers/b
 import { downloadFile } from "../../../../Components/Common/downloadFile";
 import { designationOptions } from "../../../../Components/constants/HR";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const validationSchema = (mode, isEdit) => Yup.object({
     name: Yup.string().required("Employee name is required"),
@@ -87,7 +88,7 @@ const validationSchema = (mode, isEdit) => Yup.object({
     ),
 });
 
-const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
+const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreatePermission }) => {
 
     const { centerAccess, userCenters } = useSelector((state) => state.User);
     const handleAuthError = useAuthError();
@@ -255,7 +256,14 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                 }
 
                 if (view === "PAGE") {
-                    form.resetForm();
+                    form.resetForm({
+                        values: {
+                            ...form.initialValues,
+                            firstLocation: "",
+                            transferredFrom: "",
+                            currentLocation: "",
+                        },
+                    });
                 } else {
                     onSuccess?.();
                 }
@@ -278,7 +286,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                 adharFile: true,
                 offerLetterFile: true,
             },
-            true
+            false
         );
     };
 
@@ -294,7 +302,6 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
             <div className="text-danger small">{errors[field]}</div>
         ) : null;
     };
-
 
     const generateEmployeeId = async () => {
         setECodeLoader(true);
@@ -339,6 +346,19 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
             generateEmployeeId();
         }
     }, [initialData, mode]);
+
+    useEffect(() => {
+        if (isEdit) {
+            form.setTouched({
+                ...form.touched,
+                panFile: true,
+                adharFile: true,
+                offerLetterFile: true,
+            }, false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEdit]);
+
 
 
     return (
@@ -460,7 +480,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                         <Select
                             id="firstLocation"
                             options={centerOptions}
-                            value={centerOptions.find((o) => o.value === values.firstLocation)}
+                            value={
+                                values.firstLocation
+                                    ? centerOptions.find(o => o.value === values.firstLocation)
+                                    : null
+                            }
                             onChange={(opt) => setFieldValue("firstLocation", opt.value)}
                         />
                         {errorText("firstLocation")}
@@ -473,7 +497,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                             <Select
                                 id="transferredFrom"
                                 options={centerOptions}
-                                value={centerOptions.find((o) => o.value === values.transferredFrom)}
+                                value={values.transferredFrom ? centerOptions.find((o) => o.value === values.transferredFrom) : null}
                                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
                             />
                         </Col>
@@ -487,7 +511,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                         <Select
                             id="currentLocation"
                             options={centerOptions}
-                            value={centerOptions.find((o) => o.value === values.currentLocation)}
+                            value={values.currentLocation ? centerOptions.find((o) => o.value === values.currentLocation) : null}
                             onChange={(opt) => setFieldValue("currentLocation", opt.value)}
                         />
                         {errorText("currentLocation")}
@@ -766,7 +790,6 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                                 <Button
                                     size="sm"
                                     onClick={() => {
-                                        form.setFieldTouched("adharFile", true, true);
                                         adharFileRef.current.click();
                                     }}
                                 >
@@ -863,7 +886,6 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                                 <Button
                                     size="sm"
                                     onClick={() => {
-                                        form.setFieldTouched("panFile", true, true);
                                         panFileRef.current.click();
                                     }}
                                 >
@@ -875,6 +897,86 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                         {errorText("panFile")}
                     </Col>
 
+                    {/* OFFER LETTER FILE */}
+                    <Col md={6}>
+                        <Label>
+                            Offer Letter <span className="text-danger">*</span>
+                        </Label>
+
+                        <input
+                            type="file"
+                            hidden
+                            ref={offerLetterRef}
+                            accept="image/*,application/pdf"
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    setFieldValue("offerLetterFile", file);
+                                    setFieldValue("offerLetterOld", "");
+
+                                    form.setFieldTouched("offerLetterFile", false, false);
+                                    form.setFieldError("offerLetterFile", undefined);
+                                }
+                            }}
+                        />
+
+                        {values.offerLetterFile && (
+                            <div className="d-flex gap-2 mt-2">
+                                <Button
+                                    size="sm"
+                                    color="info"
+                                    onClick={() =>
+                                        handleDecideFilePreviewOrDownload({
+                                            file: values.offerLetterFile,
+                                            oldUrl: values.offerLetterOld,
+                                        })
+                                    }
+                                >
+                                    Preview
+                                </Button>
+
+                                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
+                                    Change File
+                                </Button>
+                            </div>
+                        )}
+
+                        {!values.offerLetterFile && values.offerLetterOld && (
+                            <div className="d-flex gap-2 mt-2">
+                                <Button
+                                    size="sm"
+                                    color="info"
+                                    onClick={() =>
+                                        handleDecideFilePreviewOrDownload({
+                                            file: values.offerLetterFile,
+                                            oldUrl: values.offerLetterOld,
+                                        })
+                                    }
+                                >
+                                    Download
+                                </Button>
+
+                                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
+                                    Upload New File
+                                </Button>
+                            </div>
+                        )}
+
+                        {!values.offerLetterFile && !values.offerLetterOld && (
+                            <div className="mt-2">
+                                <Button
+                                    size="sm"
+                                    onClick={() => {
+                                        offerLetterRef.current.click();
+                                    }}
+                                >
+                                    Upload File
+                                </Button>
+                            </div>
+                        )}
+
+                        {errorText("offerLetterFile")}
+                    </Col>
 
                     {/* FATHER NAME */}
                     <Col md={6}>
@@ -958,105 +1060,31 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode }) => {
                         />
                     </Col>
 
-                    {/* OFFER LETTER FILE */}
-                    <Col md={6}>
-                        <Label>
-                            Offer Letter <span className="text-danger">*</span>
-                        </Label>
-
-                        <input
-                            type="file"
-                            hidden
-                            ref={offerLetterRef}
-                            accept="image/*,application/pdf"
-                            onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    setFieldValue("offerLetterFile", file);
-                                    setFieldValue("offerLetterOld", "");
-
-                                    form.setFieldTouched("offerLetterFile", false, false);
-                                    form.setFieldError("offerLetterFile", undefined);
-                                }
-                            }}
-                        />
-
-                        {values.offerLetterFile && (
-                            <div className="d-flex gap-2 mt-2">
-                                <Button
-                                    size="sm"
-                                    color="info"
-                                    onClick={() =>
-                                        handleDecideFilePreviewOrDownload({
-                                            file: values.offerLetterFile,
-                                            oldUrl: values.offerLetterOld,
-                                        })
-                                    }
-                                >
-                                    Preview
-                                </Button>
-
-                                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
-                                    Change File
-                                </Button>
-                            </div>
-                        )}
-
-                        {!values.offerLetterFile && values.offerLetterOld && (
-                            <div className="d-flex gap-2 mt-2">
-                                <Button
-                                    size="sm"
-                                    color="info"
-                                    onClick={() =>
-                                        handleDecideFilePreviewOrDownload({
-                                            file: values.offerLetterFile,
-                                            oldUrl: values.offerLetterOld,
-                                        })
-                                    }
-                                >
-                                    Download
-                                </Button>
-
-                                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
-                                    Upload New File
-                                </Button>
-                            </div>
-                        )}
-
-                        {!values.offerLetterFile && !values.offerLetterOld && (
-                            <div className="mt-2">
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        form.setFieldTouched("offerLetterFile", true, true);
-                                        offerLetterRef.current.click();
-                                    }}
-                                >
-                                    Upload File
-                                </Button>
-                            </div>
-                        )}
-
-                        {errorText("offerLetterFile")}
-                    </Col>
-
-
                 </Row>
-                <div className="d-flex gap-2 justify-content-end">
+                <div className="d-flex gap-2 justify-content-end mt-2">
                     {view === "MODAL" && <Button color="secondary" className="text-white" onClick={onCancel} disabled={form.isSubmitting}>
                         Cancel
                     </Button>}
-                    <Button color="primary" className="text-white" onClick={form.handleSubmit} disabled={
-                        isSubmitting ||
-                        !isValid ||
-                        (isEdit && !initialData?._id)
-                    }>
-                        {isSubmitting ? (
-                            <Spinner size={"sm"} />
-                        ) : (
-                            initialData ? "Update Employee" : "Save Employee"
-                        )}
-                    </Button>
+                    {(mode !== "NEW_JOINING" || view !== "PAGE" || hasCreatePermission) && (
+                        <Button
+                            color="primary"
+                            className="text-white"
+                            onClick={form.handleSubmit}
+                            disabled={
+                                isSubmitting ||
+                                !isValid ||
+                                (isEdit && !initialData?._id)
+                            }
+                        >
+                            {isSubmitting ? (
+                                <Spinner size="sm" />
+                            ) : (
+                                initialData ? "Update Employee" : "Save Employee"
+                            )}
+                        </Button>
+                    )}
+
+
                     {/* <Button onClick={() => console.log(errors)}>
                         test
                     </Button> */}
@@ -1076,7 +1104,8 @@ EmployeeForm.propTypes = {
     onSuccess: PropTypes.func,
     onCancel: PropTypes.func,
     view: PropTypes.oneOf(["MODAL", "PAGE"]),
-    mode: PropTypes.string
+    mode: PropTypes.string,
+    hasCreatePermission: PropTypes.bool
 };
 
 export default EmployeeForm;

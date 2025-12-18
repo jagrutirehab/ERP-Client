@@ -420,7 +420,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                     setActionType(null);
                 }}
                 onSubmit={handleReject}
-                mode="NEW_JOINING"
+                mode="NEW_JOINING_IT"
                 actionType={actionType}
                 note={reason}
                 setNote={setReason}
