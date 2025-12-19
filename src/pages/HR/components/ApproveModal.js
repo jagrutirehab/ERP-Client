@@ -32,10 +32,12 @@ const ApproveModal = ({
 }) => {
 
   const [approvedBy, setApprovedBy] = useState("");
+  const [eCodeLoader, setECodeLoader] = useState(false);
   const handleAuthError = useAuthError();
 
 
   const generateEmployeeId = async () => {
+    setECodeLoader(true);
     try {
       const response = await getEmployeeId();
       setECode(response.payload.value);
@@ -43,6 +45,8 @@ const ApproveModal = ({
       if (!handleAuthError) {
         toast.error("Failed to generate employee id");
       }
+    } finally {
+      setECodeLoader(false);
     }
   }
 
@@ -50,7 +54,13 @@ const ApproveModal = ({
     if (mode === "NEW_JOINING" && actionType === "APPROVE") {
       generateEmployeeId();
     }
-  }, [actionType, mode])
+  }, [actionType, mode]);
+
+  useEffect(() => {
+    if (!isOpen && mode === "NEW_JOINING" && actionType === "APPROVE") {
+      setECode("");
+    }
+  }, [isOpen, mode, actionType]);
 
   const handleSubmit = () => {
     if (mode === "SALARY_ADVANCE" && actionType === "APPROVE" && !paymentType) {
@@ -69,19 +79,12 @@ const ApproveModal = ({
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
     }
-    toggle();
+    // toggle();
   };
 
-  if (loading) {
-    return (
-      <div className="py-4 text-center">
-        <Spinner className="text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <Modal isOpen={isOpen} toggle={toggle} centered>
+    <Modal isOpen={isOpen} toggle={toggle} centered backdrop="static"
+      keyboard={false}>
       <ModalHeader toggle={toggle}>
         {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? "Action Required" : actionType === "APPROVE" ? "Approve Request" : "Reject Request"}
       </ModalHeader>
@@ -90,12 +93,27 @@ const ApproveModal = ({
         {mode === "NEW_JOINING" && actionType === "APPROVE" && (
           <div className="mb-3">
             <Label htmlFor="eCode" className="fw-bold">ECode</Label>
-            <Input
-              id="eCode"
-              disabled
-              type="text"
-              value={eCode}
-            />
+            <div className="position-relative">
+              <Input
+                id="eCode"
+                disabled
+                type="text"
+                value={eCode}
+                style={{ paddingRight: eCodeLoader ? "2.5rem" : undefined }}
+              />
+              {eCodeLoader && (
+                <Spinner
+                  size="sm"
+                  color="primary"
+                  className="position-absolute"
+                  style={{
+                    right: "10px",
+                    top: "35%",
+                  }}
+                />
+              )}
+            </div>
+
           </div>
         )}
         <div className="mb-3">
@@ -220,15 +238,15 @@ const ApproveModal = ({
 
         {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? (
           <Button color="warning" className="text-white" disabled={!actionType || !actionType.value} onClick={handleSubmit}>
-            Confirm
+            {loading ? <Spinner /> : "Confirm"}
           </Button>
         ) : actionType === "APPROVE" ? (
-          <Button color="success" className="text-white" onClick={handleSubmit}>
-            Approve
+          <Button color="success" className="text-white" disabled={mode === "NEW_JOINING" && eCodeLoader} onClick={handleSubmit}>
+            {loading && actionType === "APPROVE" ? <Spinner size={"sm"} /> : "Approve"}
           </Button>
         ) : (
           <Button color="danger" className="text-white" onClick={handleSubmit}>
-            Reject
+            {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "REJECT"}
           </Button>
         )}
 

@@ -4,7 +4,7 @@ import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { Button, CardBody, Input, Spinner, } from 'reactstrap';
 import { Pencil, Trash2, } from "lucide-react";
-import AddTransferEmployeeModal from '../../components/AddTransferEmployeeModal';
+import AddTransferEmployeeModal from '../../components/EditTransferEmployeeModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployeeTransfers } from '../../../../store/features/HR/hrSlice';
@@ -385,21 +385,6 @@ const TransferApprovals = () => {
                                 </div>
 
                             </div>
-
-                            <CheckPermission
-                                accessRolePermission={roles?.permissions}
-                                subAccess={"TRANSFER_EMPLOYEE_APPROVAL"}
-                                permission={"create"}
-                            >
-                                <Button
-                                    color={"primary"}
-                                    className="d-flex align-items-center gap-2 text-white"
-                                    onClick={() => setModalOpen(true)}
-                                >
-                                    + Add Request
-                                </Button>
-                            </CheckPermission>
-
                         </div>
 
                         {/*  MOBILE VIEW */}
@@ -426,22 +411,6 @@ const TransferApprovals = () => {
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
                             </div>
-                        </div>
-
-                        <div className="d-flex d-md-none justify-content-end mt-3">
-                            <CheckPermission
-                                accessRolePermission={roles?.permissions}
-                                subAccess={"TRANSFER_EMPLOYEE_APPROVAL"}
-                                permission={"delete"}
-                            >
-                                <Button
-                                    color="primary"
-                                    className="d-flex align-items-center gap-2 text-white"
-                                    onClick={() => setModalOpen(true)}
-                                >
-                                    + Add Request
-                                </Button>
-                            </CheckPermission>
                         </div>
                     </div>
 
@@ -499,6 +468,7 @@ const TransferApprovals = () => {
                 }}
                 initialData={selectedRecord}
                 onUpdate={() => {
+                    setSelectedRecord(null);
                     setPage(1);
                     fetchPendingEmployeeTransferApprovals();
                 }}

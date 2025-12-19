@@ -1,19 +1,20 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
-import { fetchAdvanceSalaries } from "../../../../store/features/HR/hrSlice";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchAdvanceSalaries } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
-import { ExpandableText } from "../../../../Components/Common/ExpandableText";
-import { renderStatusBadge } from "../../components/renderStatusBadge";
 import { Input, Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
+import PropTypes from "prop-types";
 import Select from "react-select";
+import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import { renderStatusBadge } from "../../../components/renderStatusBadge";
 
-
-const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
+const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -23,6 +24,12 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { hasPermission, roles } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "READ");
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -298,6 +305,10 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       />
     </>
   )
+}
+
+ApprovalHistory.prototype = {
+  activeTab: PropTypes.string
 }
 
 export default ApprovalHistory;

@@ -10,11 +10,15 @@ import NewJoiningIT from './NewJoining/IT';
 import FNFApproval from './ExitEmployees/FNFApproval';
 import ExitApprovals from './ExitEmployees/Approvals';
 import ExitEmployeeIT from './ExitEmployees/IT';
-import SalaryAdvance from './SalaryAdvance';
 import TransferApprovals from './Transfer/Approvals';
 import OutgoingEmployeeApprovals from './Transfer/OutgoingEmployeeApprovals';
 import IncomingEmployeeApprovals from './Transfer/IncomingEmployeeApprovals';
 import TransferEmployeeIT from './Transfer/IT';
+import SalaryAdvanceApproval from './SalaryAdvance/Approvals';
+import AddSalaryAdvanceRequest from './SalaryAdvance/AddRequest';
+import AddExitRequest from './ExitEmployees/AddRequest';
+import AddNewJoiningRequest from './NewJoining/AddRequest';
+import AddTransferRequest from './Transfer/AddRequest';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -50,12 +54,20 @@ const HR = () => {
                                 {/* <Route path={`/dashboard`} element={<HRDashboard />} /> */}
                                 <Route path={`/employee`} element={<Employee />} />
                                 {/* <Route path={`/approvals`} element={<ApprovalDashboard />} /> */}
+
+                                <Route path={`/new-joinings/add`} element={<AddNewJoiningRequest />} />
                                 <Route path={`/new-joinings/approval`} element={<NewJoiningApprovals />} />
                                 <Route path={`/new-joinings/it`} element={<NewJoiningIT />} />
+
+                                <Route path={`/exit-employees/add`} element={<AddExitRequest />} />
                                 <Route path={`/exit-employees/approval`} element={<ExitApprovals />} />
                                 <Route path={`/exit-employees/fnf`} element={<FNFApproval />} />
                                 <Route path={`/exit-employees/it`} element={<ExitEmployeeIT />} />
-                                <Route path={`/salary-advance`} element={<SalaryAdvance />} />
+
+                                <Route path={`/salary-advance/add`} element={<AddSalaryAdvanceRequest />} />
+                                <Route path={`/salary-advance/approval`} element={<SalaryAdvanceApproval />} />
+
+                                <Route path={`/transfer-employees/add`} element={<AddTransferRequest />} />
                                 <Route path={`/transfer-employees/approval`} element={<TransferApprovals />} />
                                 <Route path={`/transfer-employees/outgoing`} element={<OutgoingEmployeeApprovals />} />
                                 <Route path={`/transfer-employees/incoming`} element={<IncomingEmployeeApprovals />} />

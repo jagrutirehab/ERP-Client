@@ -1,23 +1,22 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
-import { usePermissions } from "../../../../Components/Hooks/useRoles";
-import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
-import { fetchAdvanceSalaries } from "../../../../store/features/HR/hrSlice";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchAdvanceSalaries } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { advanceSalaryAction, deleteAdvanceSalary } from "../../../../helpers/backend_helper";
-import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { advanceSalaryAction, deleteAdvanceSalary } from "../../../../../helpers/backend_helper";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
-import CheckPermission from "../../../../Components/HOC/CheckPermission";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input, Spinner } from "reactstrap";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
 import DataTable from "react-data-table-component";
-import DeleteConfirmModal from "../../components/DeleteConfirmModal";
-import ApproveModal from "../../components/ApproveModal";
+import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
+import ApproveModal from "../../../components/ApproveModal";
+import PropTypes from "prop-types";
 import Select from "react-select";
-import AddSalaryAdvanceModal from "../../components/AddSalaryAdvanceModal";
-
-
+import EditSalaryAdvanceModal from "../../../components/EditSalaryAdvanceModal";
 
 const PendingApprovals = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -42,7 +41,7 @@ const PendingApprovals = ({ activeTab }) => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission, roles } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "SALARY_ADVANCE", "READ");
+  const hasUserPermission = hasPermission("HR", "SALARY_ADVANCE_APPROVAL", "READ");
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -148,6 +147,9 @@ const PendingApprovals = ({ activeTab }) => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Action failed");
       }
+    } finally {
+      setApproveModalOpen(false);
+      setModalLoading(false);
     }
   }
 
@@ -208,7 +210,7 @@ const PendingApprovals = ({ activeTab }) => {
       minWidth: "180px",
     },
 
-    ...(hasPermission("HR", "SALARY_ADVANCE", "WRITE")
+    ...(hasPermission("HR", "SALARY_ADVANCE_APPROVAL", "WRITE")
       ? [
         {
           name: <div>Actions</div>,
@@ -216,7 +218,7 @@ const PendingApprovals = ({ activeTab }) => {
             <div className="d-flex gap-2">
               <CheckPermission
                 accessRolePermission={roles?.permissions}
-                subAccess="SALARY_ADVANCE"
+                subAccess="SALARY_ADVANCE_APPROVAL"
                 permission="edit"
               >
                 <Button
@@ -258,7 +260,7 @@ const PendingApprovals = ({ activeTab }) => {
               </CheckPermission>
               <CheckPermission
                 accessRolePermission={roles?.permissions}
-                subAccess="SALARY_ADVANCE"
+                subAccess="SALARY_ADVANCE_APPROVAL"
                 permission="delete"
               >
                 <Button
@@ -316,23 +318,7 @@ const PendingApprovals = ({ activeTab }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
           </div>
-
-          <CheckPermission
-            accessRolePermission={roles?.permissions}
-            subAccess={"SALARY_ADVANCE"}
-            permission={"create"}
-          >
-            <Button
-              color={"primary"}
-              className="d-flex align-items-center gap-2 text-white"
-              onClick={() => setModalOpen(true)}
-            >
-              + Add Request
-            </Button>
-          </CheckPermission>
-
         </div>
 
         {/*  MOBILE VIEW */}
@@ -359,22 +345,6 @@ const PendingApprovals = ({ activeTab }) => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </div>
-
-        <div className="d-flex d-md-none justify-content-end mt-3">
-          <CheckPermission
-            accessRolePermission={roles?.permissions}
-            subAccess={"SALARY_ADVANCE"}
-            permission={"delete"}
-          >
-            <Button
-              color="primary"
-              className="d-flex align-items-center gap-2 text-white"
-              onClick={() => setModalOpen(true)}
-            >
-              + Add Request
-            </Button>
-          </CheckPermission>
         </div>
       </div>
 
@@ -422,7 +392,7 @@ const PendingApprovals = ({ activeTab }) => {
         onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
       />
 
-      <AddSalaryAdvanceModal
+      <EditSalaryAdvanceModal
         isOpen={modalOpen}
         toggle={() => {
           setModalOpen(!modalOpen);
@@ -430,6 +400,7 @@ const PendingApprovals = ({ activeTab }) => {
         }}
         initialData={selectedRecord}
         onUpdate={() => {
+          setSelectedRecord(null);
           setPage(1);
           fetchPendingAdvanceSalaryApprovals();
         }}
@@ -444,15 +415,18 @@ const PendingApprovals = ({ activeTab }) => {
         onConfirm={handleDelete}
         loading={modalLoading}
       />
+
       <ApproveModal
         isOpen={approveModalOpen}
         toggle={() => {
           setApproveModalOpen(false);
           setNote("");
           setActionType(null);
+          setSelectedRecord(null);
         }}
         onSubmit={handleAction}
         mode="SALARY_ADVANCE"
+        loading={modalLoading}
         actionType={actionType}
         setActionType={setActionType}
         note={note}
@@ -464,5 +438,9 @@ const PendingApprovals = ({ activeTab }) => {
     </>
   )
 }
+
+PendingApprovals.prototype = {
+  activeTab: PropTypes.string
+};
 
 export default PendingApprovals;

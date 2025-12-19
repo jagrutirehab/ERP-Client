@@ -12,12 +12,10 @@ import classnames from "classnames";
 import { useNavigate } from "react-router-dom";
 import PendingApprovals from "./Views/PendingApprovals";
 import ApprovalHistory from "./Views/ApprovalHistory";
-import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
-
-
-const SalaryAdvance = () => {
+const SalaryAdvanceApproval = () => {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [activeTab, setActiveTab] = useState("PENDING");
@@ -26,8 +24,8 @@ const SalaryAdvance = () => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, loading, roles } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "SALARY_ADVANCE", "READ");
+    const { hasPermission, loading } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "SALARY_ADVANCE_APPROVAL", "READ");
 
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
@@ -83,8 +81,6 @@ const SalaryAdvance = () => {
                     <TabPane tabId="HISTORY">
                         <ApprovalHistory
                             activeTab={activeTab}
-                            hasUserPermission={hasUserPermission}
-                            roles={roles}
                         />
                     </TabPane>
                 </TabContent>
@@ -93,4 +89,4 @@ const SalaryAdvance = () => {
     );
 };
 
-export default SalaryAdvance;
+export default SalaryAdvanceApproval;

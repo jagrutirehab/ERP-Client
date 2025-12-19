@@ -10,14 +10,13 @@ import { capitalizeWords } from '../../../../utils/toCapitalize';
 import { ExpandableText } from '../../../../Components/Common/ExpandableText';
 import { format } from 'date-fns';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
-import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
+import { CheckCheck, Pencil, Trash2 } from 'lucide-react';
 import { Button, CardBody, Input, Spinner } from 'reactstrap';
 import DataTable from 'react-data-table-component';
-import AddExitEmployeeModal from '../../components/AddExitEmployeeModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ApproveModal from '../../components/ApproveModal';
 import Select from "react-select";
-
+import EditExitEmployeeModal from '../../components/EditExitEmployeeModal';
 
 const ExitApprovals = () => {
     const dispatch = useDispatch();
@@ -146,6 +145,9 @@ const ExitApprovals = () => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
+        } finally {
+            setModalLoading(false);
+            setApproveModalOpen(false);
         }
     }
 
@@ -352,20 +354,6 @@ const ExitApprovals = () => {
                         </div>
 
                     </div>
-
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEE_APPROVAL"}
-                        permission={"create"}
-                    >
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </button>
-                    </CheckPermission>
-
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -393,24 +381,6 @@ const ExitApprovals = () => {
                         />
                     </div>
                 </div>
-
-                <div className="d-flex d-md-none justify-content-end mt-3">
-                    <CheckPermission
-                        accessRolePermission={roles?.permissions}
-                        subAccess={"EXIT_EMPLOYEE_APPROVAL"}
-                        permission={"create"}
-                    >
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
-                            onClick={() => setModalOpen(true)}
-                        >
-                            + Add Employee
-                        </Button>
-                    </CheckPermission>
-                </div>
-
-
             </div>
 
             <DataTable
@@ -457,7 +427,7 @@ const ExitApprovals = () => {
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
-            <AddExitEmployeeModal
+            <EditExitEmployeeModal
                 isOpen={modalOpen}
                 toggle={() => {
                     setModalOpen(!modalOpen);
@@ -485,8 +455,10 @@ const ExitApprovals = () => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
+                    setSelectedEmployee(null);
                 }}
                 onSubmit={handleAction}
+                loading={modalLoading}
                 mode="EXIT_EMPLOYEES_EXIT_PENDING"
                 actionType={actionType}
                 setActionType={setActionType}
