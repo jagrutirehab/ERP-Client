@@ -13,6 +13,7 @@ import {
 import {
   CLINICAL_NOTE,
   INVOICE,
+  IPD,
   OPD,
   PRESCRIPTION,
 } from "../../../Components/constants/patient";
@@ -31,6 +32,12 @@ const EventInfo = ({
   const meetingId = data?.meetingId;
   const doctorName = data?.doctor?.name;
   const userType = "doctor";
+
+  // Check if patient is admitted if so then make the prescription IPD and it should go to admission and appointment
+  const isAdmit = data?.patient?.isAdmit && !data?.patient?.isDischarge;
+
+  console.log({ isAdmit });
+
   return (
     <React.Fragment>
       <div>
@@ -114,10 +121,21 @@ const EventInfo = ({
               {data?.patient?.gender && <span>{data.patient.gender}</span>}
             </div>
             <div className="font-size-14">
-              {data?.patient?.address && <div>Address: {capitalizeWords(data.patient.address)}</div>}
+              {data?.patient?.address && (
+                <div>Address: {capitalizeWords(data.patient.address)}</div>
+              )}
             </div>
             <div className="font-size-14">
-              {data?.patient?.dateOfBirth && <div>Age: {differenceInYears(new Date(), new Date(data.patient.dateOfBirth))} years</div>}
+              {data?.patient?.dateOfBirth && (
+                <div>
+                  Age:{" "}
+                  {differenceInYears(
+                    new Date(),
+                    new Date(data.patient.dateOfBirth)
+                  )}{" "}
+                  years
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -204,7 +222,7 @@ const EventInfo = ({
                     createEditChart({
                       chart: CLINICAL_NOTE,
                       isOpen: true,
-                      type: OPD,
+                      type: isAdmit ? IPD : OPD,
                       data: data.chart,
                       patient: data.patient,
                       doctor: data.doctor,
@@ -252,7 +270,7 @@ const EventInfo = ({
                   createEditChart({
                     chart: CLINICAL_NOTE,
                     isOpen: true,
-                    type: OPD,
+                    type: isAdmit ? IPD : OPD,
                     patient: data.patient,
                     appointment: data,
                     shouldPrintAfterSave: true,
@@ -278,7 +296,7 @@ const EventInfo = ({
                     createEditChart({
                       chart: PRESCRIPTION,
                       isOpen: true,
-                      type: OPD,
+                      type: isAdmit ? IPD : OPD,
                       data: data.chart,
                       patient: data.patient,
                       center: data.center?._id,
@@ -330,7 +348,7 @@ const EventInfo = ({
                   createEditChart({
                     chart: PRESCRIPTION,
                     isOpen: true,
-                    type: OPD,
+                    type: isAdmit ? IPD : OPD,
                     patient: data.patient,
                     center: data.center?._id,
                     appointment: data,
@@ -386,7 +404,10 @@ const EventInfo = ({
                   })
                 );
               }}
-              disabled={data?.isCancelled}
+              disabled={
+                data?.isCancelled ||
+                (data.patient?.isAdmit && !data.patient?.isDischarge)
+              }
               className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Collect Payment
