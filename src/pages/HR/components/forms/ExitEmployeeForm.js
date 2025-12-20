@@ -28,7 +28,6 @@ const validationSchema = Yup.object().shape({
 });
 
 const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
-    console.log(hasCreatePermission)
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -135,8 +134,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
         <>
             {!isEdit && (
                 <div className="mb-3 position-relative">
-                    <label>Search Employee</label>
-
+                    <label >Search Employee</label>
                     <input
                         type="text"
                         placeholder="Search by name or eCode"

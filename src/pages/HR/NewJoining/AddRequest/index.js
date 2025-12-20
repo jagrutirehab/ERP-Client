@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Spinner } from "reactstrap";
+import { CardBody, Spinner } from "reactstrap";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
@@ -26,23 +26,24 @@ const AddNewJoiningRequest = () => {
         )
     }
     return (
-        <Card className="bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
-            <CardHeader className="bg-white">
-                <div>
-                    <h5 className="mb-1">Add Employee New Joining Request</h5>
-                    <small className="text-muted">
-                        Please fill the form & submit the request for approval
-                    </small>
+        <CardBody className="bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
+            <div className="px-3 pt-3">
+                <h5 className="mb-1">Add Employee New Joining Request</h5>
+                <small className="text-muted">
+                    Please fill the form & submit the request for approval
+                </small>
+            </div>
+            <hr className="mb-2 border-secondary" />
+            <div className="d-flex justify-content-center">
+                <div className="w-100" style={{ maxWidth: "1000px" }}>
+                    <EmployeeForm
+                        view="PAGE"
+                        mode="NEW_JOINING"
+                        hasCreatePermission={hasCreatePermission}
+                    />
                 </div>
-            </CardHeader>
-            <CardBody>
-                <div className="d-flex justify-content-center">
-                    <div style={{ width: "100%", maxWidth: "900px" }}>
-                        <EmployeeForm view="PAGE" mode="NEW_JOINING" hasCreatePermission={hasCreatePermission} />
-                    </div>
-                </div>
-            </CardBody>
-        </Card>
+            </div>
+        </CardBody >
     );
 };
 

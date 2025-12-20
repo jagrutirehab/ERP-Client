@@ -137,7 +137,9 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Designation</div>,
-      selector: row => capitalizeWords(row?.designation || "-"),
+      selector: row => capitalizeWords(row.designation?.name
+        ?.toLowerCase()
+        .replace(/_/g, " ") || "-"),
       wrap: true,
       minWidth: "100px"
     },
