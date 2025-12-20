@@ -581,7 +581,7 @@ export const HR = [
     isAccordion: true,
     children: [
       {
-        id: "add-transfer-reques",
+        id: "add-transfer-request",
         label: "Add Request",
         icon: "bx bx-plus",
         link: "/hr/transfer-employees/add",
@@ -612,6 +612,27 @@ export const HR = [
       },
     ],
   },
+  {
+    id: "hiring",
+    label: "Hiring",
+    icon: "bx bx-badge",
+    link: "/hr/hiring",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-hiring-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/hiring/add",
+      },
+      {
+        id: "hiring-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/hiring/approval",
+      },
+    ]
+  }
 ];
 
 export default pages;

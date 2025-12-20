@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -18,9 +18,9 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { editEmployee, getEmployeeId, postEmployee } from "../../../../helpers/backend_helper";
 import { downloadFile } from "../../../../Components/Common/downloadFile";
-import { designationOptions } from "../../../../Components/constants/HR";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
-import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { addDesignation, fetchDesignations } from "../../../../store/features/HR/hrSlice";
+import { employeeGenderOptions, payrollOptions, statusOptions } from "../../../../Components/constants/HR";
 
 const validationSchema = (mode, isEdit) => Yup.object({
     name: Yup.string().required("Employee name is required"),
@@ -89,11 +89,13 @@ const validationSchema = (mode, isEdit) => Yup.object({
 });
 
 const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreatePermission }) => {
-
+    const dispatch = useDispatch();
     const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { designations: designationOptions, designationLoading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
     const [eCodeLoader, setECodeLoader] = useState(false);
+    const [creatingDesignation, setCreatingDesignation] = useState(false);
 
     const [previewFile, setPreviewFile] = useState(null);
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -109,27 +111,24 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
             label: c.title,
         }));
 
-    const payrollOptions = [
-        { value: "ON_ROLL", label: "On Roll" },
-        { value: "OFF_ROLL", label: "Off Roll" },
-    ];
+    useEffect(() => {
+        const loadDesignations = async () => {
+            try {
+                dispatch(fetchDesignations({ status: ["APPROVED"] })).unwrap();
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error("Something went wrong while getting the designations");
+                }
+            }
+        };
 
-    const statusOptions = [
-        { value: "ACTIVE", label: "Active" },
-        { value: "FNF_CLOSED", label: "FNF Closed" },
-        { value: "RESIGNED", label: "Resigned" },
-    ];
-
-    const genderOptions = [
-        { value: "MALE", label: "Male" },
-        { value: "FEMALE", label: "Female" },
-        { value: "OTHER", label: "Other" },
-    ]
+        loadDesignations();
+    }, []);
 
     const cleanedInitialData = initialData
         ? {
             ...initialData,
-
+            designation: initialData?.designation?._id || "",
             IFSCCode: initialData?.bankDetails?.IFSCCode || "",
             bankName: initialData?.bankDetails?.bankName || "",
             accountNo: initialData?.bankDetails?.accountNo || "",
@@ -303,6 +302,27 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
         ) : null;
     };
 
+    const handleCreateDesignation = async (inputValue) => {
+        if (mode === "NEW_JOINING" && !hasCreatePermission) {
+            toast.error("You don't have permission to create designation");
+            return;
+        }
+
+        try {
+            setCreatingDesignation(true);
+            const response = await dispatch(addDesignation({ name: inputValue, status: mode === "NEW_JOINING" ? "PENDING" : "APPROVED" })).unwrap();
+            form.setFieldValue("designation", response.data.value);
+            form.setFieldTouched("designation", true, false);
+            toast.success("designation created successfully");
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error("something went wrong while creating new designation");
+            }
+        } finally {
+            setCreatingDesignation(false);
+        }
+    };
+
     const generateEmployeeId = async () => {
         setECodeLoader(true);
         try {
@@ -330,10 +350,8 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
             setPreviewOpen(true);
             return;
         }
-        console.log(oldUrl)
         // if url then download
         if (oldUrl) {
-
             downloadFile({
                 url: oldUrl,
             });
@@ -364,7 +382,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
     return (
         <>
             <div>
-                <Row className="g-3">
+                <Row className="g-3 mx-2">
                     {/* EMPLOYEE CODE */}
                     {mode !== "NEW_JOINING" && (
                         <Col md={6}>
@@ -434,22 +452,24 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                         <Label htmlFor="designation">
                             Designation <span className="text-danger">*</span>
                         </Label>
-
                         <CreatableSelect
                             inputId="designation"
+                            placeholder="Select or create designation if not listed"
+                            isClearable
+                            isDisabled={designationLoading || (mode === "NEW_JOINING" && !hasCreatePermission)}
+                            isLoading={designationLoading || creatingDesignation}
                             options={designationOptions}
                             value={
-                                values.designation
-                                    ? { label: values.designation, value: values.designation }
-                                    : null
+                                designationOptions.find(
+                                    opt => opt.value === values.designation
+                                ) || null
                             }
-                            onChange={(option) => {
-                                setFieldValue("designation", option ? option.label : "");
-                            }}
-                            placeholder="Select or create one if not listed"
-                            isClearable
-                            classNamePrefix="react-select"
-                            formatCreateLabel={(inputValue) => `Other: "${inputValue}"`}
+                            onChange={(option) =>
+                                form.setFieldValue("designation", option ? option.value : "")
+                            }
+                            onBlur={() => form.setFieldTouched("designation", true)}
+                            onCreateOption={handleCreateDesignation}
+
                         />
 
                         {errorText("designation")}
@@ -591,8 +611,8 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                         </Label>
                         <Select
                             id="gender"
-                            options={genderOptions}
-                            value={genderOptions.find(opt => opt.value === values.gender) || null}
+                            options={employeeGenderOptions}
+                            value={employeeGenderOptions.find(opt => opt.value === values.gender) || null}
                             onChange={(opt) => setFieldValue("gender", opt.value)}
                         />
                         {errorText("gender")}
@@ -1061,7 +1081,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                     </Col>
 
                 </Row>
-                <div className="d-flex gap-2 justify-content-end mt-2">
+                <div className="d-flex gap-2 justify-content-end my-4 mx-3">
                     {view === "MODAL" && <Button color="secondary" className="text-white" onClick={onCancel} disabled={form.isSubmitting}>
                         Cancel
                     </Button>}

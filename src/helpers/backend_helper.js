@@ -1840,3 +1840,67 @@ export const employeeTransferTransferLocationAction = (id, data) => {
     },
   });
 }
+
+export const postDesignation = (data) => {
+  return api.create(url.DESIGNATION, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getDesignations = (params = {}) => {
+  return api.get(url.DESIGNATION, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const postHiring = (data) => {
+  return api.create(url.HIRING, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const editHiring = (id, data) => {
+  return api.update(`${url.HIRING}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const deleteHiring = (id) => {
+  return api.delete(`${url.HIRING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const hiringAction = (id, data) => {
+  return api.update(`${url.HIRING_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getHirings = (params = {}) => {
+  return api.get(url.HIRING, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}

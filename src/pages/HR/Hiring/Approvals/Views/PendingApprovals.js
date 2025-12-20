@@ -1,46 +1,50 @@
+import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useAuthError } from '../../../../Components/Hooks/useAuthError';
-import { usePermissions } from '../../../../Components/Hooks/useRoles';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { fetchExitEmployees } from '../../../../store/features/HR/hrSlice';
+import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
+import { usePermissions } from '../../../../../Components/Hooks/useRoles';
+import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
+import { fetchDesignations, fetchHirings } from '../../../../../store/features/HR/hrSlice';
 import { toast } from 'react-toastify';
-import { deleteExitEmployee, exitEmployeeExitAction } from '../../../../helpers/backend_helper';
-import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { ExpandableText } from '../../../../Components/Common/ExpandableText';
-import { format } from 'date-fns';
-import CheckPermission from '../../../../Components/HOC/CheckPermission';
-import { CheckCheck, Pencil, Trash2 } from 'lucide-react';
-import { Button, CardBody, Input, Spinner } from 'reactstrap';
+import { deleteHiring, hiringAction } from '../../../../../helpers/backend_helper';
+import ApproveModal from '../../../components/ApproveModal';
+import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
+import EditHiringModal from '../../../components/EditHiringModal';
+import { Button, Spinner } from 'reactstrap';
 import DataTable from 'react-data-table-component';
-import DeleteConfirmModal from '../../components/DeleteConfirmModal';
-import ApproveModal from '../../components/ApproveModal';
 import Select from "react-select";
-import EditExitEmployeeModal from '../../components/EditExitEmployeeModal';
+import { HiringPreferredGenderOptions } from '../../../../../Components/constants/HR';
+import { capitalizeWords } from '../../../../../utils/toCapitalize';
+import { renderStatusBadge } from '../../../components/renderStatusBadge';
+import { format } from 'date-fns';
+import CheckPermission from '../../../../../Components/HOC/CheckPermission';
+import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
 
-const ExitApprovals = () => {
+const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
-    const { data, pagination, loading } = useSelector((state) => state.HR);
+    const { data, pagination, loading, designations: designationOptions } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [filters, setFilters] = useState({
+        center: "ALL",
+        designation: null,
+        gender: null,
+    });
     const [page, setPage] = useState(1);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [selectedRecord, setSelectedRecord] = useState(null);
     const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [modalLoading, setModalLoading] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
-    const [actionType, setActionType] = useState(null); // APPROVE | REJECT
+    const [actionType, setActionType] = useState(null);
     const [note, setNote] = useState("");
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
     const { hasPermission, roles } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "READ");
+    const hasUserPermission = hasPermission("HR", "HIRING_APPROVAL", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -65,65 +69,79 @@ const ExitApprovals = () => {
     ];
 
     const selectedCenterOption = centerOptions.find(
-        opt => opt.value === selectedCenter
+        opt => opt.value === filters.center
     ) || centerOptions[0];
+
+    const selectedGenderOption = HiringPreferredGenderOptions.find(
+        (opt) => opt.value === filters.gender
+    ) || null;
+
+    const selectedDesignationOption = designationOptions.find(
+        (opt) => opt.value === filters.designation
+    ) || null;
 
     useEffect(() => {
         if (
-            selectedCenter !== "ALL" &&
-            !user?.centerAccess?.includes(selectedCenter)
+            filters.center !== "ALL" &&
+            !user?.centerAccess?.includes(filters.center)
         ) {
-            setSelectedCenter("ALL");
+            setFilters("ALL");
             setPage(1);
         }
-    }, [selectedCenter, user?.centerAccess]);
+    }, [filters.center, user?.centerAccess]);
 
     useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearch(search);
-            setPage(1);
-        }, 500);
+        const loadDesignations = async () => {
+            try {
+                dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] })).unwrap();
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error("Something went wrong while getting the designations");
+                }
+            }
+        };
 
-        return () => clearTimeout(handler);
-    }, [search]);
+        loadDesignations();
+    }, []);
 
-    const fetchPendingExitEmployeeList = async () => {
+    const fetchPendingHiringApprovals = async () => {
         try {
             const centers =
-                selectedCenter === "ALL"
+                filters.center === "ALL"
                     ? user?.centerAccess
-                    : !user?.centerAccess.length ? [] : [selectedCenter];
+                    : !user?.centerAccess.length ? [] : [filters.center];
 
-            await dispatch(fetchExitEmployees({
+            await dispatch(fetchHirings({
                 page,
                 limit,
                 centers,
-                stage: "EXIT_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                view: "PENDING",
+                ...filters.designation ? { designation: filters.designation } : {},
+                ...filters.gender ? { gender: filters.gender } : {},
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch Exit employee records");
+                toast.error(error.message || "Failed to fetch Hiring Requests");
             }
         }
     };
 
     useEffect(() => {
-        if (hasUserPermission) {
-            fetchPendingExitEmployeeList();
+        if (activeTab === "PENDING" && hasUserPermission) {
+            fetchPendingHiringApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
+    }, [page, limit, filters, user?.centerAccess, activeTab]);
 
     const handleDelete = async () => {
         setModalLoading(true);
         try {
-            await deleteExitEmployee(selectedEmployee._id);
-            toast.success("Employee deleted successfully");
+            await deleteHiring(selectedRecord._id);
+            toast.success("Request deleted successfully");
             setPage(1);
-            fetchPendingExitEmployeeList();
+            fetchPendingHiringApprovals();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to delete employee")
+                toast.error(error.message || "Failed to delete the request")
             }
         } finally {
             setDeleteModalOpen(false);
@@ -134,59 +152,66 @@ const ExitApprovals = () => {
     const handleAction = async () => {
         setModalLoading(true);
         try {
-            const response = await exitEmployeeExitAction(selectedEmployee._id, {
-                action: actionType.value,
+            const response = await hiringAction(selectedRecord._id, {
+                action: actionType,
                 note,
             });
             toast.success(response.message);
             setPage(1);
-            fetchPendingExitEmployeeList();
+            fetchPendingHiringApprovals();
         } catch (error) {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Action failed");
             }
         } finally {
-            setModalLoading(false);
             setApproveModalOpen(false);
+            setModalLoading(false);
         }
     }
 
     const columns = [
         {
-            name: <div>ECode</div>,
-            selector: row => row?.eCode || "-",
-            sortable: true,
-        },
-        {
-            name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            name: <div>Designation</div>,
+            selector: (row) => {
+                return (
+                    <div className="d-flex align-items-center flex-wrap gap-1">
+                        <span className="fw-semibold">
+                            {capitalizeWords(row.designation?.name
+                                ?.toLowerCase()
+                                .replace(/_/g, " "))}
+                        </span>
+                        {row?.designation?.status === "PENDING" && renderStatusBadge(row?.designation?.status)}
+                    </div>
+                );
+            },
             wrap: true,
-            minWidth: "160px"
+            minWidth: "150px"
         },
         {
-            name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
-            wrap: true,
-            minWidth: "120px"
-        },
-        {
-            name: <div>Reason of Leaving</div>,
-            selector: row => row?.reason || "-",
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>Other Reason (If Any)</div>,
-            selector: row => (
-                <ExpandableText text={capitalizeWords(row?.otherReason || "-")} />
-            ),
+            name: <div>Center</div>,
+            selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
             minWidth: "120px"
         },
         {
-            name: <div>Last Working Day</div>,
-            selector: row => row?.lastWorkingDay || "-",
+            name: <div>Preferred Gender</div>,
+            selector: (row) => capitalizeWords(row?.preferredGender || "-")
+        },
+        {
+            name: <div>Status</div>,
+            selector: (row) => renderStatusBadge(row?.status)
+        },
+        {
+            name: <div>Contact Number</div>,
+            selector: (row) => row?.contactNumber || "-",
             wrap: true,
+            minWidth: "140px"
+        },
+        {
+            name: <div>Required Count</div>,
+            selector: (row) => row?.requiredCount || "-",
+            wrap: true,
+            center: true
         },
         {
             name: <div>Filled By</div>,
@@ -199,48 +224,28 @@ const ExitApprovals = () => {
                 </div>
             ),
             wrap: true,
-            minWidth: "200px"
+            minWidth: "200px",
         },
         {
-            name: <div>Filled Time</div>,
+            name: <div>Filled At</div>,
             selector: row => {
-                if (!row?.filledAt) return "-";
-                const date = new Date(row.filledAt);
+                if (!row?.updatedAt) return "-";
+                const date = new Date(row.updatedAt);
                 if (isNaN(date)) return "-";
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
             minWidth: "180px",
         },
-        {
-            name: <div>FNF Rejection Note</div>,
-            selector: row => <ExpandableText text={capitalizeWords(row?.fnfApprovalNote || "-")} />,
-            wrap: true,
-            minWidth: "180px",
-        },
-        {
-            name: <div>FNF Rejection Time</div>,
-            selector: row => {
-                if (!row?.fnfApprovedAt) return "-";
-                const date = new Date(row.fnfApprovedAt);
-                if (isNaN(date)) return "-";
-                return format(date, "dd MMM yyyy, hh:mm a");
-            },
-            wrap: true,
-            minWidth: "180px",
-        },
-
-        ...(hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "WRITE")
+        ...(hasPermission("HR", "HIRING_APPROVAL", "WRITE")
             ? [
                 {
                     name: <div>Actions</div>,
                     cell: row => (
                         <div className="d-flex gap-2">
-
-                            {/* APPROVE EXIT */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="EXIT_EMPLOYEE_APPROVAL"
+                                subAccess="HIRING_APPROVAL"
                                 permission="edit"
                             >
                                 <Button
@@ -248,58 +253,54 @@ const ExitApprovals = () => {
                                     className="text-white"
                                     size="sm"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setActionType("APPROVE");
+                                        setSelectedRecord(row);
+                                        setActionType("APPROVE")
                                         setApproveModalOpen(true);
                                     }}
                                 >
                                     <CheckCheck size={18} />
                                 </Button>
 
-                                {/* REJECT EXIT */}
-                                {/* <Button
+                                <Button
                                     color="danger"
                                     className="text-white"
                                     size="sm"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setActionType("REJECT");
                                         setApproveModalOpen(true);
                                     }}
                                 >
                                     <X size={16} />
-                                </Button> */}
-
-                                {/* EDIT EXIT REQUEST */}
+                                </Button>
                                 <Button
                                     color="primary"
                                     outline
                                     size="sm"
-                                    className="d-flex align-items-center gap-1"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setModalOpen(true);
                                     }}
                                 >
                                     <Pencil size={16} />
                                 </Button>
                             </CheckPermission>
-
-                            {/* DELETE REQUEST */}
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="EXIT_EMPLOYEE_APPROVAL"
+                                subAccess="HIRING_APPROVAL"
                                 permission="delete"
                             >
-                                <button
-                                    className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                <Button
+                                    color="danger"
+                                    size="sm"
+                                    className="text-white"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setDeleteModalOpen(true);
                                     }}
                                 >
                                     <Trash2 size={16} />
-                                </button>
+                                </Button>
                             </CheckPermission>
                         </div>
                     ),
@@ -312,73 +313,59 @@ const ExitApprovals = () => {
             : [])
     ];
 
-
-
     return (
-        <CardBody
-            className="p-3 bg-white"
-            style={isMobile ? { width: "100%" } : { width: "78%" }}
-        >
-            <div className="text-center text-md-left mb-4">
-                <h1 className="display-6 fw-bold text-primary">
-                    EXIT EMPLOYEE APPROVALS
-                </h1>
-            </div>
+        <>
             <div className="mb-3">
-                {/*  DESKTOP VIEW */}
-                <div className="d-none d-md-flex justify-content-between align-items-center">
-
-                    <div className="d-flex gap-3 align-items-center">
-
-                        <div style={{ width: "200px" }}>
-                            <Select
-                                value={selectedCenterOption}
-                                onChange={(option) => {
-                                    setSelectedCenter(option?.value);
-                                    setPage(1);
-                                }}
-                                options={centerOptions}
-                                placeholder="All Centers"
-                                classNamePrefix="react-select"
-                            />
-                        </div>
-
-                        <div style={{ width: "220px" }}>
-                            <Input
-                                type="text"
-                                className="form-control"
-                                placeholder="Search by name or Ecode..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </div>
-
-                    </div>
-                </div>
-
-                {/*  MOBILE VIEW */}
-                <div className="d-flex d-md-none flex-column gap-3">
-                    <div style={{ width: "100%" }}>
+                <div className="d-flex flex-wrap gap-3 mb-3">
+                    {/* Center */}
+                    <div style={{ width: isMobile ? "100%" : "200px" }}>
                         <Select
+                            options={centerOptions}
                             value={selectedCenterOption}
-                            onChange={(option) => {
-                                setSelectedCenter(option?.value);
+                            onChange={(opt) => {
+                                setFilters(prev => ({
+                                    ...prev,
+                                    center: opt?.value || "ALL",
+                                }));
                                 setPage(1);
                             }}
-                            options={centerOptions}
                             placeholder="All Centers"
-                            classNamePrefix="react-select"
                         />
                     </div>
 
-                    <div style={{ width: "100%" }}>
-                        <Input
-                            type="text"
-                            className="form-control"
-                            placeholder="Search by name or Ecode..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                    {/* Gender */}
+                    <div style={{ width: isMobile ? "100%" : "180px" }}>
+                        <Select
+                            options={HiringPreferredGenderOptions}
+                            value={selectedGenderOption}
+                            onChange={(opt) => {
+                                setFilters(prev => ({
+                                    ...prev,
+                                    gender: opt ? opt.value : null,
+                                }));
+                                setPage(1);
+                            }}
+                            placeholder="Gender"
+                            isClearable
                         />
+                    </div>
+
+                    {/* Designation */}
+                    <div style={{ width: isMobile ? "100%" : "250px" }}>
+                        <Select
+                            options={designationOptions}
+                            value={selectedDesignationOption}
+                            onChange={(opt) => {
+                                setFilters(prev => ({
+                                    ...prev,
+                                    designation: opt ? opt.value : null,
+                                }));
+                                setPage(1);
+                            }}
+                            placeholder="Designation"
+                            isClearable
+                        />
+
                     </div>
                 </div>
             </div>
@@ -427,16 +414,17 @@ const ExitApprovals = () => {
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
-            <EditExitEmployeeModal
+            <EditHiringModal
                 isOpen={modalOpen}
                 toggle={() => {
                     setModalOpen(!modalOpen);
-                    setSelectedEmployee(null);
+                    setSelectedRecord(null);
                 }}
-                initialData={selectedEmployee}
+                initialData={selectedRecord}
                 onUpdate={() => {
+                    setSelectedRecord(null);
                     setPage(1);
-                    fetchPendingExitEmployeeList();
+                    fetchPendingHiringApprovals();
                 }}
             />
 
@@ -444,30 +432,43 @@ const ExitApprovals = () => {
                 isOpen={deleteModalOpen}
                 toggle={() => {
                     setDeleteModalOpen(!deleteModalOpen);
-                    setSelectedEmployee(null);
+                    setSelectedRecord(null);
                 }}
                 onConfirm={handleDelete}
                 loading={modalLoading}
             />
+
             <ApproveModal
                 isOpen={approveModalOpen}
                 toggle={() => {
                     setApproveModalOpen(false);
                     setNote("");
                     setActionType(null);
-                    setSelectedEmployee(null);
+                    setSelectedRecord(null);
                 }}
                 onSubmit={handleAction}
+                mode="HIRING"
                 loading={modalLoading}
-                mode="EXIT_EMPLOYEES_EXIT_PENDING"
                 actionType={actionType}
                 setActionType={setActionType}
                 note={note}
                 setNote={setNote}
-
+                {...(
+                    selectedRecord?.designation?.status === "PENDING"
+                        ? {
+                            designation: selectedRecord.designation.name?.toLowerCase()
+                                .replace(/_/g, " ")
+                                .replace(/\b\w/g, (c) => c.toUpperCase())
+                        }
+                        : {}
+                )}
             />
-        </CardBody>
+        </>
     )
 }
 
-export default ExitApprovals;
+PendingApprovals.prototype = {
+    activeTab: PropTypes.string
+};
+
+export default PendingApprovals

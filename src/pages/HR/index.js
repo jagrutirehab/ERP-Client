@@ -19,6 +19,8 @@ import AddSalaryAdvanceRequest from './SalaryAdvance/AddRequest';
 import AddExitRequest from './ExitEmployees/AddRequest';
 import AddNewJoiningRequest from './NewJoining/AddRequest';
 import AddTransferRequest from './Transfer/AddRequest';
+import AddHiringRequest from './Hiring/AddRequest';
+import HiringApproval from './Hiring/Approvals';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -72,6 +74,9 @@ const HR = () => {
                                 <Route path={`/transfer-employees/outgoing`} element={<OutgoingEmployeeApprovals />} />
                                 <Route path={`/transfer-employees/incoming`} element={<IncomingEmployeeApprovals />} />
                                 <Route path={`/transfer-employees/it`} element={<TransferEmployeeIT />} />
+
+                                <Route path={`/hiring/add`} element={<AddHiringRequest />} />
+                                <Route path={`/hiring/approval`} element={<HiringApproval />} />
                             </Routes>
                         </div>
                     </Container>

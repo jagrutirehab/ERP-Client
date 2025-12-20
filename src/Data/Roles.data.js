@@ -226,7 +226,16 @@ export const permissionList = [
       {
         name: "TRANSFER_EMPLOYEE_IT",
         label: "Employee Transfer IT"
-      }
+      },
+      // hiring
+      {
+        name: "HIRING_ADD_REQUEST",
+        label: "Hiring Add Request"
+      },
+      {
+        name: "HIRING_APPROVAL",
+        label: "Hiring Approvals"
+      },
 
     ]
   }
