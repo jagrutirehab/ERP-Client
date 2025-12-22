@@ -165,7 +165,7 @@ const ExitApprovals = () => {
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
+            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
             minWidth: "120px"
         },

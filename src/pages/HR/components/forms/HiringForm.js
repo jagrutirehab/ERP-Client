@@ -16,16 +16,19 @@ import PhoneInputWithCountrySelect from "react-phone-number-input";
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 const validationSchema = Yup.object({
-    designation: Yup.string()
-        .required("Designation is required")
-        .matches(objectIdRegex, "Invalid Designation"),
-
     center: Yup.string()
         .required("Center is required")
         .matches(objectIdRegex, "Invalid Center"),
 
+    contactNumber: Yup.string()
+        .required("Contact number is required"),
+
+    designation: Yup.string()
+        .required("Designation is required")
+        .matches(objectIdRegex, "Invalid Designation"),
+
     preferredGender: Yup.string()
-        .oneOf(["MALE", "FEMALE", "OTHER"], "Preferred Gender must be MALE, FEMALE, or OTHER"),
+        .oneOf(["MALE", "FEMALE"], "Preferred Gender must be MALE, FEMALE, or OTHER"),
 
     requiredCount: Yup.number()
         .typeError("Required count must be a number")
@@ -68,12 +71,13 @@ const HiringForm = ({ initialData, onSuccess, onCancel, view, hasCreatePermissio
 
     const form = useFormik({
         enableReinitialize: true,
+        validateOnMount: true,
         initialValues: {
             center: initialData?.center?._id || "",
+            contactNumber: initialData?.contactNumber || user?.phoneNumber || "",
             designation: initialData?.designation?._id || "",
             preferredGender: initialData?.preferredGender || "",
             requiredCount: initialData?.requiredCount || 1,
-            contactNumber: initialData?.contactNumber || user?.phoneNumber || "",
         },
         validationSchema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -282,7 +286,9 @@ const HiringForm = ({ initialData, onSuccess, onCancel, view, hasCreatePermissio
                         className="text-white"
                         onClick={form.handleSubmit}
                         color="primary"
-                        disabled={form.isSubmitting || !form.isValid}
+                        disabled={form.isSubmitting ||
+                            !form.isValid ||
+                            !form.dirty}
                     >
                         {form.isSubmitting && <Spinner size="sm" className="me-2" />}
                         Add Request

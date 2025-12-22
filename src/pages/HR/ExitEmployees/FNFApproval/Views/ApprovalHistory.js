@@ -110,9 +110,9 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
+            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
-            minWidth: "120px",
+            minWidth: "120px"
         },
         {
             name: <div>Reason of Leaving</div>,

@@ -232,6 +232,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                         disabled={
                             form.isSubmitting ||
                             !form.isValid ||
+                            !form.dirty ||
                             (!isEdit && !form.values.employeeId)
                         }
                     >

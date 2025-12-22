@@ -284,6 +284,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
                     disabled={
                         form.isSubmitting ||
                         !form.isValid ||
+                        !form.dirty ||
                         (!isEdit && !form.values.employeeId)
                     }
                 >
