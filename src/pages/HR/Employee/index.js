@@ -157,15 +157,18 @@ const Employee = () => {
     const columns = [
         {
             name: <div>ECode</div>,
-            selector: row => row?.eCode || "",
+            selector: row => row?.eCode || "-",
             sortable: true,
-            fixed: true,
         },
         {
             name: <div>Name</div>,
             selector: row => row?.name?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px",
+        },
+        {
+            name: <div>Biometric ID</div>,
+            selector: row => row?.biometricId || "-",
         },
         {
             name: <div>Department</div>,

@@ -55,6 +55,7 @@ const validationSchema = (mode, isEdit) => Yup.object({
     IFSCCode: Yup.string().required("IFSC code is required"),
     adharNo: Yup.string().required("Aadhaar number is required"),
     pan: Yup.string().required("PAN number is required"),
+    biometricId: Yup.string().trim(),
     panFile: Yup.mixed().test(
         "required-pan-file",
         "PAN file is required",
@@ -191,6 +192,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
             officialEmail: "",
             email: "",
             monthlyCTC: 0,
+            biometricId: "",
             panFile: null,
             adharFile: null,
             offerLetterFile: null,
@@ -498,7 +500,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             First Location <span className="text-danger">*</span>
                         </Label>
                         <Select
-                            id="firstLocation"
+                            inputId="firstLocation"
                             options={centerOptions}
                             value={
                                 values.firstLocation
@@ -515,7 +517,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                         <Col md={6}>
                             <Label htmlFor="transferredFrom">Transferred From</Label>
                             <Select
-                                id="transferredFrom"
+                                inputId="transferredFrom"
                                 options={centerOptions}
                                 value={values.transferredFrom ? centerOptions.find((o) => o.value === values.transferredFrom) : null}
                                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -529,7 +531,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             Current Location <span className="text-danger">*</span>
                         </Label>
                         <Select
-                            id="currentLocation"
+                            inputId="currentLocation"
                             options={centerOptions}
                             value={values.currentLocation ? centerOptions.find((o) => o.value === values.currentLocation) : null}
                             onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -554,7 +556,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             Payroll <span className="text-danger">*</span>
                         </Label>
                         <Select
-                            id="payroll"
+                            inputId="payroll"
                             options={payrollOptions}
                             value={payrollOptions.find(opt => opt.value === values.payrollType) || null}
                             onChange={(opt) => setFieldValue("payrollType", opt.value)}
@@ -564,10 +566,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* DATE OF JOINING */}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="joinningDate">
                             Date of Joining <span className="text-danger">*</span>
                         </Label>
                         <Input
+                            id="joinningDate"
                             type="date"
                             name="joinningDate"
                             value={values.joinningDate}
@@ -579,10 +582,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* EXIT DATE */}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="exitDate">
                             Last Working Day
                         </Label>
                         <Input
+                            id="exitDate"
                             type="date"
                             name="exitDate"
                             value={values.exitDate}
@@ -593,8 +597,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                     {/* STATUS */}
                     {mode !== "NEW_JOINING" && (
                         <Col md={6}>
-                            <Label>Status <span className="text-danger">*</span></Label>
+                            <Label htmlFor="status">Status <span className="text-danger">*</span></Label>
                             <Select
+                                inputId="status"
                                 options={statusOptions}
                                 value={statusOptions.find(opt => opt.value === values.status) || null}
                                 onChange={(opt) => setFieldValue("status", opt.value)}
@@ -610,7 +615,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             Gender <span className="text-danger">*</span>
                         </Label>
                         <Select
-                            id="gender"
+                            inputId="gender"
                             options={employeeGenderOptions}
                             value={employeeGenderOptions.find(opt => opt.value === values.gender) || null}
                             onChange={(opt) => setFieldValue("gender", opt.value)}
@@ -639,6 +644,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             Bank Name <span className="text-danger">*</span>
                         </Label>
                         <Input
+                            id="bankName"
                             name="bankName"
                             value={values.bankName}
                             onChange={handleChange}
@@ -648,10 +654,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                     </Col>
                     {/* BANK ACCOUNT */}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="accountNo">
                             Bank Account No <span className="text-danger">*</span>
                         </Label>
                         <Input
+                            id="accountNo"
                             name="accountNo"
                             value={values.accountNo}
                             onChange={handleChange}
@@ -662,10 +669,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* IFSC */}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="IFSCCode">
                             IFSC Code <span className="text-danger">*</span>
                         </Label>
                         <Input
+                            id="IFSCCode"
                             name="IFSCCode"
                             value={values.IFSCCode}
                             onChange={handleChange}
@@ -676,10 +684,11 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* PF APPLICABLE */}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="pfApplicable">
                             PF Applicable <span className="text-danger">*</span>
                         </Label>
                         <Select
+                            inputId="pfApplicable"
                             options={[
                                 { value: true, label: "YES" },
                                 { value: false, label: "NO" },
@@ -698,8 +707,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* UAN NO */}
                     <Col md={6}>
-                        <Label>UAN No</Label>
+                        <Label htmlFor="uanNo">UAN No</Label>
                         <Input
+                            id="uanNo"
                             name="uanNo"
                             value={values.uanNo}
                             onChange={handleChange}
@@ -708,8 +718,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* PF NO */}
                     <Col md={6}>
-                        <Label>PF No</Label>
+                        <Label htmlFor="pfNo">PF No</Label>
                         <Input
+                            id="pfNo"
                             name="pfNo"
                             value={values.pfNo}
                             onChange={handleChange}
@@ -718,8 +729,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* ESIC */}
                     <Col md={6}>
-                        <Label>ESIC IP Code</Label>
+                        <Label htmlFor="esicIpCode">ESIC IP Code</Label>
                         <Input
+                            id="esicIpCode"
                             name="esicIpCode"
                             value={values.esicIpCode}
                             onChange={handleChange}
@@ -732,8 +744,8 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             Aadhaar No <span className="text-danger">*</span>
                         </Label>
                         <Input
+                            id="adharNo"
                             name="adharNo"
-                            id="adharFile"
                             value={values.adharNo}
                             onChange={handleChange}
                             invalid={touched.adharNo && errors.adharNo}
@@ -823,11 +835,12 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* PAN NO*/}
                     <Col md={6}>
-                        <Label>
+                        <Label htmlFor="pan">
                             PAN No<span className="text-danger">*</span>
                         </Label>
 
                         <Input
+                            id="pan"
                             name="pan"
                             value={values.pan}
                             onChange={(e) => {
@@ -1002,8 +1015,8 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                     <Col md={6}>
                         <Label htmlFor="father">Father's Name <span className="text-danger">*</span></Label>
                         <Input
-                            name="father"
                             id="father"
+                            name="father"
                             value={values.father}
                             onChange={handleChange}
                             invalid={touched.father && errors.father}
@@ -1049,8 +1062,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* OFFICIAL EMAIL */}
                     <Col md={6}>
-                        <Label>Official Email</Label>
+                        <Label htmlFor="officialEmail">Official Email</Label>
                         <Input
+                            id="officialEmail"
                             type="email"
                             name="officialEmail"
                             value={values.officialEmail}
@@ -1060,8 +1074,9 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* EMAIL */}
                     <Col md={6}>
-                        <Label>Email</Label>
+                        <Label htmlFor="email">Email</Label>
                         <Input
+                            id="email"
                             type="email"
                             name="email"
                             value={values.email}
@@ -1071,11 +1086,24 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
                     {/* MONTHLY CTC */}
                     <Col md={6}>
-                        <Label>Monthly CTC</Label>
+                        <Label htmlFor="monthlyCTC">Monthly CTC</Label>
                         <Input
+                            id="monthlyCTC"
                             type="number"
                             name="monthlyCTC"
                             value={values.monthlyCTC}
+                            onChange={handleChange}
+                        />
+                    </Col>
+
+                    {/* BIOMETRIC ID */}
+                    <Col md={6}>
+                        <Label htmlFor="biometricId">Biometric ID</Label>
+                        <Input
+                            id="biometricId"
+                            type="number"
+                            name="biometricId"
+                            value={values.biometricId}
                             onChange={handleChange}
                         />
                     </Col>

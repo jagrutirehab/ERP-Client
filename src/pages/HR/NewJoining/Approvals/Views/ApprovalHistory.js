@@ -130,6 +130,10 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       minWidth: "160px"
     },
     {
+      name: <div>Biometric ID</div>,
+      selector: row => row?.biometricId || "-",
+    },
+    {
       name: <div>Department</div>,
       selector: row => capitalizeWords(row?.department || "-"),
       wrap: true,
