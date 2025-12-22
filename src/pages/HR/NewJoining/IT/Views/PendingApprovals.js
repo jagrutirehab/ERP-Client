@@ -212,7 +212,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             }
         } finally {
             setModalLoading(false);
-            setApproveModalOpen(false);
+            setRejectModalOpen(false);
             setReason("");
             setActionType(null);
         }
@@ -248,7 +248,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.currentLocationTitle || "-"),
+            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
             minWidth: "120px"
         },
@@ -423,6 +423,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                     setReason("");
                     setActionType(null);
                 }}
+                loading={modalLoading}
                 onSubmit={handleReject}
                 mode="NEW_JOINING_IT"
                 actionType={actionType}
@@ -441,7 +442,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             <UserForm
                 isOpen={userFormOpen}
                 toggleForm={() => setUserFormOpen(!userFormOpen)}
-                userData={{ ...selectedEmployee, email: selectedEmail }}
+                userData={{
+                    ...selectedEmployee, email: selectedEmail, centerAccess: selectedEmployee?.currentLocation
+                        ? [selectedEmployee.currentLocation]
+                        : []
+                }}
                 setUserData={setSelectedEmployee}
                 hasUserPermission={hasUserPermission}
                 onComplete={handleUserFormComplete}
