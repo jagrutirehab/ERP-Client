@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Badge, Button, Spinner } from "reactstrap";
+import { Badge, Button } from "reactstrap";
 import { downloadFile } from "../../../../../Components/Common/downloadFile";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { Trash } from "lucide-react";
@@ -22,13 +22,7 @@ export const attendanceImportHistoryColumns = ({
         },
         {
             name: <div>Generation Date</div>,
-            selector: row => {
-                const generatedOn = row?.generatedOn;
-                if (!generatedOn || isNaN(new Date(generatedOn))) {
-                    return "-"
-                }
-                return format(new Date(generatedOn), "dd MMM yyyy, hh:mm a");
-            },
+            selector: row => row?.generatedOn || "-",
             wrap: true,
             minWidth: "120px"
         },
