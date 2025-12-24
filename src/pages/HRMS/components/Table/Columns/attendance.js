@@ -18,12 +18,6 @@ export const attendanceColumns = [
         selector: row => row?.biometricId || "-",
     },
     {
-        name: <div>Department</div>,
-        selector: row => capitalizeWords(row?.department || "-"),
-        wrap: true,
-        minWidth: "120px"
-    },
-    {
         name: <div>Current Location</div>,
         selector: row => capitalizeWords(row?.center?.title || "-"),
         wrap: true,

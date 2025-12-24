@@ -44,7 +44,7 @@ const ApproveModal = ({
       const response = await getEmployeeId();
       setECode(response.payload.value);
     } catch (error) {
-      if (!handleAuthError) {
+      if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
     } finally {

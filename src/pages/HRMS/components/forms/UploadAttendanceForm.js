@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { uploadAttendance } from "../../../../helpers/backend_helper";
 import * as XLSX from "xlsx";
 import { useState } from "react";
+import { parseExcelSerialDate } from "../../../../Components/Common/ParseExcelSerialDate";
 
 const REQUIRED_HEADERS = [
     "Employee ID",
@@ -80,6 +81,14 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
             };
         }) || [];
 
+    const isRowCompletelyBlank = (row) =>
+        row.every(
+            (cell) =>
+                cell === null ||
+                cell === undefined ||
+                String(cell).trim() === ""
+        );
+
     const handleFileChange = (file) => {
         if (!file) return;
 
@@ -115,7 +124,27 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
                 }
 
                 setPreviewHeaders(rows[headerIndex]);
-                setPreviewRows(rows.slice(headerIndex + 1, headerIndex + 11));
+                const headers = rows[headerIndex];
+                const dateColIdx = headers.findIndex(
+                    (h) => normalize(h) === "date"
+                );
+
+                const dataRows = rows
+                    .slice(headerIndex + 1)
+                    .filter((row) => !isRowCompletelyBlank(row))
+                    .map((row) => {
+                        if (dateColIdx === -1) return row;
+
+                        const newRow = [...row];
+                        newRow[dateColIdx] = parseExcelSerialDate(newRow[dateColIdx]);
+                        return newRow;
+                    });
+
+                if (dataRows.length === 0) {
+                    setHeaderError("No attendance data found in the file.");
+                    return;
+                }
+                setPreviewRows(dataRows.slice(0, 10));
             } catch (err) {
                 setHeaderError("Failed to read Excel file");
             }
@@ -226,17 +255,17 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
                         <Table bordered size="sm">
                             <thead>
                                 <tr>
-                                    {previewHeaders.map((h, i) => (
-                                        <th key={i}>{h}</th>
+                                    {previewHeaders.map((header, i) => (
+                                        <th key={i}>{header}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {previewRows.map((row, r) => (
                                     <tr key={r}>
-                                        {previewHeaders.map((_, c) => (
-                                            <td key={c}>
-                                                {row[c] ?? ""}
+                                        {previewHeaders.map((idx, column) => (
+                                            <td key={idx}>
+                                                {row[column] ?? ""}
                                             </td>
                                         ))}
                                     </tr>
