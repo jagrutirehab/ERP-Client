@@ -46,7 +46,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
             setHistory(response?.data || []);
             setPagination(response?.pagination || {});
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(error.message || "something went wrong while fetching attendance import history");
             }
         } finally {
@@ -80,7 +80,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
             setPage(1);
             loadAttendenceImportHistory();
         } catch (error) {
-            if (!handleAuthError) {
+            if (!handleAuthError(error)) {
                 toast.error(
                     error.message ||
                     "Something went wrong while deleting the attendance import record"
