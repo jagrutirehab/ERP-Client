@@ -425,3 +425,9 @@ export const DESIGNATION = "/hr/designation";
 
 export const HIRING = "/hr/hiring";
 export const HIRING_ACTION = "/hr/hiring/action";
+
+// HRMS
+export const ATTENDANCE = "/hrms/attendance";
+export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
+export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
+

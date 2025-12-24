@@ -1904,3 +1904,57 @@ export const getHirings = (params = {}) => {
     },
   })
 }
+
+// HRMS
+export const getAttendance = (params = {}) => {
+  return api.get(url.ATTENDANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const getAttendanceImportHistory = (params = {}) => {
+  return api.get(url.ATTENDANCE_IMPORTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const getAttendanceImportById = (id) => {
+  return api.get(`${url.ATTENDANCE_IMPORTS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const uploadAttendance = (data) => {
+  return api.create(url.UPLOAD_ATTENDANCE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  })
+}
+
+export const deleteAttendanceImport = (params = {}) => {
+  return api.delete(url.ATTENDANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}

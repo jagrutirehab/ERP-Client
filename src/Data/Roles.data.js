@@ -238,7 +238,14 @@ export const permissionList = [
       },
 
     ]
-  }
+  },
+  {
+    key: "HRMS",
+    label: "HRMS",
+    subModules: [
+      { name: "HRMS_ATTENDANCE", label: "Attendance Management" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];
