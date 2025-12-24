@@ -205,7 +205,8 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
         <ul style={{ listStyle: "none", padding: 0 }}>
           {[
             `I am satisfied with my treatment at Jagruti Rehabilitation Centre, ${patient?.center?.title}.`,
-            "I am better now and feel psychologically and physically fit to go home.",
+            // "I am better now and feel psychologically and physically fit to go home.",
+            "I am better now and feel psychologically and physically fit for discharge, able to continue my prescribed medications after discharge and to attend follow-up OPD visits as advised. ",
             "I have been explained about my illness, medications, counselling and further management.",
             `I have no complaints against any of the staff at the Jagruti Rehabilitation Centre, ${patient?.center?.title}.`,
             "I have not been man-handled, misbehaved with or mistreated in any way, by any staff at the centre.",
