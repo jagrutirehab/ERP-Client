@@ -280,6 +280,13 @@ const pages = [
     link: "/hr",
     icon: "bx bx-body",
   },
+  {
+    id: "hrms",
+    label: "HRMS",
+    name: "HRMS",
+    link: "/hrms",
+    icon: "bx bx-group",
+  },
 ];
 
 export const Pharmacy = [
@@ -633,6 +640,15 @@ export const HR = [
       },
     ]
   }
+];
+
+export const HRMS = [
+  {
+    id: "attendance",
+    label: "Attendance",
+    link: "/hrms/attendance",
+    icon: "bx bx-time-five",
+  },
 ];
 
 export default pages;
