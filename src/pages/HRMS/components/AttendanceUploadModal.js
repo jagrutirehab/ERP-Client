@@ -6,12 +6,13 @@ import { useSearchParams } from "react-router-dom";
 import UploadAttendanceForm from "./forms/UploadAttendanceForm";
 import AttendanceImportProgress from "./AttendanceImportProgress";
 
-const AttendanceUploadModal = ({ isOpen, toggle }) => {
+const AttendanceUploadModal = ({ isOpen, toggle, onRefresh }) => {
     const [importMeta, setImportMeta] = useState({
         importId: null,
         centerId: null,
         centerName: null,
     });
+    const [importStatus, setImportStatus] = useState(null);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -42,6 +43,12 @@ const AttendanceUploadModal = ({ isOpen, toggle }) => {
         );
     };
 
+    const handleStatusChange = (status) => {
+        if (status === "COMPLETED" || status === "FAILED") {
+            setImportStatus(status);
+        }
+    };
+
     const handleClose = () => {
         setImportMeta({
             importId: null,
@@ -55,6 +62,12 @@ const AttendanceUploadModal = ({ isOpen, toggle }) => {
         setSearchParams(searchParams, { replace: true });
 
         toggle();
+
+        if (importStatus === "COMPLETED") {
+            onRefresh?.();
+        }
+
+        setImportStatus(null);
     };
 
     const shouldModalOpen =
@@ -87,6 +100,7 @@ const AttendanceUploadModal = ({ isOpen, toggle }) => {
                             id: importMeta.centerId,
                             name: importMeta.centerName,
                         }}
+                        onStatusChange={handleStatusChange}
                         onClose={handleClose}
                     />
                 )}
@@ -98,6 +112,7 @@ const AttendanceUploadModal = ({ isOpen, toggle }) => {
 AttendanceUploadModal.propTypes = {
     isOpen: PropTypes.bool,
     toggle: PropTypes.func,
+    onRefresh: PropTypes.func,
 };
 
 export default AttendanceUploadModal;

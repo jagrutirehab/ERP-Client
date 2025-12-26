@@ -11,7 +11,7 @@ import {
 import { getAttendanceImportById } from "../../../helpers/backend_helper";
 import { downloadFile } from "../../../Components/Common/downloadFile";
 
-const AttendanceImportProgress = ({ importId, onClose, center }) => {
+const AttendanceImportProgress = ({ importId, onClose, center, onStatusChange }) => {
     const [data, setData] = useState(null);
 
     const [realProgress, setRealProgress] = useState(0);
@@ -65,6 +65,12 @@ const AttendanceImportProgress = ({ importId, onClose, center }) => {
         animate();
         return () => cancelAnimationFrame(animationRef.current);
     }, [realProgress]);
+
+    useEffect(() => {
+        if (data?.status === "COMPLETED" || data?.status === "FAILED") {
+            onStatusChange?.(data?.status);
+        }
+    }, [data?.status]);
 
     if (!data) {
         return (

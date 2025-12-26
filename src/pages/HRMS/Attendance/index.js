@@ -51,7 +51,7 @@ const Attendance = () => {
         "READ"
     );
 
-    const fetchData = async () => {
+    const fetchEmployeeAttendance = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -89,7 +89,7 @@ const Attendance = () => {
 
     useEffect(() => {
         if (!hasUserPermission) return;
-        fetchData();
+        fetchEmployeeAttendance();
     }, [
         page,
         limit,
@@ -290,6 +290,10 @@ const Attendance = () => {
             <AttendanceUploadModal
                 isOpen={isUploadModalOpen}
                 toggle={() => setIsUploadModalOpen(!isUploadModalOpen)}
+                onRefresh={() => {
+                    setPage(1);
+                    fetchEmployeeAttendance();
+                }}
             />
         </>
     );

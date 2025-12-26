@@ -104,11 +104,15 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
                 <ModalHeader toggle={toggle}>
                     Attendance Import History
                 </ModalHeader>
-                <ModalBody>
+                <ModalBody style={{
+                    minHeight: "80vh",
+                    display: "flex",
+                    flexDirection: "column",
+                }}>
                     {loading ? (
-                        <div className="text-center py-8">
-                            <div className="spinner-border text-primary mb-3" />
-                            <p className="text-muted">Loading History…</p>
+                        <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+                            <Spinner color="primary" />
+                            <p className="text-muted mt-2">Loading History…</p>
                         </div>
                     ) :
                         history.length === 0 ? (
