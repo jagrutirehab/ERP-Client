@@ -4,15 +4,16 @@ import React, { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { getApprovals } from "../../../../../store/features/centralPayment/centralPaymentSlice";
 import { toast } from "react-toastify";
-import { getAllENets, updateCentralPaymentProcessStatus, updateProcessStatus } from "../../../../../helpers/backend_helper";
+import { regenerateENets, updateCentralPaymentProcessStatus } from "../../../../../helpers/backend_helper";
 import { Button, Col, Container, Row, Spinner } from "reactstrap";
 import { Copy, CopyCheck } from "lucide-react";
 import ItemCard from "../../../Components/ItemCard";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import ConfirmationModal from "../../../../../Components/Common/ConfirmationModal";
+import Select from "react-select";
 
-const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
+const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -23,7 +24,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
     const [copiedENets, setCopiedENets] = useState([]);
     const [processLoader, setProcessLoader] = useState(false);
     const [processPayload, setProcessPayload] = useState({});
-
+    const [selectedCenter, setSelectedCenter] = useState("ALL");
     const limit = 12;
 
     const microUser = localStorage.getItem("micrologin");
@@ -33,13 +34,51 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "WRITE") ||
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "DELETE");
 
-    // approved payments whose paymentstatus is pending
+    const centerOptions = [
+        ...(centerAccess?.length > 1
+            ? [{
+                value: "ALL",
+                label: "All Centers",
+                isDisabled: false,
+            }]
+            : []
+        ),
+        ...(
+            centerAccess?.map(id => {
+                const center = userCenters?.find(c => c._id === id);
+                return {
+                    value: id,
+                    label: center?.title || "Unknown Center"
+                };
+            }) || []
+        )
+    ];
+
+    const selectedCenterOption = centerOptions.find(
+        opt => opt.value === selectedCenter
+    ) || centerOptions[0];
+
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, centerAccess]);
+
     const fetchApprovedPayments = async () => {
         try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? centerAccess
+                    : !centerAccess.length ? [] : [selectedCenter];
+
             await dispatch(getApprovals({
                 page,
                 limit,
-                centers: centerAccess,
+                centers: centers,
                 approvalStatus: "APPROVED",
                 currentPaymentStatus: "PENDING",
                 processStatus: "PENDING",
@@ -55,7 +94,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
         if (activeTab === "PROCESS_PAYMENT") {
             fetchApprovedPayments();
         }
-    }, [centerAccess, dispatch, page, limit, activeTab]);
+    }, [centerAccess, dispatch, page, limit, activeTab, selectedCenter]);
 
 
     const toggleItemSelection = (id) => {
@@ -67,39 +106,52 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
     };
 
     const handleCopySelectedENets = async () => {
-        const selectedPayments = approvals?.data
-            ?.filter(item => selectedItems.includes(item._id));
+        const ids = selectedItems;
 
-        const selectedECodes = selectedPayments.map(p => p.eNet);
+        if (!ids.length) return;
 
-        setProcessPayload({
-            paymentIds: selectedPayments.map(p => p._id),
-        });
-
-        await copyEnetsAndAskToProcess(selectedECodes);
-    };
-
-
-
-    const handleCopyAllEnets = async () => {
         setENetCopyLoader(true);
+
         try {
-            const response = await getAllENets({ centers: centerAccess, processStatus: "PENDING" });
-            const { eNets } = response.data;
+            const res = await regenerateENets({
+                paymentIds: ids
+            });
+
+            const eNets = res.eNets.map(x => x.eNet);
 
             setProcessPayload({
-                centers: centerAccess,
+                paymentIds: ids
             });
 
             await copyEnetsAndAskToProcess(eNets);
         } catch (err) {
-            toast.error("Failed to copy E-Nets.");
+            toast.error("Failed to generate E-Nets.");
         } finally {
             setENetCopyLoader(false);
         }
     };
 
 
+    const handleCopyAllEnets = async () => {
+        setENetCopyLoader(true);
+        try {
+            const res = await regenerateENets({
+                centers: centerAccess
+            });
+
+            const eNets = res.eNets.map(x => x.eNet);
+
+            setProcessPayload({
+                centers: centerAccess
+            });
+
+            await copyEnetsAndAskToProcess(eNets);
+        } catch (err) {
+            toast.error("Failed to generate E-Nets.");
+        } finally {
+            setENetCopyLoader(false);
+        }
+    };
 
     const copyEnetsAndAskToProcess = async (eNets) => {
         const cleaned = eNets
@@ -113,6 +165,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
 
         toast.success(`${cleaned.length} ${cleaned.length > 1 ? "E-Nets" : "E-Net"} copied!`);
 
+        await fetchApprovedPayments();
         if (hasCreatePermission) {
             setModalOpen(true);
         }
@@ -143,15 +196,37 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
     };
 
 
+    const copyENetHandler = async (paymentId) => {
+        setENetCopyLoader(true);
+        try {
+            const res = await regenerateENets({
+                paymentIds: [paymentId]
+            });
+
+            const eNet = res.eNets[0]?.eNet;
+            if (!eNet) throw new Error();
+
+            setProcessPayload({ paymentIds: [paymentId] });
+            await copyEnetsAndAskToProcess([eNet]);
+        } catch {
+            toast.error("Failed to generate E-Net.");
+        } finally {
+            setENetCopyLoader(false);
+        }
+    }
+
 
 
     const toggleModal = () => setModalOpen(!modalOpen);
 
     if (loading) {
         return (
-            <Container fluid className="text-center py-5">
+            <div
+                className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+                style={{ minHeight: "50vh" }}
+            >
                 <Spinner color="primary" />
-            </Container>
+            </div>
         );
     }
 
@@ -160,63 +235,103 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
         <React.Fragment>
             <div className="d-flex flex-column">
                 <Container fluid>
-                    <div className="mb-5">
-                        {approvals?.data?.length > 0 ? (
-                            <>
-                                <div className='d-flex justify-content-end mb-2 gap-2'>
+
+                    <div className="mb-3">
+                        <Row className="align-items-center g-2">
+
+                            <Col lg="2" md="4" sm="12">
+                                <Select
+                                    value={selectedCenterOption}
+                                    onChange={(option) => {
+                                        setSelectedCenter(option?.value);
+                                        setPage(1);
+                                    }}
+                                    options={centerOptions}
+                                    placeholder="All Centers"
+                                    classNamePrefix="react-select"
+                                />
+                            </Col>
+
+                            {approvals?.data?.length > 0 && (
+                                <Col
+                                    lg="10"
+                                    md="8"
+                                    sm="12"
+                                    className="d-flex flex-column flex-md-row justify-content-md-end align-items-stretch gap-2"
+                                >
                                     <Button
                                         onClick={handleCopyAllEnets}
-                                        color='primary'
-                                        className='text-white'
+                                        color="primary"
+                                        className="text-white px-4"
                                     >
-                                        {eNetCopyLoader ? <Spinner className="me-1" size={"sm"} /> : <Copy className="me-1" size={16} />}
-                                        Copy ALl E-Nets
+                                        {eNetCopyLoader ? (
+                                            <Spinner size="sm" className="me-1" />
+                                        ) : (
+                                            <Copy size={16} className="me-1" />
+                                        )}
+                                        Copy All E-Nets
                                     </Button>
+
                                     <Button
                                         onClick={handleCopySelectedENets}
-                                        color='primary'
-                                        className='text-white'
+                                        color="primary"
+                                        className="text-white px-4"
                                         disabled={selectedItems.length === 0}
                                     >
-                                        <CopyCheck className="me-1" size={16} />
+                                        <CopyCheck size={16} className="me-1" />
                                         Copy Selected E-Nets ({selectedItems.length})
                                     </Button>
-                                </div>
-                                <Row>
-                                    {(approvals?.data || []).map((payment) => (
-                                        <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
-                                            <ItemCard
-                                                hasCreatePermission={hasCreatePermission}
-                                                item={payment}
-                                                border={true}
-                                                flag="processPayment"
-                                                showSelect={true}
-                                                selected={selectedItems.includes(payment._id)}
-                                                onSelect={toggleItemSelection}
-                                                onCopyENet={(enet) => {
-                                                    setProcessPayload({
-                                                        paymentIds: [payment._id],
-                                                    });
-                                                    copyEnetsAndAskToProcess([enet]);
-                                                }}
-                                            />
-                                        </Col>
-                                    ))}
-                                </Row>
-                            </>
+                                </Col>
+                            )}
+                        </Row>
+                    </div>
+
+
+
+                    <div className="mb-5">
+                        {approvals?.data?.length > 0 ? (
+                            <Row>
+                                {approvals.data.map((payment) => (
+                                    <Col
+                                        xxl="6"
+                                        lg="6"
+                                        md="12"
+                                        sm="12"
+                                        xs="12"
+                                        key={payment._id}
+                                        className="mb-3"
+                                    >
+                                        <ItemCard
+                                            hasCreatePermission={hasCreatePermission}
+                                            item={payment}
+                                            border
+                                            flag="processPayment"
+                                            showSelect
+                                            selected={selectedItems.includes(payment._id)}
+                                            onSelect={toggleItemSelection}
+                                            onCopyENet={() => copyENetHandler(payment._id)}
+                                        />
+                                    </Col>
+                                ))}
+                            </Row>
                         ) : (
-                            <p className="text-muted text-center py-3">No pending payment processing requests</p>
+                            <div
+                                className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+                                style={{ minHeight: "40vh" }}
+                            >
+                                <h6 className="mb-1">No pending payment processing requests</h6>
+                            </div>
                         )}
                     </div>
 
                     {!loading && approvals?.pagination?.totalPages > 1 && (
                         <>
-                            {/* Mobile Layout */}
+                            {/* Mobile */}
                             <div className="d-block d-md-none text-center mt-3">
                                 <div className="text-muted mb-2">
                                     Showing {(page - 1) * limit + 1}–
-                                    {Math.min(page * limit, approvals?.pagination?.totalDocs || 0)} of{" "}
-                                    {approvals?.pagination?.totalDocs || 0}
+                                    {Math.min(page * limit, approvals.pagination.totalDocs)} of{" "}
+                                    {approvals.pagination.totalDocs}
                                 </div>
                                 <div className="d-flex justify-content-center gap-2">
                                     <Button
@@ -228,7 +343,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                                     </Button>
                                     <Button
                                         color="secondary"
-                                        disabled={page === approvals?.pagination?.totalPages}
+                                        disabled={page === approvals.pagination.totalPages}
                                         onClick={() => setPage((p) => p + 1)}
                                     >
                                         Next →
@@ -236,9 +351,9 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                                 </div>
                             </div>
 
-                            {/* Desktop Layout */}
+                            {/* Desktop */}
                             <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
-                                <Col xs="auto" className="d-flex justify-content-center">
+                                <Col xs="auto">
                                     <Button
                                         color="secondary"
                                         disabled={page === 1}
@@ -247,15 +362,15 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                                         ← Previous
                                     </Button>
                                 </Col>
-                                <Col xs="auto" className="text-center text-muted mx-3">
+                                <Col xs="auto" className="text-muted mx-3">
                                     Showing {(page - 1) * limit + 1}–
-                                    {Math.min(page * limit, approvals?.pagination?.totalDocs || 0)} of{" "}
-                                    {approvals?.pagination?.totalDocs || 0}
+                                    {Math.min(page * limit, approvals.pagination.totalDocs)} of{" "}
+                                    {approvals.pagination.totalDocs}
                                 </Col>
-                                <Col xs="auto" className="d-flex justify-content-center">
+                                <Col xs="auto">
                                     <Button
                                         color="secondary"
-                                        disabled={page === approvals?.pagination?.totalPages}
+                                        disabled={page === approvals.pagination.totalPages}
                                         onClick={() => setPage((p) => p + 1)}
                                     >
                                         Next →
@@ -266,6 +381,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                     )}
                 </Container>
             </div>
+
             {hasCreatePermission && (
                 <ConfirmationModal
                     isOpen={modalOpen}
@@ -278,9 +394,8 @@ const ProcessPayment = ({ loading, approvals, centerAccess, activeTab }) => {
                     onCancel={toggleModal}
                 />
             )}
-
-
         </React.Fragment>
+
     )
 }
 
@@ -289,10 +404,12 @@ ProcessPayment.prototype = {
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
     activeTab: PropTypes.string,
+    userCenters: PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,
+    userCenters: state.User?.userCenters,
     loading: state.CentralPayment?.loading,
     approvals: state.CentralPayment?.approvals
 });

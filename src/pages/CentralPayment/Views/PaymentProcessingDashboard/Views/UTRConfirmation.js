@@ -4,20 +4,19 @@ import React, { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { getApprovals } from "../../../../../store/features/centralPayment/centralPaymentSlice";
 import { toast } from "react-toastify";
-import { getAllENets } from "../../../../../helpers/backend_helper";
 import { Button, Col, Container, Row, Spinner } from "reactstrap";
-import { Copy, CopyCheck } from "lucide-react";
 import ItemCard from "../../../Components/ItemCard";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import Select from "react-select";
 
 
-const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
+const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
-    const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedCenter, setSelectedCenter] = useState("ALL");
     const limit = 12;
 
     const microUser = localStorage.getItem("micrologin");
@@ -27,13 +26,51 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "WRITE") ||
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "DELETE");
 
-    // approved payments whose paymentstatus is pending
+    const centerOptions = [
+        ...(centerAccess?.length > 1
+            ? [{
+                value: "ALL",
+                label: "All Centers",
+                isDisabled: false,
+            }]
+            : []
+        ),
+        ...(
+            centerAccess?.map(id => {
+                const center = userCenters?.find(c => c._id === id);
+                return {
+                    value: id,
+                    label: center?.title || "Unknown Center"
+                };
+            }) || []
+        )
+    ];
+
+    const selectedCenterOption = centerOptions.find(
+        opt => opt.value === selectedCenter
+    ) || centerOptions[0];
+
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, centerAccess]);
+
     const fetchApprovedPayments = async () => {
         try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? centerAccess
+                    : !centerAccess.length ? [] : [selectedCenter];
+
             await dispatch(getApprovals({
                 page,
                 limit,
-                centers: centerAccess,
+                centers: centers,
                 approvalStatus: "APPROVED",
                 currentPaymentStatus: "PENDING",
                 processStatus: "COMPLETED",
@@ -49,14 +86,17 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
         if (activeTab === "UTR_CONFIRMATION") {
             fetchApprovedPayments();
         }
-    }, [centerAccess, dispatch, page, limit, activeTab]);
+    }, [centerAccess, dispatch, page, limit, activeTab, selectedCenter]);
 
 
     if (loading) {
         return (
-            <Container fluid className="text-center py-5">
+            <div
+                className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+                style={{ minHeight: "50vh" }}
+            >
                 <Spinner color="primary" />
-            </Container>
+            </div>
         );
     }
 
@@ -65,6 +105,23 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
         <React.Fragment>
             <div className="d-flex flex-column">
                 <Container fluid>
+                    <div className="mb-3">
+                        <Row className="align-items-center g-2">
+                            <Col lg="2" md="6" sm="12">
+                                <Select
+                                    value={selectedCenterOption}
+                                    onChange={(option) => {
+                                        setSelectedCenter(option?.value);
+                                        setPage(1);
+                                    }}
+                                    options={centerOptions}
+                                    placeholder="All Centers"
+                                    classNamePrefix="react-select"
+                                />
+                            </Col>
+                        </Row>
+                    </div>
+
                     <div className="mb-5">
                         {approvals?.data?.length > 0 ? (
                             <>
@@ -82,7 +139,12 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, activeTab }) => {
                                 </Row>
                             </>
                         ) : (
-                            <p className="text-muted text-center py-3">No pending UTR confirmation requests</p>
+                            <div
+                                className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+                                style={{ minHeight: "40vh" }}
+                            >
+                                <h6 className="mb-1">No pending UTR confirmation requests</h6>
+                            </div>
                         )}
                     </div>
 
@@ -151,11 +213,13 @@ UTRCofrmation.prototype = {
     loading: PropTypes.bool,
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
+    userCenters: PropTypes.array,
     activeTab: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,
+    userCenters: state.User?.userCenters,
     loading: state.CentralPayment?.loading,
     approvals: state.CentralPayment?.approvals
 });

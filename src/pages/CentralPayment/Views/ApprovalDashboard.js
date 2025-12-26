@@ -145,9 +145,12 @@ const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) =>
 
   if (loading) {
     return (
-      <Container fluid className="text-center py-5">
+      <div
+        className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+        style={{ minHeight: "50vh" }}
+      >
         <Spinner color="primary" />
-      </Container>
+      </div>
     );
   }
   return (

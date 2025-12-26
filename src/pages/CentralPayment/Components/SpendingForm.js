@@ -19,7 +19,6 @@ import { FileText, Share } from 'lucide-react';
 
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
-    console.log(paymentData)
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
 
@@ -38,12 +37,20 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
         date: Yup.string().required("Transaction date is required"),
-        description: Yup.string().nullable(),
+        description: Yup.string().required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().nullable(),
         totalAmountWithGST: Yup.number()
             .typeError("Total amount must be a number")
-            .required("Total amount with GST is required"),
+            .required("Total amount with GST is required")
+            .test(
+                "max-two-decimals",
+                "Total amount can have at most 2 decimal places",
+                (value) => {
+                    if (value === undefined || value === null) return true;
+                    return Number.isInteger(value * 100);
+                }
+            ),
         GSTAmount: Yup.number()
             .typeError("GST amount must be a number")
             .required("GST amount is required"),
@@ -58,7 +65,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 }
             ),
         accountHolderName: Yup.string().nullable(),
-        accountNo: Yup.string().nullable(),
+        accountNo: Yup.string()
+            .nullable()
+            .max(25, "Account number cannot be more than 25 characters"),
         TDSRate: Yup.number()
             .typeError("TDS Rate must be a number")
             .nullable(),
@@ -87,7 +96,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     });
 
 
-    const formik = useFormik({
+    const form = useFormik({
         initialValues: {
             name: paymentData?.name || "",
             center: paymentData?.center?._id || "",
@@ -160,45 +169,59 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     });
 
     const handleSubmit = (e) => {
-        formik.handleSubmit(e);
+        form.handleSubmit(e);
     };
+
+    // transform every text input in uppercase & comma not allowed validation
+    const normalizeTextInput = (e) => {
+        const { name, value } = e.target;
+
+        if (value.includes(",")) {
+            form.setFieldTouched(name, true, false);
+            form.setFieldError(name, "Comma (,) is not allowed");
+            return;
+        }
+
+        form.setFieldValue(name, value.toUpperCase(), true);
+    };
+
     return (
         <Form onSubmit={handleSubmit}>
             <FormGroup>
                 <Label for="name" className="fw-medium">
-                    Name *
+                    Name <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
                     id="name"
                     name="name"
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.name && formik.errors.name
+                    value={form.values.name}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.name && form.errors.name
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.name && formik.errors.name && (
+                {form.touched.name && form.errors.name && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.name}
+                        {form.errors.name}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label for="center" className="fw-medium">
-                    Center *
+                    Center <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="select"
                     id="center"
                     name="center"
-                    value={formik.values.center}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-select ${formik.touched.center && formik.errors.center
+                    value={form.values.center}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    className={`form-select ${form.touched.center && form.errors.center
                         ? "is-invalid"
                         : ""
                         }`}
@@ -212,103 +235,103 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         </option>
                     ))}
                 </Input>
-                {formik.touched.center && formik.errors.center && (
+                {form.touched.center && form.errors.center && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.center}
+                        {form.errors.center}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label for="items" className="fw-medium">
-                    Items *
+                    Items <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
                     id="items"
                     name="items"
-                    value={formik.values.items}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.items && formik.errors.items
+                    value={form.values.items}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.items && form.errors.items
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.items && formik.errors.items && (
+                {form.touched.items && form.errors.items && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.items}
+                        {form.errors.items}
                     </div>
                 )}
             </FormGroup>
             <FormGroup className="mb-4">
                 <Label for="date" className="fw-medium text-muted">
-                    Date
+                    Date <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="date"
                     id="date"
                     name="date"
-                    value={formik.values.date}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.date && formik.errors.date
+                    value={form.values.date}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.date && form.errors.date
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.date && formik.errors.date && (
+                {form.touched.date && form.errors.date && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.date}
+                        {form.errors.date}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label for="description" className="fw-medium">
-                    Description
+                    Description <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="textarea"
                     id="description"
                     name="description"
                     rows="3"
-                    value={formik.values.description}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.description && formik.errors.description
+                    value={form.values.description}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.description && form.errors.description
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.description && formik.errors.description && (
+                {form.touched.description && form.errors.description && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.description}
+                        {form.errors.description}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label for="vendor" className="fw-medium">
-                    Vendor *
+                    Vendor <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
                     id="vendor"
                     name="vendor"
-                    value={formik.values.vendor}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.vendor && formik.errors.vendor
+                    value={form.values.vendor}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.vendor && form.errors.vendor
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.vendor && formik.errors.vendor && (
+                {form.touched.vendor && form.errors.vendor && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.vendor}
+                        {form.errors.vendor}
                     </div>
                 )}
             </FormGroup>
@@ -320,67 +343,67 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     type="text"
                     id="invoiceNo"
                     name="invoiceNo"
-                    value={formik.values.invoiceNo}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.invoiceNo && formik.errors.invoiceNo
+                    value={form.values.invoiceNo}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.invoiceNo && form.errors.invoiceNo
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.invoiceNo && formik.errors.invoiceNo && (
+                {form.touched.invoiceNo && form.errors.invoiceNo && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.invoiceNo}
+                        {form.errors.invoiceNo}
                     </div>
                 )}
             </FormGroup>
 
             <FormGroup>
                 <Label for="totalAmountWithGST" className="fw-medium">
-                    Total Amount including GST *
+                    Total Amount including GST <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
                     id="totalAmountWithGST"
                     name="totalAmountWithGST"
-                    value={formik.values.totalAmountWithGST}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
+                    value={form.values.totalAmountWithGST}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
                     placeholder="0.00"
-                    className={`form-control ${formik.touched.totalAmountWithGST && formik.errors.totalAmountWithGST
+                    className={`form-control ${form.touched.totalAmountWithGST && form.errors.totalAmountWithGST
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.totalAmountWithGST && formik.errors.totalAmountWithGST && (
+                {form.touched.totalAmountWithGST && form.errors.totalAmountWithGST && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.totalAmountWithGST}
+                        {form.errors.totalAmountWithGST}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label for="GSTAmount" className="fw-medium">
-                    GST Amount (Mention amount from the bill, dont mention the %) *
+                    GST Amount (Mention amount from the bill, dont mention the %) <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
                     id="GSTAmount"
                     name="GSTAmount"
-                    value={formik.values.GSTAmount}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
+                    value={form.values.GSTAmount}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
                     placeholder="0.00"
-                    className={`form-control ${formik.touched.GSTAmount && formik.errors.GSTAmount
+                    className={`form-control ${form.touched.GSTAmount && form.errors.GSTAmount
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.GSTAmount && formik.errors.GSTAmount && (
+                {form.touched.GSTAmount && form.errors.GSTAmount && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.GSTAmount}
+                        {form.errors.GSTAmount}
                     </div>
                 )}
             </FormGroup>
@@ -392,18 +415,18 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     type="text"
                     id="IFSCCode"
                     name="IFSCCode"
-                    value={formik.values.IFSCCode}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.IFSCCode && formik.errors.IFSCCode
+                    value={form.values.IFSCCode}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.IFSCCode && form.errors.IFSCCode
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.IFSCCode && formik.errors.IFSCCode && (
+                {form.touched.IFSCCode && form.errors.IFSCCode && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.IFSCCode}
+                        {form.errors.IFSCCode}
                     </div>
                 )}
             </FormGroup>
@@ -415,18 +438,18 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     type="text"
                     id="accountHolderName"
                     name="accountHolderName"
-                    value={formik.values.accountHolderName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.accountHolderName && formik.errors.accountHolderName
+                    value={form.values.accountHolderName}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.accountHolderName && form.errors.accountHolderName
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.accountHolderName && formik.errors.accountHolderName && (
+                {form.touched.accountHolderName && form.errors.accountHolderName && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.accountHolderName}
+                        {form.errors.accountHolderName}
                     </div>
                 )}
             </FormGroup>
@@ -438,18 +461,18 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     type="text"
                     id="accountNo"
                     name="accountNo"
-                    value={formik.values.accountNo}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.accountNo && formik.errors.accountNo
+                    value={form.values.accountNo}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.accountNo && form.errors.accountNo
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.accountNo && formik.errors.accountNo && (
+                {form.touched.accountNo && form.errors.accountNo && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.accountNo}
+                        {form.errors.accountNo}
                     </div>
                 )}
             </FormGroup>
@@ -461,23 +484,23 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     type="text"
                     id="TDSRate"
                     name="TDSRate"
-                    value={formik.values.TDSRate}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={`form-control ${formik.touched.TDSRate && formik.errors.TDSRate
+                    value={form.values.TDSRate}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.TDSRate && form.errors.TDSRate
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {formik.touched.TDSRate && formik.errors.TDSRate && (
+                {form.touched.TDSRate && form.errors.TDSRate && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.TDSRate}
+                        {form.errors.TDSRate}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
-                <Label className="fw-medium">Status of the Payment *</Label>
+                <Label className="fw-medium">Status of the Payment <span className="text-danger">*</span></Label>
                 <div>
                     <FormGroup check inline>
                         <Input
@@ -485,9 +508,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="paid"
                             name="initialPaymentStatus"
                             value="COMPLETED"
-                            checked={formik.values.initialPaymentStatus === "COMPLETED"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.initialPaymentStatus === "COMPLETED"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="paid" check>
                             Paid
@@ -500,9 +523,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="pending"
                             name="initialPaymentStatus"
                             value="PENDING"
-                            checked={formik.values.initialPaymentStatus === "PENDING"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.initialPaymentStatus === "PENDING"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="pending" check>
                             To be Paid
@@ -510,16 +533,16 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </FormGroup>
                 </div>
 
-                {formik.touched.initialPaymentStatus && formik.errors.initialPaymentStatus && (
+                {form.touched.initialPaymentStatus && form.errors.initialPaymentStatus && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.initialPaymentStatus}
+                        {form.errors.initialPaymentStatus}
                     </div>
                 )}
             </FormGroup>
             <FormGroup>
                 <Label className="fw-medium">
-                    You need to upload at least one of the following *
+                    You need to upload at least one of the following <span className="text-danger"><span className="text-danger"><span className="text-danger">*</span></span></span>
                 </Label>
 
                 <div className="d-flex flex-wrap gap-3 mt-2">
@@ -529,9 +552,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="invoice-bill"
                             name="attachmentType"
                             value="INVOICE/BILL"
-                            checked={formik.values.attachmentType === "INVOICE/BILL"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.attachmentType === "INVOICE/BILL"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="invoice-bill" check>
                             Invoice/Bill
@@ -544,9 +567,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="quotation"
                             name="attachmentType"
                             value="QUOTATION"
-                            checked={formik.values.attachmentType === "QUOTATION"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.attachmentType === "QUOTATION"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="quotation" check>
                             Quotation
@@ -559,9 +582,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="performa-invoice"
                             name="attachmentType"
                             value="PROFORMA_INVOICE"
-                            checked={formik.values.attachmentType === "PROFORMA_INVOICE"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.attachmentType === "PROFORMA_INVOICE"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="performa-invoice" check>
                             Performa Invoice
@@ -574,9 +597,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             id="voucher"
                             name="attachmentType"
                             value="VOUCHER"
-                            checked={formik.values.attachmentType === "VOUCHER"}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
+                            checked={form.values.attachmentType === "VOUCHER"}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
                         />
                         <Label for="voucher" check>
                             Voucher
@@ -584,10 +607,10 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </FormGroup>
                 </div>
 
-                {formik.touched.attachmentType && formik.errors.attachmentType && (
+                {form.touched.attachmentType && form.errors.attachmentType && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.attachmentType}
+                        {form.errors.attachmentType}
                     </div>
                 )}
             </FormGroup>
@@ -631,16 +654,16 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
             <FormGroup>
                 <Label className="fw-medium">
-                    Upload Attachment *
+                    Upload Attachment <span className="text-danger"><span className="text-danger">*</span></span>
                 </Label>
                 <FileUpload
-                    files={formik.values.attachments || []}
-                    setFiles={(files) => formik.setFieldValue("attachments", files)}
+                    files={form.values.attachments || []}
+                    setFiles={(files) => form.setFieldValue("attachments", files)}
                 />
-                {formik.touched.attachments && formik.errors.attachments && (
+                {form.touched.attachments && form.errors.attachments && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {formik.errors.attachments}
+                        {form.errors.attachments}
                     </div>
                 )}
             </FormGroup>
@@ -648,10 +671,10 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             <Button
                 color="primary"
                 type="submit"
-                className="w-100"
-                disabled={formik.isSubmitting}
+                className="w-100 text-white"
+                disabled={form.isSubmitting || !form.isValid || !form.dirty}
             >
-                {formik.isSubmitting ? (
+                {form.isSubmitting ? (
                     <Spinner size="sm" className="me-2" />
                 ) : (
                     <>
