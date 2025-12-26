@@ -13,7 +13,7 @@ import {
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
-  MENTAL_EXAMINATION
+  MENTAL_EXAMINATION,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -47,20 +47,22 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const title = isPrescription
     ? "Prescription"
     : isClinicalNotes
-      ? "Clinical Notes"
-      : isCounsellingNotes
-        ? "Counselling Notes"
-        : isVitalSigns
-          ? "Vital Signs"
-          : isLabReports
-            ? "Lab Report"
-            : isDischargeSummary
-              ? "Discharge Summary"
-              : isRelativeVisit
-                ? "Relative Visit"
-                : isMentalExamination
-                  ? "Clinical Notes"
-                  : "Detail Admission";
+    ? "Clinical Notes"
+    : isCounsellingNotes
+    ? "Counselling Notes"
+    : isVitalSigns
+    ? "Vital Signs"
+    : isLabReports
+    ? "Lab Report"
+    : isDischargeSummary
+    ? "Discharge Summary"
+    : isRelativeVisit
+    ? "Relative Visit"
+    : isMentalExamination
+    ? "Clinical Notes"
+    : "Detail Admission";
+
+  // console.log({ type });
 
   return (
     <React.Fragment>

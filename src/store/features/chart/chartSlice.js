@@ -208,7 +208,7 @@ export const updatePrescription = createAsyncThunk(
       const patient = response?.patient;
       const appointment = payload.appointment;
       console.log("------------------");
-      console.log({ payload });
+      console.log({ payload, appointment, response });
       console.log("------------------");
       if ((payload.type === OPD || payload.type === IPD) && appointment) {
         dispatch(
@@ -808,42 +808,47 @@ export const updateDetailAdmission = createAsyncThunk(
   }
 );
 
-export const addMentalExamination = createAsyncThunk("postMentalExamination", async (data, { rejectWithValue, dispatch }) => {
-  try {
-    const response = await postMentalExamination(data);
-    dispatch(
-      setAlert({
-        type: "success",
-        message: "Clinical Notes V2 Saved Successfully",
-      })
-    );
+export const addMentalExamination = createAsyncThunk(
+  "postMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postMentalExamination(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Clinical Notes V2 Saved Successfully",
+        })
+      );
 
-    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
-    return response;
-  } catch (error) {
-    dispatch(setAlert({ type: "error", message: error.message }));
-    return rejectWithValue("something went wrong");
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
   }
-});
+);
 
-export const addGeneralMentalExamination = createAsyncThunk("postGeneralMentalExamination", async (data, { rejectWithValue, dispatch }) => {
-  try {
-    const response = await postGeneralMentalExamintion(data);
-    dispatch(
-      setAlert({
-        type: "success",
-        message: "General Clinical Notes V2 Saved Successfully",
-      })
-    );
+export const addGeneralMentalExamination = createAsyncThunk(
+  "postGeneralMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralMentalExamintion(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General Clinical Notes V2 Saved Successfully",
+        })
+      );
 
-    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
-    return response;
-  } catch (error) {
-    dispatch(setAlert({ type: "error", message: error.message }));
-    return rejectWithValue("something went wrong");
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
   }
-});
-
+);
 
 export const updateMentalExamination = createAsyncThunk(
   "editMentalExamination",
@@ -866,7 +871,6 @@ export const updateMentalExamination = createAsyncThunk(
   }
 );
 
-
 export const fetchLastMentalExamination = createAsyncThunk(
   "getLastMentalExamination",
   async (data, { rejectWithValue, dispatch }) => {
@@ -879,7 +883,6 @@ export const fetchLastMentalExamination = createAsyncThunk(
     }
   }
 );
-
 
 export const removeChart = createAsyncThunk(
   "deleteChart",
@@ -1087,7 +1090,7 @@ export const chartSlice = createSlice({
             (el) => el._id === payload.payload._id
           );
           state.charts[findIndex] = payload.payload;
-        } else if (payload.type !== "OPD") {
+        } else if (payload.type !== "OPD" && state.data?.length > 0) {
           // && !payload.appointment
           console.log("INSIDE IPD CHARTS");
 
