@@ -31,6 +31,9 @@ const Sidebar = () => {
     const hasUserPermission10 = hasPermission("HR", "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL", "READ");
     const hasUserPermission11 = hasPermission("HR", "TRANSFER_EMPLOYEE_IT", "READ");
 
+    const hasHiringAddRequestPermission = hasPermission("HR", "HIRING_ADD_REQUEST", "READ");
+    const hasHiringApprovalPermission = hasPermission("HR", "HIRING_APPROVAL", "READ");
+
     const location = useLocation();
     const [openSection, setOpenSection] = useState("");
 
@@ -80,6 +83,15 @@ const Sidebar = () => {
                 if (child.id === "transfer-current-location-approval" && !hasUserPermission9) return false;
                 if (child.id === "transfer-transferred-location-approval" && !hasUserPermission10) return false;
                 if (child.id === "transfer-it-approval" && !hasUserPermission11) return false;
+                return true;
+            });
+            return page.children.length > 0;
+        }
+
+        if (page.id === "hiring") {
+            page.children = page.children.filter((child) => {
+                if (child.id === "add-hiring-request" && !hasHiringAddRequestPermission) return false;
+                if (child.id === "hiring-approval" && !hasHiringApprovalPermission) return false;
                 return true;
             });
             return page.children.length > 0

@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Spinner } from "reactstrap";
+import { CardBody, Spinner } from "reactstrap";
 import SalaryAdvanceForm from "../../components/forms/SalaryAdvanceForm";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
@@ -28,23 +28,30 @@ const AddSalaryAdvanceRequest = () => {
         )
     }
     return (
-        <Card className="bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
-            <CardHeader className="bg-white">
-                <div>
-                    <h5 className="mb-1">Add Salary Advance Request</h5>
-                    <small className="text-muted">
-                        Select an employee and enter the advance amount
-                    </small>
-                </div>
-            </CardHeader>
-            <CardBody>
+        <CardBody className="bg-white" style={isMobile ? {
+            width: "100%",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
+            paddingBottom: "1rem"
+        } : { width: "78%" }}>
+            <div className="px-3 pt-3">
+                <h5 className="mb-1">Add Salary Advance Request</h5>
+                <small className="text-muted">
+                    Select an employee and enter the advance amount
+                </small>
+            </div>
+            <hr className="mb-2 border-secondary" />
+            <div>
                 <div className="d-flex justify-content-center">
                     <div style={{ width: "100%", maxWidth: "700px" }}>
-                        <SalaryAdvanceForm view="PAGE" hasCreatePermission={hasCreatePermission} />
+                        <SalaryAdvanceForm
+                            view="PAGE"
+                            hasCreatePermission={hasCreatePermission}
+                        />
                     </div>
                 </div>
-            </CardBody>
-        </Card>
+            </div>
+        </CardBody>
     );
 };
 

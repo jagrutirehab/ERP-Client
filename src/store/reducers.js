@@ -94,8 +94,13 @@ import Incident from "./features/incident/incidentSlice";
 
 import Pharmacy from "./features/pharmacy/pharmacySlice";
 import RoundNotes from "./features/roundNotes/roundNotesSlice";
-import HR from "./features/HR/hrSlice";
 import MIReporting from "./features/miReporting/miReportingSlice";
+
+// HR
+import HR from "./features/HR/hrSlice";
+
+// HRMS
+import HRMS from "./features/HRMS/hrmsSlice";
 
 const rootReducer = combineReducers({
   // ** public **
@@ -135,6 +140,7 @@ const rootReducer = combineReducers({
   RoundNotes,
   HR,
   MIReporting,
+  HRMS,
 });
 
 export default rootReducer;

@@ -349,3 +349,8 @@ export {
   resetRoundNotesFilters,
   setRoundNoteDrawer,
 } from "./features/roundNotes/roundNotesSlice";
+
+// HRMS
+export {
+  fetchAttendance
+} from "./features/HRMS/hrmsSlice";

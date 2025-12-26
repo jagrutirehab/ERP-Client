@@ -28,7 +28,6 @@ const validationSchema = Yup.object().shape({
 });
 
 const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
-    console.log(hasCreatePermission)
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const isEdit = !!initialData?._id;
@@ -80,7 +79,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
             employeeId: "",
             name: initialData?.employeeName || "",
             eCode: initialData?.eCode || "",
-            currentLocation: initialData?.center || initialData?.currentLocation?.title || "",
+            currentLocation: initialData?.currentLocation?.title || "",
             lastWorkingDay: initialData?.lastWorkingDay || "",
             reason: initialData?.reason || "",
             otherReason: initialData?.otherReason || "",
@@ -135,8 +134,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
         <>
             {!isEdit && (
                 <div className="mb-3 position-relative">
-                    <label>Search Employee</label>
-
+                    <label >Search Employee</label>
                     <input
                         type="text"
                         placeholder="Search by name or eCode"
@@ -244,8 +242,9 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
             </div>
 
             <div className="mb-3">
-                <label>Reason</label>
+                <label htmlFor="reason">Reason</label>
                 <select
+                    inputId="reason"
                     name="reason"
                     value={form.values.reason}
                     onChange={form.handleChange}
@@ -265,8 +264,9 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
 
             {form.values.reason === "OTHER" && (
                 <div className="mb-3">
-                    <label>Other Reason</label>
+                    <label htmlFor="otherReason">Other Reason</label>
                     <input
+                        id="otherReason"
                         name="otherReason"
                         value={form.values.otherReason}
                         onChange={form.handleChange}
@@ -289,6 +289,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
                         disabled={
                             form.isSubmitting ||
                             !form.isValid ||
+                            !form.dirty ||
                             (!isEdit && !form.values.employeeId)
                         }
                     >

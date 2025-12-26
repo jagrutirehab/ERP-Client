@@ -32,6 +32,7 @@ const DeleteConfirmModal = ({
                     color="danger"
                     onClick={onConfirm}
                     disabled={loading}
+                    className="text-white"
                 >
                     {loading ? <Spinner size={"sm"} /> : "Delete"}
                 </Button>

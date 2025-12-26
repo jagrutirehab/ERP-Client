@@ -157,14 +157,18 @@ const Employee = () => {
     const columns = [
         {
             name: <div>ECode</div>,
-            selector: row => row?.eCode || "",
+            selector: row => row?.eCode || "-",
             sortable: true,
         },
         {
             name: <div>Name</div>,
             selector: row => row?.name?.toUpperCase() || "-",
             wrap: true,
-            minWidth: "160px"
+            minWidth: "160px",
+        },
+        {
+            name: <div>Biometric ID</div>,
+            selector: row => row?.biometricId || "-",
         },
         {
             name: <div>Department</div>,
@@ -174,7 +178,7 @@ const Employee = () => {
         },
         {
             name: <div>Designation</div>,
-            selector: row => capitalizeWords(row?.designation || "-"),
+            selector: row => capitalizeWords(row?.designation?.name?.replace(/_/g, " ") || "-"),
             wrap: true,
             minWidth: "120px"
         },

@@ -226,10 +226,26 @@ export const permissionList = [
       {
         name: "TRANSFER_EMPLOYEE_IT",
         label: "Employee Transfer IT"
-      }
+      },
+      // hiring
+      {
+        name: "HIRING_ADD_REQUEST",
+        label: "Hiring Add Request"
+      },
+      {
+        name: "HIRING_APPROVAL",
+        label: "Hiring Approvals"
+      },
 
     ]
-  }
+  },
+  {
+    key: "HRMS",
+    label: "HRMS",
+    subModules: [
+      { name: "HRMS_ATTENDANCE", label: "Attendance Management" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

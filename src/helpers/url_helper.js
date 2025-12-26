@@ -420,3 +420,14 @@ export const SALARY_ADVANCE_ACTION = "/hr/advance-salary/action";
 export const TRANSFER_EMPLOYEE = "/hr/transfer-employee";
 export const TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION = "/hr/transfer-employee/current/action";
 export const TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION = "/hr/transfer-employee/transfer/action";
+
+export const DESIGNATION = "/hr/designation";
+
+export const HIRING = "/hr/hiring";
+export const HIRING_ACTION = "/hr/hiring/action";
+
+// HRMS
+export const ATTENDANCE = "/hrms/attendance";
+export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
+export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
+

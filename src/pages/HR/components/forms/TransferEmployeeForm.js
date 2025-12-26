@@ -132,7 +132,6 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         setSearchText("");
     };
 
-    console.log(initialData?.currentLocation)
     const transferLocationOptions =
         userCenters
             ?.filter(
@@ -285,6 +284,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
                     disabled={
                         form.isSubmitting ||
                         !form.isValid ||
+                        !form.dirty ||
                         (!isEdit && !form.values.employeeId)
                     }
                 >

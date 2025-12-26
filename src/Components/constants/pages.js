@@ -280,6 +280,13 @@ const pages = [
     link: "/hr",
     icon: "bx bx-body",
   },
+  {
+    id: "hrms",
+    label: "HRMS",
+    name: "HRMS",
+    link: "/hrms",
+    icon: "bx bx-group",
+  },
 ];
 
 export const Pharmacy = [
@@ -581,7 +588,7 @@ export const HR = [
     isAccordion: true,
     children: [
       {
-        id: "add-transfer-reques",
+        id: "add-transfer-request",
         label: "Add Request",
         icon: "bx bx-plus",
         link: "/hr/transfer-employees/add",
@@ -611,6 +618,36 @@ export const HR = [
         link: "/hr/transfer-employees/it",
       },
     ],
+  },
+  {
+    id: "hiring",
+    label: "Hiring",
+    icon: "bx bx-badge",
+    link: "/hr/hiring",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-hiring-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/hiring/add",
+      },
+      {
+        id: "hiring-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/hiring/approval",
+      },
+    ]
+  }
+];
+
+export const HRMS = [
+  {
+    id: "attendance",
+    label: "Attendance",
+    link: "/hrms/attendance",
+    icon: "bx bx-time-five",
   },
 ];
 

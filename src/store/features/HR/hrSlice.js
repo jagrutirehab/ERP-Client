@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getEmployees, getEmployeeTransfers, getExitEmployees, getITApprovals, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getITApprovals, postDesignation, searchExitEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
     employees: [],
+    designations: [],
     pagination: {},
-    loading: false
+    loading: false,
+    designationLoading: false,
 };
 
 export const getMasterEmployees = createAsyncThunk("hr/getEmployees", async (data, { rejectWithValue }) => {
@@ -56,6 +58,33 @@ export const fetchAdvanceSalaries = createAsyncThunk("hr/getAdvanceSalaries", as
 export const fetchEmployeeTransfers = createAsyncThunk("hr/getEmployeeTransfers", async (data, { rejectWithValue }) => {
     try {
         const response = await getEmployeeTransfers(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchDesignations = createAsyncThunk("hr/getDesignations", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getDesignations(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const addDesignation = createAsyncThunk("hr/postDesignation", async (data, { rejectWithValue }) => {
+    try {
+        const response = await postDesignation(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchHirings = createAsyncThunk("hr/getHirings", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getHirings(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -136,6 +165,34 @@ export const hrSlice = createSlice({
                 state.loading = false
             });
 
+        builder
+            .addCase(fetchDesignations.pending, (state) => {
+                state.designationLoading = true
+            })
+            .addCase(fetchDesignations.fulfilled, (state, { payload }) => {
+                state.designationLoading = false;
+                state.designations = payload.data;
+            })
+            .addCase(fetchDesignations.rejected, (state) => {
+                state.designationLoading = false
+            });
+
+        builder.addCase(addDesignation.fulfilled, (state, { payload }) => {
+            state.designations.push(payload.data);
+        });
+
+        builder
+            .addCase(fetchHirings.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchHirings.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchHirings.rejected, (state) => {
+                state.loading = false
+            });
     }
 });
 

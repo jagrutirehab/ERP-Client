@@ -165,7 +165,7 @@ const ExitApprovals = () => {
         },
         {
             name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.center || "-"),
+            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
             minWidth: "120px"
         },
@@ -173,7 +173,7 @@ const ExitApprovals = () => {
             name: <div>Reason of Leaving</div>,
             selector: row => row?.reason || "-",
             wrap: true,
-            minWidth: "150px"
+            minWidth: "180px"
         },
         {
             name: <div>Other Reason (If Any)</div>,

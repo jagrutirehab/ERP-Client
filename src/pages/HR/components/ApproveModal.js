@@ -13,12 +13,13 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getEmployeeId } from "../../../helpers/backend_helper";
 import Select from "react-select";
+import { AlertTriangle } from "lucide-react";
 
 const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
-  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES
+  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING
   actionType,
   setActionType,
   paymentType,
@@ -29,6 +30,7 @@ const ApproveModal = ({
   setECode,
   usersLinkedToEmployee,
   loading,
+  designation
 }) => {
 
   const [approvedBy, setApprovedBy] = useState("");
@@ -42,7 +44,7 @@ const ApproveModal = ({
       const response = await getEmployeeId();
       setECode(response.payload.value);
     } catch (error) {
-      if (!handleAuthError) {
+      if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
     } finally {
@@ -201,6 +203,19 @@ const ApproveModal = ({
             )
           ) : null
         }
+
+        {mode === "HIRING" && designation && (
+          <div className="d-flex align-items-start gap-2 small mt-2 text-body">
+            <AlertTriangle
+              size={14}
+              className="text-warning mt-1"
+            />
+            <span>
+              Approving this request will also {actionType?.toLowerCase()} the designation
+              <strong> {designation}</strong>.
+            </span>
+          </div>
+        )}
 
         {mode === "SALARY_ADVANCE" && actionType === "APPROVE" && (
           <div className="mb-3">
