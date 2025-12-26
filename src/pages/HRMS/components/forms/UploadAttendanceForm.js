@@ -59,7 +59,11 @@ const extractGeneratedOn = (rows) => {
 
 const validationSchema = Yup.object({
     center: Yup.object().required("Center is required").nullable(),
-    attachment: Yup.mixed().required("File is required"),
+    attachment: Yup.mixed().test(
+        "fileRequired",
+        "File is required",
+        (value) => value instanceof File
+    )
 });
 
 
@@ -100,6 +104,9 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
         const reader = new FileReader();
 
         reader.onload = (e) => {
+            if (file) {
+                form.setFieldError("attachment", undefined);
+            }
             try {
                 const workbook = XLSX.read(
                     new Uint8Array(e.target.result),
@@ -153,7 +160,9 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
         reader.readAsArrayBuffer(file);
     };
 
-    const formik = useFormik({
+    const form = useFormik({
+        validateOnChange: false,
+        validateOnBlur: true,
         initialValues: {
             center: null,
             attachment: null,
@@ -182,7 +191,7 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
     });
 
     return (
-        <Form onSubmit={formik.handleSubmit}>
+        <Form onSubmit={form.handleSubmit}>
             {/* Center */}
             <FormGroup>
                 <Label htmlFor="center">
@@ -192,17 +201,17 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
                     name="center"
                     id="center"
                     options={centerOptions}
-                    value={formik.values.center}
+                    value={form.values.center}
                     onChange={(option) =>
-                        formik.setFieldValue("center", option)
+                        form.setFieldValue("center", option)
                     }
                     onBlur={() =>
-                        formik.setFieldTouched("center", true)
+                        form.setFieldTouched("center", true)
                     }
                 />
-                {formik.touched.center && formik.errors.center && (
+                {form.touched.center && form.errors.center && (
                     <div className="text-danger mt-1">
-                        {formik.errors.center}
+                        {form.errors.center}
                     </div>
                 )}
             </FormGroup>
@@ -219,15 +228,12 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
                     accept=".xlsx,.xls"
                     onChange={(e) => {
                         const file = e.currentTarget.files[0];
-                        formik.setFieldValue("attachment", file);
+                        form.setFieldValue("attachment", file);
                         handleFileChange(file);
                     }}
-                    onBlur={() =>
-                        formik.setFieldTouched("attachment", true)
-                    }
-                    invalid={formik.touched.attachment && !!formik.errors.attachment}
+                    invalid={form.touched.attachment && !!form.errors.attachment}
                 />
-                <FormFeedback>{formik.errors.attachment}</FormFeedback>
+                <FormFeedback>{form.errors.attachment}</FormFeedback>
             </FormGroup>
 
             {/* Errors */}
@@ -285,10 +291,10 @@ const UploadAttendanceForm = ({ onSuccess, onCancel }) => {
                     color="primary"
                     className="text-white"
                     disabled={
-                        formik.isSubmitting ||
-                        !formik.isValid ||
-                        !formik.values.attachment ||
-                        !formik.values.center ||
+                        form.isSubmitting ||
+                        !form.isValid ||
+                        !form.values.attachment ||
+                        !form.values.center ||
                         !!headerError
                     }
                 >

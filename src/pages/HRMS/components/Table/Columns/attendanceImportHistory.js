@@ -109,11 +109,10 @@ export const attendanceImportHistoryColumns = ({
                             className="text-white"
                             onClick={() => onDelete(row?._id)}
                         >
-                            <Trash size={"20"} />
+                            <Trash size={"15"} />
                         </Button>
                     ),
                     center: true,
-                    minWidth: "120px",
                 },
             ]
             : []),

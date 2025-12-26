@@ -65,12 +65,14 @@ import { getApprovals } from "../../../store/features/centralPayment/centralPaym
 import PropTypes from "prop-types";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import ItemCard from "../Components/ItemCard";
+import Select from "react-select";
 
-const ApprovalDashboard = ({ centerAccess, loading, approvals }) => {
+const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) => {
 
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const [page, setPage] = useState(1);
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const limit = 12;
 
   const microUser = localStorage.getItem("micrologin");
@@ -81,13 +83,52 @@ const ApprovalDashboard = ({ centerAccess, loading, approvals }) => {
     hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "WRITE") ||
     hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "DELETE");
 
+  const centerOptions = [
+    ...(centerAccess?.length > 1
+      ? [{
+        value: "ALL",
+        label: "All Centers",
+        isDisabled: false,
+      }]
+      : []
+    ),
+    ...(
+      centerAccess?.map(id => {
+        const center = userCenters?.find(c => c._id === id);
+        return {
+          value: id,
+          label: center?.title || "Unknown Center"
+        };
+      }) || []
+    )
+  ];
+
+  const selectedCenterOption = centerOptions.find(
+    opt => opt.value === selectedCenter
+  ) || centerOptions[0];
+
+  useEffect(() => {
+    if (
+      selectedCenter !== "ALL" &&
+      !centerAccess?.includes(selectedCenter)
+    ) {
+      setSelectedCenter("ALL");
+      setPage(1);
+    }
+  }, [selectedCenter, centerAccess]);
+
   useEffect(() => {
     const fetchPendingApprovals = async () => {
       try {
+        const centers =
+          selectedCenter === "ALL"
+            ? centerAccess
+            : !centerAccess.length ? [] : [selectedCenter];
+
         await dispatch(getApprovals({
           page,
           limit,
-          centers: centerAccess,
+          centers: centers,
           approvalStatus: "PENDING"
         })).unwrap();
       } catch (error) {
@@ -98,7 +139,7 @@ const ApprovalDashboard = ({ centerAccess, loading, approvals }) => {
     }
 
     fetchPendingApprovals();
-  }, [centerAccess, dispatch, page, limit]);
+  }, [centerAccess, selectedCenter, dispatch, page, limit]);
 
 
 
@@ -114,6 +155,20 @@ const ApprovalDashboard = ({ centerAccess, loading, approvals }) => {
       <div className="d-flex flex-column">
         <Container fluid>
           <div className="mb-5">
+            <Row className="mb-3 align-items-center">
+              <Col lg="2" md="6" sm="12">
+                <Select
+                  value={selectedCenterOption}
+                  onChange={(option) => {
+                    setSelectedCenter(option?.value);
+                    setPage(1);
+                  }}
+                  options={centerOptions}
+                  placeholder="All Centers"
+                  classNamePrefix="react-select"
+                />
+              </Col>
+            </Row>
             {approvals?.data?.length > 0 ? (
               <Row>
                 {(approvals?.data || []).map((payment) => (
@@ -123,7 +178,12 @@ const ApprovalDashboard = ({ centerAccess, loading, approvals }) => {
                 ))}
               </Row>
             ) : (
-              <p className="text-muted text-center py-3">No pending Approvals</p>
+              <div
+                className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
+                style={{ minHeight: "40vh" }}
+              >
+                <h6 className="mb-1">No pending approvals</h6>
+              </div>
             )}
           </div>
           {!loading && approvals?.pagination?.totalPages > 1 && (
@@ -191,11 +251,13 @@ ApprovalDashboard.prototype = {
   loading: PropTypes.bool,
   approvals: PropTypes.object,
   centerAccess: PropTypes.array,
+  userCenters: PropTypes.array,
 }
 
 
 const mapStateToProps = (state) => ({
   centerAccess: state.User?.centerAccess,
+  userCenters: state.User?.userCenters,
   loading: state.CentralPayment?.loading,
   approvals: state.CentralPayment?.approvals
 });
