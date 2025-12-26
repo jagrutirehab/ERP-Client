@@ -83,6 +83,10 @@ const Prescription = ({
 
   // console.log(patient.referredBy, "this is patient")
 
+  console.log("------------------");
+  console.log({ patient, type });
+  console.log("------------------");
+
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
@@ -98,50 +102,50 @@ const Prescription = ({
       author: author?._id,
       patient: patient?._id,
       center: center ? center : patient?.center?._id,
-      addmission: patient?.addmission?._id,
+      addmission: patient?.addmission?._id || patient?.addmission || "",
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
       drNotes: editPrescription
         ? editPrescription.drNotes
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.drNotes
-          : "",
+        ? patientLatestOPDPrescription?.drNotes
+        : "",
       diagnosis: editPrescription
         ? editPrescription.diagnosis
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.diagnosis
-          : "",
+        ? patientLatestOPDPrescription?.diagnosis
+        : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.notes
-          : "",
+        ? patientLatestOPDPrescription?.notes
+        : "",
       followUp: editPrescription
         ? editPrescription.followUp
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.followUp
-          : "",
+        ? patientLatestOPDPrescription?.followUp
+        : "",
       referredby: editPrescription
         ? editPrescription.referredby
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.referredby
-          : patient.referredBy,
+        ? patientLatestOPDPrescription?.referredby
+        : patient.referredBy,
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.investigationPlan
-          : "",
+        ? patientLatestOPDPrescription?.investigationPlan
+        : "",
       complaints: editPrescription
         ? editPrescription.complaints
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.complaints
-          : "",
+        ? patientLatestOPDPrescription?.complaints
+        : "",
       observation: editPrescription
         ? editPrescription.observation
         : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.observation
-          : "",
+        ? patientLatestOPDPrescription?.observation
+        : "",
       type,
       date: chartDate,
     },
@@ -151,7 +155,6 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
-
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -167,6 +170,8 @@ const Prescription = ({
       } else if (type === "GENERAL") {
         dispatch(addGeneralPrescription({ ...values, medicines }));
       } else {
+        console.log({ values });
+
         dispatch(
           addPrescription({
             ...values,
@@ -182,7 +187,7 @@ const Prescription = ({
   });
 
   useEffect(() => {
-    if (type !== "OPD") return;
+    if (type !== "OPD" && !appointment) return;
     dispatch(fetchLatestCharts({ patient: patient?._id }));
   }, [patient, dispatch]);
 
@@ -212,24 +217,25 @@ const Prescription = ({
 
   useEffect(() => {
     const source =
-      editPrescription?.medicines ||
-      ptLatestOPDPrescription?.medicines;
+      editPrescription?.medicines || ptLatestOPDPrescription?.medicines;
 
     if (!source) return;
 
     const meds = _.cloneDeep(source);
 
-    const fixed = meds.map(med => {
+    const fixed = meds.map((med) => {
       const m = med.medicine;
 
       // if  _id ,then skip
       if (m?._id) return med;
 
       // try to get _id using name + strength + unit
-      const match = drugs.find(d =>
-        d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
-        String(d.strength).trim() === String(m.strength).trim() &&
-        String(d.unit).trim().toLowerCase() === String(m.unit).trim().toLowerCase()
+      const match = drugs.find(
+        (d) =>
+          d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
+          String(d.strength).trim() === String(m.strength).trim() &&
+          String(d.unit).trim().toLowerCase() ===
+            String(m.unit).trim().toLowerCase()
       );
 
       if (match) {
@@ -241,8 +247,8 @@ const Prescription = ({
             name: match.name,
             strength: match.strength,
             unit: match.unit,
-            isNew: false
-          }
+            isNew: false,
+          },
         };
       }
 
@@ -259,11 +265,17 @@ const Prescription = ({
         "investigationPlan",
         ptLatestOPDPrescription.investigationPlan
       );
-      validation.setFieldValue("complaints", ptLatestOPDPrescription.complaints);
-      validation.setFieldValue("observation", ptLatestOPDPrescription.observation);
+      validation.setFieldValue(
+        "complaints",
+        ptLatestOPDPrescription.complaints
+      );
+      validation.setFieldValue(
+        "observation",
+        ptLatestOPDPrescription.observation
+      );
     }
 
-     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editPrescription, ptLatestOPDPrescription, drugs]);
 
   useEffect(() => {
@@ -285,7 +297,9 @@ const Prescription = ({
   const addMdicine = (med, data) => {
     if (!med) return;
 
-    const checkMedicine = data.find((val) => val.medicine?.name === med?.name);
+    const checkMedicine = data.find(
+      (val) => val.medicine?.name === med?.name || val.medicine?.name === med
+    );
 
     if (!checkMedicine) {
       const medicine = {
@@ -307,7 +321,7 @@ const Prescription = ({
         duration: "30",
         unit: "Day (s)",
       };
-      console.log(medicine)
+      console.log(medicine);
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }
@@ -464,7 +478,7 @@ const Prescription = ({
             </div>
           </div>
         </Form>
-        {type === OPD && (
+        {(type === OPD || type === IPD) && appointment && (
           <Card className="mt-3">
             <CardHeader
               tag="h5"
@@ -563,6 +577,7 @@ const mapStateToProps = (state) => ({
     state.Chart.chartForm.populatePreviousAppointment,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
   appointment: state.Chart.chartForm.appointment,
+  type: state.Chart.chartForm.type,
   charts: state.Chart.charts,
   patientLatestOPDPrescription: state.Chart.patientLatestOPDPrescription,
 });

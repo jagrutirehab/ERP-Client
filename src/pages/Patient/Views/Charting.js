@@ -172,6 +172,7 @@ const Charting = ({
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addmissionsCharts, tab, loading, open, patient]);
+
   const clinicalTestComponent = useMemo(() => {
     return (
       tab === CLINIC_TEST && (
@@ -201,6 +202,8 @@ const Charting = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charts, generalLoading]);
 
+  console.log({ patient });
+
   return (
     <div className="mt-3">
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700">
@@ -208,27 +211,29 @@ const Charting = ({
           {pageAccess
             ?.find((pg) => pg.name === "Patient")
             ?.subAccess?.find((s) => s.name === "OPD") && (
-              <li className="nav-item">
-                <button
-                  onClick={() => setTab(OPD)}
-                  className={`nav-link rounded-0 ${tab === OPD
-                      ? "border-0 border-2 border-top border-primary"
-                      : "active"
-                    }`}
-                  aria-current="page"
-                >
-                  OPD
-                </button>
-              </li>
-            )}
+            <li className="nav-item">
+              <button
+                onClick={() => setTab(OPD)}
+                className={`nav-link rounded-0 ${
+                  tab === OPD
+                    ? "border-0 border-2 border-top border-primary"
+                    : "active"
+                }`}
+                aria-current="page"
+              >
+                OPD
+              </button>
+            </li>
+          )}
 
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(IPD)}
-              className={`nav-link rounded-0 ${tab === IPD
+              className={`nav-link rounded-0 ${
+                tab === IPD
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-                }`}
+              }`}
             >
               IPD
             </button>
@@ -236,10 +241,11 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(CLINIC_TEST)}
-              className={`nav-link rounded-0 ${tab === CLINIC_TEST
+              className={`nav-link rounded-0 ${
+                tab === CLINIC_TEST
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-                }`}
+              }`}
             >
               Clinical Test
             </button>
@@ -247,10 +253,11 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(GENERAL)}
-              className={`nav-link rounded-0 ${tab === GENERAL
+              className={`nav-link rounded-0 ${
+                tab === GENERAL
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-                }`}
+              }`}
             >
               History
             </button>
@@ -258,10 +265,11 @@ const Charting = ({
           <li className="nav-item rounded-0">
             <button
               onClick={() => setTab(NOTES)}
-              className={`nav-link rounded-0 ${tab === NOTES
+              className={`nav-link rounded-0 ${
+                tab === NOTES
                   ? "border-0 border-2 border-top border-primary"
                   : "active"
-                }`}
+              }`}
             >
               Notes
             </button>
@@ -270,7 +278,7 @@ const Charting = ({
       </div>
       <div className="mb-2">
         <CheckPermission permission={"create"} subAccess={"Charting"}>
-          <RenderWhen isTrue={tab === OPD}>
+          <RenderWhen isTrue={tab === OPD && !patient.isAdmit}>
             <Button
               onClick={() => {
                 toggleModal();
@@ -281,6 +289,17 @@ const Charting = ({
               Create new Chart
             </Button>
           </RenderWhen>
+
+          <RenderWhen isTrue={patient?.isAdmit && tab === OPD}>
+            <Alert
+              className="mt-3 justify-content-center py-1 d-flex align-items-center"
+              color="warning"
+            >
+              <i className="ri-alert-line label-icon fs-5 me-3"></i>
+              Please discharge patient to add notes in OPD!
+            </Alert>
+          </RenderWhen>
+
           <RenderWhen isTrue={!patient?.isAdmit && tab === IPD}>
             <Button className="ms-2" onClick={handleAdmitPatient} size="sm">
               Admit Patient

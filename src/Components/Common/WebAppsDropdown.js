@@ -279,7 +279,11 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                       htmlFor={center.title + center._id}
                     >
                       <img className="avatar-sm" src={Hospital} alt="Rehab" />
-                      <span className="fs-10">{center["title"] || ""}</span>
+                      <span className="fs-10"
+                        style={{
+                          wordBreak: "break-word",
+                          whiteSpace: "normal",
+                        }}>{center["title"] || ""}</span>
                     </label>
                   </div>
                 </Col>

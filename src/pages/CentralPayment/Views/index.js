@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { APPROVAL_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
+import { APPROVAL_VIEW, PAYMENT_PROCESSING_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
 import { Button, ButtonGroup, Spinner } from 'reactstrap';
 import Reports from './Reports';
 import Spending from './Spending';
 import ApprovalDashboard from './ApprovalDashboard';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
+import PaymentProcessingDashboard from './PaymentProcessingDashboard';
 
 const priorityOrder = [
     SPENDING_VIEW,
@@ -22,6 +23,7 @@ const Views = () => {
     const hasReportsPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTREPORTS", "READ");
     const hasApprovalsPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "READ");
     const hasSpendingPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "READ");
+    const hasPaymentProcessingPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "READ");
 
     const availableViews = [
         // SPENDING LATER RENAMED AS EXPENSE
@@ -38,10 +40,16 @@ const Views = () => {
             order: 1,
         },
         {
+            name: "Payment Processing Dashboard",
+            view: PAYMENT_PROCESSING_VIEW,
+            hasAccess: hasPaymentProcessingPermission,
+            order: 2,
+        },
+        {
             name: "Reports",
             view: REPORTS_VIEW,
             hasAccess: hasReportsPermission,
-            order: 2,
+            order: 3,
         },
     ]
         .filter((view) => view.hasAccess)
@@ -113,6 +121,7 @@ const Views = () => {
                     <div className="bg-white px-3 py-3 vh-90">
                         {view === SPENDING_VIEW && <Spending />}
                         {view === APPROVAL_VIEW && <ApprovalDashboard />}
+                        {view === PAYMENT_PROCESSING_VIEW && <PaymentProcessingDashboard />}
                         {view === REPORTS_VIEW && <Reports />}
                     </div>
                 </div>

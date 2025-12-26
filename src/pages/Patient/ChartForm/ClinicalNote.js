@@ -106,6 +106,8 @@ const ClinicalNote = ({
   const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
+  console.log({ type });
+
   const editClinicalNote = editChartData?.clinicalNote;
 
   useEffect(() => {
@@ -139,7 +141,7 @@ const ClinicalNote = ({
       center: patient.center._id || patient.center,
       centerAddress: patient.center.title,
       appointment: appointment?._id,
-      addmission: patient.addmission?._id,
+      addmission: patient.addmission?._id || patient.addmission || "",
       chart: CLINICAL_NOTE,
       complaints: noteSource?.complaints || "",
       observations: noteSource?.observations || "",
@@ -174,7 +176,7 @@ const ClinicalNote = ({
     if (!editClinicalNote) {
       validation.resetForm();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, editClinicalNote]);
 
   const closeForm = () => {
@@ -298,6 +300,7 @@ const mapStateToProps = (state) => ({
   populatePreviousAppointment:
     state.Chart.chartForm.populatePreviousAppointment,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
+  type: state.Chart.chartForm.type,
   appointment: state.Chart.chartForm.appointment,
 });
 

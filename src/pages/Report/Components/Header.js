@@ -12,12 +12,14 @@ import "flatpickr/dist/themes/material_green.css";
 import Flatpickr from "react-flatpickr";
 import { endOfDay, startOfDay } from "date-fns";
 
-const Header = ({ reportDate, setReportDate }) => {
+const Header = ({ reportDate, setReportDate, disabled = false }) => {
   const changeDate = (days) => {
-  const today = new Date();
-  const start = days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days) : today;
-  setReportDate({ start: startOfDay(start), end: endOfDay(today) });
-};
+    const today = new Date();
+    const start = days
+      ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
+      : today;
+    setReportDate({ start: startOfDay(start), end: endOfDay(today) });
+  };
 
   const changeToMonth = () => {
     const date = new Date(),
@@ -53,15 +55,28 @@ const Header = ({ reportDate, setReportDate }) => {
             <Col xs={12}>
               <div className="d-flex justify-content-md-end mt-4 mt-md-0">
                 <div className="border border-dark d-flex align-items-center">
-                  <div>
+                  <div style={{ position: "relative" }}>
+                    {disabled && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "rgba(255,255,255,0.6)",
+                          cursor: "not-allowed",
+                          zIndex: 10,
+                          borderRadius: 6
+                        }}
+                      />
+                    )}
                     <Flatpickr
+                      disabled={disabled}
                       // ref={ref}
                       name="dateOfAdmission"
                       value={reportDate.start || ""}
                       onChange={([e]) => {
                         setReportDate({
                           ...reportDate,
-                          start: e,
+                          start: startOfDay(e),
                         });
                       }}
                       options={{
@@ -76,15 +91,28 @@ const Header = ({ reportDate, setReportDate }) => {
                   <div className="bg-light h-100 d-flex align-items-center">
                     -
                   </div>
-                  <div>
+                  <div style={{ position: "relative" }}>
+                    {disabled && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "rgba(255,255,255,0.6)",
+                          cursor: "not-allowed",
+                          zIndex: 10,
+                          borderRadius: 6
+                        }}
+                      />
+                    )}
                     <Flatpickr
                       // ref={ref}
                       name="dateOfAdmission"
+                      disabled={disabled}
                       value={reportDate.end || ""}
                       onChange={([e]) => {
                         setReportDate({
                           ...reportDate,
-                          end: e,
+                          end: endOfDay(e),
                         });
                       }}
                       options={{
@@ -96,7 +124,10 @@ const Header = ({ reportDate, setReportDate }) => {
                       id="dateOfAdmission"
                     />
                   </div>
-                  <div className="border-start border-dark">
+                  <div
+                    className={`border-start border-dark ${disabled ? "opacity-50" : ""}`}
+                    style={{ pointerEvents: disabled ? "none" : "auto" }}
+                  >
                     <UncontrolledDropdown>
                       <DropdownToggle
                         caret

@@ -14,6 +14,7 @@ import {
   BOOKING,
   DOCTOR_ANALYTICS,
   CENTER_BEDS_ANALYTICS,
+  MI_REPORTING,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -27,6 +28,9 @@ import HubspotContacts from "./Components/Hubspot";
 import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
 import CenterBedsAnalytics from "./Components/CenterBeds";
+import MIReporting from "./Components/MIReporting";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
@@ -100,6 +104,14 @@ const Report = ({}) => {
             >
               Center Beds Analytics
             </Button>
+            {/* <RenderWhen isTrue={hasMiReportingPermission}>
+              <Button
+                outline={view !== MI_REPORTING}
+                onClick={() => handleView(MI_REPORTING)}
+              >
+                MI Reporting
+              </Button>
+            </RenderWhen> */}
             {/* <Button
               outline={view !== HUBSPOT_CONTACTS}
               onClick={() => handleView(HUBSPOT_CONTACTS)}
@@ -121,6 +133,9 @@ const Report = ({}) => {
             {view === CENTER_BEDS_ANALYTICS && (
               <CenterBedsAnalytics view={view} />
             )}
+            {/* {view === MI_REPORTING && hasMiReportingPermission && (
+              <MIReporting view={view} />
+            )} */}
           </div>
         </Container>
       </div>

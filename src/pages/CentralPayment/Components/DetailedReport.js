@@ -6,13 +6,15 @@ import { connect, useDispatch } from 'react-redux';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import PropTypes from 'prop-types';
 import Header from '../../Report/Components/Header';
-import { getDetailedReport } from '../../../store/features/centralPayment/centralPaymentSlice';
+import { getDetailedReport, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
 import { toast } from 'react-toastify';
 import { capitalizeWords } from '../../../utils/toCapitalize';
 import { ExpandableText } from '../../../Components/Common/ExpandableText';
 import DataTable from 'react-data-table-component';
 import { Check, Copy } from 'lucide-react';
 import AttachmentCell from './AttachmentCell';
+import UploadModal from './UploadModal';
+import { downloadFile } from '../../../Components/Common/downloadFile';
 
 const DetailedReport = ({
   centers,
@@ -36,6 +38,9 @@ const DetailedReport = ({
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
@@ -45,6 +50,9 @@ const DetailedReport = ({
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [copyId, setCopiedId] = useState(false);
+  const [dateFilterEnabled, setDateFilterEnabled] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState(null);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -100,8 +108,13 @@ const DetailedReport = ({
 
   const columns = [
     {
+      name: "ID",
+      selector: (row) => row?.id || "-",
+      wrap: true
+    },
+    {
       name: <div>Date</div>,
-      selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
+      selector: (row) => format(new Date(row?.date), "d MMM yyyy hh:mm a"),
       wrap: true,
       minWidth: "120px",
       maxWidth: "150px",
@@ -123,20 +136,20 @@ const DetailedReport = ({
     },
     {
       name: <div>Name</div>,
-      selector: (row) => capitalizeWords(row.name || "-"),
+      selector: (row) => row.name?.toUpperCase() || "-",
       wrap: true,
     },
     {
       name: <div>Items</div>,
       selector: (row) => row.items ?
-        <ExpandableText text={capitalizeWords(row.items)} /> :
+        <ExpandableText text={row.items?.toUpperCase()} /> :
         "-",
       wrap: true,
     },
     {
       name: <div>Description</div>,
       selector: (row) => row.description ?
-        <ExpandableText text={capitalizeWords(row.description)} limit={20} /> :
+        <ExpandableText text={row.description?.toUpperCase()} limit={20} /> :
         "-",
       wrap: true,
       minWidth: "120px",
@@ -144,12 +157,12 @@ const DetailedReport = ({
     },
     {
       name: <div>Vendor</div>,
-      selector: (row) => capitalizeWords(row.vendor || "-"),
+      selector: (row) => row.vendor?.toUpperCase() || "-",
       wrap: true,
     },
     {
       name: <div>Invoice No</div>,
-      selector: (row) => row.invoiceNo || "-",
+      selector: (row) => row.invoiceNo?.toUpperCase() || "-",
       wrap: true,
     },
     {
@@ -178,7 +191,7 @@ const DetailedReport = ({
     },
     {
       name: <div>Transaction Type</div>,
-      selector: (row) => row.transactionType || "-",
+      selector: (row) => row.transactionType?.toUpperCase() || "-",
       wrap: true
     },
     {
@@ -220,7 +233,7 @@ const DetailedReport = ({
       name: <div>Account Holder Name</div>,
       cell: (row) => (
         <span>
-          {capitalizeWords(row?.bankDetails?.accountHolderName) || "-"}
+          {row?.bankDetails?.accountHolderName?.toUpperCase() || "-"}
         </span>
       ),
       wrap: true,
@@ -240,7 +253,18 @@ const DetailedReport = ({
       name: <div>IFSC Code</div>,
       cell: (row) => (
         <span>
-          {row?.bankDetails?.IFSCCode || "-"}
+          {row?.bankDetails?.IFSCCode?.toUpperCase() || "-"}
+        </span>
+      ),
+      wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
+    },
+    {
+      name: <div>Transaction ID/UTR</div>,
+      cell: (row) => (
+        <span>
+          {row?.transactionId?.toUpperCase() || "-"}
         </span>
       ),
       wrap: true,
@@ -259,6 +283,42 @@ const DetailedReport = ({
         return <span style={badgeStyle}>{status || "-"}</span>;
       },
       wrap: true,
+    },
+    {
+      name: <div>Approval Status</div>,
+      selector: (row) => {
+        const status = row.approvalStatus;
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
+      },
+      wrap: true,
+    },
+    {
+      name: <div>Process Status</div>,
+      selector: (row) => (
+        <Badge
+          color={getBadgeColor(row.processStatus)}
+          style={{
+            display: "inline-block",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {capitalizeWords(row.processStatus.replace(/_/g, " ")) || "-"}
+        </Badge>
+      ),
+      wrap: true,
+      minWidth: "140px"
     },
     {
       name: <div>Current Payment Status</div>,
@@ -289,51 +349,89 @@ const DetailedReport = ({
 
     },
     {
-      name: <div>Approval Status</div>,
-      selector: (row) => {
-        const status = row.approvalStatus;
+      name: <div>Transaction Proof</div>,
+      cell: (row) => {
+        const status = row.currentPaymentStatus;
+
+        if (status === "PENDING" || status === "REJECTED") {
+          return (
+            <i className="text-muted small">
+              Action not permitted
+            </i>
+          );
+        }
+
+        if (status === "COMPLETED") {
+          return row?.transactionProof ? (
+            <span
+              className="text-primary text-decoration-underline cursor-pointer"
+              onClick={() =>
+                downloadFile({ url: row.transactionProof })
+              }
+            >
+              Download
+            </span>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() => {
+                setSelectedPaymentId(row._id);
+                setIsUploadModalOpen(true);
+              }}
+            >
+              Upload
+            </Button>
+          );
+        }
+
         return (
-          <Badge
-            color={getBadgeColor(status)}
-            style={{
-              display: "inline-block",
-              whiteSpace: "normal",
-              wordBreak: "break-word",
-            }}
-          >
-            {capitalizeWords(status || "-")}
-          </Badge>
+          <i className="text-muted small">
+            Action not permitted
+          </i>
         );
       },
       wrap: true,
+      minWidth: "160px",
     }
   ];
 
-
   useEffect(() => {
-    if (!hasUserPermission || activeTab !== "detail") return;
+    if (search === "") return;
 
-    const fetchDetailReport = async () => {
-      try {
-        await dispatch(
-          getDetailedReport({
-            page,
-            limit,
-            approvalStatus: selectedApprovalStatus,
-            currentPaymentStatus: selectedPaymentStatus,
-            centers: selectedCentersIds,
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const fetchDetailReport = async () => {
+    try {
+      await dispatch(
+        getDetailedReport({
+          page,
+          limit,
+          approvalStatus: selectedApprovalStatus,
+          currentPaymentStatus: selectedPaymentStatus,
+          centers: selectedCentersIds,
+          ...(dateFilterEnabled && {
             startDate: reportDate.start.toISOString(),
-            endDate: reportDate.end.toISOString(),
-          })
-        ).unwrap();
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch detail report.");
-        }
+            endDate: reportDate.end.toISOString()
+          }),
+          ...(search !== "" && { search: parseInt(debouncedSearch) }),
+        })
+      ).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch detail report.");
       }
     }
+  }
 
-    fetchDetailReport();
+  useEffect(() => {
+    if (hasUserPermission && activeTab === "detail") {
+      fetchDetailReport();
+    }
   }, [
     page,
     limit,
@@ -343,7 +441,9 @@ const DetailedReport = ({
     reportDate,
     dispatch,
     activeTab, ,
-    roles
+    roles,
+    debouncedSearch,
+    dateFilterEnabled
   ]);
 
   const handleFilterChange = (filterType, value) => {
@@ -356,6 +456,29 @@ const DetailedReport = ({
       setLimit(value);
     }
   };
+
+  const handleTransactionProofUpload = async (file) => {
+    if (!selectedPaymentId) return;
+    setUploading(true);
+
+
+    try {
+      const formData = new FormData();
+      formData.append("transactionProof", file);
+
+      await dispatch(updateCentralPayment({ id: selectedPaymentId, formData: formData, centers: centerAccess })).unwrap()
+      toast.success("Transaction proof uploaded successfully");
+      fetchDetailReport();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "something went wrong while uploading transaction proof");
+      }
+    } finally {
+      setIsUploadModalOpen(false);
+      setUploading(false);
+    }
+  };
+
 
   const handleDateChange = (newDate) => {
     setPage(1);
@@ -407,7 +530,7 @@ const DetailedReport = ({
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>
-            <Header reportDate={reportDate} setReportDate={handleDateChange} />
+            <Header reportDate={reportDate} setReportDate={handleDateChange} disabled={!dateFilterEnabled} />
           </div>
           <div style={{ minWidth: "200px", maxWidth: "250px" }}>
             <CenterDropdown
@@ -422,6 +545,38 @@ const DetailedReport = ({
               }}
             />
           </div>
+          <div className="d-flex align-items-center gap-2 flex-grow-1 mb-3" style={{ minWidth: "250px" }}>
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                const value = e.target.value.trim();
+                setSearch(value);
+                if (value === "") {
+                  setDebouncedSearch("");
+                  setDateFilterEnabled(true);
+                } else {
+                  setDateFilterEnabled(false);
+                }
+              }}
+              className="form-control"
+              placeholder="Search by ID..."
+              style={{ flexGrow: 1 }}
+            />
+
+            {search.trim() !== "" && (
+              <Button
+                color="primary"
+                size="sm"
+                className="white-space-nowrap text-white py-2"
+                style={{ whiteSpace: "nowrap" }}
+                onClick={() => setDateFilterEnabled(!dateFilterEnabled)}
+              >
+                {dateFilterEnabled ? "Disable Date Filter" : "Enable Date Filter"}
+              </Button>
+            )}
+          </div>
+
         </div>
       </div>
       <Card>
@@ -497,6 +652,13 @@ const DetailedReport = ({
           )}
         </CardBody>
       </Card>
+
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        toggle={() => setIsUploadModalOpen(!isUploadModalOpen)}
+        onUpload={handleTransactionProofUpload}
+        loading={uploading}
+      />
     </TabPane>
   )
 };
@@ -516,5 +678,6 @@ const mapStateToProps = (state) => ({
   centerAccess: state.User?.centerAccess,
   detailedReport: state.CentralPayment.detailedReport,
   loading: state.CentralPayment.loading,
-})
+});
+
 export default connect(mapStateToProps)(DetailedReport);

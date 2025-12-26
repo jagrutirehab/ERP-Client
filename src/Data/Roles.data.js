@@ -78,6 +78,7 @@ export const permissionList = [
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },
@@ -163,6 +164,87 @@ export const permissionList = [
       // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
       // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
       // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+    ],
+  },
+  {
+    key: "HUBSPOT_REPORTING",
+    label: "Hubspot Reporting",
+    subModules: [
+      { name: "VIEW_HUBSPOT_REPORTING", label: "View Hubspot Reporting" },
+      { name: "HUBSPOT_CENTER_LEADS_COUNT", label: "Center Leads Count" },
+      { name: "HUBSPOT_OWNER_LEADS_COUNT", label: "Owner Leads Count" },
+      {
+        name: "HUBSPOT_CITY_QUALITY_BREAKDOWN",
+        label: "City Quality Breakdown",
+      },
+      {
+        name: "HUBSPOT_OWNER_QUALITY_BREAKDOWN",
+        label: "Owner Quality Breakdown",
+      },
+      { name: "HUBSPOT_CITY_VISIT_DATE", label: "City Visit Date" },
+      { name: "HUBSPOT_OWNER_VISIT_DATE", label: "Owner Visit Date" },
+      { name: "HUBSPOT_CITY_VISITED_DATE", label: "City Visited Date" },
+      { name: "HUBSPOT_OWNER_VISITED_DATE", label: "Owner Visited Date" },
+      { name: "HUBSPOT_CITY_LEAD_STATUS", label: "City Lead Status" },
+      { name: "HUBSPOT_OWNER_LEAD_STATUS", label: "Owner Lead Status" },
+    ],
+  },
+  {
+    key: "HR",
+    label: "HR",
+    subModules: [
+      // master employee
+      { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      // new joining
+      { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
+      { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_IT", label: "New Joinings IT" },
+      // exit employee
+      { name: "EXIT_EMPLOYEE_ADD_REQUEST", label: "Exit Employees Add Request" },
+      { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
+      { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
+      // salary advance
+      { name: "SALARY_ADVANCE_ADD_REQUEST", label: "Salary Advance Add Request" },
+      { name: "SALARY_ADVANCE_APPROVAL", label: "Salary Advance Approval" },
+      // transfer employee
+      {
+        name: "TRANSFER_EMPLOYEE_ADD_REQUEST",
+        label: "Employee Transfer Add Request"
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_APPROVAL",
+        label: "Employee Transfer Approvals"
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
+        label: "Outgoing Employee Transfer Approvals"
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
+        label: "Incoming Employee Transfer Approvals"
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_IT",
+        label: "Employee Transfer IT"
+      },
+      // hiring
+      {
+        name: "HIRING_ADD_REQUEST",
+        label: "Hiring Add Request"
+      },
+      {
+        name: "HIRING_APPROVAL",
+        label: "Hiring Approvals"
+      },
+
+    ]
+  },
+  {
+    key: "HRMS",
+    label: "HRMS",
+    subModules: [
+      { name: "HRMS_ATTENDANCE", label: "Attendance Management" },
     ],
   },
 ];

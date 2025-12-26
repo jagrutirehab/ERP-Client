@@ -272,48 +272,99 @@ const DetailAdmission = ({
       } : {}),
 
       ...(!isOldMentalExamination ? {
-        grooming:
-          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            ?.grooming || "",
-        eyeContact:
-          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            ?.eyeContact || "",
-        psychomotorActivity:
-          detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
-            ?.psychomotorActivity || "",
+        // grooming:
+        //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+        //     ?.grooming || "",
+        // eyeContact:
+        //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+        //     ?.eyeContact || "",
+        // psychomotorActivity:
+        //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+        //     ?.psychomotorActivity || "",
 
-        rate:
-          detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
-        volume:
-          detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+        // rate:
+        //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+        // volume:
+        //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
 
-        affect:
-          detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
-        affectNotes:
-          detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
-        subjective:
-          detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+        // affect:
+        //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+        // affectNotes:
+        //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+        // subjective:
+        //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
 
-        delusions:
-          detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
-        delusionNotes:
-          detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
-        content:
-          detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+        // delusions:
+        //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+        // delusionNotes:
+        //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+        // content:
+        //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
 
-        perception:
-          detailAdmissionForm?.mentalExaminationV2?.perception || "",
-        orientation:
-          detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
-        memory:
-          detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+        // perception:
+        //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
+        // orientation:
+        //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+        // memory:
+        //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
 
-        grade:
-          detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
-        judgment:
-          detailAdmissionForm?.mentalExaminationV2?.judgment || "",
-        remarks:
-          detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+        // grade:
+        //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+        // judgment:
+        //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+        // remarks:
+        //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+        grooming: detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior?.grooming || "",
+        generalAppearance: detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior?.generalAppearance || "",
+        surroundingTouch: detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior?.surroundingTouch || "",
+        eyeContact: detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior?.eyeContact || "",
+        psychomotorActivity: detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior?.psychomotorActivity || "",
+
+        rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+        tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
+        volume: detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+        reactionTime: detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime || "",
+        productivity: detailAdmissionForm?.mentalExaminationV2?.speech?.productivity || "",
+        speed: detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
+        relevance: detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
+        coherence: detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
+        goalDirection: detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection || "",
+
+        affect: detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+        affectNotes: detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+        subjective: detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+        objective: detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
+        lability: detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
+        appropriateness1: detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness || "",
+
+        quality: detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
+        intensity: detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity || "",
+        mobility: detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility || "",
+        range: detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
+        reactivity: detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity || "",
+        communicability: detailAdmissionForm?.mentalExaminationV2?.affectV2?.communicability || "",
+        diurnalVariation: detailAdmissionForm?.mentalExaminationV2?.affectV2?.diurnalVariation || "",
+        appropriateness2: detailAdmissionForm?.mentalExaminationV2?.affectV2?.appropriateness || "",
+
+        delusions: detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+        delusionNotes: detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+        content: detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+        process: detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
+
+        perception: detailAdmissionForm?.mentalExaminationV2?.perception || "",
+        perceptionNotes: detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
+
+        orientation: detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+        attention: detailAdmissionForm?.mentalExaminationV2?.cognition?.attention || "",
+        concentration: detailAdmissionForm?.mentalExaminationV2?.cognition?.concentration || "",
+        memory: detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+
+        grade: detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+
+        judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+
+        remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+
       } : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm

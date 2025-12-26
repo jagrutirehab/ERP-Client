@@ -150,7 +150,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           </div>
 
           {patient.medicinesToTakeNow &&
-          patient.medicinesToTakeNow.length > 0 ? (
+            patient.medicinesToTakeNow.length > 0 ? (
             <Formik
               initialValues={medicineFormInitialValues}
               validationSchema={medicineSchema}
@@ -197,9 +197,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                             >
                               {showAllMedicines
                                 ? "Show Less"
-                                : `+${
-                                    patient.medicinesToTakeNow.length - 2
-                                  } more`}
+                                : `+${patient.medicinesToTakeNow.length - 2
+                                } more`}
                             </button>
                           )}
                         </div>
@@ -251,52 +250,52 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                           })}
                           {(patient.medicinesToTakeNow.length <= 2 ||
                             showAllMedicines) && (
-                            <>
-                              <label
-                                className="d-flex align-items-center fw-semibold small"
-                                style={{ gap: "4px" }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={allMedicinesCompleted}
-                                  onChange={(e) => {
-                                    patient.medicinesToTakeNow.forEach((med) =>
-                                      getSlotIndexes(
-                                        med.medicineIndex,
-                                        values
-                                      ).forEach((i) =>
-                                        setFieldValue(
-                                          `medicines[${i}].status`,
-                                          e.target.checked
-                                            ? "completed"
-                                            : "missed"
-                                        )
-                                      )
-                                    );
-                                  }}
-                                />{" "}
-                                Select All
-                              </label>
-                              <div className="d-flex justify-content-end mt-3">
-                                <Button
-                                  disabled={
-                                    !values.medicines.some(
-                                      (med) => med.status === "completed"
-                                    ) || isSubmitting
-                                  }
+                              <>
+                                <label
+                                  className="d-flex align-items-center fw-semibold small"
+                                  style={{ gap: "4px" }}
                                   onClick={(e) => e.stopPropagation()}
-                                  type="submit"
-                                  size="sm"
                                 >
-                                  {isSubmitting && (
-                                    <Spinner size="sm" className="me-2" />
-                                  )}
-                                  Submit
-                                </Button>
-                              </div>
-                            </>
-                          )}
+                                  <input
+                                    type="checkbox"
+                                    checked={allMedicinesCompleted}
+                                    onChange={(e) => {
+                                      patient.medicinesToTakeNow.forEach((med) =>
+                                        getSlotIndexes(
+                                          med.medicineIndex,
+                                          values
+                                        ).forEach((i) =>
+                                          setFieldValue(
+                                            `medicines[${i}].status`,
+                                            e.target.checked
+                                              ? "completed"
+                                              : "missed"
+                                          )
+                                        )
+                                      );
+                                    }}
+                                  />{" "}
+                                  Select All
+                                </label>
+                                <div className="d-flex justify-content-end mt-3">
+                                  <Button
+                                    disabled={
+                                      !values.medicines.some(
+                                        (med) => med.status === "completed"
+                                      ) || isSubmitting
+                                    }
+                                    onClick={(e) => e.stopPropagation()}
+                                    type="submit"
+                                    size="sm"
+                                  >
+                                    {isSubmitting && (
+                                      <Spinner size="sm" className="me-2" />
+                                    )}
+                                    Submit
+                                  </Button>
+                                </div>
+                              </>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -334,11 +333,10 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
             >
               <Badge
                 pill
-                className={`fw-bold ${
-                  patient.alertCount > 0
+                className={`fw-bold ${patient.alertCount > 0 && patient?.flag !== "stable"
                     ? `bg-${color} bg-opacity-25 text-${color}`
                     : "bg-secondary bg-opacity-25 text-secondary"
-                }`}
+                  }`}
                 style={{ fontSize: "0.8rem", padding: "4px 8px" }}
               >
                 {patient.alertCount} Alerts

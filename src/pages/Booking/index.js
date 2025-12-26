@@ -73,7 +73,7 @@ const Booking = ({
         end: endOfDay(new Date()),
       })
     );
-    dispatch(fetchCenters({centerIds: user?.centerAccess}));
+    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
   }, [dispatch, user, centerAccess, patients]);
 
   useEffect(() => {
@@ -323,7 +323,7 @@ const Booking = ({
             );
           }}
         />
-        <ChartForm type={OPD} onSubmitClinicalForm={onSubmitClinicalForm} />
+        <ChartForm onSubmitClinicalForm={onSubmitClinicalForm} />
         <BillForm type={OPD} />
         <CustomModal
           title={"User Schedule"}

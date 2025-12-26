@@ -136,9 +136,11 @@ export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
-export const POST_MENTAL_EXAMINATION="/chart/mental-examination";
-export const POST_GENERAL_MENTAL_EXAMINATION="/chart/mental-examination/general";
-export const EDIT_MENTAL_EXAMINATION="/chart/mental-examination";
+export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const POST_GENERAL_MENTAL_EXAMINATION =
+  "/chart/mental-examination/general";
+export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";
@@ -322,11 +324,14 @@ export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
 
 // central payment
 export const CENTRAL_PAYMENT = "/central-payment";
-export const EDIT_CENTRAL_PAYMENT = "/central-payment/edit";
+export const CENTRAL_PAYMENT_ACTION = "/central-payment/action";
 export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/detailed";
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/summary";
+export const GET_ALL_ENETS = "/central-payment/eNets";
+export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
+export const PROCESS_PAYMENTS = "/central-payment/process";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
@@ -336,6 +341,7 @@ export const MICRO_FORGOTT = "/userauths/forgott-password";
 export const MICRO_LOGOUT = "/userauths/logout";
 export const CHANGE_PASSWORD = "/userauths/forgott-password";
 export const USER = "/user";
+export const GET_USER_BY_EMAIL = "/user/email";
 export const MOVE_TO_BIN = "/user/move-recyclebin";
 export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
 export const CHANGE_USER_PASSWORD = "/user/change-password";
@@ -375,3 +381,54 @@ export const UPLOAD_AUDIT_REPORT = "/pharmacy/audit/upload-chunk";
 export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
 export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
+
+// MI REPORTING
+export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
+export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";
+export const GET_CENTER_LEADS_MTD = "/mi-reporting/center-leads-mtd";
+export const GET_OWNER_LEADS_MOM = "/mi-reporting/owner-leads-mom";
+export const GET_OWNER_LEADS_MTD = "/mi-reporting/owner-leads-mtd";
+export const GET_CITY_QUALITY_BREAKDOWN = "/mi-reporting/city-quality";
+export const GET_OWNER_QUALITY_BREAKDOWN = "/mi-reporting/owner-quality";
+export const GET_CITY_VISIT_DATE = "/mi-reporting/city-visit-date";
+export const GET_OWNER_VISIT_DATE = "/mi-reporting/owner-visit-date";
+export const GET_CITY_VISITED_DATE = "/mi-reporting/city-visited-date";
+export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";
+export const GET_CITY_LEAD_STATUS = "/mi-reporting/city-lead-status";
+export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
+
+// HR
+export const GET_EMPLOYEE_ID = "/hr/employee-id";
+export const EMPLOYEE = "/hr/employee";
+export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+
+export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
+
+export const IT = "/hr/it";
+export const IT_NEW_JOINING_ACTION = "/hr/it/joining";
+export const IT_EXIT_ACTION = "/hr/it/exit";
+export const IT_TRANSFER_ACTION = "/hr/it/transfer";
+
+export const EXIT_EMPLOYEE = "/hr/exit";
+export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
+export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
+
+export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
+
+export const SALARY_ADVANCE = "/hr/advance-salary";
+export const SALARY_ADVANCE_ACTION = "/hr/advance-salary/action";
+
+export const TRANSFER_EMPLOYEE = "/hr/transfer-employee";
+export const TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION = "/hr/transfer-employee/current/action";
+export const TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION = "/hr/transfer-employee/transfer/action";
+
+export const DESIGNATION = "/hr/designation";
+
+export const HIRING = "/hr/hiring";
+export const HIRING_ACTION = "/hr/hiring/action";
+
+// HRMS
+export const ATTENDANCE = "/hrms/attendance";
+export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
+export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
+
