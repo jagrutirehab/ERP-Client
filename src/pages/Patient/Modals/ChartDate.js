@@ -161,6 +161,7 @@ const ChartDate = ({
                             chart: item.category,
                             patient,
                             isOpen: true,
+                            type,
                             ...(item.category === PRESCRIPTION && {
                               populatePreviousAppointment: true,
                             }),

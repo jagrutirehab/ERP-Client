@@ -106,6 +106,8 @@ const ClinicalNote = ({
   const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
+  console.log({ type });
+
   const editClinicalNote = editChartData?.clinicalNote;
 
   useEffect(() => {
