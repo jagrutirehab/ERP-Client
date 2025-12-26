@@ -1009,7 +1009,8 @@ export const chartSlice = createSlice({
             (el) => el._id === payload.payload._id
           );
           state.charts[findIndex] = payload.payload;
-        } else if (payload.type !== "OPD" && !payload.appointment) {
+        } else if (payload.type !== "OPD") {
+          // && !payload.appointment
           console.log("INSIDE IPD CHARTS");
 
           //IPD CHARTS
