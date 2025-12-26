@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import InternBg from "../../../../assets/images/intern-bg-template.jpg";
+import InternBg from "../../../../assets/images/intern-bg-template2.jpg";
+import UndertakingDischargeFormFooter from "./UndertakingDischargeFormFooter";
 
 const UndertakingDischargeForm = ({ patient, admissions }) => {
-  console.log(patient)
-  // Helper to title case names
   const toTitleCase = (text) => {
     if (!text) return "";
     return text
@@ -171,7 +170,8 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
             }}
             placeholder="Patient Name"
           />
-          , was admitted at Jagruti Rehabilitation Centre, {patient?.center?.title} from{" "}
+          , was admitted at Jagruti Rehabilitation Centre,{" "}
+          {patient?.center?.title} from{" "}
           <input
             type="text" // using text type to allow "12th Nov" format flexibility
             name="admissionDate"
@@ -204,10 +204,11 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
 
         <ul style={{ listStyle: "none", padding: 0 }}>
           {[
-            "I am satisfied with my treatment at Jagruti Rehabilitation Centre, Navi Mumbai.",
-            "I am better now and feel psychologically and physically fit to go home.",
+            `I am satisfied with my treatment at Jagruti Rehabilitation Centre, ${patient?.center?.title}.`,
+            // "I am better now and feel psychologically and physically fit to go home.",
+            "I am better now and feel psychologically and physically fit for discharge, able to continue my prescribed medications after discharge and to attend follow-up OPD visits as advised. ",
             "I have been explained about my illness, medications, counselling and further management.",
-            "I have no complaints against any of the staff at the Jagruti Rehabilitation Centre, Navi Mumbai.",
+            `I have no complaints against any of the staff at the Jagruti Rehabilitation Centre, ${patient?.center?.title}.`,
             "I have not been man-handled, misbehaved with or mistreated in any way, by any staff at the centre.",
             "I have all my belongings safe with me at the time of discharge.",
             "I have no other issues or complaints with any regard to the centre or any of its staff.",
@@ -309,6 +310,7 @@ const UndertakingDischargeForm = ({ patient, admissions }) => {
             </label>
           </div>
         </div>
+        <UndertakingDischargeFormFooter center={patient.center} />
       </div>
     </div>
   );

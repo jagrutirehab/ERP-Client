@@ -220,6 +220,18 @@ const pages = [
     },
   },
   {
+    id: "mireporting",
+    label: "Mi Reporting",
+    name: "Mi Reporting",
+    link: "/mi-reporting",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "booking",
     label: "Booking",
     name: "Booking",
@@ -264,6 +276,20 @@ const pages = [
     link: "/guidelines",
     icon: "bx bx-book-open",
   },
+  {
+    id: "hr",
+    label: "HR",
+    name: "HR",
+    link: "/hr",
+    icon: "bx bx-body",
+  },
+  {
+    id: "hrms",
+    label: "HRMS",
+    name: "HRMS",
+    link: "/hrms",
+    icon: "bx bx-group",
+  },
 ];
 
 export const Pharmacy = [
@@ -296,6 +322,69 @@ export const Pharmacy = [
     label: "Audit",
     link: "/pharmacy/audit",
     icon: "bx bx-fingerprint",
+  },
+];
+
+export const MIReporting = [
+  {
+    id: "center-leads-mom",
+    label: "Center Leads (MoM)",
+    link: "/mi-reporting/center-leads-mom",
+    icon: "bx bx-bar-chart-alt-2",
+  },
+  {
+    id: "center-leads-mtd",
+    label: "Center Leads (MTD)",
+    link: "/mi-reporting/center-leads-mtd",
+    icon: "bx bx-line-chart",
+  },
+  {
+    id: "owner-leads-mom",
+    label: "Owner Leads (MoM)",
+    link: "/mi-reporting/owner-leads-mom",
+    icon: "bx bx-bar-chart-square",
+  },
+  {
+    id: "owner-leads-mtd",
+    label: "Owner Leads (MTD)",
+    link: "/mi-reporting/owner-leads-mtd",
+    icon: "bx bx-trending-up",
+  },
+  {
+    id: "city-quality",
+    label: "City Quality Breakdown",
+    link: "/mi-reporting/city-quality",
+    icon: "bx bx-map",
+  },
+  {
+    id: "owner-quality",
+    label: "Owner Quality Breakdown",
+    link: "/mi-reporting/owner-quality",
+    icon: "bx bx-user-check",
+  },
+  {
+    id: "city-visit-date",
+    label: "City Visit Date",
+    link: "/mi-reporting/city-visit-date",
+    icon: "bx bx-calendar",
+  },
+  {
+    id: "owner-visit-date",
+    label: "Owner Visit Date",
+    link: "/mi-reporting/owner-visit-date",
+    icon: "bx bx-calendar-check",
+  },
+  {
+    id: "city-visited-date",
+    label: "City Visited Date",
+    link: "/mi-reporting/city-visited-date",
+    icon: "bx bx-calendar-event",
+  },
+  {
+    id: "owner-visited-date",
+    label: "Owner Visited Date",
+    link: "/mi-reporting/owner-visited-date",
+    icon: "bx bx-calendar-star",
   },
 ];
 
@@ -398,6 +487,170 @@ export const recyclebin = [
     label: "Intern",
     link: "/recyclebin/intern",
     icon: "bx bx-capsule",
+  },
+];
+
+export const HR = [
+  // {
+  //   id: "hr-dashboard",
+  //   label: "Dashboard",
+  //   link: "/hr/dashboard",
+  //   icon: "bx bx-home",
+  // },
+  {
+    id: "master-employee",
+    label: "Master Employee",
+    link: "/hr/employee",
+    icon: "bx bx-group",
+  },
+  {
+    id: "new-joinings",
+    label: "New Joinings",
+    icon: "bx  bx-arrow-from-left",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-new-joining",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/new-joinings/add",
+      },
+      {
+        id: "new-joining-approval",
+        label: "Joining Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/new-joinings/approval",
+      },
+      {
+        id: "new-joining-it",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/new-joinings/it",
+      },
+    ]
+  },
+  {
+    id: "exit-employees",
+    label: "Exit Employees",
+    icon: "bx bx-arrow-to-left",
+    link: "/hr/exit-employees",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-exit-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/exit-employees/add",
+      },
+      {
+        id: "exit-approval",
+        label: "Exit Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/exit-employees/approval",
+      },
+      {
+        id: "exit-fnf-approval",
+        label: "FNF Approvals",
+        icon: "bx bx-briefcase",
+        link: "/hr/exit-employees/fnf",
+      },
+      {
+        id: "exit-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/exit-employees/it",
+      },
+    ],
+  },
+  {
+    id: "salary-advance",
+    label: "Salary Advance",
+    link: "/hr/salary-advance",
+    icon: "bx bx-rupee",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-salary-advance-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/salary-advance/add",
+      },
+      {
+        id: "salary-advance-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/salary-advance/approval",
+      },
+    ]
+  },
+  {
+    id: "transfer-employees",
+    label: "Transfer Employees",
+    icon: "bx bx-slider-alt",
+    link: "/hr/transfer-employees",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-transfer-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/transfer-employees/add",
+      },
+      {
+        id: "transfer-approval",
+        label: "All Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/transfer-employees/approval",
+      },
+      {
+        id: "transfer-current-location-approval",
+        label: "Outgoing Approvals",
+        icon: "bx bx-arrow-to-left",
+        link: "/hr/transfer-employees/outgoing",
+      },
+      {
+        id: "transfer-transferred-location-approval",
+        label: "Incoming Approvals",
+        icon: "bx bx-arrow-to-right",
+        link: "/hr/transfer-employees/incoming",
+      },
+      {
+        id: "transfer-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/transfer-employees/it",
+      },
+    ],
+  },
+  {
+    id: "hiring",
+    label: "Hiring",
+    icon: "bx bx-badge",
+    link: "/hr/hiring",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-hiring-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/hiring/add",
+      },
+      {
+        id: "hiring-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/hiring/approval",
+      },
+    ]
+  }
+];
+
+export const HRMS = [
+  {
+    id: "attendance",
+    label: "Attendance",
+    link: "/hrms/attendance",
+    icon: "bx bx-time-five",
   },
 ];
 

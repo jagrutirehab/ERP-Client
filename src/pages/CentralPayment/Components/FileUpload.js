@@ -3,32 +3,38 @@ import { useState, useRef } from "react";
 import { Badge, Button, Input, Label } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 
-const FileUpload = ({ files, setFiles }) => {
+const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = useRef(null);
-  
+
   const fileList = Array.isArray(files) ? files : [];
 
   const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    const validFiles = selectedFiles.filter((file) =>
+    const selected = Array.from(e.target.files || []);
+
+    if (!selected.length) return;
+
+    const validFiles = selected.filter(file =>
       ["image/png", "image/jpeg", "application/pdf"].includes(file.type)
     );
 
-    if (validFiles.length > 0) {
-      const newFiles = [...fileList, ...validFiles];
-      const uniqueFiles = newFiles.filter(
-        (file, index, arr) => arr.findIndex(f => f.name === file.name) === index
+    if (!validFiles.length) return;
+
+    let finalFiles;
+
+    if (multiple) {
+      const merged = [...fileList, ...validFiles];
+      const unique = merged.filter(
+        (f, i, arr) => arr.findIndex(x => x.name === f.name) === i
       );
-      const finalFiles = uniqueFiles.slice(0, 10);
-      
-      console.log("Adding files:", validFiles);
-      console.log("New files array:", finalFiles);
-      
-      setFiles(finalFiles);
+      finalFiles = unique.slice(0, maxFiles);
+    } else {
+      // 🔥 SINGLE MODE → override
+      finalFiles = [validFiles[0]];
     }
 
+    setFiles(finalFiles);
     e.target.value = "";
   };
 
@@ -42,9 +48,13 @@ const FileUpload = ({ files, setFiles }) => {
     setIsPreviewOpen(true);
   };
 
-  const handleRemoveFile = (index) => {
-    const newFiles = fileList.filter((_, i) => i !== index);
-    setFiles(newFiles);
+  const handleRemoveFile = (index = 0) => {
+    if (multiple) {
+      setFiles(fileList.filter((_, i) => i !== index));
+    } else {
+      setFiles([]);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const handleRemoveAllFiles = () => {
@@ -69,7 +79,7 @@ const FileUpload = ({ files, setFiles }) => {
         <div className="mb-2">
           <Label htmlFor="fileInput" className="text-primary cursor-pointer mb-0">
             <Upload size={14} className="me-2" />
-            Upload files
+            {multiple ? "Upload files" : "Upload file"}
           </Label>
           <Input
             id="fileInput"
@@ -79,12 +89,12 @@ const FileUpload = ({ files, setFiles }) => {
             onChange={handleFileChange}
             accept=".png,.jpg,.jpeg,.pdf"
             ref={fileInputRef}
-            multiple
+            multiple={multiple}
           />
         </div>
-        <p className="small text-muted mb-0">
+        {multiple && <p className="small text-muted mb-0">
           Upload up to 10 supported files. Max 100 MB per file.
-        </p>
+        </p>}
 
         {fileList.length > 0 && (
           <div className="mt-3 pt-3 border-top">

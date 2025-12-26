@@ -30,7 +30,6 @@ const Print = ({
   charts
 }) => {
   const dispatch = useDispatch();
-  console.log("print clinical test", clinicalTest);
 
   const [vp, setVp] = useState(null);
   useEffect(() => {

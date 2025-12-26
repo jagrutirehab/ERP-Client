@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   col2: {
     width: "30%",
   },
-  col1: { flex: 0.5 },
+  col1: { flex: 0.5, paddingLeft: 6, },
   fontBold: {
     fontFamily: "Helvetica Neue",
     fontSize: "11px",
@@ -175,7 +175,7 @@ const PrescriptionTable = ({ medicines }) => {
               </View>
             </View>
           </View>
-          <Text style={{...styles.col6, textAlign:"right"}}>Timing - Freq. - Duration</Text>
+          <Text style={{ ...styles.col6, textAlign: "right" }}>Timing - Freq. - Duration</Text>
           {/* <Text style={styles.col2}>Qty</Text> */}
         </View>
         <View style={{ ...styles.tableBody }}>
@@ -213,7 +213,7 @@ const PrescriptionTable = ({ medicines }) => {
                   </View>
                 </View>
 
-                <View style={{ ...styles.col6, alignItems: "flex-end", marginRight:"10px" }}>
+                <View style={{ ...styles.col6, alignItems: "flex-end", marginRight: "10px" }}>
                   <Text
                     style={{
                       ...styles.fontMd,

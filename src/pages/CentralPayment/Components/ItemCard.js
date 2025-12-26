@@ -2,21 +2,21 @@ import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { Badge, Button, Card, CardBody, Col, Row, Spinner } from "reactstrap";
-import { Calendar, Tag, Check, X, CheckCheck } from "lucide-react";
+import { Calendar, Tag, CheckCheck, Copy } from "lucide-react";
 import PropTypes from "prop-types";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
-import { editCentralPayment } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { updateCentralPaymentAction } from "../../../store/features/centralPayment/centralPaymentSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
 
-const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
+const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
-    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const handleAuthError = useAuthError();
 
     const getStatusBadgeColor = (status) => {
@@ -32,10 +32,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
         }
     };
 
+
     const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
-            await dispatch(editCentralPayment({ paymentId, approvalStatus })).unwrap();
+            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus })).unwrap();
+            toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to update approval Status.");
@@ -45,20 +47,20 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
         }
     }
 
-    const handleProcessPayment = async (formData) => {
-        setUpdating({ id: item._id, type: "PROCESSING" });
+    const handleUTRConfirmation = async (formData) => {
+        setUpdating({ id: item._id, type: formData.currentPaymentStatus });
         try {
-            await dispatch(editCentralPayment({
+            await dispatch(updateCentralPaymentAction({
                 paymentId: item._id,
                 transactionId: formData.transactionId,
                 currentPaymentStatus: formData.currentPaymentStatus
             })).unwrap();
 
             toast.success(`Payment ${formData.currentPaymentStatus.toLowerCase()} successfully!`);
-            setIsPaymentModalOpen(false);
+            setIsModalOpen(false);
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to process payment.");
+                toast.error(error.message || "Failed to update UTR confirmation.");
             }
         } finally {
             setUpdating({ id: null, type: null });
@@ -66,17 +68,79 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
     }
 
     const openPaymentModal = () => {
-        setIsPaymentModalOpen(true);
+        setIsModalOpen(true);
     }
 
     const closePaymentModal = () => {
-        setIsPaymentModalOpen(false);
+        setIsModalOpen(false);
     }
 
     return (
         <React.Fragment>
-            <Card className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}>
-                <CardBody className="py-3">
+            <Card
+                className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}
+                style={{
+                    position: "relative",
+                    ...((flag === "processPayment" || flag === "UTRConfirmation") && { minHeight: 265 })
+                }}
+            >
+                <CardBody className="py-3" style={{ position: "relative", paddingTop: 28 }}>
+                    {showSelect && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 12,
+                                right: 12,
+                                zIndex: 50,
+                            }}
+                        >
+                            <label
+                                style={{
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center"
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={() => onSelect(item._id)}
+                                    style={{
+                                        opacity: 0,
+                                        position: "absolute",
+                                        width: 0,
+                                        height: 0,
+                                        cursor: "pointer"
+                                    }}
+                                />
+
+                                <span
+                                    style={{
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: "50%",
+                                        border: selected ? "2px solid #28a745" : "2px solid #aaa",
+                                        backgroundColor: selected ? "#28a745" : "transparent",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        transition: "all 0.15s ease"
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: "50%",
+                                            backgroundColor: "white",
+                                            opacity: selected ? 1 : 0,
+                                            transition: "opacity 0.15s ease"
+                                        }}
+                                    />
+                                </span>
+                            </label>
+                        </div>
+                    )}
                     <Row className="align-items-center">
                         <Col md={8}>
                             <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
@@ -137,48 +201,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
                             </div>
                         </Col>
                     </Row>
-                    {flag === "approval" && hasCreatePermission && (
+                    {(flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
                                 <Button
-                                    onClick={() => handleUpdateApprovalStatus(item._id, "REJECTED")}
-                                    color="danger"
-                                    size="sm"
-                                    className="me-2 d-flex align-items-center text-white"
-                                    disabled={updating.id === item._id && updating.type === "REJECTED"}
-                                >
-                                    {updating.id === item._id && updating.type === "REJECTED" ? (
-                                        <Spinner size="sm" color="light" className="me-1" />
-                                    ) : (
-                                        <X size={16} className="me-1" />
-                                    )}
-                                    Reject
-                                </Button>
-
-                                <Button
-                                    onClick={() => handleUpdateApprovalStatus(item._id, "APPROVED")}
-                                    color="success"
-                                    size="sm"
-                                    className="d-flex align-items-center text-white"
-                                    disabled={updating.id === item._id && updating.type === "APPROVED"}
-                                >
-                                    {updating.id === item._id && updating.type === "APPROVED" ? (
-                                        <Spinner size="sm" color="light" className="me-1" />
-                                    ) : (
-                                        <Check size={16} className="me-1" />
-                                    )}
-                                    Approve
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                    {flag === "paymentProcessing" && hasCreatePermission && (
-                        <>
-                            <div className="my-3 border-1 border-top border-dashed"></div>
-                            <div className="d-flex justify-content-end">
-                                <Button
-                                    onClick={openPaymentModal}
+                                    onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
                                     size="sm"
                                     className="d-flex align-items-center text-white"
@@ -187,9 +215,14 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
                                     {updating.id === item._id ? (
                                         <Spinner size="sm" color="light" className="me-1" />
                                     ) : (
-                                        <CheckCheck size={16} className="me-1" />
+                                        !hasCreatePermission && flag === "processPayment" ? 
+                                        <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
                                     )}
-                                    Process Payment
+                                    {
+                                        hasCreatePermission
+                                            ? (flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
+                                            : flag === "processPayment" ? "Copy E-Net" : "Details"
+                                    }
                                 </Button>
                             </div>
                         </>
@@ -198,11 +231,13 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission }) => {
             </Card>
 
             <PaymentFormModal
-                isOpen={isPaymentModalOpen}
+                isOpen={isModalOpen}
                 toggle={closePaymentModal}
                 item={item}
-                onConfirm={handleProcessPayment}
-                isProcessing={updating.id === item._id}
+                mode={flag}
+                onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
+                isProcessing={updating}
+                hasCreatePermission={hasCreatePermission}
             />
         </React.Fragment>
     );
@@ -212,7 +247,11 @@ ItemCard.propTypes = {
     item: PropTypes.object,
     flag: PropTypes.string,
     border: PropTypes.bool,
-    hasCreatePermission: PropTypes.bool
+    hasCreatePermission: PropTypes.bool,
+    selected: PropTypes.bool,
+    onSelect: PropTypes.func,
+    showSelect: PropTypes.bool,
+    onCopyENet: PropTypes.func,
 };
 
 export default ItemCard;

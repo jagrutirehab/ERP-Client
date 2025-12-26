@@ -18,6 +18,7 @@ import {
   getChartsAddmissions,
   getCounsellingNote,
   getGeneralCharts,
+  getLastMentalExamination,
   getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
@@ -53,6 +54,7 @@ const initialState = {
     isOpen: false,
   },
   patientLatestOPDPrescription: null,
+  patientLatestMentalExamination: null,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -152,7 +154,7 @@ export const addPrescription = createAsyncThunk(
       const patient = response?.patient;
       const appointment = response?.appointment;
       const doctor = response?.doctor;
-      if (data?.type === OPD) {
+      if ((data?.type === OPD || data?.type === IPD) && appointment) {
         dispatch(setEventChart({ chart: payload, appointment, patient }));
         dispatch(viewPatient(patient));
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
@@ -204,8 +206,11 @@ export const updatePrescription = createAsyncThunk(
 
       const payload = response?.payload;
       const patient = response?.patient;
-      const appointment = response.appointment;
-      if (payload.type === OPD) {
+      const appointment = payload.appointment;
+      console.log("------------------");
+      console.log({ payload, appointment, response });
+      console.log("------------------");
+      if ((payload.type === OPD || payload.type === IPD) && appointment) {
         dispatch(
           setEventChart({
             chart: payload,
@@ -213,7 +218,7 @@ export const updatePrescription = createAsyncThunk(
             patient: response.patient,
           })
         );
-        dispatch(viewPatient(patient));
+        // dispatch(viewPatient(patient));
         if (data.shouldPrintAfterSave)
           dispatch(
             togglePrint({
@@ -318,7 +323,10 @@ export const addClinicalNote = createAsyncThunk(
       const patient = response?.patient;
       const appointment = response?.appointment;
       const doctor = response?.doctor;
-      if (payload?.type === OPD) {
+      if (
+        (payload?.type === OPD || payload?.type === IPD) &&
+        payload?.appointment
+      ) {
         dispatch(setEventChart({ chart: payload, appointment, patient }));
         // dispatch(viewPatient(patient));
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
@@ -411,7 +419,10 @@ export const updateClinicalNote = createAsyncThunk(
       const payload = response?.payload;
       // const patient = response?.patient;
       const appointment = response?.appointment;
-      if (payload.type === OPD) {
+      if (
+        (payload.type === OPD || payload.type === IPD) &&
+        payload.appointment
+      ) {
         dispatch(
           setEventChart({
             chart: payload,
@@ -797,45 +808,50 @@ export const updateDetailAdmission = createAsyncThunk(
   }
 );
 
-export const addMentalExamination = createAsyncThunk("postMentalExamination", async (data, { rejectWithValue, dispatch }) => {
-  try {
-    const response = await postMentalExamination(data);
-    dispatch(
-      setAlert({
-        type: "success",
-        message: "Clinical Notes V2 Saved Successfully",
-      })
-    );
+export const addMentalExamination = createAsyncThunk(
+  "postMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postMentalExamination(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Clinical Notes V2 Saved Successfully",
+        })
+      );
 
-    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
-    return response;
-  } catch (error) {
-    dispatch(setAlert({ type: "error", message: error.message }));
-    return rejectWithValue("something went wrong");
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
   }
-});
+);
 
-export const addGeneralMentalExamination = createAsyncThunk("postGeneralMentalExamination", async (data, { rejectWithValue, dispatch }) => {
-  try {
-    const response = await postGeneralMentalExamintion(data);
-    dispatch(
-      setAlert({
-        type: "success",
-        message: "General Clinical Notes V2 Saved Successfully",
-      })
-    );
+export const addGeneralMentalExamination = createAsyncThunk(
+  "postGeneralMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralMentalExamintion(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General Clinical Notes V2 Saved Successfully",
+        })
+      );
 
-    dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
-    return response;
-  } catch (error) {
-    dispatch(setAlert({ type: "error", message: error.message }));
-    return rejectWithValue("something went wrong");
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
   }
-});
-
+);
 
 export const updateMentalExamination = createAsyncThunk(
-  "edit",
+  "editMentalExamination",
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await editMentalExamination(data);
@@ -847,6 +863,19 @@ export const updateMentalExamination = createAsyncThunk(
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
 
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const fetchLastMentalExamination = createAsyncThunk(
+  "getLastMentalExamination",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLastMentalExamination(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -941,6 +970,8 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchCounsellingNote.fulfilled, (state, { payload }) => {
+        console.log({ payload });
+
         state.loading = false;
         state.patientLatestCounsellingNote = payload.payload;
       })
@@ -996,7 +1027,10 @@ export const chartSlice = createSlice({
       })
       .addCase(addPrescription.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload?.payload?.type === OPD) {
+        if (
+          (payload?.payload?.type === OPD || payload?.payload?.type === IPD) &&
+          payload.payload?.appointment
+        ) {
           //OPD CHARTS
           state.opdData = [payload.payload, ...state.opdData];
         } else {
@@ -1049,12 +1083,17 @@ export const chartSlice = createSlice({
       })
       .addCase(updatePrescription.fulfilled, (state, { payload }) => {
         state.loading = false;
+        console.log({ payload });
+
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
             (el) => el._id === payload.payload._id
           );
           state.charts[findIndex] = payload.payload;
-        } else if (payload.type !== "OPD") {
+        } else if (payload.type !== "OPD" && state.data?.length > 0) {
+          // && !payload.appointment
+          console.log("INSIDE IPD CHARTS");
+
           //IPD CHARTS
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission
@@ -1135,7 +1174,10 @@ export const chartSlice = createSlice({
       })
       .addCase(addClinicalNote.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload?.payload?.type === OPD) {
+        if (
+          (payload?.payload?.type === OPD || payload?.payload?.type === IPD) &&
+          payload?.payload?.appointment
+        ) {
           //OPD CHARTS
           state.opdData = [payload.payload, ...state.opdData];
         } else {
@@ -1214,7 +1256,7 @@ export const chartSlice = createSlice({
             (el) => el._id === payload.payload._id
           );
           state.charts[findIndex] = payload.payload;
-        } else if (payload.type !== "OPD") {
+        } else if (payload.type !== "OPD" && !payload.appointment) {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission
           );
@@ -1620,6 +1662,18 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateMentalExamination.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchLastMentalExamination.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLastMentalExamination.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestMentalExamination = payload.payload;
+      })
+      .addCase(fetchLastMentalExamination.rejected, (state) => {
         state.loading = false;
       });
 
