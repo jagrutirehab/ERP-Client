@@ -25,6 +25,9 @@ const Main = () => {
     navigate("/unauthorized");
     return null;
   }
+
+  document.title = "Central Payment Dashboard";
+
   return <Views />;
 };
 

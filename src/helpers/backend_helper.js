@@ -1115,6 +1115,16 @@ export const updateCentralPaymentProcessStatus = (params = {}) => {
   })
 }
 
+export const regenerateENets = (params = {}) => {
+  return api.update(url.REGENERATE_ENETS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  })
+}
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
