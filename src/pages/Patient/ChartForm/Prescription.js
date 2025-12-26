@@ -84,7 +84,7 @@ const Prescription = ({
   // console.log(patient.referredBy, "this is patient")
 
   console.log("------------------");
-  console.log({ patient });
+  console.log({ patient, type });
   console.log("------------------");
 
   useEffect(() => {
@@ -187,7 +187,7 @@ const Prescription = ({
   });
 
   useEffect(() => {
-    if (type !== "OPD") return;
+    if (type !== "OPD" && !appointment) return;
     dispatch(fetchLatestCharts({ patient: patient?._id }));
   }, [patient, dispatch]);
 
@@ -478,7 +478,7 @@ const Prescription = ({
             </div>
           </div>
         </Form>
-        {type === OPD && (
+        {(type === OPD || type === IPD) && appointment && (
           <Card className="mt-3">
             <CardHeader
               tag="h5"
