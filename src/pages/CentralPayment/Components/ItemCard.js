@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
 
-const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet }) => {
+const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,13 +210,13 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                     color="primary"
                                     size="sm"
                                     className="d-flex align-items-center text-white"
-                                    disabled={updating.id === item._id}
+                                    disabled={updating.id === item._id || copyLoading}
                                 >
-                                    {updating.id === item._id ? (
+                                    {(updating.id === item._id || copyLoading) ? (
                                         <Spinner size="sm" color="light" className="me-1" />
                                     ) : (
-                                        !hasCreatePermission && flag === "processPayment" ? 
-                                        <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
+                                        !hasCreatePermission && flag === "processPayment" ?
+                                            <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
                                     )}
                                     {
                                         hasCreatePermission
@@ -252,6 +252,7 @@ ItemCard.propTypes = {
     onSelect: PropTypes.func,
     showSelect: PropTypes.bool,
     onCopyENet: PropTypes.func,
+    copyLoading: PropTypes.bool,
 };
 
 export default ItemCard;

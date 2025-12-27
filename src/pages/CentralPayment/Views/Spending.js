@@ -1,20 +1,12 @@
 import React, { useEffect } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
 import {
   Row,
   Col,
   Card,
   CardHeader,
   CardBody,
-  Form,
-  FormGroup,
-  Label,
-  Input,
-  Button,
-  Spinner,
 } from "reactstrap";
-import { Share, History, Receipt } from "lucide-react";
+import { History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
@@ -22,13 +14,11 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { format } from "date-fns";
-import { addPayment, getLastCentralPayments } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { getLastCentralPayments } from "../../../store/features/centralPayment/centralPaymentSlice";
 import ItemCard from "../Components/ItemCard";
-import FileUpload from "../Components/FileUpload";
 import SpendingForm from "../Components/SpendingForm";
 
-const Spending = ({ centers, centerAccess, spendings, loading }) => {
+const Spending = ({ centerAccess, spendings, loading }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
 
@@ -146,13 +136,11 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
 Spending.prototype = {
   centerAccess: PropTypes.array,
-  centers: PropTypes.array,
   loading: PropTypes.bool,
   spendings: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
-  centers: state.Center.data,
   centerAccess: state.User?.centerAccess,
   loading: state.CentralPayment.loading,
   spendings: state.CentralPayment.spendings,
