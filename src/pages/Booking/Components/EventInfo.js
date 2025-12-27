@@ -406,7 +406,7 @@ const EventInfo = ({
               }}
               disabled={
                 data?.isCancelled ||
-                (data.patient?.isAdmit && !data.patient?.isDischarge)
+                (data?.patient?.isAdmit && !data?.patient?.isDischarge)
               }
               className="btn btn-primary btn-sm text-nowrap fs-10"
             >

@@ -29,7 +29,8 @@ export const attendanceImportHistoryColumns = ({
         {
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),
-            wrap: true
+            wrap: true,
+            minWidth: "200px"
         },
         {
             name: <div>Total Count</div>,
@@ -76,7 +77,7 @@ export const attendanceImportHistoryColumns = ({
                 </div>
             ),
             wrap: true,
-            minWidth: "180px"
+            minWidth: "200px"
         },
         {
             name: <div>Status</div>,
