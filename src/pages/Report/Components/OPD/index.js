@@ -72,6 +72,10 @@ const OPDAnalytics = ({ data, centerAccess }) => {
       wrap: true,
     },
     {
+      name: "No Show",
+      selector: (row) => row?.isCancelled ? "Yes" : "No",
+    },
+    {
       name: "Prescribed",
       selector: (row) => (row?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No"),
     },
@@ -139,7 +143,9 @@ const OPDAnalytics = ({ data, centerAccess }) => {
           )
           .join(", "),
         opdCharges: (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
-        prescribed: d?.chart ? "Yes" : "No",
+        isNoShow: d?.isCancelled ? "Yes" : "No",
+        prescribed: d?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No",
+        isClinicalNoteCreated: d?.chart?.chart === "CLINICAL_NOTE" ? "Yes" : "No",
         paidAmount: d.bill?.receiptInvoice?.payable,
         date: `On ${format(
           new Date(d.startDate),
@@ -164,7 +170,9 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     { label: "Center", key: "center.title" },
     { label: "Appointment Type", key: "consultationType" },
     { label: "Patient Phone No", key: "patient.phoneNumber" },
+    { label: "No Show", key: "isNoShow" },
     { label: "Prescribed", key: "prescribed" },
+    { label: "Clinical Note", key: "isClinicalNoteCreated" },
     { label: "OPD Charges", key: "opdCharges" },
     { label: "Paid Amount", key: "paidAmount" },
     { label: "Payment Mode", key: "paymentMode" },
