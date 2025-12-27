@@ -19,7 +19,9 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [eNetCopyLoader, setENetCopyLoader] = useState(false);
+    const [copyAllLoader, setCopyAllLoader] = useState(false);
+    const [copySelectedLoader, setCopySelectedLoader] = useState(false);
+    const [singleCopyLoader, setSingleCopyLoader] = useState({});
     const [modalOpen, setModalOpen] = useState(false);
     const [copiedENets, setCopiedENets] = useState([]);
     const [processLoader, setProcessLoader] = useState(false);
@@ -33,6 +35,11 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
     const hasCreatePermission =
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "WRITE") ||
         hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "DELETE");
+
+    const isAnyCopyLoading =
+        copyAllLoader ||
+        copySelectedLoader ||
+        Object.values(singleCopyLoader).some(Boolean);
 
     const centerOptions = [
         ...(centerAccess?.length > 1
@@ -107,10 +114,9 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
 
     const handleCopySelectedENets = async () => {
         const ids = selectedItems;
+        if (!ids.length || copySelectedLoader) return;
 
-        if (!ids.length) return;
-
-        setENetCopyLoader(true);
+        setCopySelectedLoader(true);
 
         try {
             const res = await regenerateENets({
@@ -127,13 +133,15 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
         } catch (err) {
             toast.error("Failed to generate E-Nets.");
         } finally {
-            setENetCopyLoader(false);
+            setCopySelectedLoader(false);
         }
     };
 
 
     const handleCopyAllEnets = async () => {
-        setENetCopyLoader(true);
+        if (copyAllLoader) return;
+
+        setCopyAllLoader(true);
         try {
             const res = await regenerateENets({
                 centers: centerAccess
@@ -149,7 +157,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
         } catch (err) {
             toast.error("Failed to generate E-Nets.");
         } finally {
-            setENetCopyLoader(false);
+            setCopyAllLoader(false);
         }
     };
 
@@ -197,7 +205,9 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
 
 
     const copyENetHandler = async (paymentId) => {
-        setENetCopyLoader(true);
+        if (singleCopyLoader[paymentId]) return;
+
+        setSingleCopyLoader(prev => ({ ...prev, [paymentId]: true }));
         try {
             const res = await regenerateENets({
                 paymentIds: [paymentId]
@@ -211,7 +221,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
         } catch {
             toast.error("Failed to generate E-Net.");
         } finally {
-            setENetCopyLoader(false);
+            setSingleCopyLoader(prev => ({ ...prev, [paymentId]: false }));
         }
     }
 
@@ -263,8 +273,9 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                         onClick={handleCopyAllEnets}
                                         color="primary"
                                         className="text-white px-4"
+                                        disabled={isAnyCopyLoading}
                                     >
-                                        {eNetCopyLoader ? (
+                                        {copyAllLoader ? (
                                             <Spinner size="sm" className="me-1" />
                                         ) : (
                                             <Copy size={16} className="me-1" />
@@ -276,9 +287,13 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                         onClick={handleCopySelectedENets}
                                         color="primary"
                                         className="text-white px-4"
-                                        disabled={selectedItems.length === 0}
+                                        disabled={selectedItems.length === 0 || isAnyCopyLoading}
                                     >
-                                        <CopyCheck size={16} className="me-1" />
+                                        {copySelectedLoader ? (
+                                            <Spinner size="sm" className="me-1" />
+                                        ) : (
+                                            <CopyCheck size={16} className="me-1" />
+                                        )}
                                         Copy Selected E-Nets ({selectedItems.length})
                                     </Button>
                                 </Col>
@@ -310,6 +325,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                             selected={selectedItems.includes(payment._id)}
                                             onSelect={toggleItemSelection}
                                             onCopyENet={() => copyENetHandler(payment._id)}
+                                            copyLoading={!!singleCopyLoader[payment._id] && isAnyCopyLoading}
                                         />
                                     </Col>
                                 ))}

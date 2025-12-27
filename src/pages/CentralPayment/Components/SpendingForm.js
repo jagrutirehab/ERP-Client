@@ -48,12 +48,20 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 "Total amount can have at most 2 decimal places",
                 (value) => {
                     if (value === undefined || value === null) return true;
-                    return Number.isInteger(value * 100);
+                    return Math.round(value * 100) === value * 100;
                 }
             ),
         GSTAmount: Yup.number()
             .typeError("GST amount must be a number")
-            .required("GST amount is required"),
+            .required("GST amount is required")
+            .test(
+                "max-two-decimals",
+                "GST amount can have at most 2 decimal places",
+                (value) => {
+                    if (value === undefined || value === null) return true;
+                    return Math.round(value * 100) === value * 100;
+                }
+            ),
         IFSCCode: Yup.string()
             .nullable()
             .test(
