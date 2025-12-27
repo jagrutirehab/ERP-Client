@@ -73,7 +73,11 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     },
     {
       name: "Prescribed",
-      selector: (row) => (row?.chart ? "Yes" : "No"),
+      selector: (row) => (row?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No"),
+    },
+    {
+      name: "Clinical Note",
+      selector: (row) => (row?.chart?.chart === "CLINICAL_NOTE" ? "Yes" : "No"),
     },
     {
       name: "OPD Charges",
@@ -89,8 +93,7 @@ const OPDAnalytics = ({ data, centerAccess }) => {
         row.bill?.receiptInvoice?.paymentModes
           ?.map(
             (pm) =>
-              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-                pm.bank || ""
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${pm.bank || ""
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
           )
           .join(", "),
@@ -131,8 +134,7 @@ const OPDAnalytics = ({ data, centerAccess }) => {
         paymentMode: d.bill?.receiptInvoice?.paymentModes
           ?.map(
             (pm) =>
-              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-                pm.bank || ""
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${pm.bank || ""
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
           )
           .join(", "),
