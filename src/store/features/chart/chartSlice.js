@@ -820,6 +820,19 @@ export const addMentalExamination = createAsyncThunk(
         })
       );
 
+      const payload = response?.payload;
+      const patient = response?.patient;
+      const appointment = response?.appointment;
+      const doctor = response?.doctor;
+      if (
+        (payload?.type === OPD || payload?.type === IPD) &&
+        payload?.appointment
+      ) {
+        dispatch(setEventChart({ chart: payload, appointment, patient }));
+        // dispatch(viewPatient(patient));
+        dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
+      }
+
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -861,8 +874,34 @@ export const updateMentalExamination = createAsyncThunk(
           message: "Clinical Notes V2 Updated Successfully",
         })
       );
-      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
 
+      const payload = response?.payload;
+      // const patient = response?.patient;
+      const appointment = response?.appointment;
+      if (
+        (payload.type === OPD || payload.type === IPD) &&
+        payload.appointment
+      ) {
+        dispatch(
+          setEventChart({
+            chart: payload,
+            appointment,
+            patient: response.patient,
+          })
+        );
+        // dispatch(viewPatient(patient));
+        if (response.shouldPrintAfterSave)
+          dispatch(
+            togglePrint({
+              modal: true,
+              data: payload,
+              doctor: response.doctor,
+              patient: response.patient,
+            })
+          );
+      }
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -921,6 +960,8 @@ export const chartSlice = createSlice({
       }
     },
     createEditChart: (state, { payload }) => {
+      console.log({ payload });
+
       state.chartForm = payload;
     },
     setChartDate: (state, { payload }) => {
@@ -1611,18 +1652,43 @@ export const chartSlice = createSlice({
       })
       .addCase(addMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload.isAddmissionAvailable) {
-          const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
-          );
-          state.data[findIndex].totalCharts += 1;
-          state.data[findIndex].charts = [
-            payload.payload,
-            ...(state.data[findIndex].charts || []),
-          ];
+
+        console.log({ payload });
+
+        if (
+          (payload?.payload?.type === OPD || payload?.payload?.type === IPD) &&
+          payload?.payload?.appointment
+        ) {
+          //OPD CHARTS
+          state.opdData = [payload.payload, ...state.opdData];
         } else {
-          state.data = [...payload.payload, ...state.data];
+          //IPD CHARTS
+          if (payload.isAddmissionAvailable) {
+            const findIndex = state.data.findIndex(
+              (el) => el._id === payload.addmission
+            );
+            state.data[findIndex].totalCharts += 1;
+            state.data[findIndex].charts = [
+              payload.payload,
+              ...(state.data[findIndex].charts || []),
+            ];
+          } else {
+            state.data = [...payload.payload, ...state.data];
+          }
         }
+
+        // if (payload.isAddmissionAvailable) {
+        //   const findIndex = state.data.findIndex(
+        //     (el) => el._id === payload.addmission
+        //   );
+        //   state.data[findIndex].totalCharts += 1;
+        //   state.data[findIndex].charts = [
+        //     payload.payload,
+        //     ...(state.data[findIndex].charts || []),
+        //   ];
+        // } else {
+        //   state.data = [...payload.payload, ...state.data];
+        // }
       })
       .addCase(addMentalExamination.rejected, (state) => {
         state.loading = false;
@@ -1646,12 +1712,16 @@ export const chartSlice = createSlice({
       })
       .addCase(updateMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
+
+        console.log({ payload });
+
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
             (el) => el._id === payload.payload._id
           );
           state.charts[findIndex] = payload.payload;
-        } else {
+        } else if (payload.type !== "OPD" && !payload.appointment) {
+          // } else {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission
           );
