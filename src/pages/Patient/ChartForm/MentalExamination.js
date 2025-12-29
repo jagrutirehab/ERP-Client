@@ -55,7 +55,7 @@ const MentalExamination = ({
       patient: patient._id,
       center: patient.center._id || patient.center,
       addmission: patient?.addmission?._id || patient?.addmission || "",
-      appointment: appointment._id,
+      appointment: appointment?._id,
 
       chiefComplaints: editMentalExamination
         ? editMentalExamination?.chiefComplaints
