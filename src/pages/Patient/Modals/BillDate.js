@@ -35,6 +35,13 @@ const BillDate = ({
     (state) => state.Patient.patient.center._id
   );
 
+  const paymentCenters = [
+    "651f8abfed3d16334ae5a908",
+    "65b0143a5f1da510dc3094cb",
+  ];
+
+  const isPaymentCenter = paymentCenters.includes(PatientCenter);
+
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
   }, [dispatch, isOpen]);
@@ -116,7 +123,7 @@ const BillDate = ({
           </Form>
         </div>
         <div className="d-flex justify-content-end gap-3">
-          <Button
+          {/* <Button
             outline
             disabled={
               PatientCenter === "65b0143a5f1da510dc3094cb"
@@ -145,10 +152,40 @@ const BillDate = ({
           >
             {PatientCenter === "65b0143a5f1da510dc3094cb"
               ? "Payment"
-              : "Advance Payment"}
-            {/* Advance Payment */}
-            {/* Payment */}
+              : "Advance Payment"} */}
+          {/* Advance Payment */}
+          {/* Payment */}
+          {/* </Button> */}
+          <Button
+            outline
+            disabled={
+              isPaymentCenter
+                ? editBillData.bill === null ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+                : editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  bill: ADVANCE_PAYMENT,
+                  isOpen: true,
+                  admission,
+                })
+              );
+              toggle();
+            }}
+          >
+            {isPaymentCenter ? "Payment" : "Advance Payment"}
           </Button>
+
           <Button
             outline
             disabled={
