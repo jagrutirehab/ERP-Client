@@ -156,6 +156,7 @@ const Patient = ({ centerAccess }) => {
       name: <div>Patient</div>,
       selector: (row) => row.patient?.name,
       wrap: true,
+      minWidth: "120px"
     },
     {
       name: <div>UID</div>,
@@ -191,6 +192,7 @@ const Patient = ({ centerAccess }) => {
         return doctorsFromArray || doctorsFromAdmission || fallbackDoctor;
       },
       wrap: true,
+      minWidth: "120px"
     },
     {
       name: <div>Psychologist</div>,
@@ -230,6 +232,7 @@ const Patient = ({ centerAccess }) => {
         );
       },
       wrap: true,
+      minWidth: "120px"
     },
     {
       name: <div>Gender</div>,
@@ -243,6 +246,8 @@ const Patient = ({ centerAccess }) => {
     {
       name: <div>Phone No</div>,
       selector: (row) => row.patient?.phoneNumber,
+      wrap: true,
+      minWidth: "125px"
     },
     {
       name: <div>Age</div>,
