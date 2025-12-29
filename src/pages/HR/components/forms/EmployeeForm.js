@@ -36,11 +36,31 @@ const validationSchema = (mode, isEdit) => Yup.object({
     currentLocation: Yup.string().required("Current location is required"),
     designation: Yup.string().required("Designation is required"),
     payrollType: Yup.string().required("Payroll type is required"),
-    joinningDate: Yup.string().required("Date of joining is required"),
+    joinningDate: Yup.string()
+        .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
+        .required("Date of joining is required"),
     gender: Yup.string().required("Gender is required"),
     pfApplicable: Yup.boolean().required("Pf Applicable is required"),
     father: Yup.string().required("Father's name is required"),
-    dateOfBirth: Yup.string().required("Date of birth is required"),
+    dateOfBirth: Yup.string()
+        .required("Date of birth is required")
+        .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
+        .test(
+            "dob-in-past",
+            "Date of birth must be in the past",
+            (value) => value && new Date(value) < new Date()
+        ),
+    exitDate: Yup.string()
+        .nullable()
+        .test(
+            "exit-after-joining",
+            "Exit date must be after joining date",
+            function (value) {
+                const { joinningDate } = this.parent;
+                if (!value || !joinningDate) return true;
+                return new Date(value) >= new Date(joinningDate);
+            }
+        ),
     mobile: Yup.string().required("Mobile number is required").test("is-valid-phone", "Invalid phone number", function (value) {
         return isValidPhoneNumber(value || "");
     }),
@@ -61,30 +81,23 @@ const validationSchema = (mode, isEdit) => Yup.object({
         "PAN file is required",
         function (value) {
             const { panOld } = this.parent;
-            if (!isEdit) return !!value;
             return !!value || !!panOld;
         }
     ),
-
     adharFile: Yup.mixed().test(
         "required-adhar-file",
         "Aadhaar file is required",
         function (value) {
             const { adharOld } = this.parent;
-            if (!isEdit) return value instanceof File;
-            if (!adharOld && !value) return false;
-            return true;
+            return !!value || !!adharOld;
         }
     ),
-
     offerLetterFile: Yup.mixed().test(
         "required-offer-letter-file",
         "Offer letter is required",
         function (value) {
             const { offerLetterOld } = this.parent;
-            if (!isEdit) return value instanceof File;
-            if (!offerLetterOld && !value) return false;
-            return true;
+            return !!value || !!offerLetterOld;
         }
     ),
 });
@@ -126,9 +139,30 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
         loadDesignations();
     }, []);
 
+    const normalizeDateForInput = (value) => {
+        if (!value) return "";
+
+        // YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return value;
+        }
+
+        // DD-MM-YYYY → YYYY-MM-DD
+        if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+            const [dd, mm, yyyy] = value.split("-");
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        return "";
+    };
+
+
     const cleanedInitialData = initialData
         ? {
             ...initialData,
+            joinningDate: normalizeDateForInput(initialData?.joinningDate),
+            dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
+            exitDate: normalizeDateForInput(initialData?.exitDate),
             designation: initialData?.designation?._id || "",
             IFSCCode: initialData?.bankDetails?.IFSCCode || "",
             bankName: initialData?.bankDetails?.bankName || "",
@@ -277,7 +311,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
 
     });
 
-    const { values, errors, isSubmitting, handleChange, setFieldValue, setTouched, touched, isValid } = form;
+    const { values, errors, isSubmitting, handleChange, setFieldValue, setTouched, setFieldTouched, touched, isValid } = form;
 
     const touchFileFields = () => {
         setTouched(
@@ -763,15 +797,21 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             ref={adharFileRef}
                             accept="image/*,application/pdf"
                             onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    setFieldValue("adharFile", file);
-                                    setFieldValue("adharOld", "");
+                                const file = e.target.files?.[0];
 
-                                    form.setFieldTouched("adharFile", false, false);
-                                    form.setFieldError("adharFile", undefined);
-                                }
+                                if (!file) return;
+
+                                setFieldValue("adharFile", file, false);
+                                setFieldValue("adharOld", "", false);
+                                setFieldTouched("adharFile", true, false);
+
+                                requestAnimationFrame(() => {
+                                    form.validateField("adharFile");
+                                });
+
+                                e.target.value = "";
                             }}
+
                         />
 
                         {values.adharFile && (
@@ -861,14 +901,19 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             ref={panFileRef}
                             accept="image/*,application/pdf"
                             onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    setFieldValue("panFile", file);
-                                    setFieldValue("panOld", "");
+                                const file = e.target.files?.[0];
 
-                                    form.setFieldTouched("panFile", false, false);
-                                    form.setFieldError("panFile", undefined);
-                                }
+                                if (!file) return;
+
+                                setFieldValue("panFile", file, false);
+                                setFieldValue("panOld", "", false);
+                                setFieldTouched("panFile", true, false);
+
+                                requestAnimationFrame(() => {
+                                    form.validateField("panFile");
+                                });
+
+                                e.target.value = "";
                             }}
                         />
 
@@ -942,14 +987,19 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                             ref={offerLetterRef}
                             accept="image/*,application/pdf"
                             onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    setFieldValue("offerLetterFile", file);
-                                    setFieldValue("offerLetterOld", "");
+                                const file = e.target.files?.[0];
 
-                                    form.setFieldTouched("offerLetterFile", false, false);
-                                    form.setFieldError("offerLetterFile", undefined);
-                                }
+                                if (!file) return;
+
+                                setFieldValue("offerLetterFile", file, false);
+                                setFieldValue("offerLetterOld", "", false);
+                                setFieldTouched("offerLetterFile", true, false);
+
+                                requestAnimationFrame(() => {
+                                    form.validateField("offerLetterFile");
+                                });
+
+                                e.target.value = "";
                             }}
                         />
 
