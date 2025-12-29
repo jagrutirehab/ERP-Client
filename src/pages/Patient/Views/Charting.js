@@ -111,6 +111,7 @@ const Charting = ({
       patient,
       center,
       centerAddress,
+      appointment,
       addmission,
       chart,
       type,
@@ -126,6 +127,7 @@ const Charting = ({
     formData.append("center", center);
     formData.append("centerAddress", centerAddress);
     formData.append("addmission", addmission);
+    formData.append("appointment", appointment);
     formData.append("chart", chart);
     formData.append("type", type);
     formData.append("date", date);
