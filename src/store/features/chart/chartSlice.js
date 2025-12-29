@@ -207,9 +207,6 @@ export const updatePrescription = createAsyncThunk(
       const payload = response?.payload;
       const patient = response?.patient;
       const appointment = payload.appointment;
-      console.log("------------------");
-      console.log({ payload, appointment, response });
-      console.log("------------------");
       if ((payload.type === OPD || payload.type === IPD) && appointment) {
         dispatch(
           setEventChart({
