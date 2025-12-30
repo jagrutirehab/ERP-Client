@@ -534,7 +534,7 @@ const Prescription = ({
                       </diV>
                     )}
                     {chart.chart === LAB_REPORT && (
-                      <LabReport data={chart.labReport?.reports} />
+                      <LabReport data={chart.labReport?.reports} date={chart.labReport?.updatedAt} />
                     )}
                     {chart.chart === DETAIL_ADMISSION && (
                       <div className="mt-4">

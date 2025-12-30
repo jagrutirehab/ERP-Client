@@ -4,15 +4,22 @@ import { Col, Row } from "reactstrap";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import Divider from "../../../Components/Common/Divider";
+import { isPreviewable } from "../../../utils/isPreviewable";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 
-const LabReport = ({ data }) => {
+const LabReport = ({ data, date }) => {
   const [fileModal, setFileModal] = useState({
     img: null,
     isOpen: false,
   });
 
-  const onPreview = (img) => {
-    setFileModal({ img, isOpen: true });
+  const onPreview = (file) => {
+    if (isPreviewable(file, date)) {
+      setFileModal({ img: file, isOpen: true });
+    } else {
+      downloadFile(file);
+      setFileModal({ img: null, isOpen: false });
+    }
   };
 
   return (
