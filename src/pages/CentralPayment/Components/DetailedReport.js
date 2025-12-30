@@ -16,6 +16,7 @@ import AttachmentCell from './AttachmentCell';
 import UploadModal from './UploadModal';
 import { downloadFile } from '../../../Components/Common/downloadFile';
 import PreviewFile from '../../../Components/Common/PreviewFile';
+import { isPreviewable } from '../../../utils/isPreviewable';
 
 const DetailedReport = ({
   centers,
@@ -56,11 +57,6 @@ const DetailedReport = ({
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
-
-  const openPreview = (file) => {
-    setPreviewFile(file);
-    setPreviewOpen(true);
-  };
 
   const closePreview = () => {
     setPreviewOpen(false);
@@ -357,11 +353,27 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachments</div>,
-      cell: (row) => <AttachmentCell
-        attachments={row.attachments || []}
-        showAsButton={true}
-        onPreview={openPreview}
-      />,
+      cell: (row) => {
+
+        const handleAttachmentClick = (file) => {
+          if (isPreviewable(file, row?.date)) {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+          } else {
+            downloadFile(file);
+            setPreviewOpen(false);
+            setPreviewFile(null);
+          }
+        };
+
+        return (
+          <AttachmentCell
+            attachments={row.attachments || []}
+            showAsButton={true}
+            onPreview={handleAttachmentClick}
+          />
+        )
+      },
       wrap: true,
       minWidth: "140px",
 

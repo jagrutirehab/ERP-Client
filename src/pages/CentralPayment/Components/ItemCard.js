@@ -13,6 +13,8 @@ import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import { isPreviewable } from "../../../utils/isPreviewable";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 
 const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
@@ -36,10 +38,17 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     };
 
-    const openPreview = (file) => {
-        setPreviewFile(file);
-        setPreviewOpen(true);
+    const handleAttachmentClick = (file) => {
+        if (isPreviewable(file, item?.date)) {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+        } else {
+            downloadFile(file);
+            setPreviewOpen(false);
+            setPreviewFile(null);
+        }
     };
+
 
     const closePreview = () => {
         setPreviewOpen(false);
@@ -195,7 +204,8 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                 <div className="mt-2">
                                     <AttachmentCell
                                         attachments={item.attachments}
-                                        onPreview={openPreview}
+                                        onPreview={handleAttachmentClick}
+
                                     />
                                 </div>
                             )}
