@@ -11,6 +11,7 @@ import { getPaymentDetails } from "../../../store/features/centralPayment/centra
 import { Check, Pencil, X } from "lucide-react";
 import moment from "moment";
 import SpendingForm from "./SpendingForm";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
@@ -36,6 +37,9 @@ const PaymentFormModal = ({
 }) => {
     const dispatch = useDispatch();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
+
 
     const formik = useFormik({
         initialValues: {
@@ -67,6 +71,7 @@ const PaymentFormModal = ({
 
     const handleToggle = () => {
         formik.resetForm();
+        closePreview();
         toggle();
     };
 
@@ -76,6 +81,16 @@ const PaymentFormModal = ({
         dispatch(getPaymentDetails(item._id));
 
     }
+
+    const openPreview = (file) => {
+        setPreviewFile(file);
+        setPreviewOpen(true);
+    };
+
+    const closePreview = () => {
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
 
     if (loading) {
         return (
@@ -172,7 +187,7 @@ const PaymentFormModal = ({
                                             {paymentDetails?.attachments.map((attachment, index) => (
                                                 <p
                                                     key={attachment._id || index}
-                                                    onClick={() => downloadFile(attachment)}
+                                                    onClick={() => openPreview(attachment)}
                                                     className="text-primary text-decoration-underline cursor-pointer mb-1"
                                                 >
                                                     {attachment.originalName}
@@ -386,6 +401,13 @@ const PaymentFormModal = ({
                     />
                 </ModalBody>
             </Modal>
+
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={closePreview}
+            />
         </>
 
     );
