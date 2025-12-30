@@ -39,7 +39,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
     };
 
     const handleAttachmentClick = (file) => {
-        if (isPreviewable(file, item?.date)) {
+        if (isPreviewable(file, item?.updatedAt)) {
             setPreviewFile(file);
             setPreviewOpen(true);
         } else {
