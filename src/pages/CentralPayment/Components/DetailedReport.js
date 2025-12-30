@@ -356,7 +356,7 @@ const DetailedReport = ({
       cell: (row) => {
 
         const handleAttachmentClick = (file) => {
-          if (isPreviewable(file, row?.date)) {
+          if (isPreviewable(file, row?.updatedAt)) {
             setPreviewFile(file);
             setPreviewOpen(true);
           } else {
