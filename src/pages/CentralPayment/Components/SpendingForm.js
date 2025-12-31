@@ -64,14 +64,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             ),
         IFSCCode: Yup.string()
             .nullable()
-            .test(
-                "ifsc-length",
-                "IFSC Code must be exactly 11 characters",
-                (value) => {
-                    if (!value) return true;
-                    return value.length === 11;
-                }
-            ),
+            .trim()
+            .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters with no spaces"),
         accountHolderName: Yup.string().nullable(),
         accountNo: Yup.string()
             .nullable()
@@ -180,7 +174,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         form.handleSubmit(e);
     };
 
-    // transform every text input in uppercase & comma not allowed validation
+    // transform every text input in uppercase & comma not allowed validation & no space allowd for IFSCCode, accountNo
     const normalizeTextInput = (e) => {
         const { name, value } = e.target;
 
@@ -189,8 +183,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             form.setFieldError(name, "Comma (,) is not allowed");
             return;
         }
+        let newValue = value;
+        if (["IFSCCode", "accountNo"].includes(name)) {
+            newValue = value.replace(/\s+/g, "");
+        }
 
-        form.setFieldValue(name, value.toUpperCase(), true);
+        form.setFieldValue(name, newValue.toUpperCase(), true);
     };
 
     return (
