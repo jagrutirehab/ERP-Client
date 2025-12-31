@@ -287,6 +287,28 @@ const pages = [
     link: "/hrms",
     icon: "bx bx-group",
   },
+  {
+    id: "webcamstats",
+    label: "Web Cam Stats",
+    name: "Web Cam Stats",
+    link: "/webcamstats",
+    icon: "bx bx-group",
+  },
+];
+
+export const WebcamStats = [
+  {
+    id: "webcamstats-dashboard",
+    label: "Dashboard",
+    link: "/webcamstats/dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-stats",
+    label: "Stats",
+    link: "/webcamstats/stats",
+    icon: "bx bx-home",
+  },
 ];
 
 export const Pharmacy = [
@@ -524,7 +546,7 @@ export const HR = [
         icon: "bx bx-chip",
         link: "/hr/new-joinings/it",
       },
-    ]
+    ],
   },
   {
     id: "exit-employees",
@@ -578,7 +600,7 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/salary-advance/approval",
       },
-    ]
+    ],
   },
   {
     id: "transfer-employees",
@@ -638,8 +660,8 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-    ]
-  }
+    ],
+  },
 ];
 
 export const HRMS = [

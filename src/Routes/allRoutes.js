@@ -26,6 +26,7 @@ const CentralPayment = React.lazy(() => import("../pages/CentralPayment"));
 const Booking = React.lazy(() => import("../pages/Booking"));
 const Medicine = React.lazy(() => import("../pages/Medicine"));
 const Lead = React.lazy(() => import("../pages/Lead"));
+const WebCamStats = React.lazy(() => import("../pages/WebCamStats"));
 const Report = React.lazy(() => import("../pages/Report"));
 const Pharmacy = React.lazy(() => import("../pages/Inventory"));
 const Guidelines = React.lazy(() => import("../pages/Guidelines"));
@@ -58,6 +59,7 @@ const allElements = [
   { element: MiReporting, label: "Hubspot Reporting" },
   { element: HR, label: "HR" },
   { element: HRMS, label: "HRMS" },
+  { element: WebCamStats, label: "Web Cam Stats" },
 ];
 
 const authProtectedRoutes = [
@@ -84,6 +86,7 @@ const authProtectedRoutes = [
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
+  { path: "/webcamstats/*", component: WebCamStats },
   {
     path: "/",
     exact: true,
