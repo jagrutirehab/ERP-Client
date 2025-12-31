@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import { fetchCenterLeadsMTD } from "../../../store/features/miReporting/miReportingSlice";
 
 const CenterLeadsMTD = () => {
@@ -8,6 +9,10 @@ const CenterLeadsMTD = () => {
   const { centerLeadsMTD, loading, error } = useSelector(
     (state) => state.MIReporting
   );
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchCenterLeadsMTD());
@@ -33,6 +38,49 @@ const CenterLeadsMTD = () => {
     return date.toLocaleString("default", { month: "short", year: "numeric" });
   };
 
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = centerLeadsMTD.map((item, idx) => {
+      const row = {
+        id: idx + 1,
+        center: item.center,
+      };
+
+      months.forEach((month) => {
+        const stat = item.stats?.find((s) => s.month === month);
+        row[month] = stat ? stat.count : 0;
+      });
+
+      return row;
+    });
+
+    setCsvData(formatted);
+
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers dynamically
+  const csvHeaders = React.useMemo(() => {
+    const headers = [
+      { label: "#", key: "id" },
+      { label: "Center", key: "center" },
+    ];
+
+    months.forEach((month) => {
+      headers.push({
+        label: formatMonth(month),
+        key: month,
+      });
+    });
+
+    return headers;
+  }, [months]);
+
   return (
     <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
       <div className="row">
@@ -53,6 +101,30 @@ const CenterLeadsMTD = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="col-sm-6 col-4">
+                <div className="d-flex justify-content-end">
+                  <Button
+                    color="info"
+                    onClick={prepareCsvData}
+                    disabled={
+                      csvLoading ||
+                      loading ||
+                      !centerLeadsMTD ||
+                      centerLeadsMTD.length === 0
+                    }
+                    className="w-auto"
+                  >
+                    {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                  </Button>
+                  <CSVLink
+                    data={csvData || []}
+                    filename="center-leads-mtd.csv"
+                    headers={csvHeaders}
+                    className="d-none"
+                    ref={csvRef}
+                  />
                 </div>
               </div>
             </div>
