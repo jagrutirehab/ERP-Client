@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCityLeadStatus } from "../../../store/features/miReporting/miReportingSlice";
-import { Table, Card, CardBody } from "reactstrap";
+import { Table, Card, CardBody, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import Loader from "../../../Components/Common/Loader";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
@@ -12,6 +13,10 @@ const CityLeadStatus = () => {
   const dispatch = useDispatch();
   const { cityLeadStatus, loading } = useSelector((state) => state.MIReporting);
   const [date, setDate] = useState(moment().format("YYYY-MM"));
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchCityLeadStatus({ date }));
@@ -37,10 +42,65 @@ const CityLeadStatus = () => {
 
   const uniqueStatuses = getAllStatuses();
 
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = cityLeadStatus.map((item, idx) => {
+      const row = {
+        id: idx + 1,
+        center: item.center,
+      };
+
+      // Add each status as a column
+      uniqueStatuses.forEach((status) => {
+        row[status] =
+          item.leadStatus && item.leadStatus[status]
+            ? item.leadStatus[status]
+            : 0;
+      });
+
+      row["Total excluding Unrelated"] = item["Total excluding Unrelated"];
+      row["Total"] = item.overall;
+
+      return row;
+    });
+
+    setCsvData(formatted);
+
+    // Trigger download
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers dynamically
+  const csvHeaders = React.useMemo(() => {
+    const headers = [
+      { label: "#", key: "id" },
+      { label: "Center", key: "center" },
+    ];
+
+    uniqueStatuses.forEach((status) => {
+      headers.push({
+        label: status,
+        key: status,
+      });
+    });
+
+    headers.push(
+      { label: "Total excluding Unrelated", key: "Total excluding Unrelated" },
+      { label: "Total", key: "Total" }
+    );
+
+    return headers;
+  }, [uniqueStatuses]);
+
   return (
     <React.Fragment>
       <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
-        <div className="row">
+        <div className="row p-3">
           <div className="col-12">
             <div className="p-3">
               <div className="row align-items-center">
@@ -79,6 +139,26 @@ const CityLeadStatus = () => {
                         ],
                       }}
                       onChange={handleDateChange}
+                    />
+                    <Button
+                      color="info"
+                      onClick={prepareCsvData}
+                      disabled={
+                        csvLoading ||
+                        loading ||
+                        !cityLeadStatus ||
+                        cityLeadStatus.length === 0
+                      }
+                      className="w-auto"
+                    >
+                      {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                    </Button>
+                    <CSVLink
+                      data={csvData || []}
+                      filename={`city-lead-status-${date}.csv`}
+                      headers={csvHeaders}
+                      className="d-none"
+                      ref={csvRef}
                     />
                   </div>
                 </div>

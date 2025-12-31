@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import { fetchOwnerLeadsMoM } from "../../../store/features/miReporting/miReportingSlice";
 
 const OwnerLeadsMoM = () => {
@@ -8,6 +9,10 @@ const OwnerLeadsMoM = () => {
   const { ownerLeadsMoM, loading, error } = useSelector(
     (state) => state.MIReporting
   );
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchOwnerLeadsMoM());
@@ -33,6 +38,49 @@ const OwnerLeadsMoM = () => {
     return date.toLocaleString("default", { month: "short", year: "numeric" });
   };
 
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = ownerLeadsMoM.map((item, idx) => {
+      const row = {
+        id: idx + 1,
+        owner: item.ownerName || "Not Assigned",
+      };
+
+      months.forEach((month) => {
+        const stat = item.stats?.find((s) => s.month === month);
+        row[month] = stat ? stat.count : 0;
+      });
+
+      return row;
+    });
+
+    setCsvData(formatted);
+
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers dynamically
+  const csvHeaders = React.useMemo(() => {
+    const headers = [
+      { label: "#", key: "id" },
+      { label: "Owner", key: "owner" },
+    ];
+
+    months.forEach((month) => {
+      headers.push({
+        label: formatMonth(month),
+        key: month,
+      });
+    });
+
+    return headers;
+  }, [months]);
+
   return (
     <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
       <div className="row">
@@ -53,6 +101,30 @@ const OwnerLeadsMoM = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="col-sm-6 col-4">
+                <div className="d-flex justify-content-end">
+                  <Button
+                    color="info"
+                    onClick={prepareCsvData}
+                    disabled={
+                      csvLoading ||
+                      loading ||
+                      !ownerLeadsMoM ||
+                      ownerLeadsMoM.length === 0
+                    }
+                    className="w-auto"
+                  >
+                    {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                  </Button>
+                  <CSVLink
+                    data={csvData || []}
+                    filename="owner-leads-mom.csv"
+                    headers={csvHeaders}
+                    className="d-none"
+                    ref={csvRef}
+                  />
                 </div>
               </div>
             </div>
