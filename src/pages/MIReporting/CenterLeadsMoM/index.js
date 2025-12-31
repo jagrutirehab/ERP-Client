@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import { fetchCenterLeadsMoM } from "../../../store/features/miReporting/miReportingSlice";
 
 const CenterLeadsMoM = () => {
@@ -8,6 +9,10 @@ const CenterLeadsMoM = () => {
   const { centerLeadsMoM, loading, error } = useSelector(
     (state) => state.MIReporting
   );
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchCenterLeadsMoM());
@@ -33,6 +38,51 @@ const CenterLeadsMoM = () => {
     return date.toLocaleString("default", { month: "short", year: "numeric" });
   };
 
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = centerLeadsMoM.map((item, idx) => {
+      const row = {
+        id: idx + 1,
+        center: item.center,
+      };
+
+      // Add each month's count as a column
+      months.forEach((month) => {
+        const stat = item.stats?.find((s) => s.month === month);
+        row[month] = stat ? stat.count : 0;
+      });
+
+      return row;
+    });
+
+    setCsvData(formatted);
+
+    // Trigger download
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers dynamically
+  const csvHeaders = React.useMemo(() => {
+    const headers = [
+      { label: "#", key: "id" },
+      { label: "Center", key: "center" },
+    ];
+
+    months.forEach((month) => {
+      headers.push({
+        label: formatMonth(month),
+        key: month,
+      });
+    });
+
+    return headers;
+  }, [months]);
+
   return (
     <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
       <div className="row">
@@ -53,6 +103,30 @@ const CenterLeadsMoM = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="col-sm-6 col-4">
+                <div className="d-flex justify-content-end">
+                  <Button
+                    color="info"
+                    onClick={prepareCsvData}
+                    disabled={
+                      csvLoading ||
+                      loading ||
+                      !centerLeadsMoM ||
+                      centerLeadsMoM.length === 0
+                    }
+                    className="w-auto"
+                  >
+                    {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                  </Button>
+                  <CSVLink
+                    data={csvData || []}
+                    filename="center-leads-mom.csv"
+                    headers={csvHeaders}
+                    className="d-none"
+                    ref={csvRef}
+                  />
                 </div>
               </div>
             </div>
