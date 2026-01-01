@@ -17,6 +17,13 @@ import { addPayment, updateCentralPayment } from '../../../store/features/centra
 import FileUpload from './FileUpload';
 import { FileText, Share } from 'lucide-react';
 
+const clearableFields = [
+    "invoiceNo",
+    "IFSCCode",
+    "accountHolderName",
+    "accountNo",
+    "TDSRate",
+];
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const dispatch = useDispatch();
@@ -65,7 +72,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         IFSCCode: Yup.string()
             .nullable()
             .trim()
-            .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters with no spaces"),
+            .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters"),
         accountHolderName: Yup.string().nullable(),
         accountNo: Yup.string()
             .nullable()
@@ -133,6 +140,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
             Object.entries(values).forEach(([key, val]) => {
                 if (key === "attachments") return;
+
                 if (key === "date") {
                     const now = new Date();
                     const spendingDate = new Date(val);
@@ -142,7 +150,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         now.getSeconds()
                     );
                     formData.append(key, spendingDate.toISOString());
-                } else if (val !== undefined && val !== null && val !== "") {
+                    return;
+                }
+
+                if (clearableFields.includes(key)) {
+                    if (val !== undefined && val !== null) {
+                        formData.append(key, val);
+                    }
+                    return;
+                }
+
+                if (val !== undefined && val !== null && val !== "") {
                     formData.append(key, val);
                 }
             });
