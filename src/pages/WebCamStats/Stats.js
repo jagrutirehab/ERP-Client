@@ -4,6 +4,7 @@ import Select from "react-select";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { api } from "../../config";
+import { toast } from "react-toastify";
 
 const alertOptions = [
   { value: "", label: "All Alerts" },
@@ -21,6 +22,7 @@ const Stats = () => {
   const user = useSelector((state) => state.User);
 
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false); // New state for export loading
   const [data, setData] = useState([]);
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -86,8 +88,19 @@ const Stats = () => {
       });
 
       if (response) {
-        setData(response.data || []);
-        setPagination(response.pagination);
+        // Accessing response.data directly based on typical axios structure,
+        // adjusted to match your previous code if you have an interceptor unwrapping it
+        const responseData = response;
+
+        setData(responseData.data || []);
+        setPagination(
+          responseData.pagination || {
+            page: 1,
+            limit: 10,
+            total: 0,
+            totalPages: 0,
+          }
+        );
 
         setLastFetchedAt(Date.now());
         setDataAge(0);
@@ -99,14 +112,71 @@ const Stats = () => {
     }
   };
 
+  // ---------------- EXPORT HANDLER ----------------
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+
+      // Construct params (reuse logic from fetch, but no pagination)
+      const params = {};
+
+      if (selectedCenter !== "ALL") {
+        params.centerId = selectedCenter;
+      }
+      if (camSearch) {
+        params.camId = camSearch;
+      }
+      if (selectedAlert) {
+        params.alertType = selectedAlert;
+      }
+
+      // API Call with responseType: 'blob' is crucial for file downloads
+      const response = await axios.get(
+        `${api.CCTV_SERVICE_URL}/alerts/export`,
+        {
+          params,
+          headers: {
+            "x-api-key":
+              "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
+          },
+          responseType: "blob",
+        }
+      );
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Create a temporary link element to trigger the download
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Generate a filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.setAttribute("download", `alerts_export_${timestamp}.csv`);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("No records found to export");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
+    // eslint-disable-next-line
   }, []);
 
   // ---------------- FILTER CHANGE ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
+    // eslint-disable-next-line
   }, [selectedCenter, camSearch, selectedAlert]);
 
   // ---------------- DATA AGE COUNTER ----------------
@@ -154,7 +224,7 @@ const Stats = () => {
       <Container fluid>
         <div className="chat-wrapper d-flex row gap-1 mx-n4 my-n4 mb-n5 p-1">
           {/* HEADER */}
-          <Row className="align-items-center">
+          <Row className="align-items-center mb-3">
             <Col>
               <h4>Webcam Alert Stats</h4>
               {lastFetchedAt && (
@@ -163,7 +233,15 @@ const Stats = () => {
                 </small>
               )}
             </Col>
-            <Col md="auto">
+            <Col md="auto" className="d-flex gap-2">
+              <Button
+                color="success"
+                size="sm"
+                onClick={handleExport}
+                disabled={exporting || loading}
+              >
+                {exporting ? "Downloading..." : "📥 Export CSV"}
+              </Button>
               <Button color="secondary" size="sm" onClick={handleReload}>
                 🔄 Reload
               </Button>
@@ -213,7 +291,7 @@ const Stats = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="4" className="text-center">
+                    <td colSpan="5" className="text-center">
                       Loading...
                     </td>
                   </tr>
@@ -221,7 +299,7 @@ const Stats = () => {
                   data.map((item) => (
                     <tr key={item._id}>
                       <td>{item.cam_id}</td>
-                      <td>{item.center.name}</td>
+                      <td>{item.center?.name || "N/A"}</td>
                       <td>{new Date(item.timestamp).toLocaleString()}</td>
                       <td>{renderAlerts(item.alerts)}</td>
                       <td>
@@ -241,7 +319,7 @@ const Stats = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="text-center">
+                    <td colSpan="5" className="text-center">
                       No Record Found
                     </td>
                   </tr>
@@ -257,6 +335,7 @@ const Stats = () => {
                 type="select"
                 value={pagination?.limit}
                 onChange={handlePageSizeChange}
+                style={{ width: "80px" }}
               >
                 <option value="10">10</option>
                 <option value="20">20</option>
@@ -266,14 +345,20 @@ const Stats = () => {
             </Col>
 
             <Col md="auto">
+              <span className="me-2 text-muted">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
               <Button
-                disabled={pagination?.page === 1}
+                size="sm"
+                className="me-1"
+                disabled={pagination?.page <= 1}
                 onClick={() => handlePageChange(pagination?.page - 1)}
               >
                 Prev
-              </Button>{" "}
+              </Button>
               <Button
-                disabled={pagination?.page === pagination?.totalPages}
+                size="sm"
+                disabled={pagination?.page >= pagination?.totalPages}
                 onClick={() => handlePageChange(pagination?.page + 1)}
               >
                 Next

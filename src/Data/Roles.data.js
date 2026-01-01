@@ -248,13 +248,13 @@ export const permissionList = [
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
-        label: "Third Party Manpower Add Request"
+        label: "Third Party Manpower Add Request",
       },
       {
         name: "THIRD_PARTY_MANPOWER_APPROVAL",
-        label: "Third Party Manpower Approvals"
+        label: "Third Party Manpower Approvals",
       },
-    ]
+    ],
   },
   {
     key: "HRMS",
@@ -267,6 +267,7 @@ export const permissionList = [
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
       { name: "STATS", label: "Stats" },
+      { name: "APIKEYS", label: "Apikeys" },
     ],
   },
 ];

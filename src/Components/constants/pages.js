@@ -309,6 +309,12 @@ export const WebcamStats = [
     link: "/webcamstats/stats",
     icon: "bx bx-home",
   },
+  {
+    id: "webcamstats-apikeys",
+    label: "API Keys",
+    link: "/webcamstats/apikeys",
+    icon: "bx bx-home",
+  },
 ];
 
 export const Pharmacy = [
@@ -660,7 +666,7 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-    ]
+    ],
   },
   {
     id: "third-party-manpower",
@@ -681,8 +687,8 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/tpm/approval",
       },
-    ]
-  }
+    ],
+  },
 ];
 
 export const HRMS = [

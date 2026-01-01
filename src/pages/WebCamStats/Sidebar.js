@@ -15,6 +15,7 @@ const Sidebar = () => {
     "READ"
   );
   const hasStatsPermission = hasPermission("WEBCAMSTATS", "STATS", "READ");
+  const hasApikeysPermission = hasPermission("WEBCAMSTATS", "APIKEYS", "READ");
 
   const location = useLocation();
 
@@ -34,6 +35,9 @@ const Sidebar = () => {
       return false;
     }
     if (page.id === "webcamstats-stats" && !hasStatsPermission) {
+      return false;
+    }
+    if (page.id === "webcamstats-apikeys" && !hasApikeysPermission) {
       return false;
     }
     return true;
