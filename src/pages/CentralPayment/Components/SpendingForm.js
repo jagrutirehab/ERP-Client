@@ -43,7 +43,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
         date: Yup.string().required("Transaction date is required"),
-        description: Yup.string().required("Description is required"),
+        description: Yup.string()
+            .max(20, "Description cannot be more than 20 characters")
+            .required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().nullable(),
         totalAmountWithGST: Yup.number()
