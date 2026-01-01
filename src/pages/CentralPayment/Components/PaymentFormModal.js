@@ -161,9 +161,12 @@ const PaymentFormModal = ({
                                                 <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
                                             </p>
                                         )}
-                                        {paymentDetails?.TDSRate && (
-                                            <p className="mb-0"><strong>TDS Rate:</strong> {paymentDetails.TDSRate}</p>
-                                        )}
+                                        {paymentDetails?.TDSRate !== null &&
+                                            paymentDetails?.TDSRate !== undefined && (
+                                                <p className="mb-0">
+                                                    <strong>TDS Rate:</strong> {paymentDetails.TDSRate}
+                                                </p>
+                                            )}
                                         {paymentDetails?.transactionType && (
                                             <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
                                         )}

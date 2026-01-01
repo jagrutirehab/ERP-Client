@@ -22,7 +22,6 @@ const clearableFields = [
     "IFSCCode",
     "accountHolderName",
     "accountNo",
-    "TDSRate",
 ];
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
