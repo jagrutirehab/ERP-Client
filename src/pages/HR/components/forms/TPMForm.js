@@ -147,14 +147,14 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                     type="text"
                     id="employee"
                     name="employeeName"
-                    value={form.values.employee}
+                    value={form.values.employeeName}
                     onChange={form.handleChange}
                     onBlur={form.handleBlur}
                 />
-                {form.touched.employee &&
-                    form.errors.employee && (
+                {form.touched.employeeName &&
+                    form.errors.employeeName && (
                         <div className="text-danger mt-1 small">
-                            {form.errors.employee}
+                            {form.errors.employeeName}
                         </div>
                     )}
             </FormGroup>
