@@ -44,6 +44,7 @@ const ApproveModal = ({
       const response = await getEmployeeId();
       setECode(response.payload.value);
     } catch (error) {
+      console.error(error)
       if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
@@ -53,13 +54,13 @@ const ApproveModal = ({
   }
 
   useEffect(() => {
-    if (mode === "NEW_JOINING" && actionType === "APPROVE") {
+    if ((mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE") {
       generateEmployeeId();
     }
   }, [actionType, mode]);
 
   useEffect(() => {
-    if (!isOpen && mode === "NEW_JOINING" && actionType === "APPROVE") {
+    if (!isOpen && (mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE") {
       setECode("");
     }
   }, [isOpen, mode, actionType]);
@@ -81,7 +82,6 @@ const ApproveModal = ({
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
     }
-    // toggle();
   };
 
   return (
@@ -92,7 +92,7 @@ const ApproveModal = ({
       </ModalHeader>
 
       <ModalBody>
-        {mode === "NEW_JOINING" && actionType === "APPROVE" && (
+        {(mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE" && (
           <div className="mb-3">
             <Label htmlFor="eCode" className="fw-bold">ECode</Label>
             <div className="position-relative">
