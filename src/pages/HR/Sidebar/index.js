@@ -34,6 +34,9 @@ const Sidebar = () => {
     const hasHiringAddRequestPermission = hasPermission("HR", "HIRING_ADD_REQUEST", "READ");
     const hasHiringApprovalPermission = hasPermission("HR", "HIRING_APPROVAL", "READ");
 
+    const hasTPMAddRequestPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_ADD_REQUEST", "READ");
+    const hasTPMApprovalPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_APPROVAL", "READ");
+
     const location = useLocation();
     const [openSection, setOpenSection] = useState("");
 
@@ -92,6 +95,15 @@ const Sidebar = () => {
             page.children = page.children.filter((child) => {
                 if (child.id === "add-hiring-request" && !hasHiringAddRequestPermission) return false;
                 if (child.id === "hiring-approval" && !hasHiringApprovalPermission) return false;
+                return true;
+            });
+            return page.children.length > 0
+        }
+
+        if (page.id === "third-party-manpower") {
+            page.children = page.children.filter((child) => {
+                if (child.id === "add-tpm-request" && !hasTPMAddRequestPermission) return false;
+                if (child.id === "tpm-approval" && !hasTPMApprovalPermission) return false;
                 return true;
             });
             return page.children.length > 0

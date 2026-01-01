@@ -64,3 +64,13 @@ export const HiringPreferredGenderOptions = [
     { value: "MALE", label: "Male", },
     { value: "FEMALE", label: "Female", },
 ];
+
+export const TPMOptions = [
+    "CARETAKER",
+    "COOK",
+    "DRIVER",
+    "HELPER",
+    "HOUSEKEEPING",
+    "KITCHENHELPER",
+    "SECURITY"
+];
