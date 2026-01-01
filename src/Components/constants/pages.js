@@ -660,8 +660,29 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-    ],
+    ]
   },
+  {
+    id: "third-party-manpower",
+    label: "Third Party Manpower",
+    icon: "bx bx-user-voice",
+    link: "/hr/tpm",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-tpm-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/tpm/add",
+      },
+      {
+        id: "tpm-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/tpm/approval",
+      },
+    ]
+  }
 ];
 
 export const HRMS = [

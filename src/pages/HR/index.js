@@ -21,6 +21,8 @@ import AddNewJoiningRequest from './NewJoining/AddRequest';
 import AddTransferRequest from './Transfer/AddRequest';
 import AddHiringRequest from './Hiring/AddRequest';
 import HiringApproval from './Hiring/Approvals';
+import AddTPMRequest from './TPM/AddRequest';
+import TPMApproval from './TPM/Approvals';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -77,6 +79,9 @@ const HR = () => {
 
                                 <Route path={`/hiring/add`} element={<AddHiringRequest />} />
                                 <Route path={`/hiring/approval`} element={<HiringApproval />} />
+
+                                <Route path={`/tpm/add`} element={<AddTPMRequest />} />
+                                <Route path={`/tpm/approval`} element={<TPMApproval />} />
                             </Routes>
                         </div>
                     </Container>

@@ -17,6 +17,12 @@ import { addPayment, updateCentralPayment } from '../../../store/features/centra
 import FileUpload from './FileUpload';
 import { FileText, Share } from 'lucide-react';
 
+const clearableFields = [
+    "invoiceNo",
+    "IFSCCode",
+    "accountHolderName",
+    "accountNo",
+];
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const dispatch = useDispatch();
@@ -37,7 +43,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
         date: Yup.string().required("Transaction date is required"),
-        description: Yup.string().required("Description is required"),
+        description: Yup.string()
+            .max(20, "Description cannot be more than 20 characters")
+            .required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().nullable(),
         totalAmountWithGST: Yup.number()
@@ -64,14 +72,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             ),
         IFSCCode: Yup.string()
             .nullable()
-            .test(
-                "ifsc-length",
-                "IFSC Code must be exactly 11 characters",
-                (value) => {
-                    if (!value) return true;
-                    return value.length === 11;
-                }
-            ),
+            .trim()
+            .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters"),
         accountHolderName: Yup.string().nullable(),
         accountNo: Yup.string()
             .nullable()
@@ -139,6 +141,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
             Object.entries(values).forEach(([key, val]) => {
                 if (key === "attachments") return;
+
                 if (key === "date") {
                     const now = new Date();
                     const spendingDate = new Date(val);
@@ -148,7 +151,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         now.getSeconds()
                     );
                     formData.append(key, spendingDate.toISOString());
-                } else if (val !== undefined && val !== null && val !== "") {
+                    return;
+                }
+
+                if (clearableFields.includes(key)) {
+                    if (val !== undefined && val !== null) {
+                        formData.append(key, val);
+                    }
+                    return;
+                }
+
+                if (val !== undefined && val !== null && val !== "") {
                     formData.append(key, val);
                 }
             });
@@ -180,7 +193,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         form.handleSubmit(e);
     };
 
-    // transform every text input in uppercase & comma not allowed validation
+    // transform every text input in uppercase & comma not allowed validation & no space allowd for IFSCCode, accountNo
     const normalizeTextInput = (e) => {
         const { name, value } = e.target;
 
@@ -189,8 +202,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             form.setFieldError(name, "Comma (,) is not allowed");
             return;
         }
+        let newValue = value;
+        if (["IFSCCode", "accountNo"].includes(name)) {
+            newValue = value.replace(/\s+/g, "");
+        }
 
-        form.setFieldValue(name, value.toUpperCase(), true);
+        form.setFieldValue(name, newValue.toUpperCase(), true);
     };
 
     return (

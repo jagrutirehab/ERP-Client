@@ -1915,6 +1915,51 @@ export const getHirings = (params = {}) => {
   })
 }
 
+export const postTPM = (data) => {
+  return api.create(url.TPM, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const editTPM = (id, data) => {
+  return api.update(`${url.TPM}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const TPMAction = (id, data) => {
+  return api.update(`${url.TPM_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getTPMs = (params = {}) => {
+  return api.get(url.TPM, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+}
+
+export const deleteTPM = (id) => {
+  return api.delete(`${url.TPM}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+
 // HRMS
 export const getAttendance = (params = {}) => {
   return api.get(url.ATTENDANCE, {

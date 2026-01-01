@@ -15,6 +15,8 @@ import { Check, Copy } from 'lucide-react';
 import AttachmentCell from './AttachmentCell';
 import UploadModal from './UploadModal';
 import { downloadFile } from '../../../Components/Common/downloadFile';
+import PreviewFile from '../../../Components/Common/PreviewFile';
+import { isPreviewable } from '../../../utils/isPreviewable';
 
 const DetailedReport = ({
   centers,
@@ -53,6 +55,14 @@ const DetailedReport = ({
   const [dateFilterEnabled, setDateFilterEnabled] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
+
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewFile(null);
+  };
+
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -343,7 +353,27 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachments</div>,
-      cell: (row) => <AttachmentCell attachments={row.attachments || []} showAsButton={true} />,
+      cell: (row) => {
+
+        const handleAttachmentClick = (file) => {
+          if (isPreviewable(file, row?.updatedAt)) {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+          } else {
+            downloadFile(file);
+            setPreviewOpen(false);
+            setPreviewFile(null);
+          }
+        };
+
+        return (
+          <AttachmentCell
+            attachments={row.attachments || []}
+            showAsButton={true}
+            onPreview={handleAttachmentClick}
+          />
+        )
+      },
       wrap: true,
       minWidth: "140px",
 
@@ -658,6 +688,13 @@ const DetailedReport = ({
         toggle={() => setIsUploadModalOpen(!isUploadModalOpen)}
         onUpload={handleTransactionProofUpload}
         loading={uploading}
+      />
+
+      <PreviewFile
+        title="Attachment Preview"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={closePreview}
       />
     </TabPane>
   )

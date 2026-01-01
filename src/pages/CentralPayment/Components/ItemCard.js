@@ -12,11 +12,17 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
+import PreviewFile from "../../../Components/Common/PreviewFile";
+import { isPreviewable } from "../../../utils/isPreviewable";
+import { downloadFile } from "../../../Components/Common/downloadFile";
 
 const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
+
     const handleAuthError = useAuthError();
 
     const getStatusBadgeColor = (status) => {
@@ -32,6 +38,22 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     };
 
+    const handleAttachmentClick = (file) => {
+        if (isPreviewable(file, item?.updatedAt)) {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+        } else {
+            downloadFile(file);
+            setPreviewOpen(false);
+            setPreviewFile(null);
+        }
+    };
+
+
+    const closePreview = () => {
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
 
     const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
         setUpdating({ id: paymentId, type: approvalStatus });
@@ -180,7 +202,11 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
 
                             {item.attachments && item.attachments.length > 0 && (
                                 <div className="mt-2">
-                                    <AttachmentCell attachments={item.attachments} />
+                                    <AttachmentCell
+                                        attachments={item.attachments}
+                                        onPreview={handleAttachmentClick}
+
+                                    />
                                 </div>
                             )}
                         </Col>
@@ -238,6 +264,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
                 isProcessing={updating}
                 hasCreatePermission={hasCreatePermission}
+            />
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={closePreview}
             />
         </React.Fragment>
     );
