@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { Button, CardBody, Input } from "reactstrap";
+import { Button, CardBody, Input, Spinner } from "reactstrap";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import Select from "react-select";
 import Header from "../../Report/Components/Header";
 import { startOfDay, endOfDay } from "date-fns";
-import { CloudUpload, History } from "lucide-react";
+import { CloudUpload, FileSpreadsheet, History } from "lucide-react";
 import DataTableComponent from "../components/Table/DataTable";
 import { attendanceColumns } from "../components/Table/Columns/attendance";
 import { fetchAttendance } from "../../../store/actions";
@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import AttendanceHistoryModal from "../components/AttendanceHistoryModal";
 import AttendanceUploadModal from "../components/AttendanceUploadModal";
+import { downloadAttendanceTemplate } from "../../../helpers/backend_helper";
 
 const Attendance = () => {
     const dispatch = useDispatch();
@@ -38,6 +39,7 @@ const Attendance = () => {
     });
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [isTemplateGenerating, setIsTemplateGenerating] = useState(false);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -112,6 +114,34 @@ const Attendance = () => {
         debouncedSearch
     ]);
 
+    const handleDownloadXlsxTemplate = async () => {
+        setIsTemplateGenerating(true);
+        try {
+            const res = await downloadAttendanceTemplate();
+
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = "HRMS-attendance-template.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error("Something went wrong while generating template");
+            }
+        } finally {
+            setIsTemplateGenerating(false);
+        }
+    }
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -121,10 +151,6 @@ const Attendance = () => {
             setPage(1);
         }
     }, [selectedCenter, user?.centerAccess]);
-
-    if (!permissionLoader && !hasUserPermission) {
-        navigate("/unauthorized");
-    }
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -143,6 +169,10 @@ const Attendance = () => {
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
 
+    if (!permissionLoader && !hasUserPermission) {
+        navigate("/unauthorized");
+    }
+
     return (
         <>
             <CardBody
@@ -155,98 +185,54 @@ const Attendance = () => {
                     </h1>
                 </div>
 
-                <div className="mb-3">
-                    <div className="d-none d-md-flex justify-content-between align-items-center">
-                        <div className="d-flex gap-3 align-items-center">
-                            <div style={{ width: "200px" }}>
-                                <Select
-                                    value={selectedCenterOption}
-                                    onChange={(opt) =>
-                                        setSelectedCenter(opt.value)
-                                    }
-                                    options={centerOptions}
-                                    classNamePrefix="react-select"
-                                />
-                            </div>
-
-                            <div style={{ minWidth: "220px" }}>
-                                <Input
-                                    type="text"
-                                    placeholder="Search by name, biometric ID..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
-                            </div>
-
-                            <div style={{ minWidth: "150px" }}>
-                                <Header
-                                    reportDate={reportDate}
-                                    setReportDate={setReportDate}
-                                />
-                            </div>
+                <div className="mb-3 d-none d-md-block">
+                    {/* Desktop */}
+                    <div className="d-flex gap-3 align-items-center mb-2">
+                        <div style={{ width: "200px" }}>
+                            <Select
+                                value={selectedCenterOption}
+                                onChange={(opt) => setSelectedCenter(opt.value)}
+                                options={centerOptions}
+                                classNamePrefix="react-select"
+                            />
                         </div>
 
-                        <div className="d-flex gap-2">
-                            <CheckPermission
-                                accessRolePermission={roles?.permissions}
-                                subAccess="HRMS_ATTENDANCE"
-                                permission="read"
-                            >
-                                <Button
-                                    color="primary"
-                                    className="d-flex align-items-center gap-2 text-white"
-                                    onClick={() => setIsHistoryModalOpen(true)}
-                                >
-                                    <History size={20} />
-                                    History
-                                </Button>
-                            </CheckPermission>
+                        <div style={{ minWidth: "220px" }}>
+                            <Input
+                                type="text"
+                                placeholder="Search by name, biometric ID..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
 
-                            <CheckPermission
-                                accessRolePermission={roles?.permissions}
-                                subAccess="HRMS_ATTENDANCE"
-                                permission="create"
-                            >
-                                <Button
-                                    color="primary"
-                                    className="d-flex align-items-center gap-2 text-white"
-                                    onClick={() => setIsUploadModalOpen(true)}
-                                >
-                                    <CloudUpload size={20} />
-                                    Import
-                                </Button>
-                            </CheckPermission>
+                        <div style={{ minWidth: "150px" }}>
+                            <Header
+                                reportDate={reportDate}
+                                setReportDate={setReportDate}
+                            />
                         </div>
                     </div>
 
-                    <div className="mb-3 d-flex d-md-none flex-column gap-3">
-
-                        <Select
-                            value={selectedCenterOption}
-                            onChange={(opt) => setSelectedCenter(opt.value)}
-                            options={centerOptions}
-                            classNamePrefix="react-select"
-                        />
-
-                        <Input
-                            type="text"
-                            placeholder="Search by name, biometric ID..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-
-                        <Header
-                            reportDate={reportDate}
-                            setReportDate={setReportDate}
-                        />
+                    <div className="d-flex gap-2 justify-content-end">
 
                         <Button
                             color="primary"
-                            className="d-flex align-items-center justify-content-center gap-2 text-white w-100"
+                            className="d-flex align-items-center gap-2 text-white"
                             onClick={() => setIsHistoryModalOpen(true)}
                         >
                             <History size={20} />
                             History
+                        </Button>
+
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-2 text-white"
+                            disabled={isTemplateGenerating}
+                            onClick={handleDownloadXlsxTemplate}
+                        >
+                            {isTemplateGenerating ? <Spinner size={"sm"} /> : <FileSpreadsheet size={20} />}
+                            Download Template
                         </Button>
 
                         <CheckPermission
@@ -256,19 +242,71 @@ const Attendance = () => {
                         >
                             <Button
                                 color="primary"
-                                className="d-flex align-items-center justify-content-center gap-2 text-white w-100"
+                                className="d-flex align-items-center gap-2 text-white"
                                 onClick={() => setIsUploadModalOpen(true)}
                             >
                                 <CloudUpload size={20} />
+                                Import
+                            </Button>
+                        </CheckPermission>
+                    </div>
+                </div>
+
+                {/* Mobile */}
+                <div className="mb-3 d-flex d-md-none flex-column gap-3">
+                    <Select
+                        value={selectedCenterOption}
+                        onChange={(opt) => setSelectedCenter(opt.value)}
+                        options={centerOptions}
+                        classNamePrefix="react-select"
+                    />
+
+                    <Input
+                        type="text"
+                        placeholder="Search by name, biometric ID..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+
+                    <Header
+                        reportDate={reportDate}
+                        setReportDate={setReportDate}
+                    />
+
+                    <div className="d-flex gap-2">
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                            onClick={() => setIsHistoryModalOpen(true)}
+                        >
+                            History
+                        </Button>
+
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-2 text-white"
+                            disabled={isTemplateGenerating}
+                            onClick={handleDownloadXlsxTemplate}
+                        >
+                            {isTemplateGenerating && <Spinner size={"sm"} />}
+                            Download Template
+                        </Button>
+
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess="HRMS_ATTENDANCE"
+                            permission="create"
+                        >
+                            <Button
+                                color="primary"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                onClick={() => setIsUploadModalOpen(true)}
+                            >
                                 Upload
                             </Button>
                         </CheckPermission>
-
                     </div>
-
                 </div>
-
-
 
                 <DataTableComponent
                     columns={attendanceColumns}
