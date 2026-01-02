@@ -135,6 +135,7 @@ const DetailedReport = ({
       name: <div>Center</div>,
       selector: (row) => capitalizeWords(row.center?.title || row.center || "-"),
       wrap: true,
+      minWidth: "120px"
     },
     {
       name: <div>Author</div>,
@@ -509,7 +510,7 @@ const DetailedReport = ({
 
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      if (!handleAuthError) {
+      if (!handleAuthError(error)) {
         toast.error("Something went wrong while generating xlsx file")
       }
     } finally {
