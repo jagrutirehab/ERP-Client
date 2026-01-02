@@ -181,7 +181,7 @@ const PendingApprovals = ({ activeTab }) => {
                 ?.toLowerCase()
                 .replace(/_/g, " ")),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "120px"
         },
         {
             name: <div>Vendor</div>,
@@ -204,12 +204,14 @@ const PendingApprovals = ({ activeTab }) => {
         {
             name: <div>Contract Signed With Vendor</div>,
             selector: (row) => row?.contractSignedWithVendor ? "Yes" : "No",
-            wrap: true
+            wrap: true,
+            center: true
         },
         {
-            name: <div>ManPower Approved By Management</div>,
+            name: <div>Manpower Approved By Management</div>,
             selector: (row) => row?.manpowerApprovedByManagement ? "Yes" : "No",
-            wrap: true
+            wrap: true,
+            cener: true
         },
         {
             name: <div>Filled By</div>,
