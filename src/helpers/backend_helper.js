@@ -1059,6 +1059,19 @@ export const getDetailedCentralReport = (params = {}) => {
   });
 };
 
+export const exportDetailedCentralReportXLSX = (params = {}) => {
+  return api.get(
+    url.EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT,
+    {
+      params,
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+      responseType: "blob",
+    }
+  );
+};
+
 export const postCentralPayment = (data) => {
   return api.create(url.CENTRAL_PAYMENT, data, {
     headers: {
@@ -1971,7 +1984,7 @@ export const getAttendance = (params = {}) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   })
-}
+};
 
 export const getAttendanceImportHistory = (params = {}) => {
   return api.get(url.ATTENDANCE_IMPORTS, {
@@ -1983,7 +1996,7 @@ export const getAttendanceImportHistory = (params = {}) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   })
-}
+};
 
 export const getAttendanceImportById = (id) => {
   return api.get(`${url.ATTENDANCE_IMPORTS}/${id}`, {
@@ -1991,7 +2004,7 @@ export const getAttendanceImportById = (id) => {
       "X-No-Cookie-Token": "true",
     },
   })
-}
+};
 
 export const uploadAttendance = (data) => {
   return api.create(url.UPLOAD_ATTENDANCE, data, {
@@ -2000,7 +2013,7 @@ export const uploadAttendance = (data) => {
       "Content-Type": "multipart/form-data",
     },
   })
-}
+};
 
 export const deleteAttendanceImport = (params = {}) => {
   return api.delete(url.ATTENDANCE, {
@@ -2012,4 +2025,13 @@ export const deleteAttendanceImport = (params = {}) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   })
-}
+};
+
+export const downloadAttendanceTemplate = () => {
+  return api.get(url.ATTENDANCE_TEMPLATE, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob"
+  })
+};

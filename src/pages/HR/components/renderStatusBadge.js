@@ -99,8 +99,16 @@ export const renderStatusBadge = (stage) => {
             text: "Transfer Location Rejected",
             color: "danger"
         },
+        TRANSFER_EMPLOYEE_PENDING: {
+            text: "Transfer Location Pending",
+            color: "warning"
+        },
         TRANSFER_EMPLOYEE_APPROVED_USER_UPDATED: {
             text: "Transfer Location Approved & User Updated",
+            color: "success"
+        },
+        TRANSFER_EMPLOYEE_REJECTED: {
+            text: "Transfer Location REJECTED",
             color: "success"
         }
     };

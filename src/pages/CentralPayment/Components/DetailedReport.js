@@ -17,6 +17,7 @@ import UploadModal from './UploadModal';
 import { downloadFile } from '../../../Components/Common/downloadFile';
 import PreviewFile from '../../../Components/Common/PreviewFile';
 import { isPreviewable } from '../../../utils/isPreviewable';
+import { exportDetailedCentralReportXLSX } from '../../../helpers/backend_helper';
 
 const DetailedReport = ({
   centers,
@@ -57,6 +58,7 @@ const DetailedReport = ({
   const [selectedPaymentId, setSelectedPaymentId] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
   const closePreview = () => {
     setPreviewOpen(false);
@@ -234,7 +236,7 @@ const DetailedReport = ({
       name: <div>TDS Rate</div>,
       cell: (row) => (
         <span>
-          {row.TDSRate || "-"}
+          {row?.TDSRate || "-"}
         </span>
       ),
       wrap: true,
@@ -284,7 +286,7 @@ const DetailedReport = ({
     {
       name: <div>Initial Payment Status</div>,
       selector: (row) => {
-        const status = row.initialPaymentStatus;
+        const status = row?.initialPaymentStatus;
         const badgeStyle = { display: "inline-block", whiteSpace: "normal", wordBreak: "break-word" };
 
         if (status === "COMPLETED") return <span>Paid</span>;
@@ -297,7 +299,7 @@ const DetailedReport = ({
     {
       name: <div>Approval Status</div>,
       selector: (row) => {
-        const status = row.approvalStatus;
+        const status = row?.approvalStatus;
         return (
           <Badge
             color={getBadgeColor(status)}
@@ -317,14 +319,14 @@ const DetailedReport = ({
       name: <div>Process Status</div>,
       selector: (row) => (
         <Badge
-          color={getBadgeColor(row.processStatus)}
+          color={getBadgeColor(row?.processStatus)}
           style={{
             display: "inline-block",
             whiteSpace: "normal",
             wordBreak: "break-word",
           }}
         >
-          {capitalizeWords(row.processStatus.replace(/_/g, " ")) || "-"}
+          {capitalizeWords(row?.processStatus?.replace(/_/g, " ")) || "-"}
         </Badge>
       ),
       wrap: true,
@@ -334,21 +336,21 @@ const DetailedReport = ({
       name: <div>Current Payment Status</div>,
       selector: (row) => (
         <Badge
-          color={getBadgeColor(row.currentPaymentStatus)}
+          color={getBadgeColor(row?.currentPaymentStatus)}
           style={{
             display: "inline-block",
             whiteSpace: "normal",
             wordBreak: "break-word",
           }}
         >
-          {capitalizeWords(row.currentPaymentStatus || "-")}
+          {capitalizeWords(row?.currentPaymentStatus || "-")}
         </Badge>
       ),
       wrap: true,
     },
     {
       name: <div>Attachment Type</div>,
-      selector: (row) => capitalizeWords(row.attachmentType) || "-",
+      selector: (row) => capitalizeWords(row?.attachmentType) || "-",
       wrap: true,
     },
     {
@@ -381,7 +383,7 @@ const DetailedReport = ({
     {
       name: <div>Transaction Proof</div>,
       cell: (row) => {
-        const status = row.currentPaymentStatus;
+        const status = row?.currentPaymentStatus;
 
         if (status === "PENDING" || status === "REJECTED") {
           return (
@@ -475,6 +477,45 @@ const DetailedReport = ({
     debouncedSearch,
     dateFilterEnabled
   ]);
+
+  const handleExportXLSX = async () => {
+    setIsExcelGenerating(true);
+    try {
+      const res = await exportDetailedCentralReportXLSX({
+        page,
+        limit,
+        approvalStatus: selectedApprovalStatus,
+        currentPaymentStatus: selectedPaymentStatus,
+        centers: selectedCentersIds,
+        ...(dateFilterEnabled && {
+          startDate: reportDate.start.toISOString(),
+          endDate: reportDate.end.toISOString()
+        }),
+        ...(search !== "" && { search: parseInt(debouncedSearch) }),
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `central-payment-detailed-report-${format(reportDate.start, "yyyy-MM-dd")}_to_${format(reportDate.end, "yyyy-MM-dd")}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (!handleAuthError) {
+        toast.error("Something went wrong while generating xlsx file")
+      }
+    } finally {
+      setIsExcelGenerating(false);
+    }
+  }
 
   const handleFilterChange = (filterType, value) => {
     setPage(1);
@@ -606,7 +647,16 @@ const DetailedReport = ({
               </Button>
             )}
           </div>
-
+          <div className="mb-3">
+            <Button
+              className="d-flex align-items-center gap-1"
+              onClick={handleExportXLSX}
+              disabled={isExcelGenerating || selectedCentersIds.length === 0}
+            >
+              {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+              Export Excel
+            </Button>
+          </div>
         </div>
       </div>
       <Card>

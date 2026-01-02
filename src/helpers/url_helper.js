@@ -329,6 +329,7 @@ export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/detailed";
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/summary";
+export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/detailed/export";
 export const GET_ALL_ENETS = "/central-payment/eNets";
 export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
 export const PROCESS_PAYMENTS = "/central-payment/process";
@@ -427,11 +428,12 @@ export const DESIGNATION = "/hr/designation";
 export const HIRING = "/hr/hiring";
 export const HIRING_ACTION = "/hr/hiring/action";
 
-export const TPM="/hr/tpm";
-export const TPM_ACTION="/hr/tpm/action";
+export const TPM = "/hr/tpm";
+export const TPM_ACTION = "/hr/tpm/action";
 
 // HRMS
 export const ATTENDANCE = "/hrms/attendance";
 export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
+export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
 export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
 
