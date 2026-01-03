@@ -339,8 +339,11 @@ const DetailedReport = ({
           </div>
 
           <div className="ms-auto">
-            <Button onClick={getDetailedReportXlsx} disabled={isExcelGenerating}>
-              {isExcelGenerating && <Spinner size={"sm"} className="me-2" />}
+            <Button
+              onClick={getDetailedReportXlsx}
+              disabled={isExcelGenerating}
+              className="d-flex align-items-center gap-1">
+              {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
               Export Excel
             </Button>
           </div>

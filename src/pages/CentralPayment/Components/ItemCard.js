@@ -167,7 +167,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={8}>
                             <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
                                 <Badge color="primary" className="me-1">
-                                    {capitalizeWords(item.center?.title || "Unknown Center")}
+                                    {item.center?.title?.toUpperCase() || "Unknown Center"}
                                 </Badge>
 
                                 <Badge color={getStatusBadgeColor(item.approvalStatus)} className="me-2">
@@ -183,13 +183,13 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
 
                             {item.items && (
                                 <h6 className="mb-1 fw-bold text-dark">
-                                    {capitalizeWords(item.items)}
+                                    {item.items}
                                 </h6>
                             )}
 
                             {item.description && (
                                 <ExpandableText
-                                    text={capitalizeWords(item.description)} limit={20}
+                                    text={item.description} limit={20}
                                     className="mb-2"
                                 />
                             )}
