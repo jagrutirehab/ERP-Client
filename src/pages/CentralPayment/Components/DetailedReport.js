@@ -18,6 +18,7 @@ import { downloadFile } from '../../../Components/Common/downloadFile';
 import PreviewFile from '../../../Components/Common/PreviewFile';
 import { isPreviewable } from '../../../utils/isPreviewable';
 import { exportDetailedCentralReportXLSX } from '../../../helpers/backend_helper';
+import { categoryOptions } from '../../../Components/constants/centralPayment';
 
 const DetailedReport = ({
   centers,
@@ -158,6 +159,20 @@ const DetailedReport = ({
         <ExpandableText text={row.items?.toUpperCase()} /> :
         "-",
       wrap: true,
+    },
+    {
+      name: <div>Item Category</div>,
+      selector: (row) => categoryOptions.find(
+        (option) => option.value === row?.category
+      )?.label || "-",
+      wrap: true,
+      minWidth: "120px"
+    },
+    {
+      name: <div>Item Category Details</div>,
+      selector: (row) => <ExpandableText text={row?.otherCategory || "-"} />,
+      wrap: true,
+      minWidth:"120px"
     },
     {
       name: <div>Description</div>,
