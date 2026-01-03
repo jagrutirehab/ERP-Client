@@ -205,6 +205,18 @@ const pages = [
     ],
   },
   {
+    id: "referral",
+    label: "Referral",
+    name: "Referral",
+    link: "/referral",
+    icon: "bx bx-share-alt",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "roundnotes",
     label: "Round Notes",
     name: "Round Notes",

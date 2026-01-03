@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Form, Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import Select from "react-select";
 import { format } from "date-fns";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -18,6 +19,7 @@ import {
   removeAadhaarCard,
   togglePatientForm,
   updatePatient,
+  fetchReferrals,
 } from "../../store/actions";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -36,6 +38,8 @@ const AddPatient = ({
   counsellors,
   doctorLoading,
   generatedPatientId,
+  referrals,
+  referralsLoading,
 }) => {
   const dispatch = useDispatch();
   const [fields, setFields] = useState(addPatientFields);
@@ -43,6 +47,8 @@ const AddPatient = ({
   const [imageToCrop, setImageToCrop] = useState(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const cropperRef = useRef(null);
+  const [isOtherReferral, setIsOtherReferral] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
 
   const editData = patient.data;
   const leadData = patient.leadData;
@@ -181,6 +187,32 @@ const AddPatient = ({
   useEffect(() => {
     if (patient?.isOpen) dispatch(fetchPatientId());
   }, [dispatch, patient]);
+
+  useEffect(() => {
+    dispatch(fetchReferrals());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Initialize selectedReferral and isOtherReferral based on editData
+    if (editData?.referredBy && referrals?.length) {
+      const referralMatch = referrals.find(
+        (ref) =>
+          ref._id === editData.referredBy ||
+          ref.doctorName === editData.referredBy
+      );
+      if (referralMatch) {
+        setSelectedReferral({
+          value: referralMatch._id,
+          label: referralMatch.doctorName,
+        });
+        setIsOtherReferral(false);
+      } else {
+        // If not found in referrals, treat as "Other"
+        setSelectedReferral({ value: "other", label: "Other" });
+        setIsOtherReferral(true);
+      }
+    }
+  }, [editData, referrals]);
 
   useEffect(() => {
     if (validation.values.center)
@@ -419,38 +451,90 @@ const AddPatient = ({
                     color: "#374151",
                   }}
                 >
-                  Referred By <span style={{ color: "#ef4444" }}>*</span>
+                  Referred By
                 </Label>
 
-                <Input
-                  name="referredBy"
-                  className="form-control"
-                  placeholder="Enter referred by"
-                  type="text"
-                  onChange={(e) =>
-                    handleChange
-                      ? handleChange(e, "text")
-                      : validation.handleChange(e)
-                  }
-                  onBlur={validation.handleBlur}
-                  value={validation.values["referredBy"] || ""}
-                  invalid={
-                    validation.touched["referredBy"] &&
-                    validation.errors["referredBy"]
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 0.75rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                    textTransform: "capitalize",
+                <Select
+                  value={selectedReferral}
+                  onChange={(option) => {
+                    setSelectedReferral(option);
+                    if (option?.value === "other") {
+                      setIsOtherReferral(true);
+                      validation.setFieldValue("referredBy", "");
+                    } else {
+                      setIsOtherReferral(false);
+                      validation.setFieldValue(
+                        "referredBy",
+                        option?.value || ""
+                      );
+                    }
+                  }}
+                  onBlur={() => validation.setFieldTouched("referredBy", true)}
+                  options={[
+                    ...(referrals || []).map((ref) => ({
+                      value: ref._id,
+                      label: ref.doctorName,
+                    })),
+                    { value: "other", label: "Other" },
+                  ]}
+                  placeholder="Select or search for a referral doctor"
+                  isClearable
+                  isLoading={referralsLoading}
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor:
+                        validation.touched.referredBy &&
+                        validation.errors.referredBy
+                          ? "#dc3545"
+                          : "#ced4da",
+                      boxShadow: state.isFocused
+                        ? validation.touched.referredBy &&
+                          validation.errors.referredBy
+                          ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+                          : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
+                        : "none",
+                      "&:hover": {
+                        borderColor:
+                          validation.touched.referredBy &&
+                          validation.errors.referredBy
+                            ? "#dc3545"
+                            : "#86b7fe",
+                      },
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999,
+                    }),
                   }}
                 />
 
-                {validation.touched["referredBy"] &&
-                  validation.errors["referredBy"] && (
+                {isOtherReferral && (
+                  <Input
+                    name="referredBy"
+                    className="form-control mt-2"
+                    placeholder="Enter doctor name"
+                    type="text"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.referredBy || ""}
+                    invalid={
+                      validation.touched.referredBy &&
+                      validation.errors.referredBy
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "0.5rem 0.75rem",
+                      borderRadius: "0.375rem",
+                      fontSize: "1rem",
+                    }}
+                  />
+                )}
+
+                {validation.touched.referredBy &&
+                  validation.errors.referredBy && (
                     <FormFeedback type="invalid" className="d-block">
-                      {validation.errors["referredBy"]}
+                      {validation.errors.referredBy}
                     </FormFeedback>
                   )}
               </Col>
@@ -716,6 +800,8 @@ const mapStateToProps = (state) => ({
   doctors: state.User.doctor,
   counsellors: state.User.counsellors,
   generatedPatientId: state.Patient.generatedPatientId,
+  referrals: state.Referral.data,
+  referralsLoading: state.Referral.loading,
 });
 
 AddPatient.propTypes = {

@@ -41,11 +41,11 @@ const getSessionTheme = (session) => {
       return {
         background: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
         icon: <Moon size={24} className="text-white" />,
-        textColor: "text-white",
+        textColor: "text-black",
         badgeColor: "primary",
         borderColor: "#330867",
         shadow: "0 4px 15px rgba(51, 8, 103, 0.5)",
-        isDark: true,
+        isDark: false,
       };
     default:
       return {
