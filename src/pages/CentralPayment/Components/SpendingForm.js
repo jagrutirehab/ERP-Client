@@ -16,6 +16,8 @@ import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { addPayment, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
 import FileUpload from './FileUpload';
 import { FileText, Share } from 'lucide-react';
+import { categoryOptions } from '../../../Components/constants/centralPayment';
+import Select from "react-select";
 
 const clearableFields = [
     "invoiceNo",
@@ -42,6 +44,15 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         name: Yup.string().required("Name is required"),
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
+        category: Yup.string()
+            .oneOf(categoryOptions.map((option) => option.value), "Invalid item category")
+            .required("Item category is required"),
+        otherCategory: Yup.string().when("category", {
+            is: "OTHERS",
+            then: (schema) =>
+                schema.required("Please specify the category"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
         date: Yup.string().required("Transaction date is required"),
         description: Yup.string()
             .max(20, "Description cannot be more than 20 characters")
@@ -51,6 +62,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         totalAmountWithGST: Yup.number()
             .typeError("Total amount must be a number")
             .required("Total amount with GST is required")
+            .moreThan(0, "Total amount with GST must be greater than 0")
             .test(
                 "max-two-decimals",
                 "Total amount can have at most 2 decimal places",
@@ -111,6 +123,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             name: paymentData?.name || "",
             center: paymentData?.center?._id || "",
             items: paymentData?.items || "",
+            category: paymentData?.category || "",
+            otherCategory: paymentData?.otherCategory || "",
             date: paymentData?.date ? format(new Date(paymentData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
             description: paymentData?.description || "",
             vendor: paymentData?.vendor || "",
@@ -290,6 +304,68 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
+            <FormGroup>
+                <Label for="category" className="fw-medium">
+                    Item Category <span className="text-danger">*</span>
+                </Label>
+                <Select
+                    inputId="category"
+                    name="category"
+                    options={categoryOptions}
+                    value={categoryOptions.find(
+                        (opt) => opt.value === form.values.category
+                    )}
+                    onChange={(option) => {
+                        const value = option?.value || "";
+                        form.setFieldValue("category", value, true);
+
+                        if (value !== "OTHERS") {
+                            form.setFieldValue("otherCategory", "");
+                            form.setFieldTouched("otherCategory", false, false);
+                        }
+                        form.validateForm();
+                    }}
+                    onBlur={() => form.setFieldTouched("category", true)}
+                    placeholder="Select item category"
+                    classNamePrefix="react-select"
+                    className={
+                        form.touched.category && form.errors.category
+                            ? "react-select is-invalid"
+                            : "react-select"
+                    }
+                />
+                {form.touched.category && form.errors.category && (
+                    <div className="invalid-feedback d-block">
+                        {form.errors.category}
+                    </div>
+                )}
+            </FormGroup>
+            {form.values.category === "OTHERS" && (
+                <FormGroup className="mt-2">
+                    <Label for="otherCategory" className="fw-medium">
+                        Specify Item Category Details<span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                        type="text"
+                        id="otherCategory"
+                        name="otherCategory"
+                        value={form.values.otherCategory}
+                        onChange={(e) => normalizeTextInput(e)}
+                        onBlur={form.handleBlur}
+                        className={`form-control ${form.touched.otherCategory && form.errors.otherCategory
+                            ? "is-invalid"
+                            : ""
+                            }`}
+                        placeholder="Enter item category details"
+                    />
+                    {form.touched.otherCategory && form.errors.otherCategory && (
+                        <div className="invalid-feedback d-block">
+                            {form.errors.otherCategory}
+                        </div>
+                    )}
+                </FormGroup>
+            )}
+
             <FormGroup className="mb-4">
                 <Label for="date" className="fw-medium text-muted">
                     Date <span className="text-danger">*</span>
