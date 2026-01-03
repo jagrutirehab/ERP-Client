@@ -343,7 +343,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             {form.values.category === "OTHERS" && (
                 <FormGroup className="mt-2">
                     <Label for="otherCategory" className="fw-medium">
-                        Specify Item Category Details<span className="text-danger">*</span>
+                        Specify Other Category Details<span className="text-danger">*</span>
                     </Label>
                     <Input
                         type="text"
@@ -356,7 +356,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             ? "is-invalid"
                             : ""
                             }`}
-                        placeholder="Enter item category details"
+                        placeholder="Enter Other category details"
                     />
                     {form.touched.otherCategory && form.errors.otherCategory && (
                         <div className="invalid-feedback d-block">

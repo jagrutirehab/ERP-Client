@@ -169,7 +169,7 @@ const DetailedReport = ({
       minWidth: "120px"
     },
     {
-      name: <div>Item Category Details</div>,
+      name: <div>Other Category Details</div>,
       selector: (row) => <ExpandableText text={row?.otherCategory || "-"} />,
       wrap: true,
       minWidth:"120px"

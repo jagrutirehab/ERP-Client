@@ -167,7 +167,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={8}>
                             <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
                                 <Badge color="primary" className="me-1">
-                                    {item.center?.title?.toUpperCase() || "Unknown Center"}
+                                    {capitalizeWords(item.center?.title) || "Unknown Center"}
                                 </Badge>
 
                                 <Badge color={getStatusBadgeColor(item.approvalStatus)} className="me-2">
