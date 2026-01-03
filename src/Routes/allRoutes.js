@@ -36,6 +36,7 @@ const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 const HR = React.lazy(() => import("../pages/HR"));
 const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
+const Referral = React.lazy(() => import("../pages/Referral"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -58,6 +59,7 @@ const allElements = [
   { element: MiReporting, label: "Hubspot Reporting" },
   { element: HR, label: "HR" },
   { element: HRMS, label: "HRMS" },
+  { element: Referral, label: "Referral" },
 ];
 
 const authProtectedRoutes = [
@@ -84,6 +86,7 @@ const authProtectedRoutes = [
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
+  { path: "/referral", component: Referral },
   {
     path: "/",
     exact: true,

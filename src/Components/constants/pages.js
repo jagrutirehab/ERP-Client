@@ -205,6 +205,18 @@ const pages = [
     ],
   },
   {
+    id: "referral",
+    label: "Referral",
+    name: "Referral",
+    link: "/referral",
+    icon: "bx bx-share-alt",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "roundnotes",
     label: "Round Notes",
     name: "Round Notes",
@@ -524,7 +536,7 @@ export const HR = [
         icon: "bx bx-chip",
         link: "/hr/new-joinings/it",
       },
-    ]
+    ],
   },
   {
     id: "exit-employees",
@@ -578,7 +590,7 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/salary-advance/approval",
       },
-    ]
+    ],
   },
   {
     id: "transfer-employees",
@@ -638,8 +650,8 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-    ]
-  }
+    ],
+  },
 ];
 
 export const HRMS = [
