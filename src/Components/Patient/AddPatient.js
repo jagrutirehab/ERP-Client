@@ -68,6 +68,8 @@ const AddPatient = ({
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : "";
 
+  console.log({ editData });
+
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -197,8 +199,8 @@ const AddPatient = ({
     if (editData?.referredBy && referrals?.length) {
       const referralMatch = referrals.find(
         (ref) =>
-          ref._id === editData.referredBy ||
-          ref.doctorName === editData.referredBy
+          ref._id === editData.referredBy.id ||
+          ref.doctorName === editData.referredBy.doctorName
       );
       if (referralMatch) {
         setSelectedReferral({
@@ -206,10 +208,17 @@ const AddPatient = ({
           label: referralMatch.doctorName,
         });
         setIsOtherReferral(false);
+        validation.setFieldValue("referredBy", referralMatch._id);
       } else {
         // If not found in referrals, treat as "Other"
         setSelectedReferral({ value: "other", label: "Other" });
         setIsOtherReferral(true);
+        // Ensure the field value is a string (doctor name), not an object
+        const doctorName =
+          typeof editData.referredBy === "string"
+            ? editData.referredBy
+            : editData.referredBy?.doctorName || "";
+        validation.setFieldValue("referredBy", doctorName);
       }
     }
   }, [editData, referrals]);
