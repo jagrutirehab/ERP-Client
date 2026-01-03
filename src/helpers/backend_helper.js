@@ -1154,6 +1154,15 @@ export const regenerateENets = (params = {}) => {
   });
 };
 
+export const uploadTransactionProof = (id, data) => {
+  return api.update(`${url.UPLOAD_TRANSACTION_PROOF}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    }
+  })
+};
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);

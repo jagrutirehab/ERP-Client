@@ -17,7 +17,7 @@ import UploadModal from './UploadModal';
 import { downloadFile } from '../../../Components/Common/downloadFile';
 import PreviewFile from '../../../Components/Common/PreviewFile';
 import { isPreviewable } from '../../../utils/isPreviewable';
-import { exportDetailedCentralReportXLSX } from '../../../helpers/backend_helper';
+import { exportDetailedCentralReportXLSX, uploadTransactionProof } from '../../../helpers/backend_helper';
 import { categoryOptions } from '../../../Components/constants/centralPayment';
 
 const DetailedReport = ({
@@ -103,6 +103,20 @@ const DetailedReport = ({
     }
   };
 
+  const handleFilePreview = (file, updatedAt) => {
+    if (!file?.url) return;
+
+    if (isPreviewable(file, updatedAt)) {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
+      setPreviewOpen(false);
+      setPreviewFile(null);
+    }
+  };
+
+
 
   const getBadgeColor = (status) => {
     switch (status?.toUpperCase()) {
@@ -152,6 +166,7 @@ const DetailedReport = ({
       name: <div>Name</div>,
       selector: (row) => row.name?.toUpperCase() || "-",
       wrap: true,
+      minWidth:"150px"
     },
     {
       name: <div>Items</div>,
@@ -159,6 +174,7 @@ const DetailedReport = ({
         <ExpandableText text={row.items?.toUpperCase()} /> :
         "-",
       wrap: true,
+      minWidth:"150px"
     },
     {
       name: <div>Item Category</div>,
@@ -166,13 +182,13 @@ const DetailedReport = ({
         (option) => option.value === row?.category
       )?.label || "-",
       wrap: true,
-      minWidth: "120px"
+      minWidth: "150px"
     },
     {
       name: <div>Other Category Details</div>,
       selector: (row) => <ExpandableText text={row?.otherCategory || "-"} />,
       wrap: true,
-      minWidth:"120px"
+      minWidth: "150px"
     },
     {
       name: <div>Description</div>,
@@ -180,7 +196,7 @@ const DetailedReport = ({
         <ExpandableText text={row.description?.toUpperCase()} limit={20} /> :
         "-",
       wrap: true,
-      minWidth: "120px",
+      minWidth: "150px",
       maxWidth: "200px"
     },
     {
@@ -383,7 +399,6 @@ const DetailedReport = ({
             setPreviewFile(null);
           }
         };
-
         return (
           <AttachmentCell
             attachments={row.attachments || []}
@@ -413,11 +428,9 @@ const DetailedReport = ({
           return row?.transactionProof ? (
             <span
               className="text-primary text-decoration-underline cursor-pointer"
-              onClick={() =>
-                downloadFile({ url: row.transactionProof })
-              }
+              onClick={() => handleFilePreview({ url: row.transactionProof }, row?.updatedAt)}
             >
-              Download
+              View
             </span>
           ) : (
             <Button
@@ -553,7 +566,7 @@ const DetailedReport = ({
       const formData = new FormData();
       formData.append("transactionProof", file);
 
-      await dispatch(updateCentralPayment({ id: selectedPaymentId, formData: formData, centers: centerAccess })).unwrap()
+      await uploadTransactionProof(selectedPaymentId, formData)
       toast.success("Transaction proof uploaded successfully");
       fetchDetailReport();
     } catch (error) {

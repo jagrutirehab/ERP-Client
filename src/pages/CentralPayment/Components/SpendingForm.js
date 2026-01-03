@@ -50,7 +50,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         otherCategory: Yup.string().when("category", {
             is: "OTHERS",
             then: (schema) =>
-                schema.required("Please specify the category"),
+                schema.required("Please specify the other category details"),
             otherwise: (schema) => schema.notRequired(),
         }),
         date: Yup.string().required("Transaction date is required"),

@@ -344,6 +344,7 @@ export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/d
 export const GET_ALL_ENETS = "/central-payment/eNets";
 export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
 export const PROCESS_PAYMENTS = "/central-payment/process";
+export const UPLOAD_TRANSACTION_PROOF = "/central-payment/transaction-proof";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
