@@ -152,6 +152,29 @@ export const deleteLeadPermanently = (param) =>
 export const postRestoreLead = (data) =>
   api.update(url.POST_RESTORE_LEAD, data);
 
+// Referral Methods
+export const getReferrals = ({ page = 1, limit = 10 } = {}) =>
+  api.get(url.GET_REFERRALS, { params: { page, limit } });
+export const postReferral = (data) => api.create(url.POST_REFERRAL, data);
+export const editReferral = (data) => api.put(url.EDIT_REFERRAL, data);
+export const deleteReferral = (param) =>
+  api.delete(`${url.DELETE_REFERRAL}/${param}`);
+export const postRestoreReferral = (data) =>
+  api.update(url.POST_RESTORE_REFERRAL, data);
+export const getDeletedReferrals = (data) =>
+  api.get(url.GET_DELETED_REFERRALS, {
+    params: {
+      centerIds: data,
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getPendingReferrals = ({ page = 1, limit = 10 } = {}) =>
+  api.get(url.GET_PENDING_REFERRALS, { params: { page, limit } });
+export const approveReferral = (data) => api.update(url.APPROVE_REFERRAL, data);
+export const rejectReferral = (data) => api.update(url.REJECT_REFERRAL, data);
+
 // Medicine Method
 // export const getMedicines = () => api.get(url.GET_MEDICINES);
 export const getMedicines = ({ page = 1, limit = 10, search = "" } = {}) => {
@@ -462,8 +485,8 @@ export const editMentalExamination = (data) => {
 };
 
 export const getLastMentalExamination = (params = {}) => {
-  return api.get(url.LAST_MENTAL_EXAMINATION, params)
-}
+  return api.get(url.LAST_MENTAL_EXAMINATION, params);
+};
 
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
@@ -1000,17 +1023,13 @@ export const getLatestInflows = (params = {}) => {
 };
 
 export const getDetailedCashReport = (params = {}) => {
-  return api.create(
-    url.GET_DETAILED_CASH_REPORT,
-    params,
-    {
-      headers: {
-        "X-No-Cookie-Token": "true",
-        "Content-Type": "application/json",
-      },
-      responseType: params.exportExcel ? "blob" : "json",
-    }
-  );
+  return api.create(url.GET_DETAILED_CASH_REPORT, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    responseType: params.exportExcel ? "blob" : "json",
+  });
 };
 
 export const getSummaryCashReport = (params = {}) => {
@@ -1060,16 +1079,13 @@ export const getDetailedCentralReport = (params = {}) => {
 };
 
 export const exportDetailedCentralReportXLSX = (params = {}) => {
-  return api.get(
-    url.EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT,
-    {
-      params,
-      headers: {
-        "X-No-Cookie-Token": "true",
-      },
-      responseType: "blob",
-    }
-  );
+  return api.get(url.EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
 };
 
 export const postCentralPayment = (data) => {
@@ -1125,8 +1141,8 @@ export const updateCentralPaymentProcessStatus = (params = {}) => {
     },
     paramsSerializer: (params) =>
       qs.stringify(params, { arrayFormat: "repeat" }),
-  })
-}
+  });
+};
 
 export const regenerateENets = (params = {}) => {
   return api.update(url.REGENERATE_ENETS, params, {
@@ -1135,8 +1151,8 @@ export const regenerateENets = (params = {}) => {
     },
     paramsSerializer: (params) =>
       qs.stringify(params, { arrayFormat: "repeat" }),
-  })
-}
+  });
+};
 
 //  User Microservices
 export const PostLoginService = (data) =>
@@ -1222,7 +1238,7 @@ export const getAllUsers = ({
   role = "",
   token,
   centerAccess,
-  sortBy
+  sortBy,
 }) => {
   return userService.get(url.USER, {
     params: { page, limit, search, role, centerAccess, sortBy },
@@ -1340,8 +1356,8 @@ export const getUserByEmail = (token, email) => {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  })
-}
+  });
+};
 // INCIDENT
 export const getIncidents = (data) => api.get(url.GET_INCIDENTS, data);
 export const getIncidentById = (id) =>
@@ -1733,8 +1749,8 @@ export const getITApprovals = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const updateNewJoiningITStatus = (id, data) => {
   return api.update(`${url.IT_NEW_JOINING_ACTION}/${id}`, data, {
@@ -1765,8 +1781,8 @@ export const getEmployeeEmails = (id) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getAdvanceSalaries = (params = {}) => {
   return api.get(url.SALARY_ADVANCE, {
@@ -1777,7 +1793,7 @@ export const getAdvanceSalaries = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const deleteAdvanceSalary = (id) => {
@@ -1809,8 +1825,8 @@ export const advanceSalaryAction = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getEmployeeTransfers = (params = {}) => {
   return api.get(url.TRANSFER_EMPLOYEE, {
@@ -1821,7 +1837,7 @@ export const getEmployeeTransfers = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const postEmployeeTransfer = (data) => {
@@ -1849,28 +1865,36 @@ export const deleteEmployeeTransfer = (id) => {
 };
 
 export const employeeTransferCurrentLocationAction = (id, data) => {
-  return api.update(`${url.TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION}/${id}`, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-}
+  return api.update(
+    `${url.TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION}/${id}`,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
 
 export const employeeTransferTransferLocationAction = (id, data) => {
-  return api.update(`${url.TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION}/${id}`, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-}
+  return api.update(
+    `${url.TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION}/${id}`,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
 
 export const postDesignation = (data) => {
   return api.create(url.DESIGNATION, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getDesignations = (params = {}) => {
   return api.get(url.DESIGNATION, {
@@ -1881,24 +1905,24 @@ export const getDesignations = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const postHiring = (data) => {
   return api.create(url.HIRING, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const editHiring = (id, data) => {
   return api.update(`${url.HIRING}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const deleteHiring = (id) => {
   return api.delete(`${url.HIRING}/${id}`, {
@@ -1906,15 +1930,15 @@ export const deleteHiring = (id) => {
       "X-No-Cookie-Token": "true",
     },
   });
-}
+};
 
 export const hiringAction = (id, data) => {
   return api.update(`${url.HIRING_ACTION}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getHirings = (params = {}) => {
   return api.get(url.HIRING, {
@@ -1925,32 +1949,32 @@ export const getHirings = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const postTPM = (data) => {
   return api.create(url.TPM, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const editTPM = (id, data) => {
   return api.update(`${url.TPM}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const TPMAction = (id, data) => {
   return api.update(`${url.TPM_ACTION}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const getTPMs = (params = {}) => {
   return api.get(url.TPM, {
@@ -1961,8 +1985,8 @@ export const getTPMs = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
-}
+  });
+};
 
 export const deleteTPM = (id) => {
   return api.delete(`${url.TPM}/${id}`, {
@@ -1970,8 +1994,7 @@ export const deleteTPM = (id) => {
       "X-No-Cookie-Token": "true",
     },
   });
-}
-
+};
 
 // HRMS
 export const getAttendance = (params = {}) => {
@@ -1983,7 +2006,7 @@ export const getAttendance = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const getAttendanceImportHistory = (params = {}) => {
@@ -1995,7 +2018,7 @@ export const getAttendanceImportHistory = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const getAttendanceImportById = (id) => {
@@ -2003,7 +2026,7 @@ export const getAttendanceImportById = (id) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const uploadAttendance = (data) => {
@@ -2012,7 +2035,7 @@ export const uploadAttendance = (data) => {
       "X-No-Cookie-Token": "true",
       "Content-Type": "multipart/form-data",
     },
-  })
+  });
 };
 
 export const deleteAttendanceImport = (params = {}) => {
@@ -2024,7 +2047,7 @@ export const deleteAttendanceImport = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const downloadAttendanceTemplate = () => {
@@ -2032,6 +2055,6 @@ export const downloadAttendanceTemplate = () => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-    responseType: "blob"
-  })
+    responseType: "blob",
+  });
 };

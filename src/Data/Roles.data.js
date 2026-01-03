@@ -50,6 +50,14 @@ export const permissionList = [
     ],
   },
   {
+    key: "REFERRAL",
+    label: "Referral",
+    subModules: [
+      { name: "APPROVE_REFERRAL", label: "Approve Referral" },
+      { name: "REJECT_REFERRAL", label: "Reject Referral" },
+    ],
+  },
+  {
     key: "USER",
     label: "User",
     subModules: [

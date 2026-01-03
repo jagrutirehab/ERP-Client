@@ -21,6 +21,7 @@ const Navdata = () => {
       "booking",
       "intern",
       "patient",
+      "referral",
       "roundnotes",
       "mireporting",
       "users",
@@ -33,7 +34,7 @@ const Navdata = () => {
       "guidelines",
       "hr",
       "hrms",
-      "webcamstats"
+      "webcamstats",
     ];
 
     routes?.sort((a, b) => {
