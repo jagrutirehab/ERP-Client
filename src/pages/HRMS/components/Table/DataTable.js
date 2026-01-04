@@ -16,6 +16,8 @@ const DataTableComponent = ({
 
     const allowLimitChange = typeof setLimit === "function";
 
+    const tableHeight = "calc(100vh - 260px)";
+
     return (
         <DataTable
             columns={columns}
@@ -24,7 +26,7 @@ const DataTableComponent = ({
             highlightOnHover
             striped
             fixedHeader
-            fixedHeaderScrollHeight="500px"
+            fixedHeaderScrollHeight={tableHeight}
             dense={isMobile}
             responsive
             paginationServer={!!setPage}

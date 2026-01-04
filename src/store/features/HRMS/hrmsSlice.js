@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import { getAttendance, getAttendanceImportHistory } from "../../../helpers/backend_helper";
+import { getAttendance, getAttendanceMetrics } from "../../../helpers/backend_helper";
 
 
 const initialState = {
@@ -17,9 +17,9 @@ export const fetchAttendance = createAsyncThunk("hrms/getAttendance", async (dat
     }
 });
 
-export const fetchAttendenceImportHistory = createAsyncThunk("hrms/getAttendanceImportHistory", async (data, { rejectWithValue }) => {
+export const fetchAttendanceMetrics = createAsyncThunk("hrms/getAttendanceMetrics", async (data, { rejectWithValue }) => {
     try {
-        const response = await getAttendanceImportHistory(data);
+        const response = await getAttendanceMetrics(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -41,7 +41,20 @@ export const hrmsSlice = createSlice({
             })
             .addCase(fetchAttendance.rejected, (state) => {
                 state.loading = false
+            });
+
+        builder
+            .addCase(fetchAttendanceMetrics.pending, (state) => {
+                state.loading = true;
             })
+            .addCase(fetchAttendanceMetrics.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination
+            })
+            .addCase(fetchAttendanceMetrics.rejected, (state) => {
+                state.loading = false
+            });
     }
 });
 

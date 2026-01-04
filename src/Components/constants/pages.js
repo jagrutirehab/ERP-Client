@@ -709,6 +709,21 @@ export const HRMS = [
     label: "Attendance",
     link: "/hrms/attendance",
     icon: "bx bx-time-five",
+    isAccordion: true,
+    children: [
+      {
+        id: "attendance-log",
+        label: "Attendance Log",
+        link: "/hrms/attendance/logs",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "attendance-metrics",
+        label: "Attendance Metrics",
+        link: "/hrms/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+    ]
   },
 ];
 

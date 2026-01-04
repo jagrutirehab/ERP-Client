@@ -2067,3 +2067,15 @@ export const downloadAttendanceTemplate = () => {
     responseType: "blob",
   });
 };
+
+export const getAttendanceMetrics = (params = {}) => {
+  return api.get(url.ATTENDANCE_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
