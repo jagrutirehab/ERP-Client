@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { Button, CardBody, Input, Spinner } from "reactstrap";
-import CheckPermission from "../../../Components/HOC/CheckPermission";
+import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import Select from "react-select";
-import Header from "../../Report/Components/Header";
+import Header from "../../../Report/Components/Header";
 import { startOfDay, endOfDay } from "date-fns";
 import { CloudUpload, FileSpreadsheet, History } from "lucide-react";
-import DataTableComponent from "../components/Table/DataTable";
-import { attendanceColumns } from "../components/Table/Columns/attendance";
-import { fetchAttendance } from "../../../store/actions";
+import DataTableComponent from "../../components/Table/DataTable";
+import { attendanceColumns } from "../../components/Table/Columns/attendance";
+import { fetchAttendance } from "../../../../store/actions";
 import { toast } from "react-toastify";
-import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import AttendanceHistoryModal from "../components/AttendanceHistoryModal";
-import AttendanceUploadModal from "../components/AttendanceUploadModal";
-import { downloadAttendanceTemplate } from "../../../helpers/backend_helper";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import AttendanceHistoryModal from "../../components/AttendanceHistoryModal";
+import AttendanceUploadModal from "../../components/AttendanceUploadModal";
+import { downloadAttendanceTemplate } from "../../../../helpers/backend_helper";
 
-const Attendance = () => {
+const AttendanceLogs = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -49,7 +49,7 @@ const Attendance = () => {
 
     const hasUserPermission = hasPermission(
         "HRMS",
-        "HRMS_ATTENDANCE",
+        "ATTENDANCE_LOG",
         "READ"
     );
 
@@ -237,7 +237,7 @@ const Attendance = () => {
 
                         <CheckPermission
                             accessRolePermission={roles?.permissions}
-                            subAccess="HRMS_ATTENDANCE"
+                            subAccess="ATTENDANCE_LOG"
                             permission="create"
                         >
                             <Button
@@ -294,7 +294,7 @@ const Attendance = () => {
 
                         <CheckPermission
                             accessRolePermission={roles?.permissions}
-                            subAccess="HRMS_ATTENDANCE"
+                            subAccess="ATTENDANCE_LOG"
                             permission="create"
                         >
                             <Button
@@ -337,4 +337,4 @@ const Attendance = () => {
     );
 };
 
-export default Attendance;
+export default AttendanceLogs;

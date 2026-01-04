@@ -3,7 +3,8 @@ import { usePermissions } from "../../Components/Hooks/useRoles";
 import { Container, Spinner } from "reactstrap";
 import React from "react";
 import Sidebar from "./Sidebar";
-import Attendance from "./Attendance";
+import AttendanceLogs from "./Attendance/Logs";
+import AttendanceMetrics from "./Attendance/Metrics";
 
 const HRMS = () => {
     const navigate = useNavigate();
@@ -37,7 +38,8 @@ const HRMS = () => {
                             <Sidebar />
                             <Routes>
                     
-                                <Route path={`/attendance`} element={<Attendance />} />
+                                <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
+                                <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} />
                             </Routes>
                         </div>
                     </Container>

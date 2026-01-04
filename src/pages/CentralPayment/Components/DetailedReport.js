@@ -6,7 +6,7 @@ import { connect, useDispatch } from 'react-redux';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import PropTypes from 'prop-types';
 import Header from '../../Report/Components/Header';
-import { getDetailedReport, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
+import { getDetailedReport } from '../../../store/features/centralPayment/centralPaymentSlice';
 import { toast } from 'react-toastify';
 import { capitalizeWords } from '../../../utils/toCapitalize';
 import { ExpandableText } from '../../../Components/Common/ExpandableText';
@@ -27,6 +27,7 @@ const DetailedReport = ({
   loading,
   activeTab,
   hasUserPermission,
+  hasUploadPermission,
   roles
 }) => {
   const dispatch = useDispatch();
@@ -166,7 +167,7 @@ const DetailedReport = ({
       name: <div>Name</div>,
       selector: (row) => row.name?.toUpperCase() || "-",
       wrap: true,
-      minWidth:"150px"
+      minWidth: "150px"
     },
     {
       name: <div>Items</div>,
@@ -174,7 +175,7 @@ const DetailedReport = ({
         <ExpandableText text={row.items?.toUpperCase()} /> :
         "-",
       wrap: true,
-      minWidth:"150px"
+      minWidth: "150px"
     },
     {
       name: <div>Item Category</div>,
@@ -411,49 +412,51 @@ const DetailedReport = ({
       minWidth: "140px",
 
     },
-    {
-      name: <div>Transaction Proof</div>,
-      cell: (row) => {
-        const status = row?.currentPaymentStatus;
+    ...hasUploadPermission ? [
+      {
+        name: <div>Transaction Proof</div>,
+        cell: (row) => {
+          const status = row?.currentPaymentStatus;
 
-        if (status === "PENDING" || status === "REJECTED") {
+          if (status === "PENDING" || status === "REJECTED") {
+            return (
+              <i className="text-muted small">
+                Action not permitted
+              </i>
+            );
+          }
+
+          if (status === "COMPLETED") {
+            return row?.transactionProof ? (
+              <span
+                className="text-primary text-decoration-underline cursor-pointer"
+                onClick={() => handleFilePreview({ url: row.transactionProof }, row?.updatedAt)}
+              >
+                View
+              </span>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setSelectedPaymentId(row._id);
+                  setIsUploadModalOpen(true);
+                }}
+              >
+                Upload
+              </Button>
+            );
+          }
+
           return (
             <i className="text-muted small">
               Action not permitted
             </i>
           );
-        }
-
-        if (status === "COMPLETED") {
-          return row?.transactionProof ? (
-            <span
-              className="text-primary text-decoration-underline cursor-pointer"
-              onClick={() => handleFilePreview({ url: row.transactionProof }, row?.updatedAt)}
-            >
-              View
-            </span>
-          ) : (
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedPaymentId(row._id);
-                setIsUploadModalOpen(true);
-              }}
-            >
-              Upload
-            </Button>
-          );
-        }
-
-        return (
-          <i className="text-muted small">
-            Action not permitted
-          </i>
-        );
-      },
-      wrap: true,
-      minWidth: "160px",
-    }
+        },
+        wrap: true,
+        minWidth: "160px",
+      }
+    ] : [],
   ];
 
   useEffect(() => {
@@ -786,6 +789,7 @@ DetailedReport.prototype = {
   loading: PropTypes.bool,
   activeTab: PropTypes.string,
   hasUserPermission: PropTypes.bool,
+  hasUploadPermission: PropTypes.bool,
   roles: PropTypes.array,
 };
 
