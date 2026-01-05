@@ -13,6 +13,7 @@ import moment from "moment";
 import SpendingForm from "./SpendingForm";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { categoryOptions } from "../../../Components/constants/centralPayment";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
@@ -137,15 +138,15 @@ const PaymentFormModal = ({
                                     <Col md={6}>
                                         <p className="mb-0"><strong>ID:</strong> {paymentDetails?.id || "-"}</p>
                                         <p className="mb-0"><strong>Name:</strong> {paymentDetails?.name || "-"}</p>
-                                        <p className="mb-0"><strong>Center:</strong> {paymentDetails?.center?.title.toUpperCase() || "UNKNOWN CENTER"}</p>
+                                        <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title) || "Unknown Center"}</p>
                                         <p className="mb-0"><strong>Items:</strong> {paymentDetails?.items || "-"}</p>
                                         <p className="mb-0"><strong>Item Category:</strong> {categoryOptions.find(
                                             (option) => option.value === paymentDetails?.category
                                         )?.label || "-"}</p>
                                         {paymentDetails?.category === "OTHERS" && <p className="mb-0"><strong>Item Category Details:</strong><ExpandableText text={paymentDetails?.otherCategory || "-"} /></p>}
-                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> ₹{paymentDetails?.totalAmountWithGST?.toFixed(2) || "0.00"}</p>
-                                        <p className="mb-0"><strong>GST Amount:</strong> ₹{paymentDetails?.GSTAmount?.toFixed(2) || "0.00"}</p>
-                                        <p className="mb-0"><strong>Amount To Pay(TDS Deducted):</strong> ₹{paymentDetails?.finalAmount?.toFixed(2) || "0.00"}</p>
+                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> {formatCurrency(paymentDetails?.totalAmountWithGST)}</p>
+                                        <p className="mb-0"><strong>GST Amount:</strong> {formatCurrency(paymentDetails?.GSTAmount)}</p>
+                                        <p className="mb-0"><strong>payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>
                                         <p className="mb-0"><strong>Vendor:</strong> {paymentDetails?.vendor || "-"}</p>
                                         {paymentDetails?.invoiceNo && (
                                             <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo || "-"}</p>
