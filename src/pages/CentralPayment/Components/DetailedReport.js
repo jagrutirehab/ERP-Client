@@ -405,15 +405,18 @@ const DetailedReport = ({
               Download
             </span>
           ) : (
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedPaymentId(row._id);
-                setIsUploadModalOpen(true);
-              }}
-            >
-              Upload
-            </Button>
+            // <Button
+            //   size="sm"
+            //   onClick={() => {
+            //     setSelectedPaymentId(row._id);
+            //     setIsUploadModalOpen(true);
+            //   }}
+            // >
+            //   Upload
+            // </Button>
+            <i className="text-muted small">
+              Action not permitted
+            </i>
           );
         }
 
