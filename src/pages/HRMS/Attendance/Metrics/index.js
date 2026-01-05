@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { CardBody, Input } from 'reactstrap';
+import { Button, CardBody, Input, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import Header from '../../../Report/Components/Header';
 import Select from "react-select";
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
-import { endOfDay, startOfDay } from 'date-fns';
+import { endOfDay, format, startOfDay } from 'date-fns';
 import DataTableComponent from '../../components/Table/DataTable';
 import { fetchAttendanceMetrics } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
+import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
 
 const sortByOptions = [
     { value: "avgDuration", label: "Sort By Average Duration" },
@@ -23,6 +24,7 @@ const AttendanceMetrics = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const [isExcelGenerating, setIsExcelGenerating] = useState(false);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [sortBy, setSortBy] = useState("avgDuration");
     const [page, setPage] = useState(1);
@@ -78,12 +80,13 @@ const AttendanceMetrics = () => {
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
 
+    const centers =
+        selectedCenter === "ALL"
+            ? centerAccess
+            : [selectedCenter];
+
     const fetchEmployeeAttendanceMetrics = async () => {
         try {
-            const centers =
-                selectedCenter === "ALL"
-                    ? centerAccess
-                    : [selectedCenter];
 
             await dispatch(
                 fetchAttendanceMetrics({
@@ -140,6 +143,43 @@ const AttendanceMetrics = () => {
         sortBy
     ]);
 
+    const handleExportXLSX = async () => {
+        setIsExcelGenerating(true);
+        try {
+            const res = await exportAttendanceMetrics({
+                page,
+                limit,
+                search,
+                centers,
+                startDate: reportDate.start,
+                endDate: reportDate.end,
+                sortBy,
+                ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
+            });
+
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `attendance-metrics-report-${format(reportDate.start, "yyyy-MM-dd")}_to_${format(reportDate.end, "yyyy-MM-dd")}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error("Something went wrong while generating xlsx file")
+            }
+        } finally {
+            setIsExcelGenerating(false);
+        }
+    };
+
+
     if (!permissionLoader && !hasUserPermission) {
         navigate("/unauthorized");
     }
@@ -192,6 +232,17 @@ const AttendanceMetrics = () => {
                         />
                     </div>
                 </div>
+                <div className="d-flex justify-content-end">
+                    <Button
+                        color="primary"
+                        className="d-flex align-items-center gap-1 text-white"
+                        onClick={handleExportXLSX}
+                        disabled={isExcelGenerating || centers.length === 0}
+                    >
+                        {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                        Export Excel
+                    </Button>
+                </div>
             </div>
 
             {/* Mobile */}
@@ -201,6 +252,14 @@ const AttendanceMetrics = () => {
                     onChange={(opt) => setSelectedCenter(opt.value)}
                     options={centerOptions}
                     classNamePrefix="react-select"
+                />
+
+                <Select
+                    value={sortByOptions.find(opt => opt.value === sortBy)}
+                    onChange={(opt) => setSortBy(opt.value)}
+                    options={sortByOptions}
+                    classNamePrefix="react-select"
+                    isSearchable={false}
                 />
 
                 <Input
@@ -214,6 +273,18 @@ const AttendanceMetrics = () => {
                     reportDate={reportDate}
                     setReportDate={setReportDate}
                 />
+
+                <div className="d-flex justify-content-end">
+                    <Button
+                        color="primary"
+                        className="d-flex align-items-center gap-1 text-white"
+                        onClick={handleExportXLSX}
+                        disabled={isExcelGenerating || centers.length === 0}
+                    >
+                        {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                        Export Excel
+                    </Button>
+                </div>
 
             </div>
             <DataTableComponent

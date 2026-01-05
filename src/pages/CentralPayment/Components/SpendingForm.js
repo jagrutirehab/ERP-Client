@@ -92,7 +92,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .max(25, "Account number cannot be more than 25 characters"),
         TDSRate: Yup.number()
             .typeError("TDS Rate must be a number")
-            .nullable(),
+            .nullable()
+            .min(0, "TDS Rate cannot be negative")
+            .max(30, "TDS Rate cannot be greater than 30%"),
         initialPaymentStatus: Yup.string()
             .oneOf(["PENDING", "COMPLETED"], "Invalid payment status")
             .required("Payment status is required"),
@@ -172,6 +174,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     if (val !== undefined && val !== null) {
                         formData.append(key, val);
                     }
+                    return;
+                }
+
+                if (key === "TDSRate") {
+                    formData.append("TDSRate", val === "" ? 0 : val);
                     return;
                 }
 

@@ -2079,3 +2079,16 @@ export const getAttendanceMetrics = (params = {}) => {
     },
   })
 };
+
+export const exportAttendanceMetrics = (params = {}) => {
+  return api.get(url.EXPORT_ATTENDANCE_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};

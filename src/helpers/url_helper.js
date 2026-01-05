@@ -452,3 +452,5 @@ export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
 export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
 
 export const ATTENDANCE_METRICS="/hrms/attendance/metrics";
+export const EXPORT_ATTENDANCE_METRICS="/hrms/attendance/metrics/export";
+
