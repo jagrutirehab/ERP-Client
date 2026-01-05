@@ -275,6 +275,15 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Amount To Pay(TDS Deducted)</div>,
+      cell: (row) => (
+        <span>
+          {row?.finalAmount || "-"}
+        </span>
+      ),
+      wrap: true,
+    },
+    {
       name: <div>Account Holder Name</div>,
       cell: (row) => (
         <span>

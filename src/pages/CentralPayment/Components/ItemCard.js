@@ -214,11 +214,11 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={4} className="text-end">
                             <div className="d-flex flex-column align-items-end">
                                 <span className="h5 mb-0 fw-bold text-dark">
-                                    ₹{item.totalAmountWithGST?.toFixed(2) || "0.00"}
+                                    ₹{item.finalAmount?.toFixed(2) || "0.00"}
                                 </span>
-                                {item.totalAmountWithGST && (
+                                {item.finalAmount && (
                                     <small className="text-muted mt-1">
-                                        Total with GST
+                                        Amount To Pay (TDS Deducted)
                                     </small>
                                 )}
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
