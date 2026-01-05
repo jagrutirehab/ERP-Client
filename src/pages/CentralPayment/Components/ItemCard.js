@@ -15,6 +15,7 @@ import AttachmentCell from "./AttachmentCell";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { isPreviewable } from "../../../utils/isPreviewable";
 import { downloadFile } from "../../../Components/Common/downloadFile";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
@@ -214,12 +215,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={4} className="text-end">
                             <div className="d-flex flex-column align-items-end">
                                 <span className="h5 mb-0 fw-bold text-dark">
-                                    ₹{item.finalAmount?.toFixed(2) || "0.00"}
+                                    {formatCurrency(item.finalAmount)}
                                 </span>
                                 {item.finalAmount && (
-                                    <small className="text-muted mt-1">
-                                        Amount To Pay (TDS Deducted)
-                                    </small>
+                                    <i className="text-muted mt-1">
+                                        payable (TDS Deducted)
+                                    </i>
                                 )}
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
                                     {item.initialPaymentStatus === "PENDING" ? "To Be Paid" : "Paid"}
