@@ -98,7 +98,11 @@ const AddPatient = ({
       dateOfAddmission: editData?.dateOfAddmission
         ? format(new Date(editData.dateOfAddmission), "yyyy-MM-dd")
         : "",
-      referredBy: editData ? editData.referredBy : "",
+      referredBy: editData
+        ? editData.referredBy
+        : leadData
+        ? leadData.refferedBy
+        : "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
