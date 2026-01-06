@@ -50,6 +50,14 @@ export const permissionList = [
     ],
   },
   {
+    key: "REFERRAL",
+    label: "Referral",
+    subModules: [
+      { name: "APPROVE_REFERRAL", label: "Approve Referral" },
+      { name: "REJECT_REFERRAL", label: "Reject Referral" },
+    ],
+  },
+  {
     key: "USER",
     label: "User",
     subModules: [
@@ -77,7 +85,10 @@ export const permissionList = [
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
-      { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
+      {
+        name: "CENTRALPAYMENTPROCESSING",
+        label: "Payment Processing Dashboard",
+      },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },
@@ -199,59 +210,75 @@ export const permissionList = [
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
       { name: "NEW_JOINING_IT", label: "New Joinings IT" },
       // exit employee
-      { name: "EXIT_EMPLOYEE_ADD_REQUEST", label: "Exit Employees Add Request" },
+      {
+        name: "EXIT_EMPLOYEE_ADD_REQUEST",
+        label: "Exit Employees Add Request",
+      },
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
       // salary advance
-      { name: "SALARY_ADVANCE_ADD_REQUEST", label: "Salary Advance Add Request" },
+      {
+        name: "SALARY_ADVANCE_ADD_REQUEST",
+        label: "Salary Advance Add Request",
+      },
       { name: "SALARY_ADVANCE_APPROVAL", label: "Salary Advance Approval" },
       // transfer employee
       {
         name: "TRANSFER_EMPLOYEE_ADD_REQUEST",
-        label: "Employee Transfer Add Request"
+        label: "Employee Transfer Add Request",
       },
       {
         name: "TRANSFER_EMPLOYEE_APPROVAL",
-        label: "Employee Transfer Approvals"
+        label: "Employee Transfer Approvals",
       },
       {
         name: "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
-        label: "Outgoing Employee Transfer Approvals"
+        label: "Outgoing Employee Transfer Approvals",
       },
       {
         name: "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
-        label: "Incoming Employee Transfer Approvals"
+        label: "Incoming Employee Transfer Approvals",
       },
       {
         name: "TRANSFER_EMPLOYEE_IT",
-        label: "Employee Transfer IT"
+        label: "Employee Transfer IT",
       },
       // hiring
       {
         name: "HIRING_ADD_REQUEST",
-        label: "Hiring Add Request"
+        label: "Hiring Add Request",
       },
       {
         name: "HIRING_APPROVAL",
-        label: "Hiring Approvals"
+        label: "Hiring Approvals",
       },
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
-        label: "Third Party Manpower Add Request"
+        label: "Third Party Manpower Add Request",
       },
       {
         name: "THIRD_PARTY_MANPOWER_APPROVAL",
-        label: "Third Party Manpower Approvals"
+        label: "Third Party Manpower Approvals",
       },
-    ]
+    ],
   },
   {
     key: "HRMS",
     label: "HRMS",
     subModules: [
-      { name: "HRMS_ATTENDANCE", label: "Attendance Management" },
+      { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+      { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+    ],
+  },
+  {
+    key: "WEBCAMSTATS",
+    label: "Web Cam Stats",
+    subModules: [
+      { name: "DASHBOARD", label: "Dashboard" },
+      { name: "STATS", label: "Stats" },
+      { name: "APIKEYS", label: "Apikeys" },
     ],
   },
 ];

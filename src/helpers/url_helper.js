@@ -63,6 +63,17 @@ export const POST_UNMERGE_LEAD = "/lead/unmerge";
 export const DELETE_LEAD = "/lead";
 export const DELETE_LEAD_PERMANENTLY = "/lead/delete-permanently";
 
+//REFERRAL
+export const POST_REFERRAL = "/referral";
+export const GET_REFERRALS = "/referral";
+export const GET_DELETED_REFERRALS = "/referral/deleted";
+export const EDIT_REFERRAL = "/referral";
+export const DELETE_REFERRAL = "/referral";
+export const POST_RESTORE_REFERRAL = "/referral/restore";
+export const GET_PENDING_REFERRALS = "/referral/pending";
+export const APPROVE_REFERRAL = "/referral/approve";
+export const REJECT_REFERRAL = "/referral/reject";
+
 //PATIENT
 export const GET_PATIENTS = "/patient";
 export const GET_PATIENT_BY_ID = "/patient/patient-id";
@@ -333,6 +344,7 @@ export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/d
 export const GET_ALL_ENETS = "/central-payment/eNets";
 export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
 export const PROCESS_PAYMENTS = "/central-payment/process";
+export const UPLOAD_TRANSACTION_PROOF = "/central-payment/transaction-proof";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
@@ -420,8 +432,10 @@ export const SALARY_ADVANCE = "/hr/advance-salary";
 export const SALARY_ADVANCE_ACTION = "/hr/advance-salary/action";
 
 export const TRANSFER_EMPLOYEE = "/hr/transfer-employee";
-export const TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION = "/hr/transfer-employee/current/action";
-export const TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION = "/hr/transfer-employee/transfer/action";
+export const TRANSFER_EMPLOYEE_CURRENT_LOCATION_ACTION =
+  "/hr/transfer-employee/current/action";
+export const TRANSFER_EMPLOYEE_TRANSFER_LOCATION_ACTION =
+  "/hr/transfer-employee/transfer/action";
 
 export const DESIGNATION = "/hr/designation";
 
@@ -436,4 +450,7 @@ export const ATTENDANCE = "/hrms/attendance";
 export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
 export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
 export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
+
+export const ATTENDANCE_METRICS="/hrms/attendance/metrics";
+export const EXPORT_ATTENDANCE_METRICS="/hrms/attendance/metrics/export";
 

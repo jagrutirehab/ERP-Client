@@ -37,6 +37,9 @@ import Recyclebin from "./features/recyclebin/recyclebinSlice";
 // lead
 import Lead from "./features/lead/leadSlice";
 
+// referral
+import Referral from "./features/referral/referralSlice";
+
 // booking
 import Booking from "./features/booking/bookingSlice";
 
@@ -113,6 +116,7 @@ const rootReducer = combineReducers({
   Recyclebin,
   Setting,
   Lead,
+  Referral,
   Booking,
   Medicine,
   // layout

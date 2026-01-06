@@ -111,6 +111,18 @@ export {
   setUngroupLeads,
 } from "./features/lead/leadSlice";
 
+// referral
+export {
+  createEditReferral,
+  fetchReferrals,
+  addReferral,
+  updateReferral,
+  removeReferral,
+  fetchPendingReferrals,
+  approveReferralAction,
+  rejectReferralAction,
+} from "./features/referral/referralSlice";
+
 // layout
 export {
   changeLayout,
@@ -351,6 +363,4 @@ export {
 } from "./features/roundNotes/roundNotesSlice";
 
 // HRMS
-export {
-  fetchAttendance
-} from "./features/HRMS/hrmsSlice";
+export { fetchAttendance } from "./features/HRMS/hrmsSlice";
