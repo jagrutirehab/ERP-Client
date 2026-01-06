@@ -279,7 +279,7 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>payable (TDS Deducted)</div>,
+      name: <div>Payable (TDS Deducted)</div>,
       cell: (row) => <span>{formatCurrency(row?.finalAmount)}</span>,
       wrap: true,
       minWidth: "120px",
