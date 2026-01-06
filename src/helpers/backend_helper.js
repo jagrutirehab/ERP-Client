@@ -1154,6 +1154,15 @@ export const regenerateENets = (params = {}) => {
   });
 };
 
+export const uploadTransactionProof = (id, data) => {
+  return api.update(`${url.UPLOAD_TRANSACTION_PROOF}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    }
+  })
+};
+
 //  User Microservices
 export const PostLoginService = (data) =>
   userService.post(url.MICRO_SIGN_IN, data);
@@ -2057,4 +2066,29 @@ export const downloadAttendanceTemplate = () => {
     },
     responseType: "blob",
   });
+};
+
+export const getAttendanceMetrics = (params = {}) => {
+  return api.get(url.ATTENDANCE_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const exportAttendanceMetrics = (params = {}) => {
+  return api.get(url.EXPORT_ATTENDANCE_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
 };

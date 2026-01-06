@@ -50,7 +50,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         otherCategory: Yup.string().when("category", {
             is: "OTHERS",
             then: (schema) =>
-                schema.required("Please specify the category"),
+                schema.required("Please specify the other category details"),
             otherwise: (schema) => schema.notRequired(),
         }),
         date: Yup.string().required("Transaction date is required"),
@@ -92,7 +92,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .max(25, "Account number cannot be more than 25 characters"),
         TDSRate: Yup.number()
             .typeError("TDS Rate must be a number")
-            .nullable(),
+            .nullable()
+            .min(0, "TDS Rate cannot be negative")
+            .max(30, "TDS Rate cannot be greater than 30%"),
         initialPaymentStatus: Yup.string()
             .oneOf(["PENDING", "COMPLETED"], "Invalid payment status")
             .required("Payment status is required"),
@@ -172,6 +174,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     if (val !== undefined && val !== null) {
                         formData.append(key, val);
                     }
+                    return;
+                }
+
+                if (key === "TDSRate") {
+                    formData.append("TDSRate", val === "" ? 0 : val);
                     return;
                 }
 
@@ -343,7 +350,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             {form.values.category === "OTHERS" && (
                 <FormGroup className="mt-2">
                     <Label for="otherCategory" className="fw-medium">
-                        Specify Item Category Details<span className="text-danger">*</span>
+                        Specify Other Category Details<span className="text-danger">*</span>
                     </Label>
                     <Input
                         type="text"
@@ -356,7 +363,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             ? "is-invalid"
                             : ""
                             }`}
-                        placeholder="Enter item category details"
+                        placeholder="Enter Other category details"
                     />
                     {form.touched.otherCategory && form.errors.otherCategory && (
                         <div className="invalid-feedback d-block">
