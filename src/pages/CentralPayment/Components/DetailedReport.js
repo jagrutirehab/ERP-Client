@@ -455,7 +455,33 @@ const DetailedReport = ({
           minWidth: "160px",
         },
       ]
-      : []),
+      : [
+        {
+          name: <div>Transaction Proof</div>,
+          cell: (row) => {
+            const hasFile = !!row?.transactionProof;
+
+            if (hasFile) {
+              return (
+                <span
+                  className="text-primary text-decoration-underline cursor-pointer"
+                  onClick={() =>
+                    handleFilePreview(
+                      { url: row.transactionProof },
+                      row?.updatedAt
+                    )
+                  }
+                >
+                  View
+                </span>
+              );
+            }
+
+            return <i className="text-muted small">Action not permitted</i>;
+          },
+
+        }
+      ]),
   ];
 
   useEffect(() => {
