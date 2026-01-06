@@ -123,7 +123,10 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
     patientsReferrel
       ? {
           name: "Referred By",
-          selector: (row) => row.patient?.referredBy || "",
+          selector: (row) =>
+            row.patient?.referredBy?.doctorName ||
+            row.patient?.referredBy ||
+            "",
         }
       : null,
     billType !== DUE_AMOUNT

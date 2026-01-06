@@ -52,28 +52,31 @@ const Menu = ({
       billType === INTERN ? data?.filter((row) => row.intern) : data;
     return filteredData?.map((row) => ({
       ...row,
+      patient: {
+        ...row.patient,
+        referredBy:
+          row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+      },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
-      uid:
-        row.patient?.id
-          ? `${row.patient.id.prefix}${row.patient.id.value}`
-          : "",
-      invoiceNumber:
-        row.key
-          ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
-          : "",
+      uid: row.patient?.id
+        ? `${row.patient.id.prefix}${row.patient.id.value}`
+        : "",
+      invoiceNumber: row.key
+        ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
+        : "",
       dateOfAddmission: row.patient?.addmission?.addmissionDate
         ? format(new Date(row.patient.addmission.addmissionDate), "dd MMM yyyy")
         : "",
       dateOfDischarge: row.patient?.addmission?.dischargeDate
         ? format(new Date(row.patient.addmission.dischargeDate), "dd MMM yyyy")
         : "",
-        type:
-   billType === ALL_TRANSACTIONS
-     ? row.type && row.type.trim() !== "" 
-       ? row.type 
-       : "INTERN"
-     : row.type || "",
+      type:
+        billType === ALL_TRANSACTIONS
+          ? row.type && row.type.trim() !== ""
+            ? row.type
+            : "INTERN"
+          : row.type || "",
       invoice: {
         payable:
           row.intern && row.receipt

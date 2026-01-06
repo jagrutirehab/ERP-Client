@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import Select from "react-select";
 
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -14,6 +15,7 @@ import {
   admitDischargePatient,
   editAdmission,
   fetchDoctors,
+  fetchReferrals,
 } from "../../../store/actions";
 import {
   ADMIT_PATIENT,
@@ -33,9 +35,13 @@ const AdmitPatient = ({
   doctors,
   counsellors,
   doctorLoading,
+  referrals,
+  referralsLoading,
 }) => {
   const dispatch = useDispatch();
   const [step, setStep] = useState(1);
+  const [isOtherReferral, setIsOtherReferral] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
 
   const toggle = () =>
     dispatch(admitDischargePatient({ data: null, isOpen: "" }));
@@ -59,7 +65,9 @@ const AdmitPatient = ({
       guardianName: patient ? patient.guardianName : "",
       guardianRelation: patient ? patient.guardianRelation : "",
       guardianPhoneNumber: patient ? patient.guardianPhoneNumber : "",
-      referredBy: patient ? patient.referredBy : "",
+      referredBy: patient
+        ? patient.referredBy?.doctorName || patient.referredBy
+        : "",
       ipdFileNumber: patient ? patient.ipdFileNumber : "",
 
       //admission
@@ -124,6 +132,40 @@ const AdmitPatient = ({
   useEffect(() => {
     setStep(1);
   }, [isOpen]);
+
+  useEffect(() => {
+    dispatch(fetchReferrals());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Initialize selectedReferral and isOtherReferral based on patient data
+    if (patient?.referredBy && referrals?.length) {
+      const referralMatch = referrals.find(
+        (ref) =>
+          ref._id === patient.referredBy.id ||
+          ref.doctorName === patient.referredBy.doctorName ||
+          ref.doctorName === patient.referredBy
+      );
+      if (referralMatch) {
+        setSelectedReferral({
+          value: referralMatch._id,
+          label: referralMatch.doctorName,
+        });
+        setIsOtherReferral(false);
+        validation.setFieldValue("referredBy", referralMatch._id);
+      } else {
+        // If not found in referrals, treat as "Other"
+        setSelectedReferral({ value: "other", label: "Other" });
+        setIsOtherReferral(true);
+        // Ensure the field value is a string (doctor name), not an object
+        const doctorName =
+          typeof patient.referredBy === "string"
+            ? patient.referredBy
+            : patient.referredBy?.doctorName || "";
+        validation.setFieldValue("referredBy", doctorName);
+      }
+    }
+  }, [patient, referrals]);
 
   const handleChange = (e, fieldType) => {
     if (fieldType === "file") {
@@ -238,12 +280,6 @@ const AdmitPatient = ({
       type: "text",
       required: true,
     },
-    {
-      label: "Referred By",
-      name: "referredBy",
-      type: "text",
-      required: true,
-    },
     // {
     //   label: "IPD File Number",
     //   name: "ipdFileNumber",
@@ -317,6 +353,86 @@ const AdmitPatient = ({
             </div>
           </Col>
         ))}
+        <Col xs={12} lg={4}>
+          <div className="mb-3">
+            <Label htmlFor="referredBy" className="form-label">
+              Referred By <span className="text-danger">*</span>
+            </Label>
+
+            <Select
+              value={selectedReferral}
+              onChange={(option) => {
+                setSelectedReferral(option);
+                if (option?.value === "other") {
+                  setIsOtherReferral(true);
+                  validation.setFieldValue("referredBy", "");
+                } else {
+                  setIsOtherReferral(false);
+                  validation.setFieldValue("referredBy", option?.value || "");
+                }
+              }}
+              onBlur={() => validation.setFieldTouched("referredBy", true)}
+              options={[
+                ...(referrals || []).map((ref) => ({
+                  value: ref._id,
+                  label: ref.doctorName,
+                })),
+                { value: "other", label: "Other" },
+              ]}
+              placeholder="Select or search for a referral doctor"
+              isClearable
+              isLoading={referralsLoading}
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  borderColor:
+                    validation.touched.referredBy &&
+                    validation.errors.referredBy
+                      ? "#dc3545"
+                      : "#ced4da",
+                  boxShadow: state.isFocused
+                    ? validation.touched.referredBy &&
+                      validation.errors.referredBy
+                      ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+                      : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
+                    : "none",
+                  "&:hover": {
+                    borderColor:
+                      validation.touched.referredBy &&
+                      validation.errors.referredBy
+                        ? "#dc3545"
+                        : "#86b7fe",
+                  },
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999,
+                }),
+              }}
+            />
+
+            {isOtherReferral && (
+              <Input
+                name="referredBy"
+                className="form-control mt-2"
+                placeholder="Enter doctor name"
+                type="text"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.referredBy || ""}
+                invalid={
+                  validation.touched.referredBy && validation.errors.referredBy
+                }
+              />
+            )}
+
+            {validation.touched.referredBy && validation.errors.referredBy && (
+              <FormFeedback type="invalid" className="d-block">
+                {validation.errors.referredBy}
+              </FormFeedback>
+            )}
+          </div>
+        </Col>
       </Row>
       <div className="d-flex justify-content-end mt-3">
         <Button
@@ -695,6 +811,8 @@ const mapStateToProps = (state) => ({
   doctorLoading: state.User.doctorLoading,
   doctors: state.User.doctor,
   counsellors: state.User.counsellors,
+  referrals: state.Referral.data,
+  referralsLoading: state.Referral.loading,
 });
 
 export default connect(mapStateToProps)(AdmitPatient);
