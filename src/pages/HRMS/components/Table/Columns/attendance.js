@@ -58,8 +58,16 @@ export const attendanceColumns = [
         wrap: true,
     },
     {
+        name: <div>Shift</div>,
+        selector: row => row?.shift || "-",
+        center: true,
+        wrap: true
+    },
+    {
         name: <div>Total Time</div>,
-        selector: row => `${row?.totalTime} hr` || "-",
+        selector: row => row?.totalTime !== null && row?.totalTime !== undefined
+            ? `${row.totalTime} hr`
+            : "-",
         center: true,
         wrap: true,
     },

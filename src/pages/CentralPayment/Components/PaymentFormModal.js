@@ -146,7 +146,7 @@ const PaymentFormModal = ({
                                         {paymentDetails?.category === "OTHERS" && <p className="mb-0"><strong>Item Category Details:</strong><ExpandableText text={paymentDetails?.otherCategory || "-"} /></p>}
                                         <p className="mb-0"><strong>Total Amount (with GST):</strong> {formatCurrency(paymentDetails?.totalAmountWithGST)}</p>
                                         <p className="mb-0"><strong>GST Amount:</strong> {formatCurrency(paymentDetails?.GSTAmount)}</p>
-                                        <p className="mb-0"><strong>payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>
+                                        <p className="mb-0"><strong>Payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>
                                         <p className="mb-0"><strong>Vendor:</strong> {paymentDetails?.vendor || "-"}</p>
                                         {paymentDetails?.invoiceNo && (
                                             <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo || "-"}</p>

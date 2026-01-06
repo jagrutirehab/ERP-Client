@@ -219,7 +219,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                 </span>
                                 {item.finalAmount && (
                                     <i className="text-muted mt-1">
-                                        payable (TDS Deducted)
+                                        Payable (TDS Deducted)
                                     </i>
                                 )}
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
@@ -232,6 +232,16 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
+                                {item?.approvedBy && (
+                                    <div className="d-flex justify-content-end mb-2 mt-2 me-2">
+                                        <small className="text-muted">
+                                            Approved by{" "}
+                                            <span className="fw-semibold text-dark">
+                                                {item.approvedBy.name}
+                                            </span>
+                                        </small>
+                                    </div>
+                                )}
                                 <Button
                                     onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
