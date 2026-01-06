@@ -189,7 +189,8 @@ const Doctor = ({ centers, centerAccess }) => {
     { name: "Gender", selector: (row) => row.gender || "-" },
     {
       name: "Referred By",
-      selector: (row) => capitalizeWords(row.referredBy) || "-",
+      selector: (row) =>
+        capitalizeWords(row.referredBy?.doctorName || row.referredBy) || "-",
       wrap: true,
     },
     { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
