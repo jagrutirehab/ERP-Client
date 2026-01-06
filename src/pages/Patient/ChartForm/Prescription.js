@@ -126,11 +126,12 @@ const Prescription = ({
         : ptLatestOPDPrescription
         ? patientLatestOPDPrescription?.followUp
         : "",
-      referredby: editPrescription
-        ? editPrescription.referredby
-        : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.referredby
-        : patient.referredBy?.doctorName || patient.referredBy || "",
+      referredby: patient.referredBy?.doctorName || patient.referredBy || "",
+      // editPrescription
+      //   ? editPrescription.referredby
+      //   : ptLatestOPDPrescription
+      //   ? patientLatestOPDPrescription?.referredby
+      //   :
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
