@@ -224,6 +224,10 @@ const AddPatient = ({
             : editData.referredBy?.doctorName || "";
         validation.setFieldValue("referredBy", doctorName);
       }
+    } else {
+      setSelectedReferral(null);
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", "");
     }
   }, [editData, referrals]);
 
