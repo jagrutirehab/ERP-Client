@@ -166,6 +166,9 @@ const AddPatient = ({
           togglePatientForm({ data: null, leadData: null, isOpen: false })
         );
       }
+      setSelectedReferral(null);
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", "");
     },
   });
 
