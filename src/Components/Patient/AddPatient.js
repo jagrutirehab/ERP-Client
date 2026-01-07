@@ -166,6 +166,9 @@ const AddPatient = ({
           togglePatientForm({ data: null, leadData: null, isOpen: false })
         );
       }
+      setSelectedReferral(null);
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", "");
     },
   });
 
@@ -224,6 +227,10 @@ const AddPatient = ({
             : editData.referredBy?.doctorName || "";
         validation.setFieldValue("referredBy", doctorName);
       }
+    } else {
+      setSelectedReferral(null);
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", "");
     }
   }, [editData, referrals]);
 
