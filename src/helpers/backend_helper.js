@@ -2005,7 +2005,7 @@ export const deleteTPM = (id) => {
   });
 };
 
-// HRMS
+// HRMS- Attendance
 export const getAttendance = (params = {}) => {
   return api.get(url.ATTENDANCE, {
     params,
@@ -2090,5 +2090,31 @@ export const exportAttendanceMetrics = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
+  })
+};
+
+// HRMS- Employee Reporting
+export const postEmployeeReporting = (data) => {
+  return api.create(url.EMPLOYEE_REPORTING, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+export const editEmployeeReporting = (id,data) => {
+  return api.update(`${url.EMPLOYEE_REPORTING}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+export const getEmployeeReportings = (params = {}) => {
+  return api.get(url.EMPLOYEE_REPORTING, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
   })
 };

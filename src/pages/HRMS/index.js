@@ -5,6 +5,8 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import AttendanceLogs from "./Attendance/Logs";
 import AttendanceMetrics from "./Attendance/Metrics";
+import AssignManager from "./EmployeeReporting/AssignManager";
+import ManageEmployeeReportings from "./EmployeeReporting/Manage";
 
 const HRMS = () => {
     const navigate = useNavigate();
@@ -30,16 +32,17 @@ const HRMS = () => {
     document.title = "HRMS Dashboard";
 
     return (
-          <React.Fragment>
+        <React.Fragment>
             <div className="page-conten overflow-hidden">
                 <div className="patient-page">
                     <Container fluid>
                         <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">
                             <Sidebar />
                             <Routes>
-                    
                                 <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
                                 <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} />
+                                <Route path={`/reporting/assign`} element={<AssignManager />} />
+                                <Route path={`/reporting/manage`} element={<ManageEmployeeReportings />} />
                             </Routes>
                         </div>
                     </Container>

@@ -270,6 +270,8 @@ export const permissionList = [
     subModules: [
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      { name: "MANAGE_EMPLOYEE_REPORTINGS", label: "Manage Employee Reportings" }
     ],
   },
   {
