@@ -58,7 +58,11 @@ const Patient = ({ centerAccess }) => {
           }`,
 
           // Referred By
-          referredBy: d?.referredBy?.doctorName || d?.referredBy,
+          referredBy:
+            d?.patient?.referredBy?.doctorName ||
+            d?.patient?.referredBy ||
+            d?.referredBy?.doctorName ||
+            d?.referredBy,
 
           // Age
           age: d?.dateOfBirth
@@ -146,6 +150,8 @@ const Patient = ({ centerAccess }) => {
       console.error("Failed to fetch patient analytics", err);
     }
   };
+
+  console.log({ csvData });
 
   useEffect(() => {
     fetchData();
@@ -410,7 +416,7 @@ const Patient = ({ centerAccess }) => {
     { label: "Patient", key: "patient.name" },
     { label: "UID", key: "uid" },
     { label: "Gender", key: "patient.gender" },
-    { label: "Referred By", key: "patient.referredBy" },
+    { label: "Referred By", key: "referredBy" },
     { label: "Phone No", key: "patient.phoneNumber" },
     { label: "Doctor", key: "doctor" },
     { label: "Psychologist", key: "psychologist" },
