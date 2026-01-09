@@ -420,10 +420,18 @@ const Menu = ({
                     <i className="ri-printer-line"></i>
                   </Button>
                   <CSVLink
-                    data={documents() || []}
+                    // data={(documents() || [])}
+                    data={(() => {
+                      console.log(documents());
+                      return documents() || [];
+                    })()}
                     title="CSV Download"
                     filename={"reports.csv"}
-                    headers={headers()}
+                    // headers={headers()}
+                    headers={(() => {
+                      console.log(headers());
+                      return headers();
+                    })()}
                     className="btn btn-info px-2 ms-3"
                   >
                     <i className="ri-file-paper-2-line text-light text-decoration-none"></i>

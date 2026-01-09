@@ -38,10 +38,10 @@ export const employeeReportingsColumns = ({
             minWidth: "160px",
         },
         {
-            name: <div>Current Location</div>,
+            name: <div>Center</div>,
             cell: row =>
-                row?.employee?.currentLocation?.title
-                    ? capitalizeWords(row.employee.currentLocation.title)
+                row?.center?.title
+                    ? capitalizeWords(row.center.title)
                     : "-",
             minWidth: "120px",
         },
