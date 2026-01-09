@@ -13,7 +13,7 @@ const AssignManager = () => {
   const { hasPermission, loading } = usePermissions(token);
   const hasUserPermission = hasPermission("HRMS", "ASSIGN_MANAGER", "READ");
 
-  const hasCreatePermission = hasPermission("HRMS", "ASSIGN_MANAGER", "WRITE") || hasPermission("HR", "HIRING_ADD_REQUEST", "DELETE");
+  const hasCreatePermission = hasPermission("HRMS", "ASSIGN_MANAGER", "WRITE") || hasPermission("HRMS", "ASSIGN_MANAGER", "DELETE");
 
 
   if (!loading && !hasUserPermission) {
