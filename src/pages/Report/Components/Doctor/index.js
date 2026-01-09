@@ -95,7 +95,9 @@ const Doctor = ({ centers, centerAccess }) => {
         role: capitalizeWords(data.role),
         patientName: capitalizeWords(data.patientName),
         guardianName: capitalizeWords(data.guardianName),
-        referredBy: capitalizeWords(data.referredBy),
+        referredBy: capitalizeWords(
+          data.referredBy?.doctorName || data.referredBy
+        ),
         age: data.dateOfBirth
           ? `${differenceInYears(new Date(), new Date(data.dateOfBirth))} years`
           : "",
