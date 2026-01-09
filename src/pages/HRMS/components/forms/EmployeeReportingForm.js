@@ -251,6 +251,9 @@ const EmployeeReportingForm = ({
               form.setFieldValue("employee", opt?.value || "")
             }
             placeholder="Search employee..."
+            noOptionsMessage={({ inputValue }) =>
+              inputValue ? "No employee found" : "Type to search employee"
+            }
           />
         )}
       </FormGroup>
@@ -283,6 +286,9 @@ const EmployeeReportingForm = ({
               form.setFieldValue("manager", opt?.value || "")
             }
             placeholder="Search manager..."
+            noOptionsMessage={({ inputValue }) =>
+              inputValue ? "No manager found" : "Type to search manager"
+            }
           />
         )}
       </FormGroup>
@@ -292,7 +298,7 @@ const EmployeeReportingForm = ({
         <Label className="mb-1">
           Shift Timing{" "}
           <span className="text-muted">
-            (Day: 11AM–10PM · Night: 10PM–11AM)
+            (Day: 11:00–22:00 · Night: 22:00–11:00)
           </span>
         </Label>
 
