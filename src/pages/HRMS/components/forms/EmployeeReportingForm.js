@@ -97,7 +97,12 @@ const EmployeeReportingForm = ({
           view: "ASSIGN_MANAGER",
         })
       ).unwrap();
-    } finally {
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to search employees");
+      }
+    }
+    finally {
       setSearching(false);
     }
   };
