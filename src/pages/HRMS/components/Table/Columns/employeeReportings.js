@@ -38,10 +38,10 @@ export const employeeReportingsColumns = ({
             minWidth: "160px",
         },
         {
-            name: <div>Current Location</div>,
+            name: <div>Center</div>,
             cell: row =>
-                row?.employee?.currentLocation?.title
-                    ? capitalizeWords(row.employee.currentLocation.title)
+                row?.center?.title
+                    ? capitalizeWords(row.center.title)
                     : "-",
             minWidth: "120px",
         },
@@ -111,6 +111,18 @@ export const employeeReportingsColumns = ({
             minWidth: "200px",
         },
         {
+            name: <div>Start From</div>,
+            selector: row => {
+                const createdAt = row?.createdAt;
+                if (!createdAt || isNaN(new Date(createdAt))) {
+                    return "-"
+                }
+                return format(new Date(createdAt), "dd MMM yyyy, hh:mm a");
+            },
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
             name: <div>Ended At</div>,
             cell: row => {
                 const endedAt = row?.endedAt;
@@ -136,19 +148,21 @@ export const employeeReportingsColumns = ({
         ...(hasEditPermission ? [
             {
                 name: "Action",
-                cell: row => (
-                    <Button
-                        color="outline-primary"
-                        size="sm"
-                        onClick={() => onEdit(row)}
-                    >
-                        <Pencil size={16} />
-                    </Button>
-                ),
+                cell: row =>
+                    row?.isActive ? (
+                        <Button
+                            color="outline-primary"
+                            size="sm"
+                            onClick={() => onEdit(row)}
+                        >
+                            <Pencil size={16} />
+                        </Button>
+                    ) : <i className="text-mutted">Action not permitted</i>,
                 center: true,
                 ignoreRowClick: true,
                 allowOverflow: true,
                 button: true,
             },
         ] : [])
+
     ];

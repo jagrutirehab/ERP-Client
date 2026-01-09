@@ -11,5 +11,5 @@ export const SHIFT_CONFIG = Object.freeze({
     },
 });
 
-export const managerUpdatePermissionRoles = ["HR", "MANAGER", "SUPERADMIN"];
+export const managerUpdatePermissionRoles = ["HR", "MANAGER", "SUPERADMIN", "New_limited"];
 

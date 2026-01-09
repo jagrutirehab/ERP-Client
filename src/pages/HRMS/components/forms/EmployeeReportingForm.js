@@ -63,7 +63,8 @@ const EmployeeReportingForm = ({
   const { roles, loading: permissionLoader } = usePermissions(token);
 
   const [employeeCache, setEmployeeCache] = useState([]);
-  const [searchText, setSearchText] = useState("");
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [managerSearch, setManagerSearch] = useState("");
   const [searching, setSearching] = useState(false);
 
   const canEditManager =
@@ -97,7 +98,12 @@ const EmployeeReportingForm = ({
           view: "ASSIGN_MANAGER",
         })
       ).unwrap();
-    } finally {
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to search employees");
+      }
+    }
+    finally {
       setSearching(false);
     }
   };
@@ -108,9 +114,22 @@ const EmployeeReportingForm = ({
   );
 
   useEffect(() => {
-    if (searchText.trim()) debouncedSearch(searchText);
-    return debouncedSearch.cancel;
-  }, [searchText]);
+    if (employeeSearch.trim()) debouncedSearch(employeeSearch);
+  }, [employeeSearch]);
+
+  useEffect(() => {
+    if (managerSearch.trim()) debouncedSearch(managerSearch);
+  }, [managerSearch]);
+
+  useEffect(() => {
+    return () => {
+      setEmployeeCache([]);
+      setEmployeeSearch("");
+      setManagerSearch("");
+      setSearching(false);
+      debouncedSearch.cancel();
+    };
+  }, []);
 
   const form = useFormik({
     enableReinitialize: true,
@@ -187,11 +206,30 @@ const EmployeeReportingForm = ({
     }));
   }, [employeeCache]);
 
-  const handleSearchInput = (value, meta) => {
-    if (meta.action === "input-change") {
-      setSearchText(value);
+  const managerOptions = useMemo(() => {
+    if (isEdit && form.values.manager) {
+      const selected = employeeOptions.find(
+        o => o.value === form.values.manager
+      );
+
+      if (!managerSearch.trim()) {
+        return selected ? [selected] : [];
+      }
     }
-  };
+
+    if (!managerSearch.trim()) return [];
+
+    return employeeOptions.filter(
+      o => o.value !== form.values.employee
+    );
+  }, [isEdit, managerSearch, employeeOptions, form.values]);
+
+  useEffect(() => {
+    if (isEdit) return;
+
+    setManagerSearch("");
+    form.setFieldValue("manager", "");
+  }, [form.values.employee]);
 
   const hasTiming =
     form.values.timing.start != null ||
@@ -240,20 +278,27 @@ const EmployeeReportingForm = ({
         ) : (
           <Select
             isLoading={searching}
-            options={employeeOptions}
+            options={employeeSearch.trim() ? employeeOptions : []}
+            onInputChange={(val, meta) => {
+              if (meta.action === "input-change") {
+                setEmployeeSearch(val);
+              }
+            }}
             value={
               employeeOptions.find(
                 o => o.value === form.values.employee
               ) || null
             }
-            onInputChange={handleSearchInput}
             onChange={(opt) =>
               form.setFieldValue("employee", opt?.value || "")
             }
             placeholder="Search employee..."
             noOptionsMessage={({ inputValue }) =>
-              inputValue ? "No employee found" : "Type to search employee"
+              inputValue
+                ? "No employee found"
+                : "Start typing to search employee"
             }
+            menuIsOpen={employeeSearch.trim() ? undefined : false}
           />
         )}
       </FormGroup>
@@ -273,21 +318,32 @@ const EmployeeReportingForm = ({
         ) : (
           <Select
             isLoading={searching}
-            options={employeeOptions.filter(
-              o => o.value !== form.values.employee
-            )}
+            options={managerOptions}
             value={
               employeeOptions.find(
                 o => o.value === form.values.manager
               ) || null
             }
-            onInputChange={handleSearchInput}
+            onInputChange={(val, meta) => {
+              if (meta.action === "input-change") {
+                setManagerSearch(val);
+              }
+            }}
             onChange={(opt) =>
               form.setFieldValue("manager", opt?.value || "")
             }
             placeholder="Search manager..."
             noOptionsMessage={({ inputValue }) =>
-              inputValue ? "No manager found" : "Type to search manager"
+              inputValue
+                ? "No manager found"
+                : "Start typing to search manager"
+            }
+            menuIsOpen={
+              isEdit && !managerSearch.trim()
+                ? false
+                : managerSearch.trim()
+                  ? undefined
+                  : false
             }
           />
         )}
