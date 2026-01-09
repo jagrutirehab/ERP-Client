@@ -184,7 +184,14 @@ const Employee = () => {
         },
         {
             name: <div>Current Manager</div>,
-            selector: row => `${row?.currentManager?.name?.toUpperCase() || "-"} (${row?.currentManager?.eCode || "-"})`,
+            selector: row => {
+                const manager = row?.currentManager;
+                if (!manager) return "-";
+                const name = manager.name?.toUpperCase();
+                const eCode = manager.eCode;
+
+                return `${name}${eCode ? ` (${eCode})` : ""}`;
+            },
             wrap: true,
             minWidth: "160px",
         },
