@@ -267,7 +267,12 @@ export const permissionList = [
   {
     key: "HRMS",
     label: "HRMS",
-    subModules: [{ name: "HRMS_ATTENDANCE", label: "Attendance Management" }],
+    subModules: [
+      { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+      { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      { name: "MANAGE_EMPLOYEE_REPORTINGS", label: "Manage Employee Reportings" }
+    ],
   },
   {
     key: "WEBCAMSTATS",

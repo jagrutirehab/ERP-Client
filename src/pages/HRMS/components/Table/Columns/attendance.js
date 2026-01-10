@@ -16,6 +16,8 @@ export const attendanceColumns = [
     {
         name: <div>Biometric ID</div>,
         selector: row => row?.biometricId || "-",
+        center: true,
+        wrap: true,
     },
     {
         name: <div>Current Location</div>,
@@ -46,16 +48,27 @@ export const attendanceColumns = [
     {
         name: <div>First Check In</div>,
         selector: row => row?.firstCheckIn || "-",
+        center: true,
         wrap: true,
     },
     {
         name: <div>Last Check Out</div>,
         selector: row => row?.lastCheckOut || "-",
+        center: true,
         wrap: true,
     },
     {
+        name: <div>Shift</div>,
+        selector: row => row?.shift || "-",
+        center: true,
+        wrap: true
+    },
+    {
         name: <div>Total Time</div>,
-        selector: row => row?.totalTime || "-",
+        selector: row => row?.totalTime !== null && row?.totalTime !== undefined
+            ? `${row.totalTime} hr`
+            : "-",
+        center: true,
         wrap: true,
     },
 

@@ -1,23 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Badge, Button, Card, CardBody, Col, Input, Row, Spinner, TabPane } from 'reactstrap'
-import CenterDropdown from '../../Report/Components/Doctor/components/CenterDropDown';
-import { endOfDay, format, startOfDay } from 'date-fns';
-import { connect, useDispatch } from 'react-redux';
-import { useAuthError } from '../../../Components/Hooks/useAuthError';
-import PropTypes from 'prop-types';
-import Header from '../../Report/Components/Header';
-import { getDetailedReport, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
-import { toast } from 'react-toastify';
-import { capitalizeWords } from '../../../utils/toCapitalize';
-import { ExpandableText } from '../../../Components/Common/ExpandableText';
-import DataTable from 'react-data-table-component';
-import { Check, Copy } from 'lucide-react';
-import AttachmentCell from './AttachmentCell';
-import UploadModal from './UploadModal';
-import { downloadFile } from '../../../Components/Common/downloadFile';
-import PreviewFile from '../../../Components/Common/PreviewFile';
-import { isPreviewable } from '../../../utils/isPreviewable';
-import { exportDetailedCentralReportXLSX } from '../../../helpers/backend_helper';
+import { useEffect, useState } from "react";
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  Col,
+  Input,
+  Row,
+  Spinner,
+  TabPane,
+} from "reactstrap";
+import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
+import { endOfDay, format, startOfDay } from "date-fns";
+import { connect, useDispatch } from "react-redux";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import PropTypes from "prop-types";
+import Header from "../../Report/Components/Header";
+import { getDetailedReport } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { toast } from "react-toastify";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import { ExpandableText } from "../../../Components/Common/ExpandableText";
+import DataTable from "react-data-table-component";
+import { Check, Copy } from "lucide-react";
+import AttachmentCell from "./AttachmentCell";
+import UploadModal from "./UploadModal";
+import { downloadFile } from "../../../Components/Common/downloadFile";
+import PreviewFile from "../../../Components/Common/PreviewFile";
+import { isPreviewable } from "../../../utils/isPreviewable";
+import {
+  exportDetailedCentralReportXLSX,
+  uploadTransactionProof,
+} from "../../../helpers/backend_helper";
+import { categoryOptions } from "../../../Components/constants/centralPayment";
+import { formatCurrency } from "../../../utils/formatCurrency";
+import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
 
 const DetailedReport = ({
   centers,
@@ -26,7 +42,8 @@ const DetailedReport = ({
   loading,
   activeTab,
   hasUserPermission,
-  roles
+  hasUploadPermission,
+  roles,
 }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
@@ -65,7 +82,6 @@ const DetailedReport = ({
     setPreviewFile(null);
   };
 
-
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
       const allCenterIds = centerOptions.map((c) => c._id);
@@ -98,10 +114,22 @@ const DetailedReport = ({
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
-      toast.error('Failed to copy');
+      toast.error("Failed to copy");
     }
   };
 
+  const handleFilePreview = (file, updatedAt) => {
+    if (!file?.url) return;
+
+    if (isPreviewable(file, updatedAt)) {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
+      setPreviewOpen(false);
+      setPreviewFile(null);
+    }
+  };
 
   const getBadgeColor = (status) => {
     switch (status?.toUpperCase()) {
@@ -122,7 +150,7 @@ const DetailedReport = ({
     {
       name: "ID",
       selector: (row) => row?.id || "-",
-      wrap: true
+      wrap: true,
     },
     {
       name: <div>Date</div>,
@@ -133,9 +161,10 @@ const DetailedReport = ({
     },
     {
       name: <div>Center</div>,
-      selector: (row) => capitalizeWords(row.center?.title || row.center || "-"),
+      selector: (row) =>
+        capitalizeWords(row.center?.title || row.center || "-"),
       wrap: true,
-      minWidth: "120px"
+      minWidth: "120px",
     },
     {
       name: <div>Author</div>,
@@ -151,22 +180,40 @@ const DetailedReport = ({
       name: <div>Name</div>,
       selector: (row) => row.name?.toUpperCase() || "-",
       wrap: true,
+      minWidth: "150px",
     },
     {
       name: <div>Items</div>,
-      selector: (row) => row.items ?
-        <ExpandableText text={row.items?.toUpperCase()} /> :
-        "-",
+      selector: (row) =>
+        row.items ? <ExpandableText text={row.items?.toUpperCase()} /> : "-",
       wrap: true,
+      minWidth: "150px",
+    },
+    {
+      name: <div>Item Category</div>,
+      selector: (row) =>
+        categoryOptions.find((option) => option.value === row?.category)
+          ?.label || "-",
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
+      name: <div>Other Category Details</div>,
+      selector: (row) => <ExpandableText text={row?.otherCategory || "-"} />,
+      wrap: true,
+      minWidth: "150px",
     },
     {
       name: <div>Description</div>,
-      selector: (row) => row.description ?
-        <ExpandableText text={row.description?.toUpperCase()} limit={20} /> :
-        "-",
+      selector: (row) =>
+        row.description ? (
+          <ExpandableText text={row.description?.toUpperCase()} limit={20} />
+        ) : (
+          "-"
+        ),
       wrap: true,
-      minWidth: "120px",
-      maxWidth: "200px"
+      minWidth: "150px",
+      maxWidth: "200px",
     },
     {
       name: <div>Vendor</div>,
@@ -193,7 +240,11 @@ const DetailedReport = ({
               className="p-0 text-muted"
               title="Copy to clipboard"
             >
-              {copyId === row._id ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+              {copyId === row._id ? (
+                <Check size={14} className="text-success" />
+              ) : (
+                <Copy size={14} />
+              )}
             </Button>
           )}
         </div>
@@ -205,59 +256,44 @@ const DetailedReport = ({
     {
       name: <div>Transaction Type</div>,
       selector: (row) => row.transactionType?.toUpperCase() || "-",
-      wrap: true
+      center: true,
+      wrap: true,
     },
     {
       name: <div>Total Amount</div>,
-      cell: (row) => (
-        <span>
-          ₹
-          {row.totalAmountWithGST?.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }) || "0.00"}
-        </span>
-      ),
+      cell: (row) => <span>{formatCurrency(row?.totalAmountWithGST)}</span>,
       wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>GST Amount</div>,
       cell: (row) => (
-        <span>
-          ₹
-          {row.GSTAmount?.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }) || "0.00"}
-        </span>
+        <span>{formatCurrency(row?.GSTAmount)}</span>
       ),
       wrap: true,
     },
     {
       name: <div>TDS Rate</div>,
-      cell: (row) => (
-        <span>
-          {row?.TDSRate || "-"}
-        </span>
-      ),
+      cell: (row) => <span>{row?.TDSRate || "-"}</span>,
+      center: true,
       wrap: true,
+    },
+    {
+      name: <div>Payable (TDS Deducted)</div>,
+      cell: (row) => <span>{formatCurrency(row?.finalAmount)}</span>,
+      wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>Account Holder Name</div>,
       cell: (row) => (
-        <span>
-          {row?.bankDetails?.accountHolderName?.toUpperCase() || "-"}
-        </span>
+        <span>{row?.bankDetails?.accountHolderName?.toUpperCase() || "-"}</span>
       ),
       wrap: true,
     },
     {
       name: <div>Account Number</div>,
-      cell: (row) => (
-        <span>
-          {row?.bankDetails?.accountNo || "-"}
-        </span>
-      ),
+      cell: (row) => <span>{row?.bankDetails?.accountNo || "-"}</span>,
       wrap: true,
       minWidth: "120px",
       maxWidth: "150px",
@@ -265,9 +301,7 @@ const DetailedReport = ({
     {
       name: <div>IFSC Code</div>,
       cell: (row) => (
-        <span>
-          {row?.bankDetails?.IFSCCode?.toUpperCase() || "-"}
-        </span>
+        <span>{row?.bankDetails?.IFSCCode?.toUpperCase() || "-"}</span>
       ),
       wrap: true,
       minWidth: "120px",
@@ -275,11 +309,7 @@ const DetailedReport = ({
     },
     {
       name: <div>Transaction ID/UTR</div>,
-      cell: (row) => (
-        <span>
-          {row?.transactionId?.toUpperCase() || "-"}
-        </span>
-      ),
+      cell: (row) => <span>{row?.transactionId?.toUpperCase() || "-"}</span>,
       wrap: true,
       minWidth: "120px",
       maxWidth: "150px",
@@ -288,7 +318,11 @@ const DetailedReport = ({
       name: <div>Initial Payment Status</div>,
       selector: (row) => {
         const status = row?.initialPaymentStatus;
-        const badgeStyle = { display: "inline-block", whiteSpace: "normal", wordBreak: "break-word" };
+        const badgeStyle = {
+          display: "inline-block",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+        };
 
         if (status === "COMPLETED") return <span>Paid</span>;
         if (status === "PENDING") return <span>To Be Paid</span>;
@@ -331,7 +365,7 @@ const DetailedReport = ({
         </Badge>
       ),
       wrap: true,
-      minWidth: "140px"
+      minWidth: "140px",
     },
     {
       name: <div>Current Payment Status</div>,
@@ -351,13 +385,12 @@ const DetailedReport = ({
     },
     {
       name: <div>Attachment Type</div>,
-      selector: (row) => capitalizeWords(row?.attachmentType) || "-",
+      selector: (row) => convertSnakeToTitle(capitalizeWords(row?.attachmentType)) || "-",
       wrap: true,
     },
     {
       name: <div>Attachments</div>,
       cell: (row) => {
-
         const handleAttachmentClick = (file) => {
           if (isPreviewable(file, row?.updatedAt)) {
             setPreviewFile(file);
@@ -368,64 +401,87 @@ const DetailedReport = ({
             setPreviewFile(null);
           }
         };
-
         return (
           <AttachmentCell
             attachments={row.attachments || []}
             showAsButton={true}
             onPreview={handleAttachmentClick}
           />
-        )
-      },
-      wrap: true,
-      minWidth: "140px",
-
-    },
-    {
-      name: <div>Transaction Proof</div>,
-      cell: (row) => {
-        const status = row?.currentPaymentStatus;
-
-        if (status === "PENDING" || status === "REJECTED") {
-          return (
-            <i className="text-muted small">
-              Action not permitted
-            </i>
-          );
-        }
-
-        if (status === "COMPLETED") {
-          return row?.transactionProof ? (
-            <span
-              className="text-primary text-decoration-underline cursor-pointer"
-              onClick={() =>
-                downloadFile({ url: row.transactionProof })
-              }
-            >
-              Download
-            </span>
-          ) : (
-            <Button
-              size="sm"
-              onClick={() => {
-                setSelectedPaymentId(row._id);
-                setIsUploadModalOpen(true);
-              }}
-            >
-              Upload
-            </Button>
-          );
-        }
-
-        return (
-          <i className="text-muted small">
-            Action not permitted
-          </i>
         );
       },
       wrap: true,
-      minWidth: "160px",
-    }
+      minWidth: "140px",
+    },
+    ...(hasUploadPermission
+      ? [
+        {
+          name: <div>Transaction Proof</div>,
+          cell: (row) => {
+            const status = row?.currentPaymentStatus;
+
+            if (status === "PENDING" || status === "REJECTED") {
+              return <i className="text-muted small">Action not permitted</i>;
+            }
+
+            if (status === "COMPLETED") {
+              return row?.transactionProof ? (
+                <span
+                  className="text-primary text-decoration-underline cursor-pointer"
+                  onClick={() =>
+                    handleFilePreview(
+                      { url: row.transactionProof },
+                      row?.updatedAt
+                    )
+                  }
+                >
+                  View
+                </span>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setSelectedPaymentId(row._id);
+                    setIsUploadModalOpen(true);
+                  }}
+                >
+                  Upload
+                </Button>
+              );
+            }
+
+            return <i className="text-muted small">Action not permitted</i>;
+          },
+          wrap: true,
+          minWidth: "160px",
+        },
+      ]
+      : [
+        {
+          name: <div>Transaction Proof</div>,
+          cell: (row) => {
+            const hasFile = !!row?.transactionProof;
+
+            if (hasFile) {
+              return (
+                <span
+                  className="text-primary text-decoration-underline cursor-pointer"
+                  onClick={() =>
+                    handleFilePreview(
+                      { url: row.transactionProof },
+                      row?.updatedAt
+                    )
+                  }
+                >
+                  View
+                </span>
+              );
+            }
+
+            return <i className="text-muted small">Action not permitted</i>;
+          },
+
+        }
+      ]),
   ];
 
   useEffect(() => {
@@ -449,7 +505,7 @@ const DetailedReport = ({
           centers: selectedCentersIds,
           ...(dateFilterEnabled && {
             startDate: reportDate.start.toISOString(),
-            endDate: reportDate.end.toISOString()
+            endDate: reportDate.end.toISOString(),
           }),
           ...(search !== "" && { search: parseInt(debouncedSearch) }),
         })
@@ -459,7 +515,7 @@ const DetailedReport = ({
         toast.error(error.message || "Failed to fetch detail report.");
       }
     }
-  }
+  };
 
   useEffect(() => {
     if (hasUserPermission && activeTab === "detail") {
@@ -473,10 +529,11 @@ const DetailedReport = ({
     selectedPaymentStatus,
     reportDate,
     dispatch,
-    activeTab, ,
+    activeTab,
+    ,
     roles,
     debouncedSearch,
-    dateFilterEnabled
+    dateFilterEnabled,
   ]);
 
   const handleExportXLSX = async () => {
@@ -490,7 +547,7 @@ const DetailedReport = ({
         centers: selectedCentersIds,
         ...(dateFilterEnabled && {
           startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString()
+          endDate: reportDate.end.toISOString(),
         }),
         ...(search !== "" && { search: parseInt(debouncedSearch) }),
       });
@@ -503,7 +560,10 @@ const DetailedReport = ({
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `central-payment-detailed-report-${format(reportDate.start, "yyyy-MM-dd")}_to_${format(reportDate.end, "yyyy-MM-dd")}.xlsx`;
+      link.download = `central-payment-detailed-report-${format(
+        reportDate.start,
+        "yyyy-MM-dd"
+      )}_to_${format(reportDate.end, "yyyy-MM-dd")}.xlsx`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -511,19 +571,19 @@ const DetailedReport = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error("Something went wrong while generating xlsx file")
+        toast.error("Something went wrong while generating xlsx file");
       }
     } finally {
       setIsExcelGenerating(false);
     }
-  }
+  };
 
   const handleFilterChange = (filterType, value) => {
     setPage(1);
     if (filterType === "approvalStatus") {
       setSelectedApprovalStatus(value);
     } else if (filterType === "paymentStatus") {
-      setSelectedPaymentStatus(value)
+      setSelectedPaymentStatus(value);
     } else if (filterType === "limit") {
       setLimit(value);
     }
@@ -533,24 +593,25 @@ const DetailedReport = ({
     if (!selectedPaymentId) return;
     setUploading(true);
 
-
     try {
       const formData = new FormData();
       formData.append("transactionProof", file);
 
-      await dispatch(updateCentralPayment({ id: selectedPaymentId, formData: formData, centers: centerAccess })).unwrap()
+      await uploadTransactionProof(selectedPaymentId, formData);
       toast.success("Transaction proof uploaded successfully");
       fetchDetailReport();
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error.message || "something went wrong while uploading transaction proof");
+        toast.error(
+          error.message ||
+          "something went wrong while uploading transaction proof"
+        );
       }
     } finally {
       setIsUploadModalOpen(false);
       setUploading(false);
     }
   };
-
 
   const handleDateChange = (newDate) => {
     setPage(1);
@@ -564,7 +625,9 @@ const DetailedReport = ({
             <Input
               type="select"
               value={limit}
-              onChange={(e) => handleFilterChange("limit", Number(e.target.value))}
+              onChange={(e) =>
+                handleFilterChange("limit", Number(e.target.value))
+              }
             >
               {[10, 20, 30, 40, 50].map((l) => (
                 <option key={l} value={l}>
@@ -602,7 +665,11 @@ const DetailedReport = ({
             </Input>
           </div>
           <div style={{ minWidth: "150px" }}>
-            <Header reportDate={reportDate} setReportDate={handleDateChange} disabled={!dateFilterEnabled} />
+            <Header
+              reportDate={reportDate}
+              setReportDate={handleDateChange}
+              disabled={!dateFilterEnabled}
+            />
           </div>
           <div style={{ minWidth: "200px", maxWidth: "250px" }}>
             <CenterDropdown
@@ -617,7 +684,10 @@ const DetailedReport = ({
               }}
             />
           </div>
-          <div className="d-flex align-items-center gap-2 flex-grow-1 mb-3" style={{ minWidth: "250px" }}>
+          <div
+            className="d-flex align-items-center gap-2 flex-grow-1 mb-3"
+            style={{ minWidth: "250px" }}
+          >
             <Input
               type="text"
               value={search}
@@ -644,7 +714,9 @@ const DetailedReport = ({
                 style={{ whiteSpace: "nowrap" }}
                 onClick={() => setDateFilterEnabled(!dateFilterEnabled)}
               >
-                {dateFilterEnabled ? "Disable Date Filter" : "Enable Date Filter"}
+                {dateFilterEnabled
+                  ? "Disable Date Filter"
+                  : "Enable Date Filter"}
               </Button>
             )}
           </div>
@@ -654,7 +726,11 @@ const DetailedReport = ({
               onClick={handleExportXLSX}
               disabled={isExcelGenerating || selectedCentersIds.length === 0}
             >
-              {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+              {isExcelGenerating ? (
+                <Spinner size="sm" />
+              ) : (
+                <i className="ri-file-excel-2-line" />
+              )}
               Export Excel
             </Button>
           </div>
@@ -682,8 +758,11 @@ const DetailedReport = ({
               <div className="d-block d-md-none text-center mt-3">
                 <div className="text-muted mb-2">
                   Showing {(page - 1) * limit + 1}–
-                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
-                  {detailedReport?.pagination?.totalDocs || 0}
+                  {Math.min(
+                    page * limit,
+                    detailedReport?.pagination?.totalDocs || 0
+                  )}{" "}
+                  of {detailedReport?.pagination?.totalDocs || 0}
                 </div>
                 <div className="d-flex justify-content-center gap-2">
                   <Button
@@ -716,8 +795,11 @@ const DetailedReport = ({
                 </Col>
                 <Col xs="auto" className="text-center text-muted mx-3">
                   Showing {(page - 1) * limit + 1}–
-                  {Math.min(page * limit, detailedReport?.pagination?.totalDocs || 0)} of{" "}
-                  {detailedReport?.pagination?.totalDocs || 0}
+                  {Math.min(
+                    page * limit,
+                    detailedReport?.pagination?.totalDocs || 0
+                  )}{" "}
+                  of {detailedReport?.pagination?.totalDocs || 0}
                 </Col>
                 <Col xs="auto" className="d-flex justify-content-center">
                   <Button
@@ -748,7 +830,7 @@ const DetailedReport = ({
         toggle={closePreview}
       />
     </TabPane>
-  )
+  );
 };
 
 DetailedReport.prototype = {
@@ -758,6 +840,7 @@ DetailedReport.prototype = {
   loading: PropTypes.bool,
   activeTab: PropTypes.string,
   hasUserPermission: PropTypes.bool,
+  hasUploadPermission: PropTypes.bool,
   roles: PropTypes.array,
 };
 

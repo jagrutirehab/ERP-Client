@@ -11,6 +11,7 @@ const Reports = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, roles } = usePermissions(token);
   const hasUserPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTREPORTS", "READ");
+  const hasUploadPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTREPORTS", "WRITE") || hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTREPORTS", "DELETE");
 
   if (!hasUserPermission) {
     return (
@@ -57,6 +58,7 @@ const Reports = () => {
           activeTab={activeTab}
           roles={roles}
           hasUserPermission={hasUserPermission}
+          hasUploadPermission={hasUploadPermission}
         />
       </TabContent>
     </React.Fragment>

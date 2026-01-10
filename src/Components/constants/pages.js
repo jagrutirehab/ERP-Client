@@ -709,6 +709,42 @@ export const HRMS = [
     label: "Attendance",
     link: "/hrms/attendance",
     icon: "bx bx-time-five",
+    isAccordion: true,
+    children: [
+      {
+        id: "attendance-log",
+        label: "Attendance Log",
+        link: "/hrms/attendance/logs",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "attendance-metrics",
+        label: "Attendance Metrics",
+        link: "/hrms/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+    ]
+  },
+  {
+    id: "employee-reporting",
+    label: "Employee Reporting",
+    link: "/hrms/attendance",
+    icon: "bx bx-git-branch",
+    isAccordion: true,
+    children: [
+      {
+        id: "assign-manager",
+        label: "Assign Manager",
+        link: "/hrms/reporting/assign",
+        icon: "bx bx-user-plus",
+      },
+      {
+        id: "manage-employee-reporting",
+        label: "Manage",
+        link: "/hrms/reporting/manage",
+        icon: "bx bx-list-check",
+      },
+    ]
   },
 ];
 

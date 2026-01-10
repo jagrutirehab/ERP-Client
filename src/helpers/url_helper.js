@@ -344,6 +344,7 @@ export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/d
 export const GET_ALL_ENETS = "/central-payment/eNets";
 export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
 export const PROCESS_PAYMENTS = "/central-payment/process";
+export const UPLOAD_TRANSACTION_PROOF = "/central-payment/transaction-proof";
 
 //New Microservice APIS
 export const CSRF = "/csrf-token";
@@ -449,3 +450,9 @@ export const ATTENDANCE = "/hrms/attendance";
 export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
 export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
 export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
+
+export const ATTENDANCE_METRICS = "/hrms/attendance/metrics";
+export const EXPORT_ATTENDANCE_METRICS = "/hrms/attendance/metrics/export";
+
+export const EMPLOYEE_REPORTING = "/hrms/employee-reporting";
+
