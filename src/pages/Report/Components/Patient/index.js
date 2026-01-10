@@ -53,9 +53,8 @@ const Patient = ({ centerAccess }) => {
         const formatted = fullData.map((d, i) => ({
           ...d,
           id: i + 1,
-          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${
-            d?.id?.value || d?.patient?.id?.value || ""
-          }`,
+          uid: `${d?.id?.prefix || d?.patient?.id?.prefix || ""}${d?.id?.value || d?.patient?.id?.value || ""
+            }`,
 
           // Referred By
           referredBy:
@@ -68,42 +67,45 @@ const Patient = ({ centerAccess }) => {
           age: d?.dateOfBirth
             ? differenceInYears(new Date(), new Date(d.dateOfBirth))
             : d?.patient?.dateOfBirth
-            ? differenceInYears(new Date(), new Date(d.patient.dateOfBirth))
-            : "",
+              ? differenceInYears(new Date(), new Date(d.patient.dateOfBirth))
+              : "",
 
           // Doctor name (from doctors[] or nested addmission)
           doctor: d?.doctors?.length
             ? d.doctors.map((doc) => doc?.name || "").pop()
             : d?.addmission?.doctors?.length
-            ? d.addmission.doctors.map((doc) => doc?.name || "").pop()
-            : d?.doctor?.name || d?.addmission?.doctor?.name || "",
+              ? d.addmission.doctors.map((doc) => doc?.name || "").pop()
+              : d?.doctor?.name || d?.addmission?.doctor?.name || "",
 
           // Psychologist name (from psychologists[] or nested addmission)
           psychologist: d?.psychologists?.length
             ? d.psychologists.map((psy) => psy?.name || "").pop()
             : d?.addmission?.psychologists?.length
-            ? d.addmission.psychologists.map((psy) => psy?.name || "").pop()
-            : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
+              ? d.addmission.psychologists.map((psy) => psy?.name || "").pop()
+              : d?.psychologist?.name || d?.addmission?.psychologist?.name || "",
 
           // Guardian info (always inside patient)
-          guardianName: d?.patient?.guardianName || "",
+          guardianName:
+            d?.guardianName ||
+            d?.patient?.guardianName ||
+            "",
           // guardianPhoneNumber: d?.patient?.guardianPhoneNumber || "",
 
           // Dates
           addmissionDate: d?.addmission?.addmissionDate
             ? format(
-                new Date(d.addmission.addmissionDate),
-                "d MMM yyyy hh:mm a"
-              )
+              new Date(d.addmission.addmissionDate),
+              "d MMM yyyy hh:mm a"
+            )
             : d?.addmissionDate
-            ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
-            : "",
+              ? format(new Date(d.addmissionDate), "d MMM yyyy hh:mm a")
+              : "",
 
           dischargeDate: d?.addmission?.dischargeDate
             ? format(new Date(d.addmission.dischargeDate), "d MMM yyyy hh:mm a")
             : d?.dischargeDate
-            ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
-            : "",
+              ? format(new Date(d.dischargeDate), "d MMM yyyy hh:mm a")
+              : "",
 
           billCycleDate: d?.addmission?.addmissionDate
             ? format(new Date(d.addmission.addmissionDate), "d")
@@ -151,7 +153,7 @@ const Patient = ({ centerAccess }) => {
     }
   };
 
-  console.log({ csvData });
+  // console.log({ csvData });
 
   useEffect(() => {
     fetchData();
@@ -182,19 +184,19 @@ const Patient = ({ centerAccess }) => {
         const doctorsFromArray =
           row?.doctors?.length > 0
             ? row.doctors
-                .map((d) =>
-                  d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
-                )
-                .filter(Boolean)
-                .join(", ")
+              .map((d) =>
+                d?.name ? d.name : d?.doctor?.name ? d.doctor.name : ""
+              )
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const doctorsFromAdmission =
           row?.addmission?.doctors?.length > 0
             ? row.addmission.doctors
-                .map((d) => d?.name || "")
-                .filter(Boolean)
-                .join(", ")
+              .map((d) => d?.name || "")
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const fallbackDoctor =
@@ -214,23 +216,23 @@ const Patient = ({ centerAccess }) => {
         const psychologistsFromArray =
           row?.psychologists?.length > 0
             ? row.psychologists
-                .map((p) =>
-                  p?.name
-                    ? p.name
-                    : p?.psychologist?.name
+              .map((p) =>
+                p?.name
+                  ? p.name
+                  : p?.psychologist?.name
                     ? p.psychologist.name
                     : ""
-                )
-                .filter(Boolean)
-                .join(", ")
+              )
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const psychologistsFromAdmission =
           row?.addmission?.psychologists?.length > 0
             ? row.addmission.psychologists
-                .map((p) => p?.name || "")
-                .filter(Boolean)
-                .join(", ")
+              .map((p) => p?.name || "")
+              .filter(Boolean)
+              .join(", ")
             : null;
 
         const fallbackPsychologist =
@@ -357,9 +359,9 @@ const Patient = ({ centerAccess }) => {
       selector: (row) =>
         row?.addmission?.doctors?.length > 0
           ? row.addmission.doctors
-              .map((d) => d?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
+            .map((d) => d?.name || "")
+            .filter(Boolean)
+            .pop() || "—"
           : row?.addmission?.doctor?.name || row?.doctor?.name || "—",
       wrap: true,
     },
@@ -368,12 +370,12 @@ const Patient = ({ centerAccess }) => {
       selector: (row) =>
         row?.addmission?.psychologists?.length > 0
           ? row.addmission.psychologists
-              .map((p) => p?.name || "")
-              .filter(Boolean)
-              .pop() || "—"
+            .map((p) => p?.name || "")
+            .filter(Boolean)
+            .pop() || "—"
           : row?.addmission?.psychologist?.name ||
-            row?.psychologist?.name ||
-            "—",
+          row?.psychologist?.name ||
+          "—",
       wrap: true,
     },
 
@@ -394,11 +396,11 @@ const Patient = ({ centerAccess }) => {
       selector: (row) => row?.guardianName,
       wrap: true,
     },
-    {
-      name: <div>Guardian Number</div>,
-      selector: (row) => row?.guardianPhoneNumber,
-      wrap: true,
-    },
+    // {
+    //   name: <div>Guardian Number</div>,
+    //   selector: (row) => row?.guardianPhoneNumber,
+    //   wrap: true,
+    // },
     {
       name: <div>IPD File NUmber</div>,
       selector: (row) => row.ipdFileNumber,
@@ -580,10 +582,10 @@ const Patient = ({ centerAccess }) => {
                   filter === "ADMITTED_PATIENTS"
                     ? admittedHeaders
                     : filter === "DISCHARGED_PATIENTS"
-                    ? discahrgeHeaders
-                    : filter === "ALL_PATIENTS"
-                    ? patientHeaders
-                    : generalHeaders
+                      ? discahrgeHeaders
+                      : filter === "ALL_PATIENTS"
+                        ? patientHeaders
+                        : generalHeaders
                 }
                 className="d-none"
                 ref={csvRef}
@@ -597,10 +599,10 @@ const Patient = ({ centerAccess }) => {
               filter === "ADMITTED_PATIENTS"
                 ? admittedColumns
                 : filter === "ALL_PATIENTS"
-                ? patientColumns
-                : filter === "DISCHARGED_PATIENTS"
-                ? dischargeColumns
-                : generalColumns
+                  ? patientColumns
+                  : filter === "DISCHARGED_PATIENTS"
+                    ? dischargeColumns
+                    : generalColumns
             }
             data={data?.map((d) => ({ ...d, uid: d.id, id: d._id })) || []}
             highlightOnHover
