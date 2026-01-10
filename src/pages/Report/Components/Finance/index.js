@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
-import { Input, Spinner, Row, Col, Button } from "reactstrap";
+import { Spinner } from "reactstrap";
 import { getFinanceAnalytics } from "../../../../helpers/backend_helper";
 import Divider from "../../../../Components/Common/Divider";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { endOfDay, format, startOfDay } from "date-fns";
-import Header from "../Header";
-import Highlighter from "react-highlight-words";
-import CenterDropdown from "../Doctor/components/CenterDropDown";
+import Header from "./Header";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 const Finance = ({ centers, centerAccess }) => {
@@ -16,16 +14,10 @@ const Finance = ({ centers, centerAccess }) => {
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
-  const [data, setData] = useState({
-    data: [],
-    pagination: { totalPages: 1, totalDocs: 0 },
-  });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Center selection state
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
     .map((c) => ({
@@ -33,17 +25,20 @@ const Finance = ({ centers, centerAccess }) => {
       title: c.title,
     }));
 
-  const [selectedCenters, setSelectedCenters] = useState(centerOptions);
   const [selectedCentersIds, setSelectedCentersIds] = useState(
-    centerOptions.map((c) => c._id)
+    centerOptions?.map((c) => c._id) || []
   );
 
+  // Update selected centers when centerOptions change
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(search), 500);
-    return () => clearTimeout(handler);
-  }, [search]);
-
-  useEffect(() => setPage(1), [debouncedSearch, limit]);
+    if (
+      centerOptions &&
+      centerOptions.length > 0 &&
+      selectedCentersIds.length === 0
+    ) {
+      setSelectedCentersIds(centerOptions.map((c) => c._id));
+    }
+  }, [centerOptions]);
 
   const fetchData = async () => {
     try {
@@ -51,75 +46,168 @@ const Finance = ({ centers, centerAccess }) => {
       const res = await getFinanceAnalytics({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
-        page,
-        limit,
-        search: debouncedSearch,
         centerAccess: selectedCentersIds,
       });
-      setData(res || { data: [], pagination: { totalPages: 1, totalDocs: 0 } });
+
+      // Backend returns { success: true, payload: [...] }
+      setData(res?.payload || []);
     } catch (err) {
       console.error("Failed to fetch finance analytics", err);
-      setData({ data: [], pagination: { totalPages: 1, totalDocs: 0 } });
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
+  // Manual trigger for View Report button
+  const handleViewReport = () => {
     fetchData();
-  }, [page, debouncedSearch, selectedCentersIds, limit, reportDate]);
+  };
 
   const columns = [
-    { name: "#", selector: (row, idx) => idx + 1, width: "60px" },
+    {
+      name: "#",
+      selector: (row, idx) => idx + 1,
+      width: "60px",
+      sortable: false,
+    },
     {
       name: "Patient Name",
-      cell: (row) => (
-        <span className="mb-0">
-          <Highlighter
-            searchWords={[search]}
-            autoEscape
-            textToHighlight={capitalizeWords(row.patientName) || "-"}
-          />
-        </span>
-      ),
+      selector: (row) => capitalizeWords(row.patient?.name) || "-",
+      sortable: true,
+      wrap: true,
+    },
+    {
+      name: "Center",
+      selector: (row) => capitalizeWords(row.center) || "-",
+      sortable: true,
       wrap: true,
     },
     {
       name: "UID",
-      cell: (row) => (
-        <span className="mb-0">
-          <Highlighter
-            searchWords={[search]}
-            autoEscape
-            textToHighlight={row.uid || "-"}
-          />
-        </span>
-      ),
+      selector: (row) => row.patient?.id?.value || "-",
+      sortable: true,
     },
     {
-      name: "Payment Date",
+      name: "Admission Date",
       selector: (row) =>
-        row.paymentDate
-          ? format(new Date(row.paymentDate), "d MMM yyyy hh:mm a")
+        row.addmissionDate
+          ? format(new Date(row.addmissionDate), "d MMM yyyy")
           : "-",
+      sortable: true,
       wrap: true,
     },
     {
-      name: "Amount",
-      selector: (row) => (row.amount ? `₹${row.amount.toLocaleString()}` : "-"),
-    },
-    {
-      name: "Payment Mode",
-      selector: (row) => capitalizeWords(row.paymentMode) || "-",
-    },
-    {
-      name: "Center",
-      selector: (row) => capitalizeWords(row.centerName) || "-",
+      name: "Discharge Date",
+      selector: (row) =>
+        row.dischargeDate
+          ? format(new Date(row.dischargeDate), "d MMM yyyy")
+          : "-",
+      sortable: true,
       wrap: true,
     },
     {
-      name: "Bill Type",
-      selector: (row) => capitalizeWords(row.billType) || "-",
+      name: "Total Invoiced",
+      selector: (row) =>
+        row.totalInvoicedAmount
+          ? `₹${row.totalInvoicedAmount.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Total Paid",
+      selector: (row) =>
+        row.totalPaidAmount ? `₹${row.totalPaidAmount.toLocaleString()}` : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Total Deposit",
+      selector: (row) =>
+        row.totalDeposit ? `₹${row.totalDeposit.toLocaleString()}` : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Total Draft",
+      selector: (row) =>
+        row.totalDraftAmount && row.totalDraftAmount !== "0"
+          ? `₹${row.totalDraftAmount.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Total Refund",
+      selector: (row) =>
+        row.totalRefundAmount
+          ? `₹${row.totalRefundAmount.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Total Discount",
+      selector: (row) =>
+        row.totalDiscountAmount
+          ? `₹${row.totalDiscountAmount.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Room Price (Monthly)",
+      selector: (row) =>
+        row.priceForSelectedRoomMonthly &&
+        row.priceForSelectedRoomMonthly !== "0"
+          ? `₹${row.priceForSelectedRoomMonthly.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Room Price (Daily)",
+      selector: (row) =>
+        row.priceForSelectedRoomDaily && row.priceForSelectedRoomDaily !== "0"
+          ? `₹${row.priceForSelectedRoomDaily.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Invoice (Date Range)",
+      selector: (row) =>
+        row.invoiceAmountInDateRange
+          ? `₹${row.invoiceAmountInDateRange.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Paid (Date Range)",
+      selector: (row) =>
+        row.paidAmountInDateRange
+          ? `₹${row.paidAmountInDateRange.toLocaleString()}`
+          : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Due Amount",
+      selector: (row) =>
+        row.dueAmount ? `₹${row.dueAmount.toLocaleString()}` : "₹0",
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Bill Cycle Date",
+      selector: (row) =>
+        row.billCycleDate
+          ? format(new Date(row.billCycleDate), "d MMM yyyy")
+          : "-",
+      sortable: true,
+      wrap: true,
     },
   ];
 
@@ -129,7 +217,7 @@ const Finance = ({ centers, centerAccess }) => {
         <div className="bg-white p-2 m-n3">
           <div className="">
             <h6 className="display-6 fs-6 my-3">
-              Total:-{" "}
+              Total Records:{" "}
               {loading ? (
                 <span
                   style={{
@@ -145,7 +233,7 @@ const Finance = ({ centers, centerAccess }) => {
                   }}
                 ></span>
               ) : (
-                data?.pagination?.totalDocs || 0
+                data?.length || 0
               )}
               <style>
                 {`
@@ -157,41 +245,15 @@ const Finance = ({ centers, centerAccess }) => {
               </style>
             </h6>
           </div>
-          <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div className="d-flex gap-2 align-items-center">
-              <Input
-                type="select"
-                value={limit}
-                onChange={(e) => setLimit(Number(e.target.value))}
-                style={{ width: "100px" }}
-              >
-                {[10, 20, 30, 40, 50].map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </Input>
-
-              <Input
-                type="text"
-                placeholder="Search by patient name or UID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ width: "80%" }}
-              />
-              <CenterDropdown
-                options={centerOptions}
-                value={selectedCentersIds}
-                onChange={(ids) => {
-                  setSelectedCentersIds(ids);
-                  setSelectedCenters(
-                    centerOptions.filter((c) => ids.includes(c._id))
-                  );
-                }}
-              />
-            </div>
-          </div>
+          <Header
+            reportDate={reportDate}
+            setReportDate={setReportDate}
+            centerOptions={centerOptions}
+            selectedCentersIds={selectedCentersIds}
+            setSelectedCentersIds={setSelectedCentersIds}
+            onViewReport={handleViewReport}
+            loading={loading}
+          />
 
           <Divider />
           {loading ? (
@@ -202,38 +264,13 @@ const Finance = ({ centers, centerAccess }) => {
             <DataTable
               fixedHeader
               columns={columns}
-              data={data?.data || []}
+              data={data || []}
               highlightOnHover
               noHeader
+              pagination
+              paginationPerPage={10}
+              paginationRowsPerPageOptions={[10, 20, 30, 50, 100]}
             />
-          )}
-
-          {!loading && data?.pagination?.totalPages > 1 && (
-            <Row className="mt-4 justify-content-center align-items-center">
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  ← Previous
-                </Button>
-              </Col>
-              <Col xs="auto" className="text-center text-muted mx-3">
-                Showing {(page - 1) * limit + 1}–
-                {Math.min(page * limit, data?.pagination?.totalDocs || 0)} of{" "}
-                {data?.pagination?.totalDocs || 0}
-              </Col>
-              <Col xs="auto">
-                <Button
-                  color="secondary"
-                  disabled={page === data?.pagination?.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Next →
-                </Button>
-              </Col>
-            </Row>
           )}
         </div>
       </div>
