@@ -87,7 +87,7 @@ const Patient = ({ centerAccess }) => {
 
           // Guardian info (always inside patient)
           guardianName: d?.patient?.guardianName || "",
-          guardianPhoneNumber: d?.patient?.guardianPhoneNumber || "",
+          // guardianPhoneNumber: d?.patient?.guardianPhoneNumber || "",
 
           // Dates
           addmissionDate: d?.addmission?.addmissionDate
@@ -258,12 +258,12 @@ const Patient = ({ centerAccess }) => {
         row.patient?.referredBy?.doctorName || row.patient?.referredBy,
       wrap: true,
     },
-    {
-      name: <div>Phone No</div>,
-      selector: (row) => row.patient?.phoneNumber,
-      wrap: true,
-      minWidth: "125px",
-    },
+    // {
+    //   name: <div>Phone No</div>,
+    //   selector: (row) => row.patient?.phoneNumber,
+    //   wrap: true,
+    //   minWidth: "125px",
+    // },
     {
       name: <div>Age</div>,
       selector: (row) =>
@@ -275,11 +275,11 @@ const Patient = ({ centerAccess }) => {
       selector: (row) => row.patient?.guardianName,
       wrap: true,
     },
-    {
-      name: <div>Guardian Number</div>,
-      selector: (row) => row.patient?.guardianPhoneNumber,
-      wrap: true,
-    },
+    // {
+    //   name: <div>Guardian Number</div>,
+    //   selector: (row) => row.patient?.guardianPhoneNumber,
+    //   wrap: true,
+    // },
     {
       name: <div>Admission Date</div>,
       selector: (row) =>
@@ -377,10 +377,10 @@ const Patient = ({ centerAccess }) => {
       wrap: true,
     },
 
-    {
-      name: <div>Phone No</div>,
-      selector: (row) => row?.phoneNumber,
-    },
+    // {
+    //   name: <div>Phone No</div>,
+    //   selector: (row) => row?.phoneNumber,
+    // },
     //
     {
       name: <div>Age</div>,
@@ -417,12 +417,12 @@ const Patient = ({ centerAccess }) => {
     { label: "UID", key: "uid" },
     { label: "Gender", key: "patient.gender" },
     { label: "Referred By", key: "referredBy" },
-    { label: "Phone No", key: "patient.phoneNumber" },
+    // { label: "Phone No", key: "patient.phoneNumber" },
     { label: "Doctor", key: "doctor" },
     { label: "Psychologist", key: "psychologist" },
     { label: "Age", key: "age" },
     { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
+    // { label: "Guardian Number", key: "guardianPhoneNumber" },
     { label: "Addmission Date", key: "addmissionDate" },
     { label: "Discharge Date", key: "dischargeDate" },
   ];
@@ -434,12 +434,12 @@ const Patient = ({ centerAccess }) => {
     { label: "UID", key: "uid" },
     { label: "Gender", key: "gender" },
     { label: "Referred By", key: "referredBy" },
-    { label: "Phone No", key: "phoneNumber" },
+    // { label: "Phone No", key: "phoneNumber" },
     { label: "Doctor", key: "doctor" },
     { label: "Psychologist", key: "psychologist" },
     { label: "Age", key: "age" },
     { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
+    // { label: "Guardian Number", key: "guardianPhoneNumber" },
     { label: "IPD File No", key: "ipdFileNumber" },
     { label: "Addmission Date", key: "addmissionDate" },
     { label: "Bill Cycle Date", key: "billCycleDate" },
@@ -452,12 +452,12 @@ const Patient = ({ centerAccess }) => {
     { label: "UID", key: "uid" },
     { label: "Gender", key: "gender" },
     { label: "Referred By", key: "referredBy" },
-    { label: "Phone No", key: "phoneNumber" },
+    // { label: "Phone No", key: "phoneNumber" },
     { label: "Doctor", key: "doctor" },
     { label: "Psychologist", key: "psychologist" },
     { label: "Age", key: "age" },
     { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
+    // { label: "Guardian Number", key: "guardianPhoneNumber" },
     { label: "IPD File No", key: "ipdFileNumber" },
     { label: "Addmission Date", key: "addmissionDate" },
     { label: "Discharge Date", key: "dischargeDate" },
@@ -469,13 +469,13 @@ const Patient = ({ centerAccess }) => {
     { label: "Patient", key: "name" },
     { label: "UID", key: "uid" },
     { label: "Gender", key: "gender" },
-    { label: "Phone No", key: "phoneNumber" },
+    // { label: "Phone No", key: "phoneNumber" },
     { label: "Doctor", key: "doctor" },
     { label: "Psychologist", key: "psychologist" },
     { label: "Age", key: "age" },
     { label: "Referred By", key: "referredBy" },
     { label: "Guardian", key: "guardianName" },
-    { label: "Guardian Number", key: "guardianPhoneNumber" },
+    // { label: "Guardian Number", key: "guardianPhoneNumber" },
     { label: "IPD File No", key: "ipdFileNumber" },
   ];
 
