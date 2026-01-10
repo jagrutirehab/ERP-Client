@@ -23,10 +23,10 @@ const generalHeaders = [
   { label: "UID", key: "uid" },
   { label: "Gender", key: "gender" },
   { label: "Referred By", key: "referredBy" },
-  { label: "Phone No", key: "phoneNumber" },
+  // { label: "Phone No", key: "phoneNumber" },
   { label: "Age", key: "age" },
   { label: "Guardian", key: "guardianName" },
-  { label: "Guardian Number", key: "guardianPhoneNumber" },
+  // { label: "Guardian Number", key: "guardianPhoneNumber" },
   { label: "Addmission Date", key: "addmissionDate" },
 ];
 
@@ -195,7 +195,7 @@ const Doctor = ({ centers, centerAccess }) => {
         capitalizeWords(row.referredBy?.doctorName || row.referredBy) || "-",
       wrap: true,
     },
-    { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
+    // { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
     {
       name: "Age",
       selector: (row) =>
@@ -208,11 +208,11 @@ const Doctor = ({ centers, centerAccess }) => {
       selector: (row) => capitalizeWords(row.guardianName) || "-",
       wrap: true,
     },
-    {
-      name: "Guardian Number",
-      selector: (row) => row.guardianPhoneNumber || "-",
-      wrap: true,
-    },
+    // {
+    //   name: "Guardian Number",
+    //   selector: (row) => row.guardianPhoneNumber || "-",
+    //   wrap: true,
+    // },
     {
       name: "Admission Date",
       selector: (row) =>
