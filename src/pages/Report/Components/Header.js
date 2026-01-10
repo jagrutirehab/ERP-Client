@@ -64,7 +64,7 @@ const Header = ({ reportDate, setReportDate, disabled = false }) => {
                           background: "rgba(255,255,255,0.6)",
                           cursor: "not-allowed",
                           zIndex: 10,
-                          borderRadius: 6
+                          borderRadius: 6,
                         }}
                       />
                     )}
@@ -100,7 +100,7 @@ const Header = ({ reportDate, setReportDate, disabled = false }) => {
                           background: "rgba(255,255,255,0.6)",
                           cursor: "not-allowed",
                           zIndex: 10,
-                          borderRadius: 6
+                          borderRadius: 6,
                         }}
                       />
                     )}
@@ -125,7 +125,9 @@ const Header = ({ reportDate, setReportDate, disabled = false }) => {
                     />
                   </div>
                   <div
-                    className={`border-start border-dark ${disabled ? "opacity-50" : ""}`}
+                    className={`border-start border-dark ${
+                      disabled ? "opacity-50" : ""
+                    }`}
                     style={{ pointerEvents: disabled ? "none" : "auto" }}
                   >
                     <UncontrolledDropdown>
