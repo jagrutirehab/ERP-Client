@@ -14,6 +14,7 @@ import {
   CLINICAL_NOTE,
   INVOICE,
   IPD,
+  MENTAL_EXAMINATION,
   OPD,
   PRESCRIPTION,
 } from "../../../Components/constants/patient";
@@ -220,7 +221,7 @@ const EventInfo = ({
                   setAppointment(data);
                   dispatch(
                     createEditChart({
-                      chart: CLINICAL_NOTE,
+                      chart: isAdmit ? MENTAL_EXAMINATION : CLINICAL_NOTE,
                       isOpen: true,
                       type: isAdmit ? IPD : OPD,
                       data: data.chart,
@@ -268,7 +269,7 @@ const EventInfo = ({
                 dispatch(setChartDate(new Date().toISOString()));
                 dispatch(
                   createEditChart({
-                    chart: CLINICAL_NOTE,
+                    chart: isAdmit ? MENTAL_EXAMINATION : CLINICAL_NOTE,
                     isOpen: true,
                     type: isAdmit ? IPD : OPD,
                     patient: data.patient,
@@ -406,7 +407,7 @@ const EventInfo = ({
               }}
               disabled={
                 data?.isCancelled ||
-                (data.patient?.isAdmit && !data.patient?.isDischarge)
+                (data?.patient?.isAdmit && !data?.patient?.isDischarge)
               }
               className="btn btn-primary btn-sm text-nowrap fs-10"
             >

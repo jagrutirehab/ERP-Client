@@ -494,19 +494,31 @@ const RoundNotes = () => {
               </Input>
             </div>
             <Pagination className="mb-0">
+              {/* <PaginationItem disabled={page === 1}>
+                <PaginationLink first onClick={() => setPage(1)} />
+              </PaginationItem> */}
               <PaginationItem disabled={page === 1}>
                 <PaginationLink
                   previous
                   onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: totalPages }).map((_, index) => (
-                <PaginationItem key={index} active={index + 1 === page}>
-                  <PaginationLink onClick={() => setPage(index + 1)}>
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {(() => {
+                const maxButtons = 5;
+                const start = Math.max(1, page - Math.floor(maxButtons / 2));
+                const end = Math.min(totalPages, start + maxButtons - 1);
+                const pages = [];
+                for (let p = start; p <= end; p++) {
+                  pages.push(p);
+                }
+                return pages.map((p) => (
+                  <PaginationItem key={p} active={p === page}>
+                    <PaginationLink onClick={() => setPage(p)}>
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ));
+              })()}
               <PaginationItem disabled={page >= totalPages}>
                 <PaginationLink
                   next
@@ -515,6 +527,9 @@ const RoundNotes = () => {
                   }
                 />
               </PaginationItem>
+              {/* <PaginationItem disabled={page >= totalPages}>
+                <PaginationLink last onClick={() => setPage(totalPages)} />
+              </PaginationItem> */}
             </Pagination>
           </div>
         </Col>

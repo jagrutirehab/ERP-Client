@@ -117,7 +117,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                   <CounsellingNote data={chart.counsellingNote} />
                 )}
                 {chart.chart === LAB_REPORT && (
-                  <LabReport data={chart.labReport?.reports} />
+                  <LabReport data={chart.labReport?.reports} date={chart.labReport?.updatedAt} />
                 )}
                 {chart.chart === DETAIL_ADMISSION && (
                   <DetailAdmission data={chart.detailAdmission} />

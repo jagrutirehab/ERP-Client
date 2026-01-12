@@ -208,6 +208,18 @@ const pages = [
     ],
   },
   {
+    id: "referral",
+    label: "Referral",
+    name: "Referral",
+    link: "/referral",
+    icon: "bx bx-share-alt",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
     id: "roundnotes",
     label: "Round Notes",
     name: "Round Notes",
@@ -289,6 +301,34 @@ const pages = [
     name: "HRMS",
     link: "/hrms",
     icon: "bx bx-group",
+  },
+  {
+    id: "webcamstats",
+    label: "Web Cam Stats",
+    name: "Web Cam Stats",
+    link: "/webcamstats",
+    icon: "bx bx-group",
+  },
+];
+
+export const WebcamStats = [
+  {
+    id: "webcamstats-dashboard",
+    label: "Dashboard",
+    link: "/webcamstats/dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-stats",
+    label: "Stats",
+    link: "/webcamstats/stats",
+    icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-apikeys",
+    label: "API Keys",
+    link: "/webcamstats/apikeys",
+    icon: "bx bx-home",
   },
 ];
 
@@ -527,7 +567,7 @@ export const HR = [
         icon: "bx bx-chip",
         link: "/hr/new-joinings/it",
       },
-    ]
+    ],
   },
   {
     id: "exit-employees",
@@ -581,7 +621,7 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/salary-advance/approval",
       },
-    ]
+    ],
   },
   {
     id: "transfer-employees",
@@ -641,8 +681,29 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-    ]
-  }
+    ],
+  },
+  {
+    id: "third-party-manpower",
+    label: "Third Party Manpower",
+    icon: "bx bx-user-voice",
+    link: "/hr/tpm",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-tpm-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/tpm/add",
+      },
+      {
+        id: "tpm-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/tpm/approval",
+      },
+    ],
+  },
 ];
 
 export const HRMS = [
@@ -651,6 +712,42 @@ export const HRMS = [
     label: "Attendance",
     link: "/hrms/attendance",
     icon: "bx bx-time-five",
+    isAccordion: true,
+    children: [
+      {
+        id: "attendance-log",
+        label: "Attendance Log",
+        link: "/hrms/attendance/logs",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "attendance-metrics",
+        label: "Attendance Metrics",
+        link: "/hrms/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+    ]
+  },
+  {
+    id: "employee-reporting",
+    label: "Employee Reporting",
+    link: "/hrms/attendance",
+    icon: "bx bx-git-branch",
+    isAccordion: true,
+    children: [
+      {
+        id: "assign-manager",
+        label: "Assign Manager",
+        link: "/hrms/reporting/assign",
+        icon: "bx bx-user-plus",
+      },
+      {
+        id: "manage-employee-reporting",
+        label: "Manage",
+        link: "/hrms/reporting/manage",
+        icon: "bx bx-list-check",
+      },
+    ]
   },
 ];
 

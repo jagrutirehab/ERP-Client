@@ -8,6 +8,7 @@ import {
   INVOICE,
   OPD_BILL,
   INTERN,
+  ALL_TRANSACTIONS,
 } from "./data";
 import DataTable from "react-data-table-component";
 import { OPD } from "../../../../Components/constants/patient";
@@ -47,11 +48,11 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
     },
     billType !== DUE_AMOUNT
       ? {
-          name: "Type",
-          selector: (row) => row.bill || row.type || "",
-          maxWidth: "100px",
-          minWidth: "100px",
-        }
+        name: "Type",
+        selector: (row) => row.bill || row.type || "",
+        maxWidth: "100px",
+        minWidth: "100px",
+      }
       : null,
     {
       name: "Center",
@@ -64,41 +65,41 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
         billType === DUE_AMOUNT && sortByDate === ADDMISSION_DATE
           ? "Admission Date"
           : billType === DUE_AMOUNT && sortByDate === DISCHARGE_DATE
-          ? "Discharge Date"
-          : "Date",
+            ? "Discharge Date"
+            : "Date",
       selector: (row) => date(row),
       maxWidth: "130px",
       minWidth: "130px",
     },
     billType !== DUE_AMOUNT &&
-    billType !== OPD_BILL &&
-    billType !== INTERN &&
-    sortByDate === ADDMISSION_DATE
+      billType !== OPD_BILL &&
+      billType !== INTERN &&
+      sortByDate === ADDMISSION_DATE
       ? {
-          name: "Admission Date",
-          selector: (row) =>
-            row.patient?.addmission?.addmissionDate
-              ? format(
-                  new Date(row.patient.addmission.addmissionDate),
-                  "dd MMM yyyy"
-                )
-              : "",
-        }
+        name: "Admission Date",
+        selector: (row) =>
+          row.patient?.addmission?.addmissionDate
+            ? format(
+              new Date(row.patient.addmission.addmissionDate),
+              "dd MMM yyyy"
+            )
+            : "",
+      }
       : null,
     billType !== DUE_AMOUNT &&
-    billType !== OPD_BILL &&
-    billType !== INTERN &&
-    sortByDate === DISCHARGE_DATE
+      billType !== OPD_BILL &&
+      billType !== INTERN &&
+      sortByDate === DISCHARGE_DATE
       ? {
-          name: "Discharge Date",
-          selector: (row) =>
-            row.patient?.addmission?.dischargeDate
-              ? format(
-                  new Date(row.patient.addmission.dischargeDate),
-                  "dd MMM yyyy"
-                )
-              : "",
-        }
+        name: "Discharge Date",
+        selector: (row) =>
+          row.patient?.addmission?.dischargeDate
+            ? format(
+              new Date(row.patient.addmission.dischargeDate),
+              "dd MMM yyyy"
+            )
+            : "",
+      }
       : null,
     {
       name: "Patient/Intern",
@@ -114,131 +115,138 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
         row.intern && row.id?.value
           ? row.id.value
           : row.patient?.id
-          ? `${row.patient.id.prefix}${row.patient.id.value}`
-          : "",
+            ? `${row.patient.id.prefix}${row.patient.id.value}`
+            : "",
       wrap: true,
       maxWidth: "100px",
       minWidth: "100px",
     },
     patientsReferrel
       ? {
-          name: "Referred By",
-          selector: (row) => row.patient?.referredBy || "",
-        }
+        name: "Referred By",
+        selector: (row) =>
+          row.patient?.referredBy?.doctorName ||
+          row.patient?.referredBy ||
+          "",
+      }
       : null,
     billType !== DUE_AMOUNT
       ? {
-          name: "Invoice No",
-          selector: (row) =>
-            row.key
-              ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
-              : "",
-        }
+        name: "Invoice No",
+        selector: (row) =>
+          row.key
+            ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
+            : "",
+      }
       : null,
     billType !== DUE_AMOUNT && billType !== ADVANCE_PAYMENT
       ? {
-          name: "Invoiced Amount",
-          selector: (row) => {
-            if (row.intern && row.receipt) {
-              return (
-                row.receipt.totalAmount ??
-                row.invoice?.payable ??
-                row.receiptInvoice?.payable ??
-                ""
-              );
-            }
-            return row.invoice?.payable ?? row.receiptInvoice?.payable ?? "";
-          },
+        name: "Invoiced Amount",
+        selector: (row) => {
+          if (row.intern && row.receipt) {
+            return (
+              row.receipt.totalAmount ??
+              row.invoice?.payable ??
+              row.receiptInvoice?.payable ??
+              ""
+            );
+          }
+          return row.invoice?.payable ?? row.receiptInvoice?.payable ?? "";
+        },
+      }
+      : null,
+    billType === ALL_TRANSACTIONS || billType === ADVANCE_PAYMENT
+      ? {
+        name: <div>Refund Amount</div>,
+        selector: (row) => {
+          return (
+            row?.invoice?.refund ?? ""
+          )
         }
+      }
       : null,
     billType !== DUE_AMOUNT && billType !== INVOICE
       ? {
-          name: "Payment Modes",
-          selector: (row) => {
-            if (row.intern && row.receipt?.paymentModes) {
-              return row.receipt.paymentModes
-                .map((payment) =>
-                  `${payment?.paymentMode || ""} ${payment?.bankName || ""} ${
-                    payment?.transactionId || ""
-                  } ${payment?.chequeNumber || ""} ${
-                    payment?.cardNumber || ""
+        name: "Payment Modes",
+        selector: (row) => {
+          if (row.intern && row.receipt?.paymentModes) {
+            return row.receipt.paymentModes
+              .map((payment) =>
+                `${payment?.paymentMode || ""} ${payment?.bankName || ""} ${payment?.transactionId || ""
+                  } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
                   }`.trim()
-                )
-                .filter(Boolean)
-                .join("\n");
-            }
-            if (row.type === OPD && row.receiptInvoice?.paymentModes) {
-              return row.receiptInvoice.paymentModes
-                .map((payment) =>
-                  `${payment?.type || ""} ${payment?.bankName || ""} ${
-                    payment?.transactionId || ""
-                  } ${payment?.chequeNumber || ""} ${
-                    payment?.cardNumber || ""
+              )
+              .filter(Boolean)
+              .join("\n");
+          }
+          if (row.type === OPD && row.receiptInvoice?.paymentModes) {
+            return row.receiptInvoice.paymentModes
+              .map((payment) =>
+                `${payment?.type || ""} ${payment?.bankName || ""} ${payment?.transactionId || ""
+                  } ${payment?.chequeNumber || ""} ${payment?.cardNumber || ""
                   }`.trim()
-                )
-                .filter(Boolean)
-                .join("\n");
-            }
-            if (row.deposit?.paymentModes) {
-              return row.deposit.paymentModes
-                .map((payment) =>
-                  `${payment.paymentMode || ""} ${payment.bankName || ""} ${
-                    payment.chequeNumber || ""
+              )
+              .filter(Boolean)
+              .join("\n");
+          }
+          if (row.deposit?.paymentModes) {
+            return row.deposit.paymentModes
+              .map((payment) =>
+                `${payment.paymentMode || ""} ${payment.bankName || ""} ${payment.chequeNumber || ""
                   } ${payment.cardNumber || ""}`.trim()
-                )
-                .filter(Boolean)
-                .join("\n");
-            }
-            if (row.advancePayment?.paymentModes) {
-              return row.advancePayment.paymentModes
-                .map((payment) =>
-                  `${payment.paymentMode || ""} ${payment.bankName || ""} ${
-                    payment.chequeNumber || ""
+              )
+              .filter(Boolean)
+              .join("\n");
+          }
+          if (row.advancePayment?.paymentModes) {
+            return row.advancePayment.paymentModes
+              .map((payment) =>
+                `${payment.paymentMode || ""} ${payment.bankName || ""} ${payment.chequeNumber || ""
                   } ${payment.cardNumber || ""}`.trim()
-                )
-                .filter(Boolean)
-                .join("\n");
-            }
-            return "";
-          },
-        }
+              )
+              .filter(Boolean)
+              .join("\n");
+          }
+          return "";
+        },
+      }
       : null,
     billType !== DUE_AMOUNT && billType !== INVOICE
       ? {
-          name: "Paid Amount",
-          selector: (row) =>
-            row.intern && row.receipt
-              ? row.receipt.totalAmount
-              : row.type === OPD
+        name: "Paid Amount",
+        selector: (row) =>
+          row.intern && row.receipt
+            ? row.receipt.totalAmount
+            : row.type === OPD
               ? row.receiptInvoice?.payable || ""
               : row.deposit
-              ? row.deposit.totalAmount || ""
-              : row.advancePayment
-              ? row.advancePayment.totalAmount || ""
-              : "",
-        }
+                ? row.deposit.totalAmount || ""
+                : row.advancePayment
+                  ? row.advancePayment.totalAmount || ""
+                  : "",
+      }
       : null,
     billType === DUE_AMOUNT
       ? {
-          name: "Total Invoiced Amount",
-          selector: (row) => row.totalPayable || "",
-        }
+        name: "Total Invoiced Amount",
+        selector: (row) => row.totalPayable || "",
+      }
       : null,
     billType === DUE_AMOUNT
       ? {
-          name: "Total Paid Amount",
-          selector: (row) => row.totalAdvancePayment || "",
-        }
+        name: "Total Paid Amount",
+        selector: (row) => row.totalAdvancePayment || "",
+      }
       : null,
     billType === DUE_AMOUNT
       ? {
-          name: "Total Due Amount",
-          selector: (row) => row.dueAmount || "",
-          style: {
-            color: "red",
-            fontWeight: "bold",
-          },
-        }
+        name: "Total Due Amount",
+        selector: (row) => row.dueAmount || "",
+        style: {
+          color: "red",
+          fontWeight: "bold",
+        },
+      }
       : null,
   ];
 

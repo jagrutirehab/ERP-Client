@@ -26,6 +26,7 @@ const CentralPayment = React.lazy(() => import("../pages/CentralPayment"));
 const Booking = React.lazy(() => import("../pages/Booking"));
 const Medicine = React.lazy(() => import("../pages/Medicine"));
 const Lead = React.lazy(() => import("../pages/Lead"));
+const WebCamStats = React.lazy(() => import("../pages/WebCamStats"));
 const Report = React.lazy(() => import("../pages/Report"));
 const Pharmacy = React.lazy(() => import("../pages/Inventory"));
 const Guidelines = React.lazy(() => import("../pages/Guidelines"));
@@ -36,6 +37,7 @@ const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 const HR = React.lazy(() => import("../pages/HR"));
 const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
+const Referral = React.lazy(() => import("../pages/Referral"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -58,6 +60,8 @@ const allElements = [
   { element: MiReporting, label: "Hubspot Reporting" },
   { element: HR, label: "HR" },
   { element: HRMS, label: "HRMS" },
+  { element: WebCamStats, label: "Web Cam Stats" },
+  { element: Referral, label: "Referral" },
 ];
 
 const authProtectedRoutes = [
@@ -84,6 +88,8 @@ const authProtectedRoutes = [
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
+  { path: "/webcamstats/*", component: WebCamStats },
+  { path: "/referral", component: Referral },
   {
     path: "/",
     exact: true,

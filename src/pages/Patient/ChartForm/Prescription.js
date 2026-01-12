@@ -126,11 +126,12 @@ const Prescription = ({
         : ptLatestOPDPrescription
         ? patientLatestOPDPrescription?.followUp
         : "",
-      referredby: editPrescription
-        ? editPrescription.referredby
-        : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.referredby
-        : patient.referredBy,
+      referredby: patient.referredBy?.doctorName || patient.referredBy || "",
+      // editPrescription
+      //   ? editPrescription.referredby
+      //   : ptLatestOPDPrescription
+      //   ? patientLatestOPDPrescription?.referredby
+      //   :
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
@@ -185,6 +186,8 @@ const Prescription = ({
       dispatch(setPtLatestOPDPrescription(null));
     },
   });
+
+  console.log({ editPrescription, patientLatestOPDPrescription, patient });
 
   useEffect(() => {
     if (type !== "OPD" && !appointment) return;
@@ -454,7 +457,7 @@ const Prescription = ({
                   name="referredby"
                   disabled
                   onChange={validation.handleChange}
-                  value={validation?.values?.referredby || patient?.referredBy}
+                  value={validation.values.referredby || ""}
                   className="form-control presc-border rounded"
                   aria-label="With textarea"
                 />
@@ -534,7 +537,10 @@ const Prescription = ({
                       </diV>
                     )}
                     {chart.chart === LAB_REPORT && (
-                      <LabReport data={chart.labReport?.reports} />
+                      <LabReport
+                        data={chart.labReport?.reports}
+                        date={chart.labReport?.updatedAt}
+                      />
                     )}
                     {chart.chart === DETAIL_ADMISSION && (
                       <div className="mt-4">

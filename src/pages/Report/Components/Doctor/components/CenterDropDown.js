@@ -49,11 +49,15 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
       className="topbar-head-dropdown ms-1 header-item"
     >
       <DropdownToggle
-        tag="button"
-        type="button"
-        className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle"
+        caret
+        color="primary"
+        outline
+        className="d-flex align-items-center gap-2 px-3 py-2 hover:text-white"
       >
-        <i className="bx bx-category-alt text-blue fs-22"></i>
+        <i className="bx bx-category-alt fs-18"></i>
+        <span className="fw-semibold fs-13">
+          Centers{value.length ? ` (${value.length})` : ` (0)`}
+        </span>
       </DropdownToggle>
 
       <DropdownMenu className="dropdown-menu-lg p-2 dropdown-menu-end">

@@ -12,11 +12,18 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
 import AttachmentCell from "./AttachmentCell";
+import PreviewFile from "../../../Components/Common/PreviewFile";
+import { isPreviewable } from "../../../utils/isPreviewable";
+import { downloadFile } from "../../../Components/Common/downloadFile";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
     const [updating, setUpdating] = useState({ id: null, type: null });
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
+
     const handleAuthError = useAuthError();
 
     const getStatusBadgeColor = (status) => {
@@ -32,6 +39,22 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     };
 
+    const handleAttachmentClick = (file) => {
+        if (isPreviewable(file, item?.updatedAt)) {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+        } else {
+            downloadFile(file);
+            setPreviewOpen(false);
+            setPreviewFile(null);
+        }
+    };
+
+
+    const closePreview = () => {
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
 
     const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
         setUpdating({ id: paymentId, type: approvalStatus });
@@ -145,7 +168,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={8}>
                             <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
                                 <Badge color="primary" className="me-1">
-                                    {capitalizeWords(item.center?.title || "Unknown Center")}
+                                    {capitalizeWords(item.center?.title) || "Unknown Center"}
                                 </Badge>
 
                                 <Badge color={getStatusBadgeColor(item.approvalStatus)} className="me-2">
@@ -161,13 +184,13 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
 
                             {item.items && (
                                 <h6 className="mb-1 fw-bold text-dark">
-                                    {capitalizeWords(item.items)}
+                                    {item.items}
                                 </h6>
                             )}
 
                             {item.description && (
                                 <ExpandableText
-                                    text={capitalizeWords(item.description)} limit={20}
+                                    text={item.description} limit={20}
                                     className="mb-2"
                                 />
                             )}
@@ -180,7 +203,11 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
 
                             {item.attachments && item.attachments.length > 0 && (
                                 <div className="mt-2">
-                                    <AttachmentCell attachments={item.attachments} />
+                                    <AttachmentCell
+                                        attachments={item.attachments}
+                                        onPreview={handleAttachmentClick}
+
+                                    />
                                 </div>
                             )}
                         </Col>
@@ -188,12 +215,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <Col md={4} className="text-end">
                             <div className="d-flex flex-column align-items-end">
                                 <span className="h5 mb-0 fw-bold text-dark">
-                                    ₹{item.totalAmountWithGST?.toFixed(2) || "0.00"}
+                                    {formatCurrency(item.finalAmount)}
                                 </span>
-                                {item.totalAmountWithGST && (
-                                    <small className="text-muted mt-1">
-                                        Total with GST
-                                    </small>
+                                {item.finalAmount && (
+                                    <i className="text-muted mt-1">
+                                        Payable (TDS Deducted)
+                                    </i>
                                 )}
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
                                     {item.initialPaymentStatus === "PENDING" ? "To Be Paid" : "Paid"}
@@ -205,6 +232,16 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
+                                {item?.approvedBy && (
+                                    <div className="d-flex justify-content-end mb-2 mt-2 me-2">
+                                        <small className="text-muted">
+                                            Approved by{" "}
+                                            <span className="fw-semibold text-dark">
+                                                {item.approvedBy.name}
+                                            </span>
+                                        </small>
+                                    </div>
+                                )}
                                 <Button
                                     onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
@@ -238,6 +275,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
                 isProcessing={updating}
                 hasCreatePermission={hasCreatePermission}
+            />
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={closePreview}
             />
         </React.Fragment>
     );
