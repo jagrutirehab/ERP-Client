@@ -237,6 +237,7 @@ export const DELETE_CONDITION = "/condition";
 export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
+export const GET_FINANCE_ANALYTICS_CSV = "/report/finance-csv";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_DOCTOR_ANALYTICS = "/report/doctor";
 export const GET_DOCTOR_ANALYTICS_WP = "/report/doctor-csv";
@@ -340,7 +341,8 @@ export const GET_DETAILED_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/detailed";
 export const GET_SUMMARY_CENTRAL_PAYMENT_REPORT =
   "/central-payment/report/summary";
-export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT = "/central-payment/report/detailed/export";
+export const EXPORT_DETAILED_CENTRAL_PAYMENT_REPORT =
+  "/central-payment/report/detailed/export";
 export const GET_ALL_ENETS = "/central-payment/eNets";
 export const REGENERATE_ENETS = "/central-payment/eNets/regenerate";
 export const PROCESS_PAYMENTS = "/central-payment/process";
@@ -455,4 +457,3 @@ export const ATTENDANCE_METRICS = "/hrms/attendance/metrics";
 export const EXPORT_ATTENDANCE_METRICS = "/hrms/attendance/metrics/export";
 
 export const EMPLOYEE_REPORTING = "/hrms/employee-reporting";
-

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
-import { getFinanceAnalytics } from "../../../../helpers/backend_helper";
+import {
+  getFinanceAnalytics,
+  exportFinanceAnalyticsCSV,
+} from "../../../../helpers/backend_helper";
 import Divider from "../../../../Components/Common/Divider";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
@@ -16,6 +19,10 @@ const Finance = ({ centers, centerAccess }) => {
   });
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [totalRows, setTotalRows] = useState(0);
+  const [perPage, setPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Center selection state
   const centerOptions = centers
@@ -40,53 +47,116 @@ const Finance = ({ centers, centerAccess }) => {
     }
   }, [centerOptions]);
 
-  const fetchData = async () => {
+  const fetchData = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
       const res = await getFinanceAnalytics({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
         centerAccess: selectedCentersIds,
+        page,
+        limit,
       });
 
-      // Backend returns { success: true, payload: [...] }
+      // Backend returns { success: true, payload: [...], total, totalPages, currentPage, limit }
       setData(res?.payload || []);
+      setTotalRows(res?.total || 0);
     } catch (err) {
       console.error("Failed to fetch finance analytics", err);
       setData([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Manual trigger for View Report button
+  useEffect(() => {
+    fetchData(currentPage, perPage);
+  }, [currentPage, perPage]);
+
+  // Manual trigger for View Report button - resets to page 1
   const handleViewReport = () => {
-    fetchData();
+    setCurrentPage(1);
+    fetchData(1, perPage);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePerRowsChange = (newPerPage, page) => {
+    setPerPage(newPerPage);
+    // When changing rows per page, it's safer to reset to page 1 or keep current if logic allows,
+    // but typically we might just fetch the new page.
+    // DataTable's behavior usually prefers keeping the offset but simpler to just reload.
+    // The `page` argument here is the new page (usually the current one or adjusted).
+    setCurrentPage(page);
+  };
+
+  // CSV Export Handler
+  const handleExportCSV = async () => {
+    try {
+      setExportLoading(true);
+      const response = await exportFinanceAnalyticsCSV({
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        centerAccess: selectedCentersIds,
+      });
+
+      console.log({ response });
+
+      // Create blob from response
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `financial-report-${new Date().toISOString().split("T")[0]}.csv`
+      );
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export CSV", err);
+      alert("Failed to export CSV. Please try again.");
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const columns = [
     {
       name: "#",
-      selector: (row, idx) => idx + 1,
+      selector: (row, idx) => (currentPage - 1) * perPage + idx + 1,
       width: "60px",
       sortable: false,
     },
     {
       name: "Patient Name",
       selector: (row) => capitalizeWords(row.patient?.name) || "-",
-      sortable: true,
+      sortable: false, // Server-side sorting not fully implemented for all columns yet
       wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Center",
       selector: (row) => capitalizeWords(row.center) || "-",
-      sortable: true,
+      sortable: false,
       wrap: true,
     },
     {
       name: "UID",
       selector: (row) => row.patient?.id?.value || "-",
-      sortable: true,
+      sortable: false,
     },
     {
       name: "Admission Date",
@@ -94,8 +164,10 @@ const Finance = ({ centers, centerAccess }) => {
         row.addmissionDate
           ? format(new Date(row.addmissionDate), "d MMM yyyy")
           : "-",
-      sortable: true,
+      sortable: false,
       wrap: true,
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
       name: "Discharge Date",
@@ -103,8 +175,10 @@ const Finance = ({ centers, centerAccess }) => {
         row.dischargeDate
           ? format(new Date(row.dischargeDate), "d MMM yyyy")
           : "-",
-      sortable: true,
+      sortable: false,
       wrap: true,
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
       name: "Total Invoiced",
@@ -112,22 +186,29 @@ const Finance = ({ centers, centerAccess }) => {
         row.totalInvoicedAmount
           ? `₹${row.totalInvoicedAmount.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Total Paid",
       selector: (row) =>
         row.totalPaidAmount ? `₹${row.totalPaidAmount.toLocaleString()}` : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
     },
     {
       name: "Total Deposit",
       selector: (row) =>
         row.totalDeposit ? `₹${row.totalDeposit.toLocaleString()}` : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Total Draft",
@@ -135,8 +216,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.totalDraftAmount && row.totalDraftAmount !== "0"
           ? `₹${row.totalDraftAmount.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Total Refund",
@@ -144,8 +228,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.totalRefundAmount
           ? `₹${row.totalRefundAmount.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Total Discount",
@@ -153,8 +240,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.totalDiscountAmount
           ? `₹${row.totalDiscountAmount.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
       name: "Room Price (Monthly)",
@@ -163,8 +253,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.priceForSelectedRoomMonthly !== "0"
           ? `₹${row.priceForSelectedRoomMonthly.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "180px",
+      minWidth: "180px",
     },
     {
       name: "Room Price (Daily)",
@@ -172,8 +265,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.priceForSelectedRoomDaily && row.priceForSelectedRoomDaily !== "0"
           ? `₹${row.priceForSelectedRoomDaily.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "180px",
+      minWidth: "180px",
     },
     {
       name: "Invoice (Date Range)",
@@ -181,8 +277,11 @@ const Finance = ({ centers, centerAccess }) => {
         row.invoiceAmountInDateRange
           ? `₹${row.invoiceAmountInDateRange.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "170px",
+      minWidth: "170px",
     },
     {
       name: "Paid (Date Range)",
@@ -190,15 +289,21 @@ const Finance = ({ centers, centerAccess }) => {
         row.paidAmountInDateRange
           ? `₹${row.paidAmountInDateRange.toLocaleString()}`
           : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
       name: "Due Amount",
       selector: (row) =>
         row.dueAmount ? `₹${row.dueAmount.toLocaleString()}` : "₹0",
-      sortable: true,
+      sortable: false,
       right: true,
+      wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
     {
       name: "Bill Cycle Date",
@@ -206,10 +311,39 @@ const Finance = ({ centers, centerAccess }) => {
         row.billCycleDate
           ? format(new Date(row.billCycleDate), "d MMM yyyy")
           : "-",
-      sortable: true,
+      sortable: false,
       wrap: true,
+      maxWidth: "130px",
+      minWidth: "130px",
     },
   ];
+
+  const customStyles = {
+    headCells: {
+      style: {
+        paddingLeft: "8px",
+        paddingRight: "8px",
+      },
+    },
+    header: {
+      style: {
+        minHeight: "56px",
+      },
+    },
+    headRow: {
+      style: {
+        // Allows the header row to expand vertically
+        height: "auto",
+        minHeight: "56px",
+      },
+    },
+    cells: {
+      style: {
+        // Optional: wrap cell content too
+        whiteSpace: "normal",
+      },
+    },
+  };
 
   return (
     <>
@@ -233,7 +367,7 @@ const Finance = ({ centers, centerAccess }) => {
                   }}
                 ></span>
               ) : (
-                data?.length || 0
+                totalRows || 0
               )}
               <style>
                 {`
@@ -252,11 +386,12 @@ const Finance = ({ centers, centerAccess }) => {
             selectedCentersIds={selectedCentersIds}
             setSelectedCentersIds={setSelectedCentersIds}
             onViewReport={handleViewReport}
-            loading={loading}
+            onExportCSV={handleExportCSV}
+            loading={loading || exportLoading}
           />
 
           <Divider />
-          {loading ? (
+          {loading && data.length === 0 ? (
             <div className="text-center py-4">
               <Spinner color="primary" />
             </div>
@@ -266,10 +401,21 @@ const Finance = ({ centers, centerAccess }) => {
               columns={columns}
               data={data || []}
               highlightOnHover
+              // customStyles={customStyles}
               noHeader
               pagination
-              paginationPerPage={10}
+              paginationServer
+              paginationTotalRows={totalRows}
+              onChangePage={handlePageChange}
+              onChangeRowsPerPage={handlePerRowsChange}
+              paginationPerPage={perPage}
               paginationRowsPerPageOptions={[10, 20, 30, 50, 100]}
+              progressPending={loading}
+              progressComponent={
+                <div className="text-center py-4">
+                  <Spinner color="primary" />
+                </div>
+              }
             />
           )}
         </div>
