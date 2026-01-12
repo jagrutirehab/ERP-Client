@@ -682,6 +682,14 @@ export const getFinanceAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const exportFinanceAnalyticsCSV = (data) =>
+  api.get(url.GET_FINANCE_ANALYTICS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getPatientAnalytics = (data) =>
   api.get(url.GET_PATIENT_ANALYTICS, {
     params: data,
@@ -1159,8 +1167,8 @@ export const uploadTransactionProof = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "multipart/form-data",
-    }
-  })
+    },
+  });
 };
 
 //  User Microservices
@@ -2077,7 +2085,7 @@ export const getAttendanceMetrics = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const exportAttendanceMetrics = (params = {}) => {
@@ -2090,7 +2098,7 @@ export const exportAttendanceMetrics = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 // HRMS- Employee Reporting
@@ -2098,16 +2106,16 @@ export const postEmployeeReporting = (data) => {
   return api.create(url.EMPLOYEE_REPORTING, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
-export const editEmployeeReporting = (id,data) => {
+export const editEmployeeReporting = (id, data) => {
   return api.update(`${url.EMPLOYEE_REPORTING}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 export const getEmployeeReportings = (params = {}) => {
@@ -2115,6 +2123,6 @@ export const getEmployeeReportings = (params = {}) => {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
