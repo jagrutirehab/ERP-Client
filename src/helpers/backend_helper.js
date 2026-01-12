@@ -1159,8 +1159,8 @@ export const uploadTransactionProof = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "multipart/form-data",
-    }
-  })
+    },
+  });
 };
 
 //  User Microservices
@@ -2077,7 +2077,7 @@ export const getAttendanceMetrics = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const exportAttendanceMetrics = (params = {}) => {
@@ -2090,5 +2090,45 @@ export const exportAttendanceMetrics = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
+};
+// HRMS/LEAVES
+export const postLeaveRequest = (data) => {
+  return api.create(url.APPLY_LEAVE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyManager = () => {
+  return api.get(url.GET_MY_MANAGER, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getLeavesRequest = (managerId) => {
+  return api.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const actionOnLeaves = (id, data) => {
+  return api.update(`${url.ACTION_ON_LEAVE}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyLeavesHistory = () => {
+  return api.get(url.GET_MY_LEAVES, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
 };
