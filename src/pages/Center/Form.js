@@ -152,6 +152,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       localArea: centerData ? centerData.localArea : "",
       numberOfBeds: centerData ? centerData.numberOfBeds : "",
       websiteListing: centerData ? !!centerData.websiteListing : false,
+      apiKey: centerData ? centerData.apiKey : "",
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -186,6 +187,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
         "websiteListing",
         values.websiteListing ? "true" : "false"
       );
+      formData.append("apiKey", values.apiKey);
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -200,7 +202,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
-  console.log({ validation });
+  // console.log({ validation });
 
   const fieldsArray = Object.keys(validation.values).filter(
     (key) => !["state", "websiteListing"].includes(key)
@@ -210,7 +212,7 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
 
-  console.log({ fieldsArray });
+  // console.log({ fieldsArray });
 
   const closeForm = () => {
     validation.resetForm();
@@ -303,10 +305,10 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   setLogo={setLogo}
                   setCropLogo={setCrop}
 
-                  // maxHeight={150}
-                  // maxWidth={150}
-                  // minHeight={150}
-                  // minWidth={150}
+                // maxHeight={150}
+                // maxWidth={150}
+                // minHeight={150}
+                // minWidth={150}
                 />
                 {/* </RenderWhen> */}
               </Col>

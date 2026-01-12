@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -19,7 +19,7 @@ const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
-  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING
+  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM
   actionType,
   setActionType,
   paymentType,
@@ -44,6 +44,7 @@ const ApproveModal = ({
       const response = await getEmployeeId();
       setECode(response.payload.value);
     } catch (error) {
+      console.error(error)
       if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
@@ -53,13 +54,13 @@ const ApproveModal = ({
   }
 
   useEffect(() => {
-    if (mode === "NEW_JOINING" && actionType === "APPROVE") {
+    if ((mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE") {
       generateEmployeeId();
     }
   }, [actionType, mode]);
 
   useEffect(() => {
-    if (!isOpen && mode === "NEW_JOINING" && actionType === "APPROVE") {
+    if (!isOpen && (mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE") {
       setECode("");
     }
   }, [isOpen, mode, actionType]);
@@ -81,7 +82,6 @@ const ApproveModal = ({
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
     }
-    // toggle();
   };
 
   return (
@@ -92,7 +92,7 @@ const ApproveModal = ({
       </ModalHeader>
 
       <ModalBody>
-        {mode === "NEW_JOINING" && actionType === "APPROVE" && (
+        {(mode === "NEW_JOINING" || mode === "TPM") && actionType === "APPROVE" && (
           <div className="mb-3">
             <Label htmlFor="eCode" className="fw-bold">ECode</Label>
             <div className="position-relative">
@@ -252,15 +252,26 @@ const ApproveModal = ({
         </Button>
 
         {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? (
-          <Button color="warning" className="text-white" disabled={!actionType || !actionType.value} onClick={handleSubmit}>
-            {loading ? <Spinner /> : "Confirm"}
+          <Button
+            color="warning"
+            className="text-white"
+            disabled={!actionType || !actionType.value || loading}
+            onClick={handleSubmit}>
+            {loading ? <Spinner size={"sm"} /> : "Confirm"}
           </Button>
         ) : actionType === "APPROVE" ? (
-          <Button color="success" className="text-white" disabled={mode === "NEW_JOINING" && eCodeLoader} onClick={handleSubmit}>
+          <Button
+            color="success"
+            className="text-white"
+            disabled={((mode === "NEW_JOINING" || mode === "TPM") && eCodeLoader) || loading}
+            onClick={handleSubmit}>
             {loading && actionType === "APPROVE" ? <Spinner size={"sm"} /> : "Approve"}
           </Button>
         ) : (
-          <Button color="danger" className="text-white" onClick={handleSubmit}>
+          <Button
+            color="danger"
+            className="text-white"
+            onClick={handleSubmit}>
             {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "REJECT"}
           </Button>
         )}

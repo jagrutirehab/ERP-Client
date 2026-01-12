@@ -34,20 +34,24 @@ const OPDAnalytics = ({ data, centerAccess }) => {
       selector: (row, idx) => idx + 1,
     },
     {
-      name: "Patient Name",
+      name: <div>Patient Name</div>,
       selector: (row) => row.patient?.name,
+      wrap: true,
+      minWidth: "120px"
     },
     {
-      name: "UID",
+      name: <div>UID</div>,
       selector: (row) => `${row.patient?.id?.prefix}${row.patient?.id?.value}`,
+      wrap: true
     },
     {
-      name: "Doctor",
+      name: <div>Doctor</div>,
       selector: (row) => row.doctor?.name,
       wrap: true,
+      minWidth: "120px"
     },
     {
-      name: "Date",
+      name: <div>Date</div>,
       selector: (row) =>
         `On ${format(new Date(row.startDate), "dd MMM yyyy")} at \n ${format(
           new Date(row.startDate),
@@ -57,40 +61,54 @@ const OPDAnalytics = ({ data, centerAccess }) => {
           new Date(row?.startDate)
         )} mins`,
       wrap: true,
+      minWidth: "120px"
     },
     {
-      name: "Center",
+      name: <div>Center</div>,
       selector: (row) => row.center?.title,
+      wrap: true
     },
     {
-      name: "Appointment Type",
+      name: <div>Appointment Type</div>,
       selector: (row) => row.consultationType,
+      wrap: true
+    },
+    // {
+    //   name: <div>Patient Phone Number</div>,
+    //   selector: (row) => row.patient?.phoneNumber,
+    //   wrap: true,
+    //   minWidth: "125px"
+    // },
+    {
+      name: <div>No Show</div>,
+      selector: (row) => row?.isCancelled ? "Yes" : "No",
+
     },
     {
-      name: "Patient Ph Number",
-      selector: (row) => row.patient?.phoneNumber,
-      wrap: true,
+      name: <div>Prescribed</div>,
+      selector: (row) => (row?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No"),
     },
     {
-      name: "Prescribed",
-      selector: (row) => (row?.chart ? "Yes" : "No"),
+      name: <div>Clinical Note</div>,
+      selector: (row) => (row?.chart?.chart === "CLINICAL_NOTE" ? "Yes" : "No"),
     },
     {
-      name: "OPD Charges",
+      name: <div>OPD Charges</div>,
       selector: (row) => row?.opdCharges,
+      wrap: true
     },
     {
-      name: "Paid Amount",
+      name: <div>Paid Amount</div>,
       selector: (row) => row.bill?.receiptInvoice?.payable,
+      wrap: true
     },
     {
-      name: "Payment Mode",
+      name: <div>Payment Mode</div>,
       selector: (row) =>
         row.bill?.receiptInvoice?.paymentModes
           ?.map(
             (pm) =>
-              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-                pm.bank || ""
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${pm.bank || ""
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
           )
           .join(", "),
@@ -131,13 +149,14 @@ const OPDAnalytics = ({ data, centerAccess }) => {
         paymentMode: d.bill?.receiptInvoice?.paymentModes
           ?.map(
             (pm) =>
-              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-                pm.bank || ""
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${pm.bank || ""
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`
           )
           .join(", "),
         opdCharges: (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
-        prescribed: d?.chart ? "Yes" : "No",
+        isNoShow: d?.isCancelled ? "Yes" : "No",
+        prescribed: d?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No",
+        isClinicalNoteCreated: d?.chart?.chart === "CLINICAL_NOTE" ? "Yes" : "No",
         paidAmount: d.bill?.receiptInvoice?.payable,
         date: `On ${format(
           new Date(d.startDate),
@@ -161,8 +180,10 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     { label: "Date", key: "date" },
     { label: "Center", key: "center.title" },
     { label: "Appointment Type", key: "consultationType" },
-    { label: "Patient Phone No", key: "patient.phoneNumber" },
+    // { label: "Patient Phone No", key: "patient.phoneNumber" },
+    { label: "No Show", key: "isNoShow" },
     { label: "Prescribed", key: "prescribed" },
+    { label: "Clinical Note", key: "isClinicalNoteCreated" },
     { label: "OPD Charges", key: "opdCharges" },
     { label: "Paid Amount", key: "paidAmount" },
     { label: "Payment Mode", key: "paymentMode" },

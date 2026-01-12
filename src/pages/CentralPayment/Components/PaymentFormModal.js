@@ -11,6 +11,9 @@ import { getPaymentDetails } from "../../../store/features/centralPayment/centra
 import { Check, Pencil, X } from "lucide-react";
 import moment from "moment";
 import SpendingForm from "./SpendingForm";
+import PreviewFile from "../../../Components/Common/PreviewFile";
+import { categoryOptions } from "../../../Components/constants/centralPayment";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 const paymentValidationSchema = Yup.object({
     transactionId: Yup.string()
@@ -36,6 +39,9 @@ const PaymentFormModal = ({
 }) => {
     const dispatch = useDispatch();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
+
 
     const formik = useFormik({
         initialValues: {
@@ -67,6 +73,7 @@ const PaymentFormModal = ({
 
     const handleToggle = () => {
         formik.resetForm();
+        closePreview();
         toggle();
     };
 
@@ -76,6 +83,16 @@ const PaymentFormModal = ({
         dispatch(getPaymentDetails(item._id));
 
     }
+
+    const openPreview = (file) => {
+        setPreviewFile(file);
+        setPreviewOpen(true);
+    };
+
+    const closePreview = () => {
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
 
     if (loading) {
         return (
@@ -120,14 +137,19 @@ const PaymentFormModal = ({
                                 <Row>
                                     <Col md={6}>
                                         <p className="mb-0"><strong>ID:</strong> {paymentDetails?.id || "-"}</p>
-                                        <p className="mb-0"><strong>Name:</strong> {capitalizeWords(paymentDetails?.name || "-")}</p>
-                                        <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title || "Unknown Center")}</p>
-                                        <p className="mb-0"><strong>Items:</strong> {capitalizeWords(paymentDetails?.items)}</p>
-                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> ₹{paymentDetails?.totalAmountWithGST?.toFixed(2) || "0.00"}</p>
-                                        <p className="mb-0"><strong>GST Amount:</strong> ₹{paymentDetails?.GSTAmount?.toFixed(2) || "0.00"}</p>
-                                        <p className="mb-0"><strong>Vendor:</strong> {capitalizeWords(paymentDetails?.vendor)}</p>
+                                        <p className="mb-0"><strong>Name:</strong> {paymentDetails?.name || "-"}</p>
+                                        <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title) || "Unknown Center"}</p>
+                                        <p className="mb-0"><strong>Items:</strong> {paymentDetails?.items || "-"}</p>
+                                        <p className="mb-0"><strong>Item Category:</strong> {categoryOptions.find(
+                                            (option) => option.value === paymentDetails?.category
+                                        )?.label || "-"}</p>
+                                        {paymentDetails?.category === "OTHERS" && <p className="mb-0"><strong>Item Category Details:</strong><ExpandableText text={paymentDetails?.otherCategory || "-"} /></p>}
+                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> {formatCurrency(paymentDetails?.totalAmountWithGST)}</p>
+                                        <p className="mb-0"><strong>GST Amount:</strong> {formatCurrency(paymentDetails?.GSTAmount)}</p>
+                                        <p className="mb-0"><strong>Payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>
+                                        <p className="mb-0"><strong>Vendor:</strong> {paymentDetails?.vendor || "-"}</p>
                                         {paymentDetails?.invoiceNo && (
-                                            <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo}</p>
+                                            <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo || "-"}</p>
                                         )}
                                         {paymentDetails?.date && (
                                             <p className="mb-0"><strong>Date:</strong> {moment(paymentDetails.date).format("lll")}</p>
@@ -137,7 +159,7 @@ const PaymentFormModal = ({
                                     <Col md={6}>
                                         {paymentDetails?.description && (
                                             <p className="mb-0">
-                                                <strong>Description:</strong> <ExpandableText text={capitalizeWords(paymentDetails.description)} />
+                                                <strong>Description:</strong> <ExpandableText text={paymentDetails.description || "-"} />
                                             </p>
                                         )}
                                         {paymentDetails?.eNet && (
@@ -146,9 +168,12 @@ const PaymentFormModal = ({
                                                 <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
                                             </p>
                                         )}
-                                        {paymentDetails?.TDSRate && (
-                                            <p className="mb-0"><strong>TDS Rate:</strong> {paymentDetails.TDSRate}</p>
-                                        )}
+                                        {paymentDetails?.TDSRate !== null &&
+                                            paymentDetails?.TDSRate !== undefined && (
+                                                <p className="mb-0">
+                                                    <strong>TDS Rate:</strong> {paymentDetails.TDSRate}
+                                                </p>
+                                            )}
                                         {paymentDetails?.transactionType && (
                                             <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
                                         )}
@@ -161,7 +186,7 @@ const PaymentFormModal = ({
                                         {paymentDetails?.bankDetails?.IFSCCode && (
                                             <p className="mb-0"><strong>IFSC Code:</strong> {paymentDetails.bankDetails.IFSCCode}</p>
                                         )}
-                                        <p className="mb-0"><strong>Initial Payment Status:</strong> {capitalizeWords(paymentDetails?.initialPaymentStatus)}</p>
+                                        <p className="mb-0"><strong>Initial Payment Status:</strong> {(paymentDetails?.initialPaymentStatus === "PENDING" ? "To Be Paid" : paymentDetails?.initialPaymentStatus === "COMPLETED" ? "Paid" : "-")}</p>
                                     </Col>
                                 </Row>
 
@@ -172,7 +197,7 @@ const PaymentFormModal = ({
                                             {paymentDetails?.attachments.map((attachment, index) => (
                                                 <p
                                                     key={attachment._id || index}
-                                                    onClick={() => downloadFile(attachment)}
+                                                    onClick={() => openPreview(attachment)}
                                                     className="text-primary text-decoration-underline cursor-pointer mb-1"
                                                 >
                                                     {attachment.originalName}
@@ -386,6 +411,13 @@ const PaymentFormModal = ({
                     />
                 </ModalBody>
             </Modal>
+
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={closePreview}
+            />
         </>
 
     );

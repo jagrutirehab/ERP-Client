@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect/index";
@@ -6,7 +6,8 @@ import "flatpickr/dist/plugins/monthSelect/style.css";
 import moment from "moment";
 
 import { useDispatch, useSelector } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import { fetchCityQualityBreakdown } from "../../../store/features/miReporting/miReportingSlice";
 
 const CityQuality = () => {
@@ -18,6 +19,10 @@ const CityQuality = () => {
   const [selectedMonth, setSelectedMonth] = useState(
     moment().format("YYYY-MM")
   );
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchCityQualityBreakdown({ date: selectedMonth }));
@@ -31,6 +36,63 @@ const CityQuality = () => {
       setSelectedMonth(selectedDate);
     }
   };
+
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = cityQuality.map((item, idx) => ({
+      id: idx + 1,
+      center: item.center || "Not Specified",
+      Hot: item.Hot || 0,
+      Unrelated: item.Unrelated || 0,
+      Normal: item.Normal || 0,
+      Cold: item.Cold || 0,
+      Blank: item.Blank || 0,
+      "Total excluding Unrelated": item["Total excluding Unrelated"] || 0,
+      Overall: item.overall || 0,
+    }));
+
+    // Add totals row
+    const totalsRow = {
+      id: "",
+      center: "Total",
+      Hot: cityQuality.reduce((sum, item) => sum + (item.Hot || 0), 0),
+      Unrelated: cityQuality.reduce(
+        (sum, item) => sum + (item.Unrelated || 0),
+        0
+      ),
+      Normal: cityQuality.reduce((sum, item) => sum + (item.Normal || 0), 0),
+      Cold: cityQuality.reduce((sum, item) => sum + (item.Cold || 0), 0),
+      Blank: cityQuality.reduce((sum, item) => sum + (item.Blank || 0), 0),
+      "Total excluding Unrelated": cityQuality.reduce(
+        (sum, item) => sum + (item["Total excluding Unrelated"] || 0),
+        0
+      ),
+      Overall: cityQuality.reduce((sum, item) => sum + (item.overall || 0), 0),
+    };
+
+    setCsvData([...formatted, totalsRow]);
+
+    // Trigger download
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers
+  const csvHeaders = [
+    { label: "#", key: "id" },
+    { label: "Center", key: "center" },
+    { label: "Hot", key: "Hot" },
+    { label: "Unrelated", key: "Unrelated" },
+    { label: "Normal", key: "Normal" },
+    { label: "Cold", key: "Cold" },
+    { label: "Blank", key: "Blank" },
+    { label: "Total excluding Unrelated", key: "Total excluding Unrelated" },
+    { label: "Overall", key: "Overall" },
+  ];
 
   return (
     <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
@@ -116,6 +178,26 @@ const CityQuality = () => {
                         ],
                       }}
                       onChange={handleDateChange}
+                    />
+                    <Button
+                      color="info"
+                      onClick={prepareCsvData}
+                      disabled={
+                        csvLoading ||
+                        loading ||
+                        !cityQuality ||
+                        cityQuality.length === 0
+                      }
+                      className="w-auto"
+                    >
+                      {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                    </Button>
+                    <CSVLink
+                      data={csvData || []}
+                      filename={`city-quality-${selectedMonth}.csv`}
+                      headers={csvHeaders}
+                      className="d-none"
+                      ref={csvRef}
                     />
                   </div>
                 </div>

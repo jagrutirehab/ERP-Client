@@ -75,13 +75,13 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
         }
     }, [selectedCenter, centerAccess]);
 
+    const centers =
+        selectedCenter === "ALL"
+            ? centerAccess
+            : !centerAccess.length ? [] : [selectedCenter];
+
     const fetchApprovedPayments = async () => {
         try {
-            const centers =
-                selectedCenter === "ALL"
-                    ? centerAccess
-                    : !centerAccess.length ? [] : [selectedCenter];
-
             await dispatch(getApprovals({
                 page,
                 limit,
@@ -144,13 +144,13 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
         setCopyAllLoader(true);
         try {
             const res = await regenerateENets({
-                centers: centerAccess
+                centers
             });
 
             const eNets = res.eNets.map(x => x.eNet);
 
             setProcessPayload({
-                centers: centerAccess
+                centers
             });
 
             await copyEnetsAndAskToProcess(eNets);

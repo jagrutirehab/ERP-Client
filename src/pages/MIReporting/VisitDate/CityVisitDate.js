@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCityVisitDate } from "../../../store/features/miReporting/miReportingSlice";
-import { Table, Card, CardBody } from "reactstrap";
+import { Table, Card, CardBody, Button } from "reactstrap";
+import { CSVLink } from "react-csv";
 import Loader from "../../../Components/Common/Loader";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
@@ -12,6 +13,10 @@ const CityVisitDate = () => {
   const dispatch = useDispatch();
   const { cityVisitDate, loading } = useSelector((state) => state.MIReporting);
   const [date, setDate] = useState(moment().format("YYYY-MM"));
+
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
 
   useEffect(() => {
     dispatch(fetchCityVisitDate({ date }));
@@ -35,10 +40,59 @@ const CityVisitDate = () => {
 
   const uniqueDates = getAllDates();
 
+  // Prepare CSV data
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+
+    const formatted = cityVisitDate.map((item, idx) => {
+      const row = {
+        id: idx + 1,
+        center: item.center,
+      };
+
+      // Add each date as a column
+      uniqueDates.forEach((d) => {
+        const dateData = item.dates.find((x) => x.date === d);
+        row[d] = dateData ? dateData.count : 0;
+      });
+
+      row["Total"] = item.total;
+
+      return row;
+    });
+
+    setCsvData(formatted);
+
+    // Trigger download
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  // Generate CSV headers dynamically
+  const csvHeaders = React.useMemo(() => {
+    const headers = [
+      { label: "#", key: "id" },
+      { label: "Center", key: "center" },
+    ];
+
+    uniqueDates.forEach((d) => {
+      headers.push({
+        label: d,
+        key: d,
+      });
+    });
+
+    headers.push({ label: "Total", key: "Total" });
+
+    return headers;
+  }, [uniqueDates]);
+
   return (
     <React.Fragment>
       <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
-        <div className="row">
+        <div className="row p-3">
           <div className="col-12">
             <div className="p-3">
               <div className="row align-items-center">
@@ -77,6 +131,26 @@ const CityVisitDate = () => {
                         ],
                       }}
                       onChange={handleDateChange}
+                    />
+                    <Button
+                      color="info"
+                      onClick={prepareCsvData}
+                      disabled={
+                        csvLoading ||
+                        loading ||
+                        !cityVisitDate ||
+                        cityVisitDate.length === 0
+                      }
+                      className="w-auto"
+                    >
+                      {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                    </Button>
+                    <CSVLink
+                      data={csvData || []}
+                      filename={`city-visit-date-${date}.csv`}
+                      headers={csvHeaders}
+                      className="d-none"
+                      ref={csvRef}
                     />
                   </div>
                 </div>
