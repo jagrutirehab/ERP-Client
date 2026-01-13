@@ -155,7 +155,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
         },
       }
       : null,
-    billType === ALL_TRANSACTIONS || billType === ADVANCE_PAYMENT
+    billType === ALL_TRANSACTIONS || billType === INVOICE
       ? {
         name: <div>Refund Amount</div>,
         selector: (row) => {
