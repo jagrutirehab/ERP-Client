@@ -30,6 +30,7 @@ export const allTransactionHeaders = [
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
   { label: "Invoiced Amount (₹Dr)", key: "invoice.payable" },
+  { label: "Refund Amount (₹Dr)", key: "invoice.refund" },
   { label: "Payment Modes", key: "paymentModes" },
   { label: "Paid Amount (₹Cr)", key: "advancePayment.totalAmount" },
 ];
@@ -79,6 +80,7 @@ export const advancePaymentHeaders = [
   { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
+  { label: "Refund Amount (₹Dr)", key: "invoice.refund" },
   { label: "Payment Modes", key: "paymentModes" },
   { label: "Paid Amount (₹Cr)", key: "advancePayment.totalAmount" },
 ];
