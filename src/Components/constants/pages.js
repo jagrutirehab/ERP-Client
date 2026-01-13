@@ -206,7 +206,7 @@ const pages = [
   },
   {
     id: "referral",
-    label: "Referral",
+    label: "Doctor Visits",
     name: "Referral",
     link: "/referral",
     icon: "bx bx-share-alt",
@@ -723,7 +723,7 @@ export const HRMS = [
         link: "/hrms/attendance/metrics",
         icon: "bx bx-stats",
       },
-    ]
+    ],
   },
   {
     id: "employee-reporting",
@@ -744,7 +744,7 @@ export const HRMS = [
         link: "/hrms/reporting/manage",
         icon: "bx bx-list-check",
       },
-    ]
+    ],
   },
 ];
 
