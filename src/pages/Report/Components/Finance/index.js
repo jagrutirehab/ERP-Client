@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
 import {
@@ -25,24 +25,40 @@ const Finance = ({ centers, centerAccess }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Center selection state
-  const centerOptions = centers
-    ?.filter((c) => centerAccess.includes(c._id))
-    .map((c) => ({
-      _id: c._id,
-      title: c.title,
-    }));
-
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      }))
+  );
   const [selectedCentersIds, setSelectedCentersIds] = useState(
     centerOptions?.map((c) => c._id) || []
   );
+
+  useEffect(() => {
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        }))
+    );
+  }, [centerAccess, centers]);
 
   // Update selected centers when centerOptions change
   useEffect(() => {
     if (
       centerOptions &&
-      centerOptions.length > 0 &&
-      selectedCentersIds.length === 0
+      centerOptions?.length > 0
+      // &&
+      // selectedCentersIds.length === 0
     ) {
+      console.log({ centerOptions });
+      console.log("update selected centers");
+
       setSelectedCentersIds(centerOptions.map((c) => c._id));
     }
   }, [centerOptions]);
