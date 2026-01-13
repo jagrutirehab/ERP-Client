@@ -145,6 +145,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -173,7 +177,6 @@ const Menu = ({
       else if (billType === ALL_TRANSACTIONS)
         resultantHeaders = [
           ...allTransactionHeadersAddmissionDischargeDate,
-
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -203,6 +206,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -270,6 +277,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeaders,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -323,6 +334,10 @@ const Menu = ({
     else if (billType === INVOICE)
       resultantHeaders = [
         ...payableAmountHeaders,
+        {
+          label: "Refund Amount (₹Dr)",
+          key: "invoice.refund",
+        },
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
