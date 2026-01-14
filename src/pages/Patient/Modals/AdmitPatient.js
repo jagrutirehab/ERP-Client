@@ -559,12 +559,7 @@ const AdmitPatient = ({
                 dateFormat: "d M, Y h:i K",
                 enableTime: true,
                 time_24hr: false,
-                // enable: [
-                //   (date) =>
-                //     patient?.addmission?.dischargeDate
-                //       ? date > new Date(patient?.addmission?.dischargeDate)
-                //       : true,
-                // ],
+                enable: [(date) => Boolean(date <= new Date())],
               }}
               className="form-control shadow-none bg-light"
             />
