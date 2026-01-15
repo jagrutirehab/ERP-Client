@@ -410,6 +410,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             <FormGroup>
                 <Label for="description" className="fw-medium">
                     Description <span className="text-danger">*</span>
+                    <span className="ms-1 text-muted fs-12">
+                        (Max 20 characters, no special characters)
+                    </span>
                 </Label>
                 <Input
                     type="textarea"
