@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Container, Table, Row, Col, Input, Button, Badge } from "reactstrap";
+import {
+  Container,
+  Table,
+  Row,
+  Col,
+  Input,
+  Button,
+  Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Label,
+  FormGroup,
+} from "reactstrap";
 import Select from "react-select";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -35,6 +49,104 @@ const Stats = () => {
     total: 0,
     totalPages: 0,
   });
+
+  // Modal State
+  const [modal, setModal] = useState(false);
+  const [selectedActionItem, setSelectedActionItem] = useState(null);
+  const [notificationForm, setNotificationForm] = useState({
+    status: "fall",
+    person: "",
+    description: "",
+  });
+
+  const toggleModal = () => {
+    setModal(!modal);
+    if (modal) {
+      // Reset form when closing
+      setNotificationForm({
+        status: "",
+        person: "",
+        description: "",
+      });
+      setSelectedActionItem(null);
+    }
+  };
+
+  const handleAction = (item) => {
+    setSelectedActionItem(item);
+    const initialStatus = {};
+    if (item.alerts) {
+      Object.entries(item.alerts).forEach(([key, value]) => {
+        if (value) initialStatus[key] = key;
+      });
+    }
+    setNotificationForm({
+      status: initialStatus,
+      person: "",
+      description: "",
+    });
+    setModal(true);
+  };
+
+  const handleStatusChange = (alertKey, value) => {
+    setNotificationForm((prev) => ({
+      ...prev,
+      status: {
+        ...prev.status,
+        [alertKey]: value,
+      },
+    }));
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setNotificationForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleConfirm = async () => {
+    if (!notificationForm.description) {
+      toast.error("Please enter a description");
+      return;
+    }
+
+    try {
+      const payload = {
+        actionBy: {
+          name: user && (user.user.name || "Unknown"), // handling potential user structure
+          id: user && user.user._id,
+        },
+        actionStatus: Object.values(notificationForm.status), // Convert status object to array
+        actionNotes: notificationForm.description,
+      };
+
+      await axios.put(
+        `${api.CCTV_SERVICE_URL}/alerts/${selectedActionItem._id}`,
+        payload,
+        {
+          headers: {
+            "x-api-key":
+              "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
+          },
+        }
+      );
+
+      toast.success("Alert notification updated successfully");
+      toggleModal();
+      setNotificationForm({
+        status: "",
+        person: "",
+        description: "",
+      });
+      // reload the data to show updated status if needed, or just close
+      fetchcctvstats(pagination.page, pagination.limit);
+    } catch (error) {
+      console.error("Error updating alert:", error);
+      toast.error("Failed to update alert");
+    }
+  };
 
   const [lastFetchedAt, setLastFetchedAt] = useState(null);
   const [dataAge, setDataAge] = useState(0);
@@ -277,15 +389,41 @@ const Stats = () => {
           </Row>
 
           {/* TABLE */}
-          <div className="table-responsive">
-            <Table bordered striped>
-              <thead>
+          <div
+            className="table-responsive"
+            style={{
+              maxHeight: "calc(100vh - 280px)",
+              overflow: "auto",
+              width: "98%",
+              margin: "0 auto",
+            }}
+          >
+            <Table
+              bordered
+              striped
+              className="mb-0"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
+                  background: "#fff",
+                }}
+              >
                 <tr>
                   <th>Cam ID</th>
                   <th>Center</th>
                   <th>Timestamp</th>
                   <th>Alerts</th>
                   <th>Evidence</th>
+                  <th>Take Action</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Action Notes</th>
+                  <th>Action Date</th>
+                  <th>Action By</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,6 +453,38 @@ const Stats = () => {
                           "N/A"
                         )}
                       </td>
+                      <td>
+                        <Button
+                          color="primary"
+                          size="sm"
+                          onClick={() => handleAction(item)}
+                        >
+                          Action
+                        </Button>
+                      </td>
+                      <td>
+                        <Badge
+                          color={
+                            item.action === "resolved" ? "success" : "warning"
+                          }
+                        >
+                          {item.action || "investigate"}
+                        </Badge>
+                      </td>
+                      <td>
+                        {item.actionStatus?.map((status, index) => (
+                          <Badge color="secondary" className="me-1" key={index}>
+                            {status}
+                          </Badge>
+                        )) || "N/A"}
+                      </td>
+                      <td>{item.actionNotes || "N/A"}</td>
+                      <td>
+                        {item.actionTime
+                          ? new Date(item.actionTime).toLocaleString()
+                          : "N/A"}
+                      </td>
+                      <td>{item.actionBy?.name || "N/A"}</td>
                     </tr>
                   ))
                 ) : (
@@ -367,6 +537,107 @@ const Stats = () => {
           </Row>
         </div>
       </Container>
+
+      {/* ALERT NOTIFICATION MODAL */}
+      <Modal isOpen={modal} toggle={toggleModal} centered>
+        <ModalHeader toggle={toggleModal}>Alert Notification</ModalHeader>
+        <ModalBody>
+          {selectedActionItem && (
+            <div className="bg-light p-3 rounded mb-3">
+              <div className="d-flex align-items-center mb-2">
+                <span className="me-2">
+                  {renderAlerts(selectedActionItem.alerts)}
+                </span>
+                <small className="ms-auto text-muted">
+                  {new Date(selectedActionItem.timestamp).toLocaleString()}
+                </small>
+              </div>
+              <p className="mb-0 text-muted small">
+                Resident at {selectedActionItem.center?.name || "Unknown"}{" "}
+                {/* in {selectedActionItem.center?.location || "Unknown Location"} */}
+              </p>
+            </div>
+          )}
+
+          <FormGroup tag="fieldset">
+            <div className="d-flex gap-3">
+              <div className="d-flex gap-3 flex-wrap">
+                {selectedActionItem?.alerts &&
+                  Object.entries(selectedActionItem.alerts)
+                    .filter(([_, value]) => value)
+                    .map(([alertKey]) => {
+                      const label =
+                        alertOptions.find((opt) => opt.value === alertKey)
+                          ?.label ||
+                        alertKey.charAt(0).toUpperCase() + alertKey.slice(1);
+                      return (
+                        <React.Fragment key={alertKey}>
+                          <FormGroup check>
+                            <Label check>
+                              <Input
+                                type="radio"
+                                name={`status_${alertKey}`}
+                                value={alertKey}
+                                checked={
+                                  notificationForm.status[alertKey] === alertKey
+                                }
+                                onChange={() =>
+                                  handleStatusChange(alertKey, alertKey)
+                                }
+                              />{" "}
+                              {label}
+                            </Label>
+                          </FormGroup>
+                          <FormGroup check>
+                            <Label check>
+                              <Input
+                                type="radio"
+                                name={`status_${alertKey}`}
+                                value={`no_${alertKey}`}
+                                checked={
+                                  notificationForm.status[alertKey] ===
+                                  `no_${alertKey}`
+                                }
+                                onChange={() =>
+                                  handleStatusChange(alertKey, `no_${alertKey}`)
+                                }
+                              />{" "}
+                              No {label}
+                            </Label>
+                          </FormGroup>
+                        </React.Fragment>
+                      );
+                    })}
+              </div>
+            </div>
+          </FormGroup>
+
+          <FormGroup className="mb-0">
+            <Label for="description">Notes *</Label>
+            <Input
+              type="textarea"
+              name="description"
+              id="description"
+              rows="3"
+              value={notificationForm.description}
+              onChange={handleFormChange}
+              style={{
+                borderColor: notificationForm.description ? "#28a745" : "",
+              }}
+            />
+            {notificationForm.description && (
+              <div className="text-end mt-1">
+                <i className="bx bx-check-circle text-success font-size-18"></i>
+              </div>
+            )}
+          </FormGroup>
+        </ModalBody>
+        <ModalFooter className="justify-content-center">
+          <Button color="warning" onClick={handleConfirm} className="px-4">
+            Confirm
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
