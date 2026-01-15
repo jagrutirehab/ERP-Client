@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTable from "react-data-table-component";
 import Select from "react-select";
-import { renderStatusBadge } from "../../../components/renderStatusBadge";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 
 const customStyles = {

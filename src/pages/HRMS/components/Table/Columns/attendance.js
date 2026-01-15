@@ -26,6 +26,11 @@ export const attendanceColumns = [
         minWidth: "120px"
     },
     {
+        name: <div>Source</div>,
+        selector: row => capitalizeWords(row?.source) || "-",
+        wrap: true
+    },
+    {
         name: <div>Date</div>,
         selector: row => {
             const date = row?.date;

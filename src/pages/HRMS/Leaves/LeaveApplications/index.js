@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 import {
   getMyManager,
   postLeaveRequest,
@@ -127,25 +127,25 @@ const LeaveApplications = () => {
                   <label className="form-label">
                     From Date <span className="text-danger">*</span>
                   </label>
-                  <DatePicker
+                  {/* <DatePicker
                     selected={fromDate}
                     onChange={(date) => setFromDate(date)}
                     className="form-control"
                     placeholderText="Select date"
-                  />
+                  /> */}
                 </div>
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">
                     To Date <span className="text-danger">*</span>
                   </label>
-                  <DatePicker
+                  {/* <DatePicker
                     selected={toDate}
                     onChange={(date) => setToDate(date)}
                     minDate={fromDate}
                     className="form-control"
                     placeholderText="Select date"
-                  />
+                  /> */}
                 </div>
               </div>
 

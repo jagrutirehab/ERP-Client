@@ -18,7 +18,7 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 
 import { detectShift } from "../detectShift";
-import { managerUpdatePermissionRoles, SHIFT_CONFIG } from "../../../../Components/constants/HRMS";
+import { allViewPermissionRoles, SHIFT_CONFIG } from "../../../../Components/constants/HRMS";
 import {
   postEmployeeReporting,
   editEmployeeReporting,
@@ -69,7 +69,7 @@ const EmployeeReportingForm = ({
 
   const canEditManager =
     !permissionLoader &&
-    managerUpdatePermissionRoles.includes(roles?.name);
+    allViewPermissionRoles.includes(roles?.name);
 
   const managerDisplayValue =
     initialData?.manager

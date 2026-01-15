@@ -11,5 +11,29 @@ export const SHIFT_CONFIG = Object.freeze({
     },
 });
 
-export const managerUpdatePermissionRoles = ["HR", "MANAGER", "SUPERADMIN", "New_limited"];
+export const allViewPermissionRoles = ["HR", "MANAGER", "SUPERADMIN", "New_limited"];
+
+export const leaveTypes = [
+    "EARNED_LEAVE",
+    "FESTIVE_LEAVE",
+    "WEEK_OFFS",
+    "LEAVE_WTIHOUT_PAYS",
+];
+
+export const statusTitleMap = {
+    PRESENT: "Present",
+    ABSENT: "Absent",
+    PENDING: "Pending",
+    HOLIDAY: "Holiday",
+
+    WEEK_OFFS: "Week Off",
+
+    EARNED_LEAVE: "Earned Leave",
+    FESTIVE_LEAVE: "Festive Leave",
+
+    LEAVE_WTIHOUT_PAYS: "Leave Without Pay",
+
+    HALF_DAY: "Half Day",
+};
+
 

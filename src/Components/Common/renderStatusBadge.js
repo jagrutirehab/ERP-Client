@@ -43,6 +43,14 @@ export const renderStatusBadge = (stage) => {
             text: "Pending",
             color: "warning"
         },
+        PRESENT: {
+            text: "Present",
+            color: "success"
+        },
+        ABSENT: {
+            text: "Absent",
+            color: "danger"
+        },
         APPROVED: {
             text: "Approved",
             color: "success"
@@ -50,6 +58,26 @@ export const renderStatusBadge = (stage) => {
         REJECTED: {
             text: "Rejected",
             color: "danger"
+        },
+        LEAVE_WTIHOUT_PAYS: {
+            text: "Leave Without Pay",
+            color: "danger"
+        },
+        FULL_DAY: {
+            text: "Full Day",
+            color: "info"
+        },
+        HALF_DAY: {
+            text: "HALF_DAY",
+            color: "info"
+        },
+        FIRST_HALF: {
+            text: "First Half",
+            color: "success"
+        },
+        SECOND_HALF: {
+            text: "Second Half",
+            color: "success"
         },
         REJECTED_AND_ACTIVE_EMPLOYEE: {
             text: "Rejected & Active Employee",
