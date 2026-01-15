@@ -726,6 +726,50 @@ export const HRMS = [
     ],
   },
   {
+    id: "leaves",
+    label: "Leaves",
+    link: "/hrms/leaves",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+      {
+        id: "apply-leave",
+        label: "Apply Leave",
+        link: "/hrms/leaves/apply",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "leave-history",
+        label: "Leave History",
+        link: "/hrms/leaves/history",
+        icon: "bx bx-history",
+      },
+      {
+        id: "manage-leaves",
+        label: "Manage Leaves",
+        link: "/hrms/leaves/manage",
+        icon: "bx bx-history",
+      },
+      {
+        id: "my-leaves",
+        label: "My Leaves",
+        link: "/hrms/leaves/my/leaves",
+        icon: "bx bx-history",
+      },
+    ],
+  },
+   {
+    id: "policies",
+    label: "Policies",
+    link: "/hrms/policies",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+       {
+        id: "policy",
+        label: "Policies",
+        link: "/hrms/policies",
+        icon: "bx bx-history",
     id: "employee-reporting",
     label: "Employee Reporting",
     link: "/hrms/attendance",
