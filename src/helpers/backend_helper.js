@@ -2132,3 +2132,37 @@ export const getMyLeavesHistory = () => {
     },
   });
 };
+
+export const retrieveActionOnLeave = (action, docId, data) => {
+  return api.update(`${url.RETRIEVE_ACTION}/${action}/${docId}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// Policies
+export const addPolicies = (data) => {
+  return api.create(`${url.ADD_POLICIES}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+
+export const getPolicies = () => {
+  return api.get(`${url.GET_POLICIES}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const adminGetAllLeavesInfo = () => {
+  return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};

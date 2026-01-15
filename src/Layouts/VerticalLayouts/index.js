@@ -9,6 +9,7 @@ import { withTranslation } from "react-i18next";
 
 const VerticalLayout = (props) => {
     const navData = navdata().props.children;
+    console.log(navData);
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -52,9 +53,9 @@ const VerticalLayout = (props) => {
     }
 
     const removeActivation = (items) => {
-        let actiItems = items.filter((x) => x.classList.contains("active"));
+        let actiItems = items?.filter((x) => x.classList?.contains("active"));
 
-        actiItems.forEach((item) => {
+        actiItems?.forEach((item) => {
             if (item.classList.contains("menu-link")) {
                 if (!item.classList.contains("active")) {
                     item.setAttribute("aria-expanded", false);
@@ -76,14 +77,14 @@ const VerticalLayout = (props) => {
     return (
         <React.Fragment>
             {/* menu Items */}
-            {(navData || []).map((item, key) => {
+            {(navData || [])?.map((item, key) => {
                 return (
                     <React.Fragment key={key}>
                         {/* Main Header */}
-                        {item['isHeader'] ?
+                        {item?.isHeader ?
                             <li className="menu-title"><span data-key="t-menu">{props.t(item.label)}</span></li>
                             : (
-                                (item.subItems ? (
+                                (item?.subItems ? (
                                     <li className="nav-item">
                                         <Link
                                             onClick={item.click}
@@ -169,8 +170,8 @@ const VerticalLayout = (props) => {
                                     <li className="nav-item">
                                         <Link
                                             className="nav-link menu-link"
-                                            to={item.link ? item.link : "/#"}>
-                                            <i className={item.icon}></i> <span>{props.t(item.label)}</span>
+                                            to={item?.link ? item?.link : "/#"}>
+                                            <i className={item?.icon}></i> <span>{props?.t(item?.label)}</span>
                                         </Link>
                                     </li>
                                 ))

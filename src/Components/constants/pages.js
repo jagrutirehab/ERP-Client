@@ -758,6 +758,21 @@ export const HRMS = [
       },
     ],
   },
+   {
+    id: "policies",
+    label: "Policies",
+    link: "/hrms/policies",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+       {
+        id: "policy",
+        label: "Policies",
+        link: "/hrms/policies",
+        icon: "bx bx-history",
+      },
+    ],
+  },
 ];
 
 export default pages;

@@ -9,6 +9,8 @@ import LeaveHistory from "./Leaves/LeaveHistory";
 import LeaveApplications from "./Leaves/LeaveApplications";
 import ManageLeaves from "./Leaves/ManageLeaves";
 import MyLeaves from "./Leaves/MyLeaves";
+import Policies from "./Policies";
+import IndividualLeavesOfEmp from "./Leaves/EmployeeIndvidualLeaves";
 
 const HRMS = () => {
     const navigate = useNavigate();
@@ -48,6 +50,8 @@ const HRMS = () => {
                                 <Route path={`/leaves/apply`} element={< LeaveApplications/>} />
                                 <Route path={`/leaves/manage`} element={< ManageLeaves/>} />
                                 <Route path={`/leaves/my/leaves`} element={< MyLeaves/>} />
+                                <Route path={`/policies`} element={<Policies/>} />
+                                <Route path={"/leaves/history/for/:id"} element={<IndividualLeavesOfEmp/>} />
                             </Routes>
                         </div>
                     </Container>

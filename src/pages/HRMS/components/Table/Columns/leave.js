@@ -1,73 +1,48 @@
+import { useNavigate } from "react-router-dom";
 import { Badge } from "reactstrap";
 
-export const leaveColumns = [
+export const leaveColumns = (navigate) => [
   {
-    name: <div>ECode</div>,
-    selector: (row) => row?.id || "-",
+    name: <div className="text-center">ECode</div>,
+    selector: (row) => row?.employeeId?.eCode || "-",
     sortable: true,
-  },
-  {
-    name: <div>Leave Type</div>,
-    selector: (row) => row?.type || "-",
-    grow: 1.5,
-    wrap: true,
-    minWidth: "140px",
-  },
-  {
-    name: <div>Approval Manager</div>,
-    selector: (row) => row?.manager || "-",
-    grow: 1,
-    minWidth: "140px",
-  },
-  {
-    name: <div>From</div>,
-    selector: (row) => row?.from || "-",
-    grow: 1,
-    minWidth: "120px",
-  },
-  {
-    name: <div>To</div>,
-    selector: (row) => row?.to || "-",
-    grow: 1,
-    minWidth: "120px",
-  },
-  {
-    name: <div>Days</div>,
-    selector: (row) => row?.days ?? "-",
     center: true,
-    grow: 0.6,
-    minWidth: "80px",
   },
   {
-    name: <div>Leave Shift</div>,
-    selector: (row) => row?.shift || "-",
+    name: <div className="text-center">Employee Name</div>,
+    selector: (row) => row?.employeeId?.name || "-",
+    // sortable: true,
+    center: true,
+  },
+  {
+    name: <div className="text-center">Approval Manager</div>,
+    selector: (row) => row?.approvalAuthority?.name || "-",
     grow: 1,
-    minWidth: "120px",
+    minWidth: "140px",
+    center: true,
   },
   {
-    name: <div>Reason</div>,
-    selector: (row) => row?.reason || "-",
-    wrap: true,
-    grow: 2,
+    name: <div className="text-center">View</div>,
     minWidth: "200px",
-  },
-  {
-    name: <div>Status</div>,
-    selector: (row) => {
-      const status = row?.status;
-
-      if (status === "Approved") {
-        return <Badge color="success">Approved</Badge>;
-      }
-
-      if (status === "Pending") {
-        return <Badge color="warning">Pending</Badge>;
-      }
-
-      return "-";
-    },
     center: true,
-    grow: 1,
-    minWidth: "120px",
+    cell: (row) => {
+      return (
+        <div className="d-flex justify-content-center align-items-center w-100">
+          <p
+            className="text-black m-0 cursor-pointer"
+            style={{ textDecoration: "none" }}
+            onMouseEnter={(e) => (e.target.style.textDecoration = "underline")}
+            onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
+            onClick={() =>
+              navigate(`/hrms/leaves/history/for/${row?.employeeId?._id}`, {
+                state: row,
+              })
+            }
+          >
+            View Leaves
+          </p>
+        </div>
+      );
+    },
   },
 ];

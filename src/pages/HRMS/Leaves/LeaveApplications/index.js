@@ -9,6 +9,7 @@ import ButtonLoader from "../../../../Components/Common/ButtonLoader";
 import { toast } from "react-toastify";
 import { CardBody } from "reactstrap";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+// import {useNavigate} from "react-router-dom";
 
 const LeaveApplications = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -22,6 +23,8 @@ const LeaveApplications = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
+  // const [isLoading, seIsloading] = useState(false);
+  // const navigate = useNavigate();
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
 
@@ -71,6 +74,7 @@ const LeaveApplications = () => {
       setFromDate(null);
       setToDate(null);
       setLeaveReason("");
+      // navigate('/hrms/leaves/my/leaves')
     } catch (err) {
       console.log("err", err);
       toast.error(err?.message || "Something went wrong");
@@ -102,9 +106,9 @@ const LeaveApplications = () => {
                   onChange={(e) => setLeaveType(e.target.value)}
                 >
                   <option value="EARNED_LEAVE">Earned Leave</option>
-                  <option value="FESTIVE_LEAVE">Week Off</option>
+                  <option value="WEEK_OFFS">Week Off</option>
                   <option value="FESTIVE_LEAVE">Festive Leave</option>
-                  <option value="UNPAID_LEAVE">Unpaid Leave</option>
+                  <option value="LEAVE_WTIHOUT_PAYS">Unpaid Leave</option>
                 </select>
               </div>
 

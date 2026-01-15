@@ -1,5 +1,6 @@
 import { Badge } from "reactstrap";
 import moment from "moment";
+import ButtonLoader from "../../../../../Components/Common/ButtonLoader";
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
@@ -9,15 +10,20 @@ const Left = ({ children }) => (
   <div className="text-start w-100">{children}</div>
 );
 
-export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
+export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
   {
     name: <Center>ECode</Center>,
     cell: (row) => <Center>{row?.eCode || "-"}</Center>,
     width: "140px",
   },
   {
-    name: <Center>Employee Name</Center>,
-    cell: (row) => <Center>{row?.employeeId?.name || "-"}</Center>,
+    name: <Center>Manager Name</Center>,
+    cell: (row) => <Center>{row?.approvalAuthority?.name || "-"}</Center>,
+    width: "180px",
+  },
+  {
+    name: <Center>Center</Center>,
+    cell: (row) => <Center>{row?.center?.name || "-"}</Center>,
     width: "180px",
   },
   {
@@ -92,7 +98,7 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
       if (status === "retrieved")
         return (
           <Center>
-            <Badge pill color="danger">
+            <Badge pill color="secondary">
               Retrieved
             </Badge>
           </Center>
@@ -113,31 +119,31 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
     name: "Action",
     cell: (row) =>
       row?.status?.toLowerCase() === "pending" ? (
-        actionLoadingId === row._id ? (
-          <button className="btn btn-sm btn-secondary" disabled>
-            Processing...
+        <div className="d-flex gap-1 justify-content-center">
+          <button
+            className="btn btn-sm btn-warning"
+            disabled={loadingLeaveId === row._id}
+            onClick={() =>
+              handleAction(row.parentDocId, row._id, "retrieved", "retrieve")
+            }
+          >
+            {loadingLeaveId === row._id ? "Processing..." : "Retrieve"}
           </button>
-        ) : (
-          <div className="d-flex gap-1 justify-content-center">
-            <button
-              className="btn btn-sm btn-success"
-              onClick={() => handleAction(row.parentDocId, row._id, "approved")}
-            >
-              Approve
-            </button>
 
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => handleAction(row.parentDocId, row._id, "rejected")}
-            >
-              Reject
-            </button>
-          </div>
-        )
+          {/* <button
+            className="btn btn-sm btn-warning"
+            disabled={loadingLeaveId === row._id}
+            onClick={() =>
+              handleAction(row.parentDocId, row._id, "deleted", "delete")
+            }
+          >
+            {loadingLeaveId === row._id ? "Processing..." : "Delete"}
+          </button> */}
+        </div>
       ) : (
         <span className="text-muted">—</span>
       ),
-    width: "160px",
+    width: "200px",
   },
   {
     name: <Center>Action On</Center>,
