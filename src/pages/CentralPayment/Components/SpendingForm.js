@@ -223,6 +223,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             form.setFieldError(name, "Comma (,) is not allowed");
             return;
         }
+
+        // special charracter not allowed in description
+        if (name === "description") {
+            const valid = /^[a-zA-Z0-9 ]*$/.test(value);
+            if (!valid) {
+                form.setFieldTouched(name, true, false);
+                form.setFieldError(name, "No special characters allowed");
+                return;
+            }
+        }
+
         let newValue = value;
         if (["IFSCCode", "accountNo"].includes(name)) {
             newValue = value.replace(/\s+/g, "");
