@@ -1,32 +1,23 @@
 import React from "react";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
-import { ADVANCE_PAYMENT, ALL_TRANSACTIONS, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
+import { ADVANCE_PAYMENT, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
   console.log(billType);
   const totalAdvancePayment = (dt) => {
     let amount = 0;
     dt?.forEach((item) => {
-      let baseAmount = 0;
-
       if (item.intern && item.receipt?.totalAmount) {
-        baseAmount += item.receipt.totalAmount;
+        amount += item.receipt.totalAmount;
       } else if (billType === DUE_AMOUNT) {
-        baseAmount += item?.totalAdvancePayment ?? 0;
-
+        amount += item?.totalAdvancePayment || 0;
       } else if (billType === OPD_BILL) {
-        baseAmount += item?.receiptInvoice?.payable ?? 0;
+        amount += item?.receiptInvoice?.payable || 0;
       } else {
-        baseAmount +=
-          item?.advancePayment?.totalAmount ??
-          item?.receiptInvoice?.payable ??
+        amount +=
+          item?.advancePayment?.totalAmount ||
+          item?.receiptInvoice?.payable ||
           0;
-      }
-      if (billType === ALL_TRANSACTIONS || billType === INVOICE) {
-        let refund = item?.invoice?.refund ?? 0;
-        amount += baseAmount - refund;
-      } else {
-        amount += baseAmount;
       }
     });
     return amount;
@@ -57,21 +48,11 @@ const Banner = ({ data, billType }) => {
     return amount;
   };
 
-  const totalRefundAmount = (dt) => {
-    let refundTotal = 0;
-
-    dt?.forEach((item) => {
-      refundTotal += item?.invoice?.refund ?? 0;
-    });
-
-    return refundTotal;
-  };
-
-  // console.log(
-  //   data?.reduce((total, item) => total + (item.invoice?.payable || 0), 0),
-  //   "data",
-  //   data
-  // );
+  console.log(
+    data?.reduce((total, item) => total + (item.invoice?.payable || 0), 0),
+    "data",
+    data
+  );
 
   const dueAmount = (dt) => {
     const totalAdPayment = totalAdvancePayment(dt);
@@ -96,14 +77,6 @@ const Banner = ({ data, billType }) => {
               <h6 className="display-6 fs-6">TOTAL PAID AMOUNT (₹): </h6>
               <h5 className="display-5 ms-2 fs-17 font-semi-bold">
                 {totalAdvancePayment(data) || 0.0}
-              </h5>
-            </div>
-          </RenderWhen>
-          <RenderWhen isTrue={billType === ALL_TRANSACTIONS || billType === INVOICE}>
-            <div className="d-flex align-items-center">
-              <h6 className="display-6 fs-6">TOTAL REFUND AMOUNT (₹): </h6>
-              <h5 className="display-5 ms-2 fs-17 font-semi-bold">
-                {totalRefundAmount(data) || 0.0}
               </h5>
             </div>
           </RenderWhen>

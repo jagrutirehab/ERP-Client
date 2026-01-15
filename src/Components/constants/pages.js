@@ -206,7 +206,7 @@ const pages = [
   },
   {
     id: "referral",
-    label: "Doctor Visits",
+    label: "Referral",
     name: "Referral",
     link: "/referral",
     icon: "bx bx-share-alt",
@@ -770,23 +770,6 @@ export const HRMS = [
         label: "Policies",
         link: "/hrms/policies",
         icon: "bx bx-history",
-    id: "employee-reporting",
-    label: "Employee Reporting",
-    link: "/hrms/attendance",
-    icon: "bx bx-git-branch",
-    isAccordion: true,
-    children: [
-      {
-        id: "assign-manager",
-        label: "Assign Manager",
-        link: "/hrms/reporting/assign",
-        icon: "bx bx-user-plus",
-      },
-      {
-        id: "manage-employee-reporting",
-        label: "Manage",
-        link: "/hrms/reporting/manage",
-        icon: "bx bx-list-check",
       },
     ],
   },

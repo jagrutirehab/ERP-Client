@@ -159,24 +159,17 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              editBillData.bill === null ||
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              isPaymentCenter
+                ? editBillData.bill === null ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+                : editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
             }
-            // disabled={
-            //   isPaymentCenter
-            //     ? editBillData.bill === null ||
-            //       editBillData.bill === INVOICE ||
-            //       editBillData.bill === REFUND ||
-            //       editBillData.bill === DRAFT_INVOICE ||
-            //       editBillData.bill === DEPOSIT
-            //     : editBillData.bill === INVOICE ||
-            //       editBillData.bill === REFUND ||
-            //       editBillData.bill === DRAFT_INVOICE ||
-            //       editBillData.bill === DEPOSIT
-            // }
             size="sm"
             onClick={() => {
               dispatch(
@@ -190,8 +183,7 @@ const BillDate = ({
               toggle();
             }}
           >
-            {/* {isPaymentCenter ? "Payment" : "Advance Payment"} */}
-            Payment
+            {isPaymentCenter ? "Payment" : "Advance Payment"}
           </Button>
 
           <Button
