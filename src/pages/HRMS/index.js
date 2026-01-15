@@ -5,6 +5,12 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import AttendanceLogs from "./Attendance/Logs";
 import AttendanceMetrics from "./Attendance/Metrics";
+import LeaveHistory from "./Leaves/LeaveHistory";
+import LeaveApplications from "./Leaves/LeaveApplications";
+import ManageLeaves from "./Leaves/ManageLeaves";
+import MyLeaves from "./Leaves/MyLeaves";
+import Policies from "./Policies";
+import IndividualLeavesOfEmp from "./Leaves/EmployeeIndvidualLeaves";
 
 const HRMS = () => {
     const navigate = useNavigate();
@@ -40,6 +46,12 @@ const HRMS = () => {
                     
                                 <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
                                 <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} />
+                                <Route path={`/leaves/history`} element={< LeaveHistory/>} />
+                                <Route path={`/leaves/apply`} element={< LeaveApplications/>} />
+                                <Route path={`/leaves/manage`} element={< ManageLeaves/>} />
+                                <Route path={`/leaves/my/leaves`} element={< MyLeaves/>} />
+                                <Route path={`/policies`} element={<Policies/>} />
+                                <Route path={"/leaves/history/for/:id"} element={<IndividualLeavesOfEmp/>} />
                             </Routes>
                         </div>
                     </Container>

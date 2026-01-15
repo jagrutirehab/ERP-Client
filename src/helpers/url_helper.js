@@ -454,3 +454,12 @@ export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
 export const ATTENDANCE_METRICS="/hrms/attendance/metrics";
 export const EXPORT_ATTENDANCE_METRICS="/hrms/attendance/metrics/export";
 
+export const APPLY_LEAVE="/hrms/leaves/request"
+export const GET_MY_MANAGER="/hrms/get/my/reporting/manager"
+export const GET_LEAVES_REQUESTS="/hrms/get/leaves/requests"
+export const ACTION_ON_LEAVE="/hrms/leaves"
+export const GET_MY_LEAVES="/hrms/get/my/leaves"
+export const RETRIEVE_ACTION="/hrms/leaves"
+export const ADD_POLICIES="/hrms/employee/policy"
+export const GET_POLICIES="/hrms/employee/get/policies"
+export const ADMIN_GET_ALL_LEAVES="/hrms/admin/get/leaves/info"
