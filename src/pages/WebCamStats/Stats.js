@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Container, Table, Row, Col, Input, Button, Badge } from "reactstrap";
 import Select from "react-select";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { api } from "../../config";
@@ -28,6 +30,7 @@ const Stats = () => {
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [camSearch, setCamSearch] = useState("");
   const [selectedAlert, setSelectedAlert] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -77,6 +80,13 @@ const Stats = () => {
 
       if (selectedAlert) {
         params.alertType = selectedAlert;
+      }
+
+      if (dateRange[0]) {
+        params.startDate = dateRange[0].toISOString();
+      }
+      if (dateRange[1]) {
+        params.endDate = dateRange[1].toISOString();
       }
 
       const response = await axios.get(`${api.CCTV_SERVICE_URL}/alerts`, {
@@ -130,6 +140,13 @@ const Stats = () => {
         params.alertType = selectedAlert;
       }
 
+      if (dateRange[0]) {
+        params.startDate = dateRange[0].toISOString();
+      }
+      if (dateRange[1]) {
+        params.endDate = dateRange[1].toISOString();
+      }
+
       // API Call with responseType: 'blob' is crucial for file downloads
       const response = await axios.get(
         `${api.CCTV_SERVICE_URL}/alerts/export`,
@@ -177,7 +194,7 @@ const Stats = () => {
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
     // eslint-disable-next-line
-  }, [selectedCenter, camSearch, selectedAlert]);
+  }, [selectedCenter, camSearch, selectedAlert, dateRange]);
 
   // ---------------- DATA AGE COUNTER ----------------
   useEffect(() => {
@@ -272,6 +289,18 @@ const Stats = () => {
                 options={alertOptions}
                 onChange={(opt) => setSelectedAlert(opt.value)}
                 placeholder="Filter Alert Type"
+              />
+            </Col>
+            <Col md="3">
+              <Flatpickr
+                className="form-control"
+                placeholder="Select Date Range"
+                options={{
+                  mode: "range",
+                  dateFormat: "Y-m-d",
+                }}
+                value={dateRange}
+                onChange={(date) => setDateRange(date)}
               />
             </Col>
           </Row>

@@ -187,10 +187,18 @@ const ReferralRegistration = ({
                 </CardHeader>
                 <CardBody>
                   {/* Tabs */}
-                  <Nav tabs className="nav-tabs-custom nav-success">
+                  <Nav
+                    tabs
+                    className="nav-tabs-custom nav-success"
+                    style={{ flexWrap: "nowrap", overflowX: "auto" }}
+                  >
                     <NavItem>
                       <NavLink
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          padding: "0.5rem 0.75rem",
+                        }}
                         className={classnames({
                           active: activeTab === "approved",
                         })}
@@ -202,7 +210,11 @@ const ReferralRegistration = ({
                     </NavItem>
                     <NavItem>
                       <NavLink
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          padding: "0.5rem 0.75rem",
+                        }}
                         className={classnames({
                           active: activeTab === "pending",
                         })}

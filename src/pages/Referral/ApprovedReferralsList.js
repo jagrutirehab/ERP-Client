@@ -146,9 +146,9 @@ const ApprovedReferralsList = ({
             {referrals && referrals.length > 0 ? (
               referrals.map((referral) => (
                 <tr key={referral._id}>
-                  <td>{referral.doctorName}</td>
-                  <td>{referral.speciality}</td>
-                  <td>{referral.hospitalClinic}</td>
+                  <td className="text-capitalize">{referral.doctorName}</td>
+                  <td className="text-capitalize">{referral.speciality}</td>
+                  <td className="text-capitalize">{referral.hospitalClinic}</td>
                   <td>{referral.mobileNumber}</td>
                   <td>{referral.email || "—"}</td>
                   <td>

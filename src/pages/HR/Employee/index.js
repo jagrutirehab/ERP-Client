@@ -183,6 +183,19 @@ const Employee = () => {
             minWidth: "120px"
         },
         {
+            name: <div>Current Manager</div>,
+            selector: row => {
+                const manager = row?.currentManager;
+                if (!manager) return "-";
+                const name = manager.name?.toUpperCase();
+                const eCode = manager.eCode;
+
+                return `${name}${eCode ? ` (${eCode})` : ""}`;
+            },
+            wrap: true,
+            minWidth: "160px",
+        },
+        {
             name: <div>Employment</div>,
             selector: row => capitalizeWords(row?.employmentType || "-"),
             wrap: true,

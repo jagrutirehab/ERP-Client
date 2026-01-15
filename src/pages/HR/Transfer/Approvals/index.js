@@ -158,8 +158,17 @@ const TransferApprovals = () => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row => row?.transferDate,
+            selector: row =>
+                row?.transferDate
+                    ? format(new Date(row.transferDate), "dd-MM-yyyy")
+                    : "-",
             wrap: true,
+        },
+        {
+            name: <div>Is Transferred</div>,
+            selector: row => row?.isTransferApplied ? "Yes" : "No",
+            wrap: true,
+            center: true
         },
         {
             name: <div>Transfer Location</div>,
