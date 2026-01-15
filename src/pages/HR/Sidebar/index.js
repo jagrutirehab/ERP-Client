@@ -97,6 +97,36 @@ const Sidebar = () => {
     "READ"
   );
 
+  // Attendance
+  const hasAttendanceLogPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_LOG",
+    "READ"
+  );
+  const hasAttendanceMetricsPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_METRICS",
+    "READ"
+  );
+
+  const hasMyAttendancePermission = hasPermission(
+    "HR",
+    "MY_ATTENDANCE",
+    "READ"
+  );
+
+  // employee reportings permissions
+  const hasAssignManagerPermission = hasPermission(
+    "HR",
+    "ASSIGN_MANAGER",
+    "READ"
+  );
+  const hasEmployeeReportingsPermission = hasPermission(
+    "HR",
+    "MANAGE_EMPLOYEE_REPORTINGS",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
 
@@ -201,6 +231,32 @@ const Sidebar = () => {
           return false;
         if (child.id === "tpm-approval" && !hasTPMApprovalPermission)
           return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
+
+    if (page.id === "attendance") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "attendance-log" && !hasAttendanceLogPermission)
+          return false;
+        if (child.id === "attendance-metrics" && !hasAttendanceMetricsPermission)
+          return false;
+        if (child.id === "my-attendance" && !hasMyAttendancePermission)
+          return false;
+
+        return true;
+      });
+      return page.children.length > 0;
+    }
+
+    if (page.id === "employee-reporting") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "assign-manager" && !hasAssignManagerPermission)
+          return false;
+        if (child.id === "manage-employee-reporting" && !hasEmployeeReportingsPermission)
+          return false;
+
         return true;
       });
       return page.children.length > 0;
@@ -315,9 +371,8 @@ const Sidebar = () => {
 
                   <div
                     ref={contentRef}
-                    className={`accordion-wrap ${
-                      openSection === page.id ? "open" : ""
-                    }`}
+                    className={`accordion-wrap ${openSection === page.id ? "open" : ""
+                      }`}
                     style={{
                       maxHeight:
                         openSection === page.id

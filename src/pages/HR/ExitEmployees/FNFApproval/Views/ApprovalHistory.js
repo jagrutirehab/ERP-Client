@@ -10,7 +10,7 @@ import { ExpandableText } from '../../../../../Components/Common/ExpandableText'
 import { Input, Spinner } from 'reactstrap';
 import Select from "react-select";
 import DataTable from 'react-data-table-component';
-import { renderStatusBadge } from '../../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
 
 const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();

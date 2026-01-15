@@ -12,7 +12,7 @@ import DataTable from "react-data-table-component";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import { renderStatusBadge } from "../../../components/renderStatusBadge";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
