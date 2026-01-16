@@ -8,8 +8,10 @@ import navdata from "../LayoutMenuData";
 import { withTranslation } from "react-i18next";
 
 const VerticalLayout = (props) => {
-    const navData = navdata().props.children;
-    console.log(navData);
+    // const navData = navdata().props.children;
+    // console.log(navData);
+    // const navData = navdata().props.children;
+    const navData = (navdata().props.children || []).filter(Boolean);
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });

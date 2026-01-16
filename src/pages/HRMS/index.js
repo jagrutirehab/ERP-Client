@@ -11,6 +11,10 @@ import ManageLeaves from "./Leaves/ManageLeaves";
 import MyLeaves from "./Leaves/MyLeaves";
 import Policies from "./Policies";
 import IndividualLeavesOfEmp from "./Leaves/EmployeeIndvidualLeaves";
+import AssignManager from "./EmployeeReporting/AssignManager";
+import ManageEmployeeReportings from "./EmployeeReporting/Manage";
+import MyAttendance from "./Attendance/MyAttendance";
+import EmployeeAttendance from "./Attendance/EmployeeDetails";
 
 const HRMS = () => {
     const navigate = useNavigate();
@@ -43,15 +47,18 @@ const HRMS = () => {
                         <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">
                             <Sidebar />
                             <Routes>
-                    
-                                <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
-                                <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} />
+                                {/* <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
+                                <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} /> */}
                                 <Route path={`/leaves/history`} element={< LeaveHistory/>} />
                                 <Route path={`/leaves/apply`} element={< LeaveApplications/>} />
                                 <Route path={`/leaves/manage`} element={< ManageLeaves/>} />
                                 <Route path={`/leaves/my/leaves`} element={< MyLeaves/>} />
                                 <Route path={`/policies`} element={<Policies/>} />
                                 <Route path={"/leaves/history/for/:id"} element={<IndividualLeavesOfEmp/>} />
+                                {/* <Route path={`/attendance/self`} element={<MyAttendance />} />
+                                <Route path={`/attendance/:employeeId`} element={<EmployeeAttendance />} />
+                                <Route path={`/reporting/assign`} element={<AssignManager />} />
+                                <Route path={`/reporting/manage`} element={<ManageEmployeeReportings />} /> */}
                             </Routes>
                         </div>
                     </Container>

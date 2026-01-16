@@ -2138,6 +2138,58 @@ export const retrieveActionOnLeave = (action, docId, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
+  })
+}
+
+export const gettodayMyAttendanceStatus = (params = {}) => {
+  return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const getAttendanceSummary = (params = {}) => {
+  return api.get(url.ATTENDANCE_SUMMARY, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const getAttendanceLogs = (params = {}) => {
+  return api.get(url.ATTENDANCE_LOGS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const postEmployeeCheckIn = (data) => {
+  return api.create(url.EMPLOYEE_CHECK_IN, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+export const updateEmployeeCheckOut = (data) => {
+  return api.update(url.EMPLOYEE_CHECK_OUT, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    }
+  })
+};
+
+// HRMS- Employee Reporting
+export const postEmployeeReporting = (data) => {
+  return api.create(url.EMPLOYEE_REPORTING, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
   });
 };
 
@@ -2159,8 +2211,25 @@ export const getPolicies = () => {
   });
 };
 
+export const editEmployeeReporting = (id, data) => {
+  return api.update(`${url.EMPLOYEE_REPORTING}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const adminGetAllLeavesInfo = () => {
   return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeReportings = (params = {}) => {
+  return api.get(url.EMPLOYEE_REPORTING, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },

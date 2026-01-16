@@ -262,6 +262,15 @@ export const permissionList = [
         name: "THIRD_PARTY_MANPOWER_APPROVAL",
         label: "Third Party Manpower Approvals",
       },
+
+      { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+      { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "MY_ATTENDANCE", label: "My Attendance" },
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      {
+        name: "MANAGE_EMPLOYEE_REPORTINGS",
+        label: "Manage Employee Reportings",
+      },
     ],
   },
   {
@@ -270,6 +279,12 @@ export const permissionList = [
     subModules: [
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "MY_ATTENDANCE", label: "My Attendance" },
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      {
+        name: "MANAGE_EMPLOYEE_REPORTINGS",
+        label: "Manage Employee Reportings",
+      },
       { name: "LEAVE_HISTORY", label: "Leave History" },
     ],
   },

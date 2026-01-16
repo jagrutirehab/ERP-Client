@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react'
-import { renderStatusBadge } from '../../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
 import { capitalizeWords } from '../../../../../utils/toCapitalize';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuthError } from '../../../../../Components/Hooks/useAuthError';

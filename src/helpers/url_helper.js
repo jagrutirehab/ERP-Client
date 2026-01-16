@@ -453,6 +453,13 @@ export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
 
 export const ATTENDANCE_METRICS="/hrms/attendance/metrics";
 export const EXPORT_ATTENDANCE_METRICS="/hrms/attendance/metrics/export";
+export const TODAY_MY_ATTENDANCE_STATUS = "/hrms/attendance/status/today";
+export const ATTENDANCE_SUMMARY = "/hrms/attendance/summary";
+export const ATTENDANCE_LOGS = "/hrms/attendance/detailed";
+export const EMPLOYEE_CHECK_IN = "/hrms/attendance/check-in";
+export const EMPLOYEE_CHECK_OUT = "/hrms/attendance/check-out";
+
+export const EMPLOYEE_REPORTING = "/hrms/employee-reporting";
 
 export const APPLY_LEAVE="/hrms/leaves/request"
 export const GET_MY_MANAGER="/hrms/get/my/reporting/manager"

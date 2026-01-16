@@ -23,6 +23,12 @@ import AddHiringRequest from './Hiring/AddRequest';
 import HiringApproval from './Hiring/Approvals';
 import AddTPMRequest from './TPM/AddRequest';
 import TPMApproval from './TPM/Approvals';
+import AttendanceLogs from '../HRMS/Attendance/Logs';
+import AttendanceMetrics from '../HRMS/Attendance/Metrics';
+import MyAttendance from '../HRMS/Attendance/MyAttendance';
+import EmployeeAttendance from '../HRMS/Attendance/EmployeeDetails';
+import AssignManager from '../HRMS/EmployeeReporting/AssignManager';
+import ManageEmployeeReportings from '../HRMS/EmployeeReporting/Manage';
 
 const HR = () => {
     const navigate = useNavigate();
@@ -82,6 +88,13 @@ const HR = () => {
 
                                 <Route path={`/tpm/add`} element={<AddTPMRequest />} />
                                 <Route path={`/tpm/approval`} element={<TPMApproval />} />
+
+                                <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
+                                <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} />
+                                <Route path={`/attendance/self`} element={<MyAttendance />} />
+                                <Route path={`/attendance/:employeeId`} element={<EmployeeAttendance />} />
+                                <Route path={`/reporting/assign`} element={<AssignManager />} />
+                                <Route path={`/reporting/manage`} element={<ManageEmployeeReportings />} />
                             </Routes>
                         </div>
                     </Container>

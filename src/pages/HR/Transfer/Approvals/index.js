@@ -12,7 +12,7 @@ import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { deleteEmployeeTransfer } from '../../../../helpers/backend_helper';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { renderStatusBadge } from '../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../Components/Common/renderStatusBadge';
 import { format } from 'date-fns';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
 import DataTable from 'react-data-table-component';

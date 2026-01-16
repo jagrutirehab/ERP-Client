@@ -15,7 +15,7 @@ import DataTable from 'react-data-table-component';
 import Select from "react-select";
 import { HiringPreferredGenderOptions } from '../../../../../Components/constants/HR';
 import { capitalizeWords } from '../../../../../utils/toCapitalize';
-import { renderStatusBadge } from '../../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
 import { format } from 'date-fns';
 import CheckPermission from '../../../../../Components/HOC/CheckPermission';
 import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
