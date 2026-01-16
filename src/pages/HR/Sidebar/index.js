@@ -293,6 +293,7 @@ const Sidebar = () => {
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
         return true;
       });
+      console.log("hasManageLeavesPermission", hasManageLeavesPermission)
       return page.children.length > 0;
     }
 
