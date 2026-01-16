@@ -17,8 +17,8 @@ import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
 import { useNavigate } from 'react-router-dom';
 import { downloadFile } from '../../../Components/Common/downloadFile';
-import { renderStatusBadge } from '../components/renderStatusBadge';
 import EmployeeModal from '../components/EmployeeModal';
+import { renderStatusBadge } from '../../../Components/Common/renderStatusBadge';
 
 const customStyles = {
     table: {

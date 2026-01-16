@@ -39,18 +39,18 @@ const ManageEmployeeReportings = () => {
 
     const { hasPermission, loading: permissionLoader } = usePermissions(token);
     const hasUserPermission = hasPermission(
-        "HRMS",
+        "HR",
         "MANAGE_EMPLOYEE_REPORTINGS",
         "READ"
     );
 
     const hasEditPermission = hasPermission(
-        "HRMS",
+        "HR",
         "MANAGE_EMPLOYEE_REPORTINGS",
         "WRITE"
     ) ||
         hasPermission(
-            "HRMS",
+            "HR",
             "MANAGE_EMPLOYEE_REPORTINGS",
             "DELETE"
         );

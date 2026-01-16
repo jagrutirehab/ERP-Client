@@ -102,7 +102,7 @@ const LeaveHistory = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HRMS", "LEAVE_HISTORY", "READ");
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   const fetchLeavesData = async () => {
     try {
@@ -135,7 +135,8 @@ const LeaveHistory = () => {
     if (!debouncedSearch) return leavesData;
 
     return leavesData.filter((item) => {
-      const empId = item?.employeeId?.eCode?.toString().toLowerCase() || "";
+      console.log("item", item);
+      const empId = item?.eCode?.toString().toLowerCase() || "";
       const name = item?.employeeId?.name?.toLowerCase() || "";
 
       return (

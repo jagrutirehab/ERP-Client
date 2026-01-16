@@ -6,6 +6,8 @@ import { policyColumn } from "../components/Table/Columns/policies";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CustomModal from "../../../Components/Common/Modal";
 import { toast } from "react-toastify";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const Policies = () => {
   const [earnedLeaves, setEarnedLeaves] = useState();
@@ -15,6 +17,11 @@ const Policies = () => {
   const [policyData, setPolicyData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [policyName, setPolicyName] = useState(false);
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -24,6 +31,7 @@ const Policies = () => {
   };
 
   useEffect(() => {
+    if (!hasUserPermission) navigate("/unauthorized");
     fetchPolicies();
   }, []);
 
@@ -39,7 +47,7 @@ const Policies = () => {
         earnedLeaves,
         festiveLeaves,
         weekOffs,
-        policyName
+        policyName,
       };
       const res = await addPolicies(data);
       console.log("res", res);
@@ -63,7 +71,7 @@ const Policies = () => {
     unpaidLeaves: p?.unpaidLeaves,
     postedOn: new Date(p.createdAt).toLocaleDateString(),
     status: p?.isSoftDeleted ? "Inactive" : "Active",
-    policyName : p?.policyName
+    policyName: p?.policyName,
   }));
 
   return (

@@ -97,6 +97,50 @@ const Sidebar = () => {
     "READ"
   );
 
+  // Attendance
+  const hasAttendanceLogPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_LOG",
+    "READ"
+  );
+  const hasAttendanceMetricsPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_METRICS",
+    "READ"
+  );
+
+  const hasMyAttendancePermission = hasPermission(
+    "HR",
+    "MY_ATTENDANCE",
+    "READ"
+  );
+
+  // employee reportings permissions
+  const hasAssignManagerPermission = hasPermission(
+    "HR",
+    "ASSIGN_MANAGER",
+    "READ"
+  );
+  const hasEmployeeReportingsPermission = hasPermission(
+    "HR",
+    "MANAGE_EMPLOYEE_REPORTINGS",
+    "READ"
+  );
+
+  const hasApplyLeavePermission = hasPermission("HR", "APPLY_LEAVE", "READ");
+  const hasLeaveHistoryPermission = hasPermission(
+    "HR",
+    "LEAVE_HISTORY",
+    "READ"
+  );
+  const hasManageLeavesPermission = hasPermission(
+    "HR",
+    "MANAGE_LEAVES",
+    "READ"
+  );
+  const hasMyLeavesPermission = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
 
@@ -206,6 +250,62 @@ const Sidebar = () => {
       return page.children.length > 0;
     }
 
+    if (page.id === "attendance") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "attendance-log" && !hasAttendanceLogPermission)
+          return false;
+        if (
+          child.id === "attendance-metrics" &&
+          !hasAttendanceMetricsPermission
+        )
+          return false;
+        if (child.id === "my-attendance" && !hasMyAttendancePermission)
+          return false;
+
+        return true;
+      });
+      return page.children.length > 0;
+    }
+
+    if (page.id === "employee-reporting") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "assign-manager" && !hasAssignManagerPermission)
+          return false;
+        if (
+          child.id === "manage-employee-reporting" &&
+          !hasEmployeeReportingsPermission
+        )
+          return false;
+
+        return true;
+      });
+      return page.children.length > 0;
+    }
+
+    if (page.id === "leaves") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "apply-leave" && !hasApplyLeavePermission)
+          return false;
+        if (child.id === "leave-history" && !hasLeaveHistoryPermission)
+          return false;
+        if (child.id === "manage-leaves" && !hasManageLeavesPermission)
+          return false;
+        if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
+
+    if (page.id === "policies") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "policy" && !hasPolicyPermission)
+          return false;
+        return true;
+      });
+      
+      return page.children.length > 0;
+    }
+
     return true;
   });
 
@@ -254,7 +354,7 @@ const Sidebar = () => {
     }
 `}
       </style>
-      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
+      <div className="chat-leftsidebar" style={{ minWidth: "0px"}}>
         <div className="ps-4 pe-3 pt-4">
           <h5>Human Resources</h5>
         </div>

@@ -8,6 +8,8 @@ import DataTableComponent from "../../components/Table/DataTable";
 import { leaveRequestsColumns } from "../../components/Table/Columns/leaveRequests";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";
+import { useNavigate } from "react-router-dom";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const ManageLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -21,12 +23,18 @@ const ManageLeaves = () => {
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const managerId = loggedInUser?.data?._id;
 
   useEffect(() => {
     if (!managerId) return;
+    if (!hasUserPermission) navigate("/unauthorized");
 
     const fetchLeaves = async () => {
       try {

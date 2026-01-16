@@ -48,7 +48,7 @@ const AttendanceLogs = () => {
         usePermissions(token);
 
     const hasUserPermission = hasPermission(
-        "HRMS",
+        "HR",
         "ATTENDANCE_LOG",
         "READ"
     );

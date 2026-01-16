@@ -262,17 +262,36 @@ export const permissionList = [
         name: "THIRD_PARTY_MANPOWER_APPROVAL",
         label: "Third Party Manpower Approvals",
       },
-    ],
-  },
-  {
-    key: "HRMS",
-    label: "HRMS",
-    subModules: [
+
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "MY_ATTENDANCE", label: "My Attendance" },
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      {
+        name: "MANAGE_EMPLOYEE_REPORTINGS",
+        label: "Manage Employee Reportings",
+      },
+      { name: "APPLY_LEAVE", label: "Apply History" },
       { name: "LEAVE_HISTORY", label: "Leave History" },
+      { name: "MY_LEAVES", label: "My History" },
+      { name: "POLICIES", label: "Policies" },
     ],
   },
+  // {
+  //   key: "HRMS",
+  //   label: "HRMS",
+  //   subModules: [
+  //     { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+  //     { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+  //     { name: "MY_ATTENDANCE", label: "My Attendance" },
+  //     { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+  //     {
+  //       name: "MANAGE_EMPLOYEE_REPORTINGS",
+  //       label: "Manage Employee Reportings",
+  //     },
+  //     { name: "LEAVE_HISTORY", label: "Leave History" },
+  //   ],
+  // },
   {
     key: "WEBCAMSTATS",
     label: "Web Cam Stats",

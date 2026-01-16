@@ -223,6 +223,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             form.setFieldError(name, "Comma (,) is not allowed");
             return;
         }
+
+        // special charracter not allowed in description
+        if (name === "description") {
+            const valid = /^[a-zA-Z0-9 ]*$/.test(value);
+            if (!valid) {
+                form.setFieldTouched(name, true, false);
+                form.setFieldError(name, "No special characters allowed");
+                return;
+            }
+        }
+
         let newValue = value;
         if (["IFSCCode", "accountNo"].includes(name)) {
             newValue = value.replace(/\s+/g, "");
@@ -399,6 +410,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             <FormGroup>
                 <Label for="description" className="fw-medium">
                     Description <span className="text-danger">*</span>
+                    <span className="ms-1 text-muted fs-12">
+                        (Max 20 characters, no special characters)
+                    </span>
                 </Label>
                 <Input
                     type="textarea"
