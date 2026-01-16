@@ -49,12 +49,12 @@ const HRMS = () => {
                             <Routes>
                                 {/* <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
                                 <Route path={`/attendance/metrics`} element={<AttendanceMetrics />} /> */}
-                                <Route path={`/leaves/history`} element={< LeaveHistory/>} />
+                                {/* <Route path={`/leaves/history`} element={< LeaveHistory/>} />
                                 <Route path={`/leaves/apply`} element={< LeaveApplications/>} />
                                 <Route path={`/leaves/manage`} element={< ManageLeaves/>} />
                                 <Route path={`/leaves/my/leaves`} element={< MyLeaves/>} />
                                 <Route path={`/policies`} element={<Policies/>} />
-                                <Route path={"/leaves/history/for/:id"} element={<IndividualLeavesOfEmp/>} />
+                                <Route path={"/leaves/history/for/:id"} element={<IndividualLeavesOfEmp/>} /> */}
                                 {/* <Route path={`/attendance/self`} element={<MyAttendance />} />
                                 <Route path={`/attendance/:employeeId`} element={<EmployeeAttendance />} />
                                 <Route path={`/reporting/assign`} element={<AssignManager />} />

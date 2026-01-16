@@ -9,6 +9,8 @@ import classnames from "classnames";
 import DataTableComponent from "../../components/Table/DataTable";
 import { MyLeavesColumn } from "../../components/Table/Columns/myLeaves";
 import ButtonLoader from "../../../../Components/Common/ButtonLoader";
+import { useNavigate } from "react-router-dom";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const MyLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -23,8 +25,14 @@ const MyLeaves = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   useEffect(() => {
+    if (!hasUserPermission) navigate("/unauthorized");
     const fetchLeaves = async () => {
       try {
         setLoading(true);

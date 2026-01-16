@@ -726,7 +726,7 @@ export const HR = [
         link: "/hr/attendance/self",
         icon: "bx bx-calendar-check",
       },
-    ]
+    ],
   },
   {
     id: "employee-reporting",
@@ -746,6 +746,54 @@ export const HR = [
         label: "Manage",
         link: "/hr/reporting/manage",
         icon: "bx bx-list-check",
+      },
+    ],
+  },
+  {
+    id: "leaves",
+    label: "Leaves",
+    link: "/hr/leaves",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+      {
+        id: "apply-leave",
+        label: "Apply Leave",
+        link: "/hr/leaves/apply",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "leave-history",
+        label: "Leave History",
+        link: "/hr/leaves/history",
+        icon: "bx bx-history",
+      },
+      {
+        id: "manage-leaves",
+        label: "Manage Leaves",
+        link: "/hr/leaves/manage",
+        icon: "bx bx-history",
+      },
+      {
+        id: "my-leaves",
+        label: "My Leaves",
+        link: "/hr/leaves/my/leaves",
+        icon: "bx bx-history",
+      },
+    ],
+  },
+  {
+    id: "policies",
+    label: "Policies",
+    link: "/hr/policies",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+      {
+        id: "policy",
+        label: "Policies",
+        link: "/hr/policies",
+        icon: "bx bx-history",
       },
     ],
   },
@@ -800,54 +848,54 @@ export const HRMS = [
   //     },
   //   ],
   // },
-  {
-    id: "leaves",
-    label: "Leaves",
-    link: "/hrms/leaves",
-    icon: "bx bx-calendar",
-    isAccordion: true,
-    children: [
-      {
-        id: "apply-leave",
-        label: "Apply Leave",
-        link: "/hrms/leaves/apply",
-        icon: "bx bx-edit",
-      },
-      {
-        id: "leave-history",
-        label: "Leave History",
-        link: "/hrms/leaves/history",
-        icon: "bx bx-history",
-      },
-      {
-        id: "manage-leaves",
-        label: "Manage Leaves",
-        link: "/hrms/leaves/manage",
-        icon: "bx bx-history",
-      },
-      {
-        id: "my-leaves",
-        label: "My Leaves",
-        link: "/hrms/leaves/my/leaves",
-        icon: "bx bx-history",
-      },
-    ],
-  },
-  {
-    id: "policies",
-    label: "Policies",
-    link: "/hrms/policies",
-    icon: "bx bx-calendar",
-    isAccordion: true,
-    children: [
-      {
-        id: "policy",
-        label: "Policies",
-        link: "/hrms/policies",
-        icon: "bx bx-history",
-      },
-    ],
-  },
+  // {
+  //   id: "leaves",
+  //   label: "Leaves",
+  //   link: "/hrms/leaves",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "apply-leave",
+  //       label: "Apply Leave",
+  //       link: "/hrms/leaves/apply",
+  //       icon: "bx bx-edit",
+  //     },
+  //     {
+  //       id: "leave-history",
+  //       label: "Leave History",
+  //       link: "/hrms/leaves/history",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "manage-leaves",
+  //       label: "Manage Leaves",
+  //       link: "/hrms/leaves/manage",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "my-leaves",
+  //       label: "My Leaves",
+  //       link: "/hrms/leaves/my/leaves",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "policies",
+  //   label: "Policies",
+  //   link: "/hrms/policies",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "policy",
+  //       label: "Policies",
+  //       link: "/hrms/policies",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
 ];
 
 export default pages;

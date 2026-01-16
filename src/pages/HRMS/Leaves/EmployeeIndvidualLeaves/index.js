@@ -1,14 +1,20 @@
-import React, { useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import DataTableComponent from "../../components/Table/DataTable";
 import { IndividualLeavesColumn } from "../../components/Table/Columns/individualEmpLeavesColumn";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const IndividualLeavesOfEmp = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const location = useLocation();
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   const leaves = location?.state?.leaves || [];
   const employee = location?.state?.employeeId;
@@ -18,18 +24,26 @@ const IndividualLeavesOfEmp = () => {
   const [monthFilter, setMonthFilter] = useState("ALL");
   const [yearFilter, setYearFilter] = useState("ALL");
 
+  useEffect(() => {
+    if (!hasUserPermission) navigate("/unauthorized");
+  }, []);
+
   const filteredLeaves = useMemo(() => {
     return (leaves || [])?.filter((l) => {
       if (l?.status !== activeTab) return false;
 
       const created = new Date(l?.fromDate);
       console.log("created", created.getMonth());
-      console.log("monthFilter",monthFilter)
+      console.log("monthFilter", monthFilter);
 
       if (monthFilter !== "ALL" && created.getMonth() !== Number(monthFilter))
         return false;
 
-      if (yearFilter !== "ALL" && (new Date(location?.state?.createdAt))?.getFullYear() !== Number(yearFilter))
+      if (
+        yearFilter !== "ALL" &&
+        new Date(location?.state?.createdAt)?.getFullYear() !==
+          Number(yearFilter)
+      )
         return false;
 
       return true;
