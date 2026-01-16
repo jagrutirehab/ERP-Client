@@ -88,6 +88,7 @@ const AttendanceSummaryCard = ({
                                             }),
                                         ],
                                         altInput: true,
+                                        disableMobile: true
                                     }}
                                     onChange={([date]) => setSelectedMonth(date)}
                                     className="form-control form-control-sm"
