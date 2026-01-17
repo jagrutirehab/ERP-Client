@@ -31,10 +31,10 @@ const Finance = ({ centers, centerAccess }) => {
       .map((c) => ({
         _id: c._id,
         title: c.title,
-      }))
+      })),
   );
   const [selectedCentersIds, setSelectedCentersIds] = useState(
-    centerOptions?.map((c) => c._id) || []
+    centerOptions?.map((c) => c._id) || [],
   );
 
   useEffect(() => {
@@ -44,7 +44,7 @@ const Finance = ({ centers, centerAccess }) => {
         .map((c) => ({
           _id: c._id,
           title: c.title,
-        }))
+        })),
     );
   }, [centerAccess, centers]);
 
@@ -132,7 +132,7 @@ const Finance = ({ centers, centerAccess }) => {
       link.href = url;
       link.setAttribute(
         "download",
-        `financial-report-${new Date().toISOString().split("T")[0]}.csv`
+        `financial-report-${new Date().toISOString().split("T")[0]}.csv`,
       );
       document.body.appendChild(link);
       link.click();
