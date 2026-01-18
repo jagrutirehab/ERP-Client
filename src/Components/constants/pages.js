@@ -780,6 +780,12 @@ export const HR = [
         link: "/hr/leaves/my/leaves",
         icon: "bx bx-history",
       },
+      {
+        id: "my-balance-leaves",
+        label: "Balance Leaves",
+        link: "/hr/leaves/my/balance/leaves",
+        icon: "bx bx-history",
+      },
     ],
   },
   {

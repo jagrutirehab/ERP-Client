@@ -28,8 +28,12 @@ const MyLeaves = () => {
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasRead = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasWrite = hasPermission("HR", "MY_LEAVES", "WRITE");
+  const hasDelete = hasPermission("HR", "MY_LEAVES", "DELETE");
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
@@ -210,7 +214,13 @@ const MyLeaves = () => {
       </div>
 
       <DataTableComponent
-        columns={MyLeavesColumn(handleAction, loadingLeaveId)}
+        columns={MyLeavesColumn(
+          handleAction,
+          loadingLeaveId,
+          hasWrite,
+          hasDelete,
+          isLoading
+        )}
         data={filteredData}
         loading={loading}
         pagination={false}

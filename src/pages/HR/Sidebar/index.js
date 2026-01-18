@@ -141,6 +141,7 @@ const Sidebar = () => {
   );
   const hasMyLeavesPermission = hasPermission("HR", "MY_LEAVES", "READ");
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
+  const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -293,6 +294,7 @@ const Sidebar = () => {
         if (child.id === "manage-leaves" && !hasManageLeavesPermission)
           return false;
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
+        if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         return true;
       });
       console.log("hasManageLeavesPermission", hasManageLeavesPermission)
