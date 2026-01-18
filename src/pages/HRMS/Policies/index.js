@@ -10,24 +10,39 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 
 const Policies = () => {
-  const [earnedLeaves, setEarnedLeaves] = useState();
-  const [festiveLeaves, setFestiveLeaves] = useState();
-  const [weekOffs, setWeekOffs] = useState();
+  const [earnedLeaves, setEarnedLeaves] = useState("");
+  const [festiveLeaves, setFestiveLeaves] = useState("");
+  const [weekOffs, setWeekOffs] = useState("");
   const [loading, setLoading] = useState(false);
   const [policyData, setPolicyData] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [policyName, setPolicyName] = useState(false);
+  const [policyName, setPolicyName] = useState("");
+  const [loadingToFetch, setLoadingToFetch] = useState(false);
+
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "POLICIES", "READ");
+  const hasRead = hasPermission("HR", "POLICIES", "READ");
+  const hasWrite = hasPermission("HR", "POLICIES", "WRITE");
+  const hasDelete = hasPermission("HR", "POLICIES", "DELETE");
+
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
+
+  // console.log("isReadOnly", isReadOnly);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const fetchPolicies = async () => {
-    const res = await getPolicies();
-    setPolicyData(res?.data);
+    try {
+      setLoadingToFetch(true);
+      const res = await getPolicies();
+      setPolicyData(res?.data);
+    } catch (error) {
+      console.log("error", error);
+    }
+    setLoadingToFetch(false);
   };
 
   useEffect(() => {
@@ -35,12 +50,28 @@ const Policies = () => {
     fetchPolicies();
   }, []);
 
-  // console.log("policyData", policyData);
+  const resetForm = () => {
+    setPolicyName("");
+    setEarnedLeaves("");
+    setFestiveLeaves("");
+    setWeekOffs("");
+  };
+
   const handleAdd = async () => {
     try {
       setLoading(true);
-      if (!earnedLeaves || !festiveLeaves || !weekOffs) {
-        toast.error("All fields are required!");
+
+      if (
+        !policyName ||
+        earnedLeaves === "" ||
+        festiveLeaves === "" ||
+        weekOffs === ""
+      ) {
+        return toast.error("All fields are required!");
+      }
+
+      if (earnedLeaves < 0 || festiveLeaves < 0 || weekOffs < 0) {
+        return toast.error("Leaves cannot be negative");
       }
 
       const data = {
@@ -49,8 +80,9 @@ const Policies = () => {
         weekOffs,
         policyName,
       };
+
       const res = await addPolicies(data);
-      console.log("res", res);
+
       if (res?.success === true) {
         toast.success(res?.message);
         setShowModal(false);
@@ -61,8 +93,11 @@ const Policies = () => {
       toast.error(error?.message);
     } finally {
       setLoading(false);
+      resetForm();
     }
   };
+
+  
 
   const tableData = [...policyData].reverse()?.map((p) => ({
     earnedLeaves: p?.earnedLeaves,
@@ -81,23 +116,29 @@ const Policies = () => {
     >
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="display-6 fw-bold text-primary">LEAVE POLICIES</h1>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          Add Policy
-        </button>
+        {!isLoading && (hasWrite || hasDelete) && (
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowModal(true)}
+          >
+            Add Policy
+          </button>
+        )}
       </div>
 
-      {/* Table */}
       <DataTableComponent
         columns={policyColumn()}
         data={tableData}
-        loading={false}
+        loading={loadingToFetch }
         pagination={false}
       />
 
-      {/* Modal */}
       <CustomModal
         isOpen={showModal}
-        toggle={() => setShowModal(false)}
+        toggle={() => {
+          setShowModal(false);
+          resetForm();
+        }}
         title="Add Policy"
         centered
         size="md"
@@ -116,9 +157,13 @@ const Policies = () => {
           <label>Earned Leaves</label>
           <input
             type="number"
+            min="0"
             className="form-control"
             value={earnedLeaves}
-            onChange={(e) => setEarnedLeaves(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v >= 0) setEarnedLeaves(v);
+            }}
           />
         </div>
 
@@ -126,9 +171,13 @@ const Policies = () => {
           <label>Festive Leaves</label>
           <input
             type="number"
+            min="0"
             className="form-control"
             value={festiveLeaves}
-            onChange={(e) => setFestiveLeaves(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v >= 0) setFestiveLeaves(v);
+            }}
           />
         </div>
 
@@ -136,16 +185,23 @@ const Policies = () => {
           <label>Week Offs</label>
           <input
             type="number"
+            min="0"
             className="form-control"
             value={weekOffs}
-            onChange={(e) => setWeekOffs(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v >= 0) setWeekOffs(v);
+            }}
           />
         </div>
 
         <div className="d-flex justify-content-end gap-2">
           <button
             className="btn btn-secondary"
-            onClick={() => setShowModal(false)}
+            onClick={() => {
+              setShowModal(false);
+              resetForm();
+            }}
           >
             Cancel
           </button>

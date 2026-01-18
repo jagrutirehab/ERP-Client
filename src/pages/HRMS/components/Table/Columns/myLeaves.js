@@ -10,7 +10,13 @@ const Left = ({ children }) => (
   <div className="text-start w-100">{children}</div>
 );
 
-export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
+export const MyLeavesColumn = (
+  handleAction,
+  loadingLeaveId,
+  hasDelete,
+  hasWrite,
+  isLoading
+) => [
   {
     name: <Center>ECode</Center>,
     cell: (row) => <Center>{row?.eCode || "-"}</Center>,
@@ -120,15 +126,17 @@ export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
     cell: (row) =>
       row?.status?.toLowerCase() === "pending" ? (
         <div className="d-flex gap-1 justify-content-center">
-          <button
-            className="btn btn-sm btn-warning"
-            disabled={loadingLeaveId === row._id}
-            onClick={() =>
-              handleAction(row.parentDocId, row._id, "retrieved", "retrieve")
-            }
-          >
-            {loadingLeaveId === row._id ? "Processing..." : "Retrieve"}
-          </button>
+          {!isLoading && (hasWrite || hasDelete) && (
+            <button
+              className="btn btn-sm btn-warning"
+              disabled={loadingLeaveId === row._id}
+              onClick={() =>
+                handleAction(row.parentDocId, row._id, "retrieved", "retrieve")
+              }
+            >
+              {loadingLeaveId === row._id ? "Processing..." : "Retrieve"}
+            </button>
+          )}
 
           {/* <button
             className="btn btn-sm btn-warning"

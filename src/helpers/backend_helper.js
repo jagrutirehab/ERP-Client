@@ -2132,6 +2132,13 @@ export const getMyLeavesHistory = () => {
     },
   });
 };
+export const getBalance = () => {
+  return api.get(url.GET_BALANCE_LEAVES, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
 
 export const retrieveActionOnLeave = (action, docId, data) => {
   return api.update(`${url.RETRIEVE_ACTION}/${action}/${docId}`, data, {
@@ -2141,6 +2148,8 @@ export const retrieveActionOnLeave = (action, docId, data) => {
   })
 }
 
+
+// Attendance
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,

@@ -14,13 +14,13 @@ const IndividualLeavesOfEmp = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
+  const hasUserPermission = hasPermission("HR", "MY_LEAVES", "READ");
 
   const leaves = location?.state?.leaves || [];
   const employee = location?.state?.employeeId;
   // console.log("leaves", location?.state);
 
-  const [activeTab, setActiveTab] = useState("approved");
+  const [activeTab, setActiveTab] = useState("pending");
   const [monthFilter, setMonthFilter] = useState("ALL");
   const [yearFilter, setYearFilter] = useState("ALL");
 
