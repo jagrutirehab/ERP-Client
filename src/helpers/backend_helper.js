@@ -682,6 +682,14 @@ export const getFinanceAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const exportFinanceAnalyticsCSV = (data) =>
+  api.get(url.GET_FINANCE_ANALYTICS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getPatientAnalytics = (data) =>
   api.get(url.GET_PATIENT_ANALYTICS, {
     params: data,

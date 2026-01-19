@@ -237,6 +237,7 @@ export const DELETE_CONDITION = "/condition";
 export const GET_REPORT = "/report";
 export const GET_DB_LOGS = "/report/db-logs";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
+export const GET_FINANCE_ANALYTICS_CSV = "/report/finance-csv";
 export const GET_PATIENT_ANALYTICS = "/report/patient";
 export const GET_DOCTOR_ANALYTICS = "/report/doctor";
 export const GET_DOCTOR_ANALYTICS_WP = "/report/doctor-csv";
