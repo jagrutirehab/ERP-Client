@@ -85,6 +85,22 @@ export const myAttendanceLogsColumns = ({ hasUserAllViewPermission }) => [
             </span>
         )
     },
+ {
+  name: <div>Action</div>,
+  selector: row => (
+    <button
+      className="btn btn-sm btn-outline-primary"
+      style={{
+        borderRadius: "6px",
+        fontSize: "13px",
+        padding: "4px 10px",
+        fontWeight: 500
+      }}
+    >
+      Regularize
+    </button>
+  )
+},
     ...(hasUserAllViewPermission
         ? [
             {

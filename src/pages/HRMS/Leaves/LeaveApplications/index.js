@@ -52,10 +52,10 @@ const LeaveApplications = () => {
         setManagerName(res?.data?.manager?.name || "");
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         if (!handleAuthError(error)) {
-        toast.error(error.message || "Failed to fetch data");
-      }
+          toast.error(error.message || "Failed to fetch data");
+        }
       } finally {
         setPageLoading(false);
       }
@@ -92,7 +92,7 @@ const LeaveApplications = () => {
       setToDate(null);
       setLeaveReason("");
     } catch (err) {
-      console.log("err", err);
+      // console.log("err", err);
       toast.error(err?.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -172,14 +172,22 @@ const LeaveApplications = () => {
                 <label className="form-label">
                   Shift Time <span className="text-danger">*</span>
                 </label>
+
                 <select
                   className="form-select"
                   value={shiftTime}
                   onChange={(e) => setShiftTime(e.target.value)}
                 >
                   <option value="FULL_DAY">Full Day</option>
-                  <option value="FIRST_HALF">First Half</option>
-                  <option value="SECOND_HALF">Second Half</option>
+
+                  {(!fromDate ||
+                    !toDate ||
+                    fromDate.toDateString() === toDate.toDateString()) && (
+                    <>
+                      <option value="FIRST_HALF">First Half</option>
+                      <option value="SECOND_HALF">Second Half</option>
+                    </>
+                  )}
                 </select>
               </div>
 

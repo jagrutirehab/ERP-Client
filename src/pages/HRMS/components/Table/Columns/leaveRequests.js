@@ -9,7 +9,14 @@ const Left = ({ children }) => (
   <div className="text-start w-100">{children}</div>
 );
 
-export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
+export const leaveRequestsColumns = (
+  handleAction,
+  actionLoadingId,
+  isLoading,
+  hasWrite,
+  hasDelete,
+  activeTab
+) => [
   {
     name: <Center>ECode</Center>,
     cell: (row) => <Center>{row?.eCode || "-"}</Center>,
@@ -35,7 +42,6 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
     cell: (row) => (
       <Center>
         {row?.fromDate ? moment(row.fromDate).format("DD-MM-YYYY") : "-"}
-        
       </Center>
     ),
     width: "130px",
@@ -115,49 +121,50 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
     width: "120px",
   },
 
-  {
-    name: "Action",
-    cell: (row) =>
-      row?.status?.toLowerCase() === "pending" ? (
-        actionLoadingId === row._id ? (
-          <button className="btn btn-sm btn-secondary" disabled>
-            Processing...
-          </button>
-        ) : (
-          <div className="d-flex gap-1 justify-content-center">
-            <button
-              className="btn btn-sm btn-success"
-              onClick={() => handleAction(row.parentDocId, row._id, "approved")}
-            >
-              Approve
-            </button>
+  ...(activeTab === "pending"
+    ? [
+        {
+          name: "Action",
+          cell: (row) =>
+            !isLoading && (hasWrite || hasDelete) ? (
+              actionLoadingId === row._id ? (
+                <button className="btn btn-sm btn-secondary" disabled>
+                  Processing...
+                </button>
+              ) : (
+                <div className="d-flex gap-1 justify-content-center">
+                  <button
+                    className="btn btn-sm btn-success"
+                    onClick={() =>
+                      handleAction(row.parentDocId, row._id, "approved")
+                    }
+                  >
+                    Approve
+                  </button>
 
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => handleAction(row.parentDocId, row._id, "rejected")}
-            >
-              Reject
-            </button>
-          </div>
-        )
-      ) : (
-        <span className="text-muted">—</span>
-      ),
-    width: "160px",
-  },
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() =>
+                      handleAction(row.parentDocId, row._id, "rejected")
+                    }
+                  >
+                    Reject
+                  </button>
+                </div>
+              )
+            ) : (
+              <span className="text-muted">—</span>
+            ),
+          width: "160px",
+        },
+      ]
+    : []),
+
   {
     name: <Center>Action On</Center>,
     cell: (row) => (
       <Center>
-        {row?.actionOn
-          ? new Date(row.actionOn)
-              .toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
-              .replace(",", "")
-          : "-"}
+        {row?.actionOn ? moment(row?.actionOn).format("DD-MM-YYYY") : "-"}
       </Center>
     ),
     width: "120px",

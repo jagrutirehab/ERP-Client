@@ -67,7 +67,7 @@ const LeaveHistory = () => {
       const res = await adminGetAllLeavesInfo();
       setLeavesData(res?.data || []);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch reportings");
       }
@@ -105,6 +105,7 @@ const LeaveHistory = () => {
   // }, [debouncedSearch, leavesData]);
 
   const filteredLeaves = useMemo(() => {
+    const allowedCenters = user?.centerAccess || [];
     return leavesData.filter((item) => {
       const empId = item?.eCode?.toString().toLowerCase() || "";
       const name = item?.employeeId?.name?.toLowerCase() || "";
@@ -114,15 +115,17 @@ const LeaveHistory = () => {
         empId.includes(debouncedSearch.toLowerCase()) ||
         name.includes(debouncedSearch.toLowerCase());
 
-      const centerMatch =
-        selectedCenter === "ALL"
-          ? true
-          : item?.center?._id === selectedCenter ||
-            item?.center === selectedCenter;
+      const centerId = item?.center?._id || item?.center;
+
+      const centerMatch = !allowedCenters.length
+        ? false
+        : selectedCenter === "ALL"
+          ? allowedCenters.includes(centerId)
+          : centerId === selectedCenter;
 
       return searchMatch && centerMatch;
     });
-  }, [debouncedSearch, leavesData, selectedCenter]);
+  }, [debouncedSearch, leavesData, selectedCenter, user?.centerAccess]);
 
   return (
     <CardBody

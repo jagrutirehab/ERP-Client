@@ -32,8 +32,11 @@ const ManageLeaves = () => {
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission } = usePermissions(token);
+  const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MANAGE_LEAVES", "READ");
+  const hasRead = hasPermission("HR", "MANAGE_LEAVES", "READ");
+  const hasWrite = hasPermission("HR", "MANAGE_LEAVES", "WRITE");
+  const hasDelete = hasPermission("HR", "MANAGE_LEAVES", "DELETE");
 
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const managerId = loggedInUser?.data?._id;
@@ -70,26 +73,25 @@ const ManageLeaves = () => {
     }
   }, [selectedCenter, user?.centerAccess]);
 
+  const fetchLeaves = async () => {
+    try {
+      setLoading(true);
+      const res = await getLeavesRequest(managerId);
+      // console.log("res", res);
+      setData(res?.data || []);
+    } catch (error) {
+      console.log("API Error:", error);
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch reportings");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!managerId) return;
     if (!hasUserPermission) navigate("/unauthorized");
-
-    const fetchLeaves = async () => {
-      try {
-        setLoading(true);
-        const res = await getLeavesRequest(managerId);
-        // console.log("res", res);
-        setData(res?.data || []);
-      } catch (error) {
-        console.log("API Error:", error);
-        if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch reportings");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchLeaves();
   }, [managerId]);
 
@@ -125,6 +127,7 @@ const ManageLeaves = () => {
   );
 
   const filteredData = useMemo(() => {
+    const allowedCenters = user?.centerAccess || [];
     return leaves.filter((item) => {
       const statusMatch = item?.status?.toLowerCase() === activeTab;
 
@@ -146,11 +149,13 @@ const ManageLeaves = () => {
           : item?.eCode?.toLowerCase().includes(debouncedSearch) ||
             item?.employeeId?.name?.toLowerCase().includes(debouncedSearch);
 
-      const centerMatch =
-        selectedCenter === "ALL"
-          ? true
-          : item?.center?._id === selectedCenter ||
-            item?.center === selectedCenter;
+      const centerId = item?.center?._id || item?.center;
+
+      const centerMatch = !allowedCenters.length
+        ? false
+        : selectedCenter === "ALL"
+          ? allowedCenters.includes(centerId)
+          : centerId === selectedCenter;
 
       return (
         statusMatch && yearMatch && monthMatch && searchMatch && centerMatch
@@ -163,6 +168,7 @@ const ManageLeaves = () => {
     selectedMonth,
     debouncedSearch,
     selectedCenter,
+    user?.centerAccess,
   ]);
 
   const handleAction = async (docId, leaveId, status) => {
@@ -186,6 +192,7 @@ const ManageLeaves = () => {
 
       toast.success(res?.message);
 
+      fetchLeaves();
       setData(updated);
     } catch (error) {
       console.log("Action Error:", error);
@@ -283,7 +290,14 @@ const ManageLeaves = () => {
       </div>
 
       <DataTableComponent
-        columns={leaveRequestsColumns(handleAction, actionLoadingId)}
+        columns={leaveRequestsColumns(
+          handleAction,
+          actionLoadingId,
+          isLoading,
+          hasWrite,
+          hasDelete,
+          activeTab
+        )}
         data={filteredData}
         loading={loading}
         pagination={false}

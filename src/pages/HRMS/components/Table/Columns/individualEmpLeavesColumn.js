@@ -57,9 +57,20 @@ export const IndividualLeavesColumn = () => [
   },
   {
     name: <div className="text-center">Reason</div>,
-    selector: (row) => row?.leaveReason || "-",
-    grow: 1,
-    minWidth: "140px",
+    cell: (row) => (
+      <div
+        style={{
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+          lineHeight: "1.4",
+          padding: "4px 0",
+        }}
+      >
+        {row?.leaveReason || "-"}
+      </div>
+    ),
+    grow: 2,
+    minWidth: "180px",
     center: true,
   },
   {
@@ -112,7 +123,7 @@ export const IndividualLeavesColumn = () => [
     },
     width: "120px",
   },
-    {
+  {
     name: <div className="text-center">Action On</div>,
     selector: (row) => formatDate(row?.actionOn) || "-",
     grow: 1,
