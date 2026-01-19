@@ -1639,8 +1639,9 @@ export const getOwnerLeadStatus = (params) => {
 };
 
 // HR
-export const getEmployeeId = () => {
+export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
