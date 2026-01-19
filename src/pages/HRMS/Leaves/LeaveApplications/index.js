@@ -12,6 +12,7 @@ import { CardBody } from "reactstrap";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const LeaveApplications = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -27,6 +28,7 @@ const LeaveApplications = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
+  const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -51,6 +53,9 @@ const LeaveApplications = () => {
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
         console.log(error);
+        if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch data");
+      }
       } finally {
         setPageLoading(false);
       }

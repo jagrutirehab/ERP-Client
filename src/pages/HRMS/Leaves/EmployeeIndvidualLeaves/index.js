@@ -14,7 +14,7 @@ const IndividualLeavesOfEmp = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
 
   const leaves = location?.state?.leaves || [];
   const employee = location?.state?.employeeId;
@@ -48,7 +48,7 @@ const IndividualLeavesOfEmp = () => {
 
       return true;
     });
-  }, [leaves, activeTab, monthFilter, yearFilter]);
+  }, [leaves, activeTab, monthFilter, yearFilter])?.reverse();
 
   return (
     <CardBody

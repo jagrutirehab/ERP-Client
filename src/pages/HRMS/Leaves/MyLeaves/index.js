@@ -11,6 +11,8 @@ import { MyLeavesColumn } from "../../components/Table/Columns/myLeaves";
 import ButtonLoader from "../../../../Components/Common/ButtonLoader";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const MyLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -26,6 +28,7 @@ const MyLeaves = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const handleAuthError = useAuthError();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
@@ -44,6 +47,9 @@ const MyLeaves = () => {
         setData(res?.data || {});
       } catch (error) {
         console.log("API Error:", error);
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch reportings");
+        }
       } finally {
         setLoading(false);
       }
@@ -73,14 +79,14 @@ const MyLeaves = () => {
             eCode: d?.eCode,
             center: d?.center,
             approvalAuthority: d?.approvalAuthority,
-          })) || []
+          })) || [],
       )
     : [];
 
   const currentYear = new Date().getFullYear();
   const allYears = Array.from(
     { length: currentYear - 2015 + 6 },
-    (_, i) => 2015 + i
+    (_, i) => 2015 + i,
   );
 
   console.log("leaves", leaves);
@@ -117,27 +123,30 @@ const MyLeaves = () => {
     selectedMonth,
     debouncedSearch,
     data?.createdAt,
-  ]);
+  ])?.reverse();
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
     try {
       const payload = { leaveId };
 
-      await retrieveActionOnLeave(action, docId, payload);
+      const res = await retrieveActionOnLeave(action, docId, payload);
 
+      console.log("res to retrueve", res);
       const updated = (Array.isArray(data) ? data : []).map((d) =>
         d._id === docId
           ? {
               ...d,
               leaves: (d.leaves || []).map((l) =>
-                l._id === leaveId ? { ...l, status } : l
+                l._id === leaveId ? { ...l, status } : l,
               ),
             }
-          : d
+          : d,
       );
 
       setData(updated);
+      toast.success(res?.message);
+
       // setActiveTab(status);
     } catch (error) {
       console.log("Action Error:", error);
@@ -219,7 +228,7 @@ const MyLeaves = () => {
           loadingLeaveId,
           hasWrite,
           hasDelete,
-          isLoading
+          isLoading,
         )}
         data={filteredData}
         loading={loading}
