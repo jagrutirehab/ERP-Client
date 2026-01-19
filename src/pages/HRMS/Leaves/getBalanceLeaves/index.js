@@ -21,7 +21,7 @@ const GetBalanceLeaves = () => {
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
 
-  console.log("hasUserPermission for balance", hasUserPermission)
+  // console.log("hasUserPermission for balance", hasUserPermission)
 
   const fetchBalancesData = async () => {
     setLoading(true);
@@ -44,7 +44,7 @@ const GetBalanceLeaves = () => {
 
       setBalanceData(rows);
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
       }

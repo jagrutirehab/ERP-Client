@@ -46,7 +46,7 @@ const MyLeaves = () => {
         const res = await getMyLeavesHistory();
         setData(res?.data || {});
       } catch (error) {
-        console.log("API Error:", error);
+        // console.log("API Error:", error);
         if (!handleAuthError(error)) {
           toast.error(error.message || "Failed to fetch reportings");
         }
@@ -57,7 +57,7 @@ const MyLeaves = () => {
     fetchLeaves();
   }, []);
 
-  console.log("data", data);
+  // console.log("data", data);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,7 +89,7 @@ const MyLeaves = () => {
     (_, i) => 2015 + i,
   );
 
-  console.log("leaves", leaves);
+  // console.log("leaves", leaves);
 
   const filteredData = useMemo(() => {
     return leaves.filter((item) => {
@@ -132,7 +132,7 @@ const MyLeaves = () => {
 
       const res = await retrieveActionOnLeave(action, docId, payload);
 
-      console.log("res to retrueve", res);
+      // console.log("res to retrueve", res);
       const updated = (Array.isArray(data) ? data : []).map((d) =>
         d._id === docId
           ? {

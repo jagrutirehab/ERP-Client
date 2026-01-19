@@ -33,8 +33,8 @@ const IndividualLeavesOfEmp = () => {
       if (l?.status !== activeTab) return false;
 
       const created = new Date(l?.fromDate);
-      console.log("created", created.getMonth());
-      console.log("monthFilter", monthFilter);
+      // console.log("created", created.getMonth());
+      // console.log("monthFilter", monthFilter);
 
       if (monthFilter !== "ALL" && created.getMonth() !== Number(monthFilter))
         return false;
@@ -132,10 +132,14 @@ const IndividualLeavesOfEmp = () => {
           onChange={(e) => setYearFilter(e.target.value)}
         >
           <option value="ALL">All Years</option>
-          <option value="2023">2023</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
+          {Array.from({ length: 2031 - 2015 + 1 }, (_, i) => {
+            const year = 2015 + i;
+            return (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            );
+          })}
         </select>
       </div>
 
