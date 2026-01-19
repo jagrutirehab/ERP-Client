@@ -448,6 +448,7 @@ export const TPM = "/hr/tpm";
 export const TPM_ACTION = "/hr/tpm/action";
 
 // HRMS
+export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";
 export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
 export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
