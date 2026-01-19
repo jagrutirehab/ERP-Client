@@ -682,6 +682,14 @@ export const getFinanceAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const exportFinanceAnalyticsCSV = (data) =>
+  api.get(url.GET_FINANCE_ANALYTICS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getPatientAnalytics = (data) =>
   api.get(url.GET_PATIENT_ANALYTICS, {
     params: data,
@@ -2145,18 +2153,16 @@ export const retrieveActionOnLeave = (action, docId, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
-
-// Attendance
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceSummary = (params = {}) => {
@@ -2165,7 +2171,7 @@ export const getAttendanceSummary = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceLogs = (params = {}) => {
@@ -2174,23 +2180,23 @@ export const getAttendanceLogs = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const postEmployeeCheckIn = (data) => {
   return api.create(url.EMPLOYEE_CHECK_IN, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 export const updateEmployeeCheckOut = (data) => {
   return api.update(url.EMPLOYEE_CHECK_OUT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 // HRMS- Employee Reporting
@@ -2210,7 +2216,6 @@ export const addPolicies = (data) => {
     },
   });
 };
-
 
 export const getPolicies = () => {
   return api.get(`${url.GET_POLICIES}`, {
