@@ -4,11 +4,24 @@ import { CardBody } from "reactstrap";
 import DataTableComponent from "../../components/Table/DataTable";
 import { balanceLeavesColumn } from "../../components/Table/Columns/balanceLeaves";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
 
 const GetBalanceLeaves = () => {
   const [balanceData, setBalanceData] = useState([]);
   const [loading, setLoading] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1000px)");
+  const handleAuthError = useAuthError();
+
+  const navigate = useNavigate();
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
+
+  console.log("hasUserPermission for balance", hasUserPermission)
 
   const fetchBalancesData = async () => {
     setLoading(true);
@@ -32,12 +45,16 @@ const GetBalanceLeaves = () => {
       setBalanceData(rows);
     } catch (error) {
       console.error(error);
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch data");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!hasUserPermission) navigate("/unauthorized");
     fetchBalancesData();
   }, []);
 

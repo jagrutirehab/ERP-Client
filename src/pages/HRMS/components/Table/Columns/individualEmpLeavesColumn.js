@@ -9,39 +9,33 @@ const Left = ({ children }) => (
   <div className="text-start w-100">{children}</div>
 );
 
+const formatDate = (date) => {
+  if (!date) return "-";
+  const d = new Date(date);
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
 export const IndividualLeavesColumn = () => [
   {
     name: <div className="text-center">Leave Type</div>,
     selector: (row) => row?.leaveType || "-",
     sortable: true,
     center: true,
+    minWidth: "200px",
   },
   {
     name: <div className="text-center">From</div>,
-    selector: (row) =>
-      row?.fromDate
-        ? new Date(row.fromDate)
-            .toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
-            .replaceAll(" ", "/")
-        : "-",
+    selector: (row) => formatDate(row.fromDate),
     center: true,
   },
   {
     name: <div className="text-center">To</div>,
-    selector: (row) =>
-      row?.toDate
-        ? new Date(row.toDate)
-            .toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
-            .replaceAll(" ", "/")
-        : "-",
+    selector: (row) => formatDate(row.toDate),
     grow: 1,
     minWidth: "140px",
     center: true,
@@ -117,5 +111,12 @@ export const IndividualLeavesColumn = () => [
       );
     },
     width: "120px",
+  },
+    {
+    name: <div className="text-center">Action On</div>,
+    selector: (row) => formatDate(row?.actionOn) || "-",
+    grow: 1,
+    minWidth: "140px",
+    center: true,
   },
 ];

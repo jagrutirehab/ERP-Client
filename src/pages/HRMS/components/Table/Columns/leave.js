@@ -15,6 +15,12 @@ export const leaveColumns = (navigate) => [
     center: true,
   },
   {
+    name: <div className="text-center">Center</div>,
+    selector: (row) => row?.center?.title || "-",
+    // sortable: true,
+    center: true,
+  },
+  {
     name: <div className="text-center">Approval Manager</div>,
     selector: (row) => row?.approvalAuthority?.name || "-",
     grow: 1,

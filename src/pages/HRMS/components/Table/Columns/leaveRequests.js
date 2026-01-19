@@ -21,15 +21,21 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
     width: "180px",
   },
   {
+    name: <Center>Center</Center>,
+    cell: (row) => <Center>{row?.center?.title || "-"}</Center>,
+    width: "180px",
+  },
+  {
     name: <Center>Leave Type</Center>,
     cell: (row) => <Center>{row?.leaveType || "-"}</Center>,
-    width: "150px",
+    width: "200px",
   },
   {
     name: <Center>From</Center>,
     cell: (row) => (
       <Center>
-        {row?.fromDate ? moment(row.fromDate).format("DD MMM YYYY") : "-"}
+        {row?.fromDate ? moment(row.fromDate).format("DD-MM-YYYY") : "-"}
+        
       </Center>
     ),
     width: "130px",
@@ -38,7 +44,7 @@ export const leaveRequestsColumns = (handleAction, actionLoadingId) => [
     name: <Center>To</Center>,
     cell: (row) => (
       <Center>
-        {row?.toDate ? moment(row.toDate).format("DD MMM YYYY") : "-"}
+        {row?.toDate ? moment(row.toDate).format("DD-MM-YYYY") : "-"}
       </Center>
     ),
     width: "130px",
