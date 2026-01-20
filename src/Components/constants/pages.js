@@ -206,7 +206,7 @@ const pages = [
   },
   {
     id: "referral",
-    label: "Doctor Visits",
+    label: "Referral",
     name: "Referral",
     link: "/referral",
     icon: "bx bx-share-alt",
@@ -701,51 +701,207 @@ export const HR = [
       },
     ],
   },
-];
-
-export const HRMS = [
   {
     id: "attendance",
     label: "Attendance",
-    link: "/hrms/attendance",
+    link: "/hr/attendance",
     icon: "bx bx-time-five",
     isAccordion: true,
     children: [
       {
         id: "attendance-log",
         label: "Attendance Log",
-        link: "/hrms/attendance/logs",
+        link: "/hr/attendance/logs",
         icon: "bx bx-list-ul",
       },
       {
         id: "attendance-metrics",
         label: "Attendance Metrics",
-        link: "/hrms/attendance/metrics",
+        link: "/hr/attendance/metrics",
         icon: "bx bx-stats",
+      },
+      {
+        id: "my-attendance",
+        label: "My Attendance",
+        link: "/hr/attendance/self",
+        icon: "bx bx-calendar-check",
       },
     ],
   },
   {
     id: "employee-reporting",
     label: "Employee Reporting",
-    link: "/hrms/attendance",
+    link: "/hr/attendance",
     icon: "bx bx-git-branch",
     isAccordion: true,
     children: [
       {
         id: "assign-manager",
         label: "Assign Manager",
-        link: "/hrms/reporting/assign",
+        link: "/hr/reporting/assign",
         icon: "bx bx-user-plus",
       },
       {
         id: "manage-employee-reporting",
         label: "Manage",
-        link: "/hrms/reporting/manage",
+        link: "/hr/reporting/manage",
         icon: "bx bx-list-check",
       },
     ],
   },
+  {
+    id: "leaves",
+    label: "Leaves",
+    link: "/hr/leaves",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+      {
+        id: "apply-leave",
+        label: "Apply Leave",
+        link: "/hr/leaves/apply",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "leave-history",
+        label: "Leave History",
+        link: "/hr/leaves/history",
+        icon: "bx bx-history",
+      },
+      {
+        id: "manage-leaves",
+        label: "Manage Leaves",
+        link: "/hr/leaves/manage",
+        icon: "bx bx-slider",
+      },
+      {
+        id: "my-leaves",
+        label: "My Leaves",
+        link: "/hr/leaves/my/leaves",
+        icon: "bx bx-calendar",
+      },
+      {
+        id: "my-balance-leaves",
+        label: "Balance Leaves",
+        link: "/hr/leaves/my/balance/leaves",
+        icon: "bx bx-layer",
+      },
+    ],
+  },
+  {
+    id: "policies",
+    label: "Policies",
+    link: "/hr/policies",
+    icon: "bx bx-notepad",
+    isAccordion: true,
+    children: [
+      {
+        id: "policy",
+        label: "Policies",
+        link: "/hr/policies",
+        icon: "bx bx-spreadsheet",
+      },
+    ],
+  },
+];
+
+export const HRMS = [
+  // {
+  //   id: "attendance",
+  //   label: "Attendance",
+  //   link: "/hrms/attendance",
+  //   icon: "bx bx-time-five",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "attendance-log",
+  //       label: "Attendance Log",
+  //       link: "/hrms/attendance/logs",
+  //       icon: "bx bx-list-ul",
+  //     },
+  //     {
+  //       id: "attendance-metrics",
+  //       label: "Attendance Metrics",
+  //       link: "/hrms/attendance/metrics",
+  //       icon: "bx bx-stats",
+  //     },
+  //     {
+  //       id: "my-attendance",
+  //       label: "My Attendance",
+  //       link: "/hrms/attendance/self",
+  //       icon: "bx bx-calendar-check",
+  //     },
+  //   ]
+  // },
+  // {
+  //   id: "employee-reporting",
+  //   label: "Employee Reporting",
+  //   link: "/hrms/attendance",
+  //   icon: "bx bx-git-branch",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "assign-manager",
+  //       label: "Assign Manager",
+  //       link: "/hrms/reporting/assign",
+  //       icon: "bx bx-user-plus",
+  //     },
+  //     {
+  //       id: "manage-employee-reporting",
+  //       label: "Manage",
+  //       link: "/hrms/reporting/manage",
+  //       icon: "bx bx-list-check",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "leaves",
+  //   label: "Leaves",
+  //   link: "/hrms/leaves",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "apply-leave",
+  //       label: "Apply Leave",
+  //       link: "/hrms/leaves/apply",
+  //       icon: "bx bx-edit",
+  //     },
+  //     {
+  //       id: "leave-history",
+  //       label: "Leave History",
+  //       link: "/hrms/leaves/history",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "manage-leaves",
+  //       label: "Manage Leaves",
+  //       link: "/hrms/leaves/manage",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "my-leaves",
+  //       label: "My Leaves",
+  //       link: "/hrms/leaves/my/leaves",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "policies",
+  //   label: "Policies",
+  //   link: "/hrms/policies",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "policy",
+  //       label: "Policies",
+  //       link: "/hrms/policies",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
 ];
 
 export default pages;

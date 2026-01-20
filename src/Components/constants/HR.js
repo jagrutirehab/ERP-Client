@@ -71,6 +71,6 @@ export const TPMOptions = [
     "DRIVER",
     "HELPER",
     "HOUSEKEEPING",
-    "KITCHENHELPER",
+    "KITCHEN_HELPER",
     "SECURITY"
 ];

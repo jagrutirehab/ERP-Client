@@ -73,12 +73,12 @@ const OPDAnalytics = ({ data, centerAccess }) => {
       selector: (row) => row.consultationType,
       wrap: true
     },
-    // {
-    //   name: <div>Patient Phone Number</div>,
-    //   selector: (row) => row.patient?.phoneNumber,
-    //   wrap: true,
-    //   minWidth: "125px"
-    // },
+    {
+      name: <div>Patient Phone Number</div>,
+      selector: (row) => row.patient?.phoneNumber,
+      wrap: true,
+      minWidth: "125px"
+    },
     {
       name: <div>No Show</div>,
       selector: (row) => row?.isCancelled ? "Yes" : "No",
@@ -180,7 +180,7 @@ const OPDAnalytics = ({ data, centerAccess }) => {
     { label: "Date", key: "date" },
     { label: "Center", key: "center.title" },
     { label: "Appointment Type", key: "consultationType" },
-    // { label: "Patient Phone No", key: "patient.phoneNumber" },
+    { label: "Patient Phone No", key: "patient.phoneNumber" },
     { label: "No Show", key: "isNoShow" },
     { label: "Prescribed", key: "prescribed" },
     { label: "Clinical Note", key: "isClinicalNoteCreated" },

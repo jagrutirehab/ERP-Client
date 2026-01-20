@@ -12,7 +12,7 @@ import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { deleteEmployeeTransfer } from '../../../../helpers/backend_helper';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
-import { renderStatusBadge } from '../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../Components/Common/renderStatusBadge';
 import { format } from 'date-fns';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
 import DataTable from 'react-data-table-component';
@@ -158,17 +158,8 @@ const TransferApprovals = () => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row =>
-                row?.transferDate
-                    ? format(new Date(row.transferDate), "dd-MM-yyyy")
-                    : "-",
+            selector: row => row?.transferDate,
             wrap: true,
-        },
-        {
-            name: <div>Is Transferred</div>,
-            selector: row => row?.isTransferApplied ? "Yes" : "No",
-            wrap: true,
-            center: true
         },
         {
             name: <div>Transfer Location</div>,

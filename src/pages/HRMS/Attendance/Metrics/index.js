@@ -42,13 +42,13 @@ const AttendanceMetrics = () => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, loading: permissionLoader, roles } =
+    const { hasPermission, loading: permissionLoader } =
         usePermissions(token);
     const { centerAccess, userCenters } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HRMS);
 
     const hasUserPermission = hasPermission(
-        "HRMS",
+        "HR",
         "ATTENDANCE_METRICS",
         "READ"
     );
@@ -184,6 +184,15 @@ const AttendanceMetrics = () => {
         navigate("/unauthorized");
     }
 
+    const handleNavigate = (employeeId) => {
+        navigate(`/hr/attendance/${employeeId}`)
+    }
+
+    const columns = attendanceMetricsColumns({
+        onNavigate: handleNavigate,
+        searchText: debouncedSearch
+    });
+
     return (
         <CardBody className="p-3 bg-white"
             style={isMobile ? { width: "100%" } : { width: "78%" }}
@@ -288,7 +297,7 @@ const AttendanceMetrics = () => {
 
             </div>
             <DataTableComponent
-                columns={attendanceMetricsColumns}
+                columns={columns}
                 data={data}
                 page={page}
                 setPage={setPage}

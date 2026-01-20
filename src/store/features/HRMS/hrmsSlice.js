@@ -1,11 +1,15 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import { getAttendance, getAttendanceMetrics, getEmployeeReportings } from "../../../helpers/backend_helper";
+import { getAttendance, getAttendanceMetrics, getEmployeeReportings, getAttendanceLogs, getAttendanceSummary } from "../../../helpers/backend_helper";
 
 
 const initialState = {
     data: [],
     loading: false,
     pagination: {},
+    attendanceSummary: {
+        data: null,
+        loading: false
+    },
 };
 
 export const fetchAttendance = createAsyncThunk("hrms/getAttendance", async (data, { rejectWithValue }) => {
@@ -34,6 +38,25 @@ export const fetchReportings = createAsyncThunk("hrms/getEmployeeReportings", as
         return rejectWithValue(error);
     }
 });
+
+export const fetchAttendanceLogs = createAsyncThunk("hrms/getAttendanceLogs", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getAttendanceLogs(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchAttendanceSummary = createAsyncThunk("hrms/getAttendanceSummary", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getAttendanceSummary(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
 
 export const hrmsSlice = createSlice({
     name: "HRMS",
@@ -76,6 +99,31 @@ export const hrmsSlice = createSlice({
             })
             .addCase(fetchReportings.rejected, (state) => {
                 state.loading = false
+            });
+
+        builder
+            .addCase(fetchAttendanceLogs.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchAttendanceLogs.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchAttendanceLogs.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder
+            .addCase(fetchAttendanceSummary.pending, (state) => {
+                state.attendanceSummary.loading = true;
+            })
+            .addCase(fetchAttendanceSummary.fulfilled, (state, { payload }) => {
+                state.attendanceSummary.loading = false;
+                state.attendanceSummary.data = payload.data;
+            })
+            .addCase(fetchAttendanceSummary.rejected, (state) => {
+                state.attendanceSummary.loading = false;
             });
     }
 });

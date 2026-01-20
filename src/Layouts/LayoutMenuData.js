@@ -7,11 +7,17 @@ const Navdata = () => {
     (state) => state.User.user?.pageAccess?.pages || []
   );
 
+  console.log("userPages", userPages);
+
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);
     const page = pages[pageIndex];
     return page;
   });
+
+  const filteredDynamicPages = dynamicPages?.filter(
+    (page) => page && page.id !== "hrms"
+  );
 
   const sortPages = (routes) => {
     const sortOrder = [
@@ -33,7 +39,7 @@ const Navdata = () => {
       "pharmacy",
       "guidelines",
       "hr",
-      "hrms",
+      // "hrms",
       "webcamstats",
     ];
 
@@ -67,7 +73,7 @@ const Navdata = () => {
       icon: "bx bx-layer",
       link: "/centers",
     },
-    ...sortPages(dynamicPages),
+    ...sortPages(filteredDynamicPages),
   ];
 
   return <React.Fragment>{menuItems}</React.Fragment>;

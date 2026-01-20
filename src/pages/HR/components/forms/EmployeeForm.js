@@ -278,6 +278,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
                     formData.delete("itStatus");
                     formData.delete("users");
                     formData.delete("transferStatus");
+                    formData.delete("currentManager");
 
                     await editEmployee(initialData._id, formData);
                     toast.success("Employee updated successfully");
