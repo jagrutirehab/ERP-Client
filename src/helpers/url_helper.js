@@ -448,6 +448,7 @@ export const TPM = "/hr/tpm";
 export const TPM_ACTION = "/hr/tpm/action";
 
 // HRMS
+export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";
 export const ATTENDANCE_IMPORTS = "/hrms/attendance/imports";
 export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
@@ -463,12 +464,12 @@ export const EMPLOYEE_CHECK_OUT = "/hrms/attendance/check-out";
 
 export const EMPLOYEE_REPORTING = "/hrms/employee-reporting";
 
-export const APPLY_LEAVE="/hrms/leaves/request"
-export const GET_MY_MANAGER="/hrms/get/my/reporting/manager"
-export const GET_LEAVES_REQUESTS="/hrms/get/leaves/requests"
-export const ACTION_ON_LEAVE="/hrms/leaves"
-export const GET_MY_LEAVES="/hrms/get/my/leaves"
-export const RETRIEVE_ACTION="/hrms/leaves"
-export const ADD_POLICIES="/hrms/employee/policy"
-export const GET_POLICIES="/hrms/employee/get/policies"
-export const ADMIN_GET_ALL_LEAVES="/hrms/admin/get/leaves/info"
+export const APPLY_LEAVE = "/hrms/leaves/request";
+export const GET_MY_MANAGER = "/hrms/get/my/reporting/manager";
+export const GET_LEAVES_REQUESTS = "/hrms/get/leaves/requests";
+export const ACTION_ON_LEAVE = "/hrms/leaves";
+export const GET_MY_LEAVES = "/hrms/get/my/leaves";
+export const RETRIEVE_ACTION = "/hrms/leaves";
+export const ADD_POLICIES = "/hrms/employee/policy";
+export const GET_POLICIES = "/hrms/employee/get/policies";
+export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";

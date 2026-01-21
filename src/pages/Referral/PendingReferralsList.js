@@ -157,10 +157,8 @@ const PendingReferralsList = ({
             {pendingReferrals && pendingReferrals.length > 0 ? (
               pendingReferrals.map((referral) => (
                 <tr key={referral._id}>
-                  <td className="text-capitalize">{referral.doctorName}</td>
-                  <td className="text-capitalize">
-                    {referral.patient?.name || "—"}
-                  </td>
+                  <td>{referral.doctorName}</td>
+                  <td>{referral.patient?.name || "—"}</td>
                   <td>{referral.patient?.phoneNumber || "—"}</td>
                   <td>{new Date(referral.createdAt).toLocaleDateString()}</td>
                   <td>

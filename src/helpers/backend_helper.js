@@ -1639,8 +1639,9 @@ export const getOwnerLeadStatus = (params) => {
 };
 
 // HR
-export const getEmployeeId = () => {
+export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2013,7 +2014,7 @@ export const deleteTPM = (id) => {
   });
 };
 
-// HRMS- Attendance
+// HRMS
 export const getAttendance = (params = {}) => {
   return api.get(url.ATTENDANCE, {
     params,
@@ -2140,14 +2141,21 @@ export const getMyLeavesHistory = () => {
     },
   });
 };
+export const getBalance = () => {
+  return api.get(url.GET_BALANCE_LEAVES, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
 
 export const retrieveActionOnLeave = (action, docId, data) => {
   return api.update(`${url.RETRIEVE_ACTION}/${action}/${docId}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
@@ -2155,7 +2163,7 @@ export const gettodayMyAttendanceStatus = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceSummary = (params = {}) => {
@@ -2164,7 +2172,7 @@ export const getAttendanceSummary = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceLogs = (params = {}) => {
@@ -2173,23 +2181,23 @@ export const getAttendanceLogs = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const postEmployeeCheckIn = (data) => {
   return api.create(url.EMPLOYEE_CHECK_IN, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 export const updateEmployeeCheckOut = (data) => {
   return api.update(url.EMPLOYEE_CHECK_OUT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 // HRMS- Employee Reporting
@@ -2209,7 +2217,6 @@ export const addPolicies = (data) => {
     },
   });
 };
-
 
 export const getPolicies = () => {
   return api.get(`${url.GET_POLICIES}`, {

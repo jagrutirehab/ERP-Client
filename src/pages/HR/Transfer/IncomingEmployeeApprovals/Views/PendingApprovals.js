@@ -158,10 +158,7 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row =>
-                row?.transferDate
-                    ? format(new Date(row.transferDate), "dd-MM-yyyy")
-                    : "-",
+            selector: row => row?.transferDate,
             wrap: true,
         },
         {

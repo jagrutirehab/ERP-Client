@@ -4,13 +4,19 @@ import { Badge } from "reactstrap";
 export const leaveColumns = (navigate) => [
   {
     name: <div className="text-center">ECode</div>,
-    selector: (row) => row?.employeeId?.eCode || "-",
+    selector: (row) => row?.eCode || "-",
     sortable: true,
     center: true,
   },
   {
     name: <div className="text-center">Employee Name</div>,
     selector: (row) => row?.employeeId?.name || "-",
+    // sortable: true,
+    center: true,
+  },
+  {
+    name: <div className="text-center">Center</div>,
+    selector: (row) => row?.center?.title || "-",
     // sortable: true,
     center: true,
   },
@@ -34,7 +40,7 @@ export const leaveColumns = (navigate) => [
             onMouseEnter={(e) => (e.target.style.textDecoration = "underline")}
             onMouseLeave={(e) => (e.target.style.textDecoration = "none")}
             onClick={() =>
-              navigate(`/hrms/leaves/history/for/${row?.employeeId?._id}`, {
+              navigate(`/hr/leaves/history/for/${row?.employeeId?._id}`, {
                 state: row,
               })
             }

@@ -15,7 +15,7 @@ const Sidebar = () => {
 
     const { hasPermission } = usePermissions(token);
 
-    // attendance permissions
+    // permissions
     const hasAttendanceLogPermission = hasPermission(
         "HRMS",
         "ATTENDANCE_LOG",
@@ -24,18 +24,6 @@ const Sidebar = () => {
     const hasAttendanceMetricsPermission = hasPermission(
         "HRMS",
         "ATTENDANCE_METRICS",
-        "READ"
-    );
-
-    // employee reportings permissions
-    const hasAssignManagerPermission = hasPermission(
-        "HRMS",
-        "ASSIGN_MANAGER",
-        "READ"
-    );
-    const hasEmployeeReportingsPermission = hasPermission(
-        "HRMS",
-        "MANAGE_EMPLOYEE_REPORTINGS",
         "READ"
     );
 
@@ -49,18 +37,6 @@ const Sidebar = () => {
                 if (child.id === "attendance-log" && !hasAttendanceLogPermission)
                     return false;
                 if (child.id === "attendance-metrics" && !hasAttendanceMetricsPermission)
-                    return false;
-
-                return true;
-            });
-            return page.children.length > 0;
-        }
-
-        if (page.id === "employee-reporting") {
-            page.children = page.children.filter((child) => {
-                if (child.id === "assign-manager" && !hasAssignManagerPermission)
-                    return false;
-                if (child.id === "manage-employee-reporting" && !hasEmployeeReportingsPermission)
                     return false;
 
                 return true;

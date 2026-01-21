@@ -184,6 +184,12 @@ const PendingApprovals = ({ activeTab }) => {
             minWidth: "120px"
         },
         {
+            name: <div>Center</div>,
+            selector: row => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
             name: <div>Vendor</div>,
             selector: (row) => capitalizeWords(row?.vendor) || "",
             wrap: true,
@@ -194,7 +200,7 @@ const PendingApprovals = ({ activeTab }) => {
             selector: row => {
                 if (!row?.startDate) return "-";
 
-                const date = new Date(row.startDate);
+                const date = new Date(row?.startDate);
                 if (isNaN(date)) return "-";
 
                 return format(date, "dd-MM-yyyy");
@@ -203,15 +209,39 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Contract Signed With Vendor</div>,
-            selector: (row) => row?.contractSignedWithVendor ? "Yes" : "No",
+            cell: (row) => {
+                const approval = row?.contractSignedWithVendor;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{approval.approvedBy}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
             wrap: true,
-            center: true
+            minWidth: "160px"
         },
         {
-            name: <div>Manpower Approved By Management</div>,
-            selector: (row) => row?.manpowerApprovedByManagement ? "Yes" : "No",
+            name: <div>Man power approveed by Management</div>,
+            cell: (row) => {
+                const approval = row?.manpowerApprovedByManagement;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{approval.approvedBy}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
             wrap: true,
-            cener: true
+            minWidth: "160px"
         },
         {
             name: <div>Filled By</div>,
