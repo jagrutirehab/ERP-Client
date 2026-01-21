@@ -18,6 +18,7 @@ const Policies = () => {
   const [showModal, setShowModal] = useState(false);
   const [policyName, setPolicyName] = useState("");
   const [loadingToFetch, setLoadingToFetch] = useState(false);
+  const [regularization_limits, setRegularization_limits] = useState("");
 
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
@@ -28,7 +29,7 @@ const Policies = () => {
   const hasWrite = hasPermission("HR", "POLICIES", "WRITE");
   const hasDelete = hasPermission("HR", "POLICIES", "DELETE");
 
-  const isReadOnly = hasRead && !hasWrite && !hasDelete;
+  // const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   // console.log("isReadOnly", isReadOnly);
 
@@ -65,7 +66,8 @@ const Policies = () => {
         !policyName ||
         earnedLeaves === "" ||
         festiveLeaves === "" ||
-        weekOffs === ""
+        weekOffs === "" || 
+        regularization_limits === ""
       ) {
         return toast.error("All fields are required!");
       }
@@ -79,6 +81,7 @@ const Policies = () => {
         festiveLeaves,
         weekOffs,
         policyName,
+        regularization_limits
       };
 
       const res = await addPolicies(data);
@@ -97,8 +100,6 @@ const Policies = () => {
     }
   };
 
-  
-
   const tableData = [...policyData].reverse()?.map((p) => ({
     earnedLeaves: p?.earnedLeaves,
     festiveLeaves: p?.festiveLeaves,
@@ -107,6 +108,7 @@ const Policies = () => {
     postedOn: new Date(p.createdAt).toLocaleDateString(),
     status: p?.isSoftDeleted ? "Inactive" : "Active",
     policyName: p?.policyName,
+    regularization_limits: p?.regularization_limits,
   }));
 
   return (
@@ -129,7 +131,7 @@ const Policies = () => {
       <DataTableComponent
         columns={policyColumn()}
         data={tableData}
-        loading={loadingToFetch }
+        loading={loadingToFetch}
         pagination={false}
       />
 
@@ -192,6 +194,17 @@ const Policies = () => {
               const v = e.target.value;
               if (v >= 0) setWeekOffs(v);
             }}
+          />
+        </div>
+
+        <div className="mb-3">
+          <label>Regularization Limits</label>
+          <input
+            type="number"
+            min="0"
+            className="form-control"
+            value={regularization_limits}
+            onChange={(e) => setRegularization_limits(e.target.value)}
           />
         </div>
 

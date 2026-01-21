@@ -69,7 +69,7 @@ const LeaveHistory = () => {
     } catch (error) {
       // console.log(error);
       if (!handleAuthError(error)) {
-        toast.error(error.message || "Failed to fetch reportings");
+        toast.error(error.message || "Failed to fetch data");
       }
     } finally {
       setLoading(false);

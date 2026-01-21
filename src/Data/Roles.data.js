@@ -266,6 +266,10 @@ export const permissionList = [
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
+
+      { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
+      { name: "GET_REGULARIZATIONS_REQUESTS", label: "Regularizations Requests" },
+
       { name: "ASSIGN_MANAGER", label: "Assign Manager" },
       {
         name: "MANAGE_EMPLOYEE_REPORTINGS",

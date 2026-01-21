@@ -37,6 +37,13 @@ export const policyColumn = () => [
     minWidth: "140px",
   },
   {
+    name: <div>Regularization limits</div>,
+    selector: (row) => row?.regularization_limits || "-",
+    grow: 1.5,
+    wrap: true,
+    minWidth: "140px",
+  },
+  {
     name: <div>Posted On</div>,
     selector: (row) => row?.postedOn || "-",
     grow: 1.5,

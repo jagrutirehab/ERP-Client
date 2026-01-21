@@ -116,6 +116,18 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasMyRegularizationPersmission = hasPermission(
+    "HR",
+    "MY_REGULARIZATIONS",
+    "READ"
+  );
+
+  const hasGetRegularizeRequestsPersmission = hasPermission(
+    "HR",
+    "GET_REGULARIZATIONS_REQUESTS",
+    "READ"
+  );
+
   // employee reportings permissions
   const hasAssignManagerPermission = hasPermission(
     "HR",
@@ -263,6 +275,12 @@ const Sidebar = () => {
         )
           return false;
         if (child.id === "my-attendance" && !hasMyAttendancePermission)
+          return false;
+
+        if (child.id === "my-regularizations" && !hasMyRegularizationPersmission)
+          return false;
+
+        if (child.id === "regularizations-requests" && !hasGetRegularizeRequestsPersmission)
           return false;
 
         return true;
