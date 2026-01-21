@@ -36,11 +36,8 @@ const AttendanceLogs = ({ employeeId }) => {
     allViewPermissionRoles.includes(roles.name) &&
     employeeId;
 
-  const hasRead = hasPermission("HR", "MY_ATTENDANCE", "READ");
   const hasWrite = hasPermission("HR", "MY_ATTENDANCE", "WRITE");
   const hasDelete = hasPermission("HR", "MY_ATTENDANCE", "DELETE");
-
-  const isReadOnly = hasWrite && hasDelete;
 
   const loadMyAttendanceLogs = async () => {
     try {
@@ -73,20 +70,12 @@ const AttendanceLogs = ({ employeeId }) => {
     setPage(1);
   }, [reportDate.start, reportDate.end, limit, viewMode]);
 
-  // useEffect(() => {
-  //     if (viewMode === "calendar") {
-  //         setReportDate(getCalendarRange());
-  //     } else {
-  //         setReportDate(getTableRange());
-  //     }
-  // }, [viewMode]);
-
-  const handleCalendarNavigate = (date) => {
-    setReportDate({
-      start: startOfMonth(date),
-      end: endOfMonth(date),
-    });
-  };
+    const handleCalendarNavigate = (date) => {
+        setReportDate({
+            start: startOfMonth(date),
+            end: endOfMonth(date),
+        });
+    };
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
@@ -99,8 +88,6 @@ const AttendanceLogs = ({ employeeId }) => {
 
     setPage(1);
   };
-
-  //   console.log("data", data);
 
   const columns = myAttendanceLogsColumns({
     hasUserAllViewPermission,

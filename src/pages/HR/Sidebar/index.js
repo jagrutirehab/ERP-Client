@@ -343,11 +343,6 @@ const Sidebar = () => {
     });
   }, [location.pathname]);
 
-  // useEffect(() => {
-  //   document.body.style.overflow = isSidebarOpen ? "hidden" : "auto";
-  // }, [isSidebarOpen]);
-
-
   return (
     <>
       <style>

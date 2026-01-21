@@ -45,7 +45,12 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     view: "SALARY_ADVANCE"
                 })
             ).unwrap();
-        } finally {
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "something went wrong")
+            }
+        }
+        finally {
             setSearching(false);
         }
     };

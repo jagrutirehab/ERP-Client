@@ -3,7 +3,6 @@ import { renderStatusBadge } from "../../../../../Components/Common/renderStatus
 import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import {
   isToday,
-  minutesTo12HourTime,
   minutesToTime,
 } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -16,124 +15,123 @@ export const myAttendanceLogsColumns = ({
   hasWrite,
   hasDelete,
 }) => [
-  {
-    name: <div>Date</div>,
-    selector: (row) => (
-      <div className="d-flex flex-column gap-1">
-        <span className="fw-semibold">{row?.date}</span>
-        {renderStatusBadge(row?.status)}
-      </div>
-    ),
-    wrap: true,
-  },
-  {
-    name: <div>Shift Timing</div>,
-    selector: (row) => {
-      const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
-
-      return (
+    {
+      name: <div>Date</div>,
+      selector: (row) => (
         <div className="d-flex flex-column gap-1">
-          <span>
-            {hasTiming
-              ? `${minutesTo12HourTime(row.timing.start)} - ${minutesTo12HourTime(
+          <span className="fw-semibold">{row?.date}</span>
+          {renderStatusBadge(row?.status)}
+        </div>
+      ),
+      wrap: true,
+    },
+    {
+      name: <div>Shift Timing</div>,
+      selector: (row) => {
+        const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
+
+        return (
+          <div className="d-flex flex-column gap-1">
+            <span>
+              {hasTiming
+                ? `${minutesToTime(row.timing.start)} - ${minutesToTime(
                   row.timing.end,
                 )}`
-              : "--"}
-          </span>
+                : "--"}
+            </span>
 
-          {leaveTypes.includes(row?.status) &&
-            renderStatusBadge(row?.shiftTime)}
-        </div>
-      );
+            {leaveTypes.includes(row?.status) &&
+              renderStatusBadge(row?.shiftTime)}
+          </div>
+        );
+      },
+      wrap: true,
+      minWidth: "110px"
     },
-    wrap: true,
-  },
-  {
-    name: <div>Type</div>,
-    selector: (row) => capitalizeWords(row?.source) || "-",
-  },
-  {
-    name: <div>Check-In</div>,
-    selector: (row) => {
-      if (row?.firstCheckIn != null) {
-        return minutesTo12HourTime(row.firstCheckIn);
-      }
-
-      if (isToday(row.date) && ["ABSENT", "PENDING"].includes(row.status)) {
-        return renderStatusBadge("PENDING");
-      }
-
-      return "--";
+    {
+      name: <div>Type</div>,
+      selector: (row) => capitalizeWords(row?.source) || "-",
     },
-  },
-  {
-    name: <div>Check-Out</div>,
-    selector: (row) => {
-      if (row?.lastCheckOut != null) {
-        return minutesTo12HourTime(row.lastCheckOut);
-      }
+    {
+      name: <div>Check-In</div>,
+      selector: (row) => {
+        if (row?.firstCheckIn != null) {
+          return minutesToTime(row.firstCheckIn);
+        }
 
-      if (isToday(row.date) && ["PENDING"].includes(row.status)) {
-        return renderStatusBadge("PENDING");
-      }
+        if (isToday(row.date) && ["ABSENT", "PENDING"].includes(row.status)) {
+          return renderStatusBadge("PENDING");
+        }
 
-      return "--";
+        return "--";
+      },
     },
-  },
-  {
-    name: <div>Work Duration</div>,
-    selector: (row) => (
-      <span>
-        {row?.workDuration > 0 ? `${minutesToTime(row.workDuration)} hr` : "--"}
-      </span>
-    ),
-  },
-  {
-    name: <div>Regularization Status</div>,
-    cell: (row) => {
-      const status = row?.regularizations?.regularization_id?.status;
+    {
+      name: <div>Check-Out</div>,
+      selector: (row) => {
+        if (row?.lastCheckOut != null) {
+          return minutesToTime(row.lastCheckOut);
+        }
 
-      let color = "secondary";
-      if (status === "PENDING") color = "warning";
-      if (status === "REGULARIZED") color = "success";
-      if (status === "REJECTED") color = "danger";
+        if (isToday(row.date) && ["PENDING"].includes(row.status)) {
+          return renderStatusBadge("PENDING");
+        }
 
-      return <span className={`badge bg-${color}`}>{status || "--"}</span>;
+        return "--";
+      },
     },
-  },
-
-  {
-    name: <div>Action</div>,
-    cell: (row) =>
-      !loading &&
-      (hasWrite || hasDelete) &&
-      !row?.regularizations?.regularization_id && (
-        <button
-          className="btn btn-sm btn-outline-primary"
-          style={{
-            borderRadius: "6px",
-            fontSize: "13px",
-            padding: "4px 10px",
-            fontWeight: 500,
-          }}
-          onClick={() => {
-            setSelectedRow(row);
-            setRegularizeModalOpen(true);
-          }}
-        >
-          Regularize
-        </button>
+    {
+      name: <div>Work Duration</div>,
+      selector: (row) => (
+        <span>
+          {row?.workDuration > 0 ? `${minutesToTime(row.workDuration)} hr` : "--"}
+        </span>
       ),
-  },
+    },
+    {
+      name: <div>Regularization Status</div>,
+      cell: (row) => {
+        const status = row?.regularizations?.regularization_id?.status;
+        return renderStatusBadge(status)
+      },
+      wrap: true
+    },
 
-  ...(hasUserAllViewPermission
-    ? [
+    {
+      name: <div>Action</div>,
+      cell: (row) =>
+        !loading &&
+        (hasWrite || hasDelete) &&
+        !row?.regularizations?.regularization_id && (
+          <button
+            className="btn btn-sm btn-outline-primary"
+            style={{
+              borderRadius: "6px",
+              fontSize: "13px",
+              padding: "4px 10px",
+              fontWeight: 500,
+            }}
+            onClick={() => {
+              setSelectedRow(row);
+              setRegularizeModalOpen(true);
+            }}
+          >
+            Regularize
+          </button>
+        ),
+      wrap: true,
+      minWidth: "120px"
+    },
+
+    ...(hasUserAllViewPermission
+      ? [
         {
           name: <div>Check-In Device</div>,
           selector: (row) =>
             row?.checkInMeta?.device
               ? capitalizeWords(row.checkInMeta.device)
               : "—",
+          wrap: true
         },
         {
           name: <div>Check-Out Device</div>,
@@ -141,6 +139,7 @@ export const myAttendanceLogsColumns = ({
             row?.checkOutMeta?.device
               ? capitalizeWords(row.checkOutMeta.device)
               : "—",
+          wrap: true
         },
         {
           name: <div>Check-In Location</div>,
@@ -171,5 +170,5 @@ export const myAttendanceLogsColumns = ({
           minWidth: "150px",
         },
       ]
-    : []),
-];
+      : []),
+  ];
