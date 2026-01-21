@@ -160,7 +160,7 @@ const BillDate = ({
           {/* Advance Payment */}
           {/* Payment */}
           {/* </Button> */}
-          <Button
+          {/* <Button
             outline
             disabled={
               isPaymentCenter
@@ -188,6 +188,30 @@ const BillDate = ({
             }}
           >
             {isPaymentCenter ? "Payment" : "Advance Payment"}
+          </Button> */}
+          <Button
+            outline
+            disabled={
+              editBillData.bill === null ||
+              editBillData.bill === INVOICE ||
+              editBillData.bill === REFUND ||
+              editBillData.bill === DRAFT_INVOICE ||
+              editBillData.bill === DEPOSIT
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  bill: ADVANCE_PAYMENT,
+                  isOpen: true,
+                  admission,
+                }),
+              );
+              toggle();
+            }}
+          >
+            Payment
           </Button>
 
           <Button
