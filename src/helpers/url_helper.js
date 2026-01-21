@@ -473,3 +473,9 @@ export const RETRIEVE_ACTION = "/hrms/leaves";
 export const ADD_POLICIES = "/hrms/employee/policy";
 export const GET_POLICIES = "/hrms/employee/get/policies";
 export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";
+
+
+export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
+export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
+export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
+export const UPDATE_REGULARIZATION = "/hrms/regularize";

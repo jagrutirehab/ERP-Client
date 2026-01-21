@@ -726,6 +726,18 @@ export const HR = [
         link: "/hr/attendance/self",
         icon: "bx bx-calendar-check",
       },
+      {
+        id: "my-regularizations",
+        label: "My Regularizations",
+        link: "/hr/attendance/my/regularizations",
+        icon: "bx bx-time",
+      },
+      {
+        id: "regularizations-requests",
+        label: "Regularizations Requests",
+        link: "/hr/attendance/regularizations/requests",
+        icon: "bx bx-reset",
+      },
     ],
   },
   {

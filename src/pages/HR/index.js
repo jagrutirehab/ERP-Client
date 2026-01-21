@@ -36,6 +36,8 @@ import MyLeaves from "../HRMS/Leaves/MyLeaves";
 import Policies from "../HRMS/Policies";
 import IndividualLeavesOfEmp from "../HRMS/Leaves/EmployeeIndvidualLeaves";
 import GetBalanceLeaves from "../HRMS/Leaves/getBalanceLeaves";
+import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizations";
+import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -150,6 +152,11 @@ const HR = () => {
                   path={`/reporting/manage`}
                   element={<ManageEmployeeReportings />}
                 />
+
+                <Route path={`/attendance/my/regularizations`} element={<MyRegularizations />} />
+                <Route path={`/attendance/regularizations/requests`} element={<GetRegularizationsRequest />} />
+
+
                 <Route path={`/leaves/history`} element={<LeaveHistory />} />
                 <Route path={`/leaves/apply`} element={<LeaveApplications />} />
                 <Route path={`/leaves/manage`} element={<ManageLeaves />} />

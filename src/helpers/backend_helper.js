@@ -198,8 +198,8 @@ export const postRestoreMedicine = (data) =>
 export const validateDuplicateMedicine = ({ name, strength, id }) => {
   return api.get(
     `${url.VALIDATE_DUPLICATE_MEDICINE}?name=${encodeURIComponent(
-      name
-    )}&strength=${encodeURIComponent(strength)}&id=${id}`
+      name,
+    )}&strength=${encodeURIComponent(strength)}&id=${id}`,
   );
 };
 
@@ -841,19 +841,19 @@ export const getPatientDetails = (patientId) => {
 
 export const getPatientPrescription = (patientId) => {
   return api.get(
-    `${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`
+    `${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`,
   );
 };
 
 export const getClinicalTestSummary = (patientId) => {
   return api.get(
-    `${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`
+    `${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`,
   );
 };
 
 export const getNursesListByPatientCenter = ({ patientId, search } = {}) => {
   return api.get(
-    `${url.GET_NURSES_BY_PATIENT_CENTER}?patientId=${patientId}&search=${search}`
+    `${url.GET_NURSES_BY_PATIENT_CENTER}?patientId=${patientId}&search=${search}`,
   );
 };
 
@@ -863,7 +863,7 @@ export const getAlertsByPatient = (patientId) => {
 
 export const markAlertAsRead = ({ alertType, patientId }) => {
   return api.update(
-    `${url.MARK_ALERT_AS_READ}?alertType=${alertType}&patientId=${patientId}`
+    `${url.MARK_ALERT_AS_READ}?alertType=${alertType}&patientId=${patientId}`,
   );
 };
 
@@ -920,13 +920,13 @@ export const getPendingActiveMedicines = (patientId) => {
 
 export const getCompletedActiveMedicines = ({ patientId, status }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
   );
 };
 
 export const getActivitiesByStatus = ({ patientId, status }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
   );
 };
 
@@ -938,14 +938,14 @@ export const markTomorrowMedicines = (data) => {
 
 export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   return api.get(
-    `${url.GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES}?patientId=${patientId}`
+    `${url.GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES}?patientId=${patientId}`,
   );
 };
 
 // emergency
 export const assignPatientType = ({ patientId, patientType }) => {
   return api.update(
-    `${url.ASSIGN_TYPE_TO_PATIENT}?patientId=${patientId}&patientType=${patientType}`
+    `${url.ASSIGN_TYPE_TO_PATIENT}?patientId=${patientId}&patientType=${patientType}`,
   );
 };
 
@@ -1193,7 +1193,7 @@ export const postLogoutService = (token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1220,7 +1220,7 @@ export const editRole = ({ id, name, permissions, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1236,7 +1236,7 @@ export const addRole = ({ name, permissions, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1280,7 +1280,7 @@ export const firstchange = ({ oldPassword, newPassword, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1312,7 +1312,7 @@ export const deleteUser = (id, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1324,7 +1324,7 @@ export const suspendUser = (id, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1336,7 +1336,7 @@ export const editUserPassword = (id, newPassword, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1347,7 +1347,7 @@ export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1890,7 +1890,7 @@ export const employeeTransferCurrentLocationAction = (id, data) => {
       headers: {
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1902,7 +1902,7 @@ export const employeeTransferTransferLocationAction = (id, data) => {
       headers: {
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -2101,6 +2101,40 @@ export const exportAttendanceMetrics = (params = {}) => {
     },
   });
 };
+
+// REGULARIZATION
+export const requestForRegularization = (data) => {
+  return api.create(url.REQUEST_REGULARIZATION, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyRegularizations = () => {
+  return api.get(url.GET_MY_REGULARIZATION, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRegularizationsRequests = () => {
+  return api.get(url.GET_REGULARIZATION_REQUESTS, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updateRegularizationStatus = (id, status ) => {
+  return api.update(`${url.UPDATE_REGULARIZATION}/${status}/${id}`, {}, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {
