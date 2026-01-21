@@ -169,7 +169,7 @@ const ApprovalHistory = ({ activeTab }) => {
                         <div className="">{approval?.approved ? "Yes" : "No"}</div>
                         {approval?.approvedBy && (
                             <div className="text-muted small">
-                                <i>{approval.approvedBy}</i>
+                                <i>{capitalizeWords(approval.approvedBy)}</i>
                             </div>
                         )}
                     </div>
@@ -187,7 +187,7 @@ const ApprovalHistory = ({ activeTab }) => {
                         <div className="">{approval?.approved ? "Yes" : "No"}</div>
                         {approval?.approvedBy && (
                             <div className="text-muted small">
-                                <i>{approval.approvedBy}</i>
+                                <i>{capitalizeWords(approval.approvedBy)}</i>
                             </div>
                         )}
                     </div>

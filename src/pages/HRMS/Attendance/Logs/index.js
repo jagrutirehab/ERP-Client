@@ -169,6 +169,10 @@ const AttendanceLogs = () => {
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
 
+    const columns = attendanceColumns({
+        searchText: debouncedSearch
+    });
+
     if (!permissionLoader && !hasUserPermission) {
         navigate("/unauthorized");
     }
@@ -263,7 +267,7 @@ const AttendanceLogs = () => {
 
                     <Input
                         type="text"
-                        placeholder="Search by name, biometric ID..."
+                        placeholder="Search by name, eCode, biometric ID..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -309,7 +313,7 @@ const AttendanceLogs = () => {
                 </div>
 
                 <DataTableComponent
-                    columns={attendanceColumns}
+                    columns={columns}
                     data={data}
                     page={page}
                     setPage={setPage}

@@ -15,7 +15,6 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
                 textToHighlight={`${row?.employee?.eCode || ""}`}
             />
         ),
-        sortable: true,
         wrap: true,
     },
     {
@@ -45,10 +44,9 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         ),
         wrap: true,
         center: true,
-        sortable: true,
     },
     {
-        name: <div>Current Location</div>,
+        name: <div>Center</div>,
         selector: row => capitalizeWords(row?.center?.title || "-"),
         wrap: true,
         minWidth: "120px"
@@ -80,6 +78,12 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
     {
         name: <div>Total Leaves</div>,
         selector: row => row?.leaves || 0,
+        wrap: true,
+        center: true
+    },
+    {
+        name: <div>Total Week offs</div>,
+        selector: row => row?.weekOffs || 0,
         wrap: true,
         center: true
     },

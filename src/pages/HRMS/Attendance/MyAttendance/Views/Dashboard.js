@@ -260,7 +260,7 @@ const Dashboard = () => {
                                             value: statusLoader ? (
                                                 <Skeleton width={80} />
                                             ) : (
-                                                `${minutesToTime(attendanceStatus?.shift?.duration)} hr`
+                                                `${attendanceStatus?.shift?.duration ? `${minutesToTime(attendanceStatus.shift.duration)} hr` : "-"}`
                                             ),
                                         },
                                         {
@@ -270,11 +270,11 @@ const Dashboard = () => {
                                             ) : (
                                                 <>
                                                     {attendanceStatus?.firstCheckIn != null
-                                                        ? minutesTo12HourTime(attendanceStatus.firstCheckIn)
+                                                        ? minutesToTime(attendanceStatus.firstCheckIn)
                                                         : "Pending"}
                                                     {" — "}
                                                     {attendanceStatus?.lastCheckOut != null
-                                                        ? minutesTo12HourTime(attendanceStatus.lastCheckOut)
+                                                        ? minutesToTime(attendanceStatus.lastCheckOut)
                                                         : "Pending"}
                                                 </>
                                             ),
@@ -361,7 +361,9 @@ const Dashboard = () => {
                                                     ? "Check In"
                                                     : attendanceStatus?.canCheckOut
                                                         ? "Check Out"
-                                                        : "Shift Ended"}
+                                                        : attendanceStatus?.shift?.duration !== null
+                                                            ? "No Active Shift"
+                                                            : "Shift Ended"}
                                     </Button>
 
                                     <p
