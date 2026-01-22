@@ -39,6 +39,9 @@ const AttendanceLogs = ({ employeeId }) => {
   const hasWrite = hasPermission("HR", "MY_ATTENDANCE", "WRITE");
   const hasDelete = hasPermission("HR", "MY_ATTENDANCE", "DELETE");
 
+  const hasWriteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "WRITE");
+  const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
+
   const loadMyAttendanceLogs = async () => {
     try {
       await dispatch(
@@ -89,13 +92,17 @@ const AttendanceLogs = ({ employeeId }) => {
     setPage(1);
   };
 
+  const isMetrics = Boolean(employeeId);
+  const canShowActionButton = isMetrics
+  ? (hasWriteForMetrics || hasDeleteForMetrics)
+  : (hasWrite || hasDelete);
+
   const columns = myAttendanceLogsColumns({
     hasUserAllViewPermission,
     setSelectedRow,
     setRegularizeModalOpen,
     loading,
-    hasWrite,
-    hasDelete
+    canShowActionButton
   });
 
   const reloadAttendance = () => {

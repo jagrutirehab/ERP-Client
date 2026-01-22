@@ -6,7 +6,8 @@ import {
 import PropTypes from "prop-types";
 import EmployeeForm from "./forms/EmployeeForm";
 
-const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
+const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode, isVendor }) => {
+    console.log("isVendor", isVendor)
     return (
         <Modal isOpen={isOpen} toggle={toggle} size="xl" centered backdrop="static"
             keyboard={false}>
@@ -30,6 +31,7 @@ const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode }) => {
                     onCancel={toggle}
                     view={"MODAL"}
                     mode={mode}
+                    isVendor={isVendor}
                 />
             </ModalBody>
         </Modal>

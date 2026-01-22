@@ -137,7 +137,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       name: <div>Department</div>,
       selector: row => capitalizeWords(row?.department || "-"),
       wrap: true,
-      minWidth: "100px"
+      minWidth: "130px"
     },
     {
       name: <div>Designation</div>,
@@ -151,7 +151,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       name: <div>Employment</div>,
       selector: row => capitalizeWords(row?.employmentType || "-"),
       wrap: true,
-      minWidth: "100px"
+      minWidth: "130px"
     },
     {
       name: <div>First Location</div>,
