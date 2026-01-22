@@ -209,16 +209,6 @@ const AttendanceSummaryCard = ({
 
                         <Col xs="6" md="4" xl="2">
                             <StatCard
-                                icon={Calendar}
-                                value={data?.holidays ?? 0}
-                                label="Holidays"
-                                color="#8b5cf6"
-                                loading={loading}
-                            />
-                        </Col>
-
-                        <Col xs="6" md="4" xl="2">
-                            <StatCard
                                 icon={Plane}
                                 value={data?.leaves ?? 0}
                                 label="Leaves"

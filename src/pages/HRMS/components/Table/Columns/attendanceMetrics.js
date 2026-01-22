@@ -70,12 +70,6 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         center: true,
     },
     {
-        name: <div>Total Holidays</div>,
-        selector: row => row?.holidays || 0,
-        wrap: true,
-        center: true
-    },
-    {
         name: <div>Total Leaves</div>,
         selector: row => row?.leaves || 0,
         wrap: true,
