@@ -128,7 +128,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
     useEffect(() => {
         const loadDesignations = async () => {
             try {
-                dispatch(fetchDesignations({ status: ["APPROVED"] })).unwrap();
+                await dispatch(fetchDesignations({ status: ["APPROVED"] })).unwrap();
             } catch (error) {
                 if (!handleAuthError(error)) {
                     toast.error("Something went wrong while getting the designations");
@@ -414,7 +414,7 @@ const EmployeeForm = ({ initialData, onSuccess, view, onCancel, mode, hasCreateP
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEdit]);
 
-
+console.log(hasCreatePermission)
 
     return (
         <>

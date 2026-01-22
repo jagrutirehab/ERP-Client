@@ -60,6 +60,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [reason, setReason] = useState("");
     const [eCode, setECode] = useState("");
 
+    const hasCreatePermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "WRITE") || hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "DELETE");
+
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = [
@@ -193,7 +195,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             wrap: true,
             minWidth: "160px"
         },
-         {
+        {
             name: <div>Biometric ID</div>,
             selector: row => row?.biometricId || "-",
         },
@@ -614,6 +616,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 loading={modalLoading}
                 setLoading={setModalLoading}
                 mode={"NEW_JOINING"}
+                hasCreatePermission={hasCreatePermission}
             />
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}
