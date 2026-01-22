@@ -2260,6 +2260,25 @@ export const getPolicies = () => {
   });
 };
 
+
+// department
+
+export const getDepartments = () => {
+  return api.get(`${url.GET_DEPARTMENTS}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const createDepartment = (data) => {
+  return api.create(`${url.CREATE_DEPARTMENTS}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const editEmployeeReporting = (id, data) => {
   return api.update(`${url.EMPLOYEE_REPORTING}/${id}`, data, {
     headers: {
