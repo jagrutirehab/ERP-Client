@@ -21,6 +21,7 @@ const EmployeeAttendance = () => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const { attendanceSummary } = useSelector((state) => state.HRMS);
+    console.log("attendanceSummary", attendanceSummary)
     const { data: summary, loading: summaryLoader } = attendanceSummary;
 
     const fetchEmployeeAttendanceSummaryByMonth = async () => {
