@@ -479,3 +479,5 @@ export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
+export const GET_DEPARTMENTS = "/hr/get/departments";
+export const CREATE_DEPARTMENTS = "/hr/create/departments";

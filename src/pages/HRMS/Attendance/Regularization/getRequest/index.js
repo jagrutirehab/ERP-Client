@@ -27,7 +27,7 @@ const GetRegularizationsRequest = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const user = useSelector((state) => state.User);
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [selectedCenter, setSelectedCenter] = useState("");
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -147,7 +147,7 @@ const GetRegularizationsRequest = () => {
 
       const centerId = item?.center?._id || item?.center;
 
-      const centerMatch = !allowedCenters.length
+      const centerMatch = !selectedCenter.length
         ? true
         : selectedCenter === "ALL"
           ? allowedCenters.includes(centerId?.toString())
@@ -214,9 +214,11 @@ const GetRegularizationsRequest = () => {
           onChange={(e) => setSelectedCenter(e.target.value)}
           disabled={!centerOptions.length}
         >
+          <option value="">Select Center</option>
           {centerOptions.length === 0 ? (
             <option value="">No Centers Available</option>
           ) : (
+            
             centerOptions.map((c) => (
               <option key={c?.value} value={c?.value}>
                 {c?.label}
