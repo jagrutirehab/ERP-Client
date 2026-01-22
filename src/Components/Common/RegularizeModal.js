@@ -10,13 +10,14 @@ import {
   Spinner,
 } from "reactstrap";
 import {
+  getManagerByEmployeeId,
   getMyManager,
   requestForRegularization,
 } from "../../helpers/backend_helper";
 import { useAuthError } from "../Hooks/useAuthError";
 import { toast } from "react-toastify";
 
-const RegularizeModal = ({ isOpen, toggle, row, onSuccess }) => {
+const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [description, setDescription] = useState("");
@@ -25,9 +26,21 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const handleAuthError = useAuthError();
 
+  console.log("employeeId", employeeId);
+
+  const loggedInuser = JSON.parse(localStorage.getItem("authUser"));
+
+  const LoggedInId = loggedInuser?.data?._id;
+
+  console.log("LoggedInId", LoggedInId);
+
   const fetchManager = async () => {
-    const res = await getMyManager();
-    // console.log("manager", res?.data?.manager?.name);
+    const id = employeeId || LoggedInId;
+    if (!id) return;
+
+    const res = await getManagerByEmployeeId(id);
+    console.log("manager", res);
+
     setManagerId(res?.data?.manager?._id);
     setManagerName(res?.data?.manager?.name);
   };
@@ -59,6 +72,11 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess }) => {
         description,
       };
 
+      if (employeeId) {
+        data.employee_id = employeeId;
+      } else if (LoggedInId) {
+        data.user_id = LoggedInId;
+      }
       if (row?._id) {
         data.log_id = row._id;
       } else {
