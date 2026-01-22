@@ -2152,6 +2152,14 @@ export const getMyManager = () => {
   });
 };
 
+export const getManagerByEmployeeId = (id) => {
+  return api.get(`${url.GET_MY_MANAGER_BY_EMPLOYEE_ID}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getLeavesRequest = (managerId) => {
   return api.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
     headers: {

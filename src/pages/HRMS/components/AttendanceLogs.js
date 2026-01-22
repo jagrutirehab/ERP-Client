@@ -163,6 +163,7 @@ const AttendanceLogs = ({ employeeId }) => {
         toggle={() => setRegularizeModalOpen(false)}
         row={selectedRow}
         onSuccess={reloadAttendance}
+        employeeId={employeeId}
       />
     </>
   );
