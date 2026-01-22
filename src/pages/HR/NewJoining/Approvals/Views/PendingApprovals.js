@@ -201,7 +201,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Designation</div>,
@@ -209,7 +209,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 ?.toLowerCase()
                 .replace(/_/g, " ") || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Employment</div>,
@@ -512,6 +512,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             : [])
     ];
 
+    const isVendor =
+  selectedEmployee?.employmentType
+    ?.trim()
+    .toLowerCase() !== "vendor";
+
     return (
 
         <>
@@ -614,6 +619,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 loading={modalLoading}
                 setLoading={setModalLoading}
                 mode={"NEW_JOINING"}
+                isVendor={isVendor}
             />
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}

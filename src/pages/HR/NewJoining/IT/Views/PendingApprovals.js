@@ -239,7 +239,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             // {console.log("row", row)},
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Designation</div>,

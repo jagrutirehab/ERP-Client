@@ -120,6 +120,7 @@ const EmployeeForm = ({
   onCancel,
   mode,
   hasCreatePermission,
+  isVendor,
 }) => {
   const dispatch = useDispatch();
   const { centerAccess, userCenters } = useSelector((state) => state.User);
@@ -177,6 +178,8 @@ const EmployeeForm = ({
 
     return "";
   };
+
+  // console.log("initialData", initialData?.department);
 
   const cleanedInitialData = initialData
     ? {
@@ -462,20 +465,24 @@ const EmployeeForm = ({
     fetchDepartment();
   }, []);
 
-  //   const debounce = (func, delay) => {
-  //     let timer;
-  //     return (...args) => {
-  //       clearTimeout(timer);
-  //       timer = setTimeout(() => func(...args), delay);
-  //     };
-  //   };
+  useEffect(() => {
+    if (isEdit && initialData?.department && departmentOptions.length) {
+      const matched = departmentOptions.find(
+        (opt) => opt.label === initialData.department,
+      );
+
+      if (matched) {
+        form.setFieldValue("department", matched.value);
+      }
+    }
+  }, [departmentOptions, isEdit, initialData]);
 
   const handleCreateDepartment = async (dept) => {
     try {
       const data = { department: dept };
       const response = await createDepartment(data);
 
-      console.log("Response response", response)
+      console.log("Response response", response);
 
       const createdDept = response.data;
 
@@ -493,7 +500,7 @@ const EmployeeForm = ({
       console.log(error);
       toast.error("Failed to create department");
     } finally {
-      fetchDepartment()
+      fetchDepartment();
     }
   };
 
@@ -609,36 +616,38 @@ const EmployeeForm = ({
           </Col>
 
           {/* EMPLOYMENT */}
-          <Col md={6}>
-            <Label htmlFor="employmentType">
-              Employment <span className="text-danger">*</span>
-            </Label>
+         {!(isEdit && initialData?.employmentType?.trim().toLowerCase() === "vendor") && (
+            <Col md={6}>
+              <Label htmlFor="employmentType">
+                Employment <span className="text-danger">*</span>
+              </Label>
 
-            <Select
-              inputId="employmentType"
-              placeholder="Select Employment Type"
-              options={[
-                { label: "Full Time Employee", value: "FULL_TIME" },
-                { label: "Part Time Employee", value: "PART_TIME" },
-                { label: "Contractual", value: "CONTRACTUAL" },
-                { label: "Consultant", value: "CONSULTANT" },
-              ]}
-              value={
-                [
+              <Select
+                inputId="employmentType"
+                placeholder="Select Employment Type"
+                options={[
                   { label: "Full Time Employee", value: "FULL_TIME" },
                   { label: "Part Time Employee", value: "PART_TIME" },
                   { label: "Contractual", value: "CONTRACTUAL" },
                   { label: "Consultant", value: "CONSULTANT" },
-                ].find((opt) => opt.value === values.employmentType) || null
-              }
-              onChange={(opt) =>
-                form.setFieldValue("employmentType", opt ? opt.value : "")
-              }
-              onBlur={() => form.setFieldTouched("employmentType", true)}
-            />
+                ]}
+                value={
+                  [
+                    { label: "Full Time Employee", value: "FULL_TIME" },
+                    { label: "Part Time Employee", value: "PART_TIME" },
+                    { label: "Contractual", value: "CONTRACTUAL" },
+                    { label: "Consultant", value: "CONSULTANT" },
+                  ].find((opt) => opt.value === values.employmentType) || null
+                }
+                onChange={(opt) =>
+                  form.setFieldValue("employmentType", opt ? opt.value : "")
+                }
+                onBlur={() => form.setFieldTouched("employmentType", true)}
+              />
 
-            {errorText("employmentType")}
-          </Col>
+              {errorText("employmentType")}
+            </Col>
+          )}
 
           {/* FIRST LOCATION */}
           <Col md={6}>
