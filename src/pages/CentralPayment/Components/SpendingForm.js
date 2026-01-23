@@ -129,7 +129,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
 
     const form = useFormik({
-        enableReinitialize: true,
         initialValues: {
             name: paymentData?.name || "",
             center: paymentData?.center?._id || "",
@@ -374,9 +373,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     inputId="category"
                     name="category"
                     options={categoryOptions}
-                    value={categoryOptions.find(
-                        (opt) => opt.value === form.values.category
-                    )}
+                    value={
+                        form.values.category
+                            ? categoryOptions.find(opt => opt.value === form.values.category)
+                            : ""
+                    }
                     onChange={(option) => {
                         const value = option?.value || "";
                         form.setFieldValue("category", value, true);
