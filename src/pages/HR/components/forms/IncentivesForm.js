@@ -140,7 +140,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                     <Label>Search Employee</Label>
                     <Input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
