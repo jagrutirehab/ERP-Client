@@ -418,7 +418,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         cacheOptions
                         defaultOptions={false}
                         loadOptions={loadEmployees}
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={form.values.employeeId}
                         onChange={(option) => {
                             form.setFieldValue("employeeId", option);
