@@ -2331,7 +2331,7 @@ export const editIncentives = (id, data) => {
 };
 
 export const deleteIncentives = (id) => {
-  return api.delete(`${url.SALARY_ADVANCE}/${id}`, {
+  return api.delete(`${url.INCENTIVES}/${id}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
