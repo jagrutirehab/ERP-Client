@@ -124,7 +124,7 @@ const ApprovalHistory = ({ activeTab }) => {
     },
     {
       name: <div>Mobile Number</div>,
-      selector: row => row?.employeeData?.mobile,
+      selector: row => row?.employeeData?.mobile || "-",
       wrap: true,
       minWidth: "140px"
     },
