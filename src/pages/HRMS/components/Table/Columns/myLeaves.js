@@ -181,4 +181,23 @@ export const MyLeavesColumn = (
     ),
     width: "120px",
   },
+  {
+    name: <Center>Regularized For</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.regularizedDates?.length
+          ? row.regularizedDates
+              .map((d) =>
+                new Date(d).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
+              )
+              .join(", ")
+          : "-"}
+      </Center>
+    ),
+    width: "220px",
+  },
 ];
