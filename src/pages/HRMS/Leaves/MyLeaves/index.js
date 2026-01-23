@@ -79,6 +79,7 @@ const MyLeaves = () => {
             eCode: d?.eCode,
             center: d?.center,
             approvalAuthority: d?.approvalAuthority,
+            regularizedDates : l?.regularizedDates
           })) || [],
       )
     : [];

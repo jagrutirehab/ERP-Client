@@ -130,4 +130,22 @@ export const IndividualLeavesColumn = () => [
     minWidth: "140px",
     center: true,
   },
+  {
+    name: <div className="text-center">Regularized For</div>,
+    selector: (row) =>
+      row?.regularizedDates?.length
+        ? row.regularizedDates
+            .map((d) =>
+              new Date(d).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }),
+            )
+            .join(", ")
+        : "-",
+    grow: 1,
+    minWidth: "140px",
+    center: true,
+  },
 ];
