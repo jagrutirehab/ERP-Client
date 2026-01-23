@@ -79,8 +79,9 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-            .required("Status is required"),
+          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+          .required("Status is required"),
+    state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
     IFSCCode: Yup.string().required("IFSC code is required"),
@@ -183,35 +184,35 @@ const EmployeeForm = ({
 
   const cleanedInitialData = initialData
     ? {
-        ...initialData,
-        joinningDate: normalizeDateForInput(initialData?.joinningDate),
-        dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
-        exitDate: normalizeDateForInput(initialData?.exitDate),
-        designation: initialData?.designation?._id || "",
-        IFSCCode: initialData?.bankDetails?.IFSCCode || "",
-        bankName: initialData?.bankDetails?.bankName || "",
-        accountNo: initialData?.bankDetails?.accountNo || "",
-        firstLocation: initialData.firstLocation?._id || "",
-        transferredFrom: initialData.transferredFrom?._id || "",
-        currentLocation: initialData.currentLocation?._id || "",
-        pan: initialData.pan?.number || "",
-        adharNo: initialData?.adhar?.number || "",
-        status: initialData?.status
-          ? initialData.status
-          : mode === "NEW_JOINING"
-            ? "NEW_JOINING"
-            : "",
-        eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode,
-        panOld: initialData?.pan?.url || "",
-        adharOld: initialData?.adhar?.url || "",
-        offerLetterOld: initialData?.offerLetter || "",
+      ...initialData,
+      joinningDate: normalizeDateForInput(initialData?.joinningDate),
+      dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
+      exitDate: normalizeDateForInput(initialData?.exitDate),
+      designation: initialData?.designation?._id || "",
+      IFSCCode: initialData?.bankDetails?.IFSCCode || "",
+      bankName: initialData?.bankDetails?.bankName || "",
+      accountNo: initialData?.bankDetails?.accountNo || "",
+      firstLocation: initialData.firstLocation?._id || "",
+      transferredFrom: initialData.transferredFrom?._id || "",
+      currentLocation: initialData.currentLocation?._id || "",
+      pan: initialData.pan?.number || "",
+      adharNo: initialData?.adhar?.number || "",
+      status: initialData?.status
+        ? initialData.status
+        : mode === "NEW_JOINING"
+          ? "NEW_JOINING"
+          : "",
+      eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode,
+      panOld: initialData?.pan?.url || "",
+      adharOld: initialData?.adhar?.url || "",
+      offerLetterOld: initialData?.offerLetter || "",
 
-        bankDetails: undefined,
-        _id: undefined,
-        createdAt: undefined,
-        updatedAt: undefined,
-        newJoiningWorkflow: undefined,
-      }
+      bankDetails: undefined,
+      _id: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+      newJoiningWorkflow: undefined,
+    }
     : null;
 
   const form = useFormik({
@@ -677,8 +678,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                        (o) => o.value === values.transferredFrom,
-                      )
+                      (o) => o.value === values.transferredFrom,
+                    )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -697,8 +698,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                      (o) => o.value === values.currentLocation,
-                    )
+                    (o) => o.value === values.currentLocation,
+                  )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -708,13 +709,19 @@ const EmployeeForm = ({
 
           {/* STATE */}
           <Col md={6}>
-            <Label htmlFor="state">State</Label>
+            <Label htmlFor="state">
+              State <span className="text-danger">*</span>
+            </Label>
+
             <Input
               name="state"
               id="state"
               value={values.state}
               onChange={handleChange}
+              invalid={touched.state && errors.state}
             />
+
+            {errorText("state")}
           </Col>
 
           {/* PAYROLL */}
@@ -1325,23 +1332,23 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-            <Button
-              color="primary"
-              className="text-white"
-              onClick={form.handleSubmit}
-              disabled={
-                isSubmitting || !isValid || (isEdit && !initialData?._id)
-              }
-            >
-              {isSubmitting ? (
-                <Spinner size="sm" />
-              ) : initialData ? (
-                "Update Employee"
-              ) : (
-                "Save Employee"
-              )}
-            </Button>
-          )}
+              <Button
+                color="primary"
+                className="text-white"
+                onClick={form.handleSubmit}
+                disabled={
+                  isSubmitting || !isValid || (isEdit && !initialData?._id)
+                }
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" />
+                ) : initialData ? (
+                  "Update Employee"
+                ) : (
+                  "Save Employee"
+                )}
+              </Button>
+            )}
 
           {/* <Button onClick={() => console.log(errors)}>
                         test

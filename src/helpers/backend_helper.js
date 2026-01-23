@@ -2127,7 +2127,7 @@ export const getRegularizationsRequests = () => {
   });
 };
 
-export const updateRegularizationStatus = (id, status ) => {
+export const updateRegularizationStatus = (id, status) => {
   return api.update(`${url.UPDATE_REGULARIZATION}/${status}/${id}`, {}, {
     headers: {
       "X-No-Cookie-Token": "true",
@@ -2308,6 +2308,52 @@ export const getEmployeeReportings = (params = {}) => {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+
+// Incentives
+export const postIncentives = (data) => {
+  return api.create(url.INCENTIVES, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const editIncentives = (id, data) => {
+  return api.update(`${url.INCENTIVES}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const deleteIncentives = (id) => {
+  return api.delete(`${url.SALARY_ADVANCE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const incentivesAction = (id, data) => {
+  return api.update(`${url.INCENTIVES_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getIncentives = (params = {}) => {
+  return api.get(url.INCENTIVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
 };

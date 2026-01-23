@@ -129,6 +129,14 @@ const ApprovalHistory = ({ activeTab }) => {
       minWidth: "140px"
     },
     {
+      name: <div>Amount</div>,
+      selector: row => typeof row?.amount === "number"
+        ? `₹${row.amount.toLocaleString()}`
+        : "-",
+      wrap: true,
+      minWidth: "140px"
+    },
+    {
       name: <div>Filled By</div>,
       selector: row => (
         <div>

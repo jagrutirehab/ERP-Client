@@ -19,7 +19,7 @@ const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
-  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM
+  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM | INCENTIVES
   actionType,
   setActionType,
   paymentType,

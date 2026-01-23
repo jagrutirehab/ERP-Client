@@ -475,10 +475,12 @@ export const ADD_POLICIES = "/hrms/employee/policy";
 export const GET_POLICIES = "/hrms/employee/get/policies";
 export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";
 
-
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_DEPARTMENTS = "/hr/get/departments";
 export const CREATE_DEPARTMENTS = "/hr/create/departments";
+
+export const INCENTIVES = "/hr/incentives";
+export const INCENTIVES_ACTION = "/hr/incentives/action";

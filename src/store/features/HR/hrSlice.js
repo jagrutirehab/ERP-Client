@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getITApprovals, getTPMs, postDesignation, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getTPMs, postDesignation, searchExitEmployee } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -94,6 +94,15 @@ export const fetchHirings = createAsyncThunk("hr/getHirings", async (data, { rej
 export const fetchTPMs = createAsyncThunk("hr/getTPMs", async (data, { rejectWithValue }) => {
     try {
         const response = await getTPMs(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchIncentives = createAsyncThunk("hr/getIncentives", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getIncentives(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -216,6 +225,18 @@ export const hrSlice = createSlice({
                 state.loading = false
             });
 
+        builder
+            .addCase(fetchIncentives.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchIncentives.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchIncentives.rejected, (state) => {
+                state.loading = false
+            });
     }
 });
 

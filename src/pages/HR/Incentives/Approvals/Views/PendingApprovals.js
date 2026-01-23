@@ -1,54 +1,32 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
+import { fetchAdvanceSalaries, fetchIncentives } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { deleteEmployee, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
-import { format } from "date-fns";
+import { advanceSalaryAction, deleteAdvanceSalary, deleteIncentives, incentivesAction } from "../../../../../helpers/backend_helper";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { downloadFile } from "../../../../../Components/Common/downloadFile";
+import { format } from "date-fns";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input, Spinner } from "reactstrap";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
 import DataTable from "react-data-table-component";
-import AddEmployeeModal from "../../../components/EmployeeModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
+import PropTypes from "prop-types";
 import Select from "react-select";
+import EditIncentivesModal from "../../../components/forms/EditIncentivesModal";
+import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 
-
-const customStyles = {
-    table: {
-        style: {
-            minHeight: "450px",
-        },
-    },
-    headCells: {
-        style: {
-            backgroundColor: "#f8f9fa",
-            fontWeight: "600",
-            borderBottom: "2px solid #e9ecef",
-        },
-    },
-    rows: {
-        style: {
-            minHeight: "60px",
-            borderBottom: "1px solid #f1f1f1",
-        },
-    },
-};
-
-
-const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
-
+const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [selectedRecord, setSelectedRecord] = useState(null);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
@@ -57,10 +35,13 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [modalLoading, setModalLoading] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
-    const [reason, setReason] = useState("");
-    const [eCode, setECode] = useState("");
+    const [note, setNote] = useState("");
 
-    const hasCreatePermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "WRITE") || hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "DELETE");
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const { hasPermission, roles } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "INCENTIVES_APPROVAL", "READ");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -107,43 +88,43 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         return () => clearTimeout(handler);
     }, [search]);
 
-    const fetchMasterEmployeeList = async () => {
+    const fetchPendingIncentiveApprovals = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
                     ? user?.centerAccess
                     : !user?.centerAccess.length ? [] : [selectedCenter];
 
-            await dispatch(getMasterEmployees({
+            await dispatch(fetchIncentives({
                 page,
                 limit,
                 centers,
-                view: "NEW_JOINING_PENDING",
+                view: "PENDING",
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch master employee list");
+                toast.error(error.message || "Failed to fetch advance salary records");
             }
         }
     };
 
     useEffect(() => {
         if (activeTab === "PENDING" && hasUserPermission) {
-            fetchMasterEmployeeList();
+            fetchPendingIncentiveApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab]);
 
     const handleDelete = async () => {
         setModalLoading(true);
         try {
-            await deleteEmployee(selectedEmployee._id);
-            toast.success("Employee deleted successfully");
+            await deleteIncentives(selectedRecord._id);
+            toast.success("Request deleted successfully");
             setPage(1);
-            fetchMasterEmployeeList();
+            fetchPendingIncentiveApprovals();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to delete employee")
+                toast.error(error.message || "Failed to delete the request")
             }
         } finally {
             setDeleteModalOpen(false);
@@ -151,296 +132,89 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         }
     }
 
-    const handleNewJoiningAction = async () => {
+    const handleAction = async () => {
         setModalLoading(true);
         try {
-            const response = await updateNewJoiningStatus(
-                selectedEmployee._id,
-                {
-                    action: actionType,
-                    reason,
-                    ...actionType === "APPROVE" && { eCode }
-                }
-            );
-
+            const response = await incentivesAction(selectedRecord._id, {
+                action: actionType,
+                note,
+            });
             toast.success(response.message);
-            setPage(1)
-            fetchMasterEmployeeList();
+            setPage(1);
+            fetchPendingIncentiveApprovals();
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to update the status");
+                toast.error(error.message || "Action failed");
             }
         } finally {
-            setModalLoading(false);
             setApproveModalOpen(false);
-            setReason("");
-            setActionType(null);
+            setModalLoading(false);
         }
-    };
+    }
 
     const columns = [
         {
-            name: <div>Date</div>,
-            selector: row =>
-                row?.createdAt
-                    ? format(new Date(row.createdAt), "dd MMM yyyy, hh:mm a")
-                    : "-",
-            sortable: true,
-            wrap: true,
-            minWidth: "180px"
+            name: <div>ECode</div>,
+            selector: row => row?.employee?.eCode || "-",
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.name?.toUpperCase() || "-",
+            selector: row => row?.employee?.name?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
         {
-            name: <div>Biometric ID</div>,
-            selector: row => row?.biometricId || "-",
-        },
-        {
-            name: <div>Department</div>,
-            selector: row => capitalizeWords(row?.department || "-"),
-            wrap: true,
-            minWidth: "130px"
-        },
-        {
-            name: <div>Designation</div>,
-            selector: row => capitalizeWords(row.designation?.name
-                ?.toLowerCase()
-                .replace(/_/g, " ") || "-"),
-            wrap: true,
-            minWidth: "130px"
-        },
-        {
-            name: <div>Employment</div>,
-            selector: row => capitalizeWords(row?.employmentType || "-"),
-            wrap: true,
-            minWidth: "100px"
-        },
-
-        {
-            name: <div>First Location</div>,
-            selector: row => capitalizeWords(row?.firstLocation?.title || "-"),
+            name: <div>Center</div>,
+            selector: row => capitalizeWords(row?.center?.title) || "-",
             wrap: true,
             minWidth: "120px"
         },
         {
-            name: <div>Current Location</div>,
-            selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
-            wrap: true,
-            minWidth: "120px"
-        },
-
-        {
-            name: <div>State</div>,
-            selector: row => capitalizeWords(row?.state || "-"),
-            wrap: true,
-            minWidth: "120px"
-        },
-        {
-            name: <div>Payroll</div>,
-            selector: row =>
-                row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
-            wrap: true
-        },
-        {
-            name: <div>Joining Date</div>,
-            selector: row => row?.joinningDate || "-",
-            wrap: true
-        },
-        {
-            name: <div>Gender</div>,
-            selector: row => capitalizeWords(row?.gender || "-"),
-            wrap: true
-        },
-        {
-            name: <div>Date of Birth</div>,
-            selector: row => row?.dateOfBirth || "-",
-            wrap: true
-        },
-        {
-            name: <div>Bank Name</div>,
-            selector: row =>
-                capitalizeWords(row?.bankDetails?.bankName || "-"),
-            wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>Bank Account No</div>,
-            selector: row => row?.bankDetails?.accountNo || "-",
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>IFSC Code</div>,
-            selector: row => row?.bankDetails?.IFSCCode || "-",
-            wrap: true,
-            minWidth: "150px"
-        },
-        {
-            name: <div>PF Applicable</div>,
-            selector: row =>
-                row?.pfApplicable === true
-                    ? "Yes"
-                    : row?.pfApplicable === false
-                        ? "No"
-                        : "-",
-            wrap: true
-        },
-        {
-            name: <div>UAN No</div>,
-            selector: row => row?.uanNo || "-",
-            wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>PF No</div>,
-            selector: row => row?.pfNo || "-",
-            wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>ESIC IP Code</div>,
-            selector: row => row?.esicIpCode || "-",
-            wrap: true,
-            minWidth: "160px"
-        },
-
-        {
-            name: <div>Aadhaar No</div>,
-            selector: row => row?.adhar?.number || "-",
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>Aadhaar File</div>,
-            cell: row =>
-                typeof row?.adhar?.url === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.adhar.url })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                ),
-            wrap: true,
-        },
-        {
-            name: <div>PAN</div>,
-            selector: row => row?.pan?.number || "-",
+            name: <div>Mobile Number</div>,
+            selector: row => row?.employee?.mobile || "-",
             wrap: true,
             minWidth: "140px"
         },
         {
-            name: <div>PAN File</div>,
-            cell: row =>
-                typeof row?.pan?.url === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.pan.url })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                )
-        },
-        {
-            name: <div>Father's Name</div>,
-            selector: row => capitalizeWords(row?.father || "-"),
-            wrap: true,
-            minWidth: "180px"
-        },
-        {
-            name: <div>Mobile No</div>,
-            selector: row => row?.mobile || "-",
+            name: <div>Amount</div>,
+            selector: row => typeof row?.amount === "number"
+                ? `₹${row.amount.toLocaleString()}`
+                : "-",
             wrap: true,
             minWidth: "140px"
         },
         {
-            name: <div>Official Email ID</div>,
-            selector: row => row?.officialEmail || "-",
+            name: <div>Details</div>,
+            selector: row => <ExpandableText text={capitalizeWords(row?.details) || "-"} />,
             wrap: true,
-            minWidth: "200px"
-        },
-        {
-            name: <div>Email ID</div>,
-            selector: row => row?.email || "-",
-            wrap: true,
-            minWidth: "200px"
-        },
-
-        {
-            name: <div>Monthly CTC</div>,
-            selector: row =>
-                typeof row?.monthlyCTC === "number"
-                    ? `₹${row.monthlyCTC.toLocaleString()}`
-                    : "-",
-            sortable: true,
-            wrap: true,
-            minWidth: "100px"
-        },
-        {
-            name: <div>Offer Letter</div>,
-            cell: row =>
-                typeof row?.offerLetter === "string" ? (
-                    <span
-                        style={{
-                            color: "#007bff",
-                            textDecoration: "underline",
-                            cursor: "pointer",
-                            fontSize: "0.875rem"
-                        }}
-                        onClick={() => downloadFile({ url: row.offerLetter })}
-                    >
-                        Download
-                    </span>
-                ) : (
-                    "-"
-                )
+            minWidth: "220px"
         },
         {
             name: <div>Filled By</div>,
             selector: row => (
                 <div>
-                    <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
+                    <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
                     <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.newJoiningWorkflow?.filledBy?.email || "-"}
+                        {row?.filledBy?.email || "-"}
                     </div>
                 </div>
             ),
             wrap: true,
-            minWidth: "200px"
+            minWidth: "200px",
         },
         {
             name: <div>Filled At</div>,
             selector: row => {
-                const filledAt = row?.newJoiningWorkflow?.filledAt;
-
-                if (!filledAt || isNaN(new Date(filledAt))) {
-                    return "-";
-                }
-
-                return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
+                if (!row?.filledAt) return "-";
+                const date = new Date(row.filledAt);
+                if (isNaN(date)) return "-";
+                return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
             minWidth: "180px",
         },
-        ...(hasPermission("HR", "NEW_JOINING_APPROVAL", "WRITE")
+
+        ...(hasPermission("HR", "INCENTIVES_APPROVAL", "WRITE")
             ? [
                 {
                     name: <div>Actions</div>,
@@ -448,7 +222,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                         <div className="d-flex gap-2">
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="NEW_JOINING_APPROVAL"
+                                subAccess="INCENTIVES_APPROVAL"
                                 permission="edit"
                             >
                                 <Button
@@ -456,8 +230,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                                     className="text-white"
                                     size="sm"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setActionType("APPROVE");
+                                        setSelectedRecord(row);
+                                        setActionType("APPROVE")
                                         setApproveModalOpen(true);
                                     }}
                                 >
@@ -469,39 +243,41 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                                     className="text-white"
                                     size="sm"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setActionType("REJECT");
                                         setApproveModalOpen(true);
                                     }}
                                 >
                                     <X size={16} />
                                 </Button>
-
-                                <button
-                                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                <Button
+                                    color="primary"
+                                    outline
+                                    size="sm"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setModalOpen(true);
                                     }}
                                 >
                                     <Pencil size={16} />
-                                </button>
+                                </Button>
                             </CheckPermission>
-
                             <CheckPermission
                                 accessRolePermission={roles?.permissions}
-                                subAccess="NEW_JOINING_APPROVAL"
+                                subAccess="INCENTIVES_APPROVAL"
                                 permission="delete"
                             >
-                                <button
-                                    className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                <Button
+                                    color="danger"
+                                    size="sm"
+                                    className="text-white"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
+                                        setSelectedRecord(row);
                                         setDeleteModalOpen(true);
                                     }}
                                 >
                                     <Trash2 size={16} />
-                                </button>
+                                </Button>
                             </CheckPermission>
                         </div>
                     ),
@@ -514,13 +290,9 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             : [])
     ];
 
-    const isVendor =
-  selectedEmployee?.employmentType
-    ?.trim()
-    .toLowerCase() !== "vendor";
+
 
     return (
-
         <>
             <div className="mb-3">
                 {/*  DESKTOP VIEW */}
@@ -550,7 +322,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-
                     </div>
                 </div>
 
@@ -579,7 +350,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                         />
                     </div>
                 </div>
-
             </div>
 
             <DataTable
@@ -597,7 +367,26 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 fixedHeaderScrollHeight="500px"
                 dense={isMobile}
                 responsive
-                customStyles={customStyles}
+                customStyles={{
+                    table: {
+                        style: {
+                            minHeight: "450px",
+                        },
+                    },
+                    headCells: {
+                        style: {
+                            backgroundColor: "#f8f9fa",
+                            fontWeight: "600",
+                            borderBottom: "2px solid #e9ecef",
+                        },
+                    },
+                    rows: {
+                        style: {
+                            minHeight: "60px",
+                            borderBottom: "1px solid #f1f1f1",
+                        },
+                    },
+                }}
                 progressComponent={
                     <div className="py-4 text-center">
                         <Spinner className="text-primary" />
@@ -607,51 +396,53 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
-            <AddEmployeeModal
+            <EditIncentivesModal
                 isOpen={modalOpen}
                 toggle={() => {
                     setModalOpen(!modalOpen);
-                    setSelectedEmployee(null);
+                    setSelectedRecord(null);
                 }}
-                initialData={selectedEmployee}
+                initialData={selectedRecord}
                 onUpdate={() => {
+                    setSelectedRecord(null);
                     setPage(1);
-                    fetchMasterEmployeeList();
+                    fetchPendingIncentiveApprovals();
                 }}
-                loading={modalLoading}
-                setLoading={setModalLoading}
-                mode={"NEW_JOINING"}
-                isVendor={isVendor}
-                hasCreatePermission={hasCreatePermission}
             />
+
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}
                 toggle={() => {
                     setDeleteModalOpen(!deleteModalOpen);
-                    setSelectedEmployee(null);
+                    setSelectedRecord(null);
                 }}
                 onConfirm={handleDelete}
                 loading={modalLoading}
             />
+
             <ApproveModal
                 isOpen={approveModalOpen}
                 toggle={() => {
                     setApproveModalOpen(false);
-                    setReason("");
+                    setNote("");
                     setActionType(null);
+                    setSelectedRecord(null);
                 }}
-                onSubmit={handleNewJoiningAction}
-                mode="NEW_JOINING"
+                onSubmit={handleAction}
+                mode="INCENTIVES"
                 loading={modalLoading}
                 actionType={actionType}
-                note={reason}
-                setNote={setReason}
-                eCode={eCode}
-                setECode={setECode}
-            />
+                setActionType={setActionType}
+                note={note}
+                setNote={setNote}
 
+            />
         </>
-    );
+    )
+}
+
+PendingApprovals.prototype = {
+    activeTab: PropTypes.string
 };
 
 export default PendingApprovals;
