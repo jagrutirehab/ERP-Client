@@ -38,11 +38,25 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
     const id = employeeId || LoggedInId;
     if (!id) return;
 
-    const res = await getManagerByEmployeeId(id);
-    console.log("manager", res);
+    try {
+      const res = await getManagerByEmployeeId(id);
+      console.log("manager", res);
 
-    setManagerId(res?.data?.manager?._id);
-    setManagerName(res?.data?.manager?.name);
+      const manager = res?.data?.manager;
+
+      if (!manager) {
+        setManagerId(null);
+        setManagerName("No Manager Found");
+        return;
+      }
+
+      setManagerId(manager._id);
+      setManagerName(manager.name);
+    } catch (error) {
+      console.error("Fetch manager error:", error);
+      setManagerId(null);
+      setManagerName("No Manager Found");
+    }
   };
 
   useEffect(() => {
@@ -112,7 +126,11 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
         {/* Manager */}
         <div className="mb-3">
           <Label>Manager</Label>
-          <Input value={managerName || "Loading..."} disabled />
+          <Input
+            value={managerName || "No Manager Found"}
+            disabled
+            className={managerName === "No Manager Found" ? "text-danger" : ""}
+          />
         </div>
 
         {/* Times */}

@@ -79,8 +79,8 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-          .required("Status is required"),
+            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+            .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -184,35 +184,35 @@ const EmployeeForm = ({
 
   const cleanedInitialData = initialData
     ? {
-      ...initialData,
-      joinningDate: normalizeDateForInput(initialData?.joinningDate),
-      dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
-      exitDate: normalizeDateForInput(initialData?.exitDate),
-      designation: initialData?.designation?._id || "",
-      IFSCCode: initialData?.bankDetails?.IFSCCode || "",
-      bankName: initialData?.bankDetails?.bankName || "",
-      accountNo: initialData?.bankDetails?.accountNo || "",
-      firstLocation: initialData.firstLocation?._id || "",
-      transferredFrom: initialData.transferredFrom?._id || "",
-      currentLocation: initialData.currentLocation?._id || "",
-      pan: initialData.pan?.number || "",
-      adharNo: initialData?.adhar?.number || "",
-      status: initialData?.status
-        ? initialData.status
-        : mode === "NEW_JOINING"
-          ? "NEW_JOINING"
-          : "",
-      eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode,
-      panOld: initialData?.pan?.url || "",
-      adharOld: initialData?.adhar?.url || "",
-      offerLetterOld: initialData?.offerLetter || "",
+        ...initialData,
+        joinningDate: normalizeDateForInput(initialData?.joinningDate),
+        dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
+        exitDate: normalizeDateForInput(initialData?.exitDate),
+        designation: initialData?.designation?._id || "",
+        IFSCCode: initialData?.bankDetails?.IFSCCode || "",
+        bankName: initialData?.bankDetails?.bankName || "",
+        accountNo: initialData?.bankDetails?.accountNo || "",
+        firstLocation: initialData.firstLocation?._id || "",
+        transferredFrom: initialData.transferredFrom?._id || "",
+        currentLocation: initialData.currentLocation?._id || "",
+        pan: initialData.pan?.number || "",
+        adharNo: initialData?.adhar?.number || "",
+        status: initialData?.status
+          ? initialData.status
+          : mode === "NEW_JOINING"
+            ? "NEW_JOINING"
+            : "",
+        eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode,
+        panOld: initialData?.pan?.url || "",
+        adharOld: initialData?.adhar?.url || "",
+        offerLetterOld: initialData?.offerLetter || "",
 
-      bankDetails: undefined,
-      _id: undefined,
-      createdAt: undefined,
-      updatedAt: undefined,
-      newJoiningWorkflow: undefined,
-    }
+        bankDetails: undefined,
+        _id: undefined,
+        createdAt: undefined,
+        updatedAt: undefined,
+        newJoiningWorkflow: undefined,
+      }
     : null;
 
   const form = useFormik({
@@ -505,6 +505,25 @@ const EmployeeForm = ({
     }
   };
 
+  const employmentOptions = [
+    { label: "Full Time Employee", value: "FULL_TIME" },
+    { label: "Part Time Employee", value: "PART_TIME" },
+    { label: "Contractual", value: "CONTRACTUAL" },
+    { label: "Consultant", value: "CONSULTANT" },
+    { label: "Vendor", value: "VENDOR", isDisabled: true },
+  ];
+
+  const selectedEmploymentOption =
+    employmentOptions.find(
+      (opt) => opt.value === values.employmentType?.trim().toUpperCase(),
+    ) ||
+    (values.employmentType
+      ? {
+          label: values.employmentType,
+          value: values.employmentType?.trim().toUpperCase(),
+        }
+      : null);
+
   return (
     <>
       <div>
@@ -617,38 +636,36 @@ const EmployeeForm = ({
           </Col>
 
           {/* EMPLOYMENT */}
-         {!(isEdit && initialData?.employmentType?.trim().toLowerCase() === "vendor") && (
-            <Col md={6}>
-              <Label htmlFor="employmentType">
-                Employment <span className="text-danger">*</span>
-              </Label>
+          <Col md={6}>
+            <Label htmlFor="employmentType">
+              Employment <span className="text-danger">*</span>
+            </Label>
 
-              <Select
-                inputId="employmentType"
-                placeholder="Select Employment Type"
-                options={[
-                  { label: "Full Time Employee", value: "FULL_TIME" },
-                  { label: "Part Time Employee", value: "PART_TIME" },
-                  { label: "Contractual", value: "CONTRACTUAL" },
-                  { label: "Consultant", value: "CONSULTANT" },
-                ]}
-                value={
-                  [
-                    { label: "Full Time Employee", value: "FULL_TIME" },
-                    { label: "Part Time Employee", value: "PART_TIME" },
-                    { label: "Contractual", value: "CONTRACTUAL" },
-                    { label: "Consultant", value: "CONSULTANT" },
-                  ].find((opt) => opt.value === values.employmentType) || null
-                }
-                onChange={(opt) =>
-                  form.setFieldValue("employmentType", opt ? opt.value : "")
-                }
-                onBlur={() => form.setFieldTouched("employmentType", true)}
-              />
+            <Select
+              inputId="employmentType"
+              placeholder="Select Employment Type"
+              options={employmentOptions}
+              value={selectedEmploymentOption}
+              onChange={(opt) =>
+                form.setFieldValue("employmentType", opt ? opt.value : "")
+              }
+              onBlur={() => form.setFieldTouched("employmentType", true)}
+              isDisabled={
+                isEdit &&
+                initialData?.employmentType?.trim().toUpperCase() === "VENDOR"
+              }
+            />
 
-              {errorText("employmentType")}
-            </Col>
-          )}
+            {errorText("employmentType")}
+
+            {/* {isEdit &&
+              initialData?.employmentType?.trim().toLowerCase() ===
+                "vendor" && (
+                <small className="text-muted">
+                  Employment type cannot be changed for Vendor employees
+                </small>
+              )} */}
+          </Col>
 
           {/* FIRST LOCATION */}
           <Col md={6}>
@@ -678,8 +695,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                      (o) => o.value === values.transferredFrom,
-                    )
+                        (o) => o.value === values.transferredFrom,
+                      )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -698,8 +715,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                    (o) => o.value === values.currentLocation,
-                  )
+                      (o) => o.value === values.currentLocation,
+                    )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -1332,23 +1349,23 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-              <Button
-                color="primary"
-                className="text-white"
-                onClick={form.handleSubmit}
-                disabled={
-                  isSubmitting || !isValid || (isEdit && !initialData?._id)
-                }
-              >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : initialData ? (
-                  "Update Employee"
-                ) : (
-                  "Save Employee"
-                )}
-              </Button>
-            )}
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={form.handleSubmit}
+              disabled={
+                isSubmitting || !isValid || (isEdit && !initialData?._id)
+              }
+            >
+              {isSubmitting ? (
+                <Spinner size="sm" />
+              ) : initialData ? (
+                "Update Employee"
+              ) : (
+                "Save Employee"
+              )}
+            </Button>
+          )}
 
           {/* <Button onClick={() => console.log(errors)}>
                         test
