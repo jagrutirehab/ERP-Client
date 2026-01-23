@@ -6,8 +6,7 @@ import {
 import PropTypes from "prop-types";
 import EmployeeForm from "./forms/EmployeeForm";
 
-const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode, isVendor }) => {
-    console.log("isVendor", isVendor)
+const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode, isVendor, hasCreatePermission }) => {
     return (
         <Modal isOpen={isOpen} toggle={toggle} size="xl" centered backdrop="static"
             keyboard={false}>
@@ -32,6 +31,7 @@ const EmployeeModal = ({ isOpen, toggle, initialData, onUpdate, mode, isVendor }
                     view={"MODAL"}
                     mode={mode}
                     isVendor={isVendor}
+                    hasCreatePermission={hasCreatePermission}
                 />
             </ModalBody>
         </Modal>
@@ -43,7 +43,9 @@ EmployeeModal.prototypes = {
     toggle: PropTypes.func,
     initialData: PropTypes.object,
     onUpdate: PropTypes.func,
-    mode: PropTypes.string
+    mode: PropTypes.string,
+    hasCreatePermission: PropTypes.bool,
+    isVendor:PropTypes.bool
 };
 
 

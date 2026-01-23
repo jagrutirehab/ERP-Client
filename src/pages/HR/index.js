@@ -38,6 +38,8 @@ import IndividualLeavesOfEmp from "../HRMS/Leaves/EmployeeIndvidualLeaves";
 import GetBalanceLeaves from "../HRMS/Leaves/getBalanceLeaves";
 import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizations";
 import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
+import AddIncentivesRequest from "./Incentives/AddRequest";
+import IncentivesApproval from "./Incentives/Approvals";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -167,6 +169,9 @@ const HR = () => {
                   path={"/leaves/history/for/:id"}
                   element={<IndividualLeavesOfEmp />}
                 />
+
+                <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
+                <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
               </Routes>
             </div>
           </Container>

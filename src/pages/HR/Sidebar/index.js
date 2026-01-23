@@ -155,6 +155,17 @@ const Sidebar = () => {
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
   const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
 
+  const hasIncentivesAddRequestPermission = hasPermission(
+    "HR",
+    "INCENTIVES_ADD_REQUEST",
+    "READ"
+  );
+  const hasIncentivesApprovalPermission = hasPermission(
+    "HR",
+    "INCENTIVES_APPROVAL",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -326,6 +337,17 @@ const Sidebar = () => {
         return true;
       });
 
+      return page.children.length > 0;
+    }
+
+    if (page.id === "incentives") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "add-incentives-request" && !hasIncentivesAddRequestPermission)
+          return false;
+        if (child.id === "incentives-approval" && !hasIncentivesApprovalPermission)
+          return false;
+        return true;
+      });
       return page.children.length > 0;
     }
 

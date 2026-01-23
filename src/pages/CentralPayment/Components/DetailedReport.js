@@ -204,6 +204,15 @@ const DetailedReport = ({
       minWidth: "150px",
     },
     {
+      name: <div>Employee</div>,
+      selector: (row) =>
+        row?.employee
+          ? `${row.employee.name} (${row.employee.eCode})`
+          : "-",
+      wrap: true,
+      minWidth: "150px"
+    },
+    {
       name: <div>Description</div>,
       selector: (row) =>
         row.description ? (

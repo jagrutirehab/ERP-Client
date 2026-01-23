@@ -815,6 +815,27 @@ export const HR = [
       },
     ],
   },
+  {
+    id: "incentives",
+    label: "Incentives",
+    icon: "bx bx-gift",
+    link: "/hr/incentives",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-incentives-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/incentives/add",
+      },
+      {
+        id: "incentives-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/incentives/approval",
+      },
+    ],
+  },
 ];
 
 export const HRMS = [
