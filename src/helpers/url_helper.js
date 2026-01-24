@@ -102,6 +102,10 @@ export const UPDATE_ADMISSION_ASSIGNMENT =
 export const ASSIGN_NURSE_TO_PATIENT = "/patient/assign-nurse";
 export const UNASSIGN_NURSE_TO_PATIENT = "/patient/unassign-nurse";
 
+
+export const GET_ICD_CODES = "/patient/get/icd";
+
+
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
 export const GET_USER_TIMELINE = "/timeline/user";
