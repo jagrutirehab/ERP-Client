@@ -36,7 +36,7 @@ const Stats = () => {
   const user = useSelector((state) => state.User);
 
   const [loading, setLoading] = useState(false);
-  const [exporting, setExporting] = useState(false); // New state for export loading
+  const [exporting, setExporting] = useState(false);
   const [data, setData] = useState([]);
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -50,11 +50,26 @@ const Stats = () => {
     totalPages: 0,
   });
 
-  // Modal State
+  // Media View Modal
+  const [mediaModal, setMediaModal] = useState({
+    isOpen: false,
+    mediaUrl: null,
+    mediaType: "image", // "image" | "video"
+  });
+
+  const toggleMediaModal = (url = null, type = "image") => {
+    setMediaModal({
+      isOpen: !!url,
+      mediaUrl: url,
+      mediaType: type,
+    });
+  };
+
+  // Action Modal (existing)
   const [modal, setModal] = useState(false);
   const [selectedActionItem, setSelectedActionItem] = useState(null);
   const [notificationForm, setNotificationForm] = useState({
-    status: "fall",
+    status: {},
     person: "",
     description: "",
   });
@@ -62,9 +77,8 @@ const Stats = () => {
   const toggleModal = () => {
     setModal(!modal);
     if (modal) {
-      // Reset form when closing
       setNotificationForm({
-        status: "",
+        status: {},
         person: "",
         description: "",
       });
@@ -115,10 +129,10 @@ const Stats = () => {
     try {
       const payload = {
         actionBy: {
-          name: user && (user.user.name || "Unknown"), // handling potential user structure
-          id: user && user.user._id,
+          name: user?.user?.name || "Unknown",
+          id: user?.user?._id,
         },
-        actionStatus: Object.values(notificationForm.status), // Convert status object to array
+        actionStatus: Object.values(notificationForm.status),
         actionNotes: notificationForm.description,
       };
 
@@ -135,12 +149,6 @@ const Stats = () => {
 
       toast.success("Alert notification updated successfully");
       toggleModal();
-      setNotificationForm({
-        status: "",
-        person: "",
-        description: "",
-      });
-      // reload the data to show updated status if needed, or just close
       fetchcctvstats(pagination.page, pagination.limit);
     } catch (error) {
       console.error("Error updating alert:", error);
@@ -151,7 +159,6 @@ const Stats = () => {
   const [lastFetchedAt, setLastFetchedAt] = useState(null);
   const [dataAge, setDataAge] = useState(0);
 
-  // ---------------- CENTER OPTIONS ----------------
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [{ value: "ALL", label: "All Centers" }]
@@ -169,27 +176,15 @@ const Stats = () => {
     centerOptions.find((opt) => opt.value === selectedCenter) ||
     centerOptions[0];
 
-  // ---------------- FETCH DATA ----------------
   const fetchcctvstats = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
 
-      const params = {
-        page,
-        limit,
-      };
+      const params = { page, limit };
 
-      if (selectedCenter !== "ALL") {
-        params.centerId = selectedCenter;
-      }
-
-      if (camSearch) {
-        params.camId = camSearch;
-      }
-
-      if (selectedAlert) {
-        params.alertType = selectedAlert;
-      }
+      if (selectedCenter !== "ALL") params.centerId = selectedCenter;
+      if (camSearch) params.camId = camSearch;
+      if (selectedAlert) params.alertType = selectedAlert;
 
       const response = await axios.get(`${api.CCTV_SERVICE_URL}/alerts`, {
         params,
@@ -199,24 +194,18 @@ const Stats = () => {
         },
       });
 
-      if (response) {
-        // Accessing response.data directly based on typical axios structure,
-        // adjusted to match your previous code if you have an interceptor unwrapping it
-        const responseData = response;
+      setData(response.data?.data || []);
+      setPagination(
+        response.data?.pagination || {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
+      );
 
-        setData(responseData.data || []);
-        setPagination(
-          responseData.pagination || {
-            page: 1,
-            limit: 10,
-            total: 0,
-            totalPages: 0,
-          },
-        );
-
-        setLastFetchedAt(Date.now());
-        setDataAge(0);
-      }
+      setLastFetchedAt(Date.now());
+      setDataAge(0);
     } catch (error) {
       console.error("Failed to fetch alerts", error);
     } finally {
@@ -224,25 +213,15 @@ const Stats = () => {
     }
   };
 
-  // ---------------- EXPORT HANDLER ----------------
   const handleExport = async () => {
     try {
       setExporting(true);
-
-      // Construct params (reuse logic from fetch, but no pagination)
       const params = {};
 
-      if (selectedCenter !== "ALL") {
-        params.centerId = selectedCenter;
-      }
-      if (camSearch) {
-        params.camId = camSearch;
-      }
-      if (selectedAlert) {
-        params.alertType = selectedAlert;
-      }
+      if (selectedCenter !== "ALL") params.centerId = selectedCenter;
+      if (camSearch) params.camId = camSearch;
+      if (selectedAlert) params.alertType = selectedAlert;
 
-      // API Call with responseType: 'blob' is crucial for file downloads
       const response = await axios.get(
         `${api.CCTV_SERVICE_URL}/alerts/export`,
         {
@@ -255,21 +234,13 @@ const Stats = () => {
         },
       );
 
-      // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([response.data]));
-
-      // Create a temporary link element to trigger the download
       const link = document.createElement("a");
       link.href = url;
-
-      // Generate a filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       link.setAttribute("download", `alerts_export_${timestamp}.csv`);
-
       document.body.appendChild(link);
       link.click();
-
-      // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -279,30 +250,24 @@ const Stats = () => {
     }
   };
 
-  // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
     // eslint-disable-next-line
   }, []);
 
-  // ---------------- FILTER CHANGE ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
     // eslint-disable-next-line
   }, [selectedCenter, camSearch, selectedAlert]);
 
-  // ---------------- DATA AGE COUNTER ----------------
   useEffect(() => {
     if (!lastFetchedAt) return;
-
     const interval = setInterval(() => {
       setDataAge(Math.floor((Date.now() - lastFetchedAt) / 1000));
     }, 1000);
-
     return () => clearInterval(interval);
   }, [lastFetchedAt]);
 
-  // ---------------- HANDLERS ----------------
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchcctvstats(newPage, pagination.limit);
@@ -320,7 +285,6 @@ const Stats = () => {
 
   const renderAlerts = (alerts) => {
     if (!alerts) return null;
-
     return Object.entries(alerts).map(([key, value]) =>
       value ? (
         <Badge color="danger" className="me-1" key={key}>
@@ -330,7 +294,13 @@ const Stats = () => {
     );
   };
 
-  // ---------------- UI ----------------
+  const getMediaType = (filename) => {
+    if (!filename) return "image";
+    const ext = filename.split(".").pop().toLowerCase();
+    if (["mp4", "webm", "ogg"].includes(ext)) return "video";
+    return "image";
+  };
+
   return (
     <div className="page-content overflow-hidden">
       <Container fluid>
@@ -431,7 +401,7 @@ const Stats = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="5" className="text-center">
+                    <td colSpan={13} className="text-center">
                       Loading...
                     </td>
                   </tr>
@@ -443,13 +413,22 @@ const Stats = () => {
                       <td>{new Date(item.timestamp).toLocaleString()}</td>
                       <td>{renderAlerts(item.alerts)}</td>
                       <td>{item.eventCount || "N/A"}</td>
-                      <td>{new Date(item.lastOccurrence).toLocaleString()}</td>
+                      <td>
+                        {item.lastOccurrence
+                          ? new Date(item.lastOccurrence).toLocaleString()
+                          : "N/A"}
+                      </td>
                       <td>
                         {item.fileName ? (
                           <Button
                             color="info"
                             size="sm"
-                            onClick={() => window.open(item.fileName, "_blank")}
+                            onClick={() =>
+                              toggleMediaModal(
+                                item.fileName,
+                                getMediaType(item.fileName),
+                              )
+                            }
                           >
                             View
                           </Button>
@@ -476,8 +455,8 @@ const Stats = () => {
                         </Badge>
                       </td>
                       <td>
-                        {item.actionStatus?.map((status, index) => (
-                          <Badge color="secondary" className="me-1" key={index}>
+                        {item.actionStatus?.map((status, i) => (
+                          <Badge color="secondary" className="me-1" key={i}>
                             {status}
                           </Badge>
                         )) || "N/A"}
@@ -493,7 +472,7 @@ const Stats = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Record Found
                     </td>
                   </tr>
@@ -542,7 +521,50 @@ const Stats = () => {
         </div>
       </Container>
 
-      {/* ALERT NOTIFICATION MODAL */}
+      {/* MEDIA VIEW MODAL */}
+      <Modal
+        isOpen={mediaModal.isOpen}
+        toggle={() => toggleMediaModal()}
+        size="xl"
+        centered
+      >
+        <ModalHeader toggle={() => toggleMediaModal()}>
+          Evidence Preview
+        </ModalHeader>
+        <ModalBody className="text-center p-3">
+          {mediaModal.mediaUrl ? (
+            mediaModal.mediaType === "video" ? (
+              <video
+                controls
+                autoPlay
+                style={{ maxWidth: "100%", maxHeight: "70vh" }}
+              >
+                <source src={mediaModal.mediaUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <img
+                src={mediaModal.mediaUrl}
+                alt="Evidence"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                  objectFit: "contain",
+                }}
+              />
+            )
+          ) : (
+            <p>No media available</p>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => toggleMediaModal()}>
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* EXISTING ACTION MODAL */}
       <Modal isOpen={modal} toggle={toggleModal} centered>
         <ModalHeader toggle={toggleModal}>Alert Notification</ModalHeader>
         <ModalBody>
@@ -557,8 +579,7 @@ const Stats = () => {
                 </small>
               </div>
               <p className="mb-0 text-muted small">
-                Resident at {selectedActionItem.center?.name || "Unknown"}{" "}
-                {/* in {selectedActionItem.center?.location || "Unknown Location"} */}
+                Resident at {selectedActionItem.center?.name || "Unknown"}
               </p>
             </div>
           )}
