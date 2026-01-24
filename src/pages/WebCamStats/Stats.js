@@ -130,7 +130,7 @@ const Stats = () => {
             "x-api-key":
               "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
           },
-        }
+        },
       );
 
       toast.success("Alert notification updated successfully");
@@ -211,7 +211,7 @@ const Stats = () => {
             limit: 10,
             total: 0,
             totalPages: 0,
-          }
+          },
         );
 
         setLastFetchedAt(Date.now());
@@ -252,7 +252,7 @@ const Stats = () => {
               "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
           },
           responseType: "blob",
-        }
+        },
       );
 
       // Create a URL for the blob
@@ -326,7 +326,7 @@ const Stats = () => {
         <Badge color="danger" className="me-1" key={key}>
           {key}
         </Badge>
-      ) : null
+      ) : null,
     );
   };
 
@@ -373,7 +373,7 @@ const Stats = () => {
 
             <Col md="3">
               <Input
-                placeholder="Search Cam ID"
+                placeholder="Filter By Camera Name"
                 value={camSearch}
                 onChange={(e) => setCamSearch(e.target.value)}
               />
@@ -413,10 +413,12 @@ const Stats = () => {
                 }}
               >
                 <tr>
-                  <th>Cam ID</th>
+                  <th>Name</th>
                   <th>Center</th>
                   <th>Timestamp</th>
                   <th>Alerts</th>
+                  <th>Event</th>
+                  <th>Last Occurrence</th>
                   <th>Evidence</th>
                   <th>Take Action</th>
                   <th>Action</th>
@@ -436,10 +438,12 @@ const Stats = () => {
                 ) : data.length ? (
                   data.map((item) => (
                     <tr key={item._id}>
-                      <td>{item.cam_id}</td>
+                      <td>{item.name}</td>
                       <td>{item.center?.name || "N/A"}</td>
                       <td>{new Date(item.timestamp).toLocaleString()}</td>
                       <td>{renderAlerts(item.alerts)}</td>
+                      <td>{item.eventCount || "N/A"}</td>
+                      <td>{new Date(item.lastOccurrence).toLocaleString()}</td>
                       <td>
                         {item.fileName ? (
                           <Button
