@@ -1,3 +1,4 @@
+import axios from "axios";
 import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
@@ -953,6 +954,11 @@ export const getAllEmergencyPatients = (params = {}) => {
   return api.create(url.GET_EMERGENCY_PATIENTS, params, {
     headers: { "Content-Type": "application/json" },
   });
+};
+
+
+export const getICDCodes = () => {
+  return api.get(url.GET_ICD_CODES);
 };
 
 // cash management
@@ -2111,28 +2117,41 @@ export const requestForRegularization = (data) => {
   });
 };
 
-export const getMyRegularizations = () => {
-  return api.get(url.GET_MY_REGULARIZATION, {
+export const getMyRegularizations = (params) => {
+  return axios.get(url.GET_MY_REGULARIZATION, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+export const getRegularizationsRequests = (params) => {
+  return axios.get(url.GET_REGULARIZATION_REQUESTS, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
 
-export const getRegularizationsRequests = () => {
-  return api.get(url.GET_REGULARIZATION_REQUESTS, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-};
+// export const getRegularizationsRequests = () => {
+//   return api.get(url.GET_REGULARIZATION_REQUESTS, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
 
 export const updateRegularizationStatus = (id, status) => {
-  return api.update(`${url.UPDATE_REGULARIZATION}/${status}/${id}`, {}, {
-    headers: {
-      "X-No-Cookie-Token": "true",
+  return api.update(
+    `${url.UPDATE_REGULARIZATION}/${status}/${id}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
     },
-  });
+  );
 };
 
 // HRMS/LEAVES
@@ -2268,7 +2287,6 @@ export const getPolicies = () => {
   });
 };
 
-
 // department
 
 export const getDepartments = () => {
@@ -2311,7 +2329,6 @@ export const getEmployeeReportings = (params = {}) => {
     },
   });
 };
-
 
 // Incentives
 export const postIncentives = (data) => {

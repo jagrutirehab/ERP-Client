@@ -536,7 +536,7 @@ const Employee = () => {
   }
 
   const isVendor =
-  selectedEmployee?.employmentType?.trim().toLowerCase() === "vendor";
+    selectedEmployee?.employmentType?.trim().toLowerCase() === "vendor";
 
   return (
     <CardBody

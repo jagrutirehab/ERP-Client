@@ -13,23 +13,32 @@ const minutesTo12HourTime = (minutes) => {
   return `${hour12}:${mins.toString().padStart(2, "0")} ${period}`;
 };
 
+const minutesTo24HourTime = (minutes) => {
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  return `${hrs.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}`;
+};
+
 export const regularizeRequestColumn = (
   handleAction,
   activeTab,
   isLoading,
   hasWrite,
   hasDelete,
-  actionLoadingId
+  actionLoadingId,
 ) => {
   const columns = [
     {
       name: <Center>Employee eCode</Center>,
-      cell: (row) => <Center>{row?.employee_id?.name || "-"}</Center>,
+      cell: (row) => <Center>{row?.employee_id?.eCode || "-"}</Center>,
       width: "130px",
     },
     {
       name: <Center>Employee Name</Center>,
-      cell: (row) => <Center>{row?.employee_id?.eCode || "-"}</Center>,
+      cell: (row) => <Center>{row?.employee_id?.name || "-"}</Center>,
       width: "130px",
     },
     {
@@ -54,7 +63,7 @@ export const regularizeRequestColumn = (
           {row?.originalClockInTime === 0 && row?.originalClockOutTime === 0 ? (
             <span className="badge bg-danger">Absent</span>
           ) : row?.originalClockInTime ? (
-            minutesTo12HourTime(row.originalClockInTime)
+            minutesTo24HourTime(row.originalClockInTime)
           ) : (
             "--"
           )}
@@ -69,7 +78,7 @@ export const regularizeRequestColumn = (
           {row?.originalClockInTime === 0 && row?.originalClockOutTime === 0 ? (
             <span className="badge bg-danger">Absent</span>
           ) : row?.originalClockOutTime ? (
-            minutesTo12HourTime(row.originalClockOutTime)
+            minutesTo24HourTime(row.originalClockOutTime)
           ) : (
             "--"
           )}
@@ -83,7 +92,7 @@ export const regularizeRequestColumn = (
       cell: (row) => (
         <Center>
           {row?.reqClockInTime != null
-            ? minutesTo12HourTime(row.reqClockInTime)
+            ? minutesTo24HourTime(row.reqClockInTime)
             : "-"}
         </Center>
       ),
@@ -95,7 +104,7 @@ export const regularizeRequestColumn = (
       cell: (row) => (
         <Center>
           {row?.reqClockOutTime != null
-            ? minutesTo12HourTime(row.reqClockOutTime)
+            ? minutesTo24HourTime(row.reqClockOutTime)
             : "-"}
         </Center>
       ),
@@ -191,10 +200,12 @@ export const regularizeRequestColumn = (
         return (
           <Center>
             {actionLoadingId === row._id ? (
-              console.log("row", row._id),
-              <button className="btn btn-sm btn-secondary" disabled>
-                Processing...
-              </button>
+              (console.log("row", row._id),
+              (
+                <button className="btn btn-sm btn-secondary" disabled>
+                  Processing...
+                </button>
+              ))
             ) : hasWrite || hasDelete ? (
               <div className="d-flex gap-1 justify-content-center">
                 <button

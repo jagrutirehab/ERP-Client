@@ -15,6 +15,15 @@ const minutesTo12HourTime = (minutes) => {
   return `${hour12}:${mins.toString().padStart(2, "0")} ${period}`;
 };
 
+const minutesTo24HourTime = (minutes) => {
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  return `${hrs.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}`;
+};
+
 export const MyRegularizationsColumn = () => [
   {
     name: <Center>Date</Center>,
@@ -29,7 +38,7 @@ export const MyRegularizationsColumn = () => [
     cell: (row) => (
       <Center>
         {row?.reqClockInTime != null
-          ? minutesTo12HourTime(row.reqClockInTime)
+          ? minutesTo24HourTime(row.reqClockInTime)
           : "-"}
       </Center>
     ),
@@ -41,19 +50,16 @@ export const MyRegularizationsColumn = () => [
     cell: (row) => (
       <Center>
         {row?.reqClockOutTime != null
-          ? minutesTo12HourTime(row.reqClockOutTime)
+          ? minutesTo24HourTime(row.reqClockOutTime)
           : "-"}
       </Center>
     ),
     width: "150px",
   },
+
   {
     name: <Center>Manager Name</Center>,
-    cell: (row) => (
-      <Center>
-        {row?.manager_id?.name}
-      </Center>
-    ),
+    cell: (row) => <Center>{row?.manager_id?.name}</Center>,
     width: "150px",
   },
 

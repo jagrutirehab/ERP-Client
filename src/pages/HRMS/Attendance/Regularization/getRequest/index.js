@@ -13,6 +13,7 @@ import classnames from "classnames";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Select from "react-select";
 
 const GetRegularizationsRequest = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -27,8 +28,12 @@ const GetRegularizationsRequest = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const user = useSelector((state) => state.User);
-  const [selectedCenter, setSelectedCenter] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
+
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
@@ -75,6 +80,7 @@ const GetRegularizationsRequest = () => {
       !user?.centerAccess?.includes(selectedCenter)
     ) {
       setSelectedCenter("ALL");
+      setPage(1);
     }
   }, [selectedCenter, user?.centerAccess]);
 
@@ -83,8 +89,27 @@ const GetRegularizationsRequest = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getRegularizationsRequests();
+      let centers = [];
+
+      if (selectedCenter === "") {
+        centers = [];
+      } else if (selectedCenter === "ALL") {
+        centers = user?.centerAccess || [];
+      } else {
+        centers = [selectedCenter];
+      }
+      const res = await getRegularizationsRequests({
+        page,
+        limit,
+        centers,
+        status: activeTab,
+        year: selectedYear,
+        month: selectedMonth,
+        ...(debouncedSearch && { search: debouncedSearch }),
+      });
+
       setRequestsData(res?.data || []);
+      setPagination(res?.pagination || null);
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
@@ -96,7 +121,16 @@ const GetRegularizationsRequest = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [
+    page,
+    limit,
+    selectedCenter,
+    activeTab,
+    selectedYear,
+    selectedMonth,
+    debouncedSearch,
+    user?.centerAccess,
+  ]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -123,6 +157,7 @@ const GetRegularizationsRequest = () => {
     { value: 10, label: "Nov" },
     { value: 11, label: "Dec" },
   ];
+
   const filteredData = useMemo(() => {
     const allowedCenters = user?.centerAccess || [];
 
@@ -171,7 +206,7 @@ const GetRegularizationsRequest = () => {
     console.log("Id in function", id);
     try {
       setActionLoadingId(id);
-      await updateRegularizationStatus(id, status );
+      await updateRegularizationStatus(id, status);
       toast.success(`Request ${status} successfully`);
       fetchData();
     } catch (error) {
@@ -207,25 +242,18 @@ const GetRegularizationsRequest = () => {
       </Nav>
 
       <div className="d-flex gap-2 mb-3">
-        <select
-          className="form-select"
-          style={{ width: "180px" }}
-          value={selectedCenter}
-          onChange={(e) => setSelectedCenter(e.target.value)}
-          disabled={!centerOptions.length}
-        >
-          <option value="">Select Center</option>
-          {centerOptions.length === 0 ? (
-            <option value="">No Centers Available</option>
-          ) : (
-            
-            centerOptions.map((c) => (
-              <option key={c?.value} value={c?.value}>
-                {c?.label}
-              </option>
-            ))
-          )}
-        </select>
+        <div style={{ width: "200px" }}>
+          <Select
+            value={selectedCenterOption}
+            onChange={(option) => {
+              setSelectedCenter(option?.value);
+              setPage(1);
+            }}
+            options={centerOptions}
+            placeholder="All Centers"
+            classNamePrefix="react-select"
+          />
+        </div>
 
         <input
           type="text"
@@ -273,7 +301,12 @@ const GetRegularizationsRequest = () => {
           hasDelete,
           actionLoadingId,
         )}
-        data={filteredData}
+        data={requestsData}
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
         loading={loading}
       />
     </CardBody>

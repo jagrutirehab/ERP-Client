@@ -4,6 +4,11 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
+const isFutureDate = (date) => {
+  if (!date) return false;
+  return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
+};
+
 export const myAttendanceLogsColumns = ({
   hasUserAllViewPermission,
   setSelectedRow,
@@ -98,7 +103,8 @@ export const myAttendanceLogsColumns = ({
     cell: (row) =>
       !loading &&
       canShowActionButton &&
-      !row?.regularizations?.regularization_id && (
+      !row?.regularizations?.regularization_id &&
+      !isFutureDate(row?.date) && ( 
         <button
           className="btn btn-sm btn-outline-primary"
           style={{
