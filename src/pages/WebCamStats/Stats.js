@@ -194,9 +194,9 @@ const Stats = () => {
         },
       });
 
-      setData(response.data?.data || []);
+      setData(response?.data || []);
       setPagination(
-        response.data?.pagination || {
+        response?.pagination || {
           page: 1,
           limit: 10,
           total: 0,
