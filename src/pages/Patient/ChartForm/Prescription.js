@@ -163,6 +163,7 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
+      console.log("values", values);
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -173,11 +174,11 @@ const Prescription = ({
             appointment: appointment?._id,
             ...values,
             shouldPrintAfterSave,
-            ICD10_Code: values.icdCode?.label  || null,
+            icdCode: values.icdCode?.value || null
           }),
         );
       } else if (type === "GENERAL") {
-        dispatch(addGeneralPrescription({ ...values, medicines }));
+        dispatch(addGeneralPrescription({ ...values, medicines,  icdCode: values.icdCode?.value || null, }));
       } else {
         console.log({ values });
 
@@ -187,7 +188,7 @@ const Prescription = ({
             appointment: appointment?._id,
             medicines,
             shouldPrintAfterSave,
-            ICD10_Code: values.icdCode?.label  || null,
+            icdCode: values.icdCode?.value || null
           }),
         );
       }
@@ -371,15 +372,15 @@ const Prescription = ({
 
       const options = res?.map((item) => ({
         label: `${item?.code} - ${item.text}`,
-        value: item?.code,
+        value: item?._id,
         text: item?.text,
       }));
 
-      options.push({
-        label: "OTHERS",
-        value: "OTHERS",
-        text: "Others",
-      });
+      // options.push({
+      //   label: "OTHERS",
+      //   value: "OTHERS",
+      //   text: "Others",
+      // });
 
       setAllICDCodes(options);
       setIcdOptions(options);
