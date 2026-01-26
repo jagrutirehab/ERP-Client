@@ -82,14 +82,15 @@ const Menu = ({
           row.intern && row.receipt
             ? row.receipt.totalAmount || 0
             : row.invoice?.payable || row.receiptInvoice?.payable || 0,
+        refund: row.invoice?.refund || 0,
       },
       advancePayment: {
         totalAmount:
           row.intern && row.receipt
             ? row.receipt.totalAmount || 0
             : row.advancePayment?.totalAmount ||
-              row.receiptInvoice?.payable ||
-              0,
+            row.receiptInvoice?.payable ||
+            0,
       },
       paymentModes: (row.intern
         ? row.receipt?.paymentModes
@@ -102,24 +103,20 @@ const Menu = ({
             return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
           }
           if (item.paymentMode === CARD || item.type === CARD) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.cardNumber || ""
-            } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${item.cardNumber || ""
+              } ₹${item.amount}`;
           }
           if (item.paymentMode === UPI || item.type === UPI) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.transactionId || ""
-            }`;
+            return `${prefix}${item.paymentMode || item.type} ${item.transactionId || ""
+              }`;
           }
           if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
+              } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
           }
           if (item.paymentMode === BANK || item.type === BANK) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
+              } ₹${item.amount}`;
           }
           return "";
         })
@@ -148,6 +145,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -161,9 +162,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-                label: "Date of Discharge",
-                key: "dateOfDischarge",
-              }
+              label: "Date of Discharge",
+              key: "dateOfDischarge",
+            }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -205,6 +206,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -214,9 +219,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-                label: "Date of Discharge",
-                key: "dateOfDischarge",
-              }
+              label: "Date of Discharge",
+              key: "dateOfDischarge",
+            }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -246,9 +251,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-                label: "Date of Discharge",
-                key: "dateOfDischarge",
-              }
+              label: "Date of Discharge",
+              key: "dateOfDischarge",
+            }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -272,6 +277,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeaders,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -307,9 +316,9 @@ const Menu = ({
         ...dueAmountHeaders,
         sortPatientStatus === DISCHARGE_PATIENT
           ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+            label: "Date of Discharge",
+            key: "dateOfDischarge",
+          }
           : null,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
@@ -325,6 +334,10 @@ const Menu = ({
     else if (billType === INVOICE)
       resultantHeaders = [
         ...payableAmountHeaders,
+        {
+          label: "Refund Amount (₹Dr)",
+          key: "invoice.refund",
+        },
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
@@ -420,10 +433,18 @@ const Menu = ({
                     <i className="ri-printer-line"></i>
                   </Button>
                   <CSVLink
-                    data={documents() || []}
+                    // data={(documents() || [])}
+                    data={(() => {
+                      console.log(documents());
+                      return documents() || [];
+                    })()}
                     title="CSV Download"
                     filename={"reports.csv"}
-                    headers={headers()}
+                    // headers={headers()}
+                    headers={(() => {
+                      console.log(headers());
+                      return headers();
+                    })()}
                     className="btn btn-info px-2 ms-3"
                   >
                     <i className="ri-file-paper-2-line text-light text-decoration-none"></i>

@@ -18,6 +18,7 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editEmployeeTransfer, postEmployeeTransfer } from "../../../../helpers/backend_helper";
+import { fetchAllCenters } from "../../../../store/actions";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -41,7 +42,8 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
     const [searching, setSearching] = useState(false);
 
     const { employees } = useSelector((state) => state.HR);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
+    const { allCenters } = useSelector((state) => state.Center);
 
     const searchEmployees = async (text) => {
         setSearching(true);
@@ -71,6 +73,10 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         return debouncedSearch.cancel;
     }, [searchText]);
 
+    useEffect(() => {
+        dispatch(fetchAllCenters());
+    }, [dispatch]);
+
     const resetAll = () => {
         form.resetForm();
         setSearchText("");
@@ -84,6 +90,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
             name: initialData?.employee?.name || "",
             eCode: initialData?.employee?.eCode || "",
             currentLocation: initialData?.currentLocation?.title || "",
+            currentLocationId: initialData?.currentLocation?._id || "",
             transferDate: initialData?.transferDate || "",
             transferLocation: initialData?.transferLocation._id || "",
         },
@@ -127,15 +134,19 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         form.setFieldValue("employeeId", emp._id);
         form.setFieldValue("name", emp.name);
         form.setFieldValue("eCode", emp.eCode);
-        form.setFieldValue("currentLocation", emp.currentLocation);
+        form.setFieldValue("currentLocation", emp.currentLocation || "");
+        form.setFieldValue("currentLocationId", emp.currentLocationId || "");
+
+        form.setFieldValue("transferLocation", "");
+
         setShowList(false);
         setSearchText("");
     };
 
     const transferLocationOptions =
-        userCenters
+        allCenters
             ?.filter(
-                center => center._id !== initialData?.currentLocation?._id
+                center => center._id !== form.values.currentLocationId
             )
             .map(center => ({
                 value: center._id,
