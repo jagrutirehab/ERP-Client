@@ -88,6 +88,7 @@ const AttendanceSummaryCard = ({
                                             }),
                                         ],
                                         altInput: true,
+                                        disableMobile: true
                                     }}
                                     onChange={([date]) => setSelectedMonth(date)}
                                     className="form-control form-control-sm"
@@ -202,16 +203,6 @@ const AttendanceSummaryCard = ({
                                 value={data?.absent ?? 0}
                                 label="Absent"
                                 color="#ef4444"
-                                loading={loading}
-                            />
-                        </Col>
-
-                        <Col xs="6" md="4" xl="2">
-                            <StatCard
-                                icon={Calendar}
-                                value={data?.holidays ?? 0}
-                                label="Holidays"
-                                color="#8b5cf6"
                                 loading={loading}
                             />
                         </Col>

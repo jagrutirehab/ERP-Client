@@ -1,26 +1,42 @@
+import Highlighter from "react-highlight-words";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns-tz";
 
-export const attendanceColumns = [
+export const attendanceColumns = ({ searchText }) => [
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
-        sortable: true,
     },
     {
         name: <div>Name</div>,
         selector: row => row?.employee?.name?.toUpperCase() || "-",
+        cell: row => (
+            <Highlighter
+                highlightClassName="react-highlight"
+                searchWords={[searchText]}
+                autoEscape
+                textToHighlight={`${row?.employee?.name.toUpperCase() || ""}`}
+            />
+        ),
         wrap: true,
         minWidth: "160px",
     },
     {
         name: <div>Biometric ID</div>,
         selector: row => row?.biometricId || "-",
-        center: true,
+        cell: row => (
+            <Highlighter
+                highlightClassName="react-highlight"
+                searchWords={[searchText]}
+                autoEscape
+                textToHighlight={`${row?.biometricId || ""}`}
+            />
+        ),
         wrap: true,
+        center: true,
     },
     {
-        name: <div>Current Location</div>,
+        name: <div>Center</div>,
         selector: row => capitalizeWords(row?.center?.title || "-"),
         wrap: true,
         minWidth: "120px"

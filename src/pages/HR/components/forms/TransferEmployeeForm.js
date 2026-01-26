@@ -150,7 +150,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
                     <Label>Search Employee</Label>
                     <Input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />

@@ -60,6 +60,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [reason, setReason] = useState("");
     const [eCode, setECode] = useState("");
 
+    const hasCreatePermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "WRITE") || hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "DELETE");
+
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = [
@@ -193,7 +195,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             wrap: true,
             minWidth: "160px"
         },
-         {
+        {
             name: <div>Biometric ID</div>,
             selector: row => row?.biometricId || "-",
         },
@@ -201,7 +203,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Designation</div>,
@@ -209,7 +211,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 ?.toLowerCase()
                 .replace(/_/g, " ") || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Employment</div>,
@@ -512,6 +514,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             : [])
     ];
 
+    const isVendor =
+  selectedEmployee?.employmentType
+    ?.trim()
+    .toLowerCase() !== "vendor";
+
     return (
 
         <>
@@ -614,6 +621,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 loading={modalLoading}
                 setLoading={setModalLoading}
                 mode={"NEW_JOINING"}
+                isVendor={isVendor}
+                hasCreatePermission={hasCreatePermission}
             />
             <DeleteConfirmModal
                 isOpen={deleteModalOpen}

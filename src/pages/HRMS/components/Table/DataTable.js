@@ -18,8 +18,6 @@ const DataTableComponent = ({
 
     const tableHeight = "calc(100vh - 260px)";
 
-    console.log("data", data);
-
     return (
         <DataTable
             columns={columns}

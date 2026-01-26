@@ -134,7 +134,13 @@ const ApprovalHistory = ({ activeTab }) => {
                 ?.toLowerCase()
                 .replace(/_/g, " ")),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "120px"
+        },
+        {
+            name: <div>Center</div>,
+            selector: row => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
+            minWidth: "120px"
         },
         {
             name: <div>Vendor</div>,
@@ -156,13 +162,39 @@ const ApprovalHistory = ({ activeTab }) => {
         },
         {
             name: <div>Contract Signed With Vendor</div>,
-            selector: (row) => row?.contractSignedWithVendor ? "Yes" : "No",
-            wrap: true
+            cell: (row) => {
+                const approval = row?.contractSignedWithVendor;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{capitalizeWords(approval.approvedBy)}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
+            wrap: true,
+            minWidth: "160px"
         },
         {
-            name: <div>ManPower Approved By Management</div>,
-            selector: (row) => row?.manpowerApprovedByManagement ? "Yes" : "No",
-            wrap: true
+            name: <div>Man power approveed by Management</div>,
+            cell: (row) => {
+                const approval = row?.manpowerApprovedByManagement;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{capitalizeWords(approval.approvedBy)}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
+            wrap: true,
+            minWidth: "160px"
         },
         {
             name: <div>Filled By</div>,

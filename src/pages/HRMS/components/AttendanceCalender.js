@@ -3,7 +3,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import { minutesTo12HourTime, minutesToTime } from "../../../utils/time";
+import { minutesToTime } from "../../../utils/time";
 import { statusTitleMap } from "../../../Components/constants/HRMS";
 import dayjs from "dayjs";
 
@@ -54,9 +54,9 @@ const AttendanceEvent = ({ event }) => {
             <div style={{ ...styles.card, color: "#111827" }}>
                 {firstCheckIn && (
                     <div style={styles.timeRow}>
-                        {minutesTo12HourTime(firstCheckIn)}
+                        {minutesToTime(firstCheckIn)}
                         {lastCheckOut ? (
-                            ` - ${minutesTo12HourTime(lastCheckOut)}`
+                            ` - ${minutesToTime(lastCheckOut)}`
                         ) : dayjs(date).isSame(dayjs(), "day") ? (
                             ""
                         ) : (
@@ -206,10 +206,11 @@ const styles = {
     statusColor: {
         PRESENT: { color: "#047857" },
         PENDING: { color: "#b45309" },
-        WEEK_OFFS: { color: "#b91c1c" },
+        WEEK_OFFS: { color: "#0dcaf0" },
         HOLIDAY: { color: "#0369a1" },
-        FESTIVE_LEAVE: { color: "#0891b2" },
-        LEAVE_WITHOUT_PAYS: { color: "#3730a3" },
+        FESTIVE_LEAVE: { color: "#0dcaf0" },
+        EARNED_LEAVE: { color: "#0dcaf0" },
+        LEAVE_WITHOUT_PAYS: { color: "#0dcaf0" },
         HALF_DAY: { color: "#9d174d" },
         ABSENT: { color: "#7f1d1d" },
     },
@@ -218,10 +219,11 @@ const styles = {
         PRESENT: "#22c55e",
         PENDING: "#f59e0b",
         ABSENT: "#ef4444",
-        WEEK_OFFS: "#ef4444",
+        WEEK_OFFS: "#0dcaf0",
         HOLIDAY: "#38bdf8",
-        FESTIVE_LEAVE: "#06b6d4",
-        LEAVE_WITHOUT_PAYS: "#6366f1",
+        FESTIVE_LEAVE: "#0dcaf0",
+        LEAVE_WITHOUT_PAYS: "#0dcaf0",
+        EARNED_LEAVE:"#0dcaf0",
         HALF_DAY: "#ec4899",
     },
 
@@ -234,6 +236,7 @@ const styles = {
         FESTIVE_LEAVE: "#cffafe",
         LEAVE_WITHOUT_PAYS: "#e0e7ff",
         HALF_DAY: "#fce7f3",
+        EARNED_LEAVE:"#0dcaf0",
         DEFAULT: "#f9fafb",
     },
 };

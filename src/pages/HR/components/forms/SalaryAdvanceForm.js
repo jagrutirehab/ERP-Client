@@ -45,7 +45,12 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     view: "SALARY_ADVANCE"
                 })
             ).unwrap();
-        } finally {
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "something went wrong")
+            }
+        }
+        finally {
             setSearching(false);
         }
     };
@@ -130,7 +135,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     <Label>Search Employee</Label>
                     <Input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />

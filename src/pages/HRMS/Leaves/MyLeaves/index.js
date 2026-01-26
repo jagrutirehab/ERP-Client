@@ -11,6 +11,8 @@ import { MyLeavesColumn } from "../../components/Table/Columns/myLeaves";
 import ButtonLoader from "../../../../Components/Common/ButtonLoader";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const MyLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -21,33 +23,56 @@ const MyLeaves = () => {
 
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState({});
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const handleAuthError = useAuthError();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "LEAVE_HISTORY", "READ");
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasRead = hasPermission("HR", "MY_LEAVES", "READ");
+  const hasWrite = hasPermission("HR", "MY_LEAVES", "WRITE");
+  const hasDelete = hasPermission("HR", "MY_LEAVES", "DELETE");
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
+
     const fetchLeaves = async () => {
       try {
         setLoading(true);
-        const res = await getMyLeavesHistory();
-        setData(res?.data || {});
+
+        const res = await getMyLeavesHistory({
+          status: activeTab,
+          year: selectedYear,
+          month: selectedMonth,
+          page,
+          limit,
+        });
+
+        setData(res?.data || []);
+        // setActiveTab(res?.status);
+        // setPage(1);
+        setPagination(res?.pagination || {});
       } catch (error) {
-        console.log("API Error:", error);
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch leaves");
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchLeaves();
-  }, []);
 
-  console.log("data", data);
+    fetchLeaves();
+  }, [activeTab, selectedYear, selectedMonth, page, limit]);
+
+  // console.log("data", data);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,72 +94,41 @@ const MyLeaves = () => {
             eCode: d?.eCode,
             center: d?.center,
             approvalAuthority: d?.approvalAuthority,
-          })) || []
+            regularizedDates: l?.regularizedDates,
+          })) || [],
       )
     : [];
 
   const currentYear = new Date().getFullYear();
   const allYears = Array.from(
     { length: currentYear - 2015 + 6 },
-    (_, i) => 2015 + i
+    (_, i) => 2015 + i,
   );
 
-  console.log("leaves", leaves);
-
-  const filteredData = useMemo(() => {
-    return leaves.filter((item) => {
-      const statusMatch = item?.status?.toLowerCase() === activeTab;
-
-      // console.log("docDate", item?.year)
-      const docDate = item?.docCreatedAt ? new Date(item?.docCreatedAt) : null;
-
-      const yearMatch =
-        selectedYear === "all"
-          ? true
-          : docDate && docDate?.getFullYear().toString() === selectedYear;
-
-      const monthMatch =
-        selectedMonth === "all"
-          ? true
-          : docDate && docDate?.getMonth().toString() === selectedMonth;
-
-      const searchMatch =
-        debouncedSearch === ""
-          ? true
-          : item?.employeeId?.eCode?.toLowerCase().includes(debouncedSearch) ||
-            item?.employeeId?.name?.toLowerCase().includes(debouncedSearch);
-
-      return statusMatch && yearMatch && monthMatch && searchMatch;
-    });
-  }, [
-    leaves,
-    activeTab,
-    selectedYear,
-    selectedMonth,
-    debouncedSearch,
-    data?.createdAt,
-  ]);
+  // console.log("leaves", leaves);
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
     try {
       const payload = { leaveId };
 
-      await retrieveActionOnLeave(action, docId, payload);
+      const res = await retrieveActionOnLeave(action, docId, payload);
 
+      // console.log("res to retrueve", res);
       const updated = (Array.isArray(data) ? data : []).map((d) =>
         d._id === docId
           ? {
               ...d,
               leaves: (d.leaves || []).map((l) =>
-                l._id === leaveId ? { ...l, status } : l
+                l._id === leaveId ? { ...l, status } : l,
               ),
             }
-          : d
+          : d,
       );
 
-      setData(updated);
-      // setActiveTab(status);
+      toast.success(res?.message);
+      setActiveTab(status);
+      setPage(1);
     } catch (error) {
       console.log("Action Error:", error);
     } finally {
@@ -191,29 +185,50 @@ const MyLeaves = () => {
           </select>
 
           {/* Month Filter */}
-          {/* <select
+          <select
             className="form-select w-auto"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
             <option value="all">All Months</option>
             {[
-              "Jan","Feb","Mar","Apr","May","Jun",
-              "Jul","Aug","Sep","Oct","Nov","Dec"
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
             ].map((m, i) => (
               <option key={i} value={i}>
                 {m}
               </option>
             ))}
-          </select> */}
+          </select>
         </div>
       </div>
 
       <DataTableComponent
-        columns={MyLeavesColumn(handleAction, loadingLeaveId)}
-        data={filteredData}
+        columns={MyLeavesColumn(
+          handleAction,
+          loadingLeaveId,
+          hasWrite,
+          hasDelete,
+          isLoading,
+        )}
+        data={leaves}
         loading={loading}
-        pagination={false}
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        // paginationData={pagination}
       />
     </CardBody>
   );

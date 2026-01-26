@@ -124,9 +124,23 @@ const ApprovalHistory = ({ activeTab }) => {
     },
     {
       name: <div>Mobile Number</div>,
-      selector: row => row?.employeeData?.mobile,
+      selector: row => row?.employeeData?.mobile || "-",
       wrap: true,
       minWidth: "140px"
+    },
+    {
+      name: <div>Amount</div>,
+      selector: row => typeof row?.amount === "number"
+        ? `₹${row.amount.toLocaleString()}`
+        : "-",
+      wrap: true,
+      minWidth: "140px"
+    },
+    {
+      name: <div>Payment Id</div>,
+      selector: row => row?.centralPaymentId || "-",
+      wrap: true,
+      center: true
     },
     {
       name: <div>Filled By</div>,

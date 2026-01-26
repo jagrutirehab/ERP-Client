@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import React from 'react'
+import { useState } from 'react'
 import { connect, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import * as Yup from "yup";
@@ -18,6 +18,9 @@ import FileUpload from './FileUpload';
 import { FileText, Share } from 'lucide-react';
 import { categoryOptions } from '../../../Components/constants/centralPayment';
 import Select from "react-select";
+import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
+import AsyncSelect from "react-select/async";
+
 
 const clearableFields = [
     "invoiceNo",
@@ -37,8 +40,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             title: c.title,
         }));
 
-    const [existingFiles, setExistingFiles] = React.useState(paymentData?.attachments || []);
-    const [removedAttachments, setRemovedAttachments] = React.useState([]);
+    const [existingFiles, setExistingFiles] = useState(paymentData?.attachments || []);
+    const [removedAttachments, setRemovedAttachments] = useState([]);
 
     const validationSchema = Yup.object({
         name: Yup.string().required("Name is required"),
@@ -52,6 +55,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             then: (schema) =>
                 schema.required("Please specify the other category details"),
             otherwise: (schema) => schema.notRequired(),
+        }),
+        employeeId: Yup.mixed().when("category", {
+            is: "SALARY_ADVANCE",
+            then: schema => schema.required("Please select an employee"),
+            otherwise: schema => schema.notRequired(),
         }),
         date: Yup.string().required("Transaction date is required"),
         description: Yup.string()
@@ -127,6 +135,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             items: paymentData?.items || "",
             category: paymentData?.category || "",
             otherCategory: paymentData?.otherCategory || "",
+            employeeId: paymentData?.employee
+                ? {
+                    value: paymentData.employee._id,
+                    label: `${paymentData.employee.name} (${paymentData.employee.eCode})`,
+                }
+                : null,
             date: paymentData?.date ? format(new Date(paymentData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
             description: paymentData?.description || "",
             vendor: paymentData?.vendor || "",
@@ -179,6 +193,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
                 if (key === "TDSRate") {
                     formData.append("TDSRate", val === "" ? 0 : val);
+                    return;
+                }
+
+                if (key === "employeeId") {
+                    if (val?.value) formData.append("employeeId", val.value);
                     return;
                 }
 
@@ -241,6 +260,30 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
         form.setFieldValue(name, newValue.toUpperCase(), true);
     };
+
+    const loadEmployees = async (inputValue) => {
+        if (!inputValue) return [];
+
+        try {
+            const res = await dispatch(
+                getExitEmployeesBySearch({
+                    query: inputValue,
+                    centers: centerAccess,
+                    view: "SALARY_ADVANCE",
+                })
+            ).unwrap();
+            return (res?.data || []).map(emp => ({
+                value: emp._id,
+                label: `${emp.name} (${emp.eCode})`,
+            }));
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to search employees");
+            }
+            return [];
+        }
+    };
+
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -330,9 +373,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     inputId="category"
                     name="category"
                     options={categoryOptions}
-                    value={categoryOptions.find(
-                        (opt) => opt.value === form.values.category
-                    )}
+                    value={
+                        form.values.category
+                            ? categoryOptions.find(opt => opt.value === form.values.category)
+                            : ""
+                    }
                     onChange={(option) => {
                         const value = option?.value || "";
                         form.setFieldValue("category", value, true);
@@ -340,6 +385,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         if (value !== "OTHERS") {
                             form.setFieldValue("otherCategory", "");
                             form.setFieldTouched("otherCategory", false, false);
+                        }
+
+                        if (value !== "SALARY_ADVANCE") {
+                            form.setFieldValue("employeeId", null);
+                            form.setFieldTouched("employeeId", false, false);
                         }
                         form.validateForm();
                     }}
@@ -358,6 +408,43 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
+            {form.values.category === "SALARY_ADVANCE" && (
+                <FormGroup className="mb-3">
+                    <Label className="fw-medium">
+                        Select Employee <span className="text-danger">*</span>
+                    </Label>
+
+                    <AsyncSelect
+                        cacheOptions
+                        defaultOptions={false}
+                        loadOptions={loadEmployees}
+                        placeholder="Search by name or ECode"
+                        value={form.values.employeeId}
+                        onChange={(option) => {
+                            form.setFieldValue("employeeId", option);
+                        }}
+                        onBlur={() => form.setFieldTouched("employeeId", true)}
+                        classNamePrefix="react-select"
+                        className={
+                            form.touched.employeeId && form.errors.employeeId
+                                ? "react-select is-invalid"
+                                : "react-select"
+                        }
+                        noOptionsMessage={({ inputValue }) =>
+                            inputValue
+                                ? "No employee found"
+                                : "Start typing to search employee"
+                        }
+                    />
+
+                    {form.touched.employeeId && form.errors.employeeId && (
+                        <div className="invalid-feedback d-block">
+                            {form.errors.employeeId}
+                        </div>
+                    )}
+                </FormGroup>
+            )}
+
             {form.values.category === "OTHERS" && (
                 <FormGroup className="mt-2">
                     <Label for="otherCategory" className="fw-medium">
@@ -771,8 +858,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </ul>
                 </FormGroup>
             )}
-
-
 
             <FormGroup>
                 <Label className="fw-medium">

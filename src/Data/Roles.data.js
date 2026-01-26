@@ -262,20 +262,31 @@ export const permissionList = [
         name: "THIRD_PARTY_MANPOWER_APPROVAL",
         label: "Third Party Manpower Approvals",
       },
-
+      // Attendance
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
+
+      // Regularization
+      { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
+      { name: "GET_REGULARIZATIONS_REQUESTS", label: "Regularizations Requests" },
+      // Employee Reporting
       { name: "ASSIGN_MANAGER", label: "Assign Manager" },
       {
         name: "MANAGE_EMPLOYEE_REPORTINGS",
         label: "Manage Employee Reportings",
       },
+      // Leave
       { name: "APPLY_LEAVE", label: "Apply Leave" },
       { name: "LEAVE_HISTORY", label: "Leave History" },
       { name: "MANAGE_LEAVES", label: "Manage Leaves" },
-      { name: "MY_LEAVES", label: "My History" },
+      { name: "MY_LEAVES", label: "My Leaves" },
+      { name: "BALANCE_LEAVES", label: "Balance Leaves" },
+      // Policy
       { name: "POLICIES", label: "Policies" },
+      // Incentives
+      { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
+      { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
     ],
   },
   // {

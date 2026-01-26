@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { HR } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { Menu, X } from "lucide-react";
 
 const Sidebar = () => {
   const microUser = localStorage.getItem("micrologin");
@@ -115,6 +116,18 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasMyRegularizationPersmission = hasPermission(
+    "HR",
+    "MY_REGULARIZATIONS",
+    "READ"
+  );
+
+  const hasGetRegularizeRequestsPersmission = hasPermission(
+    "HR",
+    "GET_REGULARIZATIONS_REQUESTS",
+    "READ"
+  );
+
   // employee reportings permissions
   const hasAssignManagerPermission = hasPermission(
     "HR",
@@ -140,9 +153,22 @@ const Sidebar = () => {
   );
   const hasMyLeavesPermission = hasPermission("HR", "MY_LEAVES", "READ");
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
+  const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
+
+  const hasIncentivesAddRequestPermission = hasPermission(
+    "HR",
+    "INCENTIVES_ADD_REQUEST",
+    "READ"
+  );
+  const hasIncentivesApprovalPermission = hasPermission(
+    "HR",
+    "INCENTIVES_APPROVAL",
+    "READ"
+  );
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const accordionRefs = useRef({});
 
@@ -262,6 +288,12 @@ const Sidebar = () => {
         if (child.id === "my-attendance" && !hasMyAttendancePermission)
           return false;
 
+        if (child.id === "my-regularizations" && !hasMyRegularizationPersmission)
+          return false;
+
+        if (child.id === "regularizations-requests" && !hasGetRegularizeRequestsPersmission)
+          return false;
+
         return true;
       });
       return page.children.length > 0;
@@ -291,6 +323,7 @@ const Sidebar = () => {
         if (child.id === "manage-leaves" && !hasManageLeavesPermission)
           return false;
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
+        if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         return true;
       });
       console.log("hasManageLeavesPermission", hasManageLeavesPermission)
@@ -303,7 +336,18 @@ const Sidebar = () => {
           return false;
         return true;
       });
-      
+
+      return page.children.length > 0;
+    }
+
+    if (page.id === "incentives") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "add-incentives-request" && !hasIncentivesAddRequestPermission)
+          return false;
+        if (child.id === "incentives-approval" && !hasIncentivesApprovalPermission)
+          return false;
+        return true;
+      });
       return page.children.length > 0;
     }
 
@@ -355,100 +399,112 @@ const Sidebar = () => {
     }
 `}
       </style>
-      <div className="chat-leftsidebar" style={{ minWidth: "0px"}}>
-        <div className="ps-4 pe-3 pt-4">
-          <h5>Human Resources</h5>
+      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
+        <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+          <h5 className="mb-0">Human Resources</h5>
+
+          <button
+            className="btn btn-outline-secondary d-md-none"
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+          >
+            {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
 
-        <PerfectScrollbar className="chat-room-list">
-          <ul className="list-unstyled chat-list chat-user-list users-list px-3">
-            {filteredHROptions.map((page) => {
-              if (!page.isAccordion) {
+        <div
+          className={`${isSidebarOpen ? "d-block" : "d-none"} d-md-block`}
+        >
+          <PerfectScrollbar className="chat-room-list">
+            <ul className="list-unstyled chat-list chat-user-list users-list px-3">
+              {filteredHROptions.map((page) => {
+                if (!page.isAccordion) {
+                  return (
+                    <li
+                      key={page.id}
+                      className={
+                        location.pathname.startsWith(page.link)
+                          ? "active mb-1"
+                          : "mb-1"
+                      }
+                    >
+                      <Link
+                        className="d-flex align-items-center py-2"
+                        to={page.link}
+                        onClick={() => setIsSidebarOpen(false)}
+                      >
+                        <i className={`${page.icon} fs-4 me-2`} />
+                        <span className="fs-15">{page.label}</span>
+                      </Link>
+                    </li>
+                  );
+                }
+
+                if (!accordionRefs.current[page.id]) {
+                  accordionRefs.current[page.id] = React.createRef();
+                }
+
+                const contentRef = accordionRefs.current[page.id];
+
                 return (
-                  <li
-                    key={page.id}
-                    className={
-                      location.pathname.startsWith(page.link)
-                        ? "active mb-1"
-                        : "mb-1"
-                    }
-                  >
-                    <Link
-                      className="d-flex align-items-center py-2"
-                      to={page.link}
+                  <li key={page.id} className="mb-1">
+                    <div
+                      onClick={() => toggleSection(page.id)}
+                      className="d-flex align-items-center py-2 ps-4"
+                      style={{ cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
                       <span className="fs-15">{page.label}</span>
-                    </Link>
-                  </li>
-                );
-              }
 
-              if (!accordionRefs.current[page.id]) {
-                accordionRefs.current[page.id] = React.createRef();
-              }
+                      <span
+                        className="ms-auto fs-12"
+                        style={{
+                          transform:
+                            openSection === page.id
+                              ? "rotate(180deg)"
+                              : "rotate(0deg)",
+                          transition: "transform 0.2s ease",
+                        }}
+                      >
+                        ▼
+                      </span>
+                    </div>
 
-              const contentRef = accordionRefs.current[page.id];
-
-              return (
-                <li key={page.id} className="mb-1">
-                  <div
-                    onClick={() => toggleSection(page.id)}
-                    className="d-flex align-items-center py-2 ps-4"
-                    style={{ cursor: "pointer" }}
-                  >
-                    <i className={`${page.icon} fs-4 me-2`} />
-                    <span className="fs-15">{page.label}</span>
-
-                    <span
-                      className="ms-auto fs-12"
+                    <div
+                      ref={contentRef}
+                      className={`accordion-wrap ${openSection === page.id ? "open" : ""
+                        }`}
                       style={{
-                        transform:
+                        maxHeight:
                           openSection === page.id
-                            ? "rotate(180deg)"
-                            : "rotate(0deg)",
-                        transition: "transform 0.2s ease",
+                            ? contentRef.current?.scrollHeight ?? 0
+                            : 0,
                       }}
                     >
-                      ▼
-                    </span>
-                  </div>
+                      <ul className="list-unstyled ms-4 mt-1">
+                        {page.children.map((child) => (
+                          <li
+                            key={child.id}
+                            className={
+                              location.pathname.startsWith(child.link)
+                                ? "active"
+                                : ""
+                            }
+                          >
+                            <Link className="d-flex py-1" to={child.link} onClick={() => setIsSidebarOpen(false)}>
+                              <i className={`${child.icon} fs-5 me-2`} />
+                              <span className="fs-14">{child.label}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </PerfectScrollbar>
+        </div>
 
-                  <div
-                    ref={contentRef}
-                    className={`accordion-wrap ${
-                      openSection === page.id ? "open" : ""
-                    }`}
-                    style={{
-                      maxHeight:
-                        openSection === page.id
-                          ? contentRef.current?.scrollHeight ?? 0
-                          : 0,
-                    }}
-                  >
-                    <ul className="list-unstyled ms-4 mt-1">
-                      {page.children.map((child) => (
-                        <li
-                          key={child.id}
-                          className={
-                            location.pathname.startsWith(child.link)
-                              ? "active"
-                              : ""
-                          }
-                        >
-                          <Link className="d-flex py-1" to={child.link}>
-                            <i className={`${child.icon} fs-5 me-2`} />
-                            <span className="fs-14">{child.label}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </PerfectScrollbar>
       </div>
     </>
   );

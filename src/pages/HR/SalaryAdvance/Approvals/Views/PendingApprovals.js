@@ -186,6 +186,12 @@ const PendingApprovals = ({ activeTab }) => {
       minWidth: "140px"
     },
     {
+      name: <div>Payment Id</div>,
+      selector: row => row.centralPaymentId || "-",
+      wrap: true,
+      center: true
+    },
+    {
       name: <div>Filled By</div>,
       selector: row => (
         <div>

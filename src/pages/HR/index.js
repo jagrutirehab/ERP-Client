@@ -35,6 +35,11 @@ import ManageLeaves from "../HRMS/Leaves/ManageLeaves";
 import MyLeaves from "../HRMS/Leaves/MyLeaves";
 import Policies from "../HRMS/Policies";
 import IndividualLeavesOfEmp from "../HRMS/Leaves/EmployeeIndvidualLeaves";
+import GetBalanceLeaves from "../HRMS/Leaves/getBalanceLeaves";
+import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizations";
+import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
+import AddIncentivesRequest from "./Incentives/AddRequest";
+import IncentivesApproval from "./Incentives/Approvals";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -149,15 +154,24 @@ const HR = () => {
                   path={`/reporting/manage`}
                   element={<ManageEmployeeReportings />}
                 />
+
+                <Route path={`/attendance/my/regularizations`} element={<MyRegularizations />} />
+                <Route path={`/attendance/regularizations/requests`} element={<GetRegularizationsRequest />} />
+
+
                 <Route path={`/leaves/history`} element={<LeaveHistory />} />
                 <Route path={`/leaves/apply`} element={<LeaveApplications />} />
                 <Route path={`/leaves/manage`} element={<ManageLeaves />} />
                 <Route path={`/leaves/my/leaves`} element={<MyLeaves />} />
+                <Route path={`/leaves/my/balance/leaves`} element={<GetBalanceLeaves />} />
                 <Route path={`/policies`} element={<Policies />} />
                 <Route
                   path={"/leaves/history/for/:id"}
                   element={<IndividualLeavesOfEmp />}
                 />
+
+                <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
+                <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
               </Routes>
             </div>
           </Container>

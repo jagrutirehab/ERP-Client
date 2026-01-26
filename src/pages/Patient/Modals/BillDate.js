@@ -32,7 +32,7 @@ const BillDate = ({
 }) => {
   const dispatch = useDispatch();
   const PatientCenter = useSelector(
-    (state) => state.Patient.patient.center._id
+    (state) => state.Patient.patient.center._id,
   );
 
   const paymentCenters = [
@@ -45,6 +45,8 @@ const BillDate = ({
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
   }, [dispatch, isOpen]);
+
+  console.log({ billDate, editBillData, patient, admission });
 
   return (
     <React.Fragment>
@@ -74,9 +76,11 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
-                    maxDate: new Date(
-                      new Date().setMonth(new Date().getMonth() + 1)
-                    ),
+                    maxDate: editBillData.bill
+                      ? new Date()
+                      : new Date(
+                          new Date().setMonth(new Date().getMonth() + 1),
+                        ),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
@@ -156,7 +160,7 @@ const BillDate = ({
           {/* Advance Payment */}
           {/* Payment */}
           {/* </Button> */}
-          <Button
+          {/* <Button
             outline
             disabled={
               isPaymentCenter
@@ -178,14 +182,37 @@ const BillDate = ({
                   bill: ADVANCE_PAYMENT,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
           >
             {isPaymentCenter ? "Payment" : "Advance Payment"}
+          </Button> */}
+          <Button
+            outline
+            disabled={
+              editBillData.bill === null ||
+              editBillData.bill === INVOICE ||
+              editBillData.bill === REFUND ||
+              editBillData.bill === DRAFT_INVOICE ||
+              editBillData.bill === DEPOSIT
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  bill: ADVANCE_PAYMENT,
+                  isOpen: true,
+                  admission,
+                }),
+              );
+              toggle();
+            }}
+          >
+            Payment
           </Button>
-
           <Button
             outline
             disabled={
@@ -202,7 +229,7 @@ const BillDate = ({
                   bill: DEPOSIT,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
@@ -225,7 +252,7 @@ const BillDate = ({
                   bill: INVOICE,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
@@ -249,7 +276,7 @@ const BillDate = ({
                   bill: DRAFT_INVOICE,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}

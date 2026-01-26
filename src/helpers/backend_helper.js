@@ -1,3 +1,4 @@
+import axios from "axios";
 import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
@@ -198,8 +199,8 @@ export const postRestoreMedicine = (data) =>
 export const validateDuplicateMedicine = ({ name, strength, id }) => {
   return api.get(
     `${url.VALIDATE_DUPLICATE_MEDICINE}?name=${encodeURIComponent(
-      name
-    )}&strength=${encodeURIComponent(strength)}&id=${id}`
+      name,
+    )}&strength=${encodeURIComponent(strength)}&id=${id}`,
   );
 };
 
@@ -682,6 +683,14 @@ export const getFinanceAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const exportFinanceAnalyticsCSV = (data) =>
+  api.get(url.GET_FINANCE_ANALYTICS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getPatientAnalytics = (data) =>
   api.get(url.GET_PATIENT_ANALYTICS, {
     params: data,
@@ -833,19 +842,19 @@ export const getPatientDetails = (patientId) => {
 
 export const getPatientPrescription = (patientId) => {
   return api.get(
-    `${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`
+    `${url.GET_PATIENT_PRESCRIPTION_BY_NURSE}?patientId=${patientId}`,
   );
 };
 
 export const getClinicalTestSummary = (patientId) => {
   return api.get(
-    `${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`
+    `${url.GET_CLININCAL_TEST_SUMMARY_BY_NURSE}?patientId=${patientId}`,
   );
 };
 
 export const getNursesListByPatientCenter = ({ patientId, search } = {}) => {
   return api.get(
-    `${url.GET_NURSES_BY_PATIENT_CENTER}?patientId=${patientId}&search=${search}`
+    `${url.GET_NURSES_BY_PATIENT_CENTER}?patientId=${patientId}&search=${search}`,
   );
 };
 
@@ -855,7 +864,7 @@ export const getAlertsByPatient = (patientId) => {
 
 export const markAlertAsRead = ({ alertType, patientId }) => {
   return api.update(
-    `${url.MARK_ALERT_AS_READ}?alertType=${alertType}&patientId=${patientId}`
+    `${url.MARK_ALERT_AS_READ}?alertType=${alertType}&patientId=${patientId}`,
   );
 };
 
@@ -912,13 +921,13 @@ export const getPendingActiveMedicines = (patientId) => {
 
 export const getCompletedActiveMedicines = ({ patientId, status }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
   );
 };
 
 export const getActivitiesByStatus = ({ patientId, status }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
   );
 };
 
@@ -930,14 +939,14 @@ export const markTomorrowMedicines = (data) => {
 
 export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   return api.get(
-    `${url.GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES}?patientId=${patientId}`
+    `${url.GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES}?patientId=${patientId}`,
   );
 };
 
 // emergency
 export const assignPatientType = ({ patientId, patientType }) => {
   return api.update(
-    `${url.ASSIGN_TYPE_TO_PATIENT}?patientId=${patientId}&patientType=${patientType}`
+    `${url.ASSIGN_TYPE_TO_PATIENT}?patientId=${patientId}&patientType=${patientType}`,
   );
 };
 
@@ -945,6 +954,10 @@ export const getAllEmergencyPatients = (params = {}) => {
   return api.create(url.GET_EMERGENCY_PATIENTS, params, {
     headers: { "Content-Type": "application/json" },
   });
+};
+
+export const getICDCodes = () => {
+  return api.get(url.GET_ICD_CODES);
 };
 
 // cash management
@@ -1185,7 +1198,7 @@ export const postLogoutService = (token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1212,7 +1225,7 @@ export const editRole = ({ id, name, permissions, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1228,7 +1241,7 @@ export const addRole = ({ name, permissions, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1272,7 +1285,7 @@ export const firstchange = ({ oldPassword, newPassword, token }) => {
         Authorization: `Bearer ${token}`,
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1304,7 +1317,7 @@ export const deleteUser = (id, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1316,7 +1329,7 @@ export const suspendUser = (id, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1328,7 +1341,7 @@ export const editUserPassword = (id, newPassword, token) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1339,7 +1352,7 @@ export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 };
 
@@ -1631,8 +1644,9 @@ export const getOwnerLeadStatus = (params) => {
 };
 
 // HR
-export const getEmployeeId = () => {
+export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -1881,7 +1895,7 @@ export const employeeTransferCurrentLocationAction = (id, data) => {
       headers: {
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -1893,7 +1907,7 @@ export const employeeTransferTransferLocationAction = (id, data) => {
       headers: {
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
   );
 };
 
@@ -2092,6 +2106,53 @@ export const exportAttendanceMetrics = (params = {}) => {
     },
   });
 };
+
+// REGULARIZATION
+export const requestForRegularization = (data) => {
+  return api.create(url.REQUEST_REGULARIZATION, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyRegularizations = (params) => {
+  return axios.get(url.GET_MY_REGULARIZATION, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+export const getRegularizationsRequests = (params) => {
+  return axios.get(url.GET_REGULARIZATION_REQUESTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// export const getRegularizationsRequests = () => {
+//   return api.get(url.GET_REGULARIZATION_REQUESTS, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
+
+export const updateRegularizationStatus = (id, status) => {
+  return api.update(
+    `${url.UPDATE_REGULARIZATION}/${status}/${id}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    },
+  );
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {
@@ -2109,8 +2170,18 @@ export const getMyManager = () => {
   });
 };
 
-export const getLeavesRequest = (managerId) => {
-  return api.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+export const getManagerByEmployeeId = (id) => {
+  return api.get(`${url.GET_MY_MANAGER_BY_EMPLOYEE_ID}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+
+export const getLeavesRequest = (managerId, params = {}) => {
+  return axios.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2125,8 +2196,23 @@ export const actionOnLeaves = (id, data) => {
   });
 };
 
-export const getMyLeavesHistory = () => {
-  return api.get(url.GET_MY_LEAVES, {
+// export const getMyLeavesHistory = () => {
+//   return api.get(url.GET_MY_LEAVES, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
+export const getMyLeavesHistory = (params = {}) => {
+   return axios.get(url.GET_MY_LEAVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+export const getBalance = () => {
+  return api.get(url.GET_BALANCE_LEAVES, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2138,8 +2224,8 @@ export const retrieveActionOnLeave = (action, docId, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
-}
+  });
+};
 
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
@@ -2147,7 +2233,7 @@ export const gettodayMyAttendanceStatus = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceSummary = (params = {}) => {
@@ -2156,7 +2242,7 @@ export const getAttendanceSummary = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const getAttendanceLogs = (params = {}) => {
@@ -2165,23 +2251,23 @@ export const getAttendanceLogs = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const postEmployeeCheckIn = (data) => {
   return api.create(url.EMPLOYEE_CHECK_IN, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 export const updateEmployeeCheckOut = (data) => {
   return api.update(url.EMPLOYEE_CHECK_OUT, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    }
-  })
+    },
+  });
 };
 
 // HRMS- Employee Reporting
@@ -2202,9 +2288,26 @@ export const addPolicies = (data) => {
   });
 };
 
-
 export const getPolicies = () => {
   return api.get(`${url.GET_POLICIES}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// department
+
+export const getDepartments = () => {
+  return api.get(`${url.GET_DEPARTMENTS}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const createDepartment = (data) => {
+  return api.create(`${url.CREATE_DEPARTMENTS}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2232,6 +2335,51 @@ export const getEmployeeReportings = (params = {}) => {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// Incentives
+export const postIncentives = (data) => {
+  return api.create(url.INCENTIVES, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const editIncentives = (id, data) => {
+  return api.update(`${url.INCENTIVES}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const deleteIncentives = (id) => {
+  return api.delete(`${url.INCENTIVES}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const incentivesAction = (id, data) => {
+  return api.update(`${url.INCENTIVES_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getIncentives = (params = {}) => {
+  return api.get(url.INCENTIVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
 };

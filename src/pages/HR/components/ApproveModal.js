@@ -19,7 +19,7 @@ const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
-  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM
+  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM | INCENTIVES
   actionType,
   setActionType,
   paymentType,
@@ -41,7 +41,9 @@ const ApproveModal = ({
   const generateEmployeeId = async () => {
     setECodeLoader(true);
     try {
-      const response = await getEmployeeId();
+      const response = await getEmployeeId({
+        ...(mode === "TPM" && { prefix: "TC" })
+      });
       setECode(response.payload.value);
     } catch (error) {
       console.error(error)

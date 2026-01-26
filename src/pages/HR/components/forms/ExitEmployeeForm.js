@@ -137,7 +137,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
                     <label >Search Employee</label>
                     <input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         className="form-control"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}

@@ -10,7 +10,24 @@ const Left = ({ children }) => (
   <div className="text-start w-100">{children}</div>
 );
 
-export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
+const formatDate = (date) => {
+  if (!date) return "-";
+  const d = new Date(date);
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
+export const MyLeavesColumn = (
+  handleAction,
+  loadingLeaveId,
+  hasDelete,
+  hasWrite,
+  isLoading,
+) => [
   {
     name: <Center>ECode</Center>,
     cell: (row) => <Center>{row?.eCode || "-"}</Center>,
@@ -23,19 +40,19 @@ export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
   },
   {
     name: <Center>Center</Center>,
-    cell: (row) => <Center>{row?.center?.name || "-"}</Center>,
+    cell: (row) => <Center>{row?.center?.title || "-"}</Center>,
     width: "180px",
   },
   {
     name: <Center>Leave Type</Center>,
     cell: (row) => <Center>{row?.leaveType || "-"}</Center>,
-    width: "150px",
+    width: "200px",
   },
   {
     name: <Center>From</Center>,
     cell: (row) => (
       <Center>
-        {row?.fromDate ? moment(row.fromDate).format("DD MMM YYYY") : "-"}
+        {row?.fromDate ? moment(row.fromDate).format("DD-MM-YYYY") : "-"}
       </Center>
     ),
     width: "130px",
@@ -44,7 +61,7 @@ export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
     name: <Center>To</Center>,
     cell: (row) => (
       <Center>
-        {row?.toDate ? moment(row.toDate).format("DD MMM YYYY") : "-"}
+        {row?.toDate ? moment(row.toDate).format("DD-MM-YYYY") : "-"}
       </Center>
     ),
     width: "130px",
@@ -120,15 +137,17 @@ export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
     cell: (row) =>
       row?.status?.toLowerCase() === "pending" ? (
         <div className="d-flex gap-1 justify-content-center">
-          <button
-            className="btn btn-sm btn-warning"
-            disabled={loadingLeaveId === row._id}
-            onClick={() =>
-              handleAction(row.parentDocId, row._id, "retrieved", "retrieve")
-            }
-          >
-            {loadingLeaveId === row._id ? "Processing..." : "Retrieve"}
-          </button>
+          {!isLoading && (hasWrite || hasDelete) && (
+            <button
+              className="btn btn-sm btn-warning"
+              disabled={loadingLeaveId === row._id}
+              onClick={() =>
+                handleAction(row.parentDocId, row._id, "retrieved", "retrieve")
+              }
+            >
+              {loadingLeaveId === row._id ? "Processing..." : "Retrieve"}
+            </button>
+          )}
 
           {/* <button
             className="btn btn-sm btn-warning"
@@ -161,5 +180,24 @@ export const MyLeavesColumn = (handleAction, loadingLeaveId) => [
       </Center>
     ),
     width: "120px",
+  },
+  {
+    name: <Center>Regularized For</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.regularizedDates?.length
+          ? row.regularizedDates
+              .map((d) =>
+                new Date(d).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }),
+              )
+              .join(", ")
+          : "-"}
+      </Center>
+    ),
+    width: "220px",
   },
 ];

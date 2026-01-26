@@ -39,6 +39,14 @@ export const renderStatusBadge = (stage) => {
             text: "None",
             color: "warning"
         },
+        WEEK_OFFS: {
+            text: "Week Off",
+            color: "info"
+        },
+        FESTIVE_LEAVE:{
+            text:"Festive Leave",
+            color:"info"
+        },
         PENDING: {
             text: "Pending",
             color: "warning"
@@ -51,6 +59,10 @@ export const renderStatusBadge = (stage) => {
             text: "Absent",
             color: "danger"
         },
+        REGULARIZED: {
+            text: "Regularized",
+            color: "success"
+        },
         APPROVED: {
             text: "Approved",
             color: "success"
@@ -59,9 +71,13 @@ export const renderStatusBadge = (stage) => {
             text: "Rejected",
             color: "danger"
         },
+        EARNED_LEAVE: {
+            text: "Earned Leave",
+            color: "info"
+        },
         LEAVE_WTIHOUT_PAYS: {
             text: "Leave Without Pay",
-            color: "danger"
+            color: "info"
         },
         FULL_DAY: {
             text: "Full Day",
