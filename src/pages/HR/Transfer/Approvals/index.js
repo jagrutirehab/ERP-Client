@@ -158,7 +158,14 @@ const TransferApprovals = () => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row => row?.transferDate,
+            selector: row => {
+                if (!row?.transferDate) return "-";
+
+                const date = new Date(row.transferDate);
+                if (isNaN(date.getTime())) return "-";
+
+                return format(date, "dd MMM yyyy");
+            },
             wrap: true,
         },
         {
@@ -258,6 +265,11 @@ const TransferApprovals = () => {
             },
             wrap: true,
             minWidth: "180px",
+        },
+        {
+            name: <div>Is Current Location Updated</div>,
+            selector: row => row?.isTransferApplied ? "Yes" : "No",
+            wrap: true
         },
         ...(hasPermission("HR", "TRANSFER_EMPLOYEE_APPROVAL", "WRITE")
             ? [
