@@ -16,7 +16,6 @@ import { useSelector } from "react-redux";
 
 const ManageLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const [data, setData] = useState([]);
   const [activeTab, setActiveTab] = useState("pending");
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const handleAuthError = useAuthError();
@@ -28,8 +27,12 @@ const ManageLeaves = () => {
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [requestsData, setRequestsData] = useState([]);
   const user = useSelector((state) => state.User);
   const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
@@ -70,15 +73,34 @@ const ManageLeaves = () => {
       !user?.centerAccess?.includes(selectedCenter)
     ) {
       setSelectedCenter("ALL");
+      setPage(1);
     }
   }, [selectedCenter, user?.centerAccess]);
 
   const fetchLeaves = async () => {
     try {
       setLoading(true);
-      const res = await getLeavesRequest(managerId);
+      let centers = [];
+
+      if (selectedCenter === "") {
+        centers = [];
+      } else if (selectedCenter === "ALL") {
+        centers = user?.centerAccess || [];
+      } else {
+        centers = [selectedCenter];
+      }
+      const res = await getLeavesRequest(managerId, {
+        page,
+        limit,
+        centers,
+        status: activeTab,
+        year: selectedYear,
+        month: selectedMonth,
+        ...(debouncedSearch && { search: debouncedSearch }),
+      });
       // console.log("res", res);
-      setData(res?.data || []);
+      setRequestsData(res?.data || []);
+      setPagination(res?.pagination || null);
     } catch (error) {
       console.log("API Error:", error);
       if (!handleAuthError(error)) {
@@ -93,7 +115,17 @@ const ManageLeaves = () => {
     if (!managerId) return;
     if (!hasUserPermission) navigate("/unauthorized");
     fetchLeaves();
-  }, [managerId]);
+  }, [
+    managerId,
+    page,
+    limit,
+    selectedCenter,
+    activeTab,
+    selectedYear,
+    selectedMonth,
+    debouncedSearch,
+    user?.centerAccess,
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -105,20 +137,22 @@ const ManageLeaves = () => {
 
   // console.log("data", data)
 
-  const leaves = Array.isArray(data)
-    ? data?.flatMap(
-        (d) =>
-          d?.leaves?.map((l) => ({
-            ...l,
-            parentDocId: d?._id,
-            employeeId: d?.employeeId,
-            docCreatedAt: d?.createdAt,
-            eCode: d?.eCode,
-            center: d?.center,
-            approvalAuthority: d?.approvalAuthority,
-          })) || [],
-      )
-    : [];
+  const leaves = useMemo(() => {
+    if (!Array.isArray(requestsData)) return [];
+
+    // Since backend now uses $unwind, requestsData is already flat.
+    // Each 'item.leaves' is now an OBJECT, not an array.
+    return requestsData.map((item) => ({
+      ...item.leaves, // Spread the specific leave details (status, reason, etc.)
+      parentDocId: item._id, // This is the _id of the main document for actionOnLeaves
+      leaveId: item.leaves._id, // The specific leave entry ID
+      employeeId: item.id, // Already populated by aggregate lookup
+      center: item.center, // Already populated by aggregate lookup
+      approvalAuthority: item.approvalAuthority,
+      createdAt: item.createdAt,
+      eCode: item.eCode,
+    }));
+  }, [requestsData]);
 
   const currentYear = new Date().getFullYear();
   const allYears = Array.from(
@@ -126,80 +160,39 @@ const ManageLeaves = () => {
     (_, i) => 2015 + i,
   );
 
-  const filteredData = useMemo(() => {
-    const allowedCenters = user?.centerAccess || [];
-    return leaves.filter((item) => {
-      const statusMatch = item?.status?.toLowerCase() === activeTab;
-
-      const docDate = item?.docCreatedAt ? new Date(item.docCreatedAt) : null;
-
-      const yearMatch =
-        selectedYear === "all"
-          ? true
-          : docDate && docDate.getFullYear().toString() === selectedYear;
-
-      const monthMatch =
-        selectedMonth === "all"
-          ? true
-          : docDate && docDate.getMonth().toString() === selectedMonth;
-
-      const searchMatch =
-        debouncedSearch === ""
-          ? true
-          : item?.eCode?.toLowerCase().includes(debouncedSearch) ||
-            item?.employeeId?.name?.toLowerCase().includes(debouncedSearch);
-
-      const centerId = item?.center?._id || item?.center;
-
-      const centerMatch = !allowedCenters.length
-        ? false
-        : selectedCenter === "ALL"
-          ? allowedCenters.includes(centerId)
-          : centerId === selectedCenter;
-
-      return (
-        statusMatch && yearMatch && monthMatch && searchMatch && centerMatch
-      );
-    });
-  }, [
-    leaves,
-    activeTab,
-    selectedYear,
-    selectedMonth,
-    debouncedSearch,
-    selectedCenter,
-    user?.centerAccess,
-  ]);
-
   const handleAction = async (docId, leaveId, status) => {
     setActionLoadingId(leaveId);
     try {
       const payload = { leaveId, status };
 
       const res = await actionOnLeaves(docId, payload);
-      console.log("res", res?.data);
-
-      const updated = (data || []).map((d) =>
-        d?._id === docId
-          ? {
-              ...d,
-              leaves: d?.leaves?.map((l) =>
-                l._id === leaveId ? { ...l, status } : l,
-              ),
-            }
-          : d,
-      );
 
       toast.success(res?.message);
 
       fetchLeaves();
-      setData(updated);
+      // setRequestsData(updated);
     } catch (error) {
       console.log("Action Error:", error);
     } finally {
       setActionLoadingId(null);
     }
   };
+
+  const months = [
+    { value: "all", label: "All Months" },
+    { value: 0, label: "Jan" },
+    { value: 1, label: "Feb" },
+    { value: 2, label: "Mar" },
+    { value: 3, label: "Apr" },
+    { value: 4, label: "May" },
+    { value: 5, label: "Jun" },
+    { value: 6, label: "Jul" },
+    { value: 7, label: "Aug" },
+    { value: 8, label: "Sep" },
+    { value: 9, label: "Oct" },
+    { value: 10, label: "Nov" },
+    { value: 11, label: "Dec" },
+  ];
 
   return (
     <CardBody
@@ -270,6 +263,19 @@ const ManageLeaves = () => {
             ))}
           </select>
 
+          <select
+            className="form-select form-select-sm"
+            style={{ width: "120px" }}
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            {months.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+
           {/* Months Filter */}
           {/* <select
             className="form-select w-auto"
@@ -296,11 +302,15 @@ const ManageLeaves = () => {
           isLoading,
           hasWrite,
           hasDelete,
-          activeTab
+          activeTab,
         )}
-        data={filteredData}
+        data={leaves}
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
         loading={loading}
-        pagination={false}
       />
     </CardBody>
   );

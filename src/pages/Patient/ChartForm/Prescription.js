@@ -93,6 +93,7 @@ const Prescription = ({
   console.log({ patient, type });
   console.log("------------------");
 
+  // console.log("type", type)
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
@@ -174,11 +175,17 @@ const Prescription = ({
             appointment: appointment?._id,
             ...values,
             shouldPrintAfterSave,
-            icdCode: values.icdCode?.value || null
+            icdCode: values.icdCode?.value || null,
           }),
         );
       } else if (type === "GENERAL") {
-        dispatch(addGeneralPrescription({ ...values, medicines,  icdCode: values.icdCode?.value || null, }));
+        dispatch(
+          addGeneralPrescription({
+            ...values,
+            medicines,
+            icdCode: values.icdCode?.value || null,
+          }),
+        );
       } else {
         console.log({ values });
 
@@ -188,7 +195,7 @@ const Prescription = ({
             appointment: appointment?._id,
             medicines,
             shouldPrintAfterSave,
-            icdCode: values.icdCode?.value || null
+            icdCode: values.icdCode?.value || null,
           }),
         );
       }
@@ -368,7 +375,7 @@ const Prescription = ({
     const fetchICD = async () => {
       const res = await getICDCodes();
 
-      console.log("res", res)
+      console.log("res", res);
 
       const options = res?.map((item) => ({
         label: `${item?.code} - ${item.text}`,
@@ -401,6 +408,21 @@ const Prescription = ({
 
     setIcdOptions(filtered);
   };
+
+  useEffect(() => {
+    if (
+      editPrescription?.icdCode &&
+      allICDCodes.length > 0
+    ) {
+      const selectedICD = allICDCodes.find(
+        (item) => item.value === editPrescription.icdCode,
+      );
+
+      if (selectedICD) {
+        validation.setFieldValue("icdCode", selectedICD);
+      }
+    }
+  }, [editPrescription, allICDCodes]);
 
   return (
     <React.Fragment>

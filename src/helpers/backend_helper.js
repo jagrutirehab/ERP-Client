@@ -956,7 +956,6 @@ export const getAllEmergencyPatients = (params = {}) => {
   });
 };
 
-
 export const getICDCodes = () => {
   return api.get(url.GET_ICD_CODES);
 };
@@ -2179,8 +2178,10 @@ export const getManagerByEmployeeId = (id) => {
   });
 };
 
-export const getLeavesRequest = (managerId) => {
-  return api.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+
+export const getLeavesRequest = (managerId, params = {}) => {
+  return axios.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2195,8 +2196,16 @@ export const actionOnLeaves = (id, data) => {
   });
 };
 
-export const getMyLeavesHistory = () => {
-  return api.get(url.GET_MY_LEAVES, {
+// export const getMyLeavesHistory = () => {
+//   return api.get(url.GET_MY_LEAVES, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
+export const getMyLeavesHistory = (params = {}) => {
+   return axios.get(url.GET_MY_LEAVES, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
