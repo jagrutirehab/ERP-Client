@@ -129,7 +129,14 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row => row?.transferDate,
+            selector: row => {
+                if (!row?.transferDate) return "-";
+
+                const date = new Date(row.transferDate);
+                if (isNaN(date.getTime())) return "-";
+
+                return format(date, "dd MMM yyyy");
+            },
             wrap: true,
         },
         {
