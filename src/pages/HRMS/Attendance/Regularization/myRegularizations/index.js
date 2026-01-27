@@ -7,6 +7,8 @@ import { MyRegularizationsColumn } from "../../../components/Table/Columns/myReg
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import classnames from "classnames";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const MyRegularizations = () => {
   const [activeTab, setActiveTab] = useState("pending");
@@ -16,6 +18,15 @@ const MyRegularizations = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState(null);
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission(
+    "HR",
+    "GET_REGULARIZATIONS_REQUESTS",
+    "READ",
+  );
 
   const handleAuthError = useAuthError();
   const [loading, setLoading] = useState(false);
@@ -46,6 +57,9 @@ const MyRegularizations = () => {
   };
 
   useEffect(() => {
+    if (!hasUserPermission) {
+      navigate("/unauthorized");
+    }
     fetchData();
   }, [activeTab, selectedYear, selectedMonth, page, limit]);
 

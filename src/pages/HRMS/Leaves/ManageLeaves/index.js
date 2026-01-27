@@ -140,14 +140,12 @@ const ManageLeaves = () => {
   const leaves = useMemo(() => {
     if (!Array.isArray(requestsData)) return [];
 
-    // Since backend now uses $unwind, requestsData is already flat.
-    // Each 'item.leaves' is now an OBJECT, not an array.
     return requestsData.map((item) => ({
-      ...item.leaves, // Spread the specific leave details (status, reason, etc.)
-      parentDocId: item._id, // This is the _id of the main document for actionOnLeaves
-      leaveId: item.leaves._id, // The specific leave entry ID
-      employeeId: item.id, // Already populated by aggregate lookup
-      center: item.center, // Already populated by aggregate lookup
+      ...item.leaves, 
+      parentDocId: item._id,
+      leaveId: item.leaves._id, 
+      employeeId: item.id,
+      center: item.center, 
       approvalAuthority: item.approvalAuthority,
       createdAt: item.createdAt,
       eCode: item.eCode,
@@ -275,23 +273,6 @@ const ManageLeaves = () => {
               </option>
             ))}
           </select>
-
-          {/* Months Filter */}
-          {/* <select
-            className="form-select w-auto"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            <option value="all">All Months</option>
-            {[
-              "Jan","Feb","Mar","Apr","May","Jun",
-              "Jul","Aug","Sep","Oct","Nov","Dec"
-            ].map((m, i) => (
-              <option key={i} value={i}>
-                {m}
-              </option>
-            ))}
-          </select> */}
         </div>
       </div>
 
