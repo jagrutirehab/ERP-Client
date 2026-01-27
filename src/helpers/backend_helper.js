@@ -2196,13 +2196,7 @@ export const actionOnLeaves = (id, data) => {
   });
 };
 
-// export const getMyLeavesHistory = () => {
-//   return api.get(url.GET_MY_LEAVES, {
-//     headers: {
-//       "X-No-Cookie-Token": "true",
-//     },
-//   });
-// };
+
 export const getMyLeavesHistory = (params = {}) => {
    return axios.get(url.GET_MY_LEAVES, {
     params,
@@ -2235,6 +2229,24 @@ export const gettodayMyAttendanceStatus = (params = {}) => {
     },
   });
 };
+
+// export const adminGetAllLeavesInfo = () => {
+//   return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
+
+export const adminGetAllLeavesInfo = (params = {}) => {
+   return axios.get(url.ADMIN_GET_ALL_LEAVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {
@@ -2322,13 +2334,6 @@ export const editEmployeeReporting = (id, data) => {
   });
 };
 
-export const adminGetAllLeavesInfo = () => {
-  return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-};
 
 export const getEmployeeReportings = (params = {}) => {
   return api.get(url.EMPLOYEE_REPORTING, {
