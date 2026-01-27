@@ -120,6 +120,7 @@ const GetRegularizationsRequest = () => {
   };
 
   useEffect(() => {
+     if (!hasUserPermission) navigate("/unauthorized");
     fetchData();
   }, [
     page,
@@ -158,49 +159,7 @@ const GetRegularizationsRequest = () => {
     { value: 11, label: "Dec" },
   ];
 
-  const filteredData = useMemo(() => {
-    const allowedCenters = user?.centerAccess || [];
-
-    return requestsData.filter((item) => {
-      const statusMatch =
-        item?.status?.toLowerCase() === activeTab?.toLowerCase();
-
-      const dateObj = new Date(item.date || item.createdAt);
-
-      const yearMatch =
-        selectedYear === "all" ||
-        dateObj.getFullYear().toString() === selectedYear;
-
-      const monthMatch =
-        selectedMonth === "all" ||
-        dateObj.getMonth().toString() === selectedMonth;
-
-      const searchMatch =
-        !debouncedSearch ||
-        item?.employee_id?.eCode?.toLowerCase()?.includes(debouncedSearch) ||
-        item?.employee_id?.name?.toLowerCase()?.includes(debouncedSearch);
-
-      const centerId = item?.center?._id || item?.center;
-
-      const centerMatch = !selectedCenter.length
-        ? true
-        : selectedCenter === "ALL"
-          ? allowedCenters.includes(centerId?.toString())
-          : centerId === selectedCenter;
-
-      return (
-        statusMatch && yearMatch && monthMatch && searchMatch && centerMatch
-      );
-    });
-  }, [
-    requestsData,
-    activeTab,
-    selectedYear,
-    selectedMonth,
-    debouncedSearch,
-    selectedCenter,
-    user?.centerAccess,
-  ]);
+ 
 
   const handleAction = async (id, status) => {
     console.log("Id in function", id);

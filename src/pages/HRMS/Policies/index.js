@@ -56,6 +56,7 @@ const Policies = () => {
     setEarnedLeaves("");
     setFestiveLeaves("");
     setWeekOffs("");
+    setRegularization_limits("");
   };
 
   const handleAdd = async () => {
