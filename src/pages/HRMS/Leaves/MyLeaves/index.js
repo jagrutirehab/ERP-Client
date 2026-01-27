@@ -136,6 +136,18 @@ const MyLeaves = () => {
     }
   };
 
+  // const leafPagination = {
+  //   ...pagination,
+  //   totalRecords: leaves.length,
+  //   totalPages: Math.ceil(leaves.length / limit),
+  // };
+
+  const sortedLeaves = useMemo(() => {
+  return [...leaves].sort(
+    (a, b) => new Date(b.fromDate) - new Date(a.fromDate)
+  );
+}, [leaves]);
+
   return (
     <CardBody
       className="p-3 bg-white"
@@ -221,7 +233,7 @@ const MyLeaves = () => {
           hasDelete,
           isLoading,
         )}
-        data={leaves}
+        data={sortedLeaves}
         loading={loading}
         pagination={pagination}
         page={page}

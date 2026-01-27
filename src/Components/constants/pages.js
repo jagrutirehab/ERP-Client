@@ -708,6 +708,12 @@ export const HR = [
     icon: "bx bx-time-five",
     isAccordion: true,
     children: [
+      // {
+      //   id: "main-attendance-dashboard",
+      //   label: "Dashboard",
+      //   link: "/hr/main/dashboard",
+      //   icon: "bx bx-grid-alt",
+      // },
       {
         id: "attendance-log",
         label: "Attendance Log",
