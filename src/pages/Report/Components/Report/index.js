@@ -56,6 +56,10 @@ const Report = ({ data, centerAccess, loading }) => {
     );
   };
 
+  useEffect(() => {
+    handleViewReport();
+  }, []);
+
   return (
     <React.Fragment>
       <div className="pt-4">
