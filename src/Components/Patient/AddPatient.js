@@ -56,13 +56,13 @@ const AddPatient = ({
   const phoneNumber = editData
     ? editData.phoneNumber
     : leadData
-    ? leadData.patient.phoneNumber
-    : "";
+      ? leadData.patient.phoneNumber
+      : "";
   const email = editData
     ? editData.email
     : leadData
-    ? leadData.patient.email
-    : "";
+      ? leadData.patient.email
+      : "";
 
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
@@ -101,8 +101,8 @@ const AddPatient = ({
       referredBy: editData
         ? editData.referredBy
         : leadData
-        ? leadData.refferedBy
-        : "",
+          ? leadData.refferedBy
+          : "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
@@ -118,7 +118,7 @@ const AddPatient = ({
         .notRequired()
         .matches(
           /^$|^[0-9]{12}$/,
-          "Aadhaar Card Number must be exactly 12 digits"
+          "Aadhaar Card Number must be exactly 12 digits",
         ),
       phoneNumber: Yup.string()
         .required("Please Enter Phone Number")
@@ -131,7 +131,7 @@ const AddPatient = ({
       guardianName: Yup.string().required("Please Enter Guardian Name"),
       guardianRelation: Yup.string().required("Please Enter Guardian Relation"),
       guardianPhoneNumber: Yup.string().required(
-        "Please Enter Guardian Phone Number"
+        "Please Enter Guardian Phone Number",
       ),
     }),
 
@@ -151,19 +151,23 @@ const AddPatient = ({
           formData.delete("aadhaarCard");
         dispatch(updatePatient(formData));
         dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
+          togglePatientForm({ data: null, leadData: null, isOpen: false }),
         );
       } else if (leadData) {
         formData.append("lead", leadData._id);
         formData.append("leadOrigin", leadData.leadOrigin);
+        formData.append("leadQuery", JSON.stringify(leadData.leadQuery));
+        formData.append("centerAccess", JSON.stringify(leadData.centerAccess));
+        formData.append("grouped", JSON.stringify(leadData.grouped));
+        formData.append("date", JSON.stringify(leadData.date));
         dispatch(addLeadPatient(formData));
         dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
+          togglePatientForm({ data: null, leadData: null, isOpen: false }),
         );
       } else {
         dispatch(addPatient(formData));
         dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
+          togglePatientForm({ data: null, leadData: null, isOpen: false }),
         );
       }
     },
@@ -204,7 +208,7 @@ const AddPatient = ({
       const referralMatch = referrals.find(
         (ref) =>
           ref._id === editData.referredBy.id ||
-          ref.doctorName === editData.referredBy.doctorName
+          ref.doctorName === editData.referredBy.doctorName,
       );
       if (referralMatch) {
         setSelectedReferral({
@@ -238,8 +242,8 @@ const AddPatient = ({
         l.name === "doctor"
           ? { ...l, options: doctors }
           : l.name === "psychologist"
-          ? { ...l, options: counsellors || [] }
-          : l
+            ? { ...l, options: counsellors || [] }
+            : l,
       );
       setFields(flds);
     }
@@ -248,7 +252,7 @@ const AddPatient = ({
 
   useEffect(() => {
     const fls = [...fields].map((l) =>
-      l.name === "name" ? { ...l, disabled: !!editData } : l
+      l.name === "name" ? { ...l, disabled: !!editData } : l,
     );
     setFields(fls);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -257,7 +261,7 @@ const AddPatient = ({
   useEffect(() => {
     if (patient?.submitSuccess) {
       dispatch(
-        togglePatientForm({ data: null, leadData: null, isOpen: false })
+        togglePatientForm({ data: null, leadData: null, isOpen: false }),
       );
     }
   }, [dispatch, patient?.submitSuccess]);
@@ -478,7 +482,7 @@ const AddPatient = ({
                       setIsOtherReferral(false);
                       validation.setFieldValue(
                         "referredBy",
-                        option?.value || ""
+                        option?.value || "",
                       );
                     }
                   }}

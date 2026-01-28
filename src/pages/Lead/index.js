@@ -63,7 +63,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
         grouped: true,
         centerAccess: JSON.stringify(centerAccess),
         ...date,
-      })
+      }),
     );
   }, [dispatch, leadQuery, centerAccess, date]);
 
@@ -72,7 +72,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchCenters({centerIds: user?.centerAccess}));
+    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 
@@ -193,7 +193,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                           color="success"
                           onClick={() =>
                             dispatch(
-                              createEditLead({ isOpen: true, data: null })
+                              createEditLead({ isOpen: true, data: null }),
                             )
                           }
                         >
@@ -223,6 +223,9 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                 setDeleteLead={setDeleteLead}
                 setMergeLead={setMergeLead}
                 setUnMergeLead={setUnMergeLead}
+                centerAccess={centerAccess}
+                date={date}
+                grouped={true}
               />
             </TabPane>
             <TabPane tabId="2">
