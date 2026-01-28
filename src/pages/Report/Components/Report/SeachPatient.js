@@ -27,6 +27,9 @@ const SearchPatient = ({
   const handleChange = (e) => {
     const val = e.target.value;
     setValue(val);
+    if (!val || val.length === 0) {
+      setPatient("");
+    }
   };
 
   useEffect(() => {
