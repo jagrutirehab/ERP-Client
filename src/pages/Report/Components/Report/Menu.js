@@ -390,7 +390,7 @@ const Menu = ({
           <form>
             <Row>
               <Col xs={12} md={3} className="mb-3 mb-md-0">
-                <div className="d-flex">
+                {/* <div className="d-flex">
                   <Input
                     id="selectfilter"
                     name="address"
@@ -409,10 +409,10 @@ const Menu = ({
                       </option>
                     ))}
                   </Input>
-                </div>
+                </div> */}
               </Col>
               <Col xs={12} md={3}>
-                <SearchPatient setPatient={setPatient} patient={patient} />
+                {/* <SearchPatient setPatient={setPatient} patient={patient} /> */}
               </Col>
               <Col xs={12} md={6}>
                 <div className="d-flex justify-content-start justify-content-md-end mt-3 mt-md-0">
