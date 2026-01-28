@@ -20,6 +20,9 @@ const LeaveHistory = () => {
   const handleAuthError = useAuthError();
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const user = useSelector((state) => state.User);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   // const centerAccess = useSelector((state) => state.User.centerAccess);
   // // console.log("centerAccess", centerAccess);
 
@@ -64,10 +67,25 @@ const LeaveHistory = () => {
   const fetchLeavesData = async () => {
     try {
       setLoading(true);
-      const res = await adminGetAllLeavesInfo();
+      let centers = [];
+      if (selectedCenter === "") {
+        centers = [];
+      } else if (selectedCenter === "ALL") {
+        centers = user?.centerAccess || [];
+      } else {
+        centers = [selectedCenter];
+      }
+
+      const res = await adminGetAllLeavesInfo({
+        page,
+        limit,
+        centers,
+        search: debouncedSearch || undefined,
+      });
+
       setLeavesData(res?.data || []);
+      setTotalRecords(res?.pagination?.totalRecords || 0);
     } catch (error) {
-      // console.log(error);
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
       }
@@ -77,9 +95,12 @@ const LeaveHistory = () => {
   };
 
   useEffect(() => {
-    if (!hasUserPermission) navigate("/unauthorized");
+    if (!hasUserPermission) {
+      navigate("/unauthorized");
+      return;
+    }
     fetchLeavesData();
-  }, []);
+  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -88,44 +109,6 @@ const LeaveHistory = () => {
 
     return () => clearTimeout(handler);
   }, [search]);
-
-  // const filteredLeaves = useMemo(() => {
-  //   if (!debouncedSearch) return leavesData;
-
-  //   return leavesData.filter((item) => {
-  //     console.log("item", item);
-  //     const empId = item?.eCode?.toString().toLowerCase() || "";
-  //     const name = item?.employeeId?.name?.toLowerCase() || "";
-
-  //     return (
-  //       empId.includes(debouncedSearch.toLowerCase()) ||
-  //       name.includes(debouncedSearch.toLowerCase())
-  //     );
-  //   });
-  // }, [debouncedSearch, leavesData]);
-
-  const filteredLeaves = useMemo(() => {
-    const allowedCenters = user?.centerAccess || [];
-    return leavesData.filter((item) => {
-      const empId = item?.eCode?.toString().toLowerCase() || "";
-      const name = item?.employeeId?.name?.toLowerCase() || "";
-
-      const searchMatch =
-        !debouncedSearch ||
-        empId.includes(debouncedSearch.toLowerCase()) ||
-        name.includes(debouncedSearch.toLowerCase());
-
-      const centerId = item?.center?._id || item?.center;
-
-      const centerMatch = !allowedCenters.length
-        ? false
-        : selectedCenter === "ALL"
-          ? allowedCenters.includes(centerId)
-          : centerId === selectedCenter;
-
-      return searchMatch && centerMatch;
-    });
-  }, [debouncedSearch, leavesData, selectedCenter, user?.centerAccess]);
 
   return (
     <CardBody
@@ -168,9 +151,13 @@ const LeaveHistory = () => {
 
       <DataTableComponent
         columns={leaveColumns(navigate)}
-        data={filteredLeaves}
+        data={leavesData}
         loading={loading}
-        pagination={false}
+        pagination
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
       />
     </CardBody>
   );

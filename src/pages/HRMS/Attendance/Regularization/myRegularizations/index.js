@@ -7,12 +7,26 @@ import { MyRegularizationsColumn } from "../../../components/Table/Columns/myReg
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import classnames from "classnames";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const MyRegularizations = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [regularizationsData, setRegularizationsData] = useState([]);
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
+  const navigate = useNavigate();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission(
+    "HR",
+    "GET_REGULARIZATIONS_REQUESTS",
+    "READ",
+  );
 
   const handleAuthError = useAuthError();
   const [loading, setLoading] = useState(false);
@@ -23,8 +37,16 @@ const MyRegularizations = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getMyRegularizations();
+      const res = await getMyRegularizations({
+        status: activeTab,
+        year: selectedYear,
+        month: selectedMonth,
+        page,
+        limit,
+      });
+
       setRegularizationsData(res?.data || []);
+      setPagination(res?.pagination || {});
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
@@ -35,10 +57,12 @@ const MyRegularizations = () => {
   };
 
   useEffect(() => {
+    if (!hasUserPermission) {
+      navigate("/unauthorized");
+    }
     fetchData();
-  }, []);
+  }, [activeTab, selectedYear, selectedMonth, page, limit]);
 
-  
   const allYears = Array.from({ length: 2031 - 2015 + 1 }, (_, i) => 2015 + i);
 
   const months = [
@@ -57,21 +81,21 @@ const MyRegularizations = () => {
     { value: 11, label: "Dec" },
   ];
 
-  const filteredData = regularizationsData.filter((item) => {
-    const statusMatch = item?.status?.toLowerCase() === activeTab;
+  // const filteredData = regularizationsData.filter((item) => {
+  //   const statusMatch = item?.status?.toLowerCase() === activeTab;
 
-    const dateObj = new Date(item.date);
+  //   const dateObj = new Date(item.date);
 
-    const yearMatch =
-      selectedYear === "all" ||
-      dateObj.getFullYear().toString() === selectedYear;
+  //   const yearMatch =
+  //     selectedYear === "all" ||
+  //     dateObj.getFullYear().toString() === selectedYear;
 
-    const monthMatch =
-      selectedMonth === "all" ||
-      dateObj.getMonth().toString() === selectedMonth;
+  //   const monthMatch =
+  //     selectedMonth === "all" ||
+  //     dateObj.getMonth().toString() === selectedMonth;
 
-    return statusMatch && yearMatch && monthMatch;
-  });
+  //   return statusMatch && yearMatch && monthMatch;
+  // });
 
   return (
     <CardBody
@@ -99,7 +123,6 @@ const MyRegularizations = () => {
 
       {/* Filters */}
       <div className="d-flex gap-2 mb-3 align-items-center">
-
         <select
           className="form-select form-select-sm"
           style={{ width: "110px", maxHeight: "36px" }}
@@ -126,13 +149,17 @@ const MyRegularizations = () => {
             </option>
           ))}
         </select>
-
       </div>
 
       <DataTableComponent
         columns={MyRegularizationsColumn()}
-        data={filteredData}
+        data={regularizationsData}
         loading={loading}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        pagination={pagination}
       />
     </CardBody>
   );

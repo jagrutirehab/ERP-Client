@@ -50,7 +50,7 @@ export const IndividualLeavesColumn = () => [
   },
   {
     name: <div className="text-center">No.of days</div>,
-    selector: (row) => row?.days || "-",
+    selector: (row) => row?.days ?? "-",
     grow: 1,
     minWidth: "140px",
     center: true,

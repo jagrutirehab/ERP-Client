@@ -13,6 +13,7 @@ import {
 } from "reactstrap";
 import PropTypes from "prop-types";
 import _ from "lodash";
+import Select from "react-select";
 
 //flatpicker
 import Flatpicker from "react-flatpickr";
@@ -59,6 +60,8 @@ import LabReport from "../Charts/LabReport";
 import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { getICDCodes } from "../../../helpers/backend_helper.js";
 
 const Prescription = ({
   drugs,
@@ -77,6 +80,9 @@ const Prescription = ({
 }) => {
   const dispatch = useDispatch();
   const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [allICDCodes, setAllICDCodes] = useState([]);
+  const [icdOptions, setIcdOptions] = useState([]);
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
@@ -87,10 +93,11 @@ const Prescription = ({
   console.log({ patient, type });
   console.log("------------------");
 
+  // console.log("type", type)
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
-        fetchOPDPrescription({ id: appointment?.patient?._id || patient?._id })
+        fetchOPDPrescription({ id: appointment?.patient?._id || patient?._id }),
       );
   }, [dispatch, appointment, populatePreviousAppointment, patient]);
 
@@ -109,23 +116,23 @@ const Prescription = ({
       drNotes: editPrescription
         ? editPrescription.drNotes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.drNotes
-        : "",
+          ? patientLatestOPDPrescription?.drNotes
+          : "",
       diagnosis: editPrescription
         ? editPrescription.diagnosis
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.diagnosis
-        : "",
+          ? patientLatestOPDPrescription?.diagnosis
+          : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.notes
-        : "",
+          ? patientLatestOPDPrescription?.notes
+          : "",
       followUp: editPrescription
         ? editPrescription.followUp
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.followUp
-        : "",
+          ? patientLatestOPDPrescription?.followUp
+          : "",
       referredby: patient.referredBy?.doctorName || patient.referredBy || "",
       // editPrescription
       //   ? editPrescription.referredby
@@ -135,20 +142,21 @@ const Prescription = ({
       investigationPlan: editPrescription
         ? editPrescription.investigationPlan
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.investigationPlan
-        : "",
+          ? patientLatestOPDPrescription?.investigationPlan
+          : "",
       complaints: editPrescription
         ? editPrescription.complaints
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.complaints
-        : "",
+          ? patientLatestOPDPrescription?.complaints
+          : "",
       observation: editPrescription
         ? editPrescription.observation
         : ptLatestOPDPrescription
-        ? patientLatestOPDPrescription?.observation
-        : "",
+          ? patientLatestOPDPrescription?.observation
+          : "",
       type,
       date: chartDate,
+      icdCode: null,
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
@@ -156,6 +164,7 @@ const Prescription = ({
       chart: Yup.string().required("Chart is required"),
     }),
     onSubmit: (values) => {
+      console.log("values", values);
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -166,10 +175,17 @@ const Prescription = ({
             appointment: appointment?._id,
             ...values,
             shouldPrintAfterSave,
-          })
+            icdCode: values.icdCode?.value || null,
+          }),
         );
       } else if (type === "GENERAL") {
-        dispatch(addGeneralPrescription({ ...values, medicines }));
+        dispatch(
+          addGeneralPrescription({
+            ...values,
+            medicines,
+            icdCode: values.icdCode?.value || null,
+          }),
+        );
       } else {
         console.log({ values });
 
@@ -179,7 +195,8 @@ const Prescription = ({
             appointment: appointment?._id,
             medicines,
             shouldPrintAfterSave,
-          })
+            icdCode: values.icdCode?.value || null,
+          }),
         );
       }
       // closeForm();
@@ -238,7 +255,7 @@ const Prescription = ({
           d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
           String(d.strength).trim() === String(m.strength).trim() &&
           String(d.unit).trim().toLowerCase() ===
-            String(m.unit).trim().toLowerCase()
+            String(m.unit).trim().toLowerCase(),
       );
 
       if (match) {
@@ -266,15 +283,15 @@ const Prescription = ({
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
       validation.setFieldValue(
         "investigationPlan",
-        ptLatestOPDPrescription.investigationPlan
+        ptLatestOPDPrescription.investigationPlan,
       );
       validation.setFieldValue(
         "complaints",
-        ptLatestOPDPrescription.complaints
+        ptLatestOPDPrescription.complaints,
       );
       validation.setFieldValue(
         "observation",
-        ptLatestOPDPrescription.observation
+        ptLatestOPDPrescription.observation,
       );
     }
 
@@ -301,7 +318,7 @@ const Prescription = ({
     if (!med) return;
 
     const checkMedicine = data.find(
-      (val) => val.medicine?.name === med?.name || val.medicine?.name === med
+      (val) => val.medicine?.name === med?.name || val.medicine?.name === med,
     );
 
     if (!checkMedicine) {
@@ -353,6 +370,59 @@ const Prescription = ({
       )
     );
   }, [medicines]);
+
+  useEffect(() => {
+    const fetchICD = async () => {
+      const res = await getICDCodes();
+
+      console.log("res", res);
+
+      const options = res?.map((item) => ({
+        label: `${item?.code} - ${item.text}`,
+        value: item?._id,
+        text: item?.text,
+      }));
+
+      // options.push({
+      //   label: "OTHERS",
+      //   value: "OTHERS",
+      //   text: "Others",
+      // });
+
+      setAllICDCodes(options);
+      setIcdOptions(options);
+    };
+
+    fetchICD();
+  }, []);
+
+  const handleICDSearch = (input) => {
+    if (!input) {
+      setIcdOptions(allICDCodes);
+      return;
+    }
+
+    const filtered = allICDCodes.filter((item) =>
+      item.label.toLowerCase().includes(input.toLowerCase()),
+    );
+
+    setIcdOptions(filtered);
+  };
+
+  useEffect(() => {
+    if (
+      editPrescription?.icdCode &&
+      allICDCodes.length > 0
+    ) {
+      const selectedICD = allICDCodes.find(
+        (item) => item.value === editPrescription.icdCode,
+      );
+
+      if (selectedICD) {
+        validation.setFieldValue("icdCode", selectedICD);
+      }
+    }
+  }, [editPrescription, allICDCodes]);
 
   return (
     <React.Fragment>
@@ -409,7 +479,7 @@ const Prescription = ({
             )}
             {medicineDropdown}
             {medicineTable}
-            {(prescriptionFormFields || []).map((item, idx) => (
+            {/* {(prescriptionFormFields || []).map((item, idx) => (
               <Col xs={12} md={6}>
                 <div className="pb-4">
                   <Label className="">{item.label}</Label>
@@ -423,6 +493,41 @@ const Prescription = ({
                     aria-label="With textarea"
                     rows="3"
                   />
+                </div>
+              </Col>
+            ))} */}
+
+            {(prescriptionFormFields || []).map((item, idx) => (
+              <Col xs={12} md={6} key={idx}>
+                <div className="pb-4">
+                  <Label>{item.label}</Label>
+
+                  {item.type === "async-select" ? (
+                    <Select
+                      placeholder="Search ICD Code..."
+                      options={icdOptions}
+                      value={validation.values.icdCode || null}
+                      onInputChange={(value, actionMeta) => {
+                        if (actionMeta.action === "input-change") {
+                          handleICDSearch(value);
+                        }
+                      }}
+                      onChange={(selected) =>
+                        validation.setFieldValue("icdCode", selected)
+                      }
+                      filterOption={() => true}
+                    />
+                  ) : (
+                    <Input
+                      type="textarea"
+                      name={item.name}
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values[item.name] || ""}
+                      className="form-control presc-border rounded"
+                      rows="3"
+                    />
+                  )}
                 </div>
               </Col>
             ))}

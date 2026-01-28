@@ -88,7 +88,8 @@ const styles = StyleSheet.create({
 });
 
 const PrescriptionBody = ({ chart, doctor }) => {
-  const renderImage = (src, width) => {
+  // console.log('chart',chart)
+  const renderImage = (src, _width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;
   };
@@ -215,6 +216,23 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 }}
               >
                 {format(new Date(chart.followUp), "dd MMM yyyy")}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {chart?.ICD10_Code && (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              ICD10_Code :{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart.ICD10_Code}
               </Text>
             </Text>
           </View>

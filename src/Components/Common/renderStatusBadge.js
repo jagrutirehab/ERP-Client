@@ -44,7 +44,7 @@ export const renderStatusBadge = (stage) => {
             color: "info"
         },
         FESTIVE_LEAVE:{
-            text:"Festuve Leave",
+            text:"Festive Leave",
             color:"info"
         },
         PENDING: {
