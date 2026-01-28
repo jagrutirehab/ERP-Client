@@ -1,3 +1,4 @@
+import axios from "axios";
 import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
@@ -953,6 +954,10 @@ export const getAllEmergencyPatients = (params = {}) => {
   return api.create(url.GET_EMERGENCY_PATIENTS, params, {
     headers: { "Content-Type": "application/json" },
   });
+};
+
+export const getICDCodes = () => {
+  return api.get(url.GET_ICD_CODES);
 };
 
 // cash management
@@ -2111,28 +2116,41 @@ export const requestForRegularization = (data) => {
   });
 };
 
-export const getMyRegularizations = () => {
-  return api.get(url.GET_MY_REGULARIZATION, {
+export const getMyRegularizations = (params) => {
+  return axios.get(url.GET_MY_REGULARIZATION, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+export const getRegularizationsRequests = (params) => {
+  return axios.get(url.GET_REGULARIZATION_REQUESTS, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
 
-export const getRegularizationsRequests = () => {
-  return api.get(url.GET_REGULARIZATION_REQUESTS, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-};
+// export const getRegularizationsRequests = () => {
+//   return api.get(url.GET_REGULARIZATION_REQUESTS, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
 
 export const updateRegularizationStatus = (id, status) => {
-  return api.update(`${url.UPDATE_REGULARIZATION}/${status}/${id}`, {}, {
-    headers: {
-      "X-No-Cookie-Token": "true",
+  return api.update(
+    `${url.UPDATE_REGULARIZATION}/${status}/${id}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
     },
-  });
+  );
 };
 
 // HRMS/LEAVES
@@ -2160,8 +2178,10 @@ export const getManagerByEmployeeId = (id) => {
   });
 };
 
-export const getLeavesRequest = (managerId) => {
-  return api.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+
+export const getLeavesRequest = (managerId, params = {}) => {
+  return axios.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2176,8 +2196,10 @@ export const actionOnLeaves = (id, data) => {
   });
 };
 
-export const getMyLeavesHistory = () => {
-  return api.get(url.GET_MY_LEAVES, {
+
+export const getMyLeavesHistory = (params = {}) => {
+   return axios.get(url.GET_MY_LEAVES, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2207,6 +2229,24 @@ export const gettodayMyAttendanceStatus = (params = {}) => {
     },
   });
 };
+
+// export const adminGetAllLeavesInfo = () => {
+//   return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
+//     headers: {
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+// };
+
+export const adminGetAllLeavesInfo = (params = {}) => {
+   return axios.get(url.ADMIN_GET_ALL_LEAVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {
@@ -2268,7 +2308,6 @@ export const getPolicies = () => {
   });
 };
 
-
 // department
 
 export const getDepartments = () => {
@@ -2295,13 +2334,6 @@ export const editEmployeeReporting = (id, data) => {
   });
 };
 
-export const adminGetAllLeavesInfo = () => {
-  return api.get(`${url.ADMIN_GET_ALL_LEAVES}`, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  });
-};
 
 export const getEmployeeReportings = (params = {}) => {
   return api.get(url.EMPLOYEE_REPORTING, {
@@ -2311,7 +2343,6 @@ export const getEmployeeReportings = (params = {}) => {
     },
   });
 };
-
 
 // Incentives
 export const postIncentives = (data) => {

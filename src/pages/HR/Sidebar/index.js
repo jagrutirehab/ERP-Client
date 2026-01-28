@@ -154,6 +154,7 @@ const Sidebar = () => {
   const hasMyLeavesPermission = hasPermission("HR", "MY_LEAVES", "READ");
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
   const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
+  const hasMainDashboardPermission = hasPermission("HR", "MAIN_DASHBOARD", "READ");
 
   const hasIncentivesAddRequestPermission = hasPermission(
     "HR",
@@ -292,6 +293,8 @@ const Sidebar = () => {
           return false;
 
         if (child.id === "regularizations-requests" && !hasGetRegularizeRequestsPersmission)
+          return false;
+        if (child.id === "main-attendance-dashboard" && !hasMainDashboardPermission)
           return false;
 
         return true;

@@ -23,6 +23,9 @@ const MyLeaves = () => {
 
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState({});
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -40,22 +43,34 @@ const MyLeaves = () => {
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
+
     const fetchLeaves = async () => {
       try {
         setLoading(true);
-        const res = await getMyLeavesHistory();
-        setData(res?.data || {});
+
+        const res = await getMyLeavesHistory({
+          status: activeTab,
+          year: selectedYear,
+          month: selectedMonth,
+          page,
+          limit,
+        });
+
+        setData(res?.data || []);
+        // setActiveTab(res?.status);
+        // setPage(1);
+        setPagination(res?.pagination || {});
       } catch (error) {
-        // console.log("API Error:", error);
         if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch reportings");
+          toast.error(error.message || "Failed to fetch leaves");
         }
       } finally {
         setLoading(false);
       }
     };
+
     fetchLeaves();
-  }, []);
+  }, [activeTab, selectedYear, selectedMonth, page, limit]);
 
   // console.log("data", data);
 
@@ -79,7 +94,7 @@ const MyLeaves = () => {
             eCode: d?.eCode,
             center: d?.center,
             approvalAuthority: d?.approvalAuthority,
-            regularizedDates : l?.regularizedDates
+            regularizedDates: l?.regularizedDates,
           })) || [],
       )
     : [];
@@ -91,40 +106,6 @@ const MyLeaves = () => {
   );
 
   // console.log("leaves", leaves);
-
-  const filteredData = useMemo(() => {
-    return leaves.filter((item) => {
-      const statusMatch = item?.status?.toLowerCase() === activeTab;
-
-      // console.log("docDate", item?.year)
-      const docDate = item?.docCreatedAt ? new Date(item?.docCreatedAt) : null;
-
-      const yearMatch =
-        selectedYear === "all"
-          ? true
-          : docDate && docDate?.getFullYear().toString() === selectedYear;
-
-      const monthMatch =
-        selectedMonth === "all"
-          ? true
-          : docDate && docDate?.getMonth().toString() === selectedMonth;
-
-      const searchMatch =
-        debouncedSearch === ""
-          ? true
-          : item?.employeeId?.eCode?.toLowerCase().includes(debouncedSearch) ||
-            item?.employeeId?.name?.toLowerCase().includes(debouncedSearch);
-
-      return statusMatch && yearMatch && monthMatch && searchMatch;
-    });
-  }, [
-    leaves,
-    activeTab,
-    selectedYear,
-    selectedMonth,
-    debouncedSearch,
-    data?.createdAt,
-  ])?.reverse();
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
@@ -145,16 +126,27 @@ const MyLeaves = () => {
           : d,
       );
 
-      setData(updated);
       toast.success(res?.message);
-
-      // setActiveTab(status);
+      setActiveTab(status);
+      setPage(1);
     } catch (error) {
       console.log("Action Error:", error);
     } finally {
       setLoadingLeaveId(null);
     }
   };
+
+  // const leafPagination = {
+  //   ...pagination,
+  //   totalRecords: leaves.length,
+  //   totalPages: Math.ceil(leaves.length / limit),
+  // };
+
+  const sortedLeaves = useMemo(() => {
+  return [...leaves].sort(
+    (a, b) => new Date(b.fromDate) - new Date(a.fromDate)
+  );
+}, [leaves]);
 
   return (
     <CardBody
@@ -205,21 +197,31 @@ const MyLeaves = () => {
           </select>
 
           {/* Month Filter */}
-          {/* <select
+          <select
             className="form-select w-auto"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
             <option value="all">All Months</option>
             {[
-              "Jan","Feb","Mar","Apr","May","Jun",
-              "Jul","Aug","Sep","Oct","Nov","Dec"
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
             ].map((m, i) => (
               <option key={i} value={i}>
                 {m}
               </option>
             ))}
-          </select> */}
+          </select>
         </div>
       </div>
 
@@ -231,9 +233,14 @@ const MyLeaves = () => {
           hasDelete,
           isLoading,
         )}
-        data={filteredData}
+        data={sortedLeaves}
         loading={loading}
-        pagination={false}
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        // paginationData={pagination}
       />
     </CardBody>
   );

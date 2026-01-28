@@ -9,6 +9,7 @@ import {
     CalendarDays,
     RotateCw,
     Coffee,
+    RefreshCcw,
 } from "lucide-react";
 import {
     Button,
@@ -242,6 +243,16 @@ const AttendanceSummaryCard = ({
                                 icon={CalendarDays}
                                 value={data?.days ?? 0}
                                 label="Total Days"
+                                color="#0d6efd"
+                                loading={loading}
+                            />
+                        </Col>
+
+                        <Col xs="6" md="4" xl="2">
+                            <StatCard
+                                icon={RefreshCcw}
+                                value={data?.regularizations ?? 0}
+                                label="Regularize"
                                 color="#0d6efd"
                                 loading={loading}
                             />
