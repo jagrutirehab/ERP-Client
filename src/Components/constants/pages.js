@@ -678,12 +678,12 @@ export const HR = [
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
-      // {
-      //   id: "hiring-management",
-      //   label: "Hiring Management",
-      //   icon: "bx bx-list-ul",
-      //   link: "/hr/hiring/management",
-      // },
+      {
+        id: "hiring-management",
+        label: "Hiring Management",
+        icon: "bx bx-list-ul",
+        link: "/hr/hiring/management",
+      },
     ],
   },
   {

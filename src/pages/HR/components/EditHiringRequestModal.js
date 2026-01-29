@@ -153,6 +153,7 @@ const EditHiringRequestModal = ({
               <option value="WIP">WIP</option>
               <option value="HOLD">HOLD</option>
               <option value="CLOSED">CLOSED</option>
+              <option value="NOT_STARTED_WORKING_YET">NOT STARTED WORKING YET</option>
             </Input>
           </FormGroup>
 

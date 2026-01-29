@@ -16,8 +16,10 @@ import Select from "react-select";
 import { Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import { editManagementRequests } from "../../../../../helpers/backend_helper";
+import EditHiringRequestModal from "../../../components/EditHiringRequestModal";
 
-const ApprovalHistory = ({ activeTab }) => {
+const Status = ({ activeTab }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const {
@@ -32,9 +34,14 @@ const ApprovalHistory = ({ activeTab }) => {
     center: "ALL",
     designation: null,
     gender: null,
+    updateStatus: null,
   });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  //   const [updateLoading, setUpdateLoading] = useState(false);
+  //   const [isModalOpen, setIsModalOpen] = useState(false);
+  //   const [selectedRow, setSelectedRow] = useState(null);
+  //   const [formData, setFormData] = useState({});
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -114,9 +121,12 @@ const ApprovalHistory = ({ activeTab }) => {
           page,
           limit,
           centers,
-          view: "HISTORY",
+          view: "STATUS",
           ...(filters.designation ? { designation: filters.designation } : {}),
           ...(filters.gender ? { gender: filters.gender } : {}),
+          ...(filters.updateStatus
+            ? { updateStatus: filters.updateStatus }
+            : {}),
         }),
       ).unwrap();
     } catch (error) {
@@ -127,10 +137,16 @@ const ApprovalHistory = ({ activeTab }) => {
   };
 
   useEffect(() => {
-    if (activeTab === "HISTORY" && hasUserPermission) {
+    if (activeTab === "STATUS" && hasUserPermission) {
       fetchHiringApprovalHistory();
     }
   }, [page, limit, filters, user?.centerAccess, activeTab]);
+
+  //   const Center = ({ children }) => (
+  //     <div className="d-flex justify-content-center align-items-center">
+  //       {children}
+  //     </div>
+  //   );
 
   const columns = [
     {
@@ -260,7 +276,119 @@ const ApprovalHistory = ({ activeTab }) => {
       wrap: true,
       minWidth: "180px",
     },
+    {
+      name: <div>Interviewer</div>,
+      selector: (row) => (
+        <div>
+          <div>{capitalizeWords(row?.interviewer?.name || "-")}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            {row?.interviewer?.email || row?.interviewer?.officialEmail || "-"}
+          </div>
+        </div>
+      ),
+      wrap: true,
+      minWidth: "200px",
+    },
+    {
+      name: <div>Update Status</div>,
+      selector: (row) => renderStatusBadge(row?.updateStatus),
+    },
+    {
+      name: <div>Remarks</div>,
+      selector: (row) => (
+        <ExpandableText text={capitalizeWords(row?.remarks || "-")} />
+      ),
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
+      name: <div>Priority</div>,
+      selector: (row) => row?.priority || "-",
+      wrap: true,
+      minWidth: "140px",
+    },
+    {
+      name: <div>Updated At</div>,
+      selector: (row) => {
+        if (!row?.updatedAt) return "-";
+        const date = new Date(row?.updatedAt);
+        if (isNaN(date)) return "-";
+        return format(date, "dd MMM yyyy, hh:mm a");
+      },
+      wrap: true,
+      minWidth: "180px",
+    },
+
+    // {
+    //   name: <Center>Action</Center>,
+    //   cell: (row) => (
+    //     <Center>
+    //       <button
+    //         className="btn btn-sm btn-outline-primary d-flex align-items-center"
+    //         onClick={() => onActionClick(row)}
+    //         title="Edit"
+    //       >
+    //         <Pencil size={16} />
+    //       </button>
+    //     </Center>
+    //   ),
+    //   width: "120px",
+    //   ignoreRowClick: true,
+    //   allowOverflow: true,
+    //   button: true,
+    // },
   ];
+
+  //   const handleActionClick = (row) => {
+  //     setSelectedRow(row);
+  //     setFormData({
+  //       updateStatus: row?.updateStatus || "",
+  //       priority: row?.priority || "",
+  //       remarks: row?.remarks || "",
+  //       interviewer: row?.interviewer || "",
+  //     });
+  //     setIsModalOpen(true);
+  //   };
+
+  //   const handleUpdate = async () => {
+  //     if (!selectedRow?._id) return;
+
+  //     try {
+  //       setUpdateLoading(true);
+
+  //       const payload = {
+  //         updateStatus: formData.updateStatus,
+  //         priority: formData.priority,
+  //         remarks: formData.remarks,
+  //         interviewer: formData.interviewer,
+  //       };
+
+  //       const response = await editManagementRequests(selectedRow._id, payload);
+  //       // console.log("response", response);
+  //       if (response.success === true) {
+  //         toast.success(response?.message);
+  //       }
+  //       setIsModalOpen(false);
+  //       fetchHiringApprovalHistory();
+  //     } catch (error) {
+  //       console.log(error);
+  //       toast.error("Error Updating Data");
+  //     } finally {
+  //       setUpdateLoading(false);
+  //     }
+  //   };
+
+  const UpdateStatusOptions = [
+    { value: "HOLD", label: "Hold" },
+    { value: "WIP", label: "Work In Progress" },
+    { value: "CLOSED", label: "Closed" },
+    { value: "NOT_STARTED_WORKING_YET", label: "Not Started Working" },
+  ];
+
+  const selectedUpdateStatusOption =
+    UpdateStatusOptions.find((opt) => opt.value === filters.updateStatus) ||
+    null;
+
   return (
     <>
       <div className="mb-3">
@@ -315,6 +443,22 @@ const ApprovalHistory = ({ activeTab }) => {
               isClearable
             />
           </div>
+
+          <div style={{ width: isMobile ? "100%" : "220px" }}>
+            <Select
+              options={UpdateStatusOptions}
+              value={selectedUpdateStatusOption}
+              onChange={(opt) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  updateStatus: opt ? opt.value : null,
+                }));
+                setPage(1);
+              }}
+              placeholder="Update Status"
+              isClearable
+            />
+          </div>
         </div>
         <DataTable
           columns={columns}
@@ -360,8 +504,18 @@ const ApprovalHistory = ({ activeTab }) => {
           onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
         />
       </div>
+
+      {/* <EditHiringRequestModal
+        isOpen={isModalOpen}
+        toggle={() => setIsModalOpen(false)}
+        selectedRow={selectedRow}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleUpdate}
+        loading={loading}
+      /> */}
     </>
   );
 };
 
-export default ApprovalHistory;
+export default Status;

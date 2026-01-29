@@ -6,6 +6,7 @@ import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { CardBody, Nav, NavItem, Spinner, TabContent, TabPane, NavLink } from 'reactstrap';
 import PendingApprovals from './Views/PendingApprovals';
 import ApprovalHistory from './Views/ApprovalHistory';
+import Status from './Views/Status';
 
 const HiringApproval = () => {
     const navigate = useNavigate();
@@ -61,6 +62,15 @@ const HiringApproval = () => {
                             History
                         </NavLink>
                     </NavItem>
+                    <NavItem>
+                        <NavLink
+                            className={classnames({ active: activeTab === "STATUS" })}
+                            onClick={() => toggle("STATUS")}
+                            style={{ cursor: "pointer", fontWeight: 500 }}
+                        >
+                            Hiring Status
+                        </NavLink>
+                    </NavItem>
                 </Nav>
 
                 <TabContent activeTab={activeTab}>
@@ -71,6 +81,11 @@ const HiringApproval = () => {
                     </TabPane>
                     <TabPane tabId="HISTORY">
                         <ApprovalHistory
+                            activeTab={activeTab}
+                        />
+                    </TabPane>
+                    <TabPane tabId="STATUS">
+                        <Status
                             activeTab={activeTab}
                         />
                     </TabPane>
