@@ -149,12 +149,13 @@ const PendingApprovals = ({ activeTab }) => {
         }
     }
 
-    const handleAction = async () => {
+    const handleAction = async (payload) => {
         setModalLoading(true);
         try {
             const response = await hiringAction(selectedRecord._id, {
                 action: actionType,
                 note,
+                hr : payload.hr
             });
             toast.success(response.message);
             setPage(1);
@@ -190,6 +191,12 @@ const PendingApprovals = ({ activeTab }) => {
         {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
+            name: <div>Center Manager</div>,
+            selector: (row) => capitalizeWords(row?.centerManager?.name || "-"),
             wrap: true,
             minWidth: "120px"
         },

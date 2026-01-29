@@ -180,7 +180,7 @@ export const regularizeRequestColumn = (
       name: <Center>Action On</Center>,
       cell: (row) => (
         <Center>
-          {row?.action_on ? moment(row.createdAt).format("DD-MM-YYYY") : "-"}
+          {row?.action_on ? moment(row.action_on).format("DD-MM-YYYY") : "-"}
         </Center>
       ),
       width: "130px",

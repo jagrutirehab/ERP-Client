@@ -1963,6 +1963,7 @@ export const hiringAction = (id, data) => {
   });
 };
 
+
 export const getHirings = (params = {}) => {
   return api.get(url.HIRING, {
     params,
@@ -1971,6 +1972,33 @@ export const getHirings = (params = {}) => {
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getEmployeesBySearch = (params = {}) => {
+  return axios.get(url.GET_ALL_EMPLOYEE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
+
+export const getManagementHiringRequests = () => {
+  return api.get(url.GET_MANAGEMENT_HIRING_REQUESTS, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const editManagementRequests = (id, data) => {
+  return api.update(`${url.UPDATE_HIRING_REQUEST}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
     },
   });
 };
@@ -2178,7 +2206,6 @@ export const getManagerByEmployeeId = (id) => {
   });
 };
 
-
 export const getLeavesRequest = (managerId, params = {}) => {
   return axios.get(`${url.GET_LEAVES_REQUESTS}/${managerId}`, {
     params,
@@ -2196,9 +2223,8 @@ export const actionOnLeaves = (id, data) => {
   });
 };
 
-
 export const getMyLeavesHistory = (params = {}) => {
-   return axios.get(url.GET_MY_LEAVES, {
+  return axios.get(url.GET_MY_LEAVES, {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
@@ -2239,14 +2265,13 @@ export const gettodayMyAttendanceStatus = (params = {}) => {
 // };
 
 export const adminGetAllLeavesInfo = (params = {}) => {
-   return axios.get(url.ADMIN_GET_ALL_LEAVES, {
+  return axios.get(url.ADMIN_GET_ALL_LEAVES, {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
-
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {
@@ -2333,7 +2358,6 @@ export const editEmployeeReporting = (id, data) => {
     },
   });
 };
-
 
 export const getEmployeeReportings = (params = {}) => {
   return api.get(url.EMPLOYEE_REPORTING, {

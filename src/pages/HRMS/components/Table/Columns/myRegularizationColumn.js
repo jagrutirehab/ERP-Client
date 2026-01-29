@@ -132,7 +132,7 @@ export const MyRegularizationsColumn = () => [
     name: <Center>Action On</Center>,
     cell: (row) => (
       <Center>
-        {row?.createdAt ? moment(row.createdAt).format("DD-MM-YYYY") : "-"}
+        {row?.action_on ? moment(row?.action_on).format("DD-MM-YYYY") : "-"}
       </Center>
     ),
     width: "150px",

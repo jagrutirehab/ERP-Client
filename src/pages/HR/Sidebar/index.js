@@ -86,6 +86,11 @@ const Sidebar = () => {
     "HIRING_APPROVAL",
     "READ"
   );
+  const hasHiringManagementPermission = hasPermission(
+    "HR",
+    "HIRING_MANAGEMENT",
+    "READ"
+  );
 
   const hasTPMAddRequestPermission = hasPermission(
     "HR",
@@ -260,6 +265,8 @@ const Sidebar = () => {
         if (child.id === "add-hiring-request" && !hasHiringAddRequestPermission)
           return false;
         if (child.id === "hiring-approval" && !hasHiringApprovalPermission)
+          return false;
+        if (child.id === "hiring-management" && !hasHiringManagementPermission)
           return false;
         return true;
       });

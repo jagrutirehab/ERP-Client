@@ -41,6 +41,7 @@ import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequ
 import AddIncentivesRequest from "./Incentives/AddRequest";
 import IncentivesApproval from "./Incentives/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
+import HiringManagement from "./Hiring/HiringManagement";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -136,6 +137,7 @@ const HR = () => {
 
                 <Route path={`/hiring/add`} element={<AddHiringRequest />} />
                 <Route path={`/hiring/approval`} element={<HiringApproval />} />
+                <Route path={`/hiring/management`} element={<HiringManagement />} />
 
                 <Route path={`/tpm/add`} element={<AddTPMRequest />} />
                 <Route path={`/tpm/approval`} element={<TPMApproval />} />
