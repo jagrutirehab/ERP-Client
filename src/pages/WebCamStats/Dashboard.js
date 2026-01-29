@@ -102,7 +102,7 @@ const Dashboard = () => {
     } catch (err) {
       console.error(err);
       setError(
-        err?.response?.message || err?.message || "Failed to fetch data"
+        err?.response?.message || err?.message || "Failed to fetch data",
       );
     } finally {
       setLoading(false);
@@ -134,7 +134,7 @@ const Dashboard = () => {
     // Convert map to array and sort by date
     return {
       data: Object.values(dataMap).sort(
-        (a, b) => new Date(a.name) - new Date(b.name)
+        (a, b) => new Date(a.name) - new Date(b.name),
       ),
       keys: Array.from(alertTypes),
     };
