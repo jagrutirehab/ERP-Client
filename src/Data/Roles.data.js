@@ -253,6 +253,10 @@ export const permissionList = [
         name: "HIRING_APPROVAL",
         label: "Hiring Approvals",
       },
+      {
+        name: "HIRING_MANAGEMENT",
+        label: "Hiring Management",
+      },
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",

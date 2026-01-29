@@ -148,12 +148,24 @@ const ApprovalHistory = ({ activeTab }) => {
             minWidth: "120px"
         },
         {
+            name: <div>Center Manager</div>,
+            selector: (row) => capitalizeWords(row?.centerManager?.name || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
             name: <div>Preferred Gender</div>,
             selector: (row) => capitalizeWords(row?.preferredGender || "-")
         },
         {
             name: <div>Status</div>,
             selector: (row) => renderStatusBadge(row?.status)
+        },
+        {
+            name: <div>HR Assigned</div>,
+            selector: (row) => capitalizeWords(row?.hr?.name || "-"),
+            wrap: true,
+            minWidth: "120px"
         },
         {
             name: <div>Contact Number</div>,

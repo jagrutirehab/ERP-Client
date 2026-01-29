@@ -156,12 +156,24 @@ const Prescription = ({
           : "",
       type,
       date: chartDate,
-      icdCode: null,
+      icdCode:
+        allICDCodes.find(
+          (item) =>
+            item.value ===
+            (editPrescription?.icdCode || ptLatestOPDPrescription?.icdCode),
+        ) || null,
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
+      icdCode: Yup.mixed()
+        .required("ICD Code is required")
+        .test(
+          "icd-required",
+          "ICD Code is required",
+          (val) => !!val && !!val.value,
+        ),
     }),
     onSubmit: (values) => {
       console.log("values", values);
@@ -409,20 +421,23 @@ const Prescription = ({
     setIcdOptions(filtered);
   };
 
-  useEffect(() => {
-    if (
-      editPrescription?.icdCode &&
-      allICDCodes.length > 0
-    ) {
-      const selectedICD = allICDCodes.find(
-        (item) => item.value === editPrescription.icdCode,
-      );
+  // useEffect(() => {
+  //   //
+  //   const icdToPopulate =
+  //     editPrescription?.icdCode || ptLatestOPDPrescription?.icdCode;
 
-      if (selectedICD) {
-        validation.setFieldValue("icdCode", selectedICD);
-      }
-    }
-  }, [editPrescription, allICDCodes]);
+  //   if (icdToPopulate && allICDCodes.length > 0) {
+  //     //
+  //     const selectedICD = allICDCodes.find(
+  //       (item) => item.value === icdToPopulate,
+  //     );
+
+  //     if (selectedICD) {
+  //       validation.setFieldValue("icdCode", selectedICD);
+  //     }
+  //   }
+  //   //
+  // }, [editPrescription, ptLatestOPDPrescription, allICDCodes]);
 
   return (
     <React.Fragment>
@@ -503,20 +518,35 @@ const Prescription = ({
                   <Label>{item.label}</Label>
 
                   {item.type === "async-select" ? (
-                    <Select
-                      placeholder="Search ICD Code..."
-                      options={icdOptions}
-                      value={validation.values.icdCode || null}
-                      onInputChange={(value, actionMeta) => {
-                        if (actionMeta.action === "input-change") {
-                          handleICDSearch(value);
+                    <>
+                      <Select
+                        isClearable={true}
+                        placeholder="Search ICD Code..."
+                        options={icdOptions}
+                        value={validation.values.icdCode || null}
+                        onInputChange={(value, actionMeta) => {
+                          if (actionMeta.action === "input-change") {
+                            handleICDSearch(value);
+                          }
+                        }}
+                        onChange={(selected) =>
+                          validation.setFieldValue("icdCode", selected)
                         }
-                      }}
-                      onChange={(selected) =>
-                        validation.setFieldValue("icdCode", selected)
-                      }
-                      filterOption={() => true}
-                    />
+                        onBlur={() =>
+                          validation.setFieldTouched("icdCode", true)
+                        }
+                        filterOption={() => true}
+                      />
+                      {validation.touched.icdCode &&
+                        validation.errors.icdCode && (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: "12px" }}
+                          >
+                            {validation.errors.icdCode}
+                          </div>
+                        )}
+                    </>
                   ) : (
                     <Input
                       type="textarea"
