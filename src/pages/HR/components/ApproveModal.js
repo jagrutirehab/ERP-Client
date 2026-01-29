@@ -104,11 +104,11 @@ const ApproveModal = ({
       paymentType: mode === "SALARY_ADVANCE" ? paymentType : undefined,
       action: actionType,
       eCode: mode === "NEW_JOINING" ? eCode : undefined,
-       hr: assignedHR?.value,
+      hr: assignedHR?.value,
     });
 
     setNote("");
-    setAssignedHR(""); 
+    setAssignedHR("");
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
     }
@@ -159,7 +159,7 @@ const ApproveModal = ({
     return debounce(fetchEmployees, 400);
   }, []);
 
-
+  console.log("mode", mode);
 
   return (
     <Modal
@@ -220,7 +220,7 @@ const ApproveModal = ({
             onChange={(e) => setNote(e.target.value)}
           />
         </div>
-        {actionType === "APPROVE" && (
+        {actionType === "APPROVE" && mode === "HIRING" &&(
           <div className="mb-3">
             <Label htmlFor="note" className="fw-bold">
               HR to be assigned
@@ -237,7 +237,7 @@ const ApproveModal = ({
                   debouncedFetchEmployees(value);
                 }
               }}
-             onChange={(option) => setAssignedHR(option)}
+              onChange={(option) => setAssignedHR(option)}
               noOptionsMessage={() => {
                 if (loadingEmployees) return "Searching employees...";
                 if (searchText.length < 2)

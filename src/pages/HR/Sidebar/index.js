@@ -88,7 +88,7 @@ const Sidebar = () => {
   );
   const hasHiringManagementPermission = hasPermission(
     "HR",
-    "HIRING_MANAGEMENT",
+    "MY_HIRING_STATUS",
     "READ"
   );
 
@@ -266,7 +266,7 @@ const Sidebar = () => {
           return false;
         if (child.id === "hiring-approval" && !hasHiringApprovalPermission)
           return false;
-        if (child.id === "hiring-management" && !hasHiringManagementPermission)
+        if (child.id === "my-hiring-status" && !hasHiringManagementPermission)
           return false;
         return true;
       });

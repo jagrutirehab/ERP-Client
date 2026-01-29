@@ -49,7 +49,7 @@ const HiringManagement = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "HIRING_MANAGEMENT", "READ");
+  const hasUserPermission = hasPermission("HR", "MY_HIRING_STATUS", "READ");
 
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
@@ -199,7 +199,7 @@ const HiringManagement = () => {
       style={isMobile ? { width: "100%" } : { width: "78%" }}
     >
       <div className="text-center text-md-left mb-4">
-        <h1 className="display-6 fw-bold text-primary">HIRING MANAGEMENT</h1>
+        <h1 className="display-6 fw-bold text-primary">MY HIRING STATUS</h1>
       </div>
 
       <div className="d-flex flex-wrap gap-3 mb-3">

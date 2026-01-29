@@ -190,10 +190,17 @@ const Status = ({ activeTab }) => {
     {
       name: <div>Preferred Gender</div>,
       selector: (row) => capitalizeWords(row?.preferredGender || "-"),
+      minWidth: "160px",
     },
     {
-      name: <div>Status</div>,
+      name: <div>Position Approval Status</div>,
       selector: (row) => renderStatusBadge(row?.status),
+      minWidth: "170px",
+    },
+    {
+      name: <div>Update Status</div>,
+      selector: (row) => renderStatusBadge(row?.updateStatus),
+      minWidth: "170px",
     },
     {
       name: <div>HR Assigned</div>,
@@ -289,10 +296,7 @@ const Status = ({ activeTab }) => {
       wrap: true,
       minWidth: "200px",
     },
-    {
-      name: <div>Update Status</div>,
-      selector: (row) => renderStatusBadge(row?.updateStatus),
-    },
+    
     {
       name: <div>Remarks</div>,
       selector: (row) => (
