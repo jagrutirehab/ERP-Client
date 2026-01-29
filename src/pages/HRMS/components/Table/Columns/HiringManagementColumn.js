@@ -1,6 +1,9 @@
 import { Badge } from "reactstrap";
 import moment from "moment";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import { format } from "date-fns";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
 const Center = ({ children }) => (
   <div className="d-flex justify-content-center align-items-center">
@@ -10,9 +13,23 @@ const Center = ({ children }) => (
 
 export const HiringActionColumns = ({ onActionClick }) => [
   {
-    name: <Center>Role</Center>,
-    cell: (row) => <Center>{row?.designation?.name || "-"}</Center>,
-    minWidth: "220px",
+    name: <div>Designation</div>,
+    selector: (row) => {
+      return (
+        <div className="d-flex align-items-center flex-wrap gap-1">
+          <span className="fw-semibold">
+            {row.designation?.name
+              ?.toLowerCase()
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase())}
+          </span>
+          {row?.designation?.status === "PENDING" &&
+            renderStatusBadge(row?.designation?.status)}
+        </div>
+      );
+    },
+    wrap: true,
+    minWidth: "120px",
   },
   {
     name: <Center>Center</Center>,
@@ -20,14 +37,17 @@ export const HiringActionColumns = ({ onActionClick }) => [
     minWidth: "120px",
   },
   {
-    name: <Center>Center Manager</Center>,
-    cell: (row) => <Center>{row?.centerManager?.name || "-"}</Center>,
-    minWidth: "150px",
-  },
-  {
-    name: <Center>Center Manager Contact</Center>,
-    cell: (row) => <Center>{row?.centerManager?.mobile || "-"}</Center>,
-    minWidth: "180px",
+    name: <div>Raised For</div>,
+    selector: (row) => (
+      <div>
+        <div>{capitalizeWords(row?.centerManager?.name || "-")}</div>
+        <div style={{ fontSize: "12px", color: "#666" }}>
+          {row?.centerManager?.email || "-"}
+        </div>
+      </div>
+    ),
+    wrap: true,
+    minWidth: "200px",
   },
 
   {
@@ -75,19 +95,68 @@ export const HiringActionColumns = ({ onActionClick }) => [
     cell: (row) => <Center>{row?.requiredCount ?? "-"}</Center>,
     width: "150px",
   },
-
   {
-    name: <Center>HR</Center>,
-    cell: (row) => <Center>{row?.hr?.name || row?.hr || "-"}</Center>,
-    width: "140px",
+    name: <Center>HR Assigned</Center>,
+    cell: (row) => (
+      <Center>
+        <div>
+          <div className="fw-semibold">{row?.hr?.name || "-"}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            {row?.hr?.email || "-"}
+          </div>
+        </div>
+      </Center>
+    ),
+    minWidth: "200px",
   },
 
   {
-    name: <Center>Filled By</Center>,
-    cell: (row) => (
-      <Center>{row?.filledBy?.name || row?.filledBy || "-"}</Center>
+    name: <div>Filled By</div>,
+    selector: (row) => (
+      <div>
+        <div>{capitalizeWords(row?.filledBy?.name || "-")}</div>
+        <div style={{ fontSize: "12px", color: "#666" }}>
+          {row?.filledBy?.email || "-"}
+        </div>
+      </div>
     ),
-    width: "140px",
+    wrap: true,
+    minWidth: "200px",
+  },
+  {
+    name: <div>Filled At</div>,
+    selector: (row) => {
+      if (!row?.updatedAt) return "-";
+      const date = new Date(row.updatedAt);
+      if (isNaN(date)) return "-";
+      return format(date, "dd MMM yyyy, hh:mm a");
+    },
+    wrap: true,
+    minWidth: "180px",
+  },
+  {
+    name: <div>Acted By</div>,
+    selector: (row) => (
+      <div>
+        <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
+        <div style={{ fontSize: "12px", color: "#666" }}>
+          {row?.actedBy?.email || "-"}
+        </div>
+      </div>
+    ),
+    wrap: true,
+    minWidth: "200px",
+  },
+  {
+    name: <div>Acted At</div>,
+    selector: (row) => {
+      if (!row?.actedAt) return "-";
+      const date = new Date(row.actedAt);
+      if (isNaN(date)) return "-";
+      return format(date, "dd MMM yyyy, hh:mm a");
+    },
+    wrap: true,
+    minWidth: "180px",
   },
 
   {
@@ -110,23 +179,21 @@ export const HiringActionColumns = ({ onActionClick }) => [
   },
 
   {
-    name: <Center>Acted On</Center>,
-    cell: (row) => (
-      <Center>
-        {row?.actedAt ? moment(row.actedAt).format("DD-MM-YYYY") : "-"}
-      </Center>
+    name: <div>Interviewer</div>,
+    selector: (row) => (
+      <div>
+        <div>{capitalizeWords(row?.interviewer?.name || "-")}</div>
+        <div style={{ fontSize: "12px", color: "#666" }}>
+          {row?.interviewer?.email || "-"}
+        </div>
+      </div>
     ),
-    width: "150px",
+    wrap: true,
+    minWidth: "200px",
   },
   {
-    name: <Center>Interviewer</Center>,
-    cell: (row) => <Center>{row?.interviewer?.name || "-"}</Center>,
-    width: "150px",
-  },
-  {
-    name: <Center>Update Status</Center>,
-    cell: (row) => <Center>{row?.updateStatus || "-"}</Center>,
-    width: "150px",
+    name: <div>Update Status</div>,
+    selector: (row) => renderStatusBadge(row?.updateStatus),
   },
   {
     name: <Center>Remarks</Center>,
@@ -136,15 +203,6 @@ export const HiringActionColumns = ({ onActionClick }) => [
   {
     name: <Center>Priority</Center>,
     cell: (row) => <Center>{row?.priority || "-"}</Center>,
-    width: "150px",
-  },
-  {
-    name: <Center>Acted On</Center>,
-    cell: (row) => (
-      <Center>
-        {row?.updatedAt ? moment(row?.updatedAt).format("DD-MM-YYYY") : "-"}
-      </Center>
-    ),
     width: "150px",
   },
 

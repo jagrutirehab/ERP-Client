@@ -270,7 +270,7 @@ const HiringForm = ({
       {/* Center Manager */}
       <FormGroup>
         <Label htmlFor="centerManager">
-          Center Manager <span className="text-danger"></span>
+          Requirement Raising For <span className="text-danger"></span>
         </Label>
 
         <Select

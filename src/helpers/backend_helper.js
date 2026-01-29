@@ -1963,7 +1963,6 @@ export const hiringAction = (id, data) => {
   });
 };
 
-
 export const getHirings = (params = {}) => {
   return api.get(url.HIRING, {
     params,
@@ -1987,11 +1986,14 @@ export const getEmployeesBySearch = (params = {}) => {
   });
 };
 
-export const getManagementHiringRequests = () => {
-  return api.get(url.GET_MANAGEMENT_HIRING_REQUESTS, {
+export const getManagementHiringRequests = (params = {}) => {
+  return axios.get(url.GET_MANAGEMENT_HIRING_REQUESTS, {
+    params,
     headers: {
       "X-No-Cookie-Token": "true",
     },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
   });
 };
 
