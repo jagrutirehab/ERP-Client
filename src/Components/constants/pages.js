@@ -674,13 +674,13 @@ export const HR = [
       },
       {
         id: "hiring-approval",
-        label: "Approvals",
+        label: "Hiring Status and Approvals",
         icon: "bx bx-check-shield",
         link: "/hr/hiring/approval",
       },
       {
-        id: "hiring-management",
-        label: "Hiring Management",
+        id: "my-hiring-status",
+        label: "My Hiring Status",
         icon: "bx bx-list-ul",
         link: "/hr/hiring/management",
       },

@@ -174,10 +174,12 @@ const ApprovalHistory = ({ activeTab }) => {
     {
       name: <div>Preferred Gender</div>,
       selector: (row) => capitalizeWords(row?.preferredGender || "-"),
+      minWidth: "160px",
     },
     {
-      name: <div>Status</div>,
+      name: <div>Position Approval Status</div>,
       selector: (row) => renderStatusBadge(row?.status),
+      minWidth: "170px",
     },
     {
       name: <div>HR Assigned</div>,
