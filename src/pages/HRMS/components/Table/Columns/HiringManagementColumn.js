@@ -51,37 +51,9 @@ export const HiringActionColumns = ({ onActionClick }) => [
   },
 
   {
-    name: <Center>Status</Center>,
-    cell: (row) => {
-      const status = row?.status?.toLowerCase();
-
-      if (status === "approved")
-        return (
-          <Center>
-            <Badge pill color="success">
-              Approved
-            </Badge>
-          </Center>
-        );
-
-      if (status === "rejected")
-        return (
-          <Center>
-            <Badge pill color="danger">
-              Rejected
-            </Badge>
-          </Center>
-        );
-
-      return (
-        <Center>
-          <Badge pill color="warning">
-            Pending
-          </Badge>
-        </Center>
-      );
-    },
-    width: "120px",
+    name: <div>Position Approval Status</div>,
+    selector: (row) => renderStatusBadge(row?.status),
+    minWidth: "200px",
   },
 
   {
@@ -94,6 +66,11 @@ export const HiringActionColumns = ({ onActionClick }) => [
     name: <Center>Required Count</Center>,
     cell: (row) => <Center>{row?.requiredCount ?? "-"}</Center>,
     width: "150px",
+  },
+  {
+    name: <div>Update Status</div>,
+    selector: (row) => renderStatusBadge(row?.updateStatus),
+    width: "170px",
   },
   {
     name: <Center>HR Assigned</Center>,
@@ -191,10 +168,7 @@ export const HiringActionColumns = ({ onActionClick }) => [
     wrap: true,
     minWidth: "200px",
   },
-  {
-    name: <div>Update Status</div>,
-    selector: (row) => renderStatusBadge(row?.updateStatus),
-  },
+
   {
     name: <Center>Remarks</Center>,
     cell: (row) => <Center>{row?.remarks || "-"}</Center>,
