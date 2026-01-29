@@ -148,7 +148,7 @@ const ApprovalHistory = ({ activeTab }) => {
             minWidth: "120px"
         },
         {
-            name: <div>Center Manager</div>,
+            name: <div>Raised For</div>,
             selector: (row) => capitalizeWords(row?.centerManager?.name || "-"),
             wrap: true,
             minWidth: "120px"

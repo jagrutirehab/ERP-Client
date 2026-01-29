@@ -155,7 +155,7 @@ const PendingApprovals = ({ activeTab }) => {
             const response = await hiringAction(selectedRecord._id, {
                 action: actionType,
                 note,
-                hr : payload.hr
+                hr: payload.hr
             });
             toast.success(response.message);
             setPage(1);
@@ -195,7 +195,7 @@ const PendingApprovals = ({ activeTab }) => {
             minWidth: "120px"
         },
         {
-            name: <div>Center Manager</div>,
+            name: <div>Raised For</div>,
             selector: (row) => capitalizeWords(row?.centerManager?.name || "-"),
             wrap: true,
             minWidth: "120px"
