@@ -180,6 +180,17 @@ const Prescription = ({
           "icd-required",
           "ICD Code is required",
           (val) => !!val && !!val.value,
+        )
+        .test(
+          "icd-not-same",
+          "ICD Code 1 and ICD Code 2 cannot be same",
+          function (value) {
+            const { icdCode2 } = this.parent;
+
+            if (!value || !icdCode2) return true;
+
+            return value.value !== icdCode2.value;
+          },
         ),
     }),
     onSubmit: (values) => {
