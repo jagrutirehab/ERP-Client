@@ -70,10 +70,22 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                ICD10_Code :-
+                ICD10 Code 1 :-
               </span>
               <span className="fs-xs-9 fs-md-12">
               {data.ICD10_Code}
+              </span>
+            </p>
+          </div>
+        )}
+        {data?.ICD10_Code2 && (
+          <div className="d-flex justify-content-between mb-2">
+            <p className="fs-xs-9 font-size-14 mb-0">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                ICD10 Code 2 :-
+              </span>
+              <span className="fs-xs-9 fs-md-12">
+              {data.ICD10_Code2}
               </span>
             </p>
           </div>

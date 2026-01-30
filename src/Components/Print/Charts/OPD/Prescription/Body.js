@@ -223,7 +223,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
         {chart?.ICD10_Code && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
-              ICD10_Code :{" "}
+              ICD10 Code 1 :{" "}
               <Text
                 style={{
                   ...styles.textGray,
@@ -232,7 +232,24 @@ const PrescriptionBody = ({ chart, doctor }) => {
                   ...styles.textWrap,
                 }}
               >
-                {chart.ICD10_Code}
+                {chart?.ICD10_Code}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {chart?.ICD10_Code2 && (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              ICD10 Code 2 :{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart?.ICD10_Code2}
               </Text>
             </Text>
           </View>

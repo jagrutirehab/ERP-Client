@@ -123,7 +123,7 @@ const prescriptionFormFields = [
     type: "textarea",
   },
   {
-    label: "ICD Code",
+    label: "ICD Code 1",
     name: "icdCode",
     type: "async-select",
   },
