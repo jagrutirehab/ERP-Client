@@ -162,6 +162,13 @@ const Prescription = ({
             item.value ===
             (editPrescription?.icdCode || ptLatestOPDPrescription?.icdCode),
         ) || null,
+      icdCode2: editPrescription
+        ? allICDCodes.find(
+            (item) => item.value === editPrescription?.icdCode2,
+          ) || null
+        : allICDCodes.find(
+            (item) => item.value === ptLatestOPDPrescription?.icdCode2,
+          ) || null,
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
@@ -188,6 +195,7 @@ const Prescription = ({
             ...values,
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
+            icdCode2: values.icdCode2?.value || null,
           }),
         );
       } else if (type === "GENERAL") {
@@ -196,6 +204,7 @@ const Prescription = ({
             ...values,
             medicines,
             icdCode: values.icdCode?.value || null,
+            icdCode2: values.icdCode2?.value || null,
           }),
         );
       } else {
@@ -208,6 +217,7 @@ const Prescription = ({
             medicines,
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
+            icdCode2: values.icdCode2?.value || null,
           }),
         );
       }
@@ -216,7 +226,7 @@ const Prescription = ({
     },
   });
 
-  console.log({ editPrescription, patientLatestOPDPrescription, patient });
+  // console.log({ editPrescription, patientLatestOPDPrescription, patient });
 
   useEffect(() => {
     if (type !== "OPD" && !appointment) return;
@@ -515,7 +525,12 @@ const Prescription = ({
             {(prescriptionFormFields || []).map((item, idx) => (
               <Col xs={12} md={6} key={idx}>
                 <div className="pb-4">
-                  <Label>{item.label}</Label>
+                  <Label>
+                    {item.label}
+                    {item?.name === "icdCode" && (
+                      <span className="text-danger ms-1">*</span>
+                    )}
+                  </Label>
 
                   {item.type === "async-select" ? (
                     <>
@@ -546,6 +561,25 @@ const Prescription = ({
                             {validation.errors.icdCode}
                           </div>
                         )}
+
+                      <Label className="fw-normal mt-3 mb-1 text-muted">
+                        ICD Code 2
+                      </Label>
+                      <Select
+                        isClearable
+                        placeholder="Search ICD Code 2..."
+                        options={icdOptions}
+                        value={validation.values.icdCode2 || null}
+                        onInputChange={(value, actionMeta) => {
+                          if (actionMeta.action === "input-change") {
+                            handleICDSearch(value);
+                          }
+                        }}
+                        onChange={(selected) =>
+                          validation.setFieldValue("icdCode2", selected)
+                        }
+                        filterOption={() => true}
+                      />
                     </>
                   ) : (
                     <Input
