@@ -17,18 +17,24 @@ import {
   getDepartments,
   getEmployeeId,
   postEmployee,
+  uploadFile,
 } from "../../../../helpers/backend_helper";
-import { downloadFile } from "../../../../Components/Common/downloadFile";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import {
   addDesignation,
   fetchDesignations,
 } from "../../../../store/features/HR/hrSlice";
 import {
+  accountOptions,
   employeeGenderOptions,
+  employeeGroupOptions,
+  employmentOptions,
   payrollOptions,
   statusOptions,
 } from "../../../../Components/constants/HR";
+import { calculatePayroll } from "../../../../utils/calculatePayroll";
+import { normalizeDateForInput } from "../../../../utils/time";
+import { downloadFile } from "../../../../Components/Common/downloadFile";
 
 const validationSchema = (mode, isEdit) =>
   Yup.object({
@@ -79,40 +85,164 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-            .required("Status is required"),
+          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+          .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
     IFSCCode: Yup.string().required("IFSC code is required"),
+    accountName: Yup.string().required("Beneficiary name is required"),
     adharNo: Yup.string().required("Aadhaar number is required"),
     pan: Yup.string().required("PAN number is required"),
     biometricId: Yup.string().trim(),
-    panFile: Yup.mixed().test(
-      "required-pan-file",
-      "PAN file is required",
-      function (value) {
-        const { panOld } = this.parent;
-        return !!value || !!panOld;
-      },
-    ),
-    adharFile: Yup.mixed().test(
-      "required-adhar-file",
-      "Aadhaar file is required",
-      function (value) {
-        const { adharOld } = this.parent;
-        return !!value || !!adharOld;
-      },
-    ),
-    offerLetterFile: Yup.mixed().test(
-      "required-offer-letter-file",
-      "Offer letter is required",
-      function (value) {
-        const { offerLetterOld } = this.parent;
-        return !!value || !!offerLetterOld;
-      },
-    ),
+    panOld: Yup.string().required("PAN file is required"),
+    adharOld: Yup.string().required("Aadhaar file is required"),
+    offerLetterOld: Yup.string().required("Offer letter is required"),
+    employeeGroups: Yup.string().notRequired(),
+    account: Yup.string().notRequired(),
+    minimumWages: Yup.number().min(0).notRequired(),
+    grossSalary: Yup.number()
+      .min(0)
+      .test(
+        "gross-breakup-check",
+        "Basic + HRA + SPL + Conveyance+ statutory bonus cannot be greater than Gross Salary",
+        function (gross) {
+          const {
+            basicAmount = 0,
+            HRAAmount = 0,
+            SPLAllowance = 0,
+            conveyanceAllowance = 0,
+            statutoryBonus = 0,
+          } = this.parent;
+
+          const breakupTotal =
+            Number(basicAmount) +
+            Number(HRAAmount) +
+            Number(SPLAllowance) +
+            Number(conveyanceAllowance) +
+            Number(statutoryBonus);
+
+          return breakupTotal <= Number(gross || 0);
+        }
+      ),
+    basicAmount: Yup.number()
+      .min(0)
+      .test(
+        "basic-vs-min-wage",
+        "Basic amount cannot be less than Minimum Wages when PF is applicable",
+        function (basic) {
+          const { minimumWages = 0, pfApplicable } = this.parent;
+
+          if (!pfApplicable) return true;
+          if (!minimumWages) return true;
+
+          return Number(basic || 0) >= Number(minimumWages);
+        }
+      ),
+    HRAAmount: Yup.number().min(0).notRequired(),
+    statutoryBonus: Yup.number().min(0).notRequired(),
+    insurance: Yup.number().min(0).notRequired(),
+    TDSRate: Yup.number().min(0).max(100).notRequired(),
+    pfAmount: Yup.number().min(0).notRequired(),
+    SPLAllowance: Yup.number().min(0).notRequired(),
+    conveyanceAllowance: Yup.number().min(0).notRequired(),
+    debitStatementNarration: Yup.string().notRequired(),
+    ESICSalary: Yup.number().min(0).notRequired(),
+    LWFSalary: Yup.number().min(0).notRequired(),
+    LWFEmployee: Yup.number().min(0).notRequired(),
+    LWFEmployer: Yup.number().min(0).notRequired(),
   });
+
+const getInitialValues = (initialData, mode) => ({
+  name: initialData?.name || "",
+  eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode || "",
+
+  department: initialData?.department?._id || "",
+  designation: initialData?.designation?._id || "",
+
+  firstLocation: initialData?.firstLocation?._id || "",
+  transferredFrom: initialData?.transferredFrom?._id || "",
+  currentLocation: initialData?.currentLocation?._id || "",
+
+  employmentType: initialData?.employmentType || "",
+  payrollType: initialData?.payrollType || "",
+  state: initialData?.state || "",
+
+  joinningDate: normalizeDateForInput(initialData?.joinningDate) || "",
+  exitDate: normalizeDateForInput(initialData?.exitDate) || "",
+  dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth) || "",
+
+  status:
+    initialData?.status ??
+    (mode === "NEW_JOINING" ? "NEW_JOINING" : ""),
+
+  gender: initialData?.gender || "",
+
+  bankName: initialData?.bankDetails?.bankName || "",
+  accountNo: initialData?.bankDetails?.accountNo || "",
+  IFSCCode: initialData?.bankDetails?.IFSCCode || "",
+  accountName: initialData?.bankDetails?.accountName || "",
+
+  pfApplicable: initialData?.pfApplicable ?? null,
+  pfNo: initialData?.pfNo || "",
+  uanNo: initialData?.uanNo || "",
+  esicIpCode: initialData?.esicIpCode || "",
+
+  adharNo: initialData?.adhar?.number || "",
+  pan: initialData?.pan?.number || "",
+
+  panOld: initialData?.pan?.url || "",
+  adharOld: initialData?.adhar?.url || "",
+  offerLetterOld: initialData?.offerLetter || "",
+
+  father: initialData?.father || "",
+  mobile: initialData?.mobile || "",
+  officialEmail: initialData?.officialEmail || "",
+  email: initialData?.email || "",
+
+  monthlyCTC: initialData?.monthlyCTC || 0,
+  biometricId: initialData?.biometricId || "",
+
+  panFile: null,
+  adharFile: null,
+  offerLetterFile: null,
+
+  employeeGroups: initialData?.financeDetails?.employeeGroups || "",
+  account: initialData?.financeDetails?.account || "",
+
+  minimumWages: initialData?.financeDetails?.minimumWages || 0,
+  shortWages: initialData?.financeDetails?.shortWages || 0,
+  grossSalary:
+    initialData?.financeDetails?.grossSalary ??
+    initialData?.monthlyCTC ??
+    0,
+
+  basicAmount: initialData?.financeDetails?.basicAmount || 0,
+  HRAAmount: initialData?.financeDetails?.HRAAmount || 0,
+  SPLAllowance: initialData?.financeDetails?.SPLAllowance || 0,
+  conveyanceAllowance: initialData?.financeDetails?.conveyanceAllowance || 0,
+  statutoryBonus: initialData?.financeDetails?.statutoryBonus || 0,
+
+  insurance: initialData?.financeDetails?.insurance || 0,
+  ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
+  ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
+  ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
+  LWFSalary: initialData?.financeDetails?.ESICSalary || 0,
+  LWFEmployee: initialData?.financeDetails?.LWFEmployee || 0,
+  LWFEmployer: initialData?.financeDetails?.LWFEmployer || 0,
+
+  PFEmployee: initialData?.financeDetails?.PFEmployee || 0,
+  PFEmployer: initialData?.financeDetails?.PFEmployer || 0,
+  PFAmount: initialData?.financeDetails?.PFAmount || 0,
+
+  PT: initialData?.financeDetails?.PT || 0,
+  TDSRate: initialData?.financeDetails?.TDSRate || 0,
+
+  inHandSalary: initialData?.financeDetails?.inHandSalary || 0,
+
+  debitStatementNarration:
+    initialData?.financeDetails?.debitStatementNarration || "",
+});
 
 const EmployeeForm = ({
   initialData,
@@ -121,7 +251,6 @@ const EmployeeForm = ({
   onCancel,
   mode,
   hasCreatePermission,
-  isVendor,
 }) => {
   const dispatch = useDispatch();
   const { centerAccess, userCenters } = useSelector((state) => state.User);
@@ -136,8 +265,15 @@ const EmployeeForm = ({
   const [previewFile, setPreviewFile] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [departmentOptions, setDepartmentOptions] = useState([]);
-  const [departmentInput, setDepartmentInput] = useState("");
   const [department, setDepartment] = useState("");
+  const [manual, setManual] = useState({
+    SPLAllowance: false,
+  });
+  const [uploading, setUploading] = useState({
+    panFile: false,
+    adharFile: false,
+    offerLetterFile: false,
+  });
   const panFileRef = useRef(null);
   const adharFileRef = useRef(null);
   const offerLetterRef = useRef(null);
@@ -163,101 +299,17 @@ const EmployeeForm = ({
     loadDesignations();
   }, []);
 
-  const normalizeDateForInput = (value) => {
-    if (!value) return "";
-
-    // YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      return value;
-    }
-
-    // DD-MM-YYYY → YYYY-MM-DD
-    if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
-      const [dd, mm, yyyy] = value.split("-");
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    return "";
-  };
-
-  // console.log("initialData", initialData?.department);
-
-  const cleanedInitialData = initialData
-    ? {
-        ...initialData,
-        joinningDate: normalizeDateForInput(initialData?.joinningDate),
-        dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth),
-        exitDate: normalizeDateForInput(initialData?.exitDate),
-        designation: initialData?.designation?._id || "",
-        IFSCCode: initialData?.bankDetails?.IFSCCode || "",
-        bankName: initialData?.bankDetails?.bankName || "",
-        accountNo: initialData?.bankDetails?.accountNo || "",
-        firstLocation: initialData.firstLocation?._id || "",
-        transferredFrom: initialData.transferredFrom?._id || "",
-        currentLocation: initialData.currentLocation?._id || "",
-        pan: initialData.pan?.number || "",
-        adharNo: initialData?.adhar?.number || "",
-        status: initialData?.status
-          ? initialData.status
-          : mode === "NEW_JOINING"
-            ? "NEW_JOINING"
-            : "",
-        eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode,
-        panOld: initialData?.pan?.url || "",
-        adharOld: initialData?.adhar?.url || "",
-        offerLetterOld: initialData?.offerLetter || "",
-
-        bankDetails: undefined,
-        _id: undefined,
-        createdAt: undefined,
-        updatedAt: undefined,
-        newJoiningWorkflow: undefined,
-      }
-    : null;
-
   const form = useFormik({
     enableReinitialize: true,
     validateOnMount: true,
-    initialValues: cleanedInitialData || {
-      name: "",
-      eCode: "",
-      department: "",
-      firstLocation: "",
-      transferredFrom: "",
-      currentLocation: "",
-      employmentType: "",
-      state: "",
-      exitDate: "",
-      payrollType: "",
-      joinningDate: "",
-      status: mode === "NEW_JOINING" ? "NEW_JOINING" : "",
-      gender: "",
-      dateOfBirth: "",
-      bankName: "",
-      accountNo: "",
-      IFSCCode: "",
-      pfApplicable: null,
-      uanNo: "",
-      pfNo: "",
-      esicIpCode: "",
-      adharNo: "",
-      designation: "",
-      pan: "",
-      father: "",
-      mobile: "",
-      officialEmail: "",
-      email: "",
-      monthlyCTC: 0,
-      biometricId: "",
-      panFile: null,
-      adharFile: null,
-      offerLetterFile: null,
-    },
+    initialValues: getInitialValues(initialData, mode),
     validationSchema: validationSchema(mode, isEdit),
     onSubmit: async (values) => {
       touchFileFields();
       const errors = await form.validateForm();
-      if (errors.panFile || errors.adharFile || errors.offerLetterFile) {
+
+      if (errors.panOld || errors.adharOld || errors.offerLetterOld) {
+        toast.error("Please upload all required documents");
         return;
       }
 
@@ -270,45 +322,42 @@ const EmployeeForm = ({
 
         const formData = new FormData();
 
-        Object.keys(values).forEach((key) => {
-          if (!["panFile", "adharFile", "offerLetterFile"].includes(key)) {
-            if (key === "eCode" && mode === "NEW_JOINING") return;
-            formData.append(key, values[key] ?? "");
-          }
+        Object.entries(values).forEach(([key, value]) => {
+          if (key === "eCode" && mode === "NEW_JOINING") return;
+          if (value === undefined || value === null) return;
+
+          formData.append(key, value);
         });
 
-        if (values.panFile) formData.append("panFile", values.panFile);
-        if (values.adharFile) formData.append("adharFile", values.adharFile);
-        if (values.offerLetterFile)
-          formData.append("offerLetterFile", values.offerLetterFile);
+        let panUrl = values.panOld;
+        let adharUrl = values.adharOld;
+        let offerLetterUrl = values.offerLetterOld;
+
+        if (panUrl) formData.append("panUrl", panUrl);
+        if (adharUrl) formData.append("adharUrl", adharUrl);
+        if (offerLetterUrl) formData.append("offerLetterUrl", offerLetterUrl);
+
+        formData.delete("PFEmployee");
+        formData.delete("PFEmployer");
+        formData.delete("PFAmount");
+        formData.delete("PT");
+        formData.delete("shortWages");
+        formData.delete("PFSalary");
+        formData.delete("PFAmount");
+        formData.delete("TDSAmount");
+        formData.delete("deductions");
+        formData.delete("ESICEmployee");
+        formData.delete("ESICEmployer");
+        formData.delete("inHandSalary");
+        formData.delete("panOld");
+        formData.delete("offerLetterOld");
+        formData.delete("adharOld");
 
         if (initialData?._id) {
           formData.delete("eCode");
-          formData.delete("_id");
-          formData.delete("panOld");
-          formData.delete("offerLetterOld");
-          formData.delete("adharOld");
-          formData.delete("bankDetails");
-          formData.delete("adhar");
-          formData.delete("newJoiningWorkflow");
-          formData.delete("createdAt");
-          formData.delete("updatedAt");
-          formData.delete("offerLetter");
-          formData.delete("exitStatus");
-          formData.delete("fnfStatus");
-          formData.delete("author");
-          formData.delete("itStatus");
-          formData.delete("users");
-          formData.delete("transferStatus");
-          formData.delete("currentManager");
-
           await editEmployee(initialData._id, formData);
           toast.success("Employee updated successfully");
         } else {
-          formData.delete("panOld");
-          formData.delete("offerLetterOld");
-          formData.delete("adharOld");
-
           await postEmployee(formData);
           toast.success("Employee added successfully");
         }
@@ -349,12 +398,45 @@ const EmployeeForm = ({
     setTouched(
       {
         ...form.touched,
-        panFile: true,
-        adharFile: true,
-        offerLetterFile: true,
+        panOld: true,
+        adharOld: true,
+        offerLetterOld: true,
       },
-      false,
+      false
     );
+  };
+
+  const handleFileUpload = async ({
+    file,
+    path,
+    urlField,   // panOld / adharOld / offerLetterOld
+    fileField,  // panFile / adharFile / offerLetterFile
+  }) => {
+    if (!file) return;
+
+    try {
+      setUploading(prev => ({ ...prev, [fileField]: true }));
+
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("uploadPath", path);
+
+      const res = await uploadFile(fd);
+
+      await setFieldValue(urlField, res.url, true);
+
+      setFieldTouched(urlField, true, true);
+
+      setFieldValue(fileField, null, false);
+
+      toast.success("File uploaded successfully");
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error("File upload failed");
+      }
+    } finally {
+      setUploading(prev => ({ ...prev, [fileField]: false }));
+    }
   };
 
   const errorText = (field) => {
@@ -409,24 +491,6 @@ const EmployeeForm = ({
     }
   };
 
-  const handleDecideFilePreviewOrDownload = ({ file, oldUrl }) => {
-    // if local file then preview
-    if (file instanceof File) {
-      setPreviewFile({
-        url: URL.createObjectURL(file),
-        type: file.type,
-      });
-      setPreviewOpen(true);
-      return;
-    }
-    // if url then download
-    if (oldUrl) {
-      downloadFile({
-        url: oldUrl,
-      });
-    }
-  };
-
   useEffect(() => {
     if (!initialData?._id && mode !== "NEW_JOINING") {
       generateEmployeeId();
@@ -435,18 +499,16 @@ const EmployeeForm = ({
 
   useEffect(() => {
     if (isEdit) {
-      form.setTouched(
+      setTouched(
         {
-          ...form.touched,
-          panFile: true,
-          adharFile: true,
-          offerLetterFile: true,
+          panOld: true,
+          adharOld: true,
+          offerLetterOld: true,
         },
-        false,
+        false
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit]);
+  }, [isEdit, setTouched]);
 
   const fetchDepartment = async () => {
     try {
@@ -458,7 +520,9 @@ const EmployeeForm = ({
         })),
       );
     } catch (error) {
-      console.log(error);
+      if (!handleAuthError(error)) {
+        toast.error("Failed to fetch department");
+      }
     }
   };
 
@@ -482,9 +546,6 @@ const EmployeeForm = ({
     try {
       const data = { department: dept };
       const response = await createDepartment(data);
-
-      console.log("Response response", response);
-
       const createdDept = response.data;
 
       const newOption = {
@@ -498,20 +559,33 @@ const EmployeeForm = ({
 
       toast.success("Department created successfully");
     } catch (error) {
-      console.log(error);
       toast.error("Failed to create department");
     } finally {
       fetchDepartment();
     }
   };
 
-  const employmentOptions = [
-    { label: "Full Time Employee", value: "FULL_TIME" },
-    { label: "Part Time Employee", value: "PART_TIME" },
-    { label: "Contractual", value: "CONTRACTUAL" },
-    { label: "Consultant", value: "CONSULTANT" },
-    { label: "Vendor", value: "VENDOR", isDisabled: true },
-  ];
+  useEffect(() => {
+    const payroll = calculatePayroll(values);
+
+    Object.entries(payroll).forEach(([key, value]) => {
+      if (values[key] !== value) {
+        setFieldValue(key, value, false);
+      }
+    });
+  }, [
+    values.grossSalary,
+    values.basicAmount,
+    values.pfApplicable,
+    values.gender,
+    values.joinningDate,
+    values.ESICSalary,
+    values.ESICEmployee,
+    values.LWFEmployee,
+    values.TDSRate,
+    values.insurance,
+    values.minimumWages
+  ]);
 
   const selectedEmploymentOption =
     employmentOptions.find(
@@ -519,9 +593,9 @@ const EmployeeForm = ({
     ) ||
     (values.employmentType
       ? {
-          label: values.employmentType,
-          value: values.employmentType?.trim().toUpperCase(),
-        }
+        label: values.employmentType,
+        value: values.employmentType?.trim().toUpperCase(),
+      }
       : null);
 
   return (
@@ -571,6 +645,7 @@ const EmployeeForm = ({
               value={values.name}
               onChange={handleChange}
               invalid={touched.name && errors.name}
+              onBlur={() => setFieldTouched("name", true)}
             />
             {errorText("name")}
           </Col>
@@ -595,7 +670,7 @@ const EmployeeForm = ({
               onChange={(option) => {
                 form.setFieldValue("department", option ? option.value : "");
               }}
-              onBlur={() => form.setFieldTouched("department", true)}
+              onBlur={() => setFieldTouched("department", true)}
               onCreateOption={(inputValue) => {
                 setDepartment(inputValue);
                 handleCreateDepartment(inputValue);
@@ -628,7 +703,7 @@ const EmployeeForm = ({
               onChange={(option) =>
                 form.setFieldValue("designation", option ? option.value : "")
               }
-              onBlur={() => form.setFieldTouched("designation", true)}
+              onBlur={() => setFieldTouched("designation", true)}
               onCreateOption={handleCreateDesignation}
             />
 
@@ -649,7 +724,7 @@ const EmployeeForm = ({
               onChange={(opt) =>
                 form.setFieldValue("employmentType", opt ? opt.value : "")
               }
-              onBlur={() => form.setFieldTouched("employmentType", true)}
+              onBlur={() => setFieldTouched("employmentType", true)}
               isDisabled={
                 isEdit &&
                 initialData?.employmentType?.trim().toUpperCase() === "VENDOR"
@@ -657,14 +732,6 @@ const EmployeeForm = ({
             />
 
             {errorText("employmentType")}
-
-            {/* {isEdit &&
-              initialData?.employmentType?.trim().toLowerCase() ===
-                "vendor" && (
-                <small className="text-muted">
-                  Employment type cannot be changed for Vendor employees
-                </small>
-              )} */}
           </Col>
 
           {/* FIRST LOCATION */}
@@ -681,6 +748,7 @@ const EmployeeForm = ({
                   : null
               }
               onChange={(opt) => setFieldValue("firstLocation", opt.value)}
+              onBlur={() => setFieldTouched("firstLocation", true)}
             />
             {errorText("firstLocation")}
           </Col>
@@ -695,8 +763,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                        (o) => o.value === values.transferredFrom,
-                      )
+                      (o) => o.value === values.transferredFrom,
+                    )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -715,11 +783,12 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                      (o) => o.value === values.currentLocation,
-                    )
+                    (o) => o.value === values.currentLocation,
+                  )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
+              onBlur={() => setFieldTouched("currentLocation", true)}
             />
             {errorText("currentLocation")}
           </Col>
@@ -736,6 +805,7 @@ const EmployeeForm = ({
               value={values.state}
               onChange={handleChange}
               invalid={touched.state && errors.state}
+              onBlur={() => setFieldTouched("state", true)}
             />
 
             {errorText("state")}
@@ -755,6 +825,7 @@ const EmployeeForm = ({
                 ) || null
               }
               onChange={(opt) => setFieldValue("payrollType", opt.value)}
+              onBlur={() => setFieldTouched("payrollType", true)}
             />
             {errorText("payrollType")}
           </Col>
@@ -771,6 +842,7 @@ const EmployeeForm = ({
               value={values.joinningDate}
               onChange={handleChange}
               invalid={touched.joinningDate && errors.joinningDate}
+              onBlur={() => setFieldTouched("joinningDate", true)}
             />
             {errorText("joinningDate")}
           </Col>
@@ -802,6 +874,7 @@ const EmployeeForm = ({
                 }
                 onChange={(opt) => setFieldValue("status", opt.value)}
                 isDisabled={isEdit && initialData?.status === "FNF_CLOSED"}
+                onBlur={() => setFieldTouched("status", true)}
               />
               {errorText("status")}
             </Col>
@@ -821,6 +894,7 @@ const EmployeeForm = ({
                 ) || null
               }
               onChange={(opt) => setFieldValue("gender", opt.value)}
+              onBlur={() => setFieldTouched("gender", true)}
             />
             {errorText("gender")}
           </Col>
@@ -837,6 +911,7 @@ const EmployeeForm = ({
               value={values.dateOfBirth}
               onChange={handleChange}
               invalid={touched.dateOfBirth && errors.dateOfBirth}
+              onBlur={() => setFieldTouched("dateOfBirth", true)}
             />
             {errorText("dateOfBirth")}
           </Col>
@@ -851,6 +926,7 @@ const EmployeeForm = ({
               value={values.bankName}
               onChange={handleChange}
               invalid={touched.bankName && errors.bankName}
+              onBlur={() => setFieldTouched("bankName", true)}
             />
             {errorText("bankName")}
           </Col>
@@ -865,8 +941,25 @@ const EmployeeForm = ({
               value={values.accountNo}
               onChange={handleChange}
               invalid={touched.accountNo && errors.accountNo}
+              onBlur={() => setFieldTouched("accountNo", true)}
             />
             {errorText("accountNo")}
+          </Col>
+
+          {/* BENIFICIARY NAME */}
+          <Col md={6}>
+            <Label htmlFor="beneficiaryName">
+              Beneficiary Name <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="beneficiaryName"
+              name="accountName"
+              value={values.accountName}
+              onChange={handleChange}
+              invalid={touched.accountName && errors.accountName}
+              onBlur={() => setFieldTouched("accountName", true)}
+            />
+            {errorText("accountName")}
           </Col>
 
           {/* IFSC */}
@@ -880,6 +973,7 @@ const EmployeeForm = ({
               value={values.IFSCCode}
               onChange={handleChange}
               invalid={touched.IFSCCode && errors.IFSCCode}
+              onBlur={() => setFieldTouched("IFSCCode", true)}
             />
             {errorText("IFSCCode")}
           </Col>
@@ -903,6 +997,7 @@ const EmployeeForm = ({
                     : null
               }
               onChange={(opt) => setFieldValue("pfApplicable", opt.value)}
+              onBlur={() => setFieldTouched("pfApplicable", true)}
             />
             {errorText("pfApplicable")}
           </Col>
@@ -951,6 +1046,7 @@ const EmployeeForm = ({
               value={values.adharNo}
               onChange={handleChange}
               invalid={touched.adharNo && errors.adharNo}
+              onBlur={() => setFieldTouched("adharNo", true)}
             />
             {errorText("adharNo")}
           </Col>
@@ -966,79 +1062,51 @@ const EmployeeForm = ({
               hidden
               ref={adharFileRef}
               accept="image/*,application/pdf"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
-
+                e.target.value = "";
                 if (!file) return;
 
-                setFieldValue("adharFile", file, false);
-                setFieldValue("adharOld", "", false);
-                setFieldTouched("adharFile", true, false);
-
-                requestAnimationFrame(() => {
-                  form.validateField("adharFile");
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_ADHAR",
+                  urlField: "adharOld",
+                  fileField: "adharFile",
                 });
-
-                e.target.value = "";
               }}
             />
 
-            {values.adharFile && (
+            {values.adharOld ? (
               <div className="d-flex gap-2 mt-2">
                 <Button
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleDecideFilePreviewOrDownload({
-                      file: values.adharFile,
-                      oldUrl: values.adharOld,
+                    downloadFile({
+                      url: values.adharOld,
+                      originalName: "Aadhaar"
                     })
                   }
-                >
-                  Preview
-                </Button>
-
-                <Button size="sm" onClick={() => adharFileRef.current.click()}>
-                  Change File
-                </Button>
-              </div>
-            )}
-
-            {!values.adharFile && values.adharOld && (
-              <div className="d-flex gap-2 mt-2">
-                <Button
-                  size="sm"
-                  color="info"
-                  onClick={() => {
-                    handleDecideFilePreviewOrDownload({
-                      file: values.adharFile,
-                      oldUrl: values.adharOld,
-                    });
-                  }}
                 >
                   Download
                 </Button>
 
                 <Button size="sm" onClick={() => adharFileRef.current.click()}>
-                  Upload New File
+                  Upload new file
                 </Button>
               </div>
-            )}
-
-            {!values.adharFile && !values.adharOld && (
-              <div className="mt-2">
+            ) : (
+              <div className="d-block">
                 <Button
                   size="sm"
-                  onClick={() => {
-                    adharFileRef.current.click();
-                  }}
+                  onClick={() => adharFileRef.current.click()}
                 >
-                  Upload File
+                  Upload file
                 </Button>
               </div>
             )}
 
-            {errorText("adharFile")}
+            {errorText("adharOld")}
           </Col>
 
           {/* PAN NO*/}
@@ -1055,6 +1123,7 @@ const EmployeeForm = ({
                 setFieldValue("pan", e.target.value.toUpperCase());
               }}
               invalid={touched.pan && errors.pan}
+              onBlur={() => setFieldTouched("pan", true)}
             />
             {errorText("pan")}
           </Col>
@@ -1070,53 +1139,28 @@ const EmployeeForm = ({
               hidden
               ref={panFileRef}
               accept="image/*,application/pdf"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
-
-                if (!file) return;
-
-                setFieldValue("panFile", file, false);
-                setFieldValue("panOld", "", false);
-                setFieldTouched("panFile", true, false);
-
-                requestAnimationFrame(() => {
-                  form.validateField("panFile");
-                });
-
                 e.target.value = "";
+
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_PAN",
+                  urlField: "panOld",
+                  fileField: "panFile"
+                });
               }}
             />
 
-            {values.panFile && (
+            {values.panOld ? (
               <div className="d-flex gap-2 mt-2">
                 <Button
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleDecideFilePreviewOrDownload({
-                      file: values.panFile,
-                      oldUrl: values.panOld,
-                    })
-                  }
-                >
-                  Preview
-                </Button>
-
-                <Button size="sm" onClick={() => panFileRef.current.click()}>
-                  Change File
-                </Button>
-              </div>
-            )}
-
-            {!values.panFile && values.panOld && (
-              <div className="d-flex gap-2 mt-2">
-                <Button
-                  size="sm"
-                  color="info"
-                  onClick={() =>
-                    handleDecideFilePreviewOrDownload({
-                      file: values.panFile,
-                      oldUrl: values.panOld,
+                    downloadFile({
+                      url: values.panOld,
+                      originalName: "Pan"
                     })
                   }
                 >
@@ -1124,25 +1168,18 @@ const EmployeeForm = ({
                 </Button>
 
                 <Button size="sm" onClick={() => panFileRef.current.click()}>
-                  Upload New File
+                  upload new file
+                </Button>
+              </div>
+            ) : (
+              <div className="d-block">
+                <Button size="sm" onClick={() => panFileRef.current.click()}>
+                  Upload file
                 </Button>
               </div>
             )}
 
-            {!values.panFile && !values.panOld && (
-              <div className="mt-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    panFileRef.current.click();
-                  }}
-                >
-                  Upload File
-                </Button>
-              </div>
-            )}
-
-            {errorText("panFile")}
+            {errorText("panOld")}
           </Col>
 
           {/* OFFER LETTER FILE */}
@@ -1156,85 +1193,48 @@ const EmployeeForm = ({
               hidden
               ref={offerLetterRef}
               accept="image/*,application/pdf"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
-
+                e.target.value = "";
                 if (!file) return;
 
-                setFieldValue("offerLetterFile", file, false);
-                setFieldValue("offerLetterOld", "", false);
-                setFieldTouched("offerLetterFile", true, false);
-
-                requestAnimationFrame(() => {
-                  form.validateField("offerLetterFile");
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_OFFER_LETTER",
+                  urlField: "offerLetterOld",
+                  fileField: "offerLetterFile",
                 });
-
-                e.target.value = "";
               }}
             />
 
-            {values.offerLetterFile && (
+            {values.offerLetterOld ? (
               <div className="d-flex gap-2 mt-2">
                 <Button
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleDecideFilePreviewOrDownload({
-                      file: values.offerLetterFile,
-                      oldUrl: values.offerLetterOld,
-                    })
-                  }
-                >
-                  Preview
-                </Button>
-
-                <Button
-                  size="sm"
-                  onClick={() => offerLetterRef.current.click()}
-                >
-                  Change File
-                </Button>
-              </div>
-            )}
-
-            {!values.offerLetterFile && values.offerLetterOld && (
-              <div className="d-flex gap-2 mt-2">
-                <Button
-                  size="sm"
-                  color="info"
-                  onClick={() =>
-                    handleDecideFilePreviewOrDownload({
-                      file: values.offerLetterFile,
-                      oldUrl: values.offerLetterOld,
+                    downloadFile({
+                      url: values.offerLetterOld,
+                      originalName: "Offerletter"
                     })
                   }
                 >
                   Download
                 </Button>
 
-                <Button
-                  size="sm"
-                  onClick={() => offerLetterRef.current.click()}
-                >
-                  Upload New File
+                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
+                  Upload new File
+                </Button>
+              </div>
+            ) : (
+              <div className="d-block">
+                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
+                  Upload file
                 </Button>
               </div>
             )}
 
-            {!values.offerLetterFile && !values.offerLetterOld && (
-              <div className="mt-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    offerLetterRef.current.click();
-                  }}
-                >
-                  Upload File
-                </Button>
-              </div>
-            )}
-
-            {errorText("offerLetterFile")}
+            {errorText("offerLetterOld")}
           </Col>
 
           {/* FATHER NAME */}
@@ -1248,6 +1248,7 @@ const EmployeeForm = ({
               value={values.father}
               onChange={handleChange}
               invalid={touched.father && errors.father}
+              onBlur={() => setFieldTouched("father", true)}
             />
             {errorText("father")}
           </Col>
@@ -1282,6 +1283,7 @@ const EmployeeForm = ({
                 borderRadius: "0.375rem",
                 fontSize: "1rem",
               }}
+              onBlur={() => setFieldTouched("mobile", true)}
             />
 
             {errorText("mobile")}
@@ -1335,6 +1337,327 @@ const EmployeeForm = ({
             />
           </Col>
         </Row>
+
+        <Col xs={12} className="mt-4">
+          <h5 className="fw-semibold mb-1">Finance Details</h5>
+          <hr className="mt-0" />
+        </Col>
+
+        <Row className="g-3 mx-2">
+
+          {/* EMPLOYEE GROUPS */}
+          <Col md={6}>
+            <Label htmlFor="employeeGroups">Employee Group</Label>
+            <Select
+              inputId="employeeGroups"
+              options={employeeGroupOptions}
+              value={
+                employeeGroupOptions.find(
+                  (opt) => opt.value === values.employeeGroups,
+                ) || null
+              }
+              onChange={(opt) => setFieldValue("employeeGroups", opt.value)}
+            />
+          </Col>
+
+          {/* ACCOUNT */}
+          <Col md={6}>
+            <Label htmlFor="account">Account</Label>
+            <Select
+              inputId="account"
+              options={accountOptions}
+              value={
+                accountOptions.find(
+                  (opt) => opt.value === values.account,
+                ) || null
+              }
+              onChange={(opt) => setFieldValue("account", opt.value)}
+            />
+          </Col>
+
+          {/* GROSS SALARY */}
+          <Col md={6}>
+            <Label htmlFor="grossSalary">Gross Salary</Label>
+            <Input
+              id="grossSalary"
+              type="number"
+              name="grossSalary"
+              value={values.grossSalary}
+              onChange={handleChange}
+              onBlur={() => setFieldTouched("grossSalary", true)}
+
+            />
+            {errorText("grossSalary")}
+          </Col>
+
+          {/* BASIC AMOUNT */}
+          <Col md={6}>
+            <Label htmlFor="basicAmount">Basic Amount</Label>
+            <Input
+              id="basicAmount"
+              type="number"
+              name="basicAmount"
+              value={values.basicAmount}
+              onChange={handleChange}
+            />
+            {errorText("basicAmount")}
+          </Col>
+
+          {/* HRA */}
+          <Col md={6}>
+            <Label htmlFor="HRA">HRA</Label>
+            <Input
+              id="HRA"
+              type="number"
+              name="HRAAmount"
+              value={values.HRAAmount}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* SPECIAL ALLOWANCE */}
+          <Col md={6}>
+            <Label htmlFor="SPLAllowance">SPL Allowance</Label>
+            <Input
+              name="SPLAllowance"
+              type="number"
+              value={values.SPLAllowance}
+              onChange={(e) => {
+                setManual(prev => ({
+                  ...prev,
+                  SPLAllowance: true
+                }));
+                handleChange(e);
+              }}
+            />
+          </Col>
+
+          {/* CONVEYANCE ALLOWANCE */}
+          <Col md={6}>
+            <Label htmlFor="conveyanceAllowance">Conveyance Allowance</Label>
+            <Input
+              id="conveyanceAllowance"
+              type="number"
+              name="conveyanceAllowance"
+              value={values.conveyanceAllowance}
+              onChange={handleChange}
+            />
+          </Col>
+
+
+          {/* STATUTORY BONUS */}
+          <Col md={6}>
+            <Label htmlFor="statutoryBonus">Statutory Bonus</Label>
+            <Input
+              id="statutoryBonus"
+              type="number"
+              name="statutoryBonus"
+              value={values.statutoryBonus}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* MINIMUM WAGES */}
+          <Col md={6}>
+            <Label htmlFor="minimumWages">Minimum Wages</Label>
+            <Input
+              id="minimumWages"
+              type="number"
+              name="minimumWages"
+              value={values.minimumWages}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* Short WAGES */}
+          <Col md={6}>
+            <Label htmlFor="shortWages">Short Wages</Label>
+            <Input
+              id="shortWages"
+              type="number"
+              name="shortWages"
+              value={values.shortWages}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* INSURANCE */}
+          <Col md={6}>
+            <Label htmlFor="insurance">Insurance</Label>
+            <Input
+              id="insurance"
+              type="number"
+              name="insurance"
+              value={values.insurance}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* LWF SALARY */}
+          <Col md={6}>
+            <Label htmlFor="LWFSalary">LWF Salary</Label>
+            <Input
+              id="LWFSalary"
+              type="number"
+              name="LWFSalary"
+              value={values.LWFSalary}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* LWF EMPLOYEE */}
+          <Col md={6}>
+            <Label htmlFor="LWFEmployee">LWF Employee</Label>
+            <Input
+              id="LWFEmployee"
+              type="number"
+              name="LWFEmployee"
+              value={values.LWFEmployee}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* LWF EMPLOYER */}
+          <Col md={6}>
+            <Label htmlFor="LWFEmployer">LWF Employer</Label>
+            <Input
+              id="LWFEmployer"
+              type="number"
+              name="LWFEmployer"
+              value={values.LWFEmployer}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* ESIC SALARY */}
+          <Col md={6}>
+            <Label htmlFor="ESICSalary">ESIC Salary</Label>
+            <Input
+              id="ESICSalary"
+              type="number"
+              name="ESICSalary"
+              value={values.ESICSalary}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* ESIC EMPLOYEE */}
+          <Col md={6}>
+            <Label htmlFor="ESICEmployee">ESIC Employee</Label>
+            <Input
+              disabled
+              id="ESICEmployee"
+              type="number"
+              name="ESICEmployee"
+              value={values.ESICEmployee}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* ESIC EMPLOYER */}
+          <Col md={6}>
+            <Label htmlFor="ESICEmployer">ESIC Employer</Label>
+            <Input
+              disabled
+              id="ESICEmployer"
+              type="number"
+              name="ESICEmployer"
+              value={values.ESICEmployer}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* TDS RATE */}
+          <Col md={6}>
+            <Label htmlFor="TDSRate">TDS Rate</Label>
+            <Input
+              id="TDSRate"
+              type="number"
+              name="TDSRate"
+              value={values.TDSRate}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* PT */}
+          <Col md={6}>
+            <Label htmlFor="PT">PT</Label>
+            <Input
+              disabled
+              id="PT"
+              type="number"
+              name="PT"
+              value={values.PT}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* PF AMOUNT */}
+          <Col md={6}>
+            <Label htmlFor="PFAmount">PF Amount</Label>
+            <Input
+              disabled
+              id="PFAmount"
+              type="number"
+              name="PFAmount"
+              value={values.PFAmount}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* PF EMPLOYEE */}
+          <Col md={6}>
+            <Label htmlFor="PFEmployee">PF Employee Contribution</Label>
+            <Input
+              disabled
+              id="PFEmployee"
+              type="number"
+              name="PFEmployee"
+              value={values.PFEmployee}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* PF EMPLOYER */}
+          <Col md={6}>
+            <Label htmlFor="PFEmployer">PF Employer Contribution</Label>
+            <Input
+              disabled
+              id="PFEmployer"
+              type="number"
+              name="PFEmployer"
+              value={values.PFEmployer}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* IN HAND SALARY */}
+          <Col md={6}>
+            <Label htmlFor="inHandSalary">In Hand Salary</Label>
+            <Input
+              disabled
+              id="inHandSalary"
+              type="number"
+              name="inHandSalary"
+              value={values.inHandSalary}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* DEBIT STATEMENT NARRATION */}
+          <Col md={6}>
+            <Label htmlFor="debitStatementNarration">
+              Debit Statement Narration
+            </Label>
+            <Input
+              id="debitStatementNarration"
+              name="debitStatementNarration"
+              value={values.debitStatementNarration}
+              onChange={handleChange}
+            />
+          </Col>
+        </Row>
+
         <div className="d-flex gap-2 justify-content-end my-4 mx-3">
           {view === "MODAL" && (
             <Button
@@ -1349,29 +1672,29 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-            <Button
-              color="primary"
-              className="text-white"
-              onClick={form.handleSubmit}
-              disabled={
-                isSubmitting || !isValid || (isEdit && !initialData?._id)
-              }
-            >
-              {isSubmitting ? (
-                <Spinner size="sm" />
-              ) : initialData ? (
-                "Update Employee"
-              ) : (
-                "Save Employee"
-              )}
-            </Button>
-          )}
+              <Button
+                color="primary"
+                className="text-white"
+                onClick={form.handleSubmit}
+                disabled={
+                  isSubmitting || !isValid || (isEdit && !initialData?._id)
+                }
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" />
+                ) : initialData ? (
+                  "Update Employee"
+                ) : (
+                  "Save Employee"
+                )}
+              </Button>
+            )}
 
           {/* <Button onClick={() => console.log(errors)}>
-                        test
-                    </Button> */}
+            test
+          </Button> */}
         </div>
-      </div>
+      </div >
       <PreviewFile
         file={previewFile}
         isOpen={previewOpen}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { deleteEmployee, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
+import { deleteEmployee, getEmployeeFinanceById, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { downloadFile } from "../../../../../Components/Common/downloadFile";
@@ -150,6 +150,26 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             setModalLoading(false);
         }
     }
+
+    const handleEditEmployee = async (row) => {
+        setModalLoading(true);
+        try {
+            const res = await getEmployeeFinanceById(row._id);
+
+            setSelectedEmployee({
+                ...row,
+                financeDetails: res?.data?.financeDetails,
+            });
+
+            setModalOpen(true);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch employee finance details");
+            }
+        } finally {
+            setModalLoading(false);
+        }
+    };
 
     const handleNewJoiningAction = async () => {
         setModalLoading(true);
@@ -480,11 +500,10 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                                 <button
                                     className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                                     onClick={() => {
-                                        setSelectedEmployee(row);
-                                        setModalOpen(true);
+                                        handleEditEmployee(row);
                                     }}
                                 >
-                                    <Pencil size={16} />
+                                    {modalLoading ? <Spinner size="sm" /> : <Pencil size={16} />}
                                 </button>
                             </CheckPermission>
 
@@ -515,9 +534,9 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     ];
 
     const isVendor =
-  selectedEmployee?.employmentType
-    ?.trim()
-    .toLowerCase() !== "vendor";
+        selectedEmployee?.employmentType
+            ?.trim()
+            .toLowerCase() !== "vendor";
 
     return (
 

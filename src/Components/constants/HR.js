@@ -74,3 +74,81 @@ export const TPMOptions = [
     "KITCHEN_HELPER",
     "SECURITY"
 ];
+
+export const employmentOptions = [
+    { label: "Full Time Employee", value: "FULL_TIME" },
+    { label: "Part Time Employee", value: "PART_TIME" },
+    { label: "Contractual", value: "CONTRACTUAL" },
+    { label: "Consultant", value: "CONSULTANT" },
+    { label: "Vendor", value: "VENDOR", isDisabled: true },
+];
+
+export const employeeGroupOptions = [
+    { label: "PF Working", value: "PF_WORKING" },
+    { label: "Trust", value: "TRUST" }
+];
+
+export const accountOptions = [
+    { label: "TALOJA PVT LTD AC", value: "TALOJA_PVT_LTD_AC" },
+    { label: "SAREYAAN PHARMA AC", value: "SAREYAAN_PHARMA_AC" },
+    { label: "KOPARKHAIRANE PVT LTD AC", value: "KOPARKHAIRANE_PVT_LTD_AC" },
+    { label: "TMH PVT LTD AC", value: "TMH_PVT_LTD_AC" },
+    { label: "MALAD EAST PVT LTD AC", value: "MALAD_EAST_PVT_LTD_AC" },
+    { label: "PUNE PVT LTD AC", value: "PUNE_PVT_LTD_AC" },
+    { label: "THANE PVT LTD AC", value: "THANE_PVT_LTD_AC" },
+    { label: "NOIDA PVT LTD AC", value: "NOIDA_PVT_LTD_AC" },
+    { label: "AROHA PVT LTD AC", value: "AROHA_PVT_LTD_AC" },
+    { label: "GURGAON PVT LTD AC", value: "GURGAON_PVT_LTD_AC" },
+    { label: "CHENNAI PVT LTD AC", value: "CHENNAI_PVT_LTD_AC" },
+    { label: "AHMEDABAD PVT LTD AC", value: "AHMEDABAD_PVT_LTD_AC" },
+    { label: "BANGALORE PVT LTD AC", value: "BANGALORE_PVT_LTD_AC" },
+    { label: "TALOJA PVT LTD ADMIN", value: "TALOJA_PVT_LTD_ADMIN" },
+    { label: "MALAD WEST PVT LTD AC", value: "MALAD_WEST_PVT_LTD_AC" },
+];
+
+export const legends = [
+    { label: "Fixed Salary", color: "#ffc000" },
+    { label: "Earned Salary", color: "#f8cbad" },
+    { label: "PF / ESIC Salary", color: "#A9D08E" },
+    { label: "Employee Deduction", color: "#8EA9DB" },
+    { label: "Employer Deduction", color: "#7B8FD1" },
+];
+
+export const JOB_STATUS_MAP = {
+  waiting: {
+    color: "info",
+    text: "Job queued… waiting to start",
+  },
+  active: {
+    color: "primary",
+    text: "Regenerating payroll… please wait",
+  },
+  completed: {
+    color: "success",
+    text: "Payroll regenerated successfully",
+  },
+  failed: {
+    color: "danger",
+    text: "Payroll regeneration failed",
+  },
+};
+
+// export const debitStatementNarrationOptions = [
+//     { label: "PROF FEES TALOJA" },
+//     { label: "SALARY TRUST" },
+//     { label: "SALARY TALOJA" },
+//     { label: "SALARY THANE" },
+//     { label: "SALARY RAJKUMAR" },
+//     { label: "SALARY SAJJAN" },
+//     { label: "SALARY MALAD" },
+//     { label: "SALARY MALAD W" },
+//     { label: "SALARY MINU" },
+//     { label: "SALARY MAQBUL" },
+//     { label: "SALARY KOPARK" },
+//     { label: "SALARY MALAD" },
+//     { label: "SALARY KAMRUDDIN" },
+//     { label: "SALARY DINESH" },
+//     { label: "SALARY KISHAN" },
+//     { label: "SALARY BHARTI" },
+//     { label: "SALARY NANDINI" },
+// ]

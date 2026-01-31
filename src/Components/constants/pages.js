@@ -848,6 +848,12 @@ export const HR = [
       },
     ],
   },
+  {
+    id: "salary",
+    label: "Salary",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/hr/salary",
+  }
 ];
 
 export const HRMS = [

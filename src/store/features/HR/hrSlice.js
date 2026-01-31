@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getTPMs, postDesignation, searchExitEmployee } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getPayrolls, getTPMs, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -104,6 +104,24 @@ export const fetchIncentives = createAsyncThunk("hr/getIncentives", async (data,
     try {
         const response = await getIncentives(data);
         return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchPayrolls = createAsyncThunk("hr/getPayrolls", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getPayrolls(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const editPayrollRemarks = createAsyncThunk("hr/updatePayrollRemarks", async ({ id, ...payload }, { rejectWithValue }) => {
+    try {
+        const response = await updatePayrollRemarks(id, payload);
+        return response.data;
     } catch (error) {
         return rejectWithValue(error);
     }
@@ -237,6 +255,30 @@ export const hrSlice = createSlice({
             .addCase(fetchIncentives.rejected, (state) => {
                 state.loading = false
             });
+
+        builder
+            .addCase(fetchPayrolls.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchPayrolls.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchPayrolls.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder.addCase(editPayrollRemarks.fulfilled, (state, { payload }) => {
+            const payrollIndex = state.data.findIndex((payroll) => payroll._id === payload._id);
+            console.log(payload)
+            if (payrollIndex !== -1) {
+                state.data[payrollIndex] = {
+                    ...state.data[payrollIndex],
+                    ...payload,
+                };
+            }
+        })
     }
 });
 

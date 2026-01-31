@@ -172,6 +172,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasSalaryPermission = hasPermission(
+    "HR",
+    "SALARY",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -361,8 +367,11 @@ const Sidebar = () => {
       return page.children.length > 0;
     }
 
+    if (page.id === "salary" && !hasSalaryPermission) return false;
+
     return true;
   });
+
 
   useEffect(() => {
     filteredHROptions.forEach((page) => {
