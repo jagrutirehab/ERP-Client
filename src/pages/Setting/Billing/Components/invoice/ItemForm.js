@@ -62,8 +62,11 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
   const handleChange = (e) => {
     const itemList = [...items];
     const prop = e.target.name;
-    const value = e.target.value;
+    let value = e.target.value;
     const idx = e.target.id;
+    if (prop === "cost" || prop === "unit") {
+      value = value.replace(/[^0-9]/g, "");
+    }
 
     itemList[idx][prop] = value;
     setBillItems(itemList);
@@ -86,17 +89,17 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
             return false;
           }
           return true;
-        }
+        },
       ),
       centers: Yup.array().test(
         "notEmpty",
         "At least one center is required",
-        (value) => !(!value || value.length === 0)
+        (value) => !(!value || value.length === 0),
       ),
     }),
     onSubmit: (values) => {
       dispatch(
-        addBillItem({ items, centers: values.centers, centerIds: userCenters })
+        addBillItem({ items, centers: values.centers, centerIds: userCenters }),
       );
       setBillItems([]);
       toggle();
@@ -119,6 +122,12 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
     setBillItems(itemList);
   };
 
+  const allCenterIds = (centers || []).map((c) => c._id);
+
+  const isAllSelected =
+    validation.values.centers?.length === allCenterIds.length &&
+    allCenterIds.length > 0;
+
   return (
     <React.Fragment>
       <div>
@@ -134,6 +143,23 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
         >
           <Row className="ps-3 pe-3">
             <Col xs={12}>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <Label className="mb-0"></Label>
+
+                <Button
+                  size="sm"
+                  outline
+                  color={isAllSelected ? "danger" : "primary"}
+                  onClick={() =>
+                    validation.setFieldValue(
+                      "centers",
+                      isAllSelected ? [] : allCenterIds,
+                    )
+                  }
+                >
+                  {isAllSelected ? "Unselect All" : "Select All"}
+                </Button>
+              </div>
               <Label>Centers</Label>
               <div className="d-flex flex-wrap gap-3">
                 {(centers || []).map((cen) => (
