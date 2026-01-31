@@ -48,6 +48,8 @@ const BillDate = ({
 
   console.log({ billDate, editBillData, patient, admission });
 
+  // console.log("patient", patient);
+
   return (
     <React.Fragment>
       <CustomModal

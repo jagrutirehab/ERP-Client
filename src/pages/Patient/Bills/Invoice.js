@@ -16,7 +16,7 @@ const Invoice = ({ title = "Invoice", data, bill }) => {
         </div>
         <div>
           <InvoiceList list={data?.invoiceList} />
-        </div>
+        </div>  
         <div className="pt-3">
           <Row>
             <Col xs={6} md={4}>
