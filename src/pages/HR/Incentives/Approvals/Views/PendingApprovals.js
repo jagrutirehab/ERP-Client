@@ -176,6 +176,16 @@ const PendingApprovals = ({ activeTab }) => {
             minWidth: "140px"
         },
         {
+            name: <div>Date</div>,
+            selector: row => {
+                if (!row?.date) return "-";
+                const date = new Date(row.date);
+                if (isNaN(date)) return "-";
+                return format(new Date(row.date), "dd-MM-yyyy")
+            },
+            wrap: true,
+        },
+        {
             name: <div>Amount</div>,
             selector: row => typeof row?.amount === "number"
                 ? `₹${row.amount.toLocaleString()}`

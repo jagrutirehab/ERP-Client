@@ -419,6 +419,7 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
+export const EMPLOYEE_FINANCE = "/hr/employee/finance";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
 
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
@@ -453,6 +454,14 @@ export const UPDATE_HIRING_REQUEST="/hr/hiring/management/update/request"
 
 export const TPM = "/hr/tpm";
 export const TPM_ACTION = "/hr/tpm/action";
+
+export const INCENTIVES = "/hr/incentives";
+export const INCENTIVES_ACTION = "/hr/incentives/action";
+
+export const GENERATE_PAYROLL = "/hr/payroll/generate";
+export const GET_PAYROLLS = "/hr/payroll";
+export const PAYROLL_GENERATION_STATUS = "/hr/payroll/generation-status";
+export const UPDATE_PAYROLL_REMARKS="/hr/payroll/remarks";
 
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
@@ -489,5 +498,5 @@ export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_DEPARTMENTS = "/hr/get/departments";
 export const CREATE_DEPARTMENTS = "/hr/create/departments";
 
-export const INCENTIVES = "/hr/incentives";
-export const INCENTIVES_ACTION = "/hr/incentives/action";
+// upload file
+export const UPLOAD_FILE = "/upload";

@@ -42,6 +42,7 @@ import AddIncentivesRequest from "./Incentives/AddRequest";
 import IncentivesApproval from "./Incentives/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
 import HiringManagement from "./Hiring/HiringManagement";
+import Salary from "./Salary";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -177,6 +178,8 @@ const HR = () => {
 
                 <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
+
+                <Route path={`/salary`} element={<Salary />} />
               </Routes>
             </div>
           </Container>

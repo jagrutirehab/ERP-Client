@@ -36,7 +36,7 @@ const ApproveModal = ({
   isOpen,
   toggle,
   onSubmit,
-  mode, // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM | INCENTIVES
+  mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM | INCENTIVES | SALARY
   actionType,
   setActionType,
   paymentType,
@@ -48,6 +48,8 @@ const ApproveModal = ({
   usersLinkedToEmployee,
   loading,
   designation,
+  remarks,
+  setRemarks
 }) => {
   const [approvedBy, setApprovedBy] = useState("");
   const [eCodeLoader, setECodeLoader] = useState(false);
@@ -98,19 +100,27 @@ const ApproveModal = ({
       toast.warn("Please select a payment type.");
       return;
     }
+    if (mode === "SALARY" && !remarks) {
+      toast.warn("Please select a remarks");
+      return;
+    }
     onSubmit({
       note,
       approvedBy: mode === "TECH_ISSUES" ? approvedBy : undefined,
       paymentType: mode === "SALARY_ADVANCE" ? paymentType : undefined,
+      remarks: mode === "SALARY" ? remarks : undefined,
       action: actionType,
       eCode: mode === "NEW_JOINING" ? eCode : undefined,
       hr: assignedHR?.value,
     });
 
-    setNote("");
-    setAssignedHR("");
+
     if (mode === "SALARY_ADVANCE") {
       setPaymentType("");
+    }
+    if (mode !== "SALARY") {
+      setNote("");
+      setAssignedHR("");
     }
   };
 
@@ -170,13 +180,8 @@ const ApproveModal = ({
       keyboard={false}
     >
       <ModalHeader toggle={toggle}>
-        {mode === "EXIT_EMPLOYEES_EXIT_PENDING" ||
-        mode === "EXIT_EMPLOYEES_FNF_PENDING"
-          ? "Action Required"
-          : actionType === "APPROVE"
-            ? "Approve Request"
-            : "Reject Request"}
-      </ModalHeader>
+        {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? "Action Required" : actionType === "APPROVE" ? "Approve Request" : mode === "SALARY" ? "Update Remarks" : "Reject Request"}
+      </ModalHeader >
 
       <ModalBody>
         {(mode === "NEW_JOINING" || mode === "TPM") &&
@@ -207,20 +212,23 @@ const ApproveModal = ({
               </div>
             </div>
           )}
-        <div className="mb-3">
-          <Label htmlFor="note" className="fw-bold">
-            Note (Optional)
-          </Label>
-          <Input
-            id="note"
-            type="textarea"
-            rows="3"
-            value={note}
-            placeholder="Write a note..."
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
-        {actionType === "APPROVE" && mode === "HIRING" &&(
+        {mode !== "SALARY" && (
+          <div className="mb-3">
+            <Label htmlFor="note" className="fw-bold">
+              Note (Optional)
+            </Label>
+            <Input
+              id="note"
+              type="textarea"
+              rows="3"
+              value={note}
+              placeholder="Write a note..."
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+        )}
+
+        {actionType === "APPROVE" && mode === "HIRING" && (
           <div className="mb-3">
             <Label htmlFor="note" className="fw-bold">
               HR to be assigned
@@ -360,6 +368,23 @@ const ApproveModal = ({
             />
           </div>
         )}
+
+        {/* SALARY */}
+        {mode === "SALARY" && (
+          <div className="mb-3">
+            <Label className="fw-bold">Remarks *</Label>
+            <Input
+              type="select"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            >
+              <option value="">Select Remarks</option>
+              <option value="OK">Ok</option>
+              <option value="CASH">Cash</option>
+              <option value="HOLD">Hold</option>
+            </Input>
+          </div>
+        )}
       </ModalBody>
 
       <ModalFooter>
@@ -368,7 +393,7 @@ const ApproveModal = ({
         </Button>
 
         {mode === "EXIT_EMPLOYEES_EXIT_PENDING" ||
-        mode === "EXIT_EMPLOYEES_FNF_PENDING" ? (
+          mode === "EXIT_EMPLOYEES_FNF_PENDING" ? (
           <Button
             color="warning"
             className="text-white"
@@ -393,17 +418,23 @@ const ApproveModal = ({
               "Approve"
             )}
           </Button>
-        ) : (
-          <Button color="danger" className="text-white" onClick={handleSubmit}>
-            {loading && actionType === "REJECT" ? (
-              <Spinner size={"sm"} />
-            ) : (
-              "REJECT"
-            )}
+        ) : mode === "SALARY" ? (
+          <Button
+            color="success"
+            className="text-white"
+            onClick={handleSubmit}>
+            {loading ? <Spinner size={"sm"} /> : "Update"}
           </Button>
+        ) : (
+          <Button
+              color="danger"
+              className="text-white"
+              onClick={handleSubmit}>
+              {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "Reject"}
+            </Button>
         )}
-      </ModalFooter>
-    </Modal>
+          </ModalFooter>
+    </Modal >
   );
 };
 

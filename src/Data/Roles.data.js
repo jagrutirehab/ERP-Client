@@ -292,6 +292,7 @@ export const permissionList = [
       // Incentives
       { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
       { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
+      { name: "SALARY", label: "Salary" }
     ],
   },
   // {

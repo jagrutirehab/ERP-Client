@@ -73,3 +73,20 @@ export const getTableRange = () => ({
     start: startOfDay(subDays(new Date(), 14)),
     end: endOfDay(new Date()),
 });
+
+export const normalizeDateForInput = (value) => {
+    if (!value) return "";
+
+    // YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+
+    // DD-MM-YYYY → YYYY-MM-DD
+    if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+      const [dd, mm, yyyy] = value.split("-");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    return "";
+  };
