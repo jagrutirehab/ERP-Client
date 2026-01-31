@@ -304,6 +304,8 @@ const DuePayment = ({
     }
   };
 
+  console.log("patient from invoice", patient)
+
   return (
     <React.Fragment>
       <div>
@@ -324,6 +326,7 @@ const DuePayment = ({
             addItem={addInvoiceItem}
             categories={categories}
             setCategories={setCategories}
+            center={patient?.center}
           />
           <InvoiceTable
             invoiceList={invoiceList}

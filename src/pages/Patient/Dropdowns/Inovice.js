@@ -23,6 +23,7 @@ const Inovice = ({
   addItem,
   categories,
   setCategories,
+  center,
 }) => {
   const dispatch = useDispatch();
   const centers = useSelector((state) => state.User?.centerAccess);
@@ -32,12 +33,17 @@ const Inovice = ({
   useEffect(() => {
     dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
   }, [dispatch, centers]);
+  console.log("Invoice procedures (raw from API):", dataList);
 
   const handleChange = (e) => {
     const value = e.target.value;
     setSearchItem(value);
   };
   const categoryValues = categories?.map((c) => c.value.toLowerCase());
+
+  console.log("center from dropdown", dataList);
+
+  const patientCenterId = String(center?._id);
 
   return (
     <React.Fragment>
@@ -72,7 +78,11 @@ const Inovice = ({
                     categoryValues?.length === 0 ||
                     categoryValues?.includes(item.category?.toLowerCase());
 
-                  return matchesSearch && matchesCategory;
+                  const matchesCenter =
+                    Array.isArray(item.center) &&
+                    item.center.some((c) => String(c) === patientCenterId);
+
+                  return matchesSearch && matchesCategory && matchesCenter;
                 })
                 .map((item) => (
                   <DropdownItem
@@ -104,7 +114,12 @@ const Inovice = ({
             </DropdownMenu>
           </UncontrolledDropdown>
         </div>
-        <div style={{ minWidth: isMobile ? "100%" : "280px", maxWidth: isMobile ? "" : "75%" }}>
+        <div
+          style={{
+            minWidth: isMobile ? "100%" : "280px",
+            maxWidth: isMobile ? "" : "75%",
+          }}
+        >
           <Label>Categories</Label>
           <Select
             isMulti

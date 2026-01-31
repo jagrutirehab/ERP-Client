@@ -14,9 +14,8 @@ const InvoiceProcedureList = ({
   onItemsPerPageChange,
 }) => {
   const [updateItem, setUpdateItem] = useState({
-    isForm: false,
-    formIndex: undefined,
-    formData: undefined,
+    isOpen: false,
+    formData: null,
   });
 
   const toggleUpdateForm = (idx, data) =>
@@ -25,6 +24,20 @@ const InvoiceProcedureList = ({
       formIndex: idx,
       formData: data,
     });
+
+  const toggleUpdateModal = () => {
+    setUpdateItem({
+      isOpen: false,
+      formData: null,
+    });
+  };
+
+  const openEditModal = (item) => {
+    setUpdateItem({
+      isOpen: true,
+      formData: item,
+    });
+  };
 
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(start + items.length - 1, totalItems);
@@ -61,48 +74,44 @@ const InvoiceProcedureList = ({
           </tr>
         </thead>
         <tbody>
-          {(items || []).map((item, idx) => (
+          {(items || []).map((item) => (
             <tr key={item._id}>
-              {updateItem.isForm && updateItem.formIndex === idx ? (
-                <td colSpan="4">
-                  <EditItem
-                    updateItem={updateItem}
-                    setUpdateItem={setUpdateItem}
-                  />
-                </td>
-              ) : (
-                <>
-                  <td className="text-capitalize fw-semibold text-primary">
-                    {item.name}
-                  </td>
-                  <td>{item.unit || ""}</td>
-                  <td>{item.cost || ""}</td>
-                  <td>
-                    <Button
-                      size="sm"
-                      color="info"
-                      className="me-2"
-                      onClick={() => toggleUpdateForm(idx, item)}
-                    >
-                      <i className="ri-quill-pen-line"></i>
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="danger"
-                      outline
-                      onClick={() =>
-                        setDeleteItem({ isOpen: true, data: item._id })
-                      }
-                    >
-                      <i className="ri-close-circle-line"></i>
-                    </Button>
-                  </td>
-                </>
-              )}
+              <td className="text-capitalize fw-semibold text-primary">
+                {item.name}
+              </td>
+              <td>{item.unit || ""}</td>
+              <td>{item.cost || ""}</td>
+              <td>
+                <Button
+                  size="sm"
+                  color="info"
+                  className="me-2"
+                  onClick={() => openEditModal(item)}
+                >
+                  <i className="ri-quill-pen-line"></i>
+                </Button>
+
+                <Button
+                  size="sm"
+                  color="danger"
+                  outline
+                  onClick={() =>
+                    setDeleteItem({ isOpen: true, data: item._id })
+                  }
+                >
+                  <i className="ri-close-circle-line"></i>
+                </Button>
+              </td>
             </tr>
           ))}
         </tbody>
       </Table>
+
+      <EditItem
+        isOpen={updateItem.isOpen}
+        toggle={toggleUpdateModal}
+        updateItem={updateItem}
+      />
 
       <Row className="mt-4 justify-content-between align-items-center">
         <Col xs="auto">
