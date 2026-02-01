@@ -7,7 +7,7 @@ import Header from '../../../Report/Components/Header';
 import Select from "react-select";
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { endOfDay, format, startOfDay } from 'date-fns';
-import DataTableComponent from '../../components/Table/DataTable';
+import DataTableComponent from '../../../../Components/Common/DataTable';
 import { fetchAttendanceMetrics } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';

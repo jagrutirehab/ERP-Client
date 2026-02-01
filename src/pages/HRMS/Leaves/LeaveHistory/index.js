@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { leaveColumns } from "../../components/Table/Columns/leave";
 import { CardBody, Input } from "reactstrap";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";

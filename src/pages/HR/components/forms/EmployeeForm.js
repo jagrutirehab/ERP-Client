@@ -95,7 +95,9 @@ const validationSchema = (mode, isEdit) =>
     adharNo: Yup.string().required("Aadhaar number is required"),
     pan: Yup.string().required("PAN number is required"),
     biometricId: Yup.string().trim(),
-    panOld: Yup.string().required("PAN file is required"),
+    panOld: Yup.string()
+      .nullable()
+      .test("pan-uploaded", "PAN file is required", value => !!value),
     adharOld: Yup.string().required("Aadhaar file is required"),
     offerLetterOld: Yup.string().required("Offer letter is required"),
     employeeGroups: Yup.string().notRequired(),
@@ -103,9 +105,10 @@ const validationSchema = (mode, isEdit) =>
     minimumWages: Yup.number().min(0).notRequired(),
     grossSalary: Yup.number()
       .min(0)
+      .required("Gross Salary is required")
       .test(
-        "gross-breakup-check",
-        "Basic + HRA + SPL + Conveyance+ statutory bonus cannot be greater than Gross Salary",
+        "gross-breakup-exact-match",
+        "Basic + HRA + SPL + Conveyance + Statutory Bonus must be equal to Gross Salary",
         function (gross) {
           const {
             basicAmount = 0,
@@ -122,24 +125,15 @@ const validationSchema = (mode, isEdit) =>
             Number(conveyanceAllowance) +
             Number(statutoryBonus);
 
-          return breakupTotal <= Number(gross || 0);
+          if (gross === undefined || gross === null) return true;
+
+          return Number(gross) === breakupTotal;
         }
       ),
-    basicAmount: Yup.number()
-      .min(0)
-      .test(
-        "basic-vs-min-wage",
-        "Basic amount cannot be less than Minimum Wages when PF is applicable",
-        function (basic) {
-          const { minimumWages = 0, pfApplicable } = this.parent;
-
-          if (!pfApplicable) return true;
-          if (!minimumWages) return true;
-
-          return Number(basic || 0) >= Number(minimumWages);
-        }
-      ),
+    basicAmount: Yup.number().min(0).notRequired(),
+    basicPercentage: Yup.number().min(0).max(100).notRequired(),
     HRAAmount: Yup.number().min(0).notRequired(),
+    HRAPercentage: Yup.number().min(0).max(100).notRequired(),
     statutoryBonus: Yup.number().min(0).notRequired(),
     insurance: Yup.number().min(0).notRequired(),
     TDSRate: Yup.number().min(0).max(100).notRequired(),
@@ -217,8 +211,10 @@ const getInitialValues = (initialData, mode) => ({
     initialData?.monthlyCTC ??
     0,
 
+  basicPercentage: initialData?.financeDetails?.basicPercentage || 0,
   basicAmount: initialData?.financeDetails?.basicAmount || 0,
   HRAAmount: initialData?.financeDetails?.HRAAmount || 0,
+  HRAPercentage: initialData?.financeDetails?.HRAPercentage || 0,
   SPLAllowance: initialData?.financeDetails?.SPLAllowance || 0,
   conveyanceAllowance: initialData?.financeDetails?.conveyanceAllowance || 0,
   statutoryBonus: initialData?.financeDetails?.statutoryBonus || 0,
@@ -352,6 +348,8 @@ const EmployeeForm = ({
         formData.delete("panOld");
         formData.delete("offerLetterOld");
         formData.delete("adharOld");
+        formData.delete("basicPercentage");
+        formData.delete("HRAPercentage");
 
         if (initialData?._id) {
           formData.delete("eCode");
@@ -409,8 +407,8 @@ const EmployeeForm = ({
   const handleFileUpload = async ({
     file,
     path,
-    urlField,   // panOld / adharOld / offerLetterOld
-    fileField,  // panFile / adharFile / offerLetterFile
+    urlField,
+    fileField,
   }) => {
     if (!file) return;
 
@@ -423,11 +421,17 @@ const EmployeeForm = ({
 
       const res = await uploadFile(fd);
 
-      await setFieldValue(urlField, res.url, true);
+      // 1️⃣ Set value
+      setFieldValue(urlField, res.url, false);
 
-      setFieldTouched(urlField, true, true);
+      // 2️⃣ Mark as touched
+      setFieldTouched(urlField, true, false);
 
-      setFieldValue(fileField, null, false);
+
+      form.setErrors(prev => ({
+        ...prev,
+        [urlField]: undefined,
+      }));
 
       toast.success("File uploaded successfully");
     } catch (err) {
@@ -438,6 +442,7 @@ const EmployeeForm = ({
       setUploading(prev => ({ ...prev, [fileField]: false }));
     }
   };
+
 
   const errorText = (field) => {
     if (isEdit) {
@@ -576,6 +581,7 @@ const EmployeeForm = ({
   }, [
     values.grossSalary,
     values.basicAmount,
+    values.HRAAmount,
     values.pfApplicable,
     values.gender,
     values.joinningDate,
@@ -1087,12 +1093,22 @@ const EmployeeForm = ({
                       originalName: "Aadhaar"
                     })
                   }
+                  disabled={uploading.adharFile}
                 >
                   Download
                 </Button>
 
-                <Button size="sm" onClick={() => adharFileRef.current.click()}>
-                  Upload new file
+                <Button
+                  size="sm"
+                  onClick={() => adharFileRef.current.click()}
+                  disabled={uploading.adharFile}>
+                  {uploading.adharFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload new file"
+                  )}
                 </Button>
               </div>
             ) : (
@@ -1100,8 +1116,15 @@ const EmployeeForm = ({
                 <Button
                   size="sm"
                   onClick={() => adharFileRef.current.click()}
+                  disabled={uploading.adharFile}
                 >
-                  Upload file
+                  {uploading.adharFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
                 </Button>
               </div>
             )}
@@ -1163,18 +1186,39 @@ const EmployeeForm = ({
                       originalName: "Pan"
                     })
                   }
+                  disabled={uploading.panFile}
                 >
                   Download
                 </Button>
 
-                <Button size="sm" onClick={() => panFileRef.current.click()}>
-                  upload new file
+                <Button
+                  size="sm"
+                  onClick={() => panFileRef.current.click()}
+                  disabled={uploading.panFile}
+                >
+                  {uploading.panFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload New file"
+                  )}
                 </Button>
               </div>
             ) : (
               <div className="d-block">
-                <Button size="sm" onClick={() => panFileRef.current.click()}>
-                  Upload file
+                <Button
+                  size="sm"
+                  onClick={() => panFileRef.current.click()}
+                  disabled={uploading.panFile}
+                >
+                  {uploading.panFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
                 </Button>
               </div>
             )}
@@ -1218,18 +1262,39 @@ const EmployeeForm = ({
                       originalName: "Offerletter"
                     })
                   }
+                  disabled={uploading.offerLetterFile}
                 >
                   Download
                 </Button>
 
-                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
-                  Upload new File
+                <Button
+                  size="sm"
+                  onClick={() => offerLetterRef.current.click()}
+                  disabled={uploading.offerLetterFile}
+                >
+                  {uploading.offerLetterFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload New file"
+                  )}
                 </Button>
               </div>
             ) : (
               <div className="d-block">
-                <Button size="sm" onClick={() => offerLetterRef.current.click()}>
-                  Upload file
+                <Button
+                  size="sm"
+                  onClick={() => offerLetterRef.current.click()}
+                  disabled={uploading.offerLetterFile}
+                >
+                  {uploading.offerLetterFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
                 </Button>
               </div>
             )}
@@ -1375,6 +1440,31 @@ const EmployeeForm = ({
             />
           </Col>
 
+          {/* MINIMUM WAGES */}
+          <Col md={6}>
+            <Label htmlFor="minimumWages">Minimum Wages</Label>
+            <Input
+              id="minimumWages"
+              type="number"
+              name="minimumWages"
+              value={values.minimumWages}
+              onChange={handleChange}
+            />
+          </Col>
+
+          {/* Short WAGES */}
+          <Col md={6}>
+            <Label htmlFor="shortWages">Short Wages</Label>
+            <Input
+              disabled
+              id="shortWages"
+              type="number"
+              name="shortWages"
+              value={values.shortWages}
+              onChange={handleChange}
+            />
+          </Col>
+
           {/* GROSS SALARY */}
           <Col md={6}>
             <Label htmlFor="grossSalary">Gross Salary</Label>
@@ -1403,6 +1493,20 @@ const EmployeeForm = ({
             {errorText("basicAmount")}
           </Col>
 
+          {/* BASIC PERCENTAGE */}
+          <Col md={6}>
+            <Label htmlFor="basicPercentage">Basic Percentage</Label>
+            <Input
+              disabled
+              id="basicPercentage"
+              type="number"
+              name="basicPercentage"
+              value={values.basicPercentage}
+              onChange={handleChange}
+            />
+            {errorText("basicPercentage")}
+          </Col>
+
           {/* HRA */}
           <Col md={6}>
             <Label htmlFor="HRA">HRA</Label>
@@ -1413,6 +1517,20 @@ const EmployeeForm = ({
               value={values.HRAAmount}
               onChange={handleChange}
             />
+          </Col>
+
+          {/* HRA PERCENTAGE */}
+          <Col md={6}>
+            <Label htmlFor="HRAPercentage">HRA Percentage</Label>
+            <Input
+              disabled
+              id="HRAPercentage"
+              type="number"
+              name="HRAPercentage"
+              value={values.HRAPercentage}
+              onChange={handleChange}
+            />
+            {errorText("HRAPercentage")}
           </Col>
 
           {/* SPECIAL ALLOWANCE */}
@@ -1453,30 +1571,6 @@ const EmployeeForm = ({
               type="number"
               name="statutoryBonus"
               value={values.statutoryBonus}
-              onChange={handleChange}
-            />
-          </Col>
-
-          {/* MINIMUM WAGES */}
-          <Col md={6}>
-            <Label htmlFor="minimumWages">Minimum Wages</Label>
-            <Input
-              id="minimumWages"
-              type="number"
-              name="minimumWages"
-              value={values.minimumWages}
-              onChange={handleChange}
-            />
-          </Col>
-
-          {/* Short WAGES */}
-          <Col md={6}>
-            <Label htmlFor="shortWages">Short Wages</Label>
-            <Input
-              id="shortWages"
-              type="number"
-              name="shortWages"
-              value={values.shortWages}
               onChange={handleChange}
             />
           </Col>
@@ -1649,11 +1743,19 @@ const EmployeeForm = ({
             <Label htmlFor="debitStatementNarration">
               Debit Statement Narration
             </Label>
+
             <Input
               id="debitStatementNarration"
               name="debitStatementNarration"
               value={values.debitStatementNarration}
-              onChange={handleChange}
+              onChange={(e) =>
+                handleChange({
+                  target: {
+                    name: "debitStatementNarration",
+                    value: e.target.value.toUpperCase(),
+                  },
+                })
+              }
             />
           </Col>
         </Row>

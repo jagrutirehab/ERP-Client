@@ -5,7 +5,7 @@ import { deleteAttendanceImport, getAttendanceImportHistory } from '../../../hel
 import { toast } from 'react-toastify';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { useSelector } from 'react-redux';
-import DataTableComponent from './Table/DataTable';
+import DataTableComponent from '../../../Components/Common/DataTable';
 import { attendanceImportHistoryColumns } from './Table/Columns/attendanceImportHistory';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import DeleteConfirmModal from '../../HR/components/DeleteConfirmModal';

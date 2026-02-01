@@ -1,10 +1,10 @@
 import Highlighter from "react-highlight-words";
-import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { formatCurrency } from "../../../../../utils/formatCurrency";
 import { format } from "date-fns";
-import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { Button } from "reactstrap";
 import { Check, Copy, Pencil } from "lucide-react";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
+import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 
 const baseStyle = {
     color: "#000",
@@ -127,6 +127,18 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
     {
         name: <div>Minimum Wages</div>,
         selector: row => formatCurrency(row?.salarySnapshot?.minimumWages),
+        wrap: true,
+        center: true
+    },
+    {
+        name: <div>HRA%</div>,
+        selector: row => `${row?.salarySnapshot?.HRAPercentage}%` || `0%`,
+        wrap: true,
+        center: true
+    },
+    {
+        name: <div>Basic%</div>,
+        selector: row => `${row?.salarySnapshot?.HRAPercentage}%` || `0%`,
         wrap: true,
         center: true
     },
@@ -346,7 +358,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
     },
     {
         name: <div>Debit Statement Narration</div>,
-        selector: row => capitalizeWords(row?.salarySnapshot?.debitStatementNarration || "-"),
+        selector: row => row?.salarySnapshot?.debitStatementNarration?.toUpperCase() || "-",
         wrap: true,
     },
     {

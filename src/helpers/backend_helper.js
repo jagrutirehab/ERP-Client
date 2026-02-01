@@ -2446,6 +2446,17 @@ export const getPayrolls = (params = {}) => {
   })
 };
 
+export const exportPayrollsXLSX = (params = {}) => {
+  return api.get(url.EXPORT_PAYROLLS_XLSX, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    responseType: "blob",
+  });
+};
+
 export const getPayrollGenerationStatus = (id) => {
   return api.get(`${url.PAYROLL_GENERATION_STATUS}/${id}`, {
     headers: {

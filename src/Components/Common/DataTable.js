@@ -1,5 +1,5 @@
 import DataTable from "react-data-table-component";
-import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { useMediaQuery } from "../Hooks/useMediaQuery";
 import { Spinner } from "reactstrap";
 
 const DataTableComponent = ({

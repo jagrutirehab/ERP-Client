@@ -7,7 +7,7 @@ const Navdata = () => {
     (state) => state.User.user?.pageAccess?.pages || []
   );
 
-  console.log("userPages", userPages);
+  // console.log("userPages", userPages);
 
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);

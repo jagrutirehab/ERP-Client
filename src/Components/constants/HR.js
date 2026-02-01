@@ -114,24 +114,6 @@ export const legends = [
     { label: "Employer Deduction", color: "#7B8FD1" },
 ];
 
-export const JOB_STATUS_MAP = {
-  waiting: {
-    color: "info",
-    text: "Job queued… waiting to start",
-  },
-  active: {
-    color: "primary",
-    text: "Regenerating payroll… please wait",
-  },
-  completed: {
-    color: "success",
-    text: "Payroll regenerated successfully",
-  },
-  failed: {
-    color: "danger",
-    text: "Payroll regeneration failed",
-  },
-};
 
 // export const debitStatementNarrationOptions = [
 //     { label: "PROF FEES TALOJA" },

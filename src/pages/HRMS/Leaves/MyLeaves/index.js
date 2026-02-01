@@ -6,7 +6,7 @@ import {
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { MyLeavesColumn } from "../../components/Table/Columns/myLeaves";
 import ButtonLoader from "../../../../Components/Common/ButtonLoader";
 import { useNavigate } from "react-router-dom";

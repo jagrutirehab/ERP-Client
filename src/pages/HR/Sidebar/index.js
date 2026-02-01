@@ -342,7 +342,6 @@ const Sidebar = () => {
         if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         return true;
       });
-      console.log("hasManageLeavesPermission", hasManageLeavesPermission)
       return page.children.length > 0;
     }
 

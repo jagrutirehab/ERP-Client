@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getBalance } from "../../../../helpers/backend_helper";
 import { CardBody } from "reactstrap";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { balanceLeavesColumn } from "../../components/Table/Columns/balanceLeaves";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";

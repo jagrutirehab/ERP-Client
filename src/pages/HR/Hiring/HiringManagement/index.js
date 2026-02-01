@@ -4,7 +4,7 @@ import { CardBody } from "reactstrap";
 // import DataTableComponent from "../../../components/Table/DataTable";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { HiringActionColumns } from "../../../HRMS/components/Table/Columns/HiringManagementColumn";
-import DataTableComponent from "../../../HRMS/components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import EditHiringRequestModal from "../../components/EditHiringRequestModal";
 import { editManagementRequests } from "../../../../helpers/backend_helper";
 import { toast } from "react-toastify";
