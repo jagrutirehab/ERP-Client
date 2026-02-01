@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { addPolicies, getPolicies } from "../../../helpers/backend_helper";
 import { CardBody } from "reactstrap";
-import DataTableComponent from "../components/Table/DataTable";
+import DataTableComponent from "../../../Components/Common/DataTable";
 import { policyColumn } from "../components/Table/Columns/policies";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CustomModal from "../../../Components/Common/Modal";

@@ -4,7 +4,7 @@ import {
   getLeavesRequest,
 } from "../../../../helpers/backend_helper";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { leaveRequestsColumns } from "../../components/Table/Columns/leaveRequests";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";

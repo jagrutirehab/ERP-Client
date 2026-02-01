@@ -90,7 +90,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
             details: initialData?.details || "",
-            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
         onSubmit: async (values) => {

@@ -70,7 +70,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
 
-  console.log({ centerAccess });
+  // console.log({ centerAccess });
 
   return (
     <React.Fragment>

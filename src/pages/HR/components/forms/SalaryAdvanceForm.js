@@ -22,7 +22,9 @@ const validationSchema = Yup.object().shape({
         .typeError("Amount must be a number")
         .required("Amount is required")
         .min(1, "Amount must be greater than 0"),
-
+    date: Yup.date()
+        .required("Date is required")
+        .typeError("Invalid date"),
 });
 
 const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
@@ -84,7 +86,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
             eCode: initialData?.employeeData?.eCode || "",
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
-            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -206,19 +208,19 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
 
             {/* NAME */}
             <FormGroup className="mb-3">
-                <Label for="name">Name</Label>
+                <Label for="name">Name <span className="text-danger">*</span></Label>
                 <Input id="name" name="name" value={form.values.name} disabled />
             </FormGroup>
 
             {/* E-CODE */}
             <FormGroup className="mb-3">
-                <Label for="eCode">E-Code</Label>
+                <Label for="eCode">E-Code <span className="text-danger">*</span></Label>
                 <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
             </FormGroup>
 
             {/* CURRENT LOCATION */}
             <FormGroup className="mb-3">
-                <Label for="currentLocation">Current Location</Label>
+                <Label for="currentLocation">Current Location <span className="text-danger">*</span></Label>
                 <Input
                     id="currentLocation"
                     name="currentLocation"
@@ -248,7 +250,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
 
             {/* AMOUNT */}
             <FormGroup className="mb-3">
-                <Label for="amount">Amount</Label>
+                <Label for="amount">Amount <span className="text-danger">*</span></Label>
                 <Input
                     id="amount"
                     type="number"

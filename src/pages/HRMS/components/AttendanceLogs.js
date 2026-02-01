@@ -8,7 +8,7 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import Header from "../../Report/Components/Header";
 import { Button, ButtonGroup } from "reactstrap";
 import { Calendar, TableProperties } from "lucide-react";
-import DataTableComponent from "./Table/DataTable";
+import DataTableComponent from "../../../Components/Common/DataTable";
 import { myAttendanceLogsColumns } from "./Table/Columns/myAttendanceLogs";
 import AttendanceCalendar from "./AttendanceCalender";
 import { usePermissions } from "../../../Components/Hooks/useRoles";

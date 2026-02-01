@@ -9,7 +9,7 @@ import Select from "react-select";
 import Header from "../../../Report/Components/Header";
 import { startOfDay, endOfDay } from "date-fns";
 import { CloudUpload, FileSpreadsheet, History } from "lucide-react";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { attendanceColumns } from "../../components/Table/Columns/attendance";
 import { fetchAttendance } from "../../../../store/actions";
 import { toast } from "react-toastify";

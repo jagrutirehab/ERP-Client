@@ -3,10 +3,16 @@ export const calculatePayroll = (values) => {
 
     const gross = Number(values.grossSalary || 0);
     const basic = Number(values.basicAmount || 0);
+    const hra = Number(values.HRAAmount || 0);
     const spl = Number(values.SPLAllowance || 0);
     const conveyance = Number(values.conveyanceAllowance || 0);
     const ESICSalary = Number(values.ESICSalary || 0);
     const minimumWages = Number(values.minimumWages || 0);
+
+    // short wages
+    const shortWages = -Math.max(Math.round(minimumWages - basic), 0);
+    const basicPercentage = gross > 0 ? Math.round((basic / gross) * 100) : 0;
+    const HRAPercentage = gross > 0 ? Math.round((hra / basic) * 100) : 0;
 
     // ----- PF -----
     let PFEmployee = 0;
@@ -61,8 +67,6 @@ export const calculatePayroll = (values) => {
 
     const inHandSalary = Math.max(gross - deductions, 0);
 
-    const shortWages = Math.max(minimumWages - basic, 0);
-
     return {
         PFEmployee,
         PFEmployer,
@@ -75,5 +79,7 @@ export const calculatePayroll = (values) => {
         deductions,
         inHandSalary,
         shortWages,
+        basicPercentage,
+        HRAPercentage
     };
 };

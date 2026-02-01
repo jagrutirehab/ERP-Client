@@ -8,7 +8,7 @@ import Select from "react-select";
 import { fetchReportings } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
-import DataTableComponent from '../../components/Table/DataTable';
+import DataTableComponent from '../../../../Components/Common/DataTable';
 import { employeeReportingsColumns } from '../../components/Table/Columns/employeeReportings';
 import EditEmployeeReportingModal from '../../components/EditEmployeeReportingModal';
 

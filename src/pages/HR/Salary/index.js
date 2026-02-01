@@ -4,20 +4,20 @@ import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import Select from "react-select";
 import { useDispatch, useSelector } from 'react-redux';
-import { endOfMonth, startOfMonth } from 'date-fns';
-import { Calendar, RotateCcw, RotateCw } from 'lucide-react';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
+import { Calendar, RotateCcw, RotateCw, X } from 'lucide-react';
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
 import { toast } from 'react-toastify';
 import { editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
-import DataTableComponent from '../../HRMS/components/Table/DataTable';
+import DataTableComponent from '../../../Components/Common/DataTable';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { salaryColumns } from '../../HRMS/components/Table/Columns/salary';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { generatePayroll, getPayrollGenerationStatus } from '../../../helpers/backend_helper';
-import { JOB_STATUS_MAP, legends } from '../../../Components/constants/HR';
+import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus } from '../../../helpers/backend_helper';
+import { legends } from '../../../Components/constants/HR';
 import ApproveModal from '../components/ApproveModal';
 
 const PayrollLegend = () => {
@@ -41,39 +41,35 @@ const PayrollLegend = () => {
     );
 };
 
+
 const PayrollJobStatus = ({ job }) => {
     if (!job?.status) return null;
 
-    const meta = JOB_STATUS_MAP[job.status];
+    const isRunning = job.status === "active" || job.status === "waiting";
+
+    // auto-hide after completion / failure
+    if (!isRunning) return null;
+
+    const progress = Math.min(Math.max(job.progress ?? 0, 0), 100);
 
     return (
-        <Alert color={meta.color} className="mb-3">
-            <div className="d-flex align-items-center gap-2">
-                {(job.status === "active" || job.status === "waiting") && (
-                    <Spinner size="sm" />
-                )}
-                <span className="fw-medium">{meta.text}</span>
+        <div className="mb-2">
+            <Progress
+                value={progress}
+                striped
+                animated
+                color="primary"
+                style={{ height: "6px", borderRadius: "4px" }}
+            />
+            <div className="d-flex justify-content-between mt-1">
+                <span className="small text-muted">Generating payroll…</span>
+                <span className="small fw-semibold text-muted">
+                    {progress}%
+                </span>
             </div>
-
-            {(job.status === "active" || job.status === "waiting") && (
-                <Progress
-                    value={job.progress}
-                    striped
-                    animated
-                    className="mt-2"
-                />
-            )}
-
-            {job.status === "failed" && job.error && (
-                <div className="mt-2 small">
-                    Reason: {job.error}
-                </div>
-            )}
-        </Alert>
+        </div>
     );
 };
-
-
 
 const Salary = () => {
     const navigate = useNavigate();
@@ -87,7 +83,6 @@ const Salary = () => {
     const [limit, setLimit] = useState(10);
     const [selectedMonth, setSelectedMonth] = useState(new Date());
     const [copyId, setCopyId] = useState(null);
-    const [exportLoading, setExportLoading] = useState(false);
     const [regenerateLoading, setRegenerateLoading] = useState(false);
     const [regenerationMeta, setRegenerationMeta] = useState({
         status: null,
@@ -98,6 +93,7 @@ const Salary = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [remarks, setRemarks] = useState("");
     const [selectedPayrollId, setSelectedPayrollId] = useState("");
+    const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const jobId = searchParams.get("jobId");
@@ -217,7 +213,7 @@ const Salary = () => {
             navigate(`${location.pathname}?${params.toString()}`, {
                 replace: true,
             });
-            toast.success("Regeneration triggerd successfully, please wait for sometime to regenerate the data");
+            toast.success("Regeneration triggerd successfully, please wait for sometime to populate the data");
         } catch (error) {
             if (!handleAuthError(error)) {
                 toast.error("Failed to regenrate payrolls")
@@ -244,6 +240,40 @@ const Salary = () => {
         }
     }
 
+    const handleExportXLSX = async () => {
+        setIsExcelGenerating(true);
+        try {
+            const response = await exportPayrollsXLSX({
+                search,
+                centers,
+                startDate: startOfMonth(selectedMonth),
+                endDate: endOfMonth(selectedMonth),
+                ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
+            });
+
+            const blob = new Blob([response.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = `Salary-Master-Sheet-${format(selectedMonth, "MMMM-yyyy")}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Something went wrong while generating xlsx file");
+            }
+        } finally {
+            setIsExcelGenerating(false);
+        }
+    }
+
     const handleCopy = async (text, id) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -256,14 +286,12 @@ const Salary = () => {
     };
 
     useEffect(() => {
-        if (!jobId || jobId === undefined) return;
-
-        setRegenerateLoading(true);
+        if (!jobId) return;
 
         const interval = setInterval(async () => {
+            setRegenerateLoading(true);
             try {
                 const response = await getPayrollGenerationStatus(jobId);
-
                 const { status, progress, failedReason } = response;
 
                 setRegenerationMeta({
@@ -272,30 +300,30 @@ const Salary = () => {
                     error: failedReason ?? null,
                 });
 
-
                 if (status === "completed" || status === "failed") {
                     clearInterval(interval);
-
-                    searchParams.delete("jobId");
-                    setSearchParams(searchParams, { replace: true });
+                    const params = new URLSearchParams(searchParams);
+                    params.delete("jobId");
+                    setSearchParams(params, { replace: true });
+                    if (status === "completed") {
+                        toast.success("Payroll data regenerated successfully");
+                    } else {
+                        toast.error("payroll data regeneration failed");
+                    }
+                    setRegenerateLoading(false);
                 }
+
             } catch (error) {
                 if (!handleAuthError(error)) {
-                    toast.error(error.message || "something went wrong");
+                    toast.error(error.message || "Something went wrong");
                 }
-            } finally {
-                clearInterval(interval)
-                setRegenerateLoading(false);
-                setRegenerationMeta({
-                    status: null,
-                    progress: 0,
-                    error: null,
-                });
+                setRegenerateLoading(false)
             }
         }, 3000);
 
         return () => clearInterval(interval);
     }, [jobId]);
+
 
     const columns = salaryColumns({
         searchText: debouncedSearch,
@@ -323,7 +351,7 @@ const Salary = () => {
                 <div className="text-center text-md-left mb-4">
                     <h1 className="display-6 fw-bold text-primary">SALARY</h1>
                 </div>
-                <PayrollJobStatus job={regenerationMeta} />
+
                 <div className="mb-3">
                     <div className="mb-3 d-none d-md-block">
                         {/* Desktop */}
@@ -373,6 +401,9 @@ const Salary = () => {
                                     />
                                 </div>
                             </div>
+                            <div style={{ minWidth: "220px" }}>
+                                <PayrollJobStatus key={jobId || "idle"} job={regenerationMeta} />
+                            </div>
                         </div>
                         <div className="d-flex justify-content-end gap-2">
                             <PayrollLegend />
@@ -400,6 +431,7 @@ const Salary = () => {
                                 color="primary"
                                 className="d-flex align-items-center gap-1 text-white"
                                 onClick={handleRegeneratePayroll}
+                                disabled={regenerateLoading}
                             >
                                 {regenerateLoading ? <Spinner size="sm" /> : <RotateCcw size={16} />}
                                 Regenerate
@@ -407,9 +439,10 @@ const Salary = () => {
                             <Button
                                 color="primary"
                                 className="d-flex align-items-center gap-1 text-white"
-                                onClick={() => { }}
+                                onClick={handleExportXLSX}
+                                disabled={regenerateLoading}
                             >
-                                {exportLoading ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                                {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
                                 Export Excel
                             </Button>
                         </div>
@@ -417,6 +450,7 @@ const Salary = () => {
 
                     {/* Mobile */}
                     <div className="mb-3 d-flex d-md-none flex-column gap-3">
+                        <PayrollJobStatus key={jobId || "idle"} job={regenerationMeta} />
                         <Select
                             value={selectedCenterOption}
                             onChange={(opt) => setSelectedCenter(opt.value)}
@@ -488,7 +522,7 @@ const Salary = () => {
                                 className="d-flex align-items-center gap-1 text-white"
                                 onClick={() => { }}
                             >
-                                {exportLoading ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                                {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
                                 Export Excel
                             </Button>
                         </div>

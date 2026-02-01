@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import DataTableComponent from "../../../components/Table/DataTable";
+import DataTableComponent from "../../../../../Components/Common/DataTable";
 import { regularizeRequestColumn } from "../../../components/Table/Columns/regularizeRequestColumn";
 import {
   getRegularizationsRequests,
