@@ -238,7 +238,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                             <small className="text-muted">
                                                 Initiator:{" "}
                                                 <span className="fw-semibold text-dark">
-                                                    {item.author.name.toUpperCase()}
+                                                    {item.author?.name?.toUpperCase()}
                                                 </span>
                                             </small>
                                         </div>
@@ -249,7 +249,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                         <small className="text-muted">
                                             Approved by:{" "}
                                             <span className="fw-semibold text-dark">
-                                                {item.approvedBy.name.toUpperCase()}
+                                                {item.approvedBy?.name?.toUpperCase()}
                                             </span>
                                         </small>
                                     </div>
