@@ -15,12 +15,16 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editAdvanceSalary, postAdvanceSalary } from "../../../../helpers/backend_helper";
+import { format, parse, set } from "date-fns";
 
 const validationSchema = Yup.object().shape({
     amount: Yup.number()
         .typeError("Amount must be a number")
         .required("Amount is required")
         .min(1, "Amount must be greater than 0"),
+    date: Yup.date()
+        .required("Date is required")
+        .typeError("Invalid date"),
 });
 
 const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
@@ -82,6 +86,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
             eCode: initialData?.employeeData?.eCode || "",
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
+            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -91,9 +96,25 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     return;
                 }
 
+                let salaryAdvanceDate;
+
+                if (values.date) {
+                    const now = new Date();
+                    salaryAdvanceDate = set(
+                        parse(values.date, "yyyy-MM-dd", new Date()),
+                        {
+                            hours: now.getHours(),
+                            minutes: now.getMinutes(),
+                            seconds: now.getSeconds(),
+                            milliseconds: 0,
+                        }
+                    );
+                }
+
                 const payload = {
                     ...(!isEdit && { employeeId: values.employeeId }),
-                    amount: values.amount
+                    amount: values.amount,
+                    date: salaryAdvanceDate
                 };
 
                 if (isEdit) {
@@ -187,19 +208,19 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
 
             {/* NAME */}
             <FormGroup className="mb-3">
-                <Label for="name">Name</Label>
+                <Label for="name">Name <span className="text-danger">*</span></Label>
                 <Input id="name" name="name" value={form.values.name} disabled />
             </FormGroup>
 
             {/* E-CODE */}
             <FormGroup className="mb-3">
-                <Label for="eCode">E-Code</Label>
+                <Label for="eCode">E-Code <span className="text-danger">*</span></Label>
                 <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
             </FormGroup>
 
             {/* CURRENT LOCATION */}
             <FormGroup className="mb-3">
-                <Label for="currentLocation">Current Location</Label>
+                <Label for="currentLocation">Current Location <span className="text-danger">*</span></Label>
                 <Input
                     id="currentLocation"
                     name="currentLocation"
@@ -208,9 +229,28 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 />
             </FormGroup>
 
+            {/* DATE */}
+            <FormGroup className="mb-3">
+                <Label for="date">
+                    Date <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    id="date"
+                    type="date"
+                    name="date"
+                    value={form.values.date}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    invalid={form.touched.date && !!form.errors.date}
+                />
+                {form.touched.date && form.errors.date && (
+                    <div className="text-danger small">{form.errors.date}</div>
+                )}
+            </FormGroup>
+
             {/* AMOUNT */}
             <FormGroup className="mb-3">
-                <Label for="amount">Amount</Label>
+                <Label for="amount">Amount <span className="text-danger">*</span></Label>
                 <Input
                     id="amount"
                     type="number"

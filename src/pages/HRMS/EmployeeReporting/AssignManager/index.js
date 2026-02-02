@@ -1,11 +1,10 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { CardBody, Spinner } from 'reactstrap';
 import EmployeeReportingForm from '../../components/forms/EmployeeReportingForm';
 
 const AssignManager = () => {
-  const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;

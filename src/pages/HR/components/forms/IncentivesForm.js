@@ -15,6 +15,7 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editIncentives, postIncentives } from "../../../../helpers/backend_helper";
+import { format, parse, set } from "date-fns";
 
 const validationSchema = Yup.object().shape({
     amount: Yup.number()
@@ -24,6 +25,9 @@ const validationSchema = Yup.object().shape({
     details: Yup.string()
         .trim()
         .required("Details are required"),
+    date: Yup.date()
+        .typeError("Invalid date")
+        .required("Date is required"),
 });
 
 const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
@@ -85,7 +89,8 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             eCode: initialData?.employee?.eCode || "",
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
-            details: initialData?.details || ""
+            details: initialData?.details || "",
+            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -95,10 +100,26 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                     return;
                 }
 
+                let incentiveDate;
+
+                if (values.date) {
+                    const now = new Date();
+                    incentiveDate = set(
+                        parse(values.date, "yyyy-MM-dd", new Date()),
+                        {
+                            hours: now.getHours(),
+                            minutes: now.getMinutes(),
+                            seconds: now.getSeconds(),
+                            milliseconds: 0,
+                        }
+                    );
+                }
+
                 const payload = {
                     ...(!isEdit && { employeeId: values.employeeId }),
                     amount: values.amount,
-                    details: values.details
+                    details: values.details,
+                    date: incentiveDate
                 };
 
                 if (isEdit) {
@@ -211,6 +232,25 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                     value={form.values.currentLocation}
                     disabled
                 />
+            </FormGroup>
+
+            {/* DATE */}
+            <FormGroup className="mb-3">
+                <Label for="date">
+                    Date <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    id="date"
+                    type="date"
+                    name="date"
+                    value={form.values.date}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    invalid={form.touched.date && !!form.errors.date}
+                />
+                {form.touched.date && form.errors.date && (
+                    <div className="text-danger small">{form.errors.date}</div>
+                )}
             </FormGroup>
 
             {/* AMOUNT */}

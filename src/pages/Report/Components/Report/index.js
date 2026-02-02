@@ -14,7 +14,7 @@ import AdvanceFilter from "./AdvanceFilter";
 import Table from "./Table";
 import { ADDMISSION_DATE, ALL_TRANSACTIONS, DUE_AMOUNT } from "./data";
 
-const Report = ({ data, centerAccess }) => {
+const Report = ({ data, centerAccess, loading }) => {
   const dispatch = useDispatch();
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
@@ -36,7 +36,11 @@ const Report = ({ data, centerAccess }) => {
 
   useEffect(() => {
     if (billType === DUE_AMOUNT) setSortByDate(ADDMISSION_DATE);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billType]);
 
+  // Manual trigger for View Report button
+  const handleViewReport = () => {
     const startDate = startOfDay(reportDate.start);
     const endDate = endOfDay(reportDate.end);
     dispatch(
@@ -48,24 +52,28 @@ const Report = ({ data, centerAccess }) => {
         patientsReferrel: patientsReferrel.trim(),
         sortPatientStatus,
         centerAccess,
-      })
+      }),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    reportDate,
-    billType,
-    patient,
-    centerAccess,
-    sortPatientStatus,
-    patientsReferrel,
-    dispatch,
-  ]);
+  };
+
+  useEffect(() => {
+    handleViewReport();
+  }, []);
 
   return (
     <React.Fragment>
       <div className="pt-4">
         <div className="bg-white p-2 m-n3">
-          <Header reportDate={reportDate} setReportDate={setReportDate} />
+          <Header
+            reportDate={reportDate}
+            setReportDate={setReportDate}
+            billType={billType}
+            setBillType={setBillType}
+            patient={patient}
+            setPatient={setPatient}
+            onViewReport={handleViewReport}
+            loading={loading}
+          />
           <Divider />
           <Menu
             data={data}
@@ -117,6 +125,7 @@ Report.propTypes = {
 const mapStateToProps = (state) => ({
   data: state.Report.data,
   centerAccess: state.User?.centerAccess,
+  loading: state.Report.loading,
 });
 
 export default connect(mapStateToProps)(Report);

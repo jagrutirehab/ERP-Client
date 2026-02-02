@@ -1653,6 +1653,14 @@ export const getEmployeeId = (params = {}) => {
   });
 };
 
+export const getEmployeeFinanceById = (id) => {
+  return api.get(`${url.EMPLOYEE_FINANCE}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const postEmployee = (data) => {
   return api.create(url.EMPLOYEE, data, {
     headers: {
@@ -2413,4 +2421,63 @@ export const getIncentives = (params = {}) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+};
+
+export const generatePayroll = (data) => {
+  return api.create(url.GENERATE_PAYROLL, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const getPayrolls = (params = {}) => {
+  return api.get(url.GET_PAYROLLS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  })
+};
+
+export const exportPayrollsXLSX = (params = {}) => {
+  return api.get(url.EXPORT_PAYROLLS_XLSX, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+    responseType: "blob",
+  });
+};
+
+export const getPayrollGenerationStatus = (id) => {
+  return api.get(`${url.PAYROLL_GENERATION_STATUS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+export const updatePayrollRemarks = (id, data) => {
+  return api.update(`${url.UPDATE_PAYROLL_REMARKS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// upload file
+export const uploadFile = (data) => {
+  return api.create(url.UPLOAD_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  })
 };

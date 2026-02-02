@@ -22,6 +22,9 @@ const List = ({
   setDeleteLead,
   setMergeLead,
   setUnMergeLead,
+  centerAccess,
+  grouped,
+  date,
 }) => {
   const dispatch = useDispatch();
 
@@ -295,9 +298,13 @@ const List = ({
                                     leadData: {
                                       ...lead,
                                       leadOrigin: "generic",
+                                      leadQuery,
+                                      centerAccess,
+                                      grouped,
+                                      date,
                                     },
                                     isOpen: true,
-                                  })
+                                  }),
                                 )
                               }
                             >
@@ -309,7 +316,7 @@ const List = ({
                               className="d-block user-profile-show"
                               onClick={() =>
                                 dispatch(
-                                  createEditLead({ data: lead, isOpen: true })
+                                  createEditLead({ data: lead, isOpen: true }),
                                 )
                               }
                             >

@@ -40,15 +40,13 @@ export const usePermissions = (token) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // console.log(roles, "roles");
-
   const hasPermission = (module, subModule, requiredType = "NONE") => {
     if (!roles) return false;
     const requiredRank = typeRank[requiredType];
 
-    console.log("Checking:", module, subModule, requiredType);
-    console.log("Roles:", roles);
-    console.log("Permissions:", roles.permissions);
+    // console.log("Checking:", module, subModule, requiredType);
+    // console.log("Roles:", roles);
+    // console.log("Permissions:", roles.permissions);
 
     return roles.permissions?.some((perm) => {
       if (perm.module !== module) return false;

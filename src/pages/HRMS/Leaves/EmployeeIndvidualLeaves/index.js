@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
-import DataTableComponent from "../../components/Table/DataTable";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { IndividualLeavesColumn } from "../../components/Table/Columns/individualEmpLeavesColumn";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";

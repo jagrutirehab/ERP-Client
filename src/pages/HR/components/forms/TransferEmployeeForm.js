@@ -213,19 +213,19 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* NAME */}
             <FormGroup className="mb-3">
-                <Label for="name">Name</Label>
+                <Label for="name">Name <span className="text-danger">*</span></Label>
                 <Input id="name" name="name" value={form.values.name} disabled />
             </FormGroup>
 
             {/* E-CODE */}
             <FormGroup className="mb-3">
-                <Label for="eCode">E-Code</Label>
+                <Label for="eCode">E-Code <span className="text-danger">*</span></Label>
                 <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
             </FormGroup>
 
             {/* CURRENT LOCATION */}
             <FormGroup className="mb-3">
-                <Label for="currentLocation">Current Location</Label>
+                <Label for="currentLocation">Current Location <span className="text-danger">*</span></Label>
                 <Input
                     id="currentLocation"
                     name="currentLocation"
@@ -236,7 +236,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* TRANSFER LOCATION */}
             <FormGroup>
-                <Label for="transferLocation">Transfer Location</Label>
+                <Label for="transferLocation">Transfer Location <span className="text-danger">*</span></Label>
 
                 <Select
                     inputId="transferLocation"
@@ -268,7 +268,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* DATE OF TRANSFER */}
             <FormGroup className="mb-3">
-                <Label for="transferDate">Date of Transfer</Label>
+                <Label for="transferDate">Date of Transfer <span className="text-danger">*</span></Label>
                 <Input
                     id="transferDate"
                     type="date"

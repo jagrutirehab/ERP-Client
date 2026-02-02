@@ -172,6 +172,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasSalaryPermission = hasPermission(
+    "HR",
+    "SALARY",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -336,7 +342,6 @@ const Sidebar = () => {
         if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         return true;
       });
-      console.log("hasManageLeavesPermission", hasManageLeavesPermission)
       return page.children.length > 0;
     }
 
@@ -361,8 +366,11 @@ const Sidebar = () => {
       return page.children.length > 0;
     }
 
+    if (page.id === "salary" && !hasSalaryPermission) return false;
+
     return true;
   });
+
 
   useEffect(() => {
     filteredHROptions.forEach((page) => {

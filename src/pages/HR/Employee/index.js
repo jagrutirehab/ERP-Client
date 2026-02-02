@@ -5,14 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import DataTable from "react-data-table-component";
 import Select from "react-select";
-// import { employees } from '../dummyData';
 import { Pencil, Trash2 } from "lucide-react";
 import { getMasterEmployees } from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { deleteEmployee } from "../../../helpers/backend_helper";
+import { deleteEmployee, getEmployeeFinanceById } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
@@ -69,17 +68,16 @@ const Employee = () => {
   } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MASTER_EMPLOYEE", "READ");
 
-  console.log("data", data);
 
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -157,6 +155,26 @@ const Employee = () => {
       }
     } finally {
       setDeleteModalOpen(false);
+      setModalLoading(false);
+    }
+  };
+
+  const handleEditEmployee = async (row) => {
+    setModalLoading(true);
+    try {
+      const res = await getEmployeeFinanceById(row._id);
+
+      setSelectedEmployee({
+        ...row,
+        financeDetails: res?.data?.financeDetails,
+      });
+
+      setModalOpen(true);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch employee finance details");
+      }
+    } finally {
       setModalLoading(false);
     }
   };
@@ -485,49 +503,48 @@ const Employee = () => {
     },
     ...(hasPermission("HR", "MASTER_EMPLOYEE", "WRITE")
       ? [
-          {
-            name: <div>Actions</div>,
-            cell: (row) => (
-              <div className="d-flex gap-2">
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  subAccess={"MASTER_EMPLOYEE"}
-                  permission={"edit"}
+        {
+          name: <div>Actions</div>,
+          cell: (row) => (
+            <div className="d-flex gap-2">
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                subAccess={"MASTER_EMPLOYEE"}
+                permission={"edit"}
+              >
+                <button
+                  className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                  onClick={() => {
+                    handleEditEmployee(row);
+                  }}
                 >
-                  <button
-                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                    onClick={() => {
-                      setSelectedEmployee(row);
-                      setModalOpen(true);
-                    }}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                </CheckPermission>
+                  <Pencil size={16} />
+                </button>
+              </CheckPermission>
 
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  subAccess={"MASTER_EMPLOYEE"}
-                  permission={"delete"}
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                subAccess={"MASTER_EMPLOYEE"}
+                permission={"delete"}
+              >
+                <button
+                  className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                  onClick={() => {
+                    setSelectedEmployee(row);
+                    setDeleteModalOpen(true);
+                  }}
                 >
-                  <button
-                    className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                    onClick={() => {
-                      setSelectedEmployee(row);
-                      setDeleteModalOpen(true);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </CheckPermission>
-              </div>
-            ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
-            minWidth: "140px",
-          },
-        ]
+                  <Trash2 size={16} />
+                </button>
+              </CheckPermission>
+            </div>
+          ),
+          ignoreRowClick: true,
+          allowOverflow: true,
+          button: true,
+          minWidth: "140px",
+        },
+      ]
       : []),
   ];
 
