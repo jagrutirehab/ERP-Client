@@ -232,12 +232,24 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
+                                {
+                                    item?.author && (
+                                        <div className="d-flex justify-content-end mb-2 mt-2 me-2">
+                                            <small className="text-muted">
+                                                Initiator:{" "}
+                                                <span className="fw-semibold text-dark">
+                                                    {item.author.name.toUpperCase()}
+                                                </span>
+                                            </small>
+                                        </div>
+                                    )
+                                }
                                 {item?.approvedBy && (
                                     <div className="d-flex justify-content-end mb-2 mt-2 me-2">
                                         <small className="text-muted">
-                                            Approved by{" "}
+                                            Approved by:{" "}
                                             <span className="fw-semibold text-dark">
-                                                {item.approvedBy.name}
+                                                {item.approvedBy.name.toUpperCase()}
                                             </span>
                                         </small>
                                     </div>

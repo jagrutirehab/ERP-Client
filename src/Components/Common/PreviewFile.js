@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "./Modal";
 import { Spinner } from "reactstrap";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const PreviewFile = ({ title = "Preview File", file, isOpen, toggle }) => {
   const [loading, setLoading] = useState(true);
@@ -53,12 +54,23 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle }) => {
       )}
 
       {isImage && (
-        <img
-          src={url}
-          alt="Preview"
-          className="img-fluid mx-auto d-block"
-          onLoad={() => setLoading(false)}
-        />
+        <TransformWrapper
+          minScale={1}
+          maxScale={5}
+          centerOnInit
+          doubleClick={{ disabled: true }}
+          wheel={{ step: 0.2 }}
+        >
+          <TransformComponent>
+
+            <img
+              src={url}
+              alt="Preview"
+              className="img-fluid mx-auto d-block"
+              onLoad={() => setLoading(false)}
+            />
+          </TransformComponent>
+        </TransformWrapper>
       )}
 
       {!isPdf && !isImage && (
