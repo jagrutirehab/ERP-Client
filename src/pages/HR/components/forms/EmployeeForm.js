@@ -284,7 +284,7 @@ const EmployeeForm = ({
   useEffect(() => {
     const loadDesignations = async () => {
       try {
-        dispatch(fetchDesignations({ status: ["APPROVED"] })).unwrap();
+        dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] })).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error("Something went wrong while getting the designations");
