@@ -179,8 +179,8 @@ const Header = ({
                             <div onClick={() => changeDate(7)}>Last 7 days</div>
                           </DropdownItem>
                           <DropdownItem>
-                            <div onClick={() => changeDate(30)}>
-                              Last 30 days
+                            <div onClick={() => changeDate(31)}>
+                              Last Month
                             </div>
                           </DropdownItem>
                           <DropdownItem>
