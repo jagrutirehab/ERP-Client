@@ -44,7 +44,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const [removedAttachments, setRemovedAttachments] = useState([]);
 
     const validationSchema = Yup.object({
-        name: Yup.string().required("Name is required"),
+        // name: Yup.string().required("Name is required"),
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
         category: Yup.string()
@@ -130,7 +130,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
     const form = useFormik({
         initialValues: {
-            name: paymentData?.name || "",
+            // name: paymentData?.name || "",
             center: paymentData?.center?._id || "",
             items: paymentData?.items || "",
             category: paymentData?.category || "",
@@ -287,7 +287,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
     return (
         <Form onSubmit={handleSubmit}>
-            <FormGroup>
+            {/* <FormGroup>
                 <Label for="name" className="fw-medium">
                     Name <span className="text-danger">*</span>
                 </Label>
@@ -309,7 +309,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         {form.errors.name}
                     </div>
                 )}
-            </FormGroup>
+            </FormGroup> */}
             <FormGroup>
                 <Label for="center" className="fw-medium">
                     Center <span className="text-danger">*</span>

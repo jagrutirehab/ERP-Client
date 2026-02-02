@@ -137,7 +137,7 @@ const PaymentFormModal = ({
                                 <Row>
                                     <Col md={6}>
                                         <p className="mb-0"><strong>ID:</strong> {paymentDetails?.id || "-"}</p>
-                                        <p className="mb-0"><strong>Name:</strong> {paymentDetails?.name || "-"}</p>
+                                        <p className="mb-0"><strong>Initiator:</strong> {paymentDetails?.author?.name?.toUpperCase() || "-"}</p>
                                         <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title) || "Unknown Center"}</p>
                                         <p className="mb-0"><strong>Items:</strong> {paymentDetails?.items || "-"}</p>
                                         <p className="mb-0"><strong>Item Category:</strong> {categoryOptions.find(
