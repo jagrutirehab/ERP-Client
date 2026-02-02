@@ -43,6 +43,18 @@ const Header = ({
     setReportDate({ start: startOfDay(firstDay), end: endOfDay(new Date()) });
   };
 
+  const changeToLastMonth = () => {
+    const now = new Date();
+
+    const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    setReportDate({
+      start: startOfDay(firstDay),
+      end: endOfDay(lastDay),
+    });
+  };
+
   const handleChange = (e) => {
     if (e) setBillType(e.target.value);
   };
@@ -179,12 +191,17 @@ const Header = ({
                             <div onClick={() => changeDate(7)}>Last 7 days</div>
                           </DropdownItem>
                           <DropdownItem>
-                            <div onClick={() => changeDate(31)}>
-                              Last Month
+                            <div onClick={() => changeDate(30)}>
+                              Last 30 days
                             </div>
                           </DropdownItem>
                           <DropdownItem>
                             <div onClick={changeToMonth}>This month</div>
+                          </DropdownItem>
+                          <DropdownItem>
+                            <div onClick={() => changeToLastMonth()}>
+                              Last Month
+                            </div>
                           </DropdownItem>
                         </DropdownMenu>
                       </UncontrolledDropdown>
