@@ -33,15 +33,12 @@ const Inovice = ({
   useEffect(() => {
     dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
   }, [dispatch, centers]);
-  console.log("Invoice procedures (raw from API):", dataList);
 
   const handleChange = (e) => {
     const value = e.target.value;
     setSearchItem(value);
   };
   const categoryValues = categories?.map((c) => c.value.toLowerCase());
-
-  console.log("center from dropdown", dataList);
 
   const patientCenterId = String(center?._id);
 

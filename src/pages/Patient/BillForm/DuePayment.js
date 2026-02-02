@@ -54,7 +54,7 @@ const DuePayment = ({
   const [totalPayable, setTotalPayable] = useState(0);
   const [refund, setRefund] = useState(0);
   const [invoiceType, setInvoiceType] = useState(
-    editBillData ? editBillData.bill : INVOICE
+    editBillData ? editBillData.bill : INVOICE,
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
@@ -81,9 +81,9 @@ const DuePayment = ({
       invoiceList: Yup.array().of(
         Yup.object({
           unitOfMeasurement: Yup.string().required(
-            "Unit of measurement is required"
+            "Unit of measurement is required",
           ),
-        })
+        }),
       ),
       ...(type === OPD && {
         paymentModes: Yup.number().test(
@@ -98,7 +98,7 @@ const DuePayment = ({
               });
             }
             return true;
-          }
+          },
         ),
       }),
       bill: Yup.string().required("Bill type required!"),
@@ -113,19 +113,29 @@ const DuePayment = ({
             shouldPrintAfterSave,
             ...values,
             paymentModes,
-          })
+          }),
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          }),
+        );
       } else {
-       const response = await dispatch(
+        const response = await dispatch(
           addInvoice({
             ...values,
             appointment: appointment?._id,
             paymentModes,
             shouldPrintAfterSave,
-          })
+          }),
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          }),
+        );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
@@ -147,12 +157,12 @@ const DuePayment = ({
 
             // Step 1: filter
             const invoices = bills.filter(
-              (item) => item.bill === "INVOICE" && item.type === "IPD"
+              (item) => item.bill === "INVOICE" && item.type === "IPD",
             );
 
             // Step 2: sort by createdAt (newest first)
             invoices.sort(
-              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
             );
 
             // Step 3: pick latest
@@ -231,8 +241,8 @@ const DuePayment = ({
         "paymentModes",
         paymentModes?.reduce(
           (sum, val) => parseInt(sum) + parseInt(val.amount),
-          0
-        )
+          0,
+        ),
       );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -268,8 +278,8 @@ const DuePayment = ({
         "paymentModes",
         paymentModes.reduce(
           (sum, val) => parseInt(sum) + parseInt(val.amount),
-          0
-        )
+          0,
+        ),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,8 +313,6 @@ const DuePayment = ({
       });
     }
   };
-
-  console.log("patient from invoice", patient)
 
   return (
     <React.Fragment>

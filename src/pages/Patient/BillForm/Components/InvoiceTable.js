@@ -101,12 +101,14 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
             }
 
             return (
-              <React.Fragment key={item.id + item.slot}>
+              <React.Fragment key={idx}>
                 <div className="d-md-none card shadow-sm mb-3 mt-2">
                   <div className="card-body">
                     <div className="mb-3">
                       <div className="d-flex justify-content-between align-items-center">
-                        <span className="text-primary text-capitalize fw-bold">{item.slot}</span>
+                        <span className="text-primary text-capitalize fw-bold">
+                          {item.slot}
+                        </span>
                         <Button
                           onClick={() => deleteForm(idx)}
                           color="danger"
@@ -121,7 +123,9 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                     <Row className="g-2 mb-3">
                       <Col xs={6}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Quantity</Label>
+                          <Label size="sm" className="fw-bold text-muted">
+                            Quantity
+                          </Label>
                           <Input
                             bsSize="sm"
                             id={idx}
@@ -146,7 +150,9 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       </Col>
                       <Col xs={6}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Cost</Label>
+                          <Label size="sm" className="fw-bold text-muted">
+                            Cost
+                          </Label>
                           <Input
                             bsSize="sm"
                             id={idx}
@@ -174,7 +180,9 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                     <Row className="g-2 mb-3">
                       <Col xs={7}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Unit of Measurement</Label>
+                          <Label size="sm" className="fw-bold text-muted">
+                            Unit of Measurement
+                          </Label>
                           {unitOptions.length === 1 ? (
                             <div className="d-flex align-items-center border rounded p-1 bg-light">
                               <span className="text-muted small">
@@ -203,17 +211,22 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       </Col>
                       <Col xs={5}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Total</Label>
+                          <Label size="sm" className="fw-bold text-muted">
+                            Total
+                          </Label>
                           <div className="border rounded px-2 py-1 bg-primary text-white text-center">
-                            <span className="fw-bold">{totalValue?.toFixed(2) || 0}</span>
+                            <span className="fw-bold">
+                              {totalValue?.toFixed(2) || 0}
+                            </span>
                           </div>
                         </div>
                       </Col>
                     </Row>
 
-
                     <div className="mb-2">
-                      <Label size="sm" className="fw-bold text-muted">Remarks</Label>
+                      <Label size="sm" className="fw-bold text-muted">
+                        Remarks
+                      </Label>
                       <Input
                         id={idx}
                         type="textarea"
