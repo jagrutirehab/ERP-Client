@@ -233,7 +233,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex justify-content-end">
                                 {
-                                    item?.author && (
+                                    flag === "processPayment" && item?.author && (
                                         <div className="d-flex justify-content-end mb-2 mt-2 me-2">
                                             <small className="text-muted">
                                                 Initiator:{" "}
