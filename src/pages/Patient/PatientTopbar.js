@@ -67,11 +67,13 @@ const PatientTopbar = ({
   const [nurseModal, setNurseModal] = useState(false);
 
   const admission = admissions.find(
-    (admission) => admission._id === patient.addmission._id
+    (admission) => admission._id === patient.addmission._id,
   );
 
+  // console.log("admission", admission.center?._id);
+
   useEffect(() => {
-    if (admission?.center) {
+    if (admission?.center?._id) {
       dispatch(fetchDoctors({ center: admission.center?._id }));
     }
   }, [dispatch, admission?.center]);
@@ -104,7 +106,7 @@ const PatientTopbar = ({
         admissionId: admission?._id,
         doctorId: selectedDoctor?.value,
         psychologistId: selectedPsychologist?.value,
-      })
+      }),
     );
   };
 
@@ -175,7 +177,7 @@ const PatientTopbar = ({
                           aria-controls="userProfileCanvasExample"
                           onClick={() =>
                             dispatch(
-                              viewProfile({ data: patient, isOpen: true })
+                              viewProfile({ data: patient, isOpen: true }),
                             )
                           }
                         >
@@ -547,7 +549,7 @@ const PatientTopbar = ({
                             admitDischargePatient({
                               data: null,
                               isOpen: DISCHARGE_PATIENT,
-                            })
+                            }),
                           )
                         }
                         // href="#"
@@ -559,7 +561,10 @@ const PatientTopbar = ({
                         <DropdownItem
                           onClick={() =>
                             dispatch(
-                              togglePatientForm({ data: patient, isOpen: true })
+                              togglePatientForm({
+                                data: patient,
+                                isOpen: true,
+                              }),
                             )
                           }
                           href="#"
