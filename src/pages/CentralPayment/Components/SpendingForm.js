@@ -67,29 +67,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().nullable(),
-        totalAmountWithGST: Yup.number()
-            .typeError("Total amount must be a number")
+        totalAmountWithGST: Yup.string()
             .required("Total amount with GST is required")
-            .moreThan(0, "Total amount with GST must be greater than 0")
+            .matches(/^\d+(\.\d{1,2})?$/, "Total amount can have at most 2 decimal places")
             .test(
-                "max-two-decimals",
-                "Total amount can have at most 2 decimal places",
-                (value) => {
-                    if (value === undefined || value === null) return true;
-                    return Math.round(value * 100) === value * 100;
-                }
+                "greater-than-zero",
+                "Total amount must be greater than 0",
+                (val) => val && Number(val) > 0
             ),
-        GSTAmount: Yup.number()
-            .typeError("GST amount must be a number")
+        GSTAmount: Yup.string()
             .required("GST amount is required")
-            .test(
-                "max-two-decimals",
-                "GST amount can have at most 2 decimal places",
-                (value) => {
-                    if (value === undefined || value === null) return true;
-                    return Math.round(value * 100) === value * 100;
-                }
-            ),
+            .matches(/^\d+(\.\d{1,2})?$/, "GST amount can have at most 2 decimal places"),
         IFSCCode: Yup.string()
             .nullable()
             .trim()
@@ -196,6 +184,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     return;
                 }
 
+                if (key === "totalAmountWithGST" || key === "GSTAmount") {
+                    formData.append(key, Number(val));
+                    return;
+                }
+
                 if (key === "employeeId") {
                     if (val?.value) formData.append("employeeId", val.value);
                     return;
@@ -253,12 +246,22 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             }
         }
 
+
         let newValue = value;
         if (["IFSCCode", "accountNo"].includes(name)) {
             newValue = value.replace(/\s+/g, "");
         }
 
         form.setFieldValue(name, newValue.toUpperCase(), true);
+    };
+
+    const normalizeAmountInput = (e) => {
+        const { name, value } = e.target;
+
+        // allow empty, digits, decimal, max 2 decimals
+        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+
+        form.setFieldValue(name, value);
     };
 
     const loadEmployees = async (inputValue) => {
@@ -577,7 +580,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="totalAmountWithGST"
                     name="totalAmountWithGST"
                     value={form.values.totalAmountWithGST}
-                    onChange={(e) => normalizeTextInput(e)}
+                    onChange={(e) => normalizeAmountInput(e)}
                     onBlur={form.handleBlur}
                     placeholder="0.00"
                     className={`form-control ${form.touched.totalAmountWithGST && form.errors.totalAmountWithGST
@@ -601,7 +604,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="GSTAmount"
                     name="GSTAmount"
                     value={form.values.GSTAmount}
-                    onChange={(e) => normalizeTextInput(e)}
+                    onChange={(e) => normalizeAmountInput(e)}
                     onBlur={form.handleBlur}
                     placeholder="0.00"
                     className={`form-control ${form.touched.GSTAmount && form.errors.GSTAmount
