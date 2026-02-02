@@ -167,7 +167,7 @@ const DetailedReport = ({
       minWidth: "120px",
     },
     {
-      name: <div>Author</div>,
+      name: <div>Initiator</div>,
       selector: (row) => capitalizeWords(row.author?.name || "-"),
       wrap: true,
     },
