@@ -160,6 +160,7 @@ const Employee = () => {
   };
 
   const handleEditEmployee = async (row) => {
+    setSelectedEmployee(row);
     setModalLoading(true);
     try {
       const res = await getEmployeeFinanceById(row._id);
@@ -518,7 +519,7 @@ const Employee = () => {
                     handleEditEmployee(row);
                   }}
                 >
-                  <Pencil size={16} />
+                  {(modalLoading && selectedEmployee?._id === row?._id) ? <Spinner size={"sm"} /> : <Pencil size={16} />}
                 </button>
               </CheckPermission>
 

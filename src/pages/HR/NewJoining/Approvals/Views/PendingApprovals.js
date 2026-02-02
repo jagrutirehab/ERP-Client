@@ -152,6 +152,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     }
 
     const handleEditEmployee = async (row) => {
+        setSelectedEmployee(row);
         setModalLoading(true);
         try {
             const res = await getEmployeeFinanceById(row._id);
@@ -503,7 +504,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                                         handleEditEmployee(row);
                                     }}
                                 >
-                                    {modalLoading ? <Spinner size="sm" /> : <Pencil size={16} />}
+                                    {(modalLoading && selectedEmployee?._id === row?._id) ? <Spinner size="sm" /> : <Pencil size={16} />}
                                 </button>
                             </CheckPermission>
 

@@ -10,7 +10,9 @@ export const calculatePayroll = (values) => {
     const minimumWages = Number(values.minimumWages || 0);
 
     // short wages
-    const shortWages = -Math.max(Math.round(minimumWages - basic), 0);
+    const diffPaise = Math.round((minimumWages - basic) * 100);
+    const shortWages = diffPaise > 0 ? -(diffPaise / 100) : 0;
+
     const basicPercentage = gross > 0 ? Math.round((basic / gross) * 100) : 0;
     const HRAPercentage = gross > 0 ? Math.round((hra / basic) * 100) : 0;
 

@@ -138,7 +138,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
     },
     {
         name: <div>Basic%</div>,
-        selector: row => `${row?.salarySnapshot?.HRAPercentage}%` || `0%`,
+        selector: row => `${row?.salarySnapshot?.basicPercentage}%` || `0%`,
         wrap: true,
         center: true
     },
