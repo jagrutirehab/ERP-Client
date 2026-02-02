@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Button, CardBody, Input, Spinner, UncontrolledTooltip, Row, Col, Alert, Progress } from 'reactstrap';
+import { Button, CardBody, Input, Spinner, UncontrolledTooltip, Row, Col, Progress } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import Select from "react-select";
 import { useDispatch, useSelector } from 'react-redux';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
-import { Calendar, RotateCcw, RotateCw, X } from 'lucide-react';
+import { Calendar, RotateCcw, RotateCw} from 'lucide-react';
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
@@ -47,7 +47,6 @@ const PayrollJobStatus = ({ job }) => {
 
     const isRunning = job.status === "active" || job.status === "waiting";
 
-    // auto-hide after completion / failure
     if (!isRunning) return null;
 
     const progress = Math.min(Math.max(job.progress ?? 0, 0), 100);
@@ -103,7 +102,7 @@ const Salary = () => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, loading: permissionLoader } =
+    const { hasPermission, loading: permissionLoader, roles } =
         usePermissions(token);
 
     const { centerAccess, userCenters } = useSelector((state) => state.User);
@@ -427,20 +426,24 @@ const Salary = () => {
                             <UncontrolledTooltip target="refresh-data-btn">
                                 Refresh
                             </UncontrolledTooltip>
-                            <Button
-                                color="primary"
-                                className="d-flex align-items-center gap-1 text-white"
-                                onClick={handleRegeneratePayroll}
-                                disabled={regenerateLoading}
-                            >
-                                {regenerateLoading ? <Spinner size="sm" /> : <RotateCcw size={16} />}
-                                Regenerate
-                            </Button>
+                            {
+                                hasPermission("HR", "SALARY", "DELETE") && (
+                                    <Button
+                                        color="primary"
+                                        className="d-flex align-items-center gap-1 text-white"
+                                        onClick={handleRegeneratePayroll}
+                                        disabled={regenerateLoading}
+                                    >
+                                        {regenerateLoading ? <Spinner size="sm" /> : <RotateCcw size={16} />}
+                                        Regenerate
+                                    </Button>
+                                )
+                            }
                             <Button
                                 color="primary"
                                 className="d-flex align-items-center gap-1 text-white"
                                 onClick={handleExportXLSX}
-                                disabled={regenerateLoading}
+                                disabled={regenerateLoading || isExcelGenerating}
                             >
                                 {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
                                 Export Excel
@@ -509,18 +512,22 @@ const Salary = () => {
                             <UncontrolledTooltip target="refresh-data-btn">
                                 Refresh
                             </UncontrolledTooltip>
+                            {hasPermission("HR", "SALARY", "DELETE") && (
+                                <Button
+                                    color="primary"
+                                    className="d-flex align-items-center gap-1 text-white"
+                                    onClick={handleRegeneratePayroll}
+                                    disabled={regenerateLoading}
+                                >
+                                    {regenerateLoading ? <Spinner size="sm" /> : <RotateCcw size={16} />}
+                                    Regenerate
+                                </Button>
+                            )}
                             <Button
                                 color="primary"
                                 className="d-flex align-items-center gap-1 text-white"
-                                onClick={handleRegeneratePayroll}
-                            >
-                                {regenerateLoading ? <Spinner size="sm" /> : <RotateCcw size={16} />}
-                                Regenerate
-                            </Button>
-                            <Button
-                                color="primary"
-                                className="d-flex align-items-center gap-1 text-white"
-                                onClick={() => { }}
+                                onClick={handleExportXLSX}
+                                disabled={regenerateLoading || isExcelGenerating}
                             >
                                 {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
                                 Export Excel
