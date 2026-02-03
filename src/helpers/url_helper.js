@@ -200,6 +200,9 @@ export const GET_DELETED_BILL_ITEMS = "/bill-setting/deleted";
 export const GET_BILL_ITEMS = "/bill-setting";
 export const GET_ALL_BILL_ITEMS = "/bill-setting/all";
 export const EDIT_BILL_ITEM = "/bill-setting";
+export const GET_PROCEDURES_BY_ID = "/bill-setting/procedures";
+export const DETELE_CENTER_IN_PROCEDURE = "/bill-setting/procedures/delete/center";
+export const ADD_CENTERS_IN_PROCEDURE = "/bill-setting/procedures/add/center";
 export const DELETE_BILL_ITEM = "/bill-setting";
 //advance payment
 export const POST_PAYMENT_ACCOUNT = "/bill-setting/payment-account";
