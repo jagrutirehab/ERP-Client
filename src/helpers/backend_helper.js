@@ -244,6 +244,24 @@ export const getBillItems = ({
 export const postBillItem = (data) => api.create(url.POST_BILL_ITEM, data);
 // export const postRestoreBillItem = (data) => api.update(url., data);
 export const editBillItem = (data) => api.put(url.EDIT_BILL_ITEM, data);
+
+// get procedures by id
+export const getProceduresByid = (proId) =>
+  api.get(`${url.GET_PROCEDURES_BY_ID}/${proId}`);
+
+export const deleteCenterInProcedure = ({ payload }) => {
+  return api.delete(`${url.DETELE_CENTER_IN_PROCEDURE}`, {
+    data: payload,
+  });
+};
+
+export const addCentersToProcedure = ({ proId, centerIds, cost }) =>
+  api.create(url.ADD_CENTERS_IN_PROCEDURE, {
+    proId,
+    centerIds,
+    cost,
+  });
+
 export const deleteBillItem = (data) =>
   api.delete(`${url.DELETE_BILL_ITEM}/${data}`);
 //advance payment
@@ -2431,7 +2449,7 @@ export const generatePayroll = (data) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const getPayrolls = (params = {}) => {
@@ -2443,7 +2461,7 @@ export const getPayrolls = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
-  })
+  });
 };
 
 export const exportPayrollsXLSX = (params = {}) => {
@@ -2462,7 +2480,7 @@ export const getPayrollGenerationStatus = (id) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 export const updatePayrollRemarks = (id, data) => {
   return api.update(`${url.UPDATE_PAYROLL_REMARKS}/${id}`, data, {
@@ -2479,5 +2497,5 @@ export const uploadFile = (data) => {
       "Content-Type": "multipart/form-data",
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };

@@ -1,9 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
 
-const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
+const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
+  console.log("invoiceList", invoiceList);
+  const [cost, setCost] = useState(0);
+  const handleCostChange = (e, idx, item) => {
+    const value = e.target.value;
+
+    const updatedCenters = (item.centers || []).map((c) =>
+      String(c.center._id) === String(center._id)
+        ? { ...c, cost: value === "" ? "" : parseInt(value) }
+        : c,
+    );
+
+    const newInvoiceList = [...invoiceList];
+    newInvoiceList[idx] = {
+      ...item,
+      centers: updatedCenters,
+    };
+
+    setInvoiceList(newInvoiceList);
+  };
+
   const getValues = (e) => {
     const prop = e.target.name;
     const value =
@@ -34,7 +54,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
           [prop]: value,
         };
       }
-    } else if (prop === "unit" || prop === "cost") {
+    } else if (prop === "unit") {
       newInvoiceList[idx] = {
         ...item,
         [prop]: parseInt(value),
@@ -56,6 +76,9 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
       categoryUnitOptions.default
     );
   };
+
+  console.log("center", center);
+  console.log("invoiceList", invoiceList);
 
   return (
     <React.Fragment>
@@ -81,6 +104,12 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
         </div>
         <div>
           {(invoiceList || []).map((item, idx) => {
+            // const exactCost = item?.centers?.find(
+            //   (c) => String(c?.center?._id) === String(center?._id),
+            // );
+
+            // const cost = exactCost?.cost || 0;
+
             const totalValue =
               item.unit && item.cost
                 ? parseInt(item.unit) * parseInt(item.cost)
@@ -156,7 +185,6 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                           <Input
                             bsSize="sm"
                             id={idx}
-                            slot={item}
                             type="number"
                             name="cost"
                             min={1}
@@ -164,7 +192,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                             onChange={(e) => {
                               const value = Number(e.target.value);
                               if (value >= 0 || e.target.value === "") {
-                                getValues(e);
+                                handleCostChange(e, idx, item);
                               }
                             }}
                             onKeyDown={(e) => {
@@ -283,7 +311,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
                       onChange={(e) => {
                         const value = Number(e.target.value);
                         if (value >= 0 || e.target.value === "") {
-                          getValues(e);
+                          handleCostChange(e, idx, item);
                         }
                       }}
                       onKeyDown={(e) => {

@@ -33,6 +33,11 @@ const DuePayment = ({
 }) => {
   const dispatch = useDispatch();
 
+  console.log("Data : ", {
+    patient,
+    center,
+  });
+
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
@@ -58,6 +63,8 @@ const DuePayment = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
+
+  console.log("center", center);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -291,23 +298,30 @@ const DuePayment = ({
     const invoiceItems = Array.isArray(data) ? data : [];
 
     const checkItem = invoiceItems.find((currentItem) => {
-      const slotName = currentItem?.slot?.name;
+      const slotName = currentItem?.slot;
       const itemName = item?.name || item;
       return slotName === itemName;
     });
 
     if (!checkItem) {
+      const exactCenter = item?.center?.find(
+        (d) => String(d?.center?._id) === String(patient?.center?._id || center),
+      );
+
+      const exactCost = exactCenter?.cost || 0;
+
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
         return [
           ...prevArray,
           {
             slot: item.name ? item.name : item,
-            category: item.category ? item.category : "",
+            category: item.category || "",
             unit: parseInt(item.unit) || 0,
-            cost: parseInt(item.cost) || 0,
+            cost: exactCost,
             unitOfMeasurement: item.unitOfMeasurement || "",
             comments: "",
+            // centers: item.center || [],
           },
         ];
       });
@@ -340,6 +354,7 @@ const DuePayment = ({
             invoiceList={invoiceList}
             setInvoiceList={setInvoiceList}
             {...rest}
+            center={patient?.center}
           />
           {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>
