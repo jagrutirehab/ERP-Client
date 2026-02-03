@@ -42,8 +42,9 @@ const Inovice = ({
   const categoryValues = categories?.map((c) => c.value.toLowerCase());
 
   console.log("center from dropdown", dataList);
+  console.log("centerww", center);
 
-  const patientCenterId = String(center?._id);
+ const patientCenterId = String(center?._id ?? center);
 
   return (
     <React.Fragment>
@@ -78,12 +79,11 @@ const Inovice = ({
                     categoryValues?.length === 0 ||
                     categoryValues?.includes(item.category?.toLowerCase());
 
-                  // const matchesCenter =
-                  //   Array.isArray(item.center) &&
-                  //   item.center.some((c) => String(c) === patientCenterId);
+                  const matchesCenter =
+                    Array.isArray(item.center) &&
+                    item.center.some((c) => String(c?.center?._id) === patientCenterId);
 
-                  return matchesSearch && matchesCategory;
-                  //  && matchesCenter
+                  return matchesSearch && matchesCategory && matchesCenter;
                 })
                 .map((item) => (
                   <DropdownItem

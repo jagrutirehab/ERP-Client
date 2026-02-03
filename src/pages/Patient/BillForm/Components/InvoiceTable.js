@@ -4,7 +4,7 @@ import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
 
 const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
-  console.log("invoiceList", invoiceList);
+  // console.log("invoiceList", invoiceList);
   const [cost, setCost] = useState(0);
   const handleCostChange = (e, idx, item) => {
     const value = e.target.value;
@@ -19,6 +19,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
     newInvoiceList[idx] = {
       ...item,
       centers: updatedCenters,
+      cost: value === "" ? "" : Number(value),
     };
 
     setInvoiceList(newInvoiceList);
@@ -77,8 +78,8 @@ const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
     );
   };
 
-  console.log("center", center);
-  console.log("invoiceList", invoiceList);
+  // console.log("center", center);
+  // console.log("invoiceList", invoiceList);
 
   return (
     <React.Fragment>

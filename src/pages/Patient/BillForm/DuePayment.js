@@ -350,7 +350,7 @@ const DuePayment = ({
             addItem={addInvoiceItem}
             categories={categories}
             setCategories={setCategories}
-            center={patient?.center}
+            center={center || patient?.center}
           />
           <InvoiceTable
             invoiceList={invoiceList}
