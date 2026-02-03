@@ -207,9 +207,7 @@ const getInitialValues = (initialData, mode) => ({
   minimumWages: initialData?.financeDetails?.minimumWages || 0,
   shortWages: initialData?.financeDetails?.shortWages || 0,
   grossSalary:
-    initialData?.financeDetails?.grossSalary ??
-    initialData?.monthlyCTC ??
-    0,
+    initialData?.financeDetails?.grossSalary || 0,
 
   basicPercentage: initialData?.financeDetails?.basicPercentage || 0,
   basicAmount: initialData?.financeDetails?.basicAmount || 0,
