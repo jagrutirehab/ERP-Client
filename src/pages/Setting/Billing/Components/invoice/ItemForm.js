@@ -58,6 +58,9 @@ const categories = [
 const MedicinesForm = ({ toggle, centers, userCenters }) => {
   const dispatch = useDispatch();
   const [items, setBillItems] = useState([]);
+  const [selectedCenters, setSelectedCenters] = useState(
+    centers.map((cen) => cen._id),
+  );
 
   const handleChange = (e) => {
     const itemList = [...items];
@@ -78,7 +81,7 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
 
     initialValues: {
       items: items,
-      centers: centers.map((cen) => cen._id),
+      centers: selectedCenters,
     },
     validationSchema: Yup.object({
       items: Yup.array().test(
@@ -150,12 +153,12 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
                   size="sm"
                   outline
                   color={isAllSelected ? "danger" : "primary"}
-                  onClick={() =>
-                    validation.setFieldValue(
-                      "centers",
-                      isAllSelected ? [] : allCenterIds,
-                    )
-                  }
+                  onClick={() => {
+                    const updated = isAllSelected ? [] : allCenterIds;
+
+                    validation.setFieldValue("centers", updated);
+                    setSelectedCenters(updated);
+                  }}
                 >
                   {isAllSelected ? "Unselect All" : "Select All"}
                 </Button>
@@ -167,10 +170,20 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
                     <Input
                       type="checkbox"
                       value={cen._id}
-                      checked={validation.values?.centers?.includes(cen._id)}
-                      name="centers"
-                      onChange={validation.handleChange}
-                      onBlur={validation.handleBlur}
+                      checked={validation.values.centers.includes(cen._id)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const updated = validation.values.centers.includes(
+                          value,
+                        )
+                          ? validation.values.centers.filter(
+                              (id) => id !== value,
+                            )
+                          : [...validation.values.centers, value];
+
+                        validation.setFieldValue("centers", updated);
+                        setSelectedCenters(updated);
+                      }}
                     />
                     <Label className="ms-1">{cen.title}</Label>
                   </div>
