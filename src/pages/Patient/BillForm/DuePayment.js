@@ -33,6 +33,11 @@ const DuePayment = ({
 }) => {
   const dispatch = useDispatch();
 
+  console.log("Data : ", {
+    patient,
+    center,
+  });
+
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
@@ -54,10 +59,12 @@ const DuePayment = ({
   const [totalPayable, setTotalPayable] = useState(0);
   const [refund, setRefund] = useState(0);
   const [invoiceType, setInvoiceType] = useState(
-    editBillData ? editBillData.bill : INVOICE
+    editBillData ? editBillData.bill : INVOICE,
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
+
+  console.log("center", center);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -81,9 +88,9 @@ const DuePayment = ({
       invoiceList: Yup.array().of(
         Yup.object({
           unitOfMeasurement: Yup.string().required(
-            "Unit of measurement is required"
+            "Unit of measurement is required",
           ),
-        })
+        }),
       ),
       ...(type === OPD && {
         paymentModes: Yup.number().test(
@@ -98,7 +105,7 @@ const DuePayment = ({
               });
             }
             return true;
-          }
+          },
         ),
       }),
       bill: Yup.string().required("Bill type required!"),
@@ -113,19 +120,29 @@ const DuePayment = ({
             shouldPrintAfterSave,
             ...values,
             paymentModes,
-          })
+          }),
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          }),
+        );
       } else {
-       const response = await dispatch(
+        const response = await dispatch(
           addInvoice({
             ...values,
             appointment: appointment?._id,
             paymentModes,
             shouldPrintAfterSave,
-          })
+          }),
         ).unwrap();
-        dispatch(setBillingStatus({ patientId: patient._id, billingStatus: response.billingStatus }));
+        dispatch(
+          setBillingStatus({
+            patientId: patient._id,
+            billingStatus: response.billingStatus,
+          }),
+        );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
@@ -147,12 +164,12 @@ const DuePayment = ({
 
             // Step 1: filter
             const invoices = bills.filter(
-              (item) => item.bill === "INVOICE" && item.type === "IPD"
+              (item) => item.bill === "INVOICE" && item.type === "IPD",
             );
 
             // Step 2: sort by createdAt (newest first)
             invoices.sort(
-              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
             );
 
             // Step 3: pick latest
@@ -231,8 +248,8 @@ const DuePayment = ({
         "paymentModes",
         paymentModes?.reduce(
           (sum, val) => parseInt(sum) + parseInt(val.amount),
-          0
-        )
+          0,
+        ),
       );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -268,8 +285,8 @@ const DuePayment = ({
         "paymentModes",
         paymentModes.reduce(
           (sum, val) => parseInt(sum) + parseInt(val.amount),
-          0
-        )
+          0,
+        ),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -281,30 +298,37 @@ const DuePayment = ({
     const invoiceItems = Array.isArray(data) ? data : [];
 
     const checkItem = invoiceItems.find((currentItem) => {
-      const slotName = currentItem?.slot?.name;
+      const slotName = currentItem?.slot;
       const itemName = item?.name || item;
       return slotName === itemName;
     });
 
     if (!checkItem) {
+      const exactCenter = item?.center?.find(
+        (d) => String(d?.center?._id) === String(patient?.center?._id || center),
+      );
+
+      const exactCost = exactCenter?.cost || 0;
+
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
         return [
           ...prevArray,
           {
             slot: item.name ? item.name : item,
-            category: item.category ? item.category : "",
+            category: item.category || "",
             unit: parseInt(item.unit) || 0,
-            cost: parseInt(item.cost) || 0,
+            cost: exactCost,
             unitOfMeasurement: item.unitOfMeasurement || "",
             comments: "",
+            // centers: item.center || [],
           },
         ];
       });
     }
   };
 
-  console.log("patient from invoice", patient)
+  console.log("patient from invoice", patient);
 
   return (
     <React.Fragment>
@@ -332,6 +356,7 @@ const DuePayment = ({
             invoiceList={invoiceList}
             setInvoiceList={setInvoiceList}
             {...rest}
+            center={patient?.center}
           />
           {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>

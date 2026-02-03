@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { Button, Row, Col, Table, Input } from "reactstrap";
+import {
+  Button,
+  Row,
+  Col,
+  Table,
+  Input,
+  UncontrolledTooltip,
+} from "reactstrap";
 import PropTypes from "prop-types";
-import EditItem from "./EditItem";
+import EditBillItem from "./EditItem";
+import ViewAndEditCenterCost from "./ViewAndEditCenterCost";
 
 const InvoiceProcedureList = ({
   items,
@@ -17,7 +25,9 @@ const InvoiceProcedureList = ({
     isOpen: false,
     formData: null,
   });
-
+  const [editRowId, setEditRowId] = useState(null);
+  const [editCost, setEditCost] = useState(false);
+  const [selectedItemData, setSelectedItemData] = useState(null);
   const toggleUpdateForm = (idx, data) =>
     setUpdateItem({
       isForm: true,
@@ -65,53 +75,100 @@ const InvoiceProcedureList = ({
       </Row>
 
       <Table bordered hover className="bg-white">
-        <thead className="table-primary text-center">
+        <thead className="table-primary text-left">
           <tr>
             <th>Name</th>
             <th>Unit</th>
-            <th>Cost</th>
+            <th>Category</th>
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          {(items || []).map((item) => (
-            <tr key={item._id}>
-              <td className="text-capitalize fw-semibold text-primary">
-                {item.name}
-              </td>
-              <td>{item.unit || ""}</td>
-              <td>{item.cost || ""}</td>
-              <td>
-                <Button
-                  size="sm"
-                  color="info"
-                  className="me-2"
-                  onClick={() => openEditModal(item)}
-                >
-                  <i className="ri-quill-pen-line"></i>
-                </Button>
 
-                <Button
-                  size="sm"
-                  color="danger"
-                  outline
-                  onClick={() =>
-                    setDeleteItem({ isOpen: true, data: item._id })
-                  }
-                >
-                  <i className="ri-close-circle-line"></i>
-                </Button>
-              </td>
-            </tr>
+        <tbody>
+          {(items || []).map((item, idx) => (
+            <React.Fragment key={item?._id}>
+              <tr>
+                <td className="text-capitalize fw-semibold text-primary text-left">
+                  {item?.name}
+                </td>
+
+                <td className="text-left">{item?.unit || "-"}</td>
+                <td className="text-left">{item?.category || "-"}</td>
+
+                <td className="text-left">
+                  <div className="d-flex justify-content-left gap-2">
+                    <Button
+                      id="categoryEdit"
+                      size="sm"
+                      color="info"
+                      onClick={() => setEditRowId(item._id)}
+                    >
+                      <i className="ri-quill-pen-line"></i>
+                    </Button>
+                    <UncontrolledTooltip placement="top" target="categoryEdit">
+                      Edit Category
+                    </UncontrolledTooltip>
+
+                    <Button
+                      id={`viewEditCentersBtn-${idx}`}
+                      size="sm"
+                      color="secondary"
+                      onClick={() => {
+                        setSelectedItemData(item);
+                        setEditCost(true);
+                      }}
+                    >
+                      <i className="ri-eye-line"></i>
+                    </Button>
+                    <UncontrolledTooltip
+                      placement="top"
+                      target={`viewEditCentersBtn-${idx}`}
+                    >
+                      View & Edit Centers
+                    </UncontrolledTooltip>
+
+                    <Button
+                      id="deletePro"
+                      size="sm"
+                      color="danger"
+                      outline
+                      onClick={() =>
+                        setDeleteItem({ isOpen: true, data: item._id })
+                      }
+                    >
+                      <i className="ri-close-circle-line"></i>
+                    </Button>
+                    <UncontrolledTooltip placement="top" target="deletePro">
+                      Delete Procedure Data
+                    </UncontrolledTooltip>
+                  </div>
+                </td>
+              </tr>
+
+              {editRowId === item._id && (
+                <tr className="bg-light">
+                  <td colSpan={3}>
+                    <EditBillItem
+                      item={item}
+                      onCancel={() => setEditRowId(null)}
+                    />
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
           ))}
         </tbody>
       </Table>
-
-      <EditItem
-        isOpen={updateItem.isOpen}
-        toggle={toggleUpdateModal}
-        updateItem={updateItem}
-      />
+      {editCost && selectedItemData && (
+        <ViewAndEditCenterCost
+          isOpen={editCost}
+          toggle={() => {
+            setEditCost(false);
+            setSelectedItemData(null);
+          }}
+          data={selectedItemData}
+        />
+      )}
 
       <Row className="mt-4 justify-content-between align-items-center">
         <Col xs="auto">
