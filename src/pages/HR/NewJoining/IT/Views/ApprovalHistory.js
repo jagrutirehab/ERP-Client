@@ -11,6 +11,7 @@ import { ExpandableText } from "../../../../../Components/Common/ExpandableText"
 import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import DataTableComponent from "../../../../../Components/Common/DataTable";
 
 
 const customStyles = {
@@ -153,6 +154,11 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       minWidth: "120px"
     },
     {
+      name: <div>Joining Date</div>,
+      selector: (row) => row?.joinningDate || "-",
+      wrap: true,
+    },
+    {
       name: <div>Gender</div>,
       selector: row => capitalizeWords(row?.gender || "-"),
       wrap: true
@@ -287,31 +293,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
 
       </div>
 
-      <DataTable
+      <DataTableComponent
         columns={columns}
         data={data}
-        highlightOnHover
-        pagination
-        paginationServer
-        paginationTotalRows={pagination?.totalDocs}
-        paginationPerPage={limit}
-        paginationDefaultPage={page}
-        progressPending={loading}
-        striped
-        fixedHeader
-        fixedHeaderScrollHeight="500px"
-        dense={isMobile}
-        responsive
-        customStyles={customStyles}
-        progressComponent={
-          <div className="py-4 text-center">
-            <Spinner className="text-primary" />
-          </div>
-        }
-        onChangePage={(newPage) => setPage(newPage)}
-        onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        loading={loading}
+        pagination={pagination}
       />
-
     </>
   )
 }
