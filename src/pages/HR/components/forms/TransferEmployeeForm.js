@@ -19,6 +19,7 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editEmployeeTransfer, postEmployeeTransfer } from "../../../../helpers/backend_helper";
 import { fetchAllCenters } from "../../../../store/actions";
+import { format } from "date-fns";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -91,7 +92,9 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
             eCode: initialData?.employee?.eCode || "",
             currentLocation: initialData?.currentLocation?.title || "",
             currentLocationId: initialData?.currentLocation?._id || "",
-            transferDate: initialData?.transferDate || "",
+            transferDate: initialData?.transferDate
+                ? format(new Date(initialData.transferDate), "yyyy-MM-dd")
+                : "",
             transferLocation: initialData?.transferLocation._id || "",
         },
         validationSchema,
