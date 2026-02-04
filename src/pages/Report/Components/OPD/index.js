@@ -244,7 +244,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { differenceInMinutes, endOfDay, format, startOfDay } from "date-fns";
 import { connect, useDispatch, useSelector } from "react-redux";
 
 // components
@@ -354,6 +354,65 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
     "opd charges",
   ];
 
+  const headers = [
+    { label: "#", key: "id" },
+    { label: "Patient", key: "patient.name" },
+    { label: "UID", key: "uid" },
+    { label: "Doctor", key: "doctor.name" },
+    { label: "Date", key: "date" },
+    { label: "Center", key: "center.title" },
+    { label: "Appointment Type", key: "consultationType" },
+    // { label: "Patient Phone No", key: "patient.phoneNumber" },
+    { label: "No Show", key: "isNoShow" },
+    { label: "Prescribed", key: "prescribed" },
+    { label: "Clinical Note", key: "isClinicalNoteCreated" },
+    { label: "OPD Charges", key: "opdCharges" },
+    { label: "Paid Amount", key: "paidAmount" },
+    { label: "Payment Mode", key: "paymentMode" },
+  ];
+
+  const csvOPD = () => {
+    return data?.map((d, i) => {
+      console.log({ opd: d });
+
+      const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
+        opdChargesLabels.includes(inv.slot),
+      );
+
+      console.log({ opdCharges });
+
+      return {
+        ...d,
+        id: i + 1,
+        uid: `${d.patient?.id?.prefix}${d.patient?.id?.value}`,
+        paymentMode: d.bill?.receiptInvoice?.paymentModes
+          ?.map(
+            (pm) =>
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
+                pm.bank || ""
+              } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`,
+          )
+          .join(", "),
+        opdCharges: (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
+        isNoShow: d?.isCancelled ? "Yes" : "No",
+        prescribed: d?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No",
+        isClinicalNoteCreated:
+          d?.chart?.chart === "CLINICAL_NOTE" ? "Yes" : "No",
+        paidAmount: d.bill?.receiptInvoice?.payable,
+        date: `On ${format(
+          new Date(d.startDate),
+          "dd MMM yyyy",
+        )} at \n ${format(
+          new Date(d.startDate),
+          "hh:mm a",
+        )} for ${differenceInMinutes(
+          new Date(d?.endDate),
+          new Date(d?.startDate),
+        )} mins`,
+      };
+    });
+  };
+
   const mappedData =
     data?.map((d) => {
       const opdChargesItem = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
@@ -420,11 +479,13 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
             </Col>
             <Col className="text-end">
               <CSVLink
-                data={mappedData}
-                filename="opd_analytics.csv"
-                className="btn btn-info"
+                data={csvOPD() || []}
+                title="CSV Download"
+                filename={"reports.csv"}
+                headers={headers}
+                className="btn btn-info px-2 ms-3"
               >
-                <i className="ri-file-paper-2-line"></i>
+                <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
               </CSVLink>
             </Col>
           </Row>
@@ -438,7 +499,9 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
                   <span className="text-muted text-uppercase fw-bold fs-11">
                     Total OPD Count
                   </span>
-                  <h4 className="mb-0 mt-1 text-primary">{mappedData?.length || 0}</h4>
+                  <h4 className="mb-0 mt-1 text-primary">
+                    {mappedData?.length || 0}
+                  </h4>
                 </div>
                 <div className="text-center border-start ps-5">
                   <span className="text-muted text-uppercase fw-bold fs-11">
