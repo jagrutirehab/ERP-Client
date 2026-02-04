@@ -78,11 +78,12 @@ const Inovice = ({
                     categoryValues?.length === 0 ||
                     categoryValues?.includes(item.category?.toLowerCase());
 
-                  const matchesCenter =
-                    Array.isArray(item.center) &&
-                    item.center.some((c) => String(c?.center?._id) === patientCenterId);
+                  // const matchesCenter =
+                  //   Array.isArray(item.center) &&
+                  //   item.center.some((c) => String(c?.center?._id) === patientCenterId);
 
-                  return matchesSearch && matchesCategory && matchesCenter;
+                  return matchesSearch && matchesCategory;
+                  // && matchesCenter
                 })
                 .map((item) => (
                   <DropdownItem
