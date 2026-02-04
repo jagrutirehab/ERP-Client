@@ -123,6 +123,11 @@ const Prescription = ({
         : ptLatestOPDPrescription
           ? patientLatestOPDPrescription?.diagnosis
           : "",
+      diagnosis2: editPrescription
+        ? editPrescription.diagnosis2
+        : ptLatestOPDPrescription
+          ? patientLatestOPDPrescription?.diagnosis2
+          : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
@@ -313,6 +318,7 @@ const Prescription = ({
     if (ptLatestOPDPrescription && !editPrescription) {
       validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
       validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
+      validation.setFieldValue("diagnosis2", ptLatestOPDPrescription.diagnosis2);
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
       validation.setFieldValue(
         "investigationPlan",

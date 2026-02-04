@@ -128,8 +128,13 @@ const prescriptionFormFields = [
     type: "async-select",
   },
   {
-    label: "Diagnosis",
+    label: "Diagnosis 1",
     name: "diagnosis",
+    type: "textarea",
+  },
+  {
+    label: "Diagnosis 2",
+    name: "diagnosis2",
     type: "textarea",
   },
   {
