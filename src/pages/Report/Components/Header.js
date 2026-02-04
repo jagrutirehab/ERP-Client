@@ -27,12 +27,35 @@ const Header = ({
   onViewReport,
   loading = false,
 }) => {
+  // const changeDate = (days) => {
+  //   const today = new Date();
+  //   const start = days
+  //     ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
+  //     : today;
+  //   setReportDate({ start: startOfDay(start), end: endOfDay(today) });
+  // };
+
   const changeDate = (days) => {
     const today = new Date();
-    const start = days
-      ? new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
-      : today;
-    setReportDate({ start: startOfDay(start), end: endOfDay(today) });
+
+    if (!days) {
+      setReportDate({
+        start: startOfDay(today),
+        end: endOfDay(today),
+      });
+      return;
+    }
+
+    const start = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - (days - 1),
+    );
+
+    setReportDate({
+      start: startOfDay(start),
+      end: endOfDay(today),
+    });
   };
 
   const changeToMonth = () => {
