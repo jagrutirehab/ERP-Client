@@ -115,7 +115,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
         {chart?.diagnosis && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
-              Diagnosis:{" "}
+              Diagnosis 1:{" "}
               <Text
                 style={{
                   ...styles.textGray,
@@ -125,6 +125,23 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 }}
               >
                 {chart?.diagnosis}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {chart?.diagnosis2 && (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              Diagnosis 2:{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart?.diagnosis2}
               </Text>
             </Text>
           </View>
