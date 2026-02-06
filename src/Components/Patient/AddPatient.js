@@ -63,12 +63,30 @@ const AddPatient = ({
     : leadData
       ? leadData.patient.email
       : "";
-
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
-    : "";
+    : leadData?.patient?.age
+      ? (() => {
+          const today = new Date();
+          const birthYear = today.getFullYear() - leadData.patient.age;
+          return format(
+            new Date(birthYear, today.getMonth(), today.getDate()),
+            "yyyy-MM-dd",
+          );
+        })()
+      : "";
+  const gender = editData
+    ? editData.gender
+    : leadData
+      ? leadData.patient.gender
+      : "";
+  const center = editData
+    ? editData.center?._id
+    : leadData
+      ? leadData.location?.[0]?._id
+      : "";
 
-  console.log({ editData });
+  console.log({ leadData });
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -76,7 +94,7 @@ const AddPatient = ({
       author: user?._id,
       editor: user?._id,
       id: editData?.id ? editData.id.value : generatedPatientId?.value,
-      center: editData ? editData.center?._id : "",
+      center,
       profilePicture: editData ? editData?.profilePicture : "",
       aadhaarCard: "",
       aadhaarCardNumber: editData ? editData.aadhaarCardNumber : "",
@@ -91,7 +109,7 @@ const AddPatient = ({
       doctor: editData ? editData.doctor?._id : "",
       psychologist: editData ? editData.psychologist?._id : "",
       provisionalDiagnosis: editData ? editData.provisionalDiagnosis : "",
-      gender: editData ? editData.gender : "",
+      gender,
       guardianName: editData ? editData.guardianName : "",
       guardianRelation: editData ? editData.guardianRelation : "",
       guardianPhoneNumber: editData ? editData.guardianPhoneNumber : "",

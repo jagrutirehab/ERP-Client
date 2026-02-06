@@ -29,7 +29,13 @@ import classnames from "classnames";
 import CustomModal from "../../Components/Common/Modal";
 import RenderWhen from "../../Components/Common/RenderWhen";
 
-const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
+const IncidentReporting = ({
+  user,
+  incidents,
+  loading,
+  centerAccess,
+  centers,
+}) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const microUser = localStorage.getItem("micrologin");
@@ -39,12 +45,12 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
   const hasIncidentPermission = hasPermission(
     "INCIDENT_REPORTING",
     null,
-    "READ"
+    "READ",
   );
   const hasIncidentCreatePermission = hasPermission(
     "INCIDENT_REPORTING",
     "RAISE_INCIDENT",
-    "WRITE"
+    "WRITE",
   );
 
   const [activeTab, setActiveTab] = useState("all");
@@ -58,15 +64,47 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
     limit: 10,
   });
   const formState = useSelector(
-    (state) => state.Incident?.form || { isOpen: false }
+    (state) => state.Incident?.form || { isOpen: false },
   );
   const currentIncident = useSelector(
-    (state) => state.Incident?.currentIncident
+    (state) => state.Incident?.currentIncident,
   );
   const incidentLoading = useSelector(
-    (state) => state.Incident?.loading || false
+    (state) => state.Incident?.loading || false,
   );
   const pagination = useSelector((state) => state.Incident?.pagination) || {};
+
+  // Center selection state
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      })),
+  );
+  const [selectedCentersIds, setSelectedCentersIds] = useState(
+    centerOptions?.map((c) => c._id) || [],
+  );
+
+  // Initialize center options when centers or centerAccess changes
+  useEffect(() => {
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        })),
+    );
+  }, [centerAccess, centers]);
+
+  // Update selected centers when centerOptions change
+  useEffect(() => {
+    if (centerOptions && centerOptions?.length > 0) {
+      setSelectedCentersIds(centerOptions.map((c) => c._id));
+    }
+  }, [centerOptions]);
 
   useEffect(() => {
     if (permissionLoader) return;
@@ -76,7 +114,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
     }
     loadIncidents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, hasIncidentPermission, permissionLoader]);
+  }, [filters, hasIncidentPermission, permissionLoader, selectedCentersIds]);
 
   const loadIncidents = () => {
     const statusMap = {
@@ -92,7 +130,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
     const params = {
       ...filters,
       status: activeTab === "all" ? filters.status : enforcedStatus,
-      center: centerAccess?.[0]?._id || "",
+      centerAccess: selectedCentersIds,
     };
     dispatch(fetchIncidents(params));
   };
@@ -111,7 +149,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
         isOpen: true,
         data: null,
         mode: "create",
-      })
+      }),
     );
     // Ensure we clear any previous incident from view
     setActiveTab("list");
@@ -124,7 +162,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
         isOpen: true,
         data: incident,
         mode: "edit",
-      })
+      }),
     );
   };
 
@@ -149,7 +187,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
       <Container fluid>
         <BreadCrumb title="Incident Reporting" pageTitle="Incident Reporting" />
 
-        <Row className="mb-3">
+        <Row className="mb-3 align-items-center">
           <Col>
             <Nav
               tabs
@@ -161,7 +199,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "all" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("all");
@@ -177,7 +215,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "raised" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("raised");
@@ -193,7 +231,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "investigation" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("investigation");
@@ -209,7 +247,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "pending" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("pending");
@@ -225,7 +263,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "approved" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("approved");
@@ -241,7 +279,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "rejected" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("rejected");
@@ -257,7 +295,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   style={{ cursor: "pointer" }}
                   className={classnames(
                     { active: activeTab === "closed" },
-                    "d-flex align-items-center"
+                    "d-flex align-items-center",
                   )}
                   onClick={() => {
                     setActiveTab("closed");
@@ -311,6 +349,9 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
               onRefresh={loadIncidents}
               pagination={pagination}
               showStatusFilter={activeTab === "all"}
+              centerOptions={centerOptions}
+              selectedCentersIds={selectedCentersIds}
+              setSelectedCentersIds={setSelectedCentersIds}
             />
           </TabPane>
         </TabContent>
@@ -329,7 +370,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                 isOpen: false,
                 data: null,
                 mode: "create",
-              })
+              }),
             );
           }}
         >
@@ -341,7 +382,7 @@ const IncidentReporting = ({ user, incidents, loading, centerAccess }) => {
                   isOpen: false,
                   data: null,
                   mode: "create",
-                })
+                }),
               );
               dispatch(setCurrentIncident(null));
               loadIncidents();
@@ -376,6 +417,7 @@ const mapStateToProps = (state) => ({
   incidents: state.Incident?.data || [],
   loading: state.Incident?.loading || false,
   centerAccess: state.User?.centerAccess || [],
+  centers: state.Center.data,
 });
 
 export default connect(mapStateToProps)(IncidentReporting);
