@@ -438,8 +438,6 @@
 
 // export default connect(mapStateToProps)(DuePayment);
 
-
-
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Form, FormFeedback } from "reactstrap";
@@ -527,13 +525,13 @@ const DuePayment = ({
       bill: invoiceType,
     },
     validationSchema: Yup.object({
-      invoiceList: Yup.array().of(
-        Yup.object({
-          unitOfMeasurement: Yup.string().required(
-            "Unit of measurement is required",
-          ),
-        }),
-      ),
+      // invoiceList: Yup.array().of(
+      //   Yup.object({
+      //     unitOfMeasurement: Yup.string().required(
+      //       "Unit of measurement is required",
+      //     ),
+      //   }),
+      // ),
       ...(type === OPD && {
         paymentModes: Yup.number().test(
           "paymentModes",
@@ -749,11 +747,9 @@ const DuePayment = ({
       console.log("item", item);
       const centerMatch = item?.center?.find(
         (d) =>
-          String(d?.center?._id) ===
-          String(patient?.center?._id || center),
+          String(d?.center?._id) === String(patient?.center?._id || center),
       );
 
-     
       const defaultPriceObj =
         centerMatch?.prices && centerMatch.prices.length > 0
           ? centerMatch.prices[0]
@@ -772,9 +768,9 @@ const DuePayment = ({
               typeof item.category === "object"
                 ? item.category.name
                 : item.category,
-            unit: parseInt(item.unit) || 1, 
+            unit: parseInt(item.unit) || 1,
             cost: exactCost,
-            unitOfMeasurement: dynamicUOM, 
+            unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
           },
@@ -785,20 +781,18 @@ const DuePayment = ({
 
   // console.log("patient from invoice", patient);
 
-
   const handleUOMChange = (index, newUnit) => {
     setInvoiceList((prevList) => {
       const updatedList = [...prevList];
       const item = updatedList[index];
 
-      
       const priceData = item.availablePrices?.find((p) => p.unit === newUnit);
 
       if (priceData) {
         updatedList[index] = {
           ...item,
           unitOfMeasurement: newUnit,
-          cost: priceData.price, 
+          cost: priceData.price,
         };
       } else {
         updatedList[index] = {
@@ -838,7 +832,7 @@ const DuePayment = ({
             {...rest}
             center={patient?.center}
           />
-          {validation.touched.invoiceList && validation.errors.invoiceList ? (
+          {/* {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>
               {validation.errors.invoiceList.map((error, index) => (
                 <FormFeedback key={index} type="invalid" className="d-block">
@@ -846,7 +840,7 @@ const DuePayment = ({
                 </FormFeedback>
               ))}
             </>
-          ) : null}
+          ) : null} */}
           <InvoiceFooter
             totalCost={totalCost}
             totalDiscount={totalDiscount}
