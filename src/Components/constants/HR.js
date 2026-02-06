@@ -114,23 +114,5 @@ export const legends = [
     { label: "Employer Deduction", color: "#7B8FD1" },
 ];
 
+export const FILE_PREVIEW_CUTOFF = "2026-02-06";
 
-// export const debitStatementNarrationOptions = [
-//     { label: "PROF FEES TALOJA" },
-//     { label: "SALARY TRUST" },
-//     { label: "SALARY TALOJA" },
-//     { label: "SALARY THANE" },
-//     { label: "SALARY RAJKUMAR" },
-//     { label: "SALARY SAJJAN" },
-//     { label: "SALARY MALAD" },
-//     { label: "SALARY MALAD W" },
-//     { label: "SALARY MINU" },
-//     { label: "SALARY MAQBUL" },
-//     { label: "SALARY KOPARK" },
-//     { label: "SALARY MALAD" },
-//     { label: "SALARY KAMRUDDIN" },
-//     { label: "SALARY DINESH" },
-//     { label: "SALARY KISHAN" },
-//     { label: "SALARY BHARTI" },
-//     { label: "SALARY NANDINI" },
-// ]

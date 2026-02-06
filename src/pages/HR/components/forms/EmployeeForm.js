@@ -35,6 +35,9 @@ import {
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import { normalizeDateForInput } from "../../../../utils/time";
 import { downloadFile } from "../../../../Components/Common/downloadFile";
+import { format } from "date-fns";
+import { getFilePreviewMeta } from "../../../../utils/isPreviewable";
+import { FILE_PREVIEW_CUTOFF } from "../../../../Components/constants/HR";
 
 const validationSchema = (mode, isEdit) =>
   Yup.object({
@@ -51,8 +54,16 @@ const validationSchema = (mode, isEdit) =>
     designation: Yup.string().required("Designation is required"),
     payrollType: Yup.string().required("Payroll type is required"),
     joinningDate: Yup.string()
+      .required("Date of joining is required")
       .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
-      .required("Date of joining is required"),
+      .test(
+        "not-in-future",
+        "Joining date cannot be in the future",
+        (value) => {
+          if (!value) return false;
+          return new Date(value) <= new Date();
+        }
+      ),
     gender: Yup.string().required("Gender is required"),
     pfApplicable: Yup.boolean().required("Pf Applicable is required"),
     father: Yup.string().required("Father's name is required"),
@@ -162,7 +173,7 @@ const getInitialValues = (initialData, mode) => ({
   payrollType: initialData?.payrollType || "",
   state: initialData?.state || "",
 
-  joinningDate: normalizeDateForInput(initialData?.joinningDate) || "",
+  joinningDate: normalizeDateForInput(initialData?.joinningDate) || format(new Date(), "yyyy-MM-dd"),
   exitDate: normalizeDateForInput(initialData?.exitDate) || "",
   dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth) || "",
 
@@ -439,6 +450,35 @@ const EmployeeForm = ({
     } finally {
       setUploading(prev => ({ ...prev, [fileField]: false }));
     }
+  };
+
+  const handleFilePreview = (file) => {
+    if (!file?.url) return;
+
+    const meta = getFilePreviewMeta(
+      file,
+      initialData?.updatedAt,
+      FILE_PREVIEW_CUTOFF,
+    );
+
+    if (meta.action === "preview") {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
+    }
+  };
+
+  const getFileActionLabel = (file) => {
+    if (!file?.url) return "Download";
+
+    const meta = getFilePreviewMeta(
+      file,
+      initialData?.updatedAt,
+      FILE_PREVIEW_CUTOFF,
+    );
+
+    return meta.action === "preview" ? "Preview" : "Download";
   };
 
 
@@ -1086,14 +1126,17 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    downloadFile({
+                    handleFilePreview({
                       url: values.adharOld,
-                      originalName: "Aadhaar"
+                      originalName: "Aadhaar",
                     })
                   }
                   disabled={uploading.adharFile}
                 >
-                  Download
+                  {getFileActionLabel({
+                    url: values.adharOld,
+                    originalName: "Aadhaar",
+                  })}
                 </Button>
 
                 <Button
@@ -1179,14 +1222,17 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    downloadFile({
+                    handleFilePreview({
                       url: values.panOld,
-                      originalName: "Pan"
+                      originalName: "Pan",
                     })
                   }
                   disabled={uploading.panFile}
                 >
-                  Download
+                  {getFileActionLabel({
+                    url: values.panOld,
+                    originalName: "Pan",
+                  })}
                 </Button>
 
                 <Button
@@ -1255,14 +1301,17 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    downloadFile({
+                    handleFilePreview({
                       url: values.offerLetterOld,
-                      originalName: "Offerletter"
+                      originalName: "Offerletter",
                     })
                   }
                   disabled={uploading.offerLetterFile}
                 >
-                  Download
+                  {getFileActionLabel({
+                    url: values.offerLetterOld,
+                    originalName: "Offerletter",
+                  })}
                 </Button>
 
                 <Button

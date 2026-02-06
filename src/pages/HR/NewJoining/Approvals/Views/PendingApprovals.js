@@ -16,6 +16,9 @@ import AddEmployeeModal from "../../../components/EmployeeModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
+import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
+import PreviewFile from "../../../../../Components/Common/PreviewFile";
+import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
 
 
 const customStyles = {
@@ -59,6 +62,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [reason, setReason] = useState("");
     const [eCode, setECode] = useState("");
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
 
     const hasCreatePermission = hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "WRITE") || hasPermission("HR", "NEW_JOINING_ADD_REQUEST", "DELETE");
 
@@ -169,6 +174,19 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             }
         } finally {
             setModalLoading(false);
+        }
+    };
+
+    const handleFilePreview = (file, updatedAt) => {
+        if (!file?.url) return;
+
+        const meta = getFilePreviewMeta(file, updatedAt, FILE_PREVIEW_CUTOFF);
+
+        if (meta.action === "preview") {
+            setPreviewFile(file);
+            setPreviewOpen(true);
+        } else {
+            downloadFile(file);
         }
     };
 
@@ -337,22 +355,35 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         },
         {
             name: <div>Aadhaar File</div>,
-            cell: row =>
-                typeof row?.adhar?.url === "string" ? (
+            selector: (row) => {
+                if (!row?.adhar?.url) return "-";
+
+                const meta = getFilePreviewMeta(
+                    { url: row?.adhar?.url },
+                    row?.updatedAt,
+                    FILE_PREVIEW_CUTOFF
+                );
+
+                return (
                     <span
                         style={{
-                            color: "#007bff",
+                            color: meta.canPreview ? "#007bff" : "#28a745",
                             textDecoration: "underline",
                             cursor: "pointer",
-                            fontSize: "0.875rem"
+                            fontSize: "0.875rem",
                         }}
-                        onClick={() => downloadFile({ url: row.adhar.url })}
+                        onClick={() =>
+                            handleFilePreview(
+                                { url: row?.adhar?.url },
+                                row?.updatedAt,
+                                FILE_PREVIEW_CUTOFF
+                            )
+                        }
                     >
-                        Download
+                        {meta.action === "preview" ? "Preview" : "Download"}
                     </span>
-                ) : (
-                    "-"
-                ),
+                );
+            },
             wrap: true,
         },
         {
@@ -363,22 +394,35 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         },
         {
             name: <div>PAN File</div>,
-            cell: row =>
-                typeof row?.pan?.url === "string" ? (
+            selector: (row) => {
+                if (!row?.pan?.url) return "-";
+
+                const meta = getFilePreviewMeta(
+                    { url: row?.pan?.url },
+                    row?.updatedAt,
+                    FILE_PREVIEW_CUTOFF
+                );
+
+                return (
                     <span
                         style={{
-                            color: "#007bff",
+                            color: meta.canPreview ? "#007bff" : "#28a745",
                             textDecoration: "underline",
                             cursor: "pointer",
-                            fontSize: "0.875rem"
+                            fontSize: "0.875rem",
                         }}
-                        onClick={() => downloadFile({ url: row.pan.url })}
+                        onClick={() =>
+                            handleFilePreview(
+                                { url: row?.pan?.url },
+                                row?.updatedAt,
+                                FILE_PREVIEW_CUTOFF
+                            )
+                        }
                     >
-                        Download
+                        {meta.action === "preview" ? "Preview" : "Download"}
                     </span>
-                ) : (
-                    "-"
-                )
+                );
+            }
         },
         {
             name: <div>Father's Name</div>,
@@ -668,6 +712,15 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 setNote={setReason}
                 eCode={eCode}
                 setECode={setECode}
+            />
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={() => {
+                    setPreviewOpen(false);
+                    setPreviewFile(null);
+                }}
             />
 
         </>
