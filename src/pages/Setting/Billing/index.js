@@ -55,8 +55,11 @@ const Billing = ({
   const togglePaymentForm = () => setPaymentModal(!paymentModal);
 
   // Delete handlers
-  const dltItem = () => {
-    dispatch(removeBillItem(deleteItem.data));
+  const dltItem = async () => {
+    await dispatch(removeBillItem(deleteItem.data));
+    if (tab === "1") {
+      dispatch(fetchBillItems({ centerIds: centers, page, limit, search }));
+    }
     setDeleteItem({ isOpen: false, data: null });
   };
 
@@ -84,7 +87,7 @@ const Billing = ({
           page: pageadv,
           limit: limitadv,
           search: searchadv,
-        })
+        }),
       );
     }
   }, [dispatch, centers, tab, pageadv, limitadv, searchadv]);
@@ -130,11 +133,13 @@ const Billing = ({
               totalPages={totalPages}
             />
             <AddItems modal={modal} toggle={toggleForm} />
-            <DeleteModal
-              show={deleteItem.isOpen}
-              onDeleteClick={dltItem}
-              onCloseClick={cancelDeleteItem}
-            />
+            {tab === "1" && (
+              <DeleteModal
+                show={deleteItem.isOpen}
+                onDeleteClick={dltItem}
+                onCloseClick={cancelDeleteItem}
+              />
+            )}
           </TabPane>
 
           <TabPane tabId="2">
@@ -154,11 +159,13 @@ const Billing = ({
               totalPages={paymentTotalPages}
             />
             <AddPayment modal={paymentModal} toggle={togglePaymentForm} />
-            <DeleteModal
-              show={deleteItem.isOpen}
-              onDeleteClick={dltPaymentItem}
-              onCloseClick={cancelDeleteItem}
-            />
+            {tab === "2" && (
+              <DeleteModal
+                show={deleteItem.isOpen}
+                onDeleteClick={dltPaymentItem}
+                onCloseClick={cancelDeleteItem}
+              />
+            )}
           </TabPane>
         </TabContent>
       </div>
