@@ -196,9 +196,24 @@ const InvoiceDraft = ({
     const checkItem = data.find((_) => _.slot?.name === (item?.name || item));
 
     if (!checkItem) {
+      console.log("item", item);
+      const centerMatch = item?.center?.find(
+        (d) =>
+          String(d?.center?._id) === String(patient?.center?._id || center),
+      );
+
+      const defaultPriceObj =
+        centerMatch?.prices && centerMatch.prices.length > 0
+          ? centerMatch.prices[0]
+          : null;
+
+      const exactCost = defaultPriceObj ? defaultPriceObj.price : 0;
+      const dynamicUOM = defaultPriceObj ? defaultPriceObj.unit : "";
+
       setInvoiceList((prevValue) => {
+        const prevArray = Array.isArray(prevValue) ? prevValue : [];
         return [
-          ...prevValue,
+          ...prevArray,
           {
             slot: item.name ? item.name : item,
             category:
@@ -206,9 +221,10 @@ const InvoiceDraft = ({
                 ? item.category.name
                 : item.category,
             unit: parseInt(item.unit) || 0,
-            cost: parseInt(item.cost) || 0,
-            unitOfMeasurement: item.unitOfMeasurement || "",
+            cost: exactCost,
+            unitOfMeasurement: dynamicUOM,
             comments: "",
+            availablePrices: centerMatch?.prices || [],
           },
         ];
       });
@@ -234,6 +250,7 @@ const InvoiceDraft = ({
             addItem={addInvoiceItem}
             categories={categories}
             setCategories={setCategories}
+            center={center || patient?.center}
           />
           <InvoiceTable
             invoiceList={invoiceList}

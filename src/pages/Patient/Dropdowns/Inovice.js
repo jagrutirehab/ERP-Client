@@ -216,6 +216,8 @@ const Inovice = ({
   
   const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
 
+  console.log("data", data);
+
   return (
     <React.Fragment>
       <div className="d-flex align-items-stretch gap-3 flex-wrap">
