@@ -31,3 +31,40 @@ code {
   border-bottom: 2px solid #dee2e6;
 }
 
+/* ====== COMMON FORM CONTROL HEIGHT ====== */
+.form-control-sm,
+.form-control,
+.react-select__control {
+  height: 32px !important;
+  min-height: 32px !important;
+  font-size: 0.875rem;
+}
+
+/* Align react-select text vertically */
+.react-select__value-container {
+  height: 32px !important;
+  padding: 0 8px !important;
+  display: flex;
+  align-items: center;
+}
+
+/* Remove extra padding */
+.react-select__control {
+  padding: 0 !important;
+}
+
+/* Dropdown indicator alignment */
+.react-select__indicators {
+  height: 32px;
+}
+
+/* Placeholder + value text alignment */
+.react-select__single-value,
+.react-select__placeholder {
+  line-height: 32px;
+}
+
+/* Match Bootstrap border radius */
+.react-select__control {
+  border-radius: 0.25rem;
+}

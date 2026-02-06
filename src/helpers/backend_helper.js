@@ -255,12 +255,14 @@ export const deleteCenterInProcedure = ({ payload }) => {
   });
 };
 
-export const addCentersToProcedure = ({ proId, centerIds, cost }) =>
-  api.create(url.ADD_CENTERS_IN_PROCEDURE, {
-    proId,
-    centerIds,
-    cost,
-  });
+export const addCentersToProcedure = ( payload ) =>
+  api.create(url.ADD_CENTERS_IN_PROCEDURE, payload);
+
+export const getCategoriesOfProcedures = () =>
+  api.get(url.GET_CATEGORIES_OF_PROCEDURE);
+
+export const editCenterCosts = (payload) =>
+  api.update(url.EDIT_CENTER_COSTS, payload);
 
 export const deleteBillItem = (data) =>
   api.delete(`${url.DELETE_BILL_ITEM}/${data}`);
