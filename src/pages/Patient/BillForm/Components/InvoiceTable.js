@@ -636,7 +636,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
                               value={item.unitOfMeasurement || ""}
                               onChange={getValues}
                             >
-                              <option value="">Select Unit</option>
+                              {/* <option value="">Select Unit</option> */}
                               {unitOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                   {option.label}
@@ -746,7 +746,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList, center }) => {
                         value={item.unitOfMeasurement || ""}
                         onChange={getValues}
                       >
-                        <option value="">Select Unit</option>
+                        {/* <option value="">Select Unit</option> */}
                         {unitOptions.map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}

@@ -86,8 +86,8 @@
 
 //       <ModalBody>
 //         <Label className="fw-bold mb-2">Select Centers</Label>
-//         <div 
-//           className="d-flex flex-wrap gap-3 mb-4 p-2 border rounded" 
+//         <div
+//           className="d-flex flex-wrap gap-3 mb-4 p-2 border rounded"
 //           style={{ maxHeight: "150px", overflowY: "auto" }}
 //         >
 //           {(centers || []).map((cen) => (
@@ -240,9 +240,10 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData }) => {
         payload.cost = Number(costs["default"]);
       }
 
-      console.log("payload", payload)
+      console.log("payload", payload);
 
-      await onSave(payload);
+      const response = await onSave(payload);
+      console.log("response", response);
       toggle();
     } catch (err) {
       console.error("Err", err);
@@ -255,8 +256,8 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData }) => {
 
       <ModalBody>
         <Label className="fw-bold mb-2">Select Centers</Label>
-        <div 
-          className="d-flex flex-wrap gap-3 mb-4 p-2 border rounded" 
+        <div
+          className="d-flex flex-wrap gap-3 mb-4 p-2 border rounded"
           style={{ maxHeight: "150px", overflowY: "auto" }}
         >
           {(centers || []).map((cen) => (
@@ -267,7 +268,11 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData }) => {
                 checked={selectedCenters.includes(cen._id)}
                 onChange={() => handleCheckboxChange(cen._id)}
               />
-              <Label for={`check-${cen._id}`} className="ms-2 mb-0" style={{ cursor: "pointer" }}>
+              <Label
+                for={`check-${cen._id}`}
+                className="ms-2 mb-0"
+                style={{ cursor: "pointer" }}
+              >
                 {cen.title}
               </Label>
             </div>
