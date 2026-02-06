@@ -89,6 +89,8 @@ const IncidentReporting = ({
 
   // Initialize center options when centers or centerAccess changes
   useEffect(() => {
+    console.log({ centerAccess, centers });
+
     setCenterOptions(
       centers
         ?.filter((c) => centerAccess.includes(c._id))
@@ -103,6 +105,8 @@ const IncidentReporting = ({
   useEffect(() => {
     if (centerOptions && centerOptions?.length > 0) {
       setSelectedCentersIds(centerOptions.map((c) => c._id));
+    } else if (centerOptions?.length === 0) {
+      setSelectedCentersIds([]);
     }
   }, [centerOptions]);
 
