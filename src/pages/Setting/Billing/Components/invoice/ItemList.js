@@ -93,19 +93,26 @@ const InvoiceProcedureList = ({
                 </td>
 
                 <td className="text-left">{item?.unit || "-"}</td>
-                <td className="text-left">{item?.category || "-"}</td>
+                <td className="text-left">
+                  {typeof item?.category === "object"
+                    ? item?.category?.name
+                    : item?.category || "-"}
+                </td>
 
                 <td className="text-left">
                   <div className="d-flex justify-content-left gap-2">
                     <Button
-                      id="categoryEdit"
+                      id={`categoryEdit-${idx}`}
                       size="sm"
                       color="info"
                       onClick={() => setEditRowId(item._id)}
                     >
                       <i className="ri-quill-pen-line"></i>
                     </Button>
-                    <UncontrolledTooltip placement="top" target="categoryEdit">
+                    <UncontrolledTooltip
+                      placement="top"
+                      target={`categoryEdit-${idx}`}
+                    >
                       Edit Category
                     </UncontrolledTooltip>
 
