@@ -419,7 +419,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   };
 
   const handleSaveCenters = async (payload) => {
-    console.log("payload from handle save centers function", payload)
+    console.log("payload from handle save centers function", payload);
     try {
       await addCentersToProcedure(payload);
 
@@ -478,82 +478,99 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
                 {prodata?.center
                   ?.slice()
                   .reverse()
-                  .map((row) => (
-                    <tr key={row.center._id}>
-                      <td className="text-start">
-                        <strong>{row.center.title}</strong>
-                      </td>
+                  .map((row, idx) => {
+                    const centerId = row?.center?._id || null;
+                    const centerTitle = row?.center?.title || null;
+                    const hasCenter = Boolean(centerId);
 
-                      {priceColumns.map((col) => (
-                        <td key={col.unit}>
-                          {editingId === row.center._id ? (
-                            <Input
-                              type="number"
-                              bsSize="sm"
-                              value={
-                                costValues[row.center._id]?.[col.unit] ?? ""
-                              }
-                              onChange={(e) =>
-                                setCostValues((prev) => ({
-                                  ...prev,
-                                  [row.center._id]: {
-                                    ...prev[row.center._id],
-                                    [col.unit]: e.target.value,
-                                  },
-                                }))
-                              }
-                            />
+                    return (
+                      <tr key={idx}>
+                        {/* CENTER NAME */}
+                        <td className="text-start">
+                          {hasCenter ? (
+                            <strong>{centerTitle}</strong>
                           ) : (
-                            <span className="text-primary">
-                              {row.prices.find((p) => p.unit === col.unit)
-                                ?.price || 0}
-                            </span>
+                            <strong className="text-danger">
+                              No center present…
+                            </strong>
                           )}
                         </td>
-                      ))}
 
-                      <td>
-                        {editingId === row.center._id ? (
-                          <>
-                            <Button
-                              size="sm"
-                              color="success"
-                              onClick={() => handleSave(row)}
-                            >
-                              ✓
-                            </Button>{" "}
-                            <Button
-                              size="sm"
-                              color="secondary"
-                              onClick={handleCancel}
-                            >
-                              ✕
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="d-flex justify-content-center gap-2">
-                            <Button
-                              size="sm"
-                              color="info"
-                              outline
-                              onClick={() => handleEdit(row)}
-                            >
-                              <i className="ri-edit-2-line"></i>
-                            </Button>
+                        {/* PRICES */}
+                        {priceColumns.map((col) => (
+                          <td key={col.unit}>
+                            {editingId === centerId && hasCenter ? (
+                              <Input
+                                type="number"
+                                bsSize="sm"
+                                value={costValues?.[centerId]?.[col.unit] ?? ""}
+                                onChange={(e) =>
+                                  setCostValues((prev) => ({
+                                    ...prev,
+                                    [centerId]: {
+                                      ...prev?.[centerId],
+                                      [col.unit]: e.target.value,
+                                    },
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <span className="text-primary">
+                                {row?.prices?.find((p) => p.unit === col.unit)
+                                  ?.price || 0}
+                              </span>
+                            )}
+                          </td>
+                        ))}
 
-                            <Button
-                              size="sm"
-                              color="danger"
-                              outline
-                              onClick={() => handleDelete(row)}
-                            >
-                              <i className="ri-delete-bin-6-line"></i>
-                            </Button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        {/* ACTIONS */}
+                        <td>
+                          {editingId === centerId && hasCenter ? (
+                            <>
+                              <Button
+                                size="sm"
+                                color="success"
+                                onClick={() => handleSave(row)}
+                              >
+                                ✓
+                              </Button>{" "}
+                              <Button
+                                size="sm"
+                                color="secondary"
+                                onClick={handleCancel}
+                              >
+                                ✕
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="d-flex justify-content-center gap-2">
+                              <Button
+                                size="sm"
+                                color="info"
+                                outline
+                                disabled={!hasCenter}
+                                title={!hasCenter ? "Center missing" : "Edit"}
+                                onClick={() => handleEdit(row)}
+                              >
+                                <i className="ri-edit-2-line"></i>
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                color="danger"
+                                outline
+                                disabled={!hasCenter}
+                                title={!hasCenter ? "Center missing" : "Delete"}
+                                onClick={() => hasCenter && handleDelete(row)}
+                              >
+                                <i className="ri-delete-bin-6-line"></i>
+                              </Button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </Table>
           )}
@@ -570,3 +587,98 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
 };
 
 export default ViewAndEditCenterCost;
+
+{
+  /* <tbody>
+                {prodata?.center
+                  ?.slice()
+                  .reverse()
+                  .map((row, idx) => {
+                    const centerId = row?.center?._id || `deleted-${idx}`;
+                    const isDeleted = !row?.center;
+
+                    return (
+                      <tr
+                        key={centerId}
+                        className={isDeleted ? "table-warning" : ""}
+                      >
+                        <td className="text-start">
+                          <strong>
+                            {row.center?.title || "Center Deleted"}
+                          </strong>
+                        </td>
+
+                        {priceColumns.map((col) => (
+                          <td key={col.unit}>
+                            {editingId === centerId && !isDeleted ? (
+                              <Input
+                                type="number"
+                                bsSize="sm"
+                                disabled={isDeleted}
+                                value={costValues[centerId]?.[col.unit] ?? ""}
+                                onChange={(e) =>
+                                  setCostValues((prev) => ({
+                                    ...prev,
+                                    [centerId]: {
+                                      ...prev[centerId],
+                                      [col.unit]: e.target.value,
+                                    },
+                                  }))
+                                }
+                              />
+                            ) : (
+                              <span className="text-primary">
+                                {row.prices?.find((p) => p.unit === col.unit)
+                                  ?.price ?? 0}
+                              </span>
+                            )}
+                          </td>
+                        ))}
+
+                        <td>
+                          {isDeleted ? (
+                            <span className="text-muted">N/A</span>
+                          ) : editingId === centerId ? (
+                            <>
+                              <Button
+                                size="sm"
+                                color="success"
+                                onClick={() => handleSave(row)}
+                              >
+                                ✓
+                              </Button>{" "}
+                              <Button
+                                size="sm"
+                                color="secondary"
+                                onClick={handleCancel}
+                              >
+                                ✕
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="d-flex justify-content-center gap-2">
+                              <Button
+                                size="sm"
+                                color="info"
+                                outline
+                                onClick={() => handleEdit(row)}
+                              >
+                                <i className="ri-edit-2-line"></i>
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                color="danger"
+                                outline
+                                onClick={() => handleDelete(row)}
+                              >
+                                <i className="ri-delete-bin-6-line"></i>
+                              </Button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody> */
+}
