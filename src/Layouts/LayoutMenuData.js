@@ -4,10 +4,8 @@ import pages from "../Components/constants/pages";
 
 const Navdata = () => {
   const userPages = useSelector(
-    (state) => state.User.user?.pageAccess?.pages || []
+    (state) => state.User.user?.pageAccess?.pages || [],
   );
-
-  console.log("userPages", userPages);
 
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);
@@ -16,7 +14,7 @@ const Navdata = () => {
   });
 
   const filteredDynamicPages = dynamicPages?.filter(
-    (page) => page && page.id !== "hrms"
+    (page) => page && page.id !== "hrms",
   );
 
   const sortPages = (routes) => {

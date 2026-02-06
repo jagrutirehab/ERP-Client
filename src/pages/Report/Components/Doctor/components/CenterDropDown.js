@@ -9,7 +9,12 @@ import {
 } from "reactstrap";
 import PropTypes from "prop-types";
 
-const CenterDropdown = ({ options = [], value = [], onChange }) => {
+const CenterDropdown = ({
+  options = [],
+  value = [],
+  onChange,
+  className = "topbar-head-dropdown ms-1 header-item",
+}) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [tempValue, setTempValue] = useState(value);
 
@@ -43,11 +48,7 @@ const CenterDropdown = ({ options = [], value = [], onChange }) => {
   };
 
   return (
-    <Dropdown
-      isOpen={dropdownOpen}
-      toggle={toggle}
-      className="topbar-head-dropdown ms-1 header-item"
-    >
+    <Dropdown isOpen={dropdownOpen} toggle={toggle} className={className}>
       <DropdownToggle
         caret
         color="primary"
