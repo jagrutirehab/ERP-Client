@@ -208,7 +208,10 @@ const InvoiceDraft = ({
           : null;
 
       const exactCost = defaultPriceObj ? defaultPriceObj.price : 0;
-      const dynamicUOM = defaultPriceObj ? defaultPriceObj.unit : "";
+      const dynamicUOM =
+        defaultPriceObj?.unit ||
+        item?.center?.find((c) => c?.prices?.length)?.prices?.[0]?.unit ||
+        undefined;
 
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];

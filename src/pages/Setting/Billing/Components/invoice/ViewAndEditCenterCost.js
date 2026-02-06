@@ -421,13 +421,15 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   const handleSaveCenters = async (payload) => {
     console.log("payload from handle save centers function", payload);
     try {
-      await addCentersToProcedure(payload);
+      const response = await addCentersToProcedure(payload);
+      console.log("response", response);
 
-      toast.success("Centers added successfully");
+      toast.success("Centers added successfully...");
       setShowCentersModal(false);
       loadProcedures();
     } catch (err) {
-      toast.error("Failed to add centers");
+      console.log("err", err);
+      toast.error(err?.message || "Failed to add centers");
     }
   };
 
