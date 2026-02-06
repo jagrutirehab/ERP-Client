@@ -18,6 +18,9 @@ import { useNavigate } from "react-router-dom";
 import { downloadFile } from "../../../Components/Common/downloadFile";
 import EmployeeModal from "../components/EmployeeModal";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
+import { getFilePreviewMeta, isPreviewable } from "../../../utils/isPreviewable";
+import PreviewFile from "../../../Components/Common/PreviewFile";
+import { FILE_PREVIEW_CUTOFF } from "../../../Components/constants/HR";
 
 const customStyles = {
   table: {
@@ -40,6 +43,7 @@ const customStyles = {
   },
 };
 
+
 const Employee = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -55,6 +59,8 @@ const Employee = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -177,6 +183,19 @@ const Employee = () => {
       }
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const handleFilePreview = (file, updatedAt) => {
+    if (!file?.url) return;
+
+    const meta = getFilePreviewMeta(file, updatedAt, FILE_PREVIEW_CUTOFF);
+
+    if (meta.action === "preview") {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
     }
   };
 
@@ -379,26 +398,35 @@ const Employee = () => {
     },
     {
       name: <div>Aadhaar File</div>,
-      selector: (row) =>
-        row?.adhar?.url ? (
+      selector: (row) => {
+        if (!row?.adhar?.url) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.adhar?.url },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
             onClick={() =>
-              downloadFile({
-                url: row.adhar.url,
-              })
+              handleFilePreview(
+                { url: row?.adhar?.url },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
             }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      },
     },
     {
       name: <div>PAN No</div>,
@@ -408,22 +436,35 @@ const Employee = () => {
     },
     {
       name: <div>PAN File</div>,
-      selector: (row) =>
-        row?.pan?.url ? (
+      selector: (row) => {
+        if (!row?.pan?.url) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.pan?.url },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
-            onClick={() => downloadFile({ url: row.pan.url })}
+            onClick={() =>
+              handleFilePreview(
+                { url: row?.pan?.url },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
+            }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      },
       wrap: true,
     },
     {
@@ -459,22 +500,35 @@ const Employee = () => {
     // },
     {
       name: <div>Offer Letter</div>,
-      selector: (row) =>
-        row?.offerLetter ? (
+      selector: (row) => {
+        if (!row?.offerLetter) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.offerLetter },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
-            onClick={() => downloadFile({ url: row.offerLetter })}
+            onClick={() =>
+              handleFilePreview(
+                { url: row?.offerLetter },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
+            }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      },
     },
     {
       name: <div>Created By</div>,
@@ -700,6 +754,15 @@ const Employee = () => {
         }}
         onConfirm={handleDelete}
         loading={modalLoading}
+      />
+      <PreviewFile
+        title="Attachment Preview"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => {
+          setPreviewOpen(false);
+          setPreviewFile(null);
+        }}
       />
     </CardBody>
   );

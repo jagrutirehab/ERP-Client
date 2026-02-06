@@ -11,6 +11,9 @@ import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTable from "react-data-table-component";
 import Select from "react-select";
+import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
+import PreviewFile from "../../../../../Components/Common/PreviewFile";
+import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
 
 
 const customStyles = {
@@ -44,6 +47,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -116,6 +121,19 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       fetchMasterEmployeeList();
     }
   }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+
+  const handleFilePreview = (file, updatedAt) => {
+    if (!file?.url) return;
+
+    const meta = getFilePreviewMeta(file, updatedAt, FILE_PREVIEW_CUTOFF);
+
+    if (meta.action === "preview") {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
+    }
+  };
 
   const columns = [
     {
@@ -247,24 +265,35 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Aadhaar File</div>,
-      selector: (row) =>
-        row?.adhar?.url ? (
+      selector: (row) => {
+        if (!row?.adhar?.url) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.adhar?.url },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
-            onClick={() => downloadFile({
-              url: row.adhar.url,
-            })}
+            onClick={() =>
+              handleFilePreview(
+                { url: row?.adhar?.url },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
+            }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      },
     },
     {
       name: <div>PAN No</div>,
@@ -274,22 +303,35 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>PAN File</div>,
-      selector: (row) =>
-        row?.pan?.url ? (
+      selector: (row) => {
+        if (!row?.pan?.url) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.pan?.url },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
-            onClick={() => downloadFile({ url: row.pan.url })}
+            onClick={() =>
+              handleFilePreview(
+                { url: row?.pan?.url },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
+            }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      },
       wrap: true,
     },
     {
@@ -508,6 +550,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         }
         onChangePage={(newPage) => setPage(newPage)}
         onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+      />
+
+      <PreviewFile
+        title="Attachment Preview"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => {
+          setPreviewOpen(false);
+          setPreviewFile(null);
+        }}
       />
 
     </>
