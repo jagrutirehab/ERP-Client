@@ -52,7 +52,7 @@ const InvoiceDraft = ({
   const [totalPayable, setTotalPayable] = useState(0);
   const [refund, setRefund] = useState(0);
   const [invoiceType, setInvoiceType] = useState(
-    editDraftData ? editDraftData.bill : DRAFT_INVOICE
+    editDraftData ? editDraftData.bill : DRAFT_INVOICE,
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
@@ -84,14 +84,14 @@ const InvoiceDraft = ({
             id: editDraftData._id,
             billId: editData._id,
             ...values,
-          })
+          }),
         );
       } else {
         dispatch(
           addDraftInvoice({
             ...values,
             shouldPrintAfterSave,
-          })
+          }),
         );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
@@ -201,7 +201,10 @@ const InvoiceDraft = ({
           ...prevValue,
           {
             slot: item.name ? item.name : item,
-            category: item.category ? item.category : "",
+            category:
+              typeof item.category === "object"
+                ? item.category.name
+                : item.category,
             unit: parseInt(item.unit) || 0,
             cost: parseInt(item.cost) || 0,
             unitOfMeasurement: item.unitOfMeasurement || "",
