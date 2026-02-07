@@ -368,22 +368,35 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Offer Letter</div>,
-      selector: (row) =>
-        row?.offerLetter ? (
+      cell: row => {
+        if (!row?.offerLetter) return "-";
+
+        const meta = getFilePreviewMeta(
+          { url: row?.offerLetter },
+          row?.updatedAt,
+          FILE_PREVIEW_CUTOFF
+        );
+
+        return (
           <span
             style={{
-              color: "#007bff",
+              color: meta.canPreview ? "#007bff" : "#28a745",
               textDecoration: "underline",
               cursor: "pointer",
               fontSize: "0.875rem",
             }}
-            onClick={() => downloadFile({ url: row.offerLetter })}
+            onClick={() =>
+              handleFilePreview(
+                { url: row?.offerLetter },
+                row?.updatedAt,
+                FILE_PREVIEW_CUTOFF
+              )
+            }
           >
-            Download
+            {meta.action === "preview" ? "Preview" : "Download"}
           </span>
-        ) : (
-          "-"
-        ),
+        );
+      }
     },
     {
       name: <div>Approval Status</div>,
