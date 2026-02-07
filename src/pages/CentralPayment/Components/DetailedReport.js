@@ -283,7 +283,13 @@ const DetailedReport = ({
     },
     {
       name: <div>TDS Rate</div>,
-      cell: (row) => <span>{row?.TDSRate || "-"}</span>,
+      cell: (row) => <span>{row?.TDSRate || 0}</span>,
+      center: true,
+      wrap: true,
+    },
+    {
+      name: <div>TDS Amount</div>,
+      cell: (row) => <span>{formatCurrency(row?.TDSAmount)}</span>,
       center: true,
       wrap: true,
     },

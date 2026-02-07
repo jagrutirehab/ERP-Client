@@ -231,21 +231,19 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                     {(flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
-                            <div className="d-flex justify-content-end">
-                                {
-                                    flag === "processPayment" && item?.author && (
-                                        <div className="d-flex justify-content-end mb-2 mt-2 me-2">
-                                            <small className="text-muted">
-                                                Initiator:{" "}
-                                                <span className="fw-semibold text-dark">
-                                                    {item.author?.name?.toUpperCase()}
-                                                </span>
-                                            </small>
-                                        </div>
-                                    )
-                                }
+                            <div className="d-flex flex-column flex-sm-row justify-content-end align-items-start align-items-sm-center gap-2">
+                                {item?.author && (
+                                    <div className="w-100 w-sm-auto">
+                                        <small className="text-muted">
+                                            Initiator:{" "}
+                                            <span className="fw-semibold text-dark">
+                                                {item.author?.name?.toUpperCase()}
+                                            </span>
+                                        </small>
+                                    </div>
+                                )}
                                 {item?.approvedBy && (
-                                    <div className="d-flex justify-content-end mb-2 mt-2 me-2">
+                                    <div className="w-100 w-sm-auto">
                                         <small className="text-muted">
                                             Approved by:{" "}
                                             <span className="fw-semibold text-dark">
@@ -258,7 +256,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                     onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
                                     size="sm"
-                                    className="d-flex align-items-center text-white"
+                                    className="d-flex align-items-center justify-content-center text-white w-100 w-sm-auto"
                                     disabled={updating.id === item._id || copyLoading}
                                 >
                                     {(updating.id === item._id || copyLoading) ? (
@@ -267,11 +265,12 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                         !hasCreatePermission && flag === "processPayment" ?
                                             <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
                                     )}
-                                    {
-                                        hasCreatePermission
+                                    <span className="text-truncate">
+                                        {hasCreatePermission
                                             ? (flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
                                             : flag === "processPayment" ? "Copy E-Net" : "Details"
-                                    }
+                                        }
+                                    </span>
                                 </Button>
                             </div>
                         </>

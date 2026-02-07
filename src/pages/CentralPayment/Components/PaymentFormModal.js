@@ -175,6 +175,12 @@ const PaymentFormModal = ({
                                                     <strong>TDS Rate:</strong> {paymentDetails.TDSRate}
                                                 </p>
                                             )}
+                                        {paymentDetails?.TDSAmount !== null &&
+                                            paymentDetails?.TDSAmount !== undefined && (
+                                                <p className="mb-0">
+                                                    <strong>TDS Amount:</strong> {formatCurrency(paymentDetails.TDSAmount)}
+                                                </p>
+                                            )}
                                         {paymentDetails?.transactionType && (
                                             <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
                                         )}
