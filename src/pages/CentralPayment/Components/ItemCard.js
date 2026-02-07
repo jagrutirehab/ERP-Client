@@ -231,32 +231,31 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                     {(flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
-                            <div className="d-flex flex-column flex-sm-row justify-content-end align-items-start align-items-sm-center gap-2">
-                                {item?.author && (
-                                    <div className="w-100 w-sm-auto">
-                                        <small className="text-muted">
-                                            Initiator:{" "}
-                                            <span className="fw-semibold text-dark">
+                            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+                                <div className="d-flex flex-column flex-sm-row gap-4 flex-shrink-0">
+                                    {item?.author && (
+                                        <div style={{ minWidth: 120 }}>
+                                            <i className="text-muted d-block">Initiator:</i>
+                                            <span className="fw-semibold text-dark d-block">
                                                 {item.author?.name?.toUpperCase()}
                                             </span>
-                                        </small>
-                                    </div>
-                                )}
-                                {item?.approvedBy && (
-                                    <div className="w-100 w-sm-auto">
-                                        <small className="text-muted">
-                                            Approved by:{" "}
-                                            <span className="fw-semibold text-dark">
+                                        </div>
+                                    )}
+                                    {item?.approvedBy && (
+                                        <div style={{ minWidth: 140 }}>
+                                            <i className="text-muted d-block">Approved by:</i>
+                                            <span className="fw-semibold text-dark d-block">
                                                 {item.approvedBy?.name?.toUpperCase()}
                                             </span>
-                                        </small>
-                                    </div>
-                                )}
+                                        </div>
+                                    )}
+                                </div>
                                 <Button
                                     onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
                                     color="primary"
                                     size="sm"
                                     className="d-flex align-items-center justify-content-center text-white w-100 w-sm-auto"
+                                    style={{ maxWidth: "260px" }}
                                     disabled={updating.id === item._id || copyLoading}
                                 >
                                     {(updating.id === item._id || copyLoading) ? (
