@@ -461,22 +461,35 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         },
         {
             name: <div>Offer Letter</div>,
-            cell: row =>
-                typeof row?.offerLetter === "string" ? (
+            cell: row => {
+                if (!row?.offerLetter) return "-";
+
+                const meta = getFilePreviewMeta(
+                    { url: row?.offerLetter },
+                    row?.updatedAt,
+                    FILE_PREVIEW_CUTOFF
+                );
+
+                return (
                     <span
                         style={{
-                            color: "#007bff",
+                            color: meta.canPreview ? "#007bff" : "#28a745",
                             textDecoration: "underline",
                             cursor: "pointer",
-                            fontSize: "0.875rem"
+                            fontSize: "0.875rem",
                         }}
-                        onClick={() => downloadFile({ url: row.offerLetter })}
+                        onClick={() =>
+                            handleFilePreview(
+                                { url: row?.offerLetter },
+                                row?.updatedAt,
+                                FILE_PREVIEW_CUTOFF
+                            )
+                        }
                     >
-                        Download
+                        {meta.action === "preview" ? "Preview" : "Download"}
                     </span>
-                ) : (
-                    "-"
-                )
+                );
+            }
         },
         {
             name: <div>Filled By</div>,
