@@ -24,9 +24,9 @@ import AsyncSelect from "react-select/async";
 
 const clearableFields = [
     "invoiceNo",
-    "IFSCCode",
-    "accountHolderName",
-    "accountNo",
+    // "IFSCCode",
+    // "accountHolderName",
+    // "accountNo",
 ];
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
@@ -79,12 +79,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .required("GST amount is required")
             .matches(/^\d+(\.\d{1,2})?$/, "GST amount can have at most 2 decimal places"),
         IFSCCode: Yup.string()
-            .nullable()
             .trim()
+            .required("IFSC Code is required")
             .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters"),
-        accountHolderName: Yup.string().nullable(),
+
+        accountHolderName: Yup.string()
+            .trim()
+            .required("Account holder name is required"),
+
         accountNo: Yup.string()
-            .nullable()
+            .trim()
+            .required("Account number is required")
             .max(25, "Account number cannot be more than 25 characters"),
         TDSRate: Yup.number()
             .typeError("TDS Rate must be a number")
@@ -621,7 +626,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
             <FormGroup>
                 <Label for="IFSCCode" className="fw-medium">
-                    Bank IFSC Code
+                    Bank IFSC Code <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
@@ -644,7 +649,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
             <FormGroup>
                 <Label for="accountHolderName" className="fw-medium">
-                    Account Holder Name
+                    Account Holder Name <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
@@ -667,7 +672,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
             <FormGroup>
                 <Label for="accountNo" className="fw-medium">
-                    Account No
+                    Account No <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
