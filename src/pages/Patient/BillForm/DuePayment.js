@@ -749,15 +749,21 @@ const DuePayment = ({
         (d) =>
           String(d?.center?._id) === String(patient?.center?._id || center),
       );
+      // console.log("centerMatch", centerMatch);
 
       const defaultPriceObj =
         centerMatch?.prices && centerMatch.prices.length > 0
           ? centerMatch.prices[0]
           : null;
 
-      const exactCost = defaultPriceObj ? defaultPriceObj.price : 0;
-      const dynamicUOM = defaultPriceObj ? defaultPriceObj.unit : "";
+      console.log("defaultPriceObj", defaultPriceObj);
 
+      const exactCost = defaultPriceObj ? defaultPriceObj.price : 0;
+      const dynamicUOM =
+        defaultPriceObj?.unit ||
+        item?.center?.find((c) => c?.prices?.length)?.prices?.[0]?.unit ||
+        undefined;
+      //
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
         return [
