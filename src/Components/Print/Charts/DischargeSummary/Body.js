@@ -14,7 +14,7 @@ Font.register({
   fonts: [
     {
       src: Roboto,
-      fontWeight: "heavy",
+      fontWeight: "bold",
     },
   ],
 });
@@ -81,6 +81,11 @@ const styles = StyleSheet.create({
   },
 });
 
+const clean = v =>
+  typeof v === "string"
+    ? v.normalize("NFKC").replace(/\u200B|\uFEFF/g, "")
+    : "";
+
 const SummaryBody = ({ chart, patient }) => {
   const data = chart.dischargeSummary;
   // const splitTextIntoLines = (text) => {
@@ -106,13 +111,13 @@ const SummaryBody = ({ chart, patient }) => {
         {data?.diagnosis && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>Diagnosis:</Text>
-            <Text style={styles.preText}>{data?.diagnosis?.trim() || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.diagnosis)?.trim() || ""}</Text>
           </View>
         )}
         {data?.presentingSymptoms && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>Presenting Symptoms:</Text>
-            <Text style={styles.preText}>{data?.presentingSymptoms || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.presentingSymptoms) || ""}</Text>
           </View>
         )}{" "}
         {/* MSE AT ADDMISSION {" "} */}
@@ -120,55 +125,55 @@ const SummaryBody = ({ chart, patient }) => {
         {data?.pastHistory && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>PAST HISTORY:</Text>
-            <Text style={styles.preText}>{data?.pastHistory || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.pastHistory) || ""}</Text>
           </View>
         )}
         {data?.medicalHistory && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>MEDICAL HISTORY:</Text>
-            <Text style={styles.preText}>{data?.medicalHistory || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.medicalHistory) || ""}</Text>
           </View>
         )}
         {data?.familyHistory && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>RELEVANT FAMILY HISTORY :</Text>
-            <Text style={styles.preText}>{data?.familyHistory || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.familyHistory) || ""}</Text>
           </View>
         )}
         {(data.personalHistory?.smoking ||
           data.personalHistory?.chewingTobacco ||
           data.personalHistory?.alcohol) && (
-          <View style={styles.marginBottom}>
-            <Text style={styles.fontSize13}>PERSONAL HISTORY:</Text>
-            {data.personalHistory?.smoking && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Smoking</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.personalHistory?.smoking || ""}
-                </Text>
-              </View>
-            )}
-            {data.personalHistory?.chewingTobacco && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Chewing Tobacco</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.personalHistory?.chewingTobacco || ""}
-                </Text>
-              </View>
-            )}
-            {data.personalHistory?.alcohol && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Alcohol</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.personalHistory?.alcohol || ""}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+            <View style={styles.marginBottom}>
+              <Text style={styles.fontSize13}>PERSONAL HISTORY:</Text>
+              {data.personalHistory?.smoking && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Smoking</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.personalHistory?.smoking) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.personalHistory?.chewingTobacco && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Chewing Tobacco</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.personalHistory?.chewingTobacco) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.personalHistory?.alcohol && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Alcohol</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.personalHistory?.alcohol) || ""}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
         {(data.physicalExamination?.temprature ||
           data.physicalExamination?.pulse ||
           data.physicalExamination?.bp ||
@@ -177,94 +182,94 @@ const SummaryBody = ({ chart, patient }) => {
           data.physicalExamination?.abdomen ||
           data.physicalExamination?.cns ||
           data.physicalExamination?.others) && (
-          <View style={styles.marginBottom}>
-            <Text style={styles.fontSize13}>PHYSICAL EXAMINATION:</Text>
-            {data.physicalExamination?.temprature && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Temprature</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.temprature || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.pulse && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>pulse</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.pulse || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.bp && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>B.P</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.bp || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.cvs && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>CVS</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.cvs || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.rs && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>RS</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.rs || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.abdomen && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Abdomen</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.abdomen || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.cns && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>CNS</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.cns || ""}
-                </Text>
-              </View>
-            )}
-            {data.physicalExamination?.others && (
-              <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
-                <Text style={styles.w25}>Others</Text>
-                <Text style={styles.w5}>:</Text>
-                <Text style={{ ...styles.w70 }}>
-                  {data.physicalExamination?.others || ""}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+            <View style={styles.marginBottom}>
+              <Text style={styles.fontSize13}>PHYSICAL EXAMINATION:</Text>
+              {data.physicalExamination?.temprature && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Temprature</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.temprature) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.pulse && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>pulse</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.pulse) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.bp && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>B.P</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.bp) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.cvs && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>CVS</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.cvs) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.rs && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>RS</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.rs) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.abdomen && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Abdomen</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.abdomen) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.cns && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>CNS</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.cns) || ""}
+                  </Text>
+                </View>
+              )}
+              {data.physicalExamination?.others && (
+                <View style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}>
+                  <Text style={styles.w25}>Others</Text>
+                  <Text style={styles.w5}>:</Text>
+                  <Text style={{ ...styles.w70 }}>
+                    {clean(data.physicalExamination?.others) || ""}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
         {data?.investigation && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>
               INVESTIGATIONS : (all reports attached with Discharge Card)
             </Text>
-            <Text style={styles.preText}>{data?.investigation || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.investigation) || ""}</Text>
           </View>
         )}
         {data?.discussion && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>DISCUSSION / WARD MANAGEMENT:</Text>
-            <Text style={styles.preText}>{data?.discussion || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.discussion) || ""}</Text>
           </View>
         )}
         {data?.treatment?.length && data.treatment instanceof Array ? (
@@ -279,7 +284,7 @@ const SummaryBody = ({ chart, patient }) => {
         ) : data?.treatment ? (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>GIVEN TREATMENTS:</Text>
-            <Text style={styles.preText}>{data?.treatment || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.treatment) || ""}</Text>
           </View>
         ) : (
           ""
@@ -287,7 +292,7 @@ const SummaryBody = ({ chart, patient }) => {
         {data?.refernces && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>References:</Text>
-            <Text style={styles.preText}>{data?.refernces || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.refernces) || ""}</Text>
           </View>
         )}
         {data?.modifiedTreatment && (
@@ -295,13 +300,13 @@ const SummaryBody = ({ chart, patient }) => {
             <Text style={styles.fontSize13}>
               Modified ECTs / Ketamine / Other Treatment:
             </Text>
-            <Text style={styles.preText}>{data?.modifiedTreatment || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.modifiedTreatment) || ""}</Text>
           </View>
         )}
         {data?.deportAdministered && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>LA / Depot Administered:</Text>
-            <Text style={styles.preText}>{data?.deportAdministered || ""}</Text>
+            <Text style={styles.preText}>{clean(data?.deportAdministered) || ""}</Text>
           </View>
         )}
         <MseAtDischarge data={data} styles={styles} />
@@ -311,7 +316,7 @@ const SummaryBody = ({ chart, patient }) => {
               PATIENT CONDITION / STATUS AT THE TIME OF DISCHARGE:
             </Text>
             <Text wrap={true} style={styles.preText}>
-              {data?.patientStatus || ""}
+              {clean(data?.patientStatus) || ""}
             </Text>
           </View>
         )}
@@ -342,8 +347,8 @@ const SummaryBody = ({ chart, patient }) => {
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>Follow-Up:</Text>
             <View style={styles.paddingLeft5}>
-              {data.followUp
-                .trim()
+              {clean(data.followUp)
+                ?.trim()
                 .split(/\r?\n|(?<=\.)\s+/)
                 .map((line, idx) => (
                   <Text key={idx} style={styles.preText}>
@@ -369,7 +374,7 @@ const SummaryBody = ({ chart, patient }) => {
         {typeof data?.note === "string" && data?.note.trim() && (
           <View style={styles.marginBottom} wrap={false}>
             <Text style={styles.fontSize13}>Note:</Text>
-            <Text style={styles.preText}>{data.note.trim()}</Text>
+            <Text style={styles.preText}>{clean(data.note)?.trim()}</Text>
           </View>
         )}
       </View>
