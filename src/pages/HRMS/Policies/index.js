@@ -8,17 +8,21 @@ import CustomModal from "../../../Components/Common/Modal";
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
+import WeekOffModal from "./WeekOffModal";
 
 const Policies = () => {
   const [earnedLeaves, setEarnedLeaves] = useState("");
   const [festiveLeaves, setFestiveLeaves] = useState("");
-  const [weekOffs, setWeekOffs] = useState("");
+  // const [weekOffs, setWeekOffs] = useState("");
   const [loading, setLoading] = useState(false);
   const [policyData, setPolicyData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [policyName, setPolicyName] = useState("");
   const [loadingToFetch, setLoadingToFetch] = useState(false);
   const [regularization_limits, setRegularization_limits] = useState("");
+
+  const [weekOffModal, setWeekOffModal] = useState(false);
+  const [selectedPolicyRow, setSelectedPolicyRow] = useState(null);
 
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
@@ -55,7 +59,7 @@ const Policies = () => {
     setPolicyName("");
     setEarnedLeaves("");
     setFestiveLeaves("");
-    setWeekOffs("");
+    // setWeekOffs("");
     setRegularization_limits("");
   };
 
@@ -67,22 +71,22 @@ const Policies = () => {
         !policyName ||
         earnedLeaves === "" ||
         festiveLeaves === "" ||
-        weekOffs === "" || 
+        // weekOffs === "" ||
         regularization_limits === ""
       ) {
         return toast.error("All fields are required!");
       }
 
-      if (earnedLeaves < 0 || festiveLeaves < 0 || weekOffs < 0) {
+      if (earnedLeaves < 0 || festiveLeaves < 0) {
         return toast.error("Leaves cannot be negative");
       }
 
       const data = {
         earnedLeaves,
         festiveLeaves,
-        weekOffs,
+        // weekOffs,
         policyName,
-        regularization_limits
+        regularization_limits,
       };
 
       const res = await addPolicies(data);
@@ -101,6 +105,8 @@ const Policies = () => {
     }
   };
 
+  console.log("policyData", policyData);
+
   const tableData = [...policyData].reverse()?.map((p) => ({
     earnedLeaves: p?.earnedLeaves,
     festiveLeaves: p?.festiveLeaves,
@@ -111,6 +117,11 @@ const Policies = () => {
     policyName: p?.policyName,
     regularization_limits: p?.regularization_limits,
   }));
+
+  const handleWeekOffClick = (row) => {
+    setSelectedPolicyRow(row);
+    setWeekOffModal(true);
+  };
 
   return (
     <CardBody
@@ -130,11 +141,19 @@ const Policies = () => {
       </div>
 
       <DataTableComponent
-        columns={policyColumn()}
+        columns={policyColumn(handleWeekOffClick)}
         data={tableData}
         loading={loadingToFetch}
         pagination={false}
       />
+
+      {weekOffModal && selectedPolicyRow && (
+        <WeekOffModal
+          isOpen={weekOffModal}
+          toggle={() => setWeekOffModal(false)}
+          row={selectedPolicyRow}
+        />
+      )}
 
       <CustomModal
         isOpen={showModal}
@@ -184,7 +203,7 @@ const Policies = () => {
           />
         </div>
 
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <label>Week Offs</label>
           <input
             type="number"
@@ -196,7 +215,7 @@ const Policies = () => {
               if (v >= 0) setWeekOffs(v);
             }}
           />
-        </div>
+        </div> */}
 
         <div className="mb-3">
           <label>Regularization Limits</label>

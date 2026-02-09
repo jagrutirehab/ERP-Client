@@ -68,3 +68,16 @@ code {
 .react-select__control {
   border-radius: 0.25rem;
 }
+
+
+.weekoff-link {
+  color: rgba(13, 110, 253, 0.6);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.weekoff-link:hover {
+  color: rgba(13, 110, 253, 1);
+  text-decoration: underline;
+}
