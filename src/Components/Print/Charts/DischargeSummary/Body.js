@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   fontSize13: {
     fontSize: "13px",
     fontFamily: "Roboto",
-    fontWeight: "heavy",
+    fontWeight: "bold",
     paddingBottom: 7,
   },
   checkBlock: {
@@ -81,10 +81,14 @@ const styles = StyleSheet.create({
   },
 });
 
-const clean = v =>
-  typeof v === "string"
-    ? v.normalize("NFKC").replace(/\u200B|\uFEFF/g, "")
-    : "";
+const clean = (value) => {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[^\x00-\x7F\u0900-\u097F]/g, "")
+    .trim();
+};
 
 const SummaryBody = ({ chart, patient }) => {
   const data = chart.dischargeSummary;
