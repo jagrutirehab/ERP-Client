@@ -329,11 +329,11 @@ const SummaryBody = ({ chart, patient }) => {
             <Text style={styles.fontSize13}>ADVISE ON DISCHARGE:</Text>
           </View>
         )}
-        {data?.medicine?.length && (
+        {/* {data?.medicine?.length && (
           <View style={{ marginTop: 10, marginBottom: 15 }}>
             <PrescriptionTable medicines={data.medicine} />{" "}
           </View>
-        )}
+        )} */}
         {/* {typeof data?.followUp === "string" && data?.followUp.trim() && (
           <View style={styles.marginBottom}>
             <Text style={styles.fontSize13}>Follow-Up:</Text>
