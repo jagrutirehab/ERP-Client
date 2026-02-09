@@ -43,6 +43,7 @@ import IncentivesApproval from "./Incentives/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
 import HiringManagement from "./Hiring/HiringManagement";
 import Salary from "./Salary";
+import FestiveLeaves from "../HRMS/Leaves/FestiveLeaves";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -175,6 +176,7 @@ const HR = () => {
                   path={"/leaves/history/for/:id"}
                   element={<IndividualLeavesOfEmp />}
                 />
+                <Route path={`/leaves/festive/leaves`} element={<FestiveLeaves />} />
 
                 <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />

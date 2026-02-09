@@ -255,7 +255,7 @@ export const deleteCenterInProcedure = ({ payload }) => {
   });
 };
 
-export const addCentersToProcedure = ( payload ) =>
+export const addCentersToProcedure = (payload) =>
   api.create(url.ADD_CENTERS_IN_PROCEDURE, payload);
 
 export const getCategoriesOfProcedures = () =>
@@ -2302,6 +2302,26 @@ export const adminGetAllLeavesInfo = (params = {}) => {
     },
   });
 };
+
+export const getFestiveLeavesList = (params = {}) => {
+  return axios.get(url.GET_FESTIVE_LEAVES_LISTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const addFestiveLeavesList = (data) =>
+  api.create(
+    url.POST_FESTIVE_LEAVES_LIST,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {
