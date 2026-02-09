@@ -1205,17 +1205,20 @@ let addPatientFields = [
     label: "Name",
     name: "name",
     type: "text",
+    required: true,
   },
   {
     label: "Gender",
     name: "gender",
     type: "radio",
     options: ["MALE", "FEMALE", "OTHERS"],
+    required: true,
   },
   {
     label: "Date of Birth",
     name: "dateOfBirth",
     type: "date",
+    required: true,
   },
   {
     label: "Marital Status",
@@ -1237,6 +1240,7 @@ let addPatientFields = [
     label: "Address",
     name: "address",
     type: "textarea",
+    required: true,
   },
   {
     label: "Area Type",
@@ -1248,6 +1252,7 @@ let addPatientFields = [
     label: "Phone Number",
     name: "phoneNumber",
     type: "number",
+    required: true,
   },
   {
     label: "Aadhaar Card Number",
