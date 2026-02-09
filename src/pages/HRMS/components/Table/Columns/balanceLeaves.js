@@ -11,10 +11,10 @@ export const balanceLeavesColumn = () => [
     name: "Festive",
     cell: (row) => row.festiveLeaves ?? "-",
   },
-  {
-    name: "Week Offs",
-    cell: (row) => row.weekOffs ?? "-",
-  },
+  // {
+  //   name: "Week Offs",
+  //   cell: (row) => row.weekOffs ?? "-",
+  // },
   {
     name: "Unpaid",
     cell: (row) => row.unpaidLeaves ?? "-",

@@ -1,6 +1,6 @@
-import { Badge } from "reactstrap";
+import { Button, Badge } from "reactstrap";
 
-export const policyColumn = () => [
+export const policyColumn = (onWeekOffClick = () => {}) => [
   {
     name: <div>Policy Name</div>,
     selector: (row) => row?.policyName || "-",
@@ -24,11 +24,21 @@ export const policyColumn = () => [
   },
   {
     name: <div>Week Offs</div>,
-    selector: (row) => row?.weekOffs || "-",
-    grow: 1.5,
-    wrap: true,
+    cell: (row) => (
+      <span
+        className="weekoff-link"
+        onClick={() => {
+          if (typeof onWeekOffClick === "function") {
+            onWeekOffClick(row);
+          }
+        }}
+      >
+        View week offs
+      </span>
+    ),
     minWidth: "140px",
   },
+
   {
     name: <div>Unpaid Leaves</div>,
     selector: (row) => row?.unpaidLeaves || "-",
