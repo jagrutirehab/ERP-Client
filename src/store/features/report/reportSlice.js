@@ -7,6 +7,7 @@ import {
   getPatientAnalytics,
   getReport,
   getCenterBedsAnalytics as getCenterBedsAnalyticsApi,
+  getAdmissionForms,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -19,11 +20,13 @@ const initialState = {
   booking: null,
   doctor: null,
   centerBeds: [],
+  admissionForms: null,
   loading: false,
   centerBedsLoading: false,
   totalPages: 0,
   currentPage: 0,
   limit: 0,
+  total: 0,
 };
 
 export const fetchReport = createAsyncThunk(
@@ -36,7 +39,7 @@ export const fetchReport = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchPatientAnalytics = createAsyncThunk(
@@ -49,7 +52,7 @@ export const fetchPatientAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchDoctorAnalytics = createAsyncThunk(
@@ -62,7 +65,7 @@ export const fetchDoctorAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchLeadAnalytics = createAsyncThunk(
@@ -75,7 +78,7 @@ export const fetchLeadAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchOPDAnalytics = createAsyncThunk(
@@ -88,7 +91,7 @@ export const fetchOPDAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchBookingAnalytics = createAsyncThunk(
@@ -101,7 +104,7 @@ export const fetchBookingAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchCenterBedsAnalytics = createAsyncThunk(
@@ -114,7 +117,20 @@ export const fetchCenterBedsAnalytics = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
+);
+
+export const fetchAdmissionForms = createAsyncThunk(
+  "getAdmissionForms",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getAdmissionForms(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
 );
 
 const reportSlice = createSlice({
@@ -206,6 +222,21 @@ const reportSlice = createSlice({
       })
       .addCase(fetchCenterBedsAnalytics.rejected, (state) => {
         state.centerBedsLoading = false;
+      });
+    builder
+      .addCase(fetchAdmissionForms.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAdmissionForms.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.admissionForms = payload.payload;
+        state.total = payload.total;
+        state.totalPages = payload.totalPages;
+        state.currentPage = payload.currentPage;
+        state.limit = payload.limit;
+      })
+      .addCase(fetchAdmissionForms.rejected, (state) => {
+        state.loading = false;
       });
   },
 });
