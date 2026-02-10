@@ -79,6 +79,8 @@ const FestiveLeaves = () => {
   }, []);
 
   useEffect(() => {
+    setSelectedListId(null);
+    setList([]);
     fetchFestiveLists(selectedYear?.value);
   }, [selectedYear]);
 
@@ -181,7 +183,10 @@ const FestiveLeaves = () => {
               <button
                 className="btn btn-outline-primary d-flex align-items-center justify-content-center"
                 style={{ minWidth: "140px" }}
-                onClick={toggleModal}
+                onClick={() => {
+                  setSelectedListId(null);
+                  toggleModal();
+                }}
               >
                 + Add New List
               </button>
