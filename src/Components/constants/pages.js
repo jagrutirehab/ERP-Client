@@ -810,12 +810,12 @@ export const HR = [
         link: "/hr/leaves/my/balance/leaves",
         icon: "bx bx-layer",
       },
-      // {
-      //   id: "festive-leaves",
-      //   label: "Festive Leaves",
-      //   link: "/hr/leaves/festive/leaves",
-      //   icon: "bx bx-party",
-      // },
+      {
+        id: "festive-leaves",
+        label: "Festive Leaves List",
+        link: "/hr/leaves/festive/leaves",
+        icon: "bx bx-party",
+      },
     ],
   },
   {
