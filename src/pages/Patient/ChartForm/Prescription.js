@@ -123,11 +123,11 @@ const Prescription = ({
         : ptLatestOPDPrescription
           ? patientLatestOPDPrescription?.diagnosis
           : "",
-      diagnosis2: editPrescription
-        ? editPrescription.diagnosis2
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.diagnosis2
-          : "",
+      // diagnosis2: editPrescription
+      //   ? editPrescription.diagnosis2
+      //   : ptLatestOPDPrescription
+      //     ? patientLatestOPDPrescription?.diagnosis2
+      //     : "",
       notes: editPrescription
         ? editPrescription.notes
         : ptLatestOPDPrescription
@@ -318,7 +318,7 @@ const Prescription = ({
     if (ptLatestOPDPrescription && !editPrescription) {
       validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
       validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
-      validation.setFieldValue("diagnosis2", ptLatestOPDPrescription.diagnosis2);
+      // validation.setFieldValue("diagnosis2", ptLatestOPDPrescription.diagnosis2);
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
       validation.setFieldValue(
         "investigationPlan",
@@ -553,7 +553,7 @@ const Prescription = ({
                     <>
                       <Select
                         isClearable={true}
-                        placeholder="Search ICD Code..."
+                        placeholder="Search Diagnosis ICD Code 1..."
                         options={icdOptions}
                         value={validation.values.icdCode || null}
                         onInputChange={(value, actionMeta) => {
@@ -580,11 +580,11 @@ const Prescription = ({
                         )}
 
                       <Label className="fw-normal mt-3 mb-1 text-muted">
-                        ICD Code 2
+                       Diagnosis ICD Code 2
                       </Label>
                       <Select
                         isClearable
-                        placeholder="Search ICD Code 2..."
+                        placeholder="Search Diagnosis ICD Code 2..."
                         options={icdOptions}
                         value={validation.values.icdCode2 || null}
                         onInputChange={(value, actionMeta) => {
@@ -606,14 +606,14 @@ const Prescription = ({
                       onBlur={validation.handleBlur}
                       value={validation.values[item.name] || ""}
                       className="form-control presc-border rounded"
-                      rows="3"
+                      rows={item.rows || 3}
                     />
                   )}
                 </div>
               </Col>
             ))}
 
-            <Col xs={12} md={6}>
+            {/* <Col xs={12} md={6}>
               <div className="mb-3">
                 <Label className="">Follow Up</Label>
                 <Flatpicker
@@ -648,8 +648,43 @@ const Prescription = ({
                   aria-label="With textarea"
                 />
               </div>
+            </Col> */}
+
+            <Col xs={12} md={6}>
+              
+              <div className="mb-3">
+                <Label className="">Follow Up</Label>
+                <Flatpicker
+                  name="dateOfAdmission"
+                  value={validation.values.followUp || ""}
+                  onChange={([e]) => validation.setFieldValue("followUp", e)}
+                  options={{
+                    dateFormat: "d M, Y",
+                    // enable: [
+                    //   function (date) {
+                    //     return date.getDate() === new Date().getDate();
+                    //   },
+                    // ],
+                  }}
+                  className="form-control shadow-none bg-light"
+                />
+              </div>
+
+              
+              <div className="mb-3">
+                <Label className="">Referred by</Label>
+                <Input
+                  type="text"
+                  name="referredby"
+                  disabled
+                  value={validation.values.referredby || ""}
+                  className="form-control presc-border rounded"
+                />
+              </div>
             </Col>
           </Row>
+
+
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
               <Button
