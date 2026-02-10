@@ -93,7 +93,12 @@ const FestiveLeaves = () => {
 
   useEffect(() => {
     setSelectedListId(null);
+    setFullData(null);
     setList([]);
+    setEditingRowId(null);
+    setEditedRow({});
+    setIsModalOpen(false);
+
     fetchFestiveLists(selectedYear?.value);
   }, [selectedYear]);
 
@@ -266,7 +271,7 @@ const FestiveLeaves = () => {
         initialRows={[]}
         year={selectedYear?.value}
         onSubmit={
-          selectedListId ? handleUpdateFestiveList : handleAddFestiveList
+          fullData?._id ? handleUpdateFestiveList : handleAddFestiveList
         }
       />
 
