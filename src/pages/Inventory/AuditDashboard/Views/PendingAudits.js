@@ -222,7 +222,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             // setAuditDate("");
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error("Failed to download template");
+                toast.error(error?.message || "Failed to download template");
             }
         }
     };
