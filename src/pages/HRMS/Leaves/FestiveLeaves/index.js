@@ -79,9 +79,17 @@ const FestiveLeaves = () => {
     try {
       setLoading(true);
       const response = await getFestiveLeavesList({ year });
-      setList(response?.data?.festiveLeaves || []);
-      setListYear(response?.data?.year || year);
-      setFullData(response?.data);
+      if (response?.data) {
+        setList(response.data.festiveLeaves || []);
+        setListYear(response.data.year || year);
+        setFullData(response.data);
+      } else {
+        setList([]);
+        setFullData(null);
+        setListYear(year);
+      }
+    } catch (err) {
+      setFullData(null);
     } finally {
       setLoading(false);
     }
@@ -202,6 +210,7 @@ const FestiveLeaves = () => {
                 className="btn btn-outline-primary d-flex align-items-center justify-content-center"
                 style={{ minWidth: "140px" }}
                 onClick={() => {
+                  setFullData(null);
                   setSelectedListId(null);
                   toggleModal();
                 }}
@@ -213,6 +222,7 @@ const FestiveLeaves = () => {
             {canAdd && list.length > 0 && (
               <button
                 className="btn btn-outline-primary d-flex align-items-center justify-content-center"
+                disabled={loading}
                 style={{ minWidth: "140px" }}
                 onClick={() => {
                   setSelectedListId(fullData?._id);
@@ -271,7 +281,9 @@ const FestiveLeaves = () => {
         initialRows={[]}
         year={selectedYear?.value}
         onSubmit={
-          fullData?._id ? handleUpdateFestiveList : handleAddFestiveList
+          list && list.length > 0 && fullData?._id
+            ? handleUpdateFestiveList
+            : handleAddFestiveList
         }
       />
 
