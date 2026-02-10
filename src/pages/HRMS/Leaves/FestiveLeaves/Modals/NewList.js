@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { toast } from "react-toastify";
 import {
   Modal,
   ModalHeader,
@@ -8,7 +9,7 @@ import {
   Input,
 } from "reactstrap";
 
-const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year  }) => {
+const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year }) => {
   const [rows, setRows] = useState([{ date: "", particulars: "" }]);
   const [errors, setErrors] = useState({});
 
@@ -65,11 +66,18 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year  }) => {
 
   const handleSave = () => {
     if (isSaveDisabled) return;
+    const invalidYear = rows.find(
+      (r) => new Date(r.date).getFullYear() !== year,
+    );
+    if (invalidYear) {
+      toast.error(`All dates must be in the year ${year}`);
+      return;
+    }
 
     const payload = {
       festiveLeaves: rows.map((r) => ({
         ...r,
-        date: new Date(r.date).toISOString(),
+        date: r.date,
       })),
     };
 
