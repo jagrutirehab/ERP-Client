@@ -34,6 +34,19 @@ const formatDate = (date) => {
   ).padStart(2, "0")}/${d.getFullYear()}`;
 };
 
+const toISODateStartOfDay = (dateValue) => {
+  if (!dateValue) return dateValue;
+
+  if (typeof dateValue === "string" && dateValue.includes("T")) {
+    return dateValue;
+  }
+
+  const d = new Date(dateValue);
+  return new Date(
+    Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
+  ).toISOString();
+};
+
 const FestiveLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [list, setList] = useState([]);
@@ -119,7 +132,7 @@ const FestiveLeaves = () => {
       const response = await updateFestiveLeave({
         listId: fullData._id,
         leaveId,
-        date: editedRow.date,
+        date: toISODateStartOfDay(editedRow.date),
         particulars: editedRow.particulars,
       });
       console.log("response update", response);
