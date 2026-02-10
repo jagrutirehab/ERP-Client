@@ -2,213 +2,215 @@ import React from "react";
 import { View, Text } from "@react-pdf/renderer";
 
 const MseAtAddmission = (props) => {
+  const data = props?.data ?? {};
   return (
     <React.Fragment>
-      {(props?.data.mseAddmission?.appearance ||
-        props?.data.mseAddmission?.ecc ||
-        props?.data.mseAddmission?.speech ||
-        props?.data.mseAddmission?.mood ||
-        props?.data.mseAddmission?.affect ||
-        props?.data.mseAddmission?.thoughts ||
-        props?.data.mseAddmission?.perception ||
-        props?.data.mseAddmission?.memory ||
-        props?.data.mseAddmission?.abstractThinking ||
-        props?.data.mseAddmission?.socialJudgment ||
-        props?.data.mseAddmission?.insight) && (
-        <View style={props?.styles.marginBottom}>
-          {/* wrap={false} */}
-          <Text style={props?.styles.fontSize13}>MSE at Addmission</Text>
-          {props?.data.mseAddmission?.appearance && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Appearance and Behavior-</Text>
+      {(data?.mseAddmission?.appearance ||
+        data?.mseAddmission?.ecc ||
+        data?.mseAddmission?.speech ||
+        data?.mseAddmission?.mood ||
+        data?.mseAddmission?.affect ||
+        data?.mseAddmission?.thoughts ||
+        data?.mseAddmission?.perception ||
+        data?.mseAddmission?.memory ||
+        data?.mseAddmission?.abstractThinking ||
+        data?.mseAddmission?.socialJudgment ||
+        data?.mseAddmission?.insight) && (
+          <View style={props?.styles.marginBottom}>
+            {/* wrap={false} */}
+            <Text style={props?.styles.fontSize13}>MSE at Addmission</Text>
+            {data?.mseAddmission?.appearance && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Appearance and Behavior-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.appearance || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.appearance || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.ecc && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>ECC / RAPPORT-</Text>
+            )}
+            {data?.mseAddmission?.ecc && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>ECC / RAPPORT-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.ecc || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.ecc || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.speech && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Speech-</Text>
+            )}
+            {data?.mseAddmission?.speech && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Speech-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.speech || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.speech || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.mood && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Mood-</Text>
+            )}
+            {data?.mseAddmission?.mood && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Mood-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.mood || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.mood || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.affect && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Affect-</Text>
+            )}
+            {data?.mseAddmission?.affect && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Affect-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.affect || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.affect || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.thoughts && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Thoughts-</Text>
+            )}
+            {data?.mseAddmission?.thoughts && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Thoughts-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.thoughts || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.thoughts || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.perception && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Perception-</Text>
+            )}
+            {data?.mseAddmission?.perception && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Perception-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.perception || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.perception || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.memory && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Memory-</Text>
+            )}
+            {data?.mseAddmission?.memory && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Memory-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.memory || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.memory || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.abstractThinking && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Abstract Thinking-</Text>
+            )}
+            {data?.mseAddmission?.abstractThinking && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Abstract Thinking-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.abstractThinking || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.abstractThinking || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.socialJudgment && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Social Judgment-</Text>
+            )}
+            {data?.mseAddmission?.socialJudgment && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Social Judgment-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.socialJudgment || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.socialJudgment || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseAddmission?.insight && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-              wrap={false}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Insight-</Text>
+            )}
+            {data?.mseAddmission?.insight && (
+              <View
+                style={{
+                  ...props?.styles.checkBlock,
+                  ...props?.styles.paddingLeft5,
+                }}
+                wrap={false}
+              >
+                <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
+                  <Text style={props?.styles.blackCircle}></Text>
+                  <Text>Insight-</Text>
+                </View>
+                <Text style={{ ...props?.styles.w70 }}>
+                  {data?.mseAddmission?.insight || ""}
+                </Text>
               </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseAddmission?.insight || ""}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
+            )}
+          </View>
+        )}
     </React.Fragment>
   );
 };
 
 export default MseAtAddmission;
+

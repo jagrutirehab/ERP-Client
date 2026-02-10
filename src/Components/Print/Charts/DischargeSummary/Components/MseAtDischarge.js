@@ -2,25 +2,26 @@ import React from "react";
 import { View, Text } from "@react-pdf/renderer";
 
 const MseAtDischarge = (props) => {
+  const data = props?.data ?? {};
   return (
     <React.Fragment>
-      {(props?.data.mseDischarge?.appearance ||
-        props?.data.mseDischarge?.ecc ||
-        props?.data.mseDischarge?.speech ||
-        props?.data.mseDischarge?.mood ||
-        props?.data.mseDischarge?.affect ||
-        props?.data.mseDischarge?.thoughts ||
-        props?.data.mseDischarge?.perception ||
-        props?.data.mseDischarge?.memory ||
-        props?.data.mseDischarge?.abstractThinking ||
-        props?.data.mseDischarge?.socialJudgment ||
-        props?.data.mseDischarge?.insight) && (
+      {(data?.mseDischarge?.appearance ||
+        data?.mseDischarge?.ecc ||
+        data?.mseDischarge?.speech ||
+        data?.mseDischarge?.mood ||
+        data?.mseDischarge?.affect ||
+        data?.mseDischarge?.thoughts ||
+        data?.mseDischarge?.perception ||
+        data?.mseDischarge?.memory ||
+        data?.mseDischarge?.abstractThinking ||
+        data?.mseDischarge?.socialJudgment ||
+        data?.mseDischarge?.insight) && (
         <View style={props?.styles.marginBottom}>
           {/* wrap={false} */}
           <Text style={props?.styles.fontSize13}>
             Patient Condition on Discharge: (MSE at Discharge)
           </Text>
-          {props?.data.mseDischarge?.appearance && (
+          {data?.mseDischarge?.appearance && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -32,11 +33,11 @@ const MseAtDischarge = (props) => {
                 <Text>Appearance and Behavior-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.appearance || ""}
+                {data?.mseDischarge?.appearance || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.ecc && (
+          {data?.mseDischarge?.ecc && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -48,11 +49,11 @@ const MseAtDischarge = (props) => {
                 <Text>ECC / RAPPORT-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.ecc || ""}
+                {data?.mseDischarge?.ecc || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.speech && (
+          {data?.mseDischarge?.speech && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -64,11 +65,11 @@ const MseAtDischarge = (props) => {
                 <Text>Speech-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.speech || ""}
+                {data?.mseDischarge?.speech || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.mood && (
+          {data?.mseDischarge?.mood && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -80,11 +81,11 @@ const MseAtDischarge = (props) => {
                 <Text>Mood-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.mood || ""}
+                {data?.mseDischarge?.mood || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.affect && (
+          {data?.mseDischarge?.affect && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -96,11 +97,11 @@ const MseAtDischarge = (props) => {
                 <Text>Affect-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.affect || ""}
+                {data?.mseDischarge?.affect || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.thoughts && (
+          {data?.mseDischarge?.thoughts && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -112,11 +113,11 @@ const MseAtDischarge = (props) => {
                 <Text>Thoughts-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.thoughts || ""}
+                {data?.mseDischarge?.thoughts || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.perception && (
+          {data?.mseDischarge?.perception && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -128,11 +129,11 @@ const MseAtDischarge = (props) => {
                 <Text>Perception-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.perception || ""}
+                {data?.mseDischarge?.perception || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.memory && (
+          {data?.mseDischarge?.memory && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -144,11 +145,11 @@ const MseAtDischarge = (props) => {
                 <Text>Memory-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.memory || ""}
+                {data?.mseDischarge?.memory || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.abstractThinking && (
+          {data?.mseDischarge?.abstractThinking && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -160,11 +161,11 @@ const MseAtDischarge = (props) => {
                 <Text>Abstract Thinking-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.abstractThinking || ""}
+                {data?.mseDischarge?.abstractThinking || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.socialJudgment && (
+          {data?.mseDischarge?.socialJudgment && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -176,11 +177,11 @@ const MseAtDischarge = (props) => {
                 <Text>Social Judgment-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.socialJudgment || ""}
+                {data?.mseDischarge?.socialJudgment || ""}
               </Text>
             </View>
           )}
-          {props?.data.mseDischarge?.insight && (
+          {data?.mseDischarge?.insight && (
             <View
               style={{
                 ...props?.styles.checkBlock,
@@ -192,7 +193,7 @@ const MseAtDischarge = (props) => {
                 <Text>Insight-</Text>
               </View>
               <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.insight || ""}
+                {data?.mseDischarge?.insight || ""}
               </Text>
             </View>
           )}

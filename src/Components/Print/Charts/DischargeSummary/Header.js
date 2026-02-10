@@ -57,11 +57,11 @@ const styles = StyleSheet.create({
 const SummaryHeader = ({ patient }) => {
   const addmissionDate =
     patient?.addmission?.addmissionDate &&
-    format(new Date(patient.addmission.addmissionDate), "dd MMM yyyy");
+    format(new Date(patient?.addmission?.addmissionDate), "dd MMM yyyy");
 
   const dischargeDate =
     patient?.addmission?.dischargeDate &&
-    format(new Date(patient.addmission.dischargeDate), "dd MMM yyyy");
+    format(new Date(patient?.addmission?.dischargeDate), "dd MMM yyyy");
 
   return (
     <React.Fragment>
@@ -104,7 +104,7 @@ const SummaryHeader = ({ patient }) => {
         <View>
           <View style={styles.row} fixed>
             <Text style={styles.col6}>
-              Patient&#39;s Name : {patient.firstName || ""}
+              Patient&#39;s Name : {patient?.firstName || ""}
             </Text>
             <Text style={{ ...styles.col6, textAlign: "center" }}>
               I.P.D NO: {patient?.IPDFileNo || ""}
