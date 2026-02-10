@@ -121,27 +121,29 @@ const prescriptionFormFields = [
     label: "Dr Notes",
     name: "drNotes",
     type: "textarea",
+    rows: 5
   },
   {
-    label: "ICD Code 1",
+    label: "Diagnosis ICD Code 1",
     name: "icdCode",
     type: "async-select",
-  },
-  {
-    label: "Diagnosis 1",
-    name: "diagnosis",
-    type: "textarea",
-  },
-  {
-    label: "Diagnosis 2",
-    name: "diagnosis2",
-    type: "textarea",
   },
   {
     label: "Notes",
     name: "notes",
     type: "textarea",
   },
+  {
+    label: "Diagnosis",
+    name: "diagnosis",
+    type: "textarea",
+  },
+  // {
+  //   label: "Diagnosis 2",
+  //   name: "diagnosis2",
+  //   type: "textarea",
+  // },
+
   {
     label: "Investigation Plan",
     name: "investigationPlan",
@@ -156,6 +158,7 @@ const prescriptionFormFields = [
     label: "Observation",
     name: "observation",
     type: "textarea",
+    rows: 5
   },
 ];
 

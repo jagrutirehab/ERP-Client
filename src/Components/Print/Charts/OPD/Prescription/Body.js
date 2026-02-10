@@ -115,7 +115,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
         {chart?.diagnosis && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
-              Diagnosis 1:{" "}
+              Diagnosis:{" "}
               <Text
                 style={{
                   ...styles.textGray,
@@ -129,7 +129,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             </Text>
           </View>
         )}
-        {chart?.diagnosis2 && (
+        {/* {chart?.diagnosis2 && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
               Diagnosis 2:{" "}
@@ -145,7 +145,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
               </Text>
             </Text>
           </View>
-        )}
+        )} */}
         <Image src={RXIcon} style={{ width: "25px", ...styles.mrgnTop10 }} />
         {chart?.medicines?.length > 0 && (
           <View style={styles.mrgnTop10}>
@@ -240,7 +240,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
         {chart?.ICD10_Code && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
-              ICD10 Code 1 :{" "}
+              Diagnosis ICD10 Code 1 :{" "}
               <Text
                 style={{
                   ...styles.textGray,
@@ -257,7 +257,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
         {chart?.ICD10_Code2 && (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
-              ICD10 Code 2 :{" "}
+              Diagnosis ICD10 Code 2 :{" "}
               <Text
                 style={{
                   ...styles.textGray,
