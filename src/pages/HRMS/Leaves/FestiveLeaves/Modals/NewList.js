@@ -8,16 +8,16 @@ import {
   Input,
 } from "reactstrap";
 
-const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
+const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year  }) => {
   const [rows, setRows] = useState([{ date: "", particulars: "" }]);
   const [errors, setErrors] = useState({});
+
+  console.log("initialRows", initialRows);
 
   useEffect(() => {
     if (isOpen) {
       const initial =
-        initialRows.length > 0
-          ? initialRows
-          : [{ date: "", particulars: "" }];
+        initialRows.length > 0 ? initialRows : [{ date: "", particulars: "" }];
 
       setRows(initial);
       setErrors({});
@@ -39,7 +39,6 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
     setRows(updated);
   };
 
-  
   useEffect(() => {
     const dateMap = {};
     const newErrors = {};
@@ -49,8 +48,7 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
 
       if (dateMap[row.date]) {
         newErrors[index] = "This date is already selected";
-        newErrors[dateMap[row.date] - 1] =
-          "This date is already selected";
+        newErrors[dateMap[row.date] - 1] = "This date is already selected";
       } else {
         dateMap[row.date] = index + 1;
       }
@@ -81,9 +79,7 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg" centered>
-      <ModalHeader toggle={toggle}>
-        Add / Update Festival Holidays
-      </ModalHeader>
+      <ModalHeader toggle={toggle}>Add / Update Festival Holidays</ModalHeader>
 
       <ModalBody>
         <div className="d-flex flex-column gap-3">
@@ -99,10 +95,10 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
                 <Input
                   type="date"
                   value={row.date}
+                  min={year ? `${year}-01-01` : undefined}
+                  max={year ? `${year}-12-31` : undefined}
                   invalid={!!errors[index]}
-                  onChange={(e) =>
-                    handleChange(index, "date", e.target.value)
-                  }
+                  onChange={(e) => handleChange(index, "date", e.target.value)}
                 />
 
                 <Input
@@ -126,22 +122,14 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
                 )}
 
                 {index === rows.length - 1 && (
-                  <Button
-                    color="primary"
-                    outline
-                    size="sm"
-                    onClick={addRow}
-                  >
+                  <Button color="primary" outline size="sm" onClick={addRow}>
                     ＋
                   </Button>
                 )}
               </div>
 
-              
               {errors[index] && (
-                <div className="text-danger small mt-1">
-                  {errors[index]}
-                </div>
+                <div className="text-danger small mt-1">{errors[index]}</div>
               )}
             </div>
           ))}
@@ -153,11 +141,7 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [] }) => {
           Cancel
         </Button>
 
-        <Button
-          color="primary"
-          disabled={isSaveDisabled} 
-          onClick={handleSave}
-        >
+        <Button color="primary" disabled={isSaveDisabled} onClick={handleSave}>
           Save Holidays
         </Button>
       </ModalFooter>
