@@ -217,6 +217,8 @@ const FestiveLeaves = () => {
             setEditedRow,
             onSave: handleSave,
             onDelete: handleDeleteClick,
+            canEdit,
+            canDelete,
           })}
           data={list}
           striped
@@ -244,6 +246,7 @@ const FestiveLeaves = () => {
         isOpen={isModalOpen}
         toggle={toggleModal}
         initialRows={[]}
+        year={selectedYear?.value}
         onSubmit={
           selectedListId ? handleUpdateFestiveList : handleAddFestiveList
         }
