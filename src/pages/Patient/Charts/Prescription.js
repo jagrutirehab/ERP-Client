@@ -33,7 +33,7 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                Diagnosis 1:-
+                Diagnosis :-
               </span>
               <span className="fs-xs-9 fs-md-12">
               {data.diagnosis}
@@ -41,7 +41,7 @@ const Prescription = ({ data, startDate, endDate }) => {
             </p>
           </div>
         )}
-        {data?.diagnosis2 && (
+        {/* {data?.diagnosis2 && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
@@ -52,7 +52,7 @@ const Prescription = ({ data, startDate, endDate }) => {
               </span>
             </p>
           </div>
-        )}
+        )} */}
         {data?.observation && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
@@ -82,7 +82,7 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                ICD10 Code 1 :-
+                Diagnosis ICD10 Code 1 :-
               </span>
               <span className="fs-xs-9 fs-md-12">
               {data.ICD10_Code}
@@ -94,7 +94,7 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                ICD10 Code 2 :-
+               Diagnosis ICD10 Code 2 :-
               </span>
               <span className="fs-xs-9 fs-md-12">
               {data.ICD10_Code2}

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
   addFestiveLeavesList,
+  addLeavesToExistingList,
+  deleteFestiveLeave,
   getFestiveLeavesList,
+  updateFestiveLeave,
 } from "../../../../helpers/backend_helper";
 import { CardBody, Spinner } from "reactstrap";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
@@ -10,6 +13,9 @@ import { festiveLeavesListColumn } from "../../components/Table/Columns/festiveL
 import NewList from "./Modals/NewList";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import DeleteModal from "./Modals/DeleteModal";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const getYearOptions = () => {
   const currentYear = new Date().getFullYear();
@@ -19,17 +25,42 @@ const getYearOptions = () => {
   });
 };
 
+const formatDate = (date) => {
+  if (!date) return "-";
+  const d = new Date(date);
+  if (isNaN(d)) return "-";
+  return `${String(d.getDate()).padStart(2, "0")}/${String(
+    d.getMonth() + 1,
+  ).padStart(2, "0")}/${d.getFullYear()}`;
+};
+
 const FestiveLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [list, setList] = useState([]);
   const yearOptions = getYearOptions();
-
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState(yearOptions[0]);
   const [listYear, setListYear] = useState();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [selectedListId, setSelectedListId] = useState(null);
+  const [fullData, setFullData] = useState(null);
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editedRow, setEditedRow] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const toggleDeleteModal = () => setDeleteModalOpen(!deleteModalOpen);
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
+  const canRead = hasPermission("HR", "FESTIVE_LEAVES", "READ");
+  const canWrite = hasPermission("HR", "FESTIVE_LEAVES", "WRITE");
+  const canDelete = hasPermission("HR", "FESTIVE_LEAVES", "DELETE");
+  const canEdit = canWrite;
+  const canAdd = canWrite;
+  console.log("hasUserPermission", hasUserPermission);
 
   const fetchFestiveLists = async (year = selectedYear?.value) => {
     try {
@@ -37,10 +68,15 @@ const FestiveLeaves = () => {
       const response = await getFestiveLeavesList({ year });
       setList(response?.data?.festiveLeaves || []);
       setListYear(response?.data?.year || year);
+      setFullData(response?.data);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!hasUserPermission) return navigate("/unauthorized");
+  }, []);
 
   useEffect(() => {
     fetchFestiveLists(selectedYear?.value);
@@ -50,9 +86,9 @@ const FestiveLeaves = () => {
     try {
       setLoading(true);
       const response = await addFestiveLeavesList(payload);
-      console.log("Response", response);
+      // console.log("response for add", response);
       await fetchFestiveLists();
-      toast.success(response?.data?.message || "ADDED");
+      toast.success(response?.message || "ADDED");
     } catch (err) {
       console.log("err", err);
       toast.error(err?.message || "FAILED");
@@ -61,6 +97,60 @@ const FestiveLeaves = () => {
     }
   };
 
+  console.log("fullData", fullData);
+
+  const handleUpdateFestiveList = async (payload) => {
+    try {
+      setLoading(true);
+      const response = await addLeavesToExistingList(selectedListId, payload);
+      // console.log("response for update", response);
+      await fetchFestiveLists();
+      toast.success(response?.message || "UPDATED");
+    } catch (err) {
+      toast.error(err?.message || "FAILED");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleSave = async (leaveId, editedRow) => {
+    try {
+      const response = await updateFestiveLeave({
+        listId: fullData._id,
+        leaveId,
+        date: editedRow.date,
+        particulars: editedRow.particulars,
+      });
+      console.log("response update", response);
+      fetchFestiveLists(selectedYear?.value);
+      setEditingRowId(null);
+      toast.success(response?.message || "Leave Updated");
+    } catch (error) {
+      console.error("Update failed", error);
+      toast.error(error?.message || "Error Updating Data");
+    }
+  };
+
+  const handleDeleteClick = (row) => {
+    setSelectedRow(row);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await deleteFestiveLeave({
+        listId: fullData._id,
+        leaveId: selectedRow._id,
+      });
+
+      toast.success(response?.message || "Leave deleted successfully");
+      fetchFestiveLists(selectedYear?.value);
+    } catch (err) {
+      toast.error(err?.message || "Delete failed");
+    } finally {
+      setDeleteModalOpen(false);
+      setSelectedRow(null);
+    }
+  };
   return (
     <CardBody
       className="p-3 bg-white"
@@ -86,9 +176,30 @@ const FestiveLeaves = () => {
             }}
           />
 
-          <button className="btn btn-primary" onClick={toggleModal}>
-            + Add List
-          </button>
+          <div className="d-flex align-items-center gap-2">
+            {canAdd && list.length === 0 && (
+              <button
+                className="btn btn-outline-primary d-flex align-items-center justify-content-center"
+                style={{ minWidth: "140px" }}
+                onClick={toggleModal}
+              >
+                + Add New List
+              </button>
+            )}
+
+            {canAdd && list.length > 0 && (
+              <button
+                className="btn btn-outline-primary d-flex align-items-center justify-content-center"
+                style={{ minWidth: "140px" }}
+                onClick={() => {
+                  setSelectedListId(fullData?._id);
+                  setIsModalOpen(true);
+                }}
+              >
+                + Add in {listYear || "Existing"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -99,7 +210,16 @@ const FestiveLeaves = () => {
         }}
       >
         <DataTable
-          columns={festiveLeavesListColumn()}
+          columns={festiveLeavesListColumn({
+            editingRowId,
+            setEditingRowId,
+            editedRow,
+            setEditedRow,
+            onSave: handleSave,
+            onDelete: handleDeleteClick,
+            canEdit,
+            canDelete,
+          })}
           data={list}
           striped
           highlightOnHover
@@ -125,7 +245,18 @@ const FestiveLeaves = () => {
       <NewList
         isOpen={isModalOpen}
         toggle={toggleModal}
-        onSubmit={handleAddFestiveList}
+        initialRows={[]}
+        year={selectedYear?.value}
+        onSubmit={
+          selectedListId ? handleUpdateFestiveList : handleAddFestiveList
+        }
+      />
+
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        toggle={toggleDeleteModal}
+        onConfirm={handleConfirmDelete}
+        date={formatDate(selectedRow?.date)}
       />
     </CardBody>
   );
