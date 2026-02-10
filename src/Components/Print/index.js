@@ -16,8 +16,8 @@ import RenderWhen from "../Common/RenderWhen";
 import { useMediaQuery } from "../Hooks/useMediaQuery";
 import { Spinner } from "reactstrap";
 import ClinicalTest from "./clinicalTest";
-import { buildDischargeSummaryDoc } from "./Charts/DischargeSummaryV2/buildDischargeSummaryDoc";
-import { ensurePdfMakeFonts } from "./Charts/DischargeSummaryV2/pdfmakeFonts";
+// import { buildDischargeSummaryDoc } from "./Charts/DischargeSummaryV2/buildDischargeSummaryDoc";
+// import { ensurePdfMakeFonts } from "./Charts/DischargeSummaryV2/pdfmakeFonts";
 import { loadSignatureDataUrls } from "./Charts/DischargeSummaryV2/loadSignatureDataUrls";
 import { DISCHARGE_SUMMARY, IPD } from "../constants/patient";
 
@@ -67,15 +67,36 @@ const Print = ({
   const [dischargePdfUrl, setDischargePdfUrl] = useState(null);
   const [dischargeLoading, setDischargeLoading] = useState(false);
 
+  // const buildDischargeDoc = async () => {
+  //   const signatures = await loadSignatureDataUrls(patient);
+  //   return buildDischargeSummaryDoc({
+  //     chart: printData,
+  //     patient,
+  //     admission,
+  //     center: printData?.center,
+  //     signatures,
+  //   });
+  // };
+
   const buildDischargeDoc = async () => {
+    const [{ buildDischargeSummaryDoc }, { ensurePdfMakeFonts }] =
+      await Promise.all([
+        import("./Charts/DischargeSummaryV2/buildDischargeSummaryDoc"),
+        import("./Charts/DischargeSummaryV2/pdfmakeFonts"),
+      ]);
+
     const signatures = await loadSignatureDataUrls(patient);
-    return buildDischargeSummaryDoc({
-      chart: printData,
-      patient,
-      admission,
-      center: printData?.center,
-      signatures,
-    });
+
+    return {
+      doc: buildDischargeSummaryDoc({
+        chart: printData,
+        patient,
+        admission,
+        center: printData?.center,
+        signatures,
+      }),
+      pdfMake: await ensurePdfMakeFonts(),
+    };
   };
 
   useEffect(() => {
@@ -87,8 +108,7 @@ const Print = ({
       }
       setDischargeLoading(true);
       try {
-        const doc = await buildDischargeDoc();
-        const pdfMake = await ensurePdfMakeFonts();
+        const { doc, pdfMake } = await buildDischargeDoc();
         pdfMake.createPdf(doc).getDataUrl((url) => {
           if (!cancelled) {
             setDischargePdfUrl(url);
@@ -109,8 +129,7 @@ const Print = ({
 
   const downloadDischargeSummary = async () => {
     if (!isDischargeSummary) return;
-    const doc = await buildDischargeDoc();
-    const pdfMake = await ensurePdfMakeFonts();
+    const { doc, pdfMake } = await buildDischargeDoc();
     pdfMake.createPdf(doc).download(dischargeSummaryFileName);
   };
 
