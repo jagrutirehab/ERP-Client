@@ -9,6 +9,19 @@ import {
   Input,
 } from "reactstrap";
 
+const toISODateStartOfDay = (dateValue) => {
+  if (!dateValue) return dateValue;
+
+  if (typeof dateValue === "string" && dateValue.includes("T")) {
+    return dateValue;
+  }
+
+  const d = new Date(dateValue);
+  return new Date(
+    Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()),
+  ).toISOString();
+};
+
 const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year }) => {
   const [rows, setRows] = useState([{ date: "", particulars: "" }]);
   const [errors, setErrors] = useState({});
@@ -77,7 +90,7 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year }) => {
     const payload = {
       festiveLeaves: rows.map((r) => ({
         ...r,
-        date: r.date,
+        date: toISODateStartOfDay(r.date),
       })),
     };
 
