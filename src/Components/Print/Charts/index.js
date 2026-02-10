@@ -137,6 +137,7 @@ const Charts = ({ charts, patient, doctor, admission }) => {
             <RenderWhen
               isTrue={chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD}
             >
+              {/* Discharge Summary is rendered through pdfmake in Print/index.js */}
               <DischargeSummary
                 chart={chart}
                 center={chart.center}

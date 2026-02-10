@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 
@@ -16,6 +16,10 @@ import RenderWhen from "../Common/RenderWhen";
 import { useMediaQuery } from "../Hooks/useMediaQuery";
 import { Spinner } from "reactstrap";
 import ClinicalTest from "./clinicalTest";
+import { buildDischargeSummaryDoc } from "./Charts/DischargeSummaryV2/buildDischargeSummaryDoc";
+import { ensurePdfMakeFonts } from "./Charts/DischargeSummaryV2/pdfmakeFonts";
+import { loadSignatureDataUrls } from "./Charts/DischargeSummaryV2/loadSignatureDataUrls";
+import { DISCHARGE_SUMMARY, IPD } from "../constants/patient";
 
 const Print = ({
   modal,
@@ -37,6 +41,8 @@ const Print = ({
   }, [vp]);
 
   const isMobile = useMediaQuery("(max-width: 640px)");
+  const isDischargeSummary =
+    printData?.chart === DISCHARGE_SUMMARY && printData?.type === IPD;
 
   const closePrint = () => {
     dispatch(togglePrint({ data: null, modal: false }));
@@ -48,6 +54,65 @@ const Print = ({
       (adm) => adm._id === printData.printAdmissionCharts
     )?.charts;
   }
+
+  const dischargeSummaryFileName = useMemo(
+    () =>
+      `${patient?.id?.value}-${(patient?.name || "patient").replace(
+        /\s+/g,
+        "_"
+      )}-chart.pdf`,
+    [patient]
+  );
+
+  const [dischargePdfUrl, setDischargePdfUrl] = useState(null);
+  const [dischargeLoading, setDischargeLoading] = useState(false);
+
+  const buildDischargeDoc = async () => {
+    const signatures = await loadSignatureDataUrls(patient);
+    return buildDischargeSummaryDoc({
+      chart: printData,
+      patient,
+      admission,
+      center: printData?.center,
+      signatures,
+    });
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const buildPreview = async () => {
+      if (!isDischargeSummary) {
+        setDischargePdfUrl(null);
+        return;
+      }
+      setDischargeLoading(true);
+      try {
+        const doc = await buildDischargeDoc();
+        const pdfMake = await ensurePdfMakeFonts();
+        pdfMake.createPdf(doc).getDataUrl((url) => {
+          if (!cancelled) {
+            setDischargePdfUrl(url);
+            setDischargeLoading(false);
+          }
+        });
+      } catch (err) {
+        if (!cancelled) {
+          setDischargeLoading(false);
+        }
+      }
+    };
+    buildPreview();
+    return () => {
+      cancelled = true;
+    };
+  }, [isDischargeSummary, printData, patient, admission]);
+
+  const downloadDischargeSummary = async () => {
+    if (!isDischargeSummary) return;
+    const doc = await buildDischargeDoc();
+    const pdfMake = await ensurePdfMakeFonts();
+    pdfMake.createPdf(doc).download(dischargeSummaryFileName);
+  };
 
   return (
     <React.Fragment>
@@ -62,7 +127,23 @@ const Print = ({
         <RenderWhen isTrue={isMobile}>
           <div className="text-center">
             <RenderWhen isTrue={patient ? true : false}>
-              <RenderWhen isTrue={printData?.chart ? true : false}>
+              <RenderWhen isTrue={isDischargeSummary}>
+                <div className="mb-3 p-3 border rounded bg-light">
+                  <p className="text-muted mb-3">
+                    Preview not available, please download.
+                  </p>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={downloadDischargeSummary}
+                    disabled={dischargeLoading}
+                  >
+                    {dischargeLoading ? <Spinner size="sm" /> : "Download Discharge Summary"}
+                  </button>
+                </div>
+              </RenderWhen>
+              <RenderWhen
+                isTrue={printData?.chart ? !isDischargeSummary : false}
+              >
                 <div className="mb-3 p-3 border rounded bg-light">
                   <p className="text-muted mb-3">
                     Preview not available, please download.
@@ -205,55 +286,73 @@ const Print = ({
           </div>
         </RenderWhen>
         <RenderWhen isTrue={!isMobile}>
-          <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
-            <RenderWhen isTrue={patient ? true : false}>
-              <RenderWhen isTrue={printData?.chart ? true : false}>
-                <Charts
-                  charts={[printData]}
-                  center={printData?.center}
-                  patient={patient}
-                  admission={admission}
-                  doctor={doctor}
+          <RenderWhen isTrue={isDischargeSummary}>
+            {dischargeLoading ? (
+              <Spinner />
+            ) : (
+              dischargePdfUrl && (
+                <iframe
+                  title="Discharge Summary Preview"
+                  src={dischargePdfUrl}
+                  width={vp > 1000 ? 1000 : 400}
+                  height={600}
+                  style={{ border: "none" }}
+                  onLoad={() => setDischargeLoading(false)}
                 />
+              )
+            )}
+          </RenderWhen>
+          <RenderWhen isTrue={!isDischargeSummary}>
+            <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
+              <RenderWhen isTrue={patient ? true : false}>
+                <RenderWhen isTrue={printData?.chart ? true : false}>
+                  <Charts
+                    charts={[printData]}
+                    center={printData?.center}
+                    patient={patient}
+                    admission={admission}
+                    doctor={doctor}
+                  />
+                </RenderWhen>
+                <RenderWhen isTrue={printData?.bill && patient ? true : false}>
+                  <Bills
+                    bill={printData}
+                    center={printData?.center}
+                    patient={patient}
+                    admission={admission}
+                  />
+                </RenderWhen>
+                <RenderWhen isTrue={printData?.bill && intern ? true : false}>
+                  <Bills
+                    bill={printData}
+                    center={printData?.center}
+                    intern={intern}
+                    admission={admission}
+                  />
+                </RenderWhen>
+                <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
+                  <BulkCharts
+                    admission={admission}
+                    charts={printAllCharts}
+                    patient={patient}
+                  />
+                </RenderWhen>
               </RenderWhen>
-              <RenderWhen isTrue={printData?.bill && patient ? true : false}>
-                <Bills
-                  bill={printData}
-                  center={printData?.center}
-                  patient={patient}
-                  admission={admission}
-                />
-              </RenderWhen>
-              <RenderWhen isTrue={printData?.bill && intern ? true : false}>
-                <Bills
+              <RenderWhen isTrue={intern ? true : false}>
+                <InternBills
                   bill={printData}
                   center={printData?.center}
                   intern={intern}
-                  admission={admission}
                 />
               </RenderWhen>
-              <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
-                <BulkCharts
-                  admission={admission}
-                  charts={printAllCharts}
-                  patient={patient}
+              <RenderWhen isTrue={clinicalTest ? true : false}>
+                <ClinicalTest
+                  charts={charts}
+                  clinicalTest={clinicalTest}
                 />
               </RenderWhen>
-            </RenderWhen>
-            <RenderWhen isTrue={intern ? true : false}>
-              <InternBills
-                bill={printData}
-                center={printData?.center}
-                intern={intern}
-              />
-            </RenderWhen>
-            <RenderWhen isTrue={clinicalTest ? true : false}>
-              <ClinicalTest
-                charts={charts}
-                clinicalTest={clinicalTest}
-              />
-            </RenderWhen>
-          </PDFViewer>
+            </PDFViewer>
+          </RenderWhen>
         </RenderWhen>
 
       </CustomModal>
