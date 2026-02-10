@@ -2313,14 +2313,49 @@ export const getFestiveLeavesList = (params = {}) => {
 };
 
 export const addFestiveLeavesList = (data) =>
-  api.create(
-    url.POST_FESTIVE_LEAVES_LIST,
-    data,
+  api.create(url.POST_FESTIVE_LEAVES_LIST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const addLeavesToExistingList = (listId, data) =>
+  api.create(`${url.ADD_LEAVES_TO_EXISTING_LIST}/${listId}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+export const deleteFestiveLeave = ({ listId, leaveId }) =>
+  api.update(
+    url.DELETE_LEAVE,
+    { listId, leaveId },
     {
       headers: {
         "X-No-Cookie-Token": "true",
       },
-    }
+    },
+  );
+
+export const updateFestiveLeave = ({
+  listId,
+  leaveId,
+  date,
+  particulars,
+  day,
+}) =>
+  api.update(
+    `${url.UPDATE_LEAVE}`,
+    {
+      listId,
+      leaveId,
+      date,
+      particulars,
+    },
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    },
   );
 
 export const getAttendanceSummary = (params = {}) => {

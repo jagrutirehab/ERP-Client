@@ -1,70 +1,111 @@
-import { Button } from "reactstrap";
+import { Button, Input } from "reactstrap";
 
 const formatDate = (date) => {
   if (!date) return "-";
-
   const d = new Date(date);
   if (isNaN(d)) return "-";
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-
-  return `${day}/${month}/${year}`;
+  return `${String(d.getDate()).padStart(2, "0")}/${String(
+    d.getMonth() + 1,
+  ).padStart(2, "0")}/${d.getFullYear()}`;
 };
 
-export const festiveLeavesListColumn = () => [
+const formatDateForInput = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d)) return "";
+  return d.toISOString().split("T")[0];
+};
+
+export const festiveLeavesListColumn = ({
+  editingRowId,
+  setEditingRowId,
+  editedRow,
+  setEditedRow,
+  onSave,
+  onDelete,
+}) => [
   {
     name: "Sr No.",
-    cell: (row, index) => index + 1,
+    cell: (_, index) => index + 1,
     width: "80px",
   },
+
   {
     name: "Date",
-    cell: (row) => formatDate(row.date),
+    cell: (row) =>
+      editingRowId === row._id ? (
+        <Input
+          type="date"
+          value={formatDateForInput(editedRow.date)}
+          onChange={(e) => setEditedRow({ ...editedRow, date: e.target.value })}
+          size="sm"
+        />
+      ) : (
+        formatDate(row.date)
+      ),
   },
+
   {
     name: "Day",
     cell: (row) => row.day ?? "-",
   },
+
   {
     name: "Particulars",
-    cell: (row) => row.particulars ?? "-",
-  },
-  {
-    name: (
-   <div className="d-flex justify-content-center w-100">
-  <Button color="primary" size="sm">
-    + Add Leave
-  </Button>
-</div>
-    ),
-    cell: (_, index) => (
-      <div className="d-flex justify-content-end gap-2">
-        {/* Edit */}
-        <Button
-          color="primary"
-          outline
+    width: "300px",
+    cell: (row) =>
+      editingRowId === row._id ? (
+        <Input
+          value={editedRow.particulars || ""}
+          onChange={(e) =>
+            setEditedRow({ ...editedRow, particulars: e.target.value })
+          }
           size="sm"
-          style={{ width: "36px", height: "36px" }}
+        />
+      ) : (
+        (row.particulars ?? "-")
+      ),
+  },
+
+  {
+    name: "Action",
+    cell: (row) => (
+      <div className="d-flex gap-2">
+        <Button
+          color={editingRowId === row._id ? "success" : "primary"}
+          outline={editingRowId !== row._id}
+          size="sm"
+          onClick={() => {
+            if (editingRowId === row._id) {
+              onSave(row._id, editedRow);
+            } else {
+              setEditingRowId(row._id);
+              setEditedRow(row);
+            }
+          }}
         >
-          ✎
+          {editingRowId === row._id ? "✓" : "✎"}
         </Button>
 
-        {/* Delete */}
         <Button
           color="danger"
           outline
           size="sm"
-          style={{ width: "36px", height: "36px" }}
+          onClick={() => {
+            if (editingRowId === row._id) {
+              setEditingRowId(null);
+              setEditedRow({});
+            } else {
+              onDelete(row);
+            }
+          }}
         >
           ✕
         </Button>
       </div>
     ),
-    width: "160px",
+    width: "140px",
     ignoreRowClick: true,
-    allowOverflow: true,
     button: true,
   },
 ];

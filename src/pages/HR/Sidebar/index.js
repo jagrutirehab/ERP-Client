@@ -159,7 +159,7 @@ const Sidebar = () => {
   const hasMyLeavesPermission = hasPermission("HR", "MY_LEAVES", "READ");
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
   const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
-  // const hasFestiveLeavesPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
+  const hasFestiveLeavesPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
   const hasMainDashboardPermission = hasPermission("HR", "MAIN_DASHBOARD", "READ");
 
   const hasIncentivesAddRequestPermission = hasPermission(
@@ -341,7 +341,7 @@ const Sidebar = () => {
           return false;
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
         if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
-        // if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
+        if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
         return true;
       });
       return page.children.length > 0;
