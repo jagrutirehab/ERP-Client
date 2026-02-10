@@ -184,9 +184,8 @@ export const buildDischargeSummaryDoc = ({
         {
           width: "30%",
           alignment: "right",
-          text: `On: ${
-            chart?.date ? format(new Date(chart.date), "dd MMM yyyy hh:mm a") : ""
-          }`,
+          text: `On: ${chart?.date ? format(new Date(chart.date), "dd MMM yyyy hh:mm a") : ""
+            }`,
         },
       ],
       margin: [0, 5, 0, 5],
@@ -218,9 +217,9 @@ export const buildDischargeSummaryDoc = ({
           width: "50%",
           text: admission?.addmissionDate
             ? `Date of Addmission: ${format(
-                new Date(admission?.addmissionDate),
-                "d MMM y"
-              )}`
+              new Date(admission?.addmissionDate),
+              "d MMM y"
+            )}`
             : "Date of Addmission:",
         },
         {
@@ -229,12 +228,12 @@ export const buildDischargeSummaryDoc = ({
           text:
             admission?.dischargeDate || chart?.dischargeSummary?.dischargeDate
               ? `Date of Discharge: ${format(
-                  new Date(
-                    admission?.dischargeDate ||
-                      chart?.dischargeSummary?.dischargeDate
-                  ),
-                  "d MMM y"
-                )}`
+                new Date(
+                  admission?.dischargeDate ||
+                  chart?.dischargeSummary?.dischargeDate
+                ),
+                "d MMM y"
+              )}`
               : "Date of Discharge:",
         },
       ],
@@ -557,7 +556,6 @@ export const buildDischargeSummaryDoc = ({
         },
         {
           text: cap(data?.typeOfDischarge),
-          font: "Hindi",
         },
       ],
       margin: [0, 0, 0, 8],
@@ -568,7 +566,7 @@ export const buildDischargeSummaryDoc = ({
     content.push({
       text: [
         { text: "Discharge Routine: ", bold: true },
-        { text: cap(data?.dischargeRoutine), font: "Marathi" },
+        { text: cap(data?.dischargeRoutine) },
       ],
       margin: [0, 0, 0, 8],
     });
