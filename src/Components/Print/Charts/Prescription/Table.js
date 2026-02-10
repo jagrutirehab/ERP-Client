@@ -37,6 +37,9 @@ const styles = StyleSheet.create({
 });
 
 const PrescriptionTable = ({ medicines }) => {
+  const safe = (value) =>
+    value === null || value === undefined ? "" : String(value);
+
   return (
     <React.Fragment>
       <View style={styles.fontSm}>
@@ -52,9 +55,14 @@ const PrescriptionTable = ({ medicines }) => {
           <Text style={styles.col4}>DURATION</Text>
           <Text style={styles.col4}>INSTRUCTIONS</Text>
         </View>
-        {(medicines || []).map((item) => (
+        {(medicines || []).map((item, index) => {
+          const medicine = item?.medicine || {};
+          const freq = item?.dosageAndFrequency || {};
+          const key = safe(item?._id?.$oid || item?._id || index);
+
+          return (
           <View
-            key={item._id}
+            key={key}
             style={{
               ...styles.borderBottom,
               paddingTop: 5,
@@ -64,28 +72,27 @@ const PrescriptionTable = ({ medicines }) => {
             <View style={styles.row}>
               <Text style={{ ...styles.col5, textTransform: "capitalize" }}>
                 <Text style={{ textTransform: "uppercase" }}>
-                  {item.medicine.type ? `${item.medicine.type} ` : ""}
+                  {medicine?.type ? `${safe(medicine.type)} ` : ""}
                 </Text>
-                {item.medicine?.name} {item.medicine?.strength || ""}{" "}
+                {safe(medicine?.name)} {safe(medicine?.strength)}{" "}
                 <Text style={{ textTransform: "uppercase" }}>
-                  {item.medicine?.unit || ""}
+                  {safe(medicine?.unit)}
                 </Text>
               </Text>
               <Text style={styles.col4}>
-                {item.dosageAndFrequency.morning}-
-                {item.dosageAndFrequency.evening}-
-                {item.dosageAndFrequency.night}
+                {safe(freq?.morning)}-{safe(freq?.evening)}-{safe(freq?.night)}
               </Text>
               <Text style={styles.col4}>
-                {item.duration} {item.unit}
+                {safe(item?.duration)} {safe(item?.unit)}
               </Text>
-              <Text style={styles.col4}>{item.intake}</Text>
+              <Text style={styles.col4}>{safe(item?.intake)}</Text>
             </View>
             <Text style={{ paddingTop: 5 }}>
-              instructions: {item.instructions}
+              instructions: {safe(item?.instructions)}
             </Text>
           </View>
-        ))}
+        );
+        })}
       </View>
     </React.Fragment>
   );

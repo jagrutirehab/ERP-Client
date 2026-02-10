@@ -992,11 +992,11 @@ const EmployeeForm = ({
 
           {/* BENIFICIARY NAME */}
           <Col md={6}>
-            <Label htmlFor="beneficiaryName">
-              Beneficiary Name <span className="text-danger">*</span>
+            <Label htmlFor="accountHolderName">
+              Account Holder's Name <span className="text-danger">*</span>
             </Label>
             <Input
-              id="beneficiaryName"
+              id="accountHolderName"
               name="accountName"
               value={values.accountName}
               onChange={handleChange}
