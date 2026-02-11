@@ -68,7 +68,7 @@ const Report = ({}) => {
               outline={view !== ADMISSION_FORMS}
               onClick={() => handleView(ADMISSION_FORMS)}
             >
-              Admission Forms
+              Admission
             </Button>
             <Button
               outline={view !== PATIENT_ANALYTICS}

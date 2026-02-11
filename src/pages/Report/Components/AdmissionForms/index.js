@@ -138,7 +138,7 @@ const AdmissionForms = ({
     },
     {
       name: "Admission Form",
-      selector: (row) => row.admissionFormUploaded || "-",
+      selector: (row) => (row.admissionFormUploaded ? "Yes" : "No"),
       sortable: false,
       wrap: true,
       maxWidth: "130px",
@@ -146,7 +146,7 @@ const AdmissionForms = ({
     },
     {
       name: "Consent Form",
-      selector: (row) => row.consentFormUploaded || "-",
+      selector: (row) => (row.consentFormUploaded ? "Yes" : "No"),
       sortable: false,
       wrap: true,
       maxWidth: "130px",
@@ -154,7 +154,7 @@ const AdmissionForms = ({
     },
     {
       name: "Discharge Form",
-      selector: (row) => row.dischargeFormUploaded || "-",
+      selector: (row) => (row.dischargeFormUploaded ? "Yes" : "No"),
       sortable: false,
       wrap: true,
       maxWidth: "140px",
@@ -162,7 +162,7 @@ const AdmissionForms = ({
     },
     {
       name: "Undertaking Discharge Form",
-      selector: (row) => row.undertakingDischargeFormUploaded || "-",
+      selector: (row) => (row.undertakingDischargeFormUploaded ? "Yes" : "No"),
       sortable: false,
       wrap: true,
       maxWidth: "200px",
@@ -213,6 +213,8 @@ const AdmissionForms = ({
       minWidth: "200px",
     },
   ];
+
+  console.log({ admissionForms });
 
   return (
     <>
