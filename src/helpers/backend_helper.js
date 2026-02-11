@@ -739,6 +739,13 @@ export const getBookingAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const getAdmissionForms = (data) =>
+  api.get(url.GET_ADMISSION_FORMS, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getDoctorAnalytics = (params = {}) => {
   return api.create(url.GET_DOCTOR_ANALYTICS, params, {
     headers: { "Content-Type": "application/json" },

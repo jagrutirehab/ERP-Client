@@ -137,7 +137,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           if (detailAdmissionCharts.length > 0) {
             // sort by createdAt or date to get the latest
             const latest = detailAdmissionCharts.sort(
-              (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+              (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
             )[0];
             setChartData(latest);
           } else {
@@ -247,7 +247,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           if (num > 0)
             elx.style[`border${s}Width`] = `${Math.max(
               1,
-              num * BORDER_MULT
+              num * BORDER_MULT,
             )}px`;
         }
       });
@@ -289,7 +289,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         targetW_pts,
         targetH_pts,
         undefined,
-        "FAST"
+        "FAST",
       );
     };
 
@@ -457,7 +457,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       formData.append(
         "addmissionfromRaw",
         pdfBlob,
-        `${patient?.id?.value}-${patient?.name}-admission-form.pdf`
+        `${patient?.id?.value}-${patient?.name}-admission-form.pdf`,
       );
 
       await axios.patch(`/patient/admission-submit/${addmissionId}`, formData, {
@@ -573,8 +573,18 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       formData.append(
         "consentfromRaw",
         pdfBlob,
-        `${patient?.id?.value}-${patient?.name}-consent-form.pdf`
+        `${patient?.id?.value}-${patient?.name}-consent-form.pdf`,
       );
+
+      // Add structured form data
+      if (details.roomtype) formData.append("roomType", details.roomtype);
+      if (details.ward) formData.append("ward", details.ward);
+      if (details.bed) formData.append("bed", details.bed);
+      if (details.toPay) formData.append("roomPriceMonthly", details.toPay);
+      if (details.semiprivate)
+        formData.append("roomPriceDaily", details.semiprivate);
+      if (details.advDeposit)
+        formData.append("refundableDeposit", details.advDeposit);
 
       await axios.patch(
         `/patient/consent-submit-file/${addmissionId}`,
@@ -583,7 +593,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       toast.success("Consent form submitted successfully!");
@@ -677,13 +687,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         formData.append(
           "undertakingdischargeFormRaw",
           pdfBlob,
-          `${patient?.id?.value}-${patient?.name}-undertaking-discharge-form.pdf`
+          `${patient?.id?.value}-${patient?.name}-undertaking-discharge-form.pdf`,
         );
       } else {
         formData.append(
           "dischargeFormRaw",
           pdfBlob,
-          `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`
+          `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`,
         );
       }
 
@@ -912,12 +922,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -948,12 +958,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -1008,7 +1018,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
-                                                file.uploadedAt
+                                                file.uploadedAt,
                                               ).toLocaleDateString()})`
                                             : ""}
                                         </a>
@@ -1035,7 +1045,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
-                                                file.uploadedAt
+                                                file.uploadedAt,
                                               ).toLocaleDateString()})`
                                             : ""}
                                         </a>
@@ -1101,12 +1111,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -1130,12 +1140,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -1198,12 +1208,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             Form {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
@@ -1228,12 +1238,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             Discharge Form {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt
+                                                  file.uploadedAt,
                                                 ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 )}
