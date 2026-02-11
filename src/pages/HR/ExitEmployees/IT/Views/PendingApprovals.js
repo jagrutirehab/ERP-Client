@@ -181,6 +181,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             minWidth: "180px"
         },
         {
+            name: <div>ECode</div>,
+            selector: row => row?.eCode || "-",
+            sortable: true,
+        },
+        {
             name: <div>Name</div>,
             selector: row => row?.employeeName?.toUpperCase() || "-",
             wrap: true,

@@ -61,6 +61,22 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             then: schema => schema.required("Please select an employee"),
             otherwise: schema => schema.notRequired(),
         }),
+        monthlyDeductionAmount: Yup.string().when("category", {
+            is: "SALARY_ADVANCE",
+            then: schema => schema
+                .required("Monthly deduction amount is required")
+                .matches(/^\d+(\.\d{1,2})?$/, "Amount can have at most 2 decimal places")
+                .test("greater-than-zero", "Amount must be greater than 0", val => val && Number(val) > 0)
+                .test(
+                    "not-greater-than-total",
+                    "Monthly deduction cannot be greater than total amount including GST",
+                    function (val) {
+                        const total = Number(this.parent.totalAmountWithGST);
+                        return !val || isNaN(total) || Number(val) <= total;
+                    }
+                ),
+            otherwise: schema => schema.notRequired(),
+        }),
         date: Yup.string().required("Transaction date is required"),
         description: Yup.string()
             .max(20, "Description cannot be more than 20 characters")
@@ -134,6 +150,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     label: `${paymentData.employee.name} (${paymentData.employee.eCode})`,
                 }
                 : null,
+            monthlyDeductionAmount: paymentData?.monthlyDeductionAmount ?? 0,
             date: paymentData?.date ? format(new Date(paymentData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
             description: paymentData?.description || "",
             vendor: paymentData?.vendor || "",
@@ -196,6 +213,13 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
                 if (key === "employeeId") {
                     if (val?.value) formData.append("employeeId", val.value);
+                    return;
+                }
+
+                if (key === "monthlyDeductionAmount") {
+                    if (values.category === "SALARY_ADVANCE" && val) {
+                        formData.append("monthlyDeductionAmount", Number(val));
+                    }
                     return;
                 }
 
@@ -398,6 +422,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         if (value !== "SALARY_ADVANCE") {
                             form.setFieldValue("employeeId", null);
                             form.setFieldTouched("employeeId", false, false);
+                            form.setFieldValue("monthlyDeductionAmount", "");
+                            form.setFieldTouched("monthlyDeductionAmount", false, false);
                         }
                         form.validateForm();
                     }}
@@ -624,6 +650,32 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
+            {form.values.category === "SALARY_ADVANCE" && (
+                <FormGroup className="mb-3">
+                    <Label for="monthlyDeductionAmount" className="fw-medium">
+                        Employee's Monthly Deduction Amount <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                        type="text"
+                        id="monthlyDeductionAmount"
+                        name="monthlyDeductionAmount"
+                        value={form.values.monthlyDeductionAmount}
+                        onChange={(e) => normalizeAmountInput(e)}
+                        onBlur={form.handleBlur}
+                        placeholder="0.00"
+                        className={`form-control ${form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount
+                            ? "is-invalid"
+                            : ""
+                            }`}
+                    />
+                    {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
+                        <div className="invalid-feedback d-block">
+                            <i className="fas fa-exclamation-circle me-1"></i>
+                            {form.errors.monthlyDeductionAmount}
+                        </div>
+                    )}
+                </FormGroup>
+            )}
             <FormGroup>
                 <Label for="IFSCCode" className="fw-medium">
                     Bank IFSC Code <span className="text-danger">*</span>

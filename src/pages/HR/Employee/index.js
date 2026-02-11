@@ -21,6 +21,8 @@ import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge"
 import { getFilePreviewMeta, isPreviewable } from "../../../utils/isPreviewable";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { FILE_PREVIEW_CUTOFF } from "../../../Components/constants/HR";
+import RefreshButton from "../../../Components/Common/RefreshButton";
+import DataTableComponent from "../../../Components/Common/DataTable";
 
 const customStyles = {
   table: {
@@ -646,20 +648,22 @@ const Employee = () => {
               />
             </div>
           </div>
-
-          <CheckPermission
-            accessRolePermission={roles?.permissions}
-            subAccess={"MASTER_EMPLOYEE"}
-            permission={"delete"}
-          >
-            <Button
-              color={"primary"}
-              className="d-flex align-items-center gap-2 text-white"
-              onClick={() => setModalOpen(true)}
+          <div className="d-flex gap-2">
+            <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
+            <CheckPermission
+              accessRolePermission={roles?.permissions}
+              subAccess={"MASTER_EMPLOYEE"}
+              permission={"delete"}
             >
-              + Add Employee
-            </Button>
-          </CheckPermission>
+              <Button
+                color={"primary"}
+                className="d-flex align-items-center gap-2 text-white"
+                onClick={() => setModalOpen(true)}
+              >
+                + Add Employee
+              </Button>
+            </CheckPermission>
+          </div>
         </div>
 
         {/*  MOBILE VIEW */}
@@ -686,9 +690,11 @@ const Employee = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
         </div>
 
         <div className="d-flex d-md-none justify-content-end mt-3">
+          <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
           <CheckPermission
             accessRolePermission={roles?.permissions}
             subAccess={"MASTER_EMPLOYEE"}
@@ -705,31 +711,19 @@ const Employee = () => {
         </div>
       </div>
 
-      <DataTable
+      <DataTableComponent
         columns={columns}
         data={data}
-        highlightOnHover
-        pagination
-        paginationServer
-        paginationTotalRows={pagination?.totalDocs}
-        paginationPerPage={limit}
-        paginationDefaultPage={page}
-        progressPending={loading}
-        striped
-        fixedHeader
-        fixedHeaderScrollHeight="500px"
-        dense={isMobile}
-        responsive
-        customStyles={customStyles}
-        progressComponent={
-          <div className="py-4 text-center">
-            <Spinner className="text-primary" />
-          </div>
-        }
-        onChangePage={(newPage) => setPage(newPage)}
-        onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+        loading={loading}
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={(newLimit) => {
+          setLimit(newLimit);
+          setPage(1);
+        }}
       />
-
       <EmployeeModal
         isOpen={modalOpen}
         toggle={() => {
