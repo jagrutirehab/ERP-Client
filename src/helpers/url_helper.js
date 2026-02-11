@@ -102,9 +102,7 @@ export const UPDATE_ADMISSION_ASSIGNMENT =
 export const ASSIGN_NURSE_TO_PATIENT = "/patient/assign-nurse";
 export const UNASSIGN_NURSE_TO_PATIENT = "/patient/unassign-nurse";
 
-
 export const GET_ICD_CODES = "/patient/get/icd";
-
 
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
@@ -201,9 +199,11 @@ export const GET_BILL_ITEMS = "/bill-setting";
 export const GET_ALL_BILL_ITEMS = "/bill-setting/all";
 export const EDIT_BILL_ITEM = "/bill-setting";
 export const GET_PROCEDURES_BY_ID = "/bill-setting/procedures";
-export const DETELE_CENTER_IN_PROCEDURE = "/bill-setting/procedures/delete/center";
+export const DETELE_CENTER_IN_PROCEDURE =
+  "/bill-setting/procedures/delete/center";
 export const ADD_CENTERS_IN_PROCEDURE = "/bill-setting/procedures/add/center";
-export const GET_CATEGORIES_OF_PROCEDURE = "/bill-setting/procedures/get/catgeories";
+export const GET_CATEGORIES_OF_PROCEDURE =
+  "/bill-setting/procedures/get/catgeories";
 export const EDIT_CENTER_COSTS = "/bill-setting/procedures/edit/center-cost";
 export const DELETE_BILL_ITEM = "/bill-setting";
 //advance payment
@@ -254,6 +254,7 @@ export const GET_PATIENT_ANALYTICS_WP = "/report/patient-csv";
 export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
+export const GET_ADMISSION_FORMS = "/report/admission-forms";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
@@ -453,9 +454,10 @@ export const DESIGNATION = "/hr/designation";
 
 export const HIRING = "/hr/hiring";
 export const HIRING_ACTION = "/hr/hiring/action";
-export const GET_ALL_EMPLOYEE = "/hr/hiring/get/employees"
-export const GET_MANAGEMENT_HIRING_REQUESTS = "/hr/hiring/management/hiring/requests"
-export const UPDATE_HIRING_REQUEST = "/hr/hiring/management/update/request"
+export const GET_ALL_EMPLOYEE = "/hr/hiring/get/employees";
+export const GET_MANAGEMENT_HIRING_REQUESTS =
+  "/hr/hiring/management/hiring/requests";
+export const UPDATE_HIRING_REQUEST = "/hr/hiring/management/update/request";
 
 export const TPM = "/hr/tpm";
 export const TPM_ACTION = "/hr/tpm/action";
@@ -496,11 +498,11 @@ export const RETRIEVE_ACTION = "/hrms/leaves";
 export const ADD_POLICIES = "/hrms/employee/policy";
 export const GET_POLICIES = "/hrms/employee/get/policies";
 export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";
-export const GET_FESTIVE_LEAVES_LISTS= "/hrms/get/all/lists";
-export const POST_FESTIVE_LEAVES_LIST= "/hrms/post/festive-leaves/list";
-export const ADD_LEAVES_TO_EXISTING_LIST= "/hrms/post/list/in";
-export const UPDATE_LEAVE= "/hrms/update/leave-in/list";
-export const DELETE_LEAVE= "/hrms/delete/leave-in/list";
+export const GET_FESTIVE_LEAVES_LISTS = "/hrms/get/all/lists";
+export const POST_FESTIVE_LEAVES_LIST = "/hrms/post/festive-leaves/list";
+export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
+export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
+export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
