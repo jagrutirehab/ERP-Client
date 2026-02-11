@@ -114,5 +114,12 @@ export const legends = [
     { label: "Employer Deduction", color: "#7B8FD1" },
 ];
 
+export const approvalStatusOptions = [
+    { value: "ALL", label: "All Approvals" },
+    { value: "PENDING", label: "Pending Approvals" },
+    { value: "APPROVED", label: "Approved Approvals" },
+    { value: "REJECTED", label: "Rejected Approvals" },
+];
+
 export const FILE_PREVIEW_CUTOFF = "2026-02-06";
 

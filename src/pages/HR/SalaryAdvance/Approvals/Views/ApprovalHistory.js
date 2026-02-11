@@ -152,6 +152,12 @@ const ApprovalHistory = ({ activeTab }) => {
       minWidth: "160px"
     },
     {
+      name: <div>Remaining Amount</div>,
+      selector: row => formatCurrency(row?.remainingAmount),
+      wrap: true,
+      minWidth: "160px"
+    },
+    {
       name: <div>Payment Id</div>,
       selector: row => row?.centralPaymentId || "-",
       wrap: true,

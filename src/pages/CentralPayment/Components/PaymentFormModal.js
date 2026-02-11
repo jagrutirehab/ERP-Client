@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
-import { downloadFile } from "../../../Components/Common/downloadFile";
 import { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
 import { getPaymentDetails } from "../../../store/features/centralPayment/centralPaymentSlice";
