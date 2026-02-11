@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getPayrolls, getTPMs, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -122,6 +122,33 @@ export const editPayrollRemarks = createAsyncThunk("hr/updatePayrollRemarks", as
     try {
         const response = await updatePayrollRemarks(id, payload);
         return response.data;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const bulkActionPayroll = createAsyncThunk("hr/payrollBulkAction", async (data, { rejectWithValue }) => {
+    try {
+        const response = await payrollBulkAction(data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const actionPayroll = createAsyncThunk("hr/payrollAction", async ({ id, ...payload }, { rejectWithValue }) => {
+    try {
+        const response = await payrollAction(id, payload);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchMonthlyAttendance = createAsyncThunk("hr/getMonthlyAttendance", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getMonthlyAttendance(data);
+        return response;
     } catch (error) {
         return rejectWithValue(error);
     }
@@ -271,14 +298,50 @@ export const hrSlice = createSlice({
 
         builder.addCase(editPayrollRemarks.fulfilled, (state, { payload }) => {
             const payrollIndex = state.data.findIndex((payroll) => payroll._id === payload._id);
-            console.log(payload)
             if (payrollIndex !== -1) {
                 state.data[payrollIndex] = {
                     ...state.data[payrollIndex],
                     ...payload,
                 };
             }
-        })
+        });
+
+        builder.addCase(bulkActionPayroll.fulfilled, (state, { payload }) => {
+            if (Array.isArray(payload)) {
+                payload.forEach((updatedItem) => {
+                    const index = state.data.findIndex((item) => item._id === updatedItem._id);
+                    if (index !== -1) {
+                        state.data[index] = {
+                            ...state.data[index],
+                            ...updatedItem,
+                        };
+                    }
+                });
+            }
+        });
+
+        builder.addCase(actionPayroll.fulfilled, (state, { payload }) => {
+            const index = state.data.findIndex((item) => item._id === payload._id);
+            if (index !== -1) {
+                state.data[index] = {
+                    ...state.data[index],
+                    ...payload,
+                };
+            }
+        });
+
+        builder
+            .addCase(fetchMonthlyAttendance.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchMonthlyAttendance.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchMonthlyAttendance.rejected, (state) => {
+                state.loading = false
+            });
     }
 });
 

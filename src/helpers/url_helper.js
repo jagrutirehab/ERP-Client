@@ -470,6 +470,9 @@ export const GET_PAYROLLS = "/hr/payroll";
 export const EXPORT_PAYROLLS_XLSX = "/hr/payroll/xlsx";
 export const PAYROLL_GENERATION_STATUS = "/hr/payroll/generation-status";
 export const UPDATE_PAYROLL_REMARKS = "/hr/payroll/remarks";
+export const MONTHLY_PAYROLL_TEMPLATE = "/hr/payroll/monthly/template";
+export const PAYROLL_ACTION = "/hr/payroll/action";
+export const PAYROLL_BULK_ACTION = "/hr/payroll/bulk-action";
 
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
@@ -485,6 +488,9 @@ export const ATTENDANCE_SUMMARY = "/hrms/attendance/summary";
 export const ATTENDANCE_LOGS = "/hrms/attendance/detailed";
 export const EMPLOYEE_CHECK_IN = "/hrms/attendance/check-in";
 export const EMPLOYEE_CHECK_OUT = "/hrms/attendance/check-out";
+
+export const MONTHLY_ATTENDANCE = "/hr/attendance/monthly";
+export const UPLOAD_MONTHLY_ATTENDANCE = "/hr/attendance/monthly/upload";
 
 export const EMPLOYEE_REPORTING = "/hrms/employee-reporting";
 

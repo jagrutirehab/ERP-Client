@@ -21,6 +21,21 @@ import Select from "react-select";
 import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
 
+export const calculateBaseAmount = ({
+    totalAmount,
+    GSTAmount,
+    TDSRate = 0,
+}) => {
+    const total = Number(totalAmount);
+    const gst = Number(GSTAmount);
+    const tds = Number(TDSRate) || 0;
+
+    const base =
+        (total - gst) * (1 - tds / 100) + gst;
+
+    return Number(base.toFixed(2));
+};
+
 
 const clearableFields = [
     "invoiceNo",
@@ -69,10 +84,15 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 .test("greater-than-zero", "Amount must be greater than 0", val => val && Number(val) > 0)
                 .test(
                     "not-greater-than-total",
-                    "Monthly deduction cannot be greater than total amount including GST",
+                    "Monthly deduction amount cannot be greater than the final amount after all deductions",
                     function (val) {
-                        const total = Number(this.parent.totalAmountWithGST);
-                        return !val || isNaN(total) || Number(val) <= total;
+                        const { totalAmountWithGST, GSTAmount, TDSRate } = this.parent;
+                        const base = calculateBaseAmount({
+                            totalAmount: totalAmountWithGST,
+                            GSTAmount,
+                            TDSRate
+                        });
+                        return !val || isNaN(base) || Number(val) <= base;
                     }
                 ),
             otherwise: schema => schema.notRequired(),
@@ -300,7 +320,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             const res = await dispatch(
                 getExitEmployeesBySearch({
                     query: inputValue,
-                    centers: centerAccess,
+                    centers: form.values.center,
                     view: "SALARY_ADVANCE",
                 })
             ).unwrap();

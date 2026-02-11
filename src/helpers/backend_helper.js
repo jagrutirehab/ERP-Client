@@ -2554,6 +2554,50 @@ export const updatePayrollRemarks = (id, data) => {
   });
 };
 
+export const payrollBulkAction = (data) => {
+  return api.update(url.PAYROLL_BULK_ACTION, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const payrollAction = (id, data) => {
+  return api.update(`${url.PAYROLL_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const downloadMonthlyPayrollTemplate = (params = {}) => {
+  return api.get(url.MONTHLY_PAYROLL_TEMPLATE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
+export const getMonthlyAttendance = (params = {}) => {
+  return api.get(url.MONTHLY_ATTENDANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
+export const uploadMonthlyAttendance = (data) => {
+  return api.create(url.UPLOAD_MONTHLY_ATTENDANCE, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 // upload file
 export const uploadFile = (data) => {
   return api.create(url.UPLOAD_FILE, data, {
