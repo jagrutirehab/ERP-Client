@@ -213,6 +213,12 @@ const DetailedReport = ({
       minWidth: "150px"
     },
     {
+      name: <div>Employee's Monthly Deduction Amount</div>,
+      selector: row => formatCurrency(row?.monthlyDeductionAmount),
+      wrap: true,
+      minWidth: "160px"
+    },
+    {
       name: <div>Description</div>,
       selector: (row) =>
         row.description ? (

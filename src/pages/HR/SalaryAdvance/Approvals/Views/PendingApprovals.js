@@ -17,6 +17,7 @@ import ApproveModal from "../../../components/ApproveModal";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import EditSalaryAdvanceModal from "../../../components/EditSalaryAdvanceModal";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
 
 const PendingApprovals = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -189,11 +190,15 @@ const PendingApprovals = ({ activeTab }) => {
     },
     {
       name: <div>Amount</div>,
-      selector: row => typeof row?.amount === "number"
-        ? `₹${row.amount.toLocaleString()}`
-        : "-",
+      selector: row => formatCurrency(row?.amount),
       wrap: true,
       minWidth: "140px"
+    },
+    {
+      name: <div>Employee's Monthly Deduction Amount</div>,
+      selector: row => formatCurrency(row?.monthlyDeductionAmount),
+      wrap: true,
+      minWidth: "160px"
     },
     {
       name: <div>Payment Id</div>,

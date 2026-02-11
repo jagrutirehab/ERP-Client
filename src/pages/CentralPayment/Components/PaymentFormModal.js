@@ -145,6 +145,7 @@ const PaymentFormModal = ({
                                         )?.label || "-"}</p>
                                         {paymentDetails?.category === "OTHERS" && <p className="mb-0"><strong>Item Category Details:</strong><ExpandableText text={paymentDetails?.otherCategory || "-"} /></p>}
                                         {paymentDetails?.category === "SALARY_ADVANCE" && <p className="mb-0"><strong>Employee:</strong> {paymentDetails?.employee ? `${paymentDetails.employee?.name}(${paymentDetails.employee?.eCode})` : "-"}</p>}
+                                        {paymentDetails?.category === "SALARY_ADVANCE" && <p className="mb-0"><strong>Employee's Monthly Deduction Amount:</strong>  {formatCurrency(paymentDetails?.monthlyDeductionAmount)}</p>}
                                         <p className="mb-0"><strong>Total Amount (with GST):</strong> {formatCurrency(paymentDetails?.totalAmountWithGST)}</p>
                                         <p className="mb-0"><strong>GST Amount:</strong> {formatCurrency(paymentDetails?.GSTAmount)}</p>
                                         <p className="mb-0"><strong>Payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>

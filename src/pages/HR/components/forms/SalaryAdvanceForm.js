@@ -22,6 +22,17 @@ const validationSchema = Yup.object().shape({
         .typeError("Amount must be a number")
         .required("Amount is required")
         .min(1, "Amount must be greater than 0"),
+    monthlyDeductionAmount: Yup.number()
+        .typeError("Monthly deduction must be a number")
+        .required("Monthly deduction amount is required")
+        .min(1, "Monthly deduction must be greater than 0")
+        .test(
+            "not-greater-than-amount",
+            "Monthly deduction cannot be greater than the advance amount",
+            function (val) {
+                return !val || !this.parent.amount || val <= this.parent.amount;
+            }
+        ),
     date: Yup.date()
         .required("Date is required")
         .typeError("Invalid date"),
@@ -85,7 +96,8 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
             name: initialData?.employeeData?.name || "",
             eCode: initialData?.employeeData?.eCode || "",
             currentLocation: initialData?.center?.title || "",
-            amount: initialData?.amount || "",
+            amount: initialData?.amount || 0,
+            monthlyDeductionAmount: initialData?.monthlyDeductionAmount || 0,
             date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
@@ -114,6 +126,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 const payload = {
                     ...(!isEdit && { employeeId: values.employeeId }),
                     amount: values.amount,
+                    monthlyDeductionAmount: values.monthlyDeductionAmount,
                     date: salaryAdvanceDate
                 };
 
@@ -262,6 +275,23 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 />
                 {form.touched.amount && form.errors.amount && (
                     <div className="text-danger small">{form.errors.amount}</div>
+                )}
+            </FormGroup>
+
+            {/* MONTHLY DEDUCTION AMOUNT */}
+            <FormGroup className="mb-3">
+                <Label for="monthlyDeductionAmount">Employee's Monthly Deduction Amount <span className="text-danger">*</span></Label>
+                <Input
+                    id="monthlyDeductionAmount"
+                    type="number"
+                    name="monthlyDeductionAmount"
+                    value={form.values.monthlyDeductionAmount}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    invalid={form.touched.monthlyDeductionAmount && !!form.errors.monthlyDeductionAmount}
+                />
+                {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
+                    <div className="text-danger small">{form.errors.monthlyDeductionAmount}</div>
                 )}
             </FormGroup>
 
