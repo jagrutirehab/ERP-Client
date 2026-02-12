@@ -11,12 +11,12 @@ import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
 import { toast } from 'react-toastify';
-import { actionPayroll, bulkActionPayroll, editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
+import { actionPayroll, editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
 import DataTableComponent from '../../../Components/Common/DataTable';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { salaryColumns } from '../../HRMS/components/Table/Columns/salary';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus } from '../../../helpers/backend_helper';
+import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus, payrollBulkAction } from '../../../helpers/backend_helper';
 import { approvalStatusOptions, legends } from '../../../Components/constants/HR';
 import ApproveModal from '../components/ApproveModal';
 import RefreshButton from '../../../Components/Common/RefreshButton';
@@ -237,13 +237,13 @@ const Salary = () => {
         setModalLoading(true);
         try {
             if (isBulk) {
-                const res = await dispatch(bulkActionPayroll({
+                const res = await payrollBulkAction({
                     action: actionType === "APPROVE" ? "APPROVED" : "REJECTED",
                     centers: centers,
                     month: format(selectedMonth, "yyyy-MM-dd"),
                     note: formData.note
-                })).unwrap();
-                toast.success(res?.message || `${actionType === "APPROVE" ? "Approved" : "Rejected"} successfully`);
+                });
+                toast.success(res?.data?.message || `${actionType === "APPROVE" ? "Approved" : "Rejected"} successfully`);
                 fetchEmployeePayrolls();
             } else if (actionType === "UPDATE_REMARKS") {
                 const res = await dispatch(
