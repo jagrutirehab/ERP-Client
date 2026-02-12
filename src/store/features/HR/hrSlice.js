@@ -127,15 +127,6 @@ export const editPayrollRemarks = createAsyncThunk("hr/updatePayrollRemarks", as
     }
 });
 
-export const bulkActionPayroll = createAsyncThunk("hr/payrollBulkAction", async (data, { rejectWithValue }) => {
-    try {
-        const response = await payrollBulkAction(data);
-        return response.data;
-    } catch (error) {
-        return rejectWithValue(error);
-    }
-});
-
 export const actionPayroll = createAsyncThunk("hr/payrollAction", async ({ id, ...payload }, { rejectWithValue }) => {
     try {
         const response = await payrollAction(id, payload);
@@ -303,20 +294,6 @@ export const hrSlice = createSlice({
                     ...state.data[payrollIndex],
                     ...payload,
                 };
-            }
-        });
-
-        builder.addCase(bulkActionPayroll.fulfilled, (state, { payload }) => {
-            if (Array.isArray(payload)) {
-                payload.forEach((updatedItem) => {
-                    const index = state.data.findIndex((item) => item._id === updatedItem._id);
-                    if (index !== -1) {
-                        state.data[index] = {
-                            ...state.data[index],
-                            ...updatedItem,
-                        };
-                    }
-                });
             }
         });
 

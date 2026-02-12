@@ -22,22 +22,6 @@ import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
 import { formatCurrency } from '../../../utils/formatCurrency';
 
-export const calculateBaseAmount = ({
-    totalAmount,
-    GSTAmount,
-    TDSRate = 0,
-}) => {
-    const total = Number(totalAmount);
-    const gst = Number(GSTAmount);
-    const tds = Number(TDSRate) || 0;
-
-    const base =
-        (total - gst) * (1 - tds / 100) + gst;
-
-    return Number(base.toFixed(2));
-};
-
-
 const clearableFields = [
     "invoiceNo",
     // "IFSCCode",
@@ -87,17 +71,13 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     "not-greater-than-total",
                     null,
                     function (val) {
-                        const { totalAmountWithGST, GSTAmount, TDSRate } = this.parent;
-                        const base = calculateBaseAmount({
-                            totalAmount: totalAmountWithGST,
-                            GSTAmount,
-                            TDSRate
-                        });
-                        const isValid = !val || isNaN(base) || Number(val) <= base;
+                        const { totalAmountWithGST } = this.parent;
+                        const total = Number(totalAmountWithGST) || 0;
+                        const isValid = !val || Number(val) <= total;
 
                         if (!isValid) {
                             return this.createError({
-                                message: `Employee's Monthly deduction amount cannot be greater than the payable amount(TDS deducted) (Max: ${formatCurrency(base)})`
+                                message: `Employee's Monthly deduction amount cannot be greater than the total amount with GST (Max: ${formatCurrency(total)})`
                             });
                         }
                         return true;
