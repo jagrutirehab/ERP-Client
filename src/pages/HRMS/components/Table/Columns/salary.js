@@ -520,5 +520,11 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             wrap: true,
             minWidth: "180px",
         },
+        {
+            name: <div>Note</div>,
+            selector: row => <ExpandableText text={row?.approvalNote || "-"} />,
+            wrap: true,
+            minWidth: "200px"
+        }
     ] : [])
 ];
