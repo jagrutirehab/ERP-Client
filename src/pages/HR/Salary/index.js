@@ -146,12 +146,24 @@ const Salary = () => {
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
 
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, centerAccess]);
+
     const selectedApprovalStatusOption = approvalStatusOptions.find(opt => opt.value === approvalStatus);
 
     const centers =
         selectedCenter === "ALL"
             ? centerAccess
-            : [selectedCenter];
+            : !centerAccess.length
+                ? []
+                : [selectedCenter];
 
     const fetchEmployeePayrolls = async () => {
         try {
