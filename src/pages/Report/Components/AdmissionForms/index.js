@@ -8,6 +8,7 @@ import { endOfDay, format, startOfDay } from "date-fns";
 import Header from "./Header";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { fetchAdmissionForms } from "../../../../store/actions";
+import { exportAdmissionFormsCSV } from "../../../../helpers/backend_helper";
 
 const AdmissionForms = ({
   centers,
@@ -26,6 +27,7 @@ const AdmissionForms = ({
   });
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Center selection state
   const [centerOptions, setCenterOptions] = useState(
@@ -89,6 +91,45 @@ const AdmissionForms = ({
   const handlePerRowsChange = (newPerPage, newPage) => {
     setPerPage(newPerPage);
     setPage(newPage);
+  };
+
+  // CSV Export Handler
+  const handleExportCSV = async () => {
+    try {
+      setExportLoading(true);
+      const response = await exportAdmissionFormsCSV({
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        centerAccess: selectedCentersIds,
+      });
+
+      console.log({ response });
+
+      // Create blob from response
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `admission-forms-report-${new Date().toISOString().split("T")[0]}.csv`,
+      );
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export CSV", err);
+      alert("Failed to export CSV. Please try again.");
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const columns = [
@@ -257,7 +298,8 @@ const AdmissionForms = ({
             selectedCentersIds={selectedCentersIds}
             setSelectedCentersIds={setSelectedCentersIds}
             onViewReport={handleViewReport}
-            loading={loading}
+            onExportCSV={handleExportCSV}
+            loading={loading || exportLoading}
           />
 
           <Divider />
