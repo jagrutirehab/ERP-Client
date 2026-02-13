@@ -1,10 +1,11 @@
 import Highlighter from "react-highlight-words";
 import { format } from "date-fns";
 import { Button } from "reactstrap";
-import { Check, Copy, Pencil } from "lucide-react";
+import { Check, CheckCheck, Copy, Pencil, X } from "lucide-react";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 const baseStyle = {
     color: "#000",
@@ -38,7 +39,7 @@ const employerDeductionStyle = {
     backgroundColor: "#7B8FD1",
 };
 
-export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermission }) => [
+export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter }) => [
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
@@ -60,7 +61,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
                 highlightClassName="react-highlight"
                 searchWords={[searchText]}
                 autoEscape
-                textToHighlight={`${row?.employee?.name.toUpperCase() || ""}`}
+                textToHighlight={`${row?.employee?.name?.toUpperCase() || ""}`}
             />
         ),
         wrap: true,
@@ -404,21 +405,6 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
         minWidth: "200px",
         maxWidth: "400px",
     },
-    ...(hasEditPermission ? [
-        {
-            name: <div>Action</div>,
-            selector: row => (
-                <button
-                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                    onClick={() => {
-                        onOpen(row);
-                    }}
-                >
-                    <Pencil size={16} />
-                </button>
-            )
-        },
-    ] : []),
     {
         name: <div>PF Employer</div>,
         selector: (row) => formatCurrency(row?.earned?.PFEmployee),
@@ -452,4 +438,93 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, hasEditPermi
         wrap: true,
         center: true,
     },
+    {
+        name: <div>Status</div>,
+        selector: row => renderStatusBadge(row?.approvalStatus || "-"),
+        wrap: true,
+    },
+    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "PENDING") && hasEditPermission ? [
+        {
+            name: <div>Action</div>,
+            cell: row => (
+                <div className="d-flex gap-1 align-items-center">
+                    {row.approvalStatus !== "PENDING" ? (
+                        <i className="text-muted" style={{ fontSize: "12px" }}>Action not permitted</i>
+                    ) : (
+                        <>
+                            <button
+                                className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                onClick={() => {
+                                    onOpen(row);
+                                }}
+                                title="Edit Remarks"
+                            >
+                                <Pencil size={16} />
+                            </button>
+                            <Button
+                                color="success"
+                                className="text-white"
+                                size="sm"
+                                onClick={() => {
+                                    onApprove(row);
+                                }}
+                                title="Approve"
+                            >
+                                <CheckCheck size={16} />
+                            </Button>
+                            <Button
+                                color="danger"
+                                className="text-white"
+                                size="sm"
+                                onClick={() => {
+                                    onReject(row);
+                                }}
+                                title="Reject"
+                            >
+                                <X size={16} />
+                            </Button>
+                        </>
+                    )}
+                </div>
+            ),
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
+            minWidth: "180px"
+        },
+    ] : []),
+    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED") ? [
+        {
+            name: <div>Approved By</div>,
+            selector: (row) => (
+                <div>
+                    <div>{capitalizeWords(row?.approvedBy?.name || "-")}</div>
+                    <div style={{ fontSize: "12px", color: "#666" }}>
+                        {row?.approvedBy?.email || "-"}
+                    </div>
+                </div>
+            ),
+            wrap: true,
+            minWidth: "200px",
+        },
+        {
+            name: <div>Approved At</div>,
+            selector: (row) => {
+                const approvedAt = row?.approvedAt;
+                if (!approvedAt || isNaN(new Date(approvedAt))) {
+                    return "-";
+                }
+                return format(new Date(approvedAt), "dd MMM yyyy, hh:mm a");
+            },
+            sortable: true,
+            wrap: true,
+            minWidth: "180px",
+        },
+        {
+            name: <div>Note</div>,
+            selector: row => <ExpandableText text={row?.approvalNote || "-"} />,
+            wrap: true,
+            minWidth: "200px"
+        }
+    ] : [])
 ];

@@ -102,7 +102,7 @@ const validationSchema = (mode, isEdit) =>
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
     IFSCCode: Yup.string().required("IFSC code is required"),
-    accountName: Yup.string().required("Beneficiary name is required"),
+    accountName: Yup.string().required("Account holder's name is required"),
     adharNo: Yup.string().required("Aadhaar number is required"),
     pan: Yup.string().required("PAN number is required"),
     biometricId: Yup.string().trim(),

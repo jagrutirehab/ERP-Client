@@ -100,7 +100,8 @@ const ApproveModal = ({
       toast.warn("Please select a payment type.");
       return;
     }
-    if (mode === "SALARY" && !remarks) {
+    
+    if (mode === "SALARY" && actionType === "UPDATE_REMARKS" && !remarks) {
       toast.warn("Please select a remarks");
       return;
     }
@@ -108,7 +109,7 @@ const ApproveModal = ({
       note,
       approvedBy: mode === "TECH_ISSUES" ? approvedBy : undefined,
       paymentType: mode === "SALARY_ADVANCE" ? paymentType : undefined,
-      remarks: mode === "SALARY" ? remarks : undefined,
+      remarks: (mode === "SALARY" && actionType === "UPDATE_REMARKS") ? remarks : undefined,
       action: actionType,
       eCode: mode === "NEW_JOINING" ? eCode : undefined,
       hr: assignedHR?.value,
@@ -180,7 +181,15 @@ const ApproveModal = ({
       keyboard={false}
     >
       <ModalHeader toggle={toggle}>
-        {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING") ? "Action Required" : actionType === "APPROVE" ? "Approve Request" : mode === "SALARY" ? "Update Remarks" : "Reject Request"}
+        {(mode === "EXIT_EMPLOYEES_EXIT_PENDING" || mode === "EXIT_EMPLOYEES_FNF_PENDING")
+          ? "Action Required"
+          : actionType === "APPROVE"
+            ? "Approve Request"
+            : actionType === "REJECT"
+              ? "Reject Request"
+              : mode === "SALARY"
+                ? "Update Remarks"
+                : "Action Required"}
       </ModalHeader >
 
       <ModalBody>
@@ -212,7 +221,7 @@ const ApproveModal = ({
               </div>
             </div>
           )}
-        {mode !== "SALARY" && (
+        {((mode !== "SALARY") || (mode === "SALARY" && (actionType === "APPROVE" || actionType === "REJECT"))) && (
           <div className="mb-3">
             <Label htmlFor="note" className="fw-bold">
               Note (Optional)
@@ -369,8 +378,8 @@ const ApproveModal = ({
           </div>
         )}
 
-        {/* SALARY */}
-        {mode === "SALARY" && (
+        {/* SALARY - Update Remarks */}
+        {mode === "SALARY" && actionType === "UPDATE_REMARKS" && (
           <div className="mb-3">
             <Label className="fw-bold">Remarks *</Label>
             <Input
@@ -418,7 +427,7 @@ const ApproveModal = ({
               "Approve"
             )}
           </Button>
-        ) : mode === "SALARY" ? (
+        ) : (mode === "SALARY" && actionType === "UPDATE_REMARKS") ? (
           <Button
             color="success"
             className="text-white"
@@ -427,13 +436,13 @@ const ApproveModal = ({
           </Button>
         ) : (
           <Button
-              color="danger"
-              className="text-white"
-              onClick={handleSubmit}>
-              {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "Reject"}
-            </Button>
+            color="danger"
+            className="text-white"
+            onClick={handleSubmit}>
+            {loading && actionType === "REJECT" ? <Spinner size={"sm"} /> : "Reject"}
+          </Button>
         )}
-          </ModalFooter>
+      </ModalFooter>
     </Modal >
   );
 };

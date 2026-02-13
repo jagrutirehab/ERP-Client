@@ -82,6 +82,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginTop: 4,
   },
+  origRate: { width: "12%", textAlign: "center" },
+  discount: { width: "12%", textAlign: "center" },
 });
 
 const transformInvoiceList = (invoiceList = []) => {
@@ -107,7 +109,6 @@ const transformInvoiceList = (invoiceList = []) => {
 
 const Table = ({ bill }) => {
   let serial = 1;
-
 
   const data = transformInvoiceList(bill?.invoice?.invoiceList || []);
   const payable =
@@ -164,7 +165,7 @@ const Table = ({ bill }) => {
       rows.push(
         <Text key={section.category} style={styles.categoryTitle}>
           {section.category}
-        </Text>
+        </Text>,
       );
 
       let subTotal = 0;
@@ -182,6 +183,13 @@ const Table = ({ bill }) => {
               <Text style={[styles.cell, styles.uom]}>
                 {item.unitOfMeasurement?.toUpperCase() || ""}
               </Text>
+              <Text style={[styles.cell, styles.origRate]}>
+                {addComma(item.originalCost || item.cost || 0)}
+              </Text>
+
+              <Text style={[styles.cell, styles.discount]}>
+                {addComma(item.itemDiscount || 0)}
+              </Text>
               <Text style={[styles.cell, styles.rate]}>
                 {addComma(item.cost || 0)}
               </Text>
@@ -193,7 +201,7 @@ const Table = ({ bill }) => {
                 {item.comments || ""}
               </Text>
             </View>
-          </View>
+          </View>,
         );
       });
 
@@ -201,7 +209,7 @@ const Table = ({ bill }) => {
         <View style={styles.subTotalRow} key={`${section.category}-subtotal`}>
           <Text style={styles.subTotalLabel}>Sub Total:</Text>
           <Text style={styles.subTotalValue}>{addComma(subTotal)}</Text>
-        </View>
+        </View>,
       );
 
       grandTotal += subTotal;
@@ -232,6 +240,8 @@ const Table = ({ bill }) => {
         <Text style={[styles.cell, styles.desc]}>Description</Text>
         <Text style={[styles.cell, styles.qty]}>Qty</Text>
         <Text style={[styles.cell, styles.uom]}>UOM</Text>
+        <Text style={[styles.cell, styles.origRate]}>Original Cost</Text>
+        <Text style={[styles.cell, styles.discount]}>Item Discount</Text>
         <Text style={[styles.cell, styles.rate]}>Rate</Text>
         <Text style={[styles.cell, styles.amt]}>Amount</Text>
       </View>

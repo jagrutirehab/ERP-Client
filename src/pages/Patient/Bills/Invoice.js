@@ -6,6 +6,7 @@ import { INVOICE, REFUND } from "../../../Components/constants/patient";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 const Invoice = ({ title = "Invoice", data, bill }) => {
+  console.log("data from data", data);
   return (
     <React.Fragment>
       <div>
