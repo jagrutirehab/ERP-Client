@@ -249,6 +249,12 @@ export const editBillItem = (data) => api.put(url.EDIT_BILL_ITEM, data);
 export const getProceduresByid = (proId) =>
   api.get(`${url.GET_PROCEDURES_BY_ID}/${proId}`);
 
+// export const getProceduresByCenterid = (params = {}) => {
+//   return axios.get(url.GET_PROCEDURES_BY_CENTER_ID, {
+//     params,
+//   });
+// };
+
 export const deleteCenterInProcedure = ({ payload }) => {
   return api.delete(`${url.DETELE_CENTER_IN_PROCEDURE}`, {
     data: payload,
@@ -2458,6 +2464,7 @@ export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {
     headers: {
       "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
     },
   });
 };

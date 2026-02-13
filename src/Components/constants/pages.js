@@ -727,6 +727,12 @@ export const HR = [
         icon: "bx bx-list-ul",
       },
       {
+        id: "monthly-attendance",
+        label: "Monthly Attendance",
+        link: "/hr/attendance/monthly",
+        icon: "bx bx-calendar"
+      },
+      {
         id: "attendance-metrics",
         label: "Attendance Metrics",
         link: "/hr/attendance/metrics",

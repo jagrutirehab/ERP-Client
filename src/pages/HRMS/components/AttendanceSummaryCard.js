@@ -27,6 +27,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { minutesToTime } from "../../../utils/time";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 
 const StatCard = ({ icon: Icon, value, label, color, loading }) => (
@@ -96,26 +97,7 @@ const AttendanceSummaryCard = ({
                                 />
                             </div>
 
-                            <Button
-                                id="refresh-data-btn"
-                                color="light"
-                                size="sm"
-                                disabled={loading}
-                                onClick={onRefresh}
-                                className="rounded-circle d-flex align-items-center justify-content-center"
-                                style={{ width: 34, height: 34 }}
-                            >
-                                <RotateCw
-                                    size={14}
-                                    style={{
-                                        animation: loading ? "spin 1s linear infinite" : "none",
-                                    }}
-                                />
-                            </Button>
-
-                            <UncontrolledTooltip target="refresh-data-btn">
-                                Refresh
-                            </UncontrolledTooltip>
+                            <RefreshButton loading={loading} onRefresh={onRefresh} />
                         </div>
                     </div>
 

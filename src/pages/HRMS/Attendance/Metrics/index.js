@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button, CardBody, Input, Spinner } from 'reactstrap';
+import { Button, CardBody, Input, Spinner, UncontrolledTooltip } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import Header from '../../../Report/Components/Header';
 import Select from "react-select";
@@ -13,6 +13,8 @@ import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
 import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
+import { RotateCw } from 'lucide-react';
+import RefreshButton from '../../../../Components/Common/RefreshButton';
 
 const sortByOptions = [
     { value: "avgDuration", label: "Sort By Average Duration" },
@@ -184,8 +186,8 @@ const AttendanceMetrics = () => {
         navigate("/unauthorized");
     }
 
-    const handleNavigate = (employeeId) => {
-        navigate(`/hr/attendance/${employeeId}`)
+    const handleNavigate = (employeeId, centerId) => {
+        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`)
     }
 
     const columns = attendanceMetricsColumns({
@@ -241,7 +243,8 @@ const AttendanceMetrics = () => {
                         />
                     </div>
                 </div>
-                <div className="d-flex justify-content-end">
+                <div className="d-flex justify-content-end gap-2">
+                    <RefreshButton loading={loading} onRefresh={fetchEmployeeAttendanceMetrics} />
                     <Button
                         color="primary"
                         className="d-flex align-items-center gap-1 text-white"

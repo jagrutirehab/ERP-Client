@@ -109,6 +109,13 @@ const Sidebar = () => {
     "ATTENDANCE_LOG",
     "READ"
   );
+
+  const hasMonthlyAttenancePermission = hasPermission(
+    "HR",
+    "MONTHLY_ATTENDANCE",
+    "READ"
+  );
+
   const hasAttendanceMetricsPermission = hasPermission(
     "HR",
     "ATTENDANCE_METRICS",
@@ -295,6 +302,10 @@ const Sidebar = () => {
       page.children = page.children.filter((child) => {
         if (child.id === "attendance-log" && !hasAttendanceLogPermission)
           return false;
+
+        if (child.id === "monthly-attendance" && !hasMonthlyAttenancePermission)
+          return false;
+
         if (
           child.id === "attendance-metrics" &&
           !hasAttendanceMetricsPermission
