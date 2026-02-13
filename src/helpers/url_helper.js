@@ -255,6 +255,7 @@ export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
 export const GET_ADMISSION_FORMS = "/report/admission-forms";
+export const GET_ADMISSION_FORMS_CSV = "/report/admission-forms-csv";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
