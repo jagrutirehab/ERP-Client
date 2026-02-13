@@ -31,49 +31,19 @@ const InvoiceFooter = (props) => {
   const [amountInput, setAmountInput] = useState(String(initialValue || ""));
   const [error, setError] = useState("");
 
-  console.log("props", props);
-  console.log("props.afterDiscount", props.afterDiscount);
-  const itemDiscount = Number(props.itemsDiscount || 0);
-
-  // useEffect(() => {
-  //   if (props.validation?.values?.bill === REFUND) {
-  //     const refundVal = String(props.refund || "");
-  //     setAmountInput(refundVal);
-  //     props.validation.setFieldValue("refund", refundVal);
-  //   } else {
-  //     const payableVal = String(props.payable || "");
-  //     setAmountInput(payableVal);
-  //     props.validation.setFieldValue("refund", payableVal);
-  //   }
-  //   setError("");
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [props.validation?.values?.bill, props.refund, props.payable]);
-
-  // 1. Calculate the final payable locally within the component
-  const calculatedPayable =
-    (props.totalCost || 0) - (wDiscount || 0) - (itemDiscount || 0);
-
   useEffect(() => {
     if (props.validation?.values?.bill === REFUND) {
       const refundVal = String(props.refund || "");
       setAmountInput(refundVal);
       props.validation.setFieldValue("refund", refundVal);
     } else {
-      const payableVal = String(
-        calculatedPayable > 0 ? calculatedPayable.toFixed(2) : "0.00",
-      );
+      const payableVal = String(props.payable || "");
       setAmountInput(payableVal);
-
       props.validation.setFieldValue("refund", payableVal);
     }
     setError("");
-  }, [
-    props.validation?.values?.bill,
-    props.refund,
-    wDiscount,
-    itemDiscount,
-    props.totalCost,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.validation?.values?.bill, props.refund, props.payable]);
 
   const handleAmountChange = (e) => {
     const val = e.target.value;
@@ -101,12 +71,10 @@ const InvoiceFooter = (props) => {
     }
   };
 
-  const totalDiscount = (Number(wDiscount) || 0) + (Number(itemDiscount) || 0);
-
   return (
     <React.Fragment>
-      <Row className="d-flex justify-content-between mt-3">
-        <Col xs={6} lg={2} className="text-center">
+      <Row className="d-flex justify-content-end mt-3">
+        <Col xs={6} lg={3} className="text-center">
           <div>
             <h6 className="text-muted d-flex justify-content-center align-items-center text-primary">
               <i className="ri-git-commit-line font-size-16"></i> TOTAL COST (₹)
@@ -114,31 +82,19 @@ const InvoiceFooter = (props) => {
             <p>{props.totalCost || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={2} className="text-center">
+        <Col xs={6} lg={3} className="text-center">
           <div className="ms-4">
             <h6
               style={{ whiteSpace: "nowrap" }}
               className="text-muted d-flex justify-content-center align-items-center text-primary pe-5 pe-lg-0"
             >
-              <i className="ri-git-commit-line font-size-16"></i> OVERALL DISCOUNT
+              <i className="ri-git-commit-line font-size-16"></i> TOTAL DISCOUNT
               (₹)
             </h6>
             <p className="pe-5 pe-lg-0">{wDiscount?.toFixed(2) || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={2} className="text-center">
-          <div className="ms-4">
-            <h6
-              style={{ whiteSpace: "nowrap" }}
-              className="text-muted d-flex justify-content-center align-items-center text-primary pe-5 pe-lg-0"
-            >
-              <i className="ri-git-commit-line font-size-16"></i> ITEMS DISCOUNT
-              (₹)
-            </h6>
-            <p className="pe-5 pe-lg-0">{itemDiscount?.toFixed(2) || "0.00"}</p>
-          </div>
-        </Col>
-        <Col xs={6} lg={2} className="text-center">
+        <Col xs={6} lg={3} className="text-center">
           <div className="ms-0 ms-lg-4">
             <h6 className="text-muted d-flex justify-content-center align-items-center text-primary">
               <i className="ri-git-commit-line font-size-16"></i> TOTAL ADVANCE
@@ -147,7 +103,7 @@ const InvoiceFooter = (props) => {
             <p>{props.advance || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={2} className="text-center">
+        <Col xs={6} lg={3} className="text-center">
           <div className="ms-4">
             <h6
               style={{ whiteSpace: "nowrap" }}
@@ -164,160 +120,76 @@ const InvoiceFooter = (props) => {
       <div className="w-100 bg-primary mt-3 mb-2" style={{ height: "1px" }} />
 
       <div>
-        <Row className="align-items-center">
-          <Col xs={12} lg={8}>
-            <Row className="gx-4">
-              <Col xs={12} lg={3}>
-                <div className="mt-4 mb-4 m-lg-0">
-                  <h6 className="text-muted mt-2 mb-3 fs-10">
-                    Overall Discount (₹)
-                  </h6>
-                  <div className="input-group" style={{ width: "150px" }}>
-                    <Input
-                      bsSize="sm"
-                      size={1}
-                      type="number"
-                      name="wholeDiscount"
-                      value={props.wholeDiscount.value || ""}
-                      style={{ height: "9px", width: "60px" }}
-                      className="form-control"
-                      onChange={(e) =>
-                        props.setWholeDiscount({
-                          unit: props.wholeDiscount.unit,
-                          value: parseFloat(e.target.value || 0),
-                        })
-                      }
-                      onKeyDown={(e) => {
-                        if (e.which === 38 || e.which === 40) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    <span className="input-group-text p-0 bg-light">
-                      <Input
-                        bsSize="sm"
-                        name="wholeUnit"
-                        style={{ height: "27px" }}
-                        className="border-0"
-                        size={"1"}
-                        type="select"
-                        value={props.wholeDiscount.unit || ""}
-                        onChange={(e) =>
-                          props.setWholeDiscount({
-                            value: props.wholeDiscount.value,
-                            unit: e.target.value,
-                          })
-                        }
-                      >
-                        <option>₹</option>
-                        <option>%</option>
-                      </Input>
-                    </span>
-                  </div>
-                  <p className="mb-0">
-                    {wDiscount > props.totalCost ? (
-                      <span className="text-danger font-size-10">
-                        should be less than total cost
-                      </span>
-                    ) : (
-                      <span>₹{wDiscount?.toFixed(2) || "0.00"}</span>
-                    )}
-                  </p>
-                </div>
-              </Col>
-
-              <Col xs={12} lg={3}>
-                <div className="mt-4 mb-4 m-lg-0">
-                  <h6 className="text-muted mt-2 mb-3 fs-10">
-                    Item Discount (₹)
-                  </h6>
-
-                  <div className="input-group" style={{ width: "150px" }}>
-                    <Input
-                      bsSize="sm"
-                      size={1}
-                      type="text"
-                      value={itemDiscount?.toFixed(2) || "0.00"}
-                      style={{ height: "9px", width: "60px" }}
-                      className="form-control bg-light"
-                      disabled
-                    />
-
-                    <span className="input-group-text p-0 bg-light">
-                      <Input
-                        bsSize="sm"
-                        style={{ height: "27px" }}
-                        className="border-0 bg-light"
-                        size="1"
-                        type="text"
-                        value="₹"
-                        disabled
-                      />
-                    </span>
-                  </div>
-
-                  <p className="mb-0">
-                    <span>₹{itemDiscount?.toFixed(2) || "0.00"}</span>
-                  </p>
-                </div>
-              </Col>
-
-              <Col xs={12} lg={3}>
-                <div className="mt-4 mb-4 m-lg-0">
-                  <h6 className="text-muted mt-2 mb-3 fs-10">
-                    Total Discount (₹)
-                  </h6>
-
-                  <div className="input-group" style={{ width: "150px" }}>
-                    <Input
-                      bsSize="sm"
-                      size={1}
-                      type="text"
-                      value={totalDiscount?.toFixed(2) || "0.00"}
-                      style={{ height: "9px", width: "60px" }}
-                      className="form-control bg-light"
-                      disabled
-                    />
-
-                    <span className="input-group-text p-0 bg-light">
-                      <Input
-                        bsSize="sm"
-                        style={{ height: "27px" }}
-                        className="border-0 bg-light"
-                        size="1"
-                        type="text"
-                        value="₹"
-                        disabled
-                      />
-                    </span>
-                  </div>
-
-                  {/* <p className="mb-0">
-                    <span>₹{totalDiscount?.toFixed(2) || "0.00"}</span>
-                  </p> */}
-                </div>
-              </Col>
-            </Row>
+        <Row className="align-items-center justify-content-between">
+          <Col xs={12} lg={4}>
+            <div className="mt-4 mb-4 m-lg-0">
+              <h6 className="text-muted mt-2 mb-3 fs-10">Total Discount (₹)</h6>
+              <div className="input-group" style={{ width: "150px" }}>
+                <Input
+                  bsSize="sm"
+                  size={1}
+                  type="number"
+                  name="wholeDiscount"
+                  value={props.wholeDiscount.value || ""}
+                  style={{ height: "9px", width: "60px" }}
+                  className="form-control"
+                  onChange={(e) =>
+                    props.setWholeDiscount({
+                      unit: props.wholeDiscount.unit,
+                      value: parseFloat(e.target.value || 0),
+                    })
+                  }
+                  onKeyDown={(e) => {
+                    if (e.which === 38 || e.which === 40) {
+                      e.preventDefault();
+                    }
+                  }}
+                />
+                <span className="input-group-text p-0 bg-light">
+                  <Input
+                    bsSize="sm"
+                    name="wholeUnit"
+                    style={{ height: "27px" }}
+                    className="border-0"
+                    size={"1"}
+                    type="select"
+                    value={props.wholeDiscount.unit || ""}
+                    onChange={(e) =>
+                      props.setWholeDiscount({
+                        value: props.wholeDiscount.value,
+                        unit: e.target.value,
+                      })
+                    }
+                  >
+                    <option>₹</option>
+                    <option>%</option>
+                  </Input>
+                </span>
+              </div>
+              <p className="mb-0">
+                {wDiscount > props.totalCost ? (
+                  <span className="text-danger font-size-10">
+                    should be less than total cost
+                  </span>
+                ) : (
+                  <span>₹{wDiscount?.toFixed(2) || "0.00"}</span>
+                )}
+              </p>
+            </div>
           </Col>
 
           <RenderWhen isTrue={props.type === OPD}>
             <Col xs={12} lg={4}>
-              {/* <PaymentMode
-                paymentModes={props.paymentModes}
-                setPaymentModes={props.setPaymentModes}
-                payable={props.payable}
-                validation={props.validation}
-              /> */}
               <PaymentMode
                 paymentModes={props.paymentModes}
                 setPaymentModes={props.setPaymentModes}
-                payable={calculatedPayable}
+                payable={props.payable}
                 validation={props.validation}
               />
             </Col>
           </RenderWhen>
 
-          <Col xs={12} lg={4} className="d-flex justify-content-end">
+          <Col xs={12} lg={4}>
             <div className="w-50 ms-md-auto">
               <div className="fs-10">
                 <Input
@@ -373,13 +245,12 @@ InvoiceFooter.propTypes = {
   totalInvoicePayment: PropTypes.number,
 };
 
-const mapStateToProps = (state, ownProps) => ({
+const mapStateToProps = (state) => ({
   totalAdvancePayment: state.Bill.totalAdvancePayment,
   totalInvoicePayment: state.Bill.totalInvoicePayment,
   totalDeposit: state.Bill.totalDeposit,
   totalAdvance: state.Bill.totalAdvance,
   totalRefund: state.Bill.totalRefund,
-  afterDiscount: ownProps.afterDiscount,
 });
 
 export default connect(mapStateToProps)(InvoiceFooter);
