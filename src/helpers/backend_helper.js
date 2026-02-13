@@ -752,6 +752,15 @@ export const getAdmissionForms = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const exportAdmissionFormsCSV = (data) =>
+  api.get(url.GET_ADMISSION_FORMS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
 export const getDoctorAnalytics = (params = {}) => {
   return api.create(url.GET_DOCTOR_ANALYTICS, params, {
     headers: { "Content-Type": "application/json" },
