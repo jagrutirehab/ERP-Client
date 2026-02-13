@@ -14,6 +14,7 @@ import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -268,6 +269,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
           </div>
 
+          <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -292,6 +294,9 @@ const ApprovalHistory = ({ activeTab }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <div className="d-flex justify-content-end">
+              <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
           </div>
         </div>
       </div>

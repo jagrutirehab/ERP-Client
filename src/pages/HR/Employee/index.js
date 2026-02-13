@@ -5,12 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import Select from "react-select";
 import { Pencil, Trash2 } from "lucide-react";
-import { getMasterEmployees } from "../../../store/features/HR/hrSlice";
+import { fetchDesignations, getMasterEmployees } from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { deleteEmployee, getEmployeeFinanceById } from "../../../helpers/backend_helper";
+import { deleteEmployee, getDepartments, getEmployeeFinanceById } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
@@ -19,31 +19,9 @@ import EmployeeModal from "../components/EmployeeModal";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import { getFilePreviewMeta } from "../../../utils/isPreviewable";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { FILE_PREVIEW_CUTOFF } from "../../../Components/constants/HR";
+import { FILE_PREVIEW_CUTOFF, filterEmploymentOptions, statusOptions } from "../../../Components/constants/HR";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import DataTableComponent from "../../../Components/Common/DataTable";
-
-const customStyles = {
-  table: {
-    style: {
-      minHeight: "450px",
-    },
-  },
-  headCells: {
-    style: {
-      backgroundColor: "#f8f9fa",
-      fontWeight: "600",
-      borderBottom: "2px solid #e9ecef",
-    },
-  },
-  rows: {
-    style: {
-      minHeight: "60px",
-      borderBottom: "1px solid #f1f1f1",
-    },
-  },
-};
-
 
 const Employee = () => {
   const navigate = useNavigate();
@@ -62,6 +40,13 @@ const Employee = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDesignation, setSelectedDesignation] = useState(null);
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+
+  const { designations, designationLoading } = useSelector((state) => state.HR);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -118,6 +103,24 @@ const Employee = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      try {
+        const deptRes = await getDepartments();
+        setDepartmentOptions(
+          (deptRes?.data || []).map((d) => ({
+            label: d.department,
+            value: d._id,
+          }))
+        );
+        dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] }));
+      } catch (error) {
+        console.error("Failed to fetch dropdowns", error);
+      }
+    };
+    fetchDropdowns();
+  }, [dispatch]);
+
   const fetchMasterEmployeeList = async () => {
     try {
       const centers =
@@ -134,6 +137,10 @@ const Employee = () => {
           centers,
           view: "MASTER",
           ...(search.trim() !== "" && { search: debouncedSearch }),
+          ...(selectedDepartment && { department: selectedDepartment.value }),
+          ...(selectedDesignation && { designation: selectedDesignation.value }),
+          ...(selectedEmploymentType && { employmentType: selectedEmploymentType.value }),
+          ...(selectedStatus && { status: selectedStatus.value }),
         }),
       ).unwrap();
     } catch (error) {
@@ -147,7 +154,18 @@ const Employee = () => {
     if (hasUserPermission) {
       fetchMasterEmployeeList();
     }
-  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, roles]);
+  }, [
+    page,
+    limit,
+    selectedCenter,
+    debouncedSearch,
+    user?.centerAccess,
+    roles,
+    selectedDepartment,
+    selectedDesignation,
+    selectedEmploymentType,
+    selectedStatus,
+  ]);
 
   const handleDelete = async () => {
     setModalLoading(true);
@@ -244,7 +262,7 @@ const Employee = () => {
     },
     {
       name: <div>Employment</div>,
-      selector: (row) => capitalizeWords(row?.employmentType || "-"),
+      selector: (row) => filterEmploymentOptions.find(opt => opt.value === row?.employmentType)?.label || capitalizeWords(row?.employmentType || "-"),
       wrap: true,
       minWidth: "100px",
     },
@@ -621,33 +639,85 @@ const Employee = () => {
       </div>
 
       <div className="mb-3">
-        {/*  DESKTOP VIEW */}
-        <div className="d-none d-md-flex justify-content-between align-items-center">
-          <div className="d-flex gap-3 align-items-center">
-            <div style={{ width: "200px" }}>
-              <Select
-                value={selectedCenterOption}
-                onChange={(option) => {
-                  setSelectedCenter(option?.value);
-                  setPage(1);
-                }}
-                options={centerOptions}
-                placeholder="All Centers"
-                classNamePrefix="react-select"
-              />
-            </div>
-
-            <div style={{ width: "220px" }}>
-              <Input
-                type="text"
-                className="form-control"
-                placeholder="Search by name or Ecode..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+        <div className="row g-2 mb-2">
+          <div className="col-md-3">
+            <Select
+              value={selectedCenterOption}
+              onChange={(option) => {
+                setSelectedCenter(option?.value);
+                setPage(1);
+              }}
+              options={centerOptions}
+              placeholder="All Centers"
+              classNamePrefix="react-select"
+            />
           </div>
-          <div className="d-flex gap-2">
+          <div className="col-md-3">
+            <Select
+              value={selectedStatus}
+              onChange={(option) => {
+                setSelectedStatus(option);
+                setPage(1);
+              }}
+              options={statusOptions}
+              placeholder="Filter by Status"
+              classNamePrefix="react-select"
+              isClearable
+            />
+          </div>
+          <div className="col-md-3">
+            <Select
+              value={selectedEmploymentType}
+              onChange={(option) => {
+                setSelectedEmploymentType(option);
+                setPage(1);
+              }}
+              options={filterEmploymentOptions}
+              placeholder="Filter by Employment"
+              classNamePrefix="react-select"
+              isClearable
+            />
+          </div>
+          <div className="col-md-3">
+            <Input
+              type="text"
+              className="form-control"
+              placeholder="Search by name or Ecode..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-md-3">
+            <Select
+              value={selectedDepartment}
+              onChange={(option) => {
+                setSelectedDepartment(option);
+                setPage(1);
+              }}
+              options={departmentOptions}
+              placeholder="Filter by Department"
+              classNamePrefix="react-select"
+              isClearable
+            />
+          </div>
+          <div className="col-md-3">
+            <Select
+              value={selectedDesignation}
+              onChange={(option) => {
+                setSelectedDesignation(option);
+                setPage(1);
+              }}
+              options={designations}
+              placeholder="Filter by Designation"
+              classNamePrefix="react-select"
+              isClearable
+              isLoading={designationLoading}
+            />
+          </div>
+          <div className="col-md-6 d-flex justify-content-end gap-2 align-items-center">
             <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
             <CheckPermission
               accessRolePermission={roles?.permissions}
@@ -663,50 +733,6 @@ const Employee = () => {
               </Button>
             </CheckPermission>
           </div>
-        </div>
-
-        {/*  MOBILE VIEW */}
-        <div className="d-flex d-md-none flex-column gap-3">
-          <div style={{ width: "100%" }}>
-            <Select
-              value={selectedCenterOption}
-              onChange={(option) => {
-                setSelectedCenter(option?.value);
-                setPage(1);
-              }}
-              options={centerOptions}
-              placeholder="All Centers"
-              classNamePrefix="react-select"
-            />
-          </div>
-
-          <div style={{ width: "100%" }}>
-            <Input
-              type="text"
-              className="form-control"
-              placeholder="Search by name or Ecode..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-        </div>
-
-        <div className="d-flex d-md-none justify-content-end mt-3">
-          <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
-          <CheckPermission
-            accessRolePermission={roles?.permissions}
-            subAccess={"MASTER_EMPLOYEE"}
-            permission={"delete"}
-          >
-            <Button
-              color="primary"
-              className="d-flex align-items-center gap-2 text-white"
-              onClick={() => setModalOpen(true)}
-            >
-              + Add Employee
-            </Button>
-          </CheckPermission>
         </div>
       </div>
 

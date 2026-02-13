@@ -15,6 +15,8 @@ import {
     Spinner,
     Table,
     Alert,
+    ListGroup,
+    ListGroupItem
 } from "reactstrap";
 import { useSelector } from "react-redux";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -142,15 +144,18 @@ const MonthlyAttendanceUploadModal = ({ isOpen, toggle, onRefresh }) => {
 
             setUploadResult({
                 success: response?.success ?? true,
-                attempted: response?.attempted ?? 0,
-                upserted: response?.upserted ?? 0,
-                matched: response?.matched ?? 0,
-                modified: response?.modified ?? 0,
+                message: response?.message,
+                summary: response?.summary || {},
+                errorFile: response?.errorFile,
                 errors: response?.errors ?? [],
             });
 
             if (response?.success) {
-                toast.success("Attendance uploaded successfully!");
+                if (response?.summary?.failed > 0) {
+                    toast.warn("Processed with some failures.");
+                } else {
+                    toast.success(response.message || "Attendance processed successfully");
+                }
             } else {
                 toast.warn("Upload completed with issues.");
             }
@@ -186,46 +191,64 @@ const MonthlyAttendanceUploadModal = ({ isOpen, toggle, onRefresh }) => {
                 {/* Upload Result */}
                 {uploadResult && (
                     <Alert
-                        color={uploadResult.success ? "success" : "danger"}
-                        className="mb-3"
+                        color="light"
+                        className="mb-3 border-secondary border-opacity-25"
                     >
-                        <h6 className="alert-heading fw-bold">
-                            {uploadResult.success
-                                ? "Upload Successful"
-                                : "Upload Failed"}
-                        </h6>
-                        {uploadResult.success ? (
-                            <div className="d-flex flex-wrap gap-3 mt-2">
-                                <div>
-                                    <strong>Attempted:</strong>{" "}
-                                    {uploadResult.attempted}
-                                </div>
-                                <div>
-                                    <strong>Upserted:</strong>{" "}
-                                    {uploadResult.upserted}
-                                </div>
-                                <div>
-                                    <strong>Matched:</strong>{" "}
-                                    {uploadResult.matched}
-                                </div>
-                                <div>
-                                    <strong>Modified:</strong>{" "}
-                                    {uploadResult.modified}
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="mb-0">
+                        <div className="d-flex justify-content-between align-items-start">
+                            <h6 className="alert-heading fw-bold mb-0 text-dark">
+                                {uploadResult.message ||
+                                    (uploadResult.success
+                                        ? "Process Completed"
+                                        : "Process Failed")}
+                            </h6>
+                            {uploadResult.errorFile && (
+                                <a
+                                    href={uploadResult.errorFile}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-sm btn-outline-dark"
+                                    style={{ textDecoration: "none" }}
+                                >
+                                    <i className="bx bx-download me-1"></i>
+                                    Failed Sheet
+                                </a>
+                            )}
+                        </div>
+
+                        {uploadResult.summary && (
+                            <ListGroup horizontal className="mt-3 text-center">
+                                <ListGroupItem className="flex-fill">
+                                    <div className="fw-bold">Total</div>
+                                    {uploadResult.summary.totalRows ?? 0}
+                                </ListGroupItem>
+                                <ListGroupItem className="flex-fill">
+                                    <div className="fw-bold text-success">Success</div>
+                                    {uploadResult.summary.success ?? 0}
+                                </ListGroupItem>
+                                <ListGroupItem className="flex-fill">
+                                    <div className="fw-bold text-warning">Skipped</div>
+                                    {uploadResult.summary.skipped ?? 0}
+                                </ListGroupItem>
+                                <ListGroupItem className="flex-fill">
+                                    <div className="fw-bold text-danger">Failed</div>
+                                    {uploadResult.summary.failed ?? 0}
+                                </ListGroupItem>
+                            </ListGroup>
+                        )}
+
+                        {!uploadResult.success && !uploadResult.summary && (
+                            <p className="mt-2 mb-0">
                                 {uploadResult.message || "Something went wrong"}
                             </p>
                         )}
 
                         {uploadResult.errors?.length > 0 && (
-                            <div className="mt-2">
+                            <div className="mt-3">
                                 <strong className="text-danger">
                                     Errors ({uploadResult.errors.length}):
                                 </strong>
-                                <ul
-                                    className="mb-0 mt-1"
+                                <ListGroup
+                                    className="mt-2"
                                     style={{
                                         maxHeight: 150,
                                         overflowY: "auto",
@@ -234,21 +257,21 @@ const MonthlyAttendanceUploadModal = ({ isOpen, toggle, onRefresh }) => {
                                     {uploadResult.errors
                                         .slice(0, 10)
                                         .map((err, i) => (
-                                            <li key={i}>
+                                            <ListGroupItem key={i} color="danger" className="py-2">
                                                 {typeof err === "string"
                                                     ? err
                                                     : err?.message ||
-                                                      JSON.stringify(err)}
-                                            </li>
+                                                    JSON.stringify(err)}
+                                            </ListGroupItem>
                                         ))}
                                     {uploadResult.errors.length > 10 && (
-                                        <li className="text-muted">
+                                        <ListGroupItem className="text-muted text-center py-2">
                                             ...and{" "}
                                             {uploadResult.errors.length - 10}{" "}
                                             more
-                                        </li>
+                                        </ListGroupItem>
                                     )}
-                                </ul>
+                                </ListGroup>
                             </div>
                         )}
                     </Alert>

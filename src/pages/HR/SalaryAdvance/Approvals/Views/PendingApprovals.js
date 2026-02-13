@@ -18,6 +18,7 @@ import PropTypes from "prop-types";
 import Select from "react-select";
 import EditSalaryAdvanceModal from "../../../components/EditSalaryAdvanceModal";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -340,6 +341,8 @@ const PendingApprovals = ({ activeTab }) => {
               />
             </div>
           </div>
+
+          <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -365,6 +368,9 @@ const PendingApprovals = ({ activeTab }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <div className="d-flex justify-content-end">
+              <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
           </div>
         </div>
       </div>

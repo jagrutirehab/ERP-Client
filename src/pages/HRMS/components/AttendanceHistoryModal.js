@@ -95,7 +95,8 @@ const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
 
     const columns = attendanceImportHistoryColumns({
         hasDeletePermission,
-        onDelete: openDeleteConfirm
+        onDelete: openDeleteConfirm,
+        importType
     });
 
     return (

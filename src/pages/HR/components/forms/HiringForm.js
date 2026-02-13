@@ -33,10 +33,12 @@ const validationSchema = Yup.object({
     .required("Designation is required")
     .matches(objectIdRegex, "Invalid Designation"),
 
-  preferredGender: Yup.string().oneOf(
-    ["MALE", "FEMALE"],
-    "Preferred Gender must be MALE, FEMALE, or OTHER",
-  ),
+  preferredGender: Yup.string()
+    .oneOf(
+      ["MALE", "FEMALE", "NO_PREFERENCE"],
+      "Preferred Gender must be MALE, FEMALE, or NO PREFERENCE",
+    )
+    .required("Preferred Gender is required"),
 
   requiredCount: Yup.number()
     .typeError("Required count must be a number")
@@ -122,9 +124,6 @@ const HiringForm = ({
       try {
         const payload = { ...values };
 
-        if (!payload.preferredGender) {
-          delete payload.preferredGender;
-        }
         if (!payload.centerManager) {
           delete payload.centerManager;
         }
@@ -370,7 +369,9 @@ const HiringForm = ({
       </FormGroup>
 
       <FormGroup>
-        <Label htmlFor="preferredGender">Preferred Gender</Label>
+        <Label htmlFor="preferredGender">
+          Preferred Gender <span className="text-danger">*</span>
+        </Label>
 
         <Select
           inputId="preferredGender"

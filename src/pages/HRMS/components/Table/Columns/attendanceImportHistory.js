@@ -7,6 +7,7 @@ import { Trash } from "lucide-react";
 export const attendanceImportHistoryColumns = ({
     hasDeletePermission,
     onDelete,
+    importType
 }) => [
         {
             name: <div>Upload Date</div>,
@@ -20,12 +21,12 @@ export const attendanceImportHistoryColumns = ({
             wrap: true,
             minWidth: "120px"
         },
-        {
+        ...importType === "LOGS" ? [{
             name: <div>Generation Date</div>,
             selector: row => row?.generatedOn || "-",
             wrap: true,
             minWidth: "120px"
-        },
+        }] : [],
         {
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),

@@ -1,12 +1,14 @@
+import { useId } from 'react'
 import { Button, UncontrolledTooltip } from 'reactstrap'
 import { RotateCw } from 'lucide-react'
 import PropTypes from 'prop-types'
 
 const RefreshButton = ({ loading, onRefresh }) => {
+    const uniqueId = `refresh-btn-${useId().replace(/:/g, '')}`;
     return (
         <>
             <Button
-                id="refresh-data-btn"
+                id={uniqueId}
                 color="light"
                 size="sm"
                 disabled={loading}
@@ -22,14 +24,14 @@ const RefreshButton = ({ loading, onRefresh }) => {
                 />
             </Button>
 
-            <UncontrolledTooltip target="refresh-data-btn">
+            <UncontrolledTooltip target={uniqueId}>
                 Refresh
             </UncontrolledTooltip>
         </>
     )
 };
 
-RefreshButton.prototype = {
+RefreshButton.propTypes = {
     loading: PropTypes.bool.isRequired,
     onRefresh: PropTypes.func.isRequired
 };

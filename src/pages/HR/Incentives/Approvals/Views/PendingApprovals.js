@@ -19,6 +19,7 @@ import EditIncentivesModal from "../../../components/forms/EditIncentivesModal";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -360,6 +361,8 @@ const PendingApprovals = ({ activeTab }) => {
                             />
                         </div>
                     </div>
+
+                    <RefreshButton loading={loading} onRefresh={fetchPendingIncentiveApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -385,6 +388,9 @@ const PendingApprovals = ({ activeTab }) => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingIncentiveApprovals} />
                     </div>
                 </div>
             </div>

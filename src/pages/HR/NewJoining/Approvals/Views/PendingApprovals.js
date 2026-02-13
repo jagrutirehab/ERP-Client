@@ -19,6 +19,7 @@ import Select from "react-select";
 import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
 import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 
 const customStyles = {
@@ -629,6 +630,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                         </div>
 
                     </div>
+
+                    <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -654,6 +657,9 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
                     </div>
                 </div>
 
