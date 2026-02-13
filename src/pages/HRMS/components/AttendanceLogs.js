@@ -14,8 +14,9 @@ import AttendanceCalendar from "./AttendanceCalender";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { allViewPermissionRoles } from "../../../Components/constants/HRMS";
 import RegularizeModal from "../../../Components/Common/RegularizeModal";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
-const AttendanceLogs = ({ employeeId }) => {
+const AttendanceLogs = ({ employeeId, centerId }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const [reportDate, setReportDate] = useState(getTableRange());
@@ -49,11 +50,12 @@ const AttendanceLogs = ({ employeeId }) => {
           startDate: reportDate.start,
           endDate: reportDate.end,
           paginated: viewMode === "table",
+          ...(centerId ? { centerId } : {}),
           ...(viewMode === "table"
             ? {
-                page,
-                limit,
-              }
+              page,
+              limit,
+            }
             : {}),
           ...(employeeId ? { employeeId } : {}),
         }),
@@ -73,12 +75,12 @@ const AttendanceLogs = ({ employeeId }) => {
     setPage(1);
   }, [reportDate.start, reportDate.end, limit, viewMode]);
 
-    const handleCalendarNavigate = (date) => {
-        setReportDate({
-            start: startOfMonth(date),
-            end: endOfMonth(date),
-        });
-    };
+  const handleCalendarNavigate = (date) => {
+    setReportDate({
+      start: startOfMonth(date),
+      end: endOfMonth(date),
+    });
+  };
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
@@ -94,8 +96,8 @@ const AttendanceLogs = ({ employeeId }) => {
 
   const isMetrics = Boolean(employeeId);
   const canShowActionButton = isMetrics
-  ? (hasWriteForMetrics || hasDeleteForMetrics)
-  : (hasWrite || hasDelete);
+    ? (hasWriteForMetrics || hasDeleteForMetrics)
+    : (hasWrite || hasDelete);
 
   const columns = myAttendanceLogsColumns({
     hasUserAllViewPermission,
@@ -112,9 +114,15 @@ const AttendanceLogs = ({ employeeId }) => {
   return (
     <>
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-        <div style={{ minWidth: "150px" }}>
+        <div className="d-flex align-items-center gap-2">
+          <div style={{ minWidth: "150px" }}>
+            {viewMode === "table" && (
+              <Header reportDate={reportDate} setReportDate={setReportDate} />
+            )}
+          </div>
+
           {viewMode === "table" && (
-            <Header reportDate={reportDate} setReportDate={setReportDate} />
+            <RefreshButton loading={loading} onRefresh={reloadAttendance} />
           )}
         </div>
 
@@ -122,9 +130,8 @@ const AttendanceLogs = ({ employeeId }) => {
           <Button
             color={viewMode === "table" ? "primary" : "light"}
             onClick={() => handleViewModeChange("table")}
-            className={`d-flex align-items-center gap-2 px-3 rounded-pill ${
-              viewMode === "table" ? "fw-semibold shadow-sm" : ""
-            }`}
+            className={`d-flex align-items-center gap-2 px-3 rounded-pill ${viewMode === "table" ? "fw-semibold shadow-sm" : ""
+              }`}
           >
             <TableProperties size={15} />
             <span className="d-none d-sm-inline">Table</span>
@@ -133,9 +140,8 @@ const AttendanceLogs = ({ employeeId }) => {
           <Button
             color={viewMode === "calendar" ? "primary" : "light"}
             onClick={() => handleViewModeChange("calendar")}
-            className={`d-flex align-items-center gap-2 px-3 rounded-pill ${
-              viewMode === "calendar" ? "fw-semibold shadow-sm" : ""
-            }`}
+            className={`d-flex align-items-center gap-2 px-3 rounded-pill ${viewMode === "calendar" ? "fw-semibold shadow-sm" : ""
+              }`}
           >
             <Calendar size={15} />
             <span className="d-none d-sm-inline">Calendar</span>

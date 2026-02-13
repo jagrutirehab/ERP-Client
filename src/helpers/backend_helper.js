@@ -2480,6 +2480,7 @@ export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {
     headers: {
       "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
     },
   });
 };

@@ -102,7 +102,7 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
                     color="primary"
                     size="sm"
                     className="text-white"
-                    onClick={() => onNavigate(row.employee?._id)}>
+                    onClick={() => onNavigate(row.employee?._id, row.center?._id)}>
                     Attendance
                 </Button>
             )

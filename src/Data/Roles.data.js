@@ -268,6 +268,7 @@ export const permissionList = [
       },
       // Attendance
       { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+      { name: "MONTHLY_ATTENDANCE", label: "Monthly Attendance" },
       // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
