@@ -15,7 +15,6 @@ import {
   DOCTOR_ANALYTICS,
   CENTER_BEDS_ANALYTICS,
   MI_REPORTING,
-  ADMISSION_FORMS,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -30,7 +29,6 @@ import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
 import CenterBedsAnalytics from "./Components/CenterBeds";
 import MIReporting from "./Components/MIReporting";
-import AdmissionForms from "./Components/AdmissionForms";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import RenderWhen from "../../Components/Common/RenderWhen";
 
@@ -63,12 +61,6 @@ const Report = ({}) => {
               onClick={() => handleView(FINANACE)}
             >
               Finance
-            </Button>
-            <Button
-              outline={view !== ADMISSION_FORMS}
-              onClick={() => handleView(ADMISSION_FORMS)}
-            >
-              Admission
             </Button>
             <Button
               outline={view !== PATIENT_ANALYTICS}
@@ -131,7 +123,6 @@ const Report = ({}) => {
             {view === DASHBOARD && <Dashboard view={view} />}
             {view === REPORT && <ReportAnalytics view={view} />}
             {view === FINANACE && <Finance view={view} />}
-            {view === ADMISSION_FORMS && <AdmissionForms view={view} />}
             {view === PATIENT_ANALYTICS && <Patient view={view} />}
             {view === DOCTOR_ANALYTICS && <Doctor view={view} />}
             {view === LEAD_ANALYTICS && <Lead view={view} />}

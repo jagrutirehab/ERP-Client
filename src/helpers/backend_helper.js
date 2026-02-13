@@ -249,12 +249,6 @@ export const editBillItem = (data) => api.put(url.EDIT_BILL_ITEM, data);
 export const getProceduresByid = (proId) =>
   api.get(`${url.GET_PROCEDURES_BY_ID}/${proId}`);
 
-export const getProceduresByCenterid = (params = {}) => {
-  return axios.get(url.GET_PROCEDURES_BY_CENTER_ID, {
-    params,
-  });
-};
-
 export const deleteCenterInProcedure = ({ payload }) => {
   return api.delete(`${url.DETELE_CENTER_IN_PROCEDURE}`, {
     data: payload,
@@ -745,22 +739,6 @@ export const getBookingAnalytics = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
-export const getAdmissionForms = (data) =>
-  api.get(url.GET_ADMISSION_FORMS, {
-    params: data,
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
-  });
-export const exportAdmissionFormsCSV = (data) =>
-  api.get(url.GET_ADMISSION_FORMS_CSV, {
-    params: data,
-    responseType: "blob",
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
-  });
-
 export const getDoctorAnalytics = (params = {}) => {
   return api.create(url.GET_DOCTOR_ANALYTICS, params, {
     headers: { "Content-Type": "application/json" },
@@ -2565,50 +2543,6 @@ export const updatePayrollRemarks = (id, data) => {
   return api.update(`${url.UPDATE_PAYROLL_REMARKS}/${id}`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
-    },
-  });
-};
-
-export const payrollBulkAction = (data) => {
-  return api.update(url.PAYROLL_BULK_ACTION, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const payrollAction = (id, data) => {
-  return api.update(`${url.PAYROLL_ACTION}/${id}`, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const downloadMonthlyPayrollTemplate = (params = {}) => {
-  return api.get(url.MONTHLY_PAYROLL_TEMPLATE, {
-    params,
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-    responseType: "blob",
-  });
-};
-
-export const getMonthlyAttendance = (params = {}) => {
-  return api.get(url.MONTHLY_ATTENDANCE, {
-    params,
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-  })
-};
-
-export const uploadMonthlyAttendance = (data) => {
-  return api.create(url.UPLOAD_MONTHLY_ATTENDANCE, data, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data",
     },
   });
 };

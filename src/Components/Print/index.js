@@ -16,7 +16,6 @@ import RenderWhen from "../Common/RenderWhen";
 import { useMediaQuery } from "../Hooks/useMediaQuery";
 import { Spinner } from "reactstrap";
 import ClinicalTest from "./clinicalTest";
-import PDFErrorBoundary from "./PDFErrorBoundary";
 
 const Print = ({
   modal,
@@ -206,57 +205,55 @@ const Print = ({
           </div>
         </RenderWhen>
         <RenderWhen isTrue={!isMobile}>
-          <PDFErrorBoundary>
-            <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
-              <RenderWhen isTrue={patient ? true : false}>
-                <RenderWhen isTrue={printData?.chart ? true : false}>
-                  <Charts
-                    charts={[printData]}
-                    center={printData?.center}
-                    patient={patient}
-                    admission={admission}
-                    doctor={doctor}
-                  />
-                </RenderWhen>
-                <RenderWhen isTrue={printData?.bill && patient ? true : false}>
-                  <Bills
-                    bill={printData}
-                    center={printData?.center}
-                    patient={patient}
-                    admission={admission}
-                  />
-                </RenderWhen>
-                <RenderWhen isTrue={printData?.bill && intern ? true : false}>
-                  <Bills
-                    bill={printData}
-                    center={printData?.center}
-                    intern={intern}
-                    admission={admission}
-                  />
-                </RenderWhen>
-                <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
-                  <BulkCharts
-                    admission={admission}
-                    charts={printAllCharts}
-                    patient={patient}
-                  />
-                </RenderWhen>
+          <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
+            <RenderWhen isTrue={patient ? true : false}>
+              <RenderWhen isTrue={printData?.chart ? true : false}>
+                <Charts
+                  charts={[printData]}
+                  center={printData?.center}
+                  patient={patient}
+                  admission={admission}
+                  doctor={doctor}
+                />
               </RenderWhen>
-              <RenderWhen isTrue={intern ? true : false}>
-                <InternBills
+              <RenderWhen isTrue={printData?.bill && patient ? true : false}>
+                <Bills
+                  bill={printData}
+                  center={printData?.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+              <RenderWhen isTrue={printData?.bill && intern ? true : false}>
+                <Bills
                   bill={printData}
                   center={printData?.center}
                   intern={intern}
+                  admission={admission}
                 />
               </RenderWhen>
-              <RenderWhen isTrue={clinicalTest ? true : false}>
-                <ClinicalTest
-                  charts={charts}
-                  clinicalTest={clinicalTest}
+              <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
+                <BulkCharts
+                  admission={admission}
+                  charts={printAllCharts}
+                  patient={patient}
                 />
               </RenderWhen>
-            </PDFViewer>
-          </PDFErrorBoundary>
+            </RenderWhen>
+            <RenderWhen isTrue={intern ? true : false}>
+              <InternBills
+                bill={printData}
+                center={printData?.center}
+                intern={intern}
+              />
+            </RenderWhen>
+            <RenderWhen isTrue={clinicalTest ? true : false}>
+              <ClinicalTest
+                charts={charts}
+                clinicalTest={clinicalTest}
+              />
+            </RenderWhen>
+          </PDFViewer>
         </RenderWhen>
 
       </CustomModal>
