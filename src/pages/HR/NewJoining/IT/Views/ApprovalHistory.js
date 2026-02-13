@@ -12,6 +12,7 @@ import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 
 const customStyles = {
@@ -263,6 +264,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
 
           </div>
 
+          <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -288,7 +290,9 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-
+          <div className="d-flex justify-content-end">
+              <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
+          </div>
         </div>
 
       </div>

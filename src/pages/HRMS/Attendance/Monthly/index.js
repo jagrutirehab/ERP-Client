@@ -55,6 +55,16 @@ const AttendanceMonthly = () => {
         "READ"
     );
 
+    const hasWritePermission = hasPermission(
+        "HR",
+        "MONTHLY_ATTENDANCE",
+        "WRITE"
+    ) || hasPermission(
+        "HR",
+        "MONTHLY_ATTENDANCE",
+        "DELETE"
+    );
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -230,7 +240,6 @@ const AttendanceMonthly = () => {
                             classNamePrefix="react-select"
                         />
                     </div>
-
                     <div style={{ minWidth: "220px" }}>
                         <Input
                             type="text"
@@ -282,14 +291,16 @@ const AttendanceMonthly = () => {
                         <History size={20} />
                         History
                     </Button>
-                    <Button
-                        color="primary"
-                        className="d-flex align-items-center gap-1 text-white"
-                        onClick={toggleUploadModal}
-                    >
-                        <CloudUpload size={20} />
-                        Import
-                    </Button>
+                    {hasWritePermission && (
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-1 text-white"
+                            onClick={toggleUploadModal}
+                        >
+                            <CloudUpload size={20} />
+                            Import
+                        </Button>
+                    )}
                     <Button
                         color="primary"
                         className="d-flex align-items-center gap-1 text-white"
@@ -349,15 +360,17 @@ const AttendanceMonthly = () => {
                     <RefreshButton
                         onRefresh={fetchEmployeeAttendanceMonthly}
                         loading={loading}
-                    />
-                    <Button
-                        color="primary"
-                        className="d-flex align-items-center gap-1 text-white"
-                        onClick={toggleUploadModal}
-                    >
-                        <CloudUpload size={20} />
-                        Import
-                    </Button>
+                    />  
+                    {hasWritePermission && (
+                        <Button
+                            color="primary"
+                            className="d-flex align-items-center gap-1 text-white"
+                            onClick={toggleUploadModal}
+                        >
+                            <CloudUpload size={20} />
+                            Import
+                        </Button>
+                    )}
                     <Button
                         color="primary"
                         className="d-flex align-items-center gap-1 text-white"

@@ -1,9 +1,8 @@
-import { Badge } from "reactstrap";
-import moment from "moment";
-import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { HiringPreferredGenderOptions } from "../../../../../Components/constants/HR";
 
 const Center = ({ children }) => (
   <div className="d-flex justify-content-center align-items-center">
@@ -58,7 +57,13 @@ export const HiringActionColumns = ({ onActionClick }) => [
 
   {
     name: <Center>Preferred Gender</Center>,
-    cell: (row) => <Center>{row?.preferredGender || "-"}</Center>,
+    cell: (row) => (
+      <Center>
+        {HiringPreferredGenderOptions.find(
+          (opt) => opt.value === row?.preferredGender
+        )?.label || row?.preferredGender || "-"}
+      </Center>
+    ),
     width: "160px",
   },
 

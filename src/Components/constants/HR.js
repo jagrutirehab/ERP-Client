@@ -63,6 +63,7 @@ export const employeeGenderOptions = [
 export const HiringPreferredGenderOptions = [
     { value: "MALE", label: "Male", },
     { value: "FEMALE", label: "Female", },
+    { value: "NO_PREFERENCE", label: "No Preference", },
 ];
 
 export const TPMOptions = [
@@ -80,7 +81,14 @@ export const employmentOptions = [
     { label: "Part Time Employee", value: "PART_TIME" },
     { label: "Contractual", value: "CONTRACTUAL" },
     { label: "Consultant", value: "CONSULTANT" },
-    { label: "Vendor", value: "VENDOR", isDisabled: true },
+];
+
+export const filterEmploymentOptions = [
+    { label: "Full Time Employee", value: "FULL_TIME" },
+    { label: "Part Time Employee", value: "PART_TIME" },
+    { label: "Contractual", value: "CONTRACTUAL" },
+    { label: "Consultant", value: "CONSULTANT" },
+    { label: "Vendor", value: "VENDOR" },
 ];
 
 export const employeeGroupOptions = [

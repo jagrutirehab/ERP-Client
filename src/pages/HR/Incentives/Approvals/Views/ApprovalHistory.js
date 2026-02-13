@@ -14,6 +14,7 @@ import { ExpandableText } from "../../../../../Components/Common/ExpandableText"
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const ApprovalHistory = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -277,6 +278,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
                     </div>
 
+                    <RefreshButton loading={loading} onRefresh={fetchIncentivesHistory} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -301,6 +303,9 @@ const ApprovalHistory = ({ activeTab }) => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchIncentivesHistory} />
                     </div>
                 </div>
             </div>
