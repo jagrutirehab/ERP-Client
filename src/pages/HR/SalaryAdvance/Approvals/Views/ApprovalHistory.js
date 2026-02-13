@@ -13,7 +13,6 @@ import PropTypes from "prop-types";
 import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
-import { formatCurrency } from "../../../../../utils/formatCurrency";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -141,21 +140,11 @@ const ApprovalHistory = ({ activeTab }) => {
     },
     {
       name: <div>Amount</div>,
-      selector: row => formatCurrency(row?.amount),
+      selector: row => typeof row?.amount === "number"
+        ? `₹${row.amount.toLocaleString()}`
+        : "-",
       wrap: true,
       minWidth: "140px"
-    },
-    {
-      name: <div>Employee's Monthly Deduction Amount</div>,
-      selector: row => formatCurrency(row?.monthlyDeductionAmount),
-      wrap: true,
-      minWidth: "160px"
-    },
-    {
-      name: <div>Remaining Amount</div>,
-      selector: row => formatCurrency(row?.remainingAmount),
-      wrap: true,
-      minWidth: "160px"
     },
     {
       name: <div>Payment Id</div>,

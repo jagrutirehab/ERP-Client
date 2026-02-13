@@ -3,6 +3,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { Button, CardBody, Input, Spinner } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
+import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { Pencil, Trash2 } from "lucide-react";
 import { getMasterEmployees } from "../../../store/features/HR/hrSlice";
@@ -17,11 +18,9 @@ import { useNavigate } from "react-router-dom";
 import { downloadFile } from "../../../Components/Common/downloadFile";
 import EmployeeModal from "../components/EmployeeModal";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
-import { getFilePreviewMeta } from "../../../utils/isPreviewable";
+import { getFilePreviewMeta, isPreviewable } from "../../../utils/isPreviewable";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { FILE_PREVIEW_CUTOFF } from "../../../Components/constants/HR";
-import RefreshButton from "../../../Components/Common/RefreshButton";
-import DataTableComponent from "../../../Components/Common/DataTable";
 
 const customStyles = {
   table: {
@@ -647,22 +646,20 @@ const Employee = () => {
               />
             </div>
           </div>
-          <div className="d-flex gap-2">
-            <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              subAccess={"MASTER_EMPLOYEE"}
-              permission={"delete"}
+
+          <CheckPermission
+            accessRolePermission={roles?.permissions}
+            subAccess={"MASTER_EMPLOYEE"}
+            permission={"delete"}
+          >
+            <Button
+              color={"primary"}
+              className="d-flex align-items-center gap-2 text-white"
+              onClick={() => setModalOpen(true)}
             >
-              <Button
-                color={"primary"}
-                className="d-flex align-items-center gap-2 text-white"
-                onClick={() => setModalOpen(true)}
-              >
-                + Add Employee
-              </Button>
-            </CheckPermission>
-          </div>
+              + Add Employee
+            </Button>
+          </CheckPermission>
         </div>
 
         {/*  MOBILE VIEW */}
@@ -689,11 +686,9 @@ const Employee = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-
         </div>
 
         <div className="d-flex d-md-none justify-content-end mt-3">
-          <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
           <CheckPermission
             accessRolePermission={roles?.permissions}
             subAccess={"MASTER_EMPLOYEE"}
@@ -710,19 +705,31 @@ const Employee = () => {
         </div>
       </div>
 
-      <DataTableComponent
+      <DataTable
         columns={columns}
         data={data}
-        loading={loading}
-        pagination={pagination}
-        page={page}
-        setPage={setPage}
-        limit={limit}
-        setLimit={(newLimit) => {
-          setLimit(newLimit);
-          setPage(1);
-        }}
+        highlightOnHover
+        pagination
+        paginationServer
+        paginationTotalRows={pagination?.totalDocs}
+        paginationPerPage={limit}
+        paginationDefaultPage={page}
+        progressPending={loading}
+        striped
+        fixedHeader
+        fixedHeaderScrollHeight="500px"
+        dense={isMobile}
+        responsive
+        customStyles={customStyles}
+        progressComponent={
+          <div className="py-4 text-center">
+            <Spinner className="text-primary" />
+          </div>
+        }
+        onChangePage={(newPage) => setPage(newPage)}
+        onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
       />
+
       <EmployeeModal
         isOpen={modalOpen}
         toggle={() => {

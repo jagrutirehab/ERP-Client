@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
 //&#39;s
 
 const SummaryFooter = ({ chart, patient, center }) => {
-  const data = chart?.dischargeSummary ?? {};
+  const data = chart.dischargeSummary;
   return (
     <React.Fragment>
       <View wrap={false}>
@@ -195,7 +195,7 @@ const SummaryFooter = ({ chart, patient, center }) => {
         <View style={{ ...styles.row, ...styles.marginBottom }}>
           <Text style={{ ...styles.col6, ...styles.textCapitalize }}>
             Name of Patient:{" "}
-            <Text style={styles.textCapitalize}>{patient?.name || ""}</Text>
+            <Text style={styles.textCapitalize}>{patient.name || ""}</Text>
           </Text>
           <Text style={styles.col6}>Signature</Text>
         </View>
@@ -203,7 +203,7 @@ const SummaryFooter = ({ chart, patient, center }) => {
           <Text style={{ ...styles.col6 }}>
             Name of Patient Relative:{" "}
             <Text style={styles.textCapitalize}>
-              {patient?.guardianName || ""}
+              {patient.guardianName || ""}
             </Text>
           </Text>
           <Text style={styles.col6}>Signature</Text>

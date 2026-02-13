@@ -20,7 +20,7 @@ import { categoryOptions } from '../../../Components/constants/centralPayment';
 import Select from "react-select";
 import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
-import { formatCurrency } from '../../../utils/formatCurrency';
+
 
 const clearableFields = [
     "invoiceNo",
@@ -59,30 +59,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         employeeId: Yup.mixed().when("category", {
             is: "SALARY_ADVANCE",
             then: schema => schema.required("Please select an employee"),
-            otherwise: schema => schema.notRequired(),
-        }),
-        monthlyDeductionAmount: Yup.string().when("category", {
-            is: "SALARY_ADVANCE",
-            then: schema => schema
-                .required("Monthly deduction amount is required")
-                .matches(/^\d+(\.\d{1,2})?$/, "Amount can have at most 2 decimal places")
-                .test("greater-than-zero", "Amount must be greater than 0", val => val && Number(val) > 0)
-                .test(
-                    "not-greater-than-total",
-                    null,
-                    function (val) {
-                        const { totalAmountWithGST } = this.parent;
-                        const total = Number(totalAmountWithGST) || 0;
-                        const isValid = !val || Number(val) <= total;
-
-                        if (!isValid) {
-                            return this.createError({
-                                message: `Employee's Monthly deduction amount cannot be greater than the total amount with GST (Max: ${formatCurrency(total)})`
-                            });
-                        }
-                        return true;
-                    }
-                ),
             otherwise: schema => schema.notRequired(),
         }),
         date: Yup.string().required("Transaction date is required"),
@@ -158,7 +134,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     label: `${paymentData.employee.name} (${paymentData.employee.eCode})`,
                 }
                 : null,
-            monthlyDeductionAmount: paymentData?.monthlyDeductionAmount ?? 0,
             date: paymentData?.date ? format(new Date(paymentData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
             description: paymentData?.description || "",
             vendor: paymentData?.vendor || "",
@@ -221,13 +196,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
                 if (key === "employeeId") {
                     if (val?.value) formData.append("employeeId", val.value);
-                    return;
-                }
-
-                if (key === "monthlyDeductionAmount") {
-                    if (values.category === "SALARY_ADVANCE" && val) {
-                        formData.append("monthlyDeductionAmount", Number(val));
-                    }
                     return;
                 }
 
@@ -308,7 +276,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             const res = await dispatch(
                 getExitEmployeesBySearch({
                     query: inputValue,
-                    centers: form.values.center,
+                    centers: centerAccess,
                     view: "SALARY_ADVANCE",
                 })
             ).unwrap();
@@ -359,11 +327,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="center"
                     name="center"
                     value={form.values.center}
-                    onChange={(e) => {
-                        form.handleChange(e);
-                        form.setFieldValue("employeeId", null);
-                        form.setFieldTouched("employeeId", false, false);
-                    }}
+                    onChange={form.handleChange}
                     onBlur={form.handleBlur}
                     className={`form-select ${form.touched.center && form.errors.center
                         ? "is-invalid"
@@ -434,8 +398,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         if (value !== "SALARY_ADVANCE") {
                             form.setFieldValue("employeeId", null);
                             form.setFieldTouched("employeeId", false, false);
-                            form.setFieldValue("monthlyDeductionAmount", "");
-                            form.setFieldTouched("monthlyDeductionAmount", false, false);
                         }
                         form.validateForm();
                     }}
@@ -461,8 +423,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </Label>
 
                     <AsyncSelect
-                        key={form.values.center}
-                        cacheOptions={false}
+                        cacheOptions
                         defaultOptions={false}
                         loadOptions={loadEmployees}
                         placeholder="Search by name or ECode"
@@ -755,32 +716,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
-            {form.values.category === "SALARY_ADVANCE" && (
-                <FormGroup className="mb-3">
-                    <Label for="monthlyDeductionAmount" className="fw-medium">
-                        Employee's Monthly Deduction Amount <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                        type="text"
-                        id="monthlyDeductionAmount"
-                        name="monthlyDeductionAmount"
-                        value={form.values.monthlyDeductionAmount}
-                        onChange={(e) => normalizeAmountInput(e)}
-                        onBlur={form.handleBlur}
-                        placeholder="0.00"
-                        className={`form-control ${form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount
-                            ? "is-invalid"
-                            : ""
-                            }`}
-                    />
-                    {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
-                        <div className="invalid-feedback d-block">
-                            <i className="fas fa-exclamation-circle me-1"></i>
-                            {form.errors.monthlyDeductionAmount}
-                        </div>
-                    )}
-                </FormGroup>
-            )}
             <FormGroup>
                 <Label className="fw-medium">Status of the Payment <span className="text-danger">*</span></Label>
                 <div>

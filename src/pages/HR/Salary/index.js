@@ -1,25 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Button, CardBody, Input, Spinner, Row, Col, Progress } from 'reactstrap';
+import { Button, CardBody, Input, Spinner, UncontrolledTooltip, Row, Col, Progress } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import Select from "react-select";
 import { useDispatch, useSelector } from 'react-redux';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
-import { Calendar, CheckCheck, RotateCcw, XCircle } from 'lucide-react';
+import { Calendar, RotateCcw, RotateCw} from 'lucide-react';
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
 import { toast } from 'react-toastify';
-import { actionPayroll, editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
+import { editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
 import DataTableComponent from '../../../Components/Common/DataTable';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { salaryColumns } from '../../HRMS/components/Table/Columns/salary';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus, payrollBulkAction } from '../../../helpers/backend_helper';
-import { approvalStatusOptions, legends } from '../../../Components/constants/HR';
+import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus } from '../../../helpers/backend_helper';
+import { legends } from '../../../Components/constants/HR';
 import ApproveModal from '../components/ApproveModal';
-import RefreshButton from '../../../Components/Common/RefreshButton';
 
 const PayrollLegend = () => {
     return (
@@ -82,7 +81,6 @@ const Salary = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [selectedMonth, setSelectedMonth] = useState(new Date());
-    const [approvalStatus, setApprovalStatus] = useState("PENDING");
     const [copyId, setCopyId] = useState(null);
     const [regenerateLoading, setRegenerateLoading] = useState(false);
     const [regenerationMeta, setRegenerationMeta] = useState({
@@ -94,11 +92,6 @@ const Salary = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [remarks, setRemarks] = useState("");
     const [selectedPayrollId, setSelectedPayrollId] = useState("");
-    const [actionType, setActionType] = useState("APPROVE");
-    const [isBulk, setIsBulk] = useState(false);
-    const [note, setNote] = useState("");
-    const [paymentType, setPaymentType] = useState("");
-    const [eCode, setECode] = useState("");
     const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -146,24 +139,11 @@ const Salary = () => {
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
 
-    useEffect(() => {
-        if (
-            selectedCenter !== "ALL" &&
-            !centerAccess?.includes(selectedCenter)
-        ) {
-            setSelectedCenter("ALL");
-            setPage(1);
-        }
-    }, [selectedCenter, centerAccess]);
-
-    const selectedApprovalStatusOption = approvalStatusOptions.find(opt => opt.value === approvalStatus);
 
     const centers =
         selectedCenter === "ALL"
             ? centerAccess
-            : !centerAccess.length
-                ? []
-                : [selectedCenter];
+            : [selectedCenter];
 
     const fetchEmployeePayrolls = async () => {
         try {
@@ -174,7 +154,6 @@ const Salary = () => {
                 centers,
                 startDate: startOfMonth(selectedMonth),
                 endDate: endOfMonth(selectedMonth),
-                ...(approvalStatus !== "ALL" && { approvalStatus }),
                 ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
@@ -202,7 +181,6 @@ const Salary = () => {
         limit,
         selectedCenter,
         selectedMonth,
-        approvalStatus,
         debouncedSearch,
         centerAccess,
     ]);
@@ -212,7 +190,6 @@ const Salary = () => {
     }, [
         selectedCenter,
         selectedMonth,
-        approvalStatus,
         limit,
         debouncedSearch,
     ]);
@@ -245,39 +222,20 @@ const Salary = () => {
         }
     }
 
-    const handleUpdate = async (formData) => {
+    const handleUpdate = async () => {
         setModalLoading(true);
         try {
-            if (isBulk) {
-                const res = await payrollBulkAction({
-                    action: actionType === "APPROVE" ? "APPROVED" : "REJECTED",
-                    centers: centers,
-                    month: format(selectedMonth, "yyyy-MM-dd"),
-                    note: formData.note
-                });
-                toast.success(res?.data?.message || `${actionType === "APPROVE" ? "Approved" : "Rejected"} successfully`);
-                fetchEmployeePayrolls();
-            } else if (actionType === "UPDATE_REMARKS") {
-                const res = await dispatch(
-                    editPayrollRemarks({ id: selectedPayrollId, remarks: formData.remarks })
-                ).unwrap();
-                toast.success(res?.message || "Remarks updated successfully");
-            } else {
-                const res = await dispatch(actionPayroll({
-                    id: selectedPayrollId,
-                    action: actionType === "APPROVE" ? "APPROVED" : "REJECTED",
-                    note: formData.note
-                })).unwrap();
-                toast.success(res?.message || `${actionType === "APPROVE" ? "Approved" : "Rejected"} successfully`);
-            }
+            await dispatch(
+                editPayrollRemarks({ id: selectedPayrollId, remarks })
+            ).unwrap();
+            toast.success("Remarks updated successfully");
         } catch (error) {
             if (!handleAuthError(error)) {
-                toast.error(error?.message || "Operation failed");
+                toast.error(error?.message || "Failed to update the remarks");
             }
         } finally {
             setModalOpen(false);
             setModalLoading(false);
-            setIsBulk(false);
         }
     }
 
@@ -289,7 +247,6 @@ const Salary = () => {
                 centers,
                 startDate: startOfMonth(selectedMonth),
                 endDate: endOfMonth(selectedMonth),
-                ...(approvalStatus !== "ALL" && { approvalStatus }),
                 ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
             });
 
@@ -325,21 +282,6 @@ const Salary = () => {
         } catch (err) {
             console.error("Copy failed", err);
         }
-    };
-
-    const handleAction = async (ids, action, bulk = false) => {
-        setIsBulk(bulk);
-        setActionType(action);
-        setNote("");
-        if (!bulk && ids.length === 1) {
-            setSelectedPayrollId(ids[0]);
-            const item = data.find(i => i._id === ids[0]);
-            setRemarks(item?.remarks || "");
-        } else {
-            setSelectedPayrollId("");
-            setRemarks("");
-        }
-        setModalOpen(true);
     };
 
     useEffect(() => {
@@ -389,14 +331,8 @@ const Salary = () => {
         onOpen: (payroll) => {
             setSelectedPayrollId(payroll._id);
             setRemarks(payroll.remarks);
-            setNote("");
-            setIsBulk(false);
-            setActionType("UPDATE_REMARKS");
             setModalOpen(true);
         },
-        onApprove: (row) => handleAction([row._id], "APPROVE"),
-        onReject: (row) => handleAction([row._id], "REJECT"),
-        approvalStatusFilter: approvalStatus,
         hasEditPermission
     });
 
@@ -424,15 +360,6 @@ const Salary = () => {
                                     value={selectedCenterOption}
                                     onChange={(opt) => setSelectedCenter(opt.value)}
                                     options={centerOptions}
-                                    classNamePrefix="react-select"
-                                />
-                            </div>
-
-                            <div style={{ width: "170px" }}>
-                                <Select
-                                    value={selectedApprovalStatusOption}
-                                    onChange={(opt) => setApprovalStatus(opt.value)}
-                                    options={approvalStatusOptions}
                                     classNamePrefix="react-select"
                                 />
                             </div>
@@ -479,32 +406,26 @@ const Salary = () => {
                         </div>
                         <div className="d-flex justify-content-end gap-2">
                             <PayrollLegend />
-                            <RefreshButton
-                                loading={loading}
-                                onRefresh={fetchEmployeePayrolls}
-                            />
-                            {hasEditPermission && (
-                                <>
-                                    <Button
-                                        color="success"
-                                        className="d-flex align-items-center gap-1 text-white"
-                                        onClick={() => handleAction(data.map(i => i._id), "APPROVE", true)}
-                                        disabled={loading || data.length === 0}
-                                    >
-                                        <CheckCheck size={16} />
-                                        Approve All
-                                    </Button>
-                                    <Button
-                                        color="danger"
-                                        className="d-flex align-items-center gap-1 text-white"
-                                        onClick={() => handleAction(data.map(i => i._id), "REJECT", true)}
-                                        disabled={loading || data.length === 0}
-                                    >
-                                        <XCircle size={16} />
-                                        Reject All
-                                    </Button>
-                                </>
-                            )}
+                            <Button
+                                id="refresh-data-btn"
+                                color="light"
+                                size="sm"
+                                disabled={loading}
+                                onClick={fetchEmployeePayrolls}
+                                className="rounded-circle d-flex align-items-center justify-content-center"
+                                style={{ width: 34, height: 34 }}
+                            >
+                                <RotateCw
+                                    size={14}
+                                    style={{
+                                        animation: loading ? "spin 1s linear infinite" : "none",
+                                    }}
+                                />
+                            </Button>
+
+                            <UncontrolledTooltip target="refresh-data-btn">
+                                Refresh
+                            </UncontrolledTooltip>
                             {
                                 hasPermission("HR", "SALARY", "DELETE") && (
                                     <Button
@@ -540,13 +461,6 @@ const Salary = () => {
                             classNamePrefix="react-select"
                         />
 
-                        <Select
-                            value={selectedApprovalStatusOption}
-                            onChange={(opt) => setApprovalStatus(opt.value)}
-                            options={approvalStatusOptions}
-                            classNamePrefix="react-select"
-                        />
-
                         <Input
                             type="text"
                             placeholder="Search by name, biometric ID..."
@@ -578,33 +492,26 @@ const Salary = () => {
                             />
                         </div>
                         <div className="d-flex justify-content-end gap-2">
-                            <RefreshButton
-                                loading={loading}
-                                onRefresh={fetchEmployeePayrolls}
-                            />
+                            <Button
+                                id="refresh-data-btn"
+                                color="light"
+                                size="sm"
+                                disabled={loading}
+                                onClick={fetchEmployeePayrolls}
+                                className="rounded-circle d-flex align-items-center justify-content-center"
+                                style={{ width: 34, height: 34 }}
+                            >
+                                <RotateCw
+                                    size={14}
+                                    style={{
+                                        animation: loading ? "spin 1s linear infinite" : "none",
+                                    }}
+                                />
+                            </Button>
 
-                            {hasEditPermission && (
-                                <>
-                                    <Button
-                                        color="success"
-                                        className="d-flex align-items-center gap-1 text-white"
-                                        onClick={() => handleAction(data.map(i => i._id), "APPROVE", true)}
-                                        disabled={loading || data.length === 0}
-                                    >
-                                        <CheckCheck size={16} />
-                                        Approve All
-                                    </Button>
-                                    <Button
-                                        color="danger"
-                                        className="d-flex align-items-center gap-1 text-white"
-                                        onClick={() => handleAction(data.map(i => i._id), "REJECT", true)}
-                                        disabled={loading || data.length === 0}
-                                    >
-                                        <XCircle size={16} />
-                                        Reject All
-                                    </Button>
-                                </>
-                            )}
+                            <UncontrolledTooltip target="refresh-data-btn">
+                                Refresh
+                            </UncontrolledTooltip>
                             {hasPermission("HR", "SALARY", "DELETE") && (
                                 <Button
                                     color="primary"
@@ -639,26 +546,12 @@ const Salary = () => {
                 </div>
                 <ApproveModal
                     isOpen={modalOpen}
-                    toggle={() => {
-                        setModalOpen(!modalOpen);
-                        if (modalOpen) {
-                            setIsBulk(false);
-                            setNote("");
-                            setRemarks("");
-                        }
-                    }}
+                    toggle={() => setModalOpen(!modalOpen)
+                    }
                     onSubmit={handleUpdate}
                     loading={modalLoading}
                     remarks={remarks}
                     setRemarks={setRemarks}
-                    note={note}
-                    setNote={setNote}
-                    actionType={actionType}
-                    setActionType={setActionType}
-                    paymentType={paymentType}
-                    setPaymentType={setPaymentType}
-                    eCode={eCode}
-                    setECode={setECode}
                     mode="SALARY"
                 />
             </CardBody>
