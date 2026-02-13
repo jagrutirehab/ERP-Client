@@ -1,6 +1,6 @@
 import { Card, CardBody } from 'reactstrap'
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAttendanceSummary } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
@@ -13,7 +13,9 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
 const EmployeeAttendance = () => {
-    const { employeeId } = useParams();
+    const [searchParams] = useSearchParams();
+    const employeeId = searchParams.get('id');
+    const centerId = searchParams.get('centerId');
     const dispatch = useDispatch();
 
     const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -29,7 +31,8 @@ const EmployeeAttendance = () => {
             await dispatch(fetchAttendanceSummary({
                 startDate,
                 endDate,
-                employeeId
+                employeeId,
+                centerId
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -120,6 +123,7 @@ const EmployeeAttendance = () => {
                         <h5 className="mb-0 fw-semibold text-dark mb-3">Attendance Logs</h5>
                         <AttendanceLogs
                             employeeId={employeeId}
+                            centerId={centerId}
                         />
                     </CardBody>
                 </Card>

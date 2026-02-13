@@ -12,23 +12,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
+import FileUpload from "../../../CashManagement/Components/FileUpload";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editIncentives, postIncentives } from "../../../../helpers/backend_helper";
 import { format, parse, set } from "date-fns";
-
-const validationSchema = Yup.object().shape({
-    amount: Yup.number()
-        .typeError("Amount must be a number")
-        .required("Amount is required")
-        .min(1, "Amount must be greater than 0"),
-    details: Yup.string()
-        .trim()
-        .required("Details are required"),
-    date: Yup.date()
-        .typeError("Invalid date")
-        .required("Date is required"),
-});
 
 const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
@@ -41,6 +29,37 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
 
     const { employees } = useSelector((state) => state.HR);
     const { centerAccess } = useSelector((state) => state.User);
+
+    const validationSchema = Yup.object().shape({
+        amount: Yup.number()
+            .typeError("Amount must be a number")
+            .required("Amount is required")
+            .min(1, "Amount must be greater than 0"),
+        details: Yup.string()
+            .trim()
+            .required("Details are required"),
+        date: Yup.date()
+            .typeError("Invalid date")
+            .required("Date is required"),
+        attachment: isEdit
+            ? Yup.mixed().nullable().optional()
+            : Yup.mixed()
+                .required("Attachment is required")
+                .test("fileSize", "File size must be less than 10 MB", (value) => {
+                    if (!value) return true;
+                    return value && value.size <= 10 * 1024 * 1024;
+                })
+                .test("fileType", "Unsupported file format", (value) => {
+                    if (!value) return true;
+                    const supportedFormats = [
+                        "image/jpeg",
+                        "image/jpg",
+                        "image/png",
+                        "application/pdf",
+                    ];
+                    return value && supportedFormats.includes(value.type);
+                }),
+    });
 
     const searchEmployees = async (text) => {
         setSearching(true);
@@ -91,6 +110,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             amount: initialData?.amount || "",
             details: initialData?.details || "",
             date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
+            attachment: null,
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -115,18 +135,20 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                     );
                 }
 
-                const payload = {
-                    ...(!isEdit && { employeeId: values.employeeId }),
-                    amount: values.amount,
-                    details: values.details,
-                    date: incentiveDate
-                };
+                const formData = new FormData();
+                if (!isEdit) formData.append("employeeId", values.employeeId);
+                formData.append("amount", values.amount);
+                formData.append("details", values.details);
+                formData.append("date", incentiveDate);
+                if (values.attachment) {
+                    formData.append("attachment", values.attachment);
+                }
 
                 if (isEdit) {
-                    await editIncentives(initialData._id, payload);
+                    await editIncentives(initialData._id, formData);
                     toast.success("Incentives Request updated successfully");
                 } else {
-                    await postIncentives(payload);
+                    await postIncentives(formData);
                     toast.success("Incentives Request added successfully");
                 }
 
@@ -143,6 +165,11 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             }
         },
     });
+
+    const handleAttachmentChange = (file) => {
+        form.setFieldValue("attachment", file, true);
+        form.setFieldTouched("attachment", true, false);
+    };
 
     const chooseEmployee = (emp) => {
         form.setFieldValue("employeeId", emp._id);
@@ -285,6 +312,21 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                 />
                 {form.touched.details && form.errors.details && (
                     <div className="text-danger small">{form.errors.details}</div>
+                )}
+            </FormGroup>
+
+            {/* ATTACHMENT */}
+            <FormGroup className="mb-3">
+                <Label>Attachment <span className="text-danger">*</span></Label>
+                <FileUpload
+                    attachment={form.values.attachment}
+                    setAttachment={handleAttachmentChange}
+                    existingFile={
+                        initialData?.attachment ?? null
+                    }
+                />
+                {form.touched.attachment && form.errors.attachment && (
+                    <div className="text-danger small mt-1">{form.errors.attachment}</div>
                 )}
             </FormGroup>
 
