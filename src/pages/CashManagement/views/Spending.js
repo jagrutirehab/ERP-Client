@@ -34,6 +34,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
+    .filter((c) => c.title?.toLowerCase() !== "online")
     .map((c) => ({
       _id: c._id,
       title: c.title,
