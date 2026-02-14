@@ -653,6 +653,15 @@ const Employee = () => {
             />
           </div>
           <div className="col-md-3">
+            <Input
+              type="text"
+              className="form-control"
+              placeholder="Search by name or Ecode..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="col-md-3">
             <Select
               value={selectedStatus}
               onChange={(option) => {
@@ -676,15 +685,6 @@ const Employee = () => {
               placeholder="Filter by Employment"
               classNamePrefix="react-select"
               isClearable
-            />
-          </div>
-          <div className="col-md-3">
-            <Input
-              type="text"
-              className="form-control"
-              placeholder="Search by name or Ecode..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
