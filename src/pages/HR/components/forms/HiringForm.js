@@ -35,8 +35,8 @@ const validationSchema = Yup.object({
 
   preferredGender: Yup.string()
     .oneOf(
-      ["MALE", "FEMALE", "NO_PREFERENCE"],
-      "Preferred Gender must be MALE, FEMALE, or NO PREFERENCE",
+      ["MALE", "FEMALE", "OTHER", "NO_PREFERENCE"],
+      "Preferred Gender must be MALE, FEMALE, OTHER, or NO PREFERENCE",
     )
     .required("Preferred Gender is required"),
 
