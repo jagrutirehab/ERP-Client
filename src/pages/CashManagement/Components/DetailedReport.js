@@ -96,6 +96,11 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: "Name",
+      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.id || "-"})` : "-",
+      wrap: true,
+    },
+    {
       name: "Type",
       selector: (row) => {
         const badgeStyle = {
