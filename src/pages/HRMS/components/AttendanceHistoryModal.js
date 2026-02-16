@@ -10,7 +10,7 @@ import { attendanceImportHistoryColumns } from './Table/Columns/attendanceImport
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import DeleteConfirmModal from '../../HR/components/DeleteConfirmModal';
 
-const AttendanceHistoryModal = ({ isOpen, toggle }) => {
+const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
     const handleAuthError = useAuthError();
 
     const { centerAccess } = useSelector((state) => state.User);
@@ -41,7 +41,8 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
             const response = await getAttendanceImportHistory({
                 centers: centerAccess,
                 page,
-                limit
+                limit,
+                importType
             });
             setHistory(response?.data || []);
             setPagination(response?.pagination || {});
@@ -94,7 +95,8 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
 
     const columns = attendanceImportHistoryColumns({
         hasDeletePermission,
-        onDelete: openDeleteConfirm
+        onDelete: openDeleteConfirm,
+        importType
     });
 
     return (
@@ -151,6 +153,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle }) => {
 AttendanceHistoryModal.prototypes = {
     isOpen: PropTypes.bool,
     toggle: PropTypes.func,
+    importType: PropTypes.string,
 }
 
 export default AttendanceHistoryModal;

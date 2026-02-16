@@ -26,6 +26,7 @@ const Header = ({
   selectedCentersIds,
   setSelectedCentersIds,
   onViewReport,
+  onExportCSV,
   loading,
 }) => {
   // mode can be 'range' or 'month'
@@ -169,6 +170,15 @@ const Header = ({
               disabled={loading || disabled || selectedCentersIds.length === 0}
             >
               {loading ? "Loading..." : "View Report"}
+            </Button>
+
+            {/* Export CSV Button */}
+            <Button
+              color="success"
+              onClick={onExportCSV}
+              disabled={loading || disabled || selectedCentersIds.length === 0}
+            >
+              Export CSV
             </Button>
           </div>
         </Col>

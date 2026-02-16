@@ -25,6 +25,7 @@ import { fetchAttendanceSummary } from "../../../../../store/features/HRMS/hrmsS
 import AttendanceSummaryCard from "../../../components/AttendanceSummaryCard";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -47,7 +48,7 @@ const Dashboard = () => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, loading: permissionLoader, roles } =
+    const { hasPermission, roles } =
         usePermissions(token);
 
     const hasUserPermission = hasPermission(
@@ -229,28 +230,7 @@ const Dashboard = () => {
                                         />
                                     </div>
 
-                                    <Button
-                                        id="refresh-status-btn"
-                                        color="light"
-                                        size="sm"
-                                        onClick={fetchTodayAttendanceStatus}
-                                        disabled={statusLoader}
-                                        className="rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{ width: 34, height: 34 }}
-                                    >
-                                        <RotateCw
-                                            size={14}
-                                            style={{
-                                                animation: statusLoader
-                                                    ? "spin 1s linear infinite"
-                                                    : "none",
-                                            }}
-                                        />
-                                    </Button>
-
-                                    <UncontrolledTooltip target="refresh-status-btn">
-                                        Refresh
-                                    </UncontrolledTooltip>
+                                    <RefreshButton loading={statusLoader} onRefresh={fetchTodayAttendanceStatus} />
                                 </div>
 
                                 <div className="mb-4">
@@ -292,7 +272,15 @@ const Dashboard = () => {
                                     <div className="d-flex justify-content-between align-items-center py-3">
                                         <span className="text-muted">Shift Duration</span>
                                         {statusLoader ? (
-                                            <Skeleton width={120} height={28} borderRadius={12} />
+                                            <span
+                                                className="px-3 py-2 rounded-pill d-inline-block"
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    backgroundColor: "#f3f4f6",
+                                                }}
+                                            >
+                                                <Skeleton width={80} height={12} borderRadius={4} />
+                                            </span>
                                         ) : (
                                             <span
                                                 className="px-3 py-2 rounded-pill"
@@ -313,23 +301,25 @@ const Dashboard = () => {
                                 <div className="mb-3">
                                     <div className="d-flex justify-content-between mb-1">
                                         <small className="text-muted">Progress</small>
-                                        <small className="fw-semibold">
-                                            {statusLoader ? <Skeleton width={30} /> : `${shiftProgress}%`}
+                                        <small className="fw-semibold" style={{ minWidth: 30, display: "inline-block" }}>
+                                            {statusLoader ? <Skeleton width={30} height={14} /> : `${shiftProgress}%`}
                                         </small>
                                     </div>
 
-                                    {statusLoader ? (
-                                        <Skeleton height={8} borderRadius={6} />
-                                    ) : (
-                                        <Progress
-                                            value={shiftProgress}
-                                            color="info"
-                                            style={{
-                                                height: 8,
-                                                backgroundColor: "#e5e7eb",
-                                            }}
-                                        />
-                                    )}
+                                    <div style={{ height: 8, borderRadius: 6, overflow: "hidden", backgroundColor: "#e5e7eb" }}>
+                                        {statusLoader ? (
+                                            <Skeleton height={8} borderRadius={6} style={{ lineHeight: "8px" }} />
+                                        ) : (
+                                            <Progress
+                                                value={shiftProgress}
+                                                color="info"
+                                                style={{
+                                                    height: 8,
+                                                    backgroundColor: "transparent",
+                                                }}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
 
                                 <CheckPermission

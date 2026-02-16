@@ -27,6 +27,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { minutesToTime } from "../../../utils/time";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 
 const StatCard = ({ icon: Icon, value, label, color, loading }) => (
@@ -48,7 +49,7 @@ const StatCard = ({ icon: Icon, value, label, color, loading }) => (
         </h5>
 
         <small className="text-muted text-uppercase" style={{ fontSize: 11 }}>
-            {loading ? <Skeleton width={50} /> : label}
+            {label}
         </small>
     </div>
 );
@@ -96,26 +97,7 @@ const AttendanceSummaryCard = ({
                                 />
                             </div>
 
-                            <Button
-                                id="refresh-data-btn"
-                                color="light"
-                                size="sm"
-                                disabled={loading}
-                                onClick={onRefresh}
-                                className="rounded-circle d-flex align-items-center justify-content-center"
-                                style={{ width: 34, height: 34 }}
-                            >
-                                <RotateCw
-                                    size={14}
-                                    style={{
-                                        animation: loading ? "spin 1s linear infinite" : "none",
-                                    }}
-                                />
-                            </Button>
-
-                            <UncontrolledTooltip target="refresh-data-btn">
-                                Refresh
-                            </UncontrolledTooltip>
+                            <RefreshButton loading={loading} onRefresh={onRefresh} />
                         </div>
                     </div>
 
@@ -260,26 +242,6 @@ const AttendanceSummaryCard = ({
                     </Row>
                 </CardBody>
             </Card>
-            <style>
-                {`
-        .month-picker .calendar-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .month-picker input,
-        .month-picker .flatpickr-input {
-            padding-left: 38px !important;
-            height: 32px;
-            line-height: 32px;
-        }
-        `}
-            </style>
         </Col>
     );
 };

@@ -199,8 +199,8 @@ export const GET_BILL_ITEMS = "/bill-setting";
 export const GET_ALL_BILL_ITEMS = "/bill-setting/all";
 export const EDIT_BILL_ITEM = "/bill-setting";
 export const GET_PROCEDURES_BY_ID = "/bill-setting/procedures";
-export const DETELE_CENTER_IN_PROCEDURE =
-  "/bill-setting/procedures/delete/center";
+// export const GET_PROCEDURES_BY_CENTER_ID = "/bill-setting/get/procedures";
+export const DETELE_CENTER_IN_PROCEDURE = "/bill-setting/procedures/delete/center";
 export const ADD_CENTERS_IN_PROCEDURE = "/bill-setting/procedures/add/center";
 export const GET_CATEGORIES_OF_PROCEDURE =
   "/bill-setting/procedures/get/catgeories";
@@ -255,6 +255,7 @@ export const GET_LEAD_ANALYTICS = "/report/lead";
 export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
 export const GET_ADMISSION_FORMS = "/report/admission-forms";
+export const GET_ADMISSION_FORMS_CSV = "/report/admission-forms-csv";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";

@@ -662,26 +662,6 @@ const Salary = () => {
                     mode="SALARY"
                 />
             </CardBody>
-            <style>
-                {`
-        .month-picker .calendar-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6b7280;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .month-picker input,
-        .month-picker .flatpickr-input {
-            padding-left: 38px !important;
-            height: 32px;
-            line-height: 32px;
-        }
-        `}
-            </style>
         </>
     )
 }

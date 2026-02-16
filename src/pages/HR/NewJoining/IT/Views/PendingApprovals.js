@@ -15,6 +15,7 @@ import { updateNewJoiningITStatus } from "../../../../../helpers/backend_helper"
 import UserForm from "../../../../User/Form";
 import EmailSelectModal from "../../../components/EmailSelectModal";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
 
@@ -209,7 +210,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         },
         {
             name: <div>Department</div>,
-            // {console.log("row", row)},
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
             minWidth: "130px"
@@ -341,6 +341,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                         </div>
 
                     </div>
+
+                    <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -366,6 +368,9 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
                     </div>
                 </div>
 

@@ -18,6 +18,7 @@ import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
 import EditTPMModal from '../../../components/EditTPMModal';
 import PropTypes from 'prop-types';
 import ApproveModal from '../../../components/ApproveModal';
+import RefreshButton from '../../../../../Components/Common/RefreshButton';
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -378,6 +379,9 @@ const PendingApprovals = ({ activeTab }) => {
                             isClearable
                         />
 
+                    </div>
+                    <div className="ms-auto">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingTPMApprovals} />
                     </div>
                 </div>
             </div>

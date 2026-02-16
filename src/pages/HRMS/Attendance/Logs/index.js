@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
-import { Button, CardBody, Input, Spinner } from "reactstrap";
+import { Button, CardBody, Input, Spinner, UncontrolledTooltip } from "reactstrap";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import Select from "react-select";
 import Header from "../../../Report/Components/Header";
 import { startOfDay, endOfDay } from "date-fns";
-import { CloudUpload, FileSpreadsheet, History } from "lucide-react";
+import { CloudUpload, FileSpreadsheet, History, RotateCw } from "lucide-react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { attendanceColumns } from "../../components/Table/Columns/attendance";
 import { fetchAttendance } from "../../../../store/actions";
@@ -219,7 +219,26 @@ const AttendanceLogs = () => {
                     </div>
 
                     <div className="d-flex gap-2 justify-content-end">
+                        <Button
+                            id="refresh-data-btn"
+                            color="light"
+                            size="sm"
+                            disabled={loading}
+                            onClick={fetchEmployeeAttendance}
+                            className="rounded-circle d-flex align-items-center justify-content-center"
+                            style={{ width: 34, height: 34 }}
+                        >
+                            <RotateCw
+                                size={14}
+                                style={{
+                                    animation: loading ? "spin 1s linear infinite" : "none",
+                                }}
+                            />
+                        </Button>
 
+                        <UncontrolledTooltip target="refresh-data-btn">
+                            Refresh
+                        </UncontrolledTooltip>
                         <Button
                             color="primary"
                             className="d-flex align-items-center gap-2 text-white"
@@ -327,6 +346,7 @@ const AttendanceLogs = () => {
             <AttendanceHistoryModal
                 isOpen={isHistoryModalOpen}
                 toggle={() => setIsHistoryModalOpen(!isHistoryModalOpen)}
+                importType="LOGS"
             />
 
             <AttendanceUploadModal

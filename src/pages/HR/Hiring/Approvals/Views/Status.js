@@ -189,7 +189,10 @@ const Status = ({ activeTab }) => {
     },
     {
       name: <div>Preferred Gender</div>,
-      selector: (row) => capitalizeWords(row?.preferredGender || "-"),
+      selector: (row) =>
+        HiringPreferredGenderOptions.find(
+          (opt) => opt.value === row?.preferredGender
+        )?.label || row?.preferredGender || "-",
       minWidth: "160px",
     },
     {

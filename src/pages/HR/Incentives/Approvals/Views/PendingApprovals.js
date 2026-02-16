@@ -3,21 +3,23 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import { fetchAdvanceSalaries, fetchIncentives } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { advanceSalaryAction, deleteAdvanceSalary, deleteIncentives, incentivesAction } from "../../../../../helpers/backend_helper";
+import { fetchIncentives } from "../../../../../store/features/HR/hrSlice";
+import { deleteIncentives, incentivesAction } from "../../../../../helpers/backend_helper";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { Button, Input, Spinner } from "reactstrap";
+import { Button, Input } from "reactstrap";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
-import DataTable from "react-data-table-component";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import EditIncentivesModal from "../../../components/forms/EditIncentivesModal";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import DataTableComponent from "../../../../../Components/Common/DataTable";
+import PreviewFile from "../../../../../Components/Common/PreviewFile";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -36,6 +38,8 @@ const PendingApprovals = ({ activeTab }) => {
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewFile, setPreviewFile] = useState(null);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -200,6 +204,27 @@ const PendingApprovals = ({ activeTab }) => {
             minWidth: "220px"
         },
         {
+            name: <div>Attachment</div>,
+            selector: row => (
+                <div>
+                    {row?.attachment ? (
+                        <span
+                            className="text-primary text-decoration-underline cursor-pointer"
+                            onClick={() => {
+                                setPreviewOpen(true);
+                                setPreviewFile({ url: row.attachment });
+                            }}
+                        >
+                            Preview
+                        </span>
+                    ) : (
+                        "-"
+                    )}
+                </div>
+            ),
+            wrap: true,
+        },
+        {
             name: <div>Filled By</div>,
             selector: row => (
                 <div>
@@ -300,7 +325,10 @@ const PendingApprovals = ({ activeTab }) => {
             : [])
     ];
 
-
+    const closePreview = () => {
+        setPreviewOpen(false);
+        setPreviewFile(null);
+    };
 
     return (
         <>
@@ -333,6 +361,8 @@ const PendingApprovals = ({ activeTab }) => {
                             />
                         </div>
                     </div>
+
+                    <RefreshButton loading={loading} onRefresh={fetchPendingIncentiveApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -359,51 +389,20 @@ const PendingApprovals = ({ activeTab }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingIncentiveApprovals} />
+                    </div>
                 </div>
             </div>
 
-            <DataTable
-                columns={columns}
+            <DataTableComponent columns={columns}
                 data={data}
-                highlightOnHover
-                pagination
-                paginationServer
-                paginationTotalRows={pagination?.totalDocs}
-                paginationPerPage={limit}
-                paginationDefaultPage={page}
-                progressPending={loading}
-                striped
-                fixedHeader
-                fixedHeaderScrollHeight="500px"
-                dense={isMobile}
-                responsive
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "450px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
-                }}
-                progressComponent={
-                    <div className="py-4 text-center">
-                        <Spinner className="text-primary" />
-                    </div>
-                }
-                onChangePage={(newPage) => setPage(newPage)}
-                onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+                page={page}
+                setPage={setPage}
+                limit={limit}
+                setLimit={setLimit}
+                loading={loading}
+                pagination={pagination}
             />
 
             <EditIncentivesModal
@@ -445,7 +444,13 @@ const PendingApprovals = ({ activeTab }) => {
                 setActionType={setActionType}
                 note={note}
                 setNote={setNote}
+            />
 
+            <PreviewFile
+                title="Attachment Preview"
+                file={previewFile}
+                isOpen={previewOpen}
+                toggle={closePreview}
             />
         </>
     )

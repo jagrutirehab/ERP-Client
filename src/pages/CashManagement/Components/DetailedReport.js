@@ -38,6 +38,7 @@ const DetailedReport = ({
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
+    .filter((c) => c.title?.toLowerCase() !== "online")
     .map((c) => ({
       _id: c._id,
       title: c.title,
@@ -92,6 +93,11 @@ const DetailedReport = ({
       name: "Center",
       selector: (row) =>
         capitalizeWords(row.center?.title || row.center || "-"),
+      wrap: true,
+    },
+    {
+      name: "Name",
+      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.id || "-"})` : "-",
       wrap: true,
     },
     {
