@@ -16,7 +16,7 @@ const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
     if (!selected.length) return;
 
     const validFiles = selected.filter(file =>
-      ["image/png", "image/jpeg", "application/pdf"].includes(file.type)
+      ["image/png", "image/jpeg", "application/pdf", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"].includes(file.type)
     );
 
     if (!validFiles.length) return;
@@ -44,6 +44,7 @@ const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
       url: fileUrl,
       type: file.type,
       name: file.name,
+      fileObj: file, // Pass the original file object for reading
     });
     setIsPreviewOpen(true);
   };
@@ -87,13 +88,13 @@ const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
             type="file"
             className="d-none"
             onChange={handleFileChange}
-            accept=".png,.jpg,.jpeg,.pdf"
+            accept=".png,.jpg,.jpeg,.pdf,.xlsx,.xls"
             ref={fileInputRef}
             multiple={multiple}
           />
         </div>
         {multiple && <p className="small text-muted mb-0">
-          Upload up to 10 supported files. Max 100 MB per file.
+          Upload up to 10 files (PNG, JPG, PDF, XLSX). Max 100 MB per file.
         </p>}
 
         {fileList.length > 0 && (

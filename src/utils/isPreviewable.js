@@ -11,6 +11,9 @@ export const isPreviewable = (
   const IMAGE_EXTS = ["png", "jpg", "jpeg", "webp"];
   if (IMAGE_EXTS.includes(ext)) return true;
 
+  const EXCEL_EXTS = ["xlsx", "xls"];
+  if (EXCEL_EXTS.includes(ext)) return true;
+
   if (ext === "pdf") {
     if (!documentDate) return false;
 

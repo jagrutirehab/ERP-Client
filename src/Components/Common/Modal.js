@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Modal, ModalHeader, ModalBody } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
 const CustomModal = ({
   className,
@@ -10,6 +10,7 @@ const CustomModal = ({
   title,
   toggle,
   children,
+  footer,
   ...rest
 }) => {
   return (
@@ -22,6 +23,7 @@ const CustomModal = ({
           lineHeight: "1.4",
         }} toggle={toggle}>{title}</ModalHeader>
         <ModalBody className={className}>{children}</ModalBody>
+        {footer && <ModalFooter>{footer}</ModalFooter>}
       </Modal>
     </React.Fragment>
   );
