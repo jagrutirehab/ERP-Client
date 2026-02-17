@@ -6,6 +6,18 @@ import { INVOICE, REFUND } from "../../../Components/constants/patient";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 const Invoice = ({ title = "Invoice", data, bill }) => {
+  console.log("data while draft", data);
+
+  const itemsDiscount =
+    data?.invoiceList?.reduce(
+      (sum, item) => sum + (parseFloat(item.discount) || 0),
+      0,
+    ) || 0;
+
+  const additionalDiscount =
+    (parseFloat(data?.totalDiscount) || 0) - itemsDiscount;
+  console.log("additionalDiscount", additionalDiscount);
+  console.log("InvoiceList Raw:", JSON.stringify(data?.invoiceList, null, 2));
   return (
     <React.Fragment>
       <div>
@@ -16,21 +28,32 @@ const Invoice = ({ title = "Invoice", data, bill }) => {
         </div>
         <div>
           <InvoiceList list={data?.invoiceList} />
-        </div>  
-        <div className="pt-3">
-          <Row>
-            <Col xs={6} md={4}>
+        </div>
+        <div className="pt-3 ">
+          <Row className="justify-content-between">
+            <Col xs={6} md={2}>
               <Label className="fs-xs-11 fs-md-14">GrandTotal--</Label>
               <span className="fs-xs-10 fs-md-12">{data?.grandTotal}</span>
             </Col>
-            <Col xs={6} md={4}>
+            <Col xs={6} md={2}>
+              <Label className="fs-xs-11 fs-md-14">Items Discount--</Label>
+              <span className="fs-xs-10 fs-md-12">{itemsDiscount || 0}</span>
+            </Col>
+            <Col xs={6} md={2}>
+              <Label className="fs-xs-11 fs-md-14">Additional Discount--</Label>
+              <span className="fs-xs-10 fs-md-12">
+                {additionalDiscount || 0}
+              </span>
+            </Col>
+            <Col xs={6} md={2}>
               <Label className="fs-xs-11 fs-md-14">Total Discount--</Label>
               <span className="fs-xs-10 fs-md-12">{data?.totalDiscount}</span>
             </Col>
-            <Col xs={6} md={4}>
+            <Col xs={6} md={2}>
               <Label className="fs-xs-11 fs-md-14">Payable--</Label>
               <span className="fs-xs-10 fs-md-12">{data?.payable}</span>
             </Col>
+
             <Col xs={12}>
               <RenderWhen isTrue={bill.bill === INVOICE}>
                 <div className="d-flex justify-content-center gap-5 shadow-lg border p-1">

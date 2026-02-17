@@ -195,6 +195,8 @@ const Inovice = ({
     dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
   }, [dispatch, centers]);
 
+  console.log("data", data);
+
   const handleChange = (e) => {
     const value = e.target.value;
     setSearchItem(value);
@@ -216,7 +218,6 @@ const Inovice = ({
   
   const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
 
-  console.log("data", data);
 
   return (
     <React.Fragment>
