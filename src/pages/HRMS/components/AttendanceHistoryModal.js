@@ -35,6 +35,8 @@ const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
         "DELETE"
     );
 
+    const modalImportType = importType === "LOG" ? ["LOG", "API"] : importType;
+
     const loadAttendenceImportHistory = async () => {
         setLoading(true);
         try {
@@ -42,7 +44,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
                 centers: centerAccess,
                 page,
                 limit,
-                importType
+                importType: modalImportType
             });
             setHistory(response?.data || []);
             setPagination(response?.pagination || {});

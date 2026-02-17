@@ -21,12 +21,17 @@ export const attendanceImportHistoryColumns = ({
             wrap: true,
             minWidth: "120px"
         },
-        ...importType === "LOGS" ? [{
+        ...importType === "LOG" ? [{
             name: <div>Generation Date</div>,
             selector: row => row?.generatedOn || "-",
             wrap: true,
             minWidth: "120px"
         }] : [],
+        {
+            name: <div>Import Type</div>,
+            selector: row => row?.importType?.toUpperCase() || "-",
+            wrap: true,
+        },
         {
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),
