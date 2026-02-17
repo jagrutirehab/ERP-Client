@@ -346,7 +346,7 @@ const AttendanceLogs = () => {
             <AttendanceHistoryModal
                 isOpen={isHistoryModalOpen}
                 toggle={() => setIsHistoryModalOpen(!isHistoryModalOpen)}
-                importType="LOGS"
+                importType="LOG"
             />
 
             <AttendanceUploadModal
