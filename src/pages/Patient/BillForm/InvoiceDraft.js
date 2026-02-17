@@ -9,7 +9,7 @@ import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
 import SubmitForm from "./Components/SubmitForm";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addDraftInvoice,
   createEditBill,
@@ -37,8 +37,10 @@ const InvoiceDraft = ({
 }) => {
   const dispatch = useDispatch();
   const editData = editDraftData ? editDraftData.invoice : null;
+  const remainingAdvance = useSelector((state) => state.Bill.calculatedAdvance);
+  console.log("remainingAdvance", remainingAdvance);
 
-  const [totalAdvance, setTotalAdvance] = useState(ttlAdvance);
+  const totalAdvance = remainingAdvance || 0;
   const [invoiceList, setInvoiceList] = useState([]);
   //all total values
   const [totalCost, setTotalCost] = useState(0);
@@ -56,6 +58,7 @@ const InvoiceDraft = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
+  const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -78,117 +81,140 @@ const InvoiceDraft = ({
       bill: Yup.string().required("Bill type required!"),
     }),
     onSubmit: (values) => {
+      const finalPayload = {
+        ...values,
+        invoiceList: invoiceList,
+      };
+
       if (editData) {
         dispatch(
           updateDraftInvoice({
             id: editDraftData._id,
             billId: editData._id,
-            ...values,
+            ...finalPayload,
           }),
         );
       } else {
         dispatch(
           addDraftInvoice({
-            ...values,
+            ...finalPayload,
             shouldPrintAfterSave,
           }),
         );
       }
+
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();
     },
   });
 
   useEffect(() => {
-    (() => {
-      let tCost = 0;
-      let tDiscount = 0;
-      let tTax = 0;
-      let gTotal = 0;
-      (invoiceList || []).forEach((item) => {
-        let discount = 0;
-        let totalValue =
-          item.unit && item.cost
-            ? parseFloat(item.unit) * parseFloat(item.cost)
-            : 0;
+    let tCost = 0;
+    let tDiscount = 0;
+    let tTax = 0;
 
-        if (item.discount) {
-          discount =
-            item.discountUnit === "%"
-              ? parseFloat((parseInt(item.discount) / 100) * totalValue)
-              : parseInt(item.discount);
-        }
-        const tax = () => (parseInt(item.tax) / 100) * totalValue;
-        tCost += totalValue;
-        tDiscount += discount < totalValue ? discount : 0;
-        tTax += item.tax ? tax() : 0;
-      });
+    (invoiceList || []).forEach((item) => {
+      const totalValue =
+        item.unit && item.cost ? Number(item.unit) * Number(item.cost) : 0;
 
-      const wDiscount =
-        wholeDiscount.unit === "%"
-          ? (parseFloat(wholeDiscount.value) / 100) * totalCost
-          : parseFloat(wholeDiscount.value);
-      let calcPaybel =
-        grandTotal >= wDiscount ? grandTotal - wDiscount : grandTotal;
+      let discount = 0;
 
-      gTotal = tCost - tDiscount + tTax;
-
-      const advance = editDraftData
-        ? editDraftData?.invoice?.currentAdvance
-        : totalAdvance;
-
-      let refund = 0;
-      if (invoiceType === "REFUND" && editDraftData?.invoice?.refund) {
-        refund =
-          editDraftData.invoice.currentAdvance > gTotal
-            ? editDraftData.invoice?.currentAdvance + (wDiscount || 0) - gTotal
-            : 0;
-      } else if (invoiceType === "REFUND") {
-        refund = gTotal > advance ? 0 : advance + (wDiscount || 0) - gTotal;
+      if (item.discount) {
+        discount =
+          item.discountType === "%"
+            ? (Number(item.discount) / 100) * totalValue
+            : Number(item.discount);
       }
-      setTotalCost(tCost);
-      setTotalDiscount(wDiscount);
-      setTotalTax(tTax);
-      setGrandTotal(gTotal);
-      setTotalPayable(calcPaybel);
-      setRefund(refund);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    totalCost,
-    totalDiscount,
-    totalTax,
-    grandTotal,
-    wholeDiscount,
-    totalPayable,
-    invoiceList,
-    invoiceType,
-    totalAdvance,
-    paymentModes,
-  ]);
+
+      const tax = item.tax ? (Number(item.tax) / 100) * totalValue : 0;
+
+      tCost += totalValue;
+      tDiscount += discount < totalValue ? discount : 0;
+      tTax += tax;
+    });
+
+    const gTotal = tCost - tDiscount + tTax;
+
+    const wDiscount =
+      wholeDiscount.unit === "%"
+        ? (Number(wholeDiscount.value) / 100) * gTotal
+        : Number(wholeDiscount.value || 0);
+
+    const payable = gTotal >= wDiscount ? gTotal - wDiscount : gTotal;
+
+  const advance = totalAdvance;
+
+    let calculatedRefund = 0;
+
+    if (invoiceType === "REFUND") {
+      calculatedRefund = advance > payable ? advance - payable : 0;
+    }
+    setTotalCost(tCost);
+    setTotalDiscount(tDiscount + wDiscount);
+    setTotalTax(tTax);
+    setGrandTotal(gTotal);
+    setTotalPayable(payable);
+    setRefund(calculatedRefund);
+  }, [invoiceList, wholeDiscount, invoiceType, totalAdvance]);
+
+  console.log("editDraftData from draft", editDraftData);
+  
 
   useEffect(() => {
     if (editDraftData) {
+      console.log("Draft Effect Triggered");
+
       const invoice =
         editDraftData.type === OPD
           ? editDraftData.receiptInvoice
           : editDraftData.invoice;
-      setInvoiceList(invoice.invoiceList);
+      console.log("invoice from draft", invoice);
+
+      console.log("Invoice Object:", invoice);
+      console.log("InvoiceList from Draft:", invoice?.invoiceList);
+
+      const sendingArray = invoice.invoiceList || [];
+      setWhileEditAvailablePrices(sendingArray);
+
+      setInvoiceList(
+        sendingArray.map((item) => ({
+          category: item?.category || "",
+          comments: item?.comments || "",
+          cost: item?.cost || 0,
+          slot: item?.slot || "",
+          unit: item?.unit || 1,
+          unitOfMeasurement: item?.unitOfMeasurement || "",
+          availablePrices: [],
+          isEditMode: true,
+          discount: item?.discount || 0,
+          discountType: item?.discountType || "₹",
+          fromDraft: true,
+        })),
+      );
       setGrandTotal(invoice.grandTotal);
       setPaymentModes(invoice.paymentModes);
-      setWholeDiscount((prevValue) => ({
-        ...prevValue,
-        value: invoice.totalDiscount,
-      }));
+      const itemDisc =
+        invoice.invoiceList?.reduce(
+          (sum, item) => sum + (Number(item.discount) || 0),
+          0,
+        ) || 0;
+
+      setWholeDiscount({
+        unit: "₹",
+        value: (Number(invoice.totalDiscount) || 0) - itemDisc,
+      });
       setTotalPayable(invoice.payable);
-      setTotalAdvance(invoice?.currentAdvance);
+      // setTotalAdvance(invoice?.currentAdvance);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editDraftData]);
 
-  useEffect(() => {
-    if (ttlAdvance && !editDraftData) setTotalAdvance(ttlAdvance);
-  }, [editDraftData, ttlAdvance]);
+  console.log("totalAdvance before useEffect", totalAdvance);
+
+  // useEffect(() => {
+  //   if (ttlAdvance && !editDraftData) setTotalAdvance(ttlAdvance);
+  //   console.log("totalAdvance after useEffect", totalAdvance);
+  // }, [editDraftData, ttlAdvance]);
 
   const addInvoiceItem = (item, data) => {
     if (!item) return;
@@ -228,11 +254,16 @@ const InvoiceDraft = ({
             unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
+            // discount: 0,
+            // discountType: "₹",
           },
         ];
       });
     }
   };
+
+  console.log("editDraftData from Redux:", editDraftData);
+  console.log("Total Refund:", refund);
 
   return (
     <React.Fragment>
@@ -259,6 +290,7 @@ const InvoiceDraft = ({
             invoiceList={invoiceList}
             setInvoiceList={setInvoiceList}
             {...rest}
+            type={"draft"}
           />
           {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>
@@ -270,8 +302,13 @@ const InvoiceDraft = ({
             </>
           ) : null}
           <InvoiceFooter
+            isDraft={"draft"}
             totalCost={totalCost}
             totalDiscount={totalDiscount}
+            itemDiscount={invoiceList?.reduce(
+              (sum, item) => sum + (parseFloat(item.discount) || 0),
+              0,
+            )}
             totalTax={totalTax}
             grandTotal={grandTotal}
             wholeDiscount={wholeDiscount}

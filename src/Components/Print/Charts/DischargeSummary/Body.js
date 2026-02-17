@@ -124,8 +124,8 @@ const SummaryBody = ({ chart, patient }) => {
             <Text style={styles.fontSize13}>Presenting Symptoms:</Text>
             <Text style={styles.preText}>{clean(data?.presentingSymptoms) || ""}</Text>
           </View>
-        )}{" "}
-        {/* MSE AT ADDMISSION {" "} */}
+        )}
+        {/* MSE AT ADDMISSION */}
         <MseAtAddmission data={data} styles={styles} />
         {data?.pastHistory && (
           <View style={styles.marginBottom}>
@@ -292,7 +292,7 @@ const SummaryBody = ({ chart, patient }) => {
             <Text style={styles.preText}>{clean(data?.treatment) || ""}</Text>
           </View>
         ) : (
-          ""
+          null
         )}
         {data?.refernces && (
           <View style={styles.marginBottom}>
@@ -332,7 +332,7 @@ const SummaryBody = ({ chart, patient }) => {
         )}
         {Array.isArray(data?.medicine) && data.medicine.length > 0 && (
           <View style={{ marginTop: 10, marginBottom: 15 }}>
-            <PrescriptionTable medicines={data?.medicine || []} />{" "}
+            <PrescriptionTable medicines={data?.medicine || []} />
           </View>
         )}
         {/* {typeof data?.followUp === "string" && data?.followUp.trim() && (
