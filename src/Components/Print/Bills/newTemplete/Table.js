@@ -106,8 +106,16 @@ const transformInvoiceList = (invoiceList = []) => {
 };
 
 const Table = ({ bill }) => {
-  let serial = 1;
+  console.log("bill from Main", bill);
+  const totalItemDiscount =
+    bill?.invoice?.invoiceList?.reduce(
+      (sum, item) => sum + (Number(item?.discount) || 0),
+      0,
+    ) || 0;
 
+  const totalAdditonalDiscount =
+    (Number(bill?.invoice?.totalDiscount) || 0) - totalItemDiscount;
+  let serial = 1;
 
   const data = transformInvoiceList(bill?.invoice?.invoiceList || []);
   const payable =
@@ -164,13 +172,14 @@ const Table = ({ bill }) => {
       rows.push(
         <Text key={section.category} style={styles.categoryTitle}>
           {section.category}
-        </Text>
+        </Text>,
       );
 
       let subTotal = 0;
       section.items.forEach((item, idx) => {
         const amt = item.unit * item.cost;
-        subTotal += amt;
+        const discount = Number(item?.discount) || 0;
+        subTotal += amt - discount;
         rows.push(
           <View style={{ paddingBottom: 5 }} key={item.slot}>
             <View style={styles.row}>
@@ -186,6 +195,9 @@ const Table = ({ bill }) => {
                 {addComma(item.cost || 0)}
               </Text>
               <Text style={[styles.cell, styles.amt]}>{addComma(amt)}</Text>
+              <Text style={[styles.cell, styles.amt]}>
+                {addComma(Number(item?.discount) || 0)}
+              </Text>
             </View>
             <View style={styles.row}>
               <Text style={[styles.cell, styles.sn]}></Text>
@@ -193,7 +205,7 @@ const Table = ({ bill }) => {
                 {item.comments || ""}
               </Text>
             </View>
-          </View>
+          </View>,
         );
       });
 
@@ -201,7 +213,7 @@ const Table = ({ bill }) => {
         <View style={styles.subTotalRow} key={`${section.category}-subtotal`}>
           <Text style={styles.subTotalLabel}>Sub Total:</Text>
           <Text style={styles.subTotalValue}>{addComma(subTotal)}</Text>
-        </View>
+        </View>,
       );
 
       grandTotal += subTotal;
@@ -234,6 +246,7 @@ const Table = ({ bill }) => {
         <Text style={[styles.cell, styles.uom]}>UOM</Text>
         <Text style={[styles.cell, styles.rate]}>Rate</Text>
         <Text style={[styles.cell, styles.amt]}>Amount</Text>
+        <Text style={[styles.cell, styles.amt]}>Discount</Text>
       </View>
 
       {/* Line Items */}
@@ -248,9 +261,15 @@ const Table = ({ bill }) => {
       </View>
 
       <View style={[styles.summaryRow]}>
+        <Text style={styles.summaryLabel}>Addtional Discount:</Text>
+        <Text style={styles.summaryValue}>
+          ₹{addComma(totalAdditonalDiscount || 0)}
+        </Text>
+      </View>
+      <View style={[styles.summaryRow]}>
         <Text style={styles.summaryLabel}>Bill Amount:</Text>
         <Text style={styles.summaryValue}>
-          ₹{addComma(bill.invoice?.grandTotal || 0)}
+          ₹{addComma(bill.invoice?.payable || 0)}
         </Text>
       </View>
       <View style={styles.summaryRow}>

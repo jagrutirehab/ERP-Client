@@ -5,6 +5,7 @@ import DataTable from "react-data-table-component";
 import { v4 as uuid } from "uuid";
 
 const InvoiceList = ({ list }) => {
+  console.log("list", list);
   const columns = [
     {
       name: "Treatment",
@@ -19,6 +20,10 @@ const InvoiceList = ({ list }) => {
       selector: (row) => row.cost,
     },
     {
+      name: "Item Discount",
+      selector: (row) => row.discount ?? 0,
+    },
+    {
       name: "Unit of Measurement",
       selector: (row) => row.unitOfMeasurement,
       style: {
@@ -26,8 +31,11 @@ const InvoiceList = ({ list }) => {
       },
     },
     {
-      name: "Total",
-      selector: (row) => (row.unit ?? 0) * (row.cost ?? 0) || 0,
+      name: "Net Total",
+      selector: (row) =>
+        (row.unit ?? 0) * (row.cost ?? 0) - row.discount ||
+        0 ||
+        (row.unit ?? 0) * (row.cost ?? 0),
     },
   ];
 

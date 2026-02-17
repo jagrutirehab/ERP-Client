@@ -249,11 +249,11 @@ export const editBillItem = (data) => api.put(url.EDIT_BILL_ITEM, data);
 export const getProceduresByid = (proId) =>
   api.get(`${url.GET_PROCEDURES_BY_ID}/${proId}`);
 
-// export const getProceduresByCenterid = (params = {}) => {
-//   return axios.get(url.GET_PROCEDURES_BY_CENTER_ID, {
-//     params,
-//   });
-// };
+export const getProceduresByCenterid = (params = {}) => {
+  return axios.get(url.GET_PROCEDURES_BY_CENTER_ID, {
+    params,
+  });
+};
 
 export const deleteCenterInProcedure = ({ payload }) => {
   return api.delete(`${url.DETELE_CENTER_IN_PROCEDURE}`, {
@@ -2575,7 +2575,7 @@ export const payrollBulkAction = (data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const payrollAction = (id, data) => {
@@ -2583,7 +2583,7 @@ export const payrollAction = (id, data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const downloadMonthlyPayrollTemplate = (params = {}) => {
@@ -2602,7 +2602,7 @@ export const getMonthlyAttendance = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
-  })
+  });
 };
 
 export const uploadMonthlyAttendance = (data) => {
