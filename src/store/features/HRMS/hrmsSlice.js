@@ -4,6 +4,7 @@ import { getAttendance, getAttendanceMetrics, getEmployeeReportings, getAttendan
 
 const initialState = {
     data: [],
+    lastImportTime: null,
     loading: false,
     pagination: {},
     attendanceSummary: {
@@ -68,7 +69,8 @@ export const hrmsSlice = createSlice({
             })
             .addCase(fetchAttendance.fulfilled, (state, { payload }) => {
                 state.loading = false;
-                state.data = payload.data;
+                state.data = payload.data?.attendanceData;
+                state.lastImportTime = payload.data?.lastImportTime || null;
                 state.pagination = payload.pagination
             })
             .addCase(fetchAttendance.rejected, (state) => {
