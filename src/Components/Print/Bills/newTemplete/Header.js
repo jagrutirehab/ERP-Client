@@ -98,6 +98,8 @@ const PrintHeader = ({ patient, center, bill, admission }) => {
   const age = () =>
     differenceInYears(new Date(), new Date(patient?.dateOfBirth));
 
+  console.log("bill from bill print", bill);
+
   return (
     <View>
       {/* Top Section */}

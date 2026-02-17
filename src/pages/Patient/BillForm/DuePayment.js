@@ -456,6 +456,10 @@ import {
 import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
 import Inovice from "../Dropdowns/Inovice";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
+import {
+  getProceduresByCenterid,
+  getProceduresByid,
+} from "../../../helpers/backend_helper";
 
 const DuePayment = ({
   author,
@@ -483,7 +487,7 @@ const DuePayment = ({
       ? editBillData.receiptInvoice
       : editBillData.invoice
     : null;
-
+  // getProceduresByid
   const advpayment = useSelector((state) => state.Bill.calculatedAdvance);
 
   const [totalAdvance, setTotalAdvance] = useState(advpayment);
@@ -492,6 +496,9 @@ const DuePayment = ({
   const [totalDiscount, setTotalDiscount] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
+  const [arrayToSend, setArrayToSend] = useState(null);
+  const [availablePrices, setAvailablePrices] = useState([]);
+  const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
   const [wholeDiscount, setWholeDiscount] = useState({
     unit: "₹",
     value: 0,
@@ -614,8 +621,24 @@ const DuePayment = ({
 
             // Step 3: pick latest
             const latestInvoice = invoices[0];
+            console.log("latestInvoice", latestInvoice);
+            const sendingArray = latestInvoice?.invoice?.invoiceList || [];
 
-            setInvoiceList(latestInvoice?.invoice?.invoiceList);
+            setArrayToSend(sendingArray);
+
+            if (sendingArray.length) {
+              setInvoiceList(
+                sendingArray.map((item) => ({
+                  category: item.category || "",
+                  comments: item.comments || "",
+                  cost: item.cost || 0,
+                  slot: item.slot || "",
+                  unit: item.unit || 1,
+                  unitOfMeasurement: item.unitOfMeasurement || "",
+                  availablePrices: [],
+                })),
+              );
+            }
           } else if (fetchBills.rejected.match(resultAction)) {
             console.log("❌ Rejected error:", resultAction.error);
           }
@@ -656,7 +679,7 @@ const DuePayment = ({
 
       const wDiscount =
         wholeDiscount.unit === "%"
-          ? (parseFloat(wholeDiscount.value) / 100) * totalCost
+          ? (parseFloat(wholeDiscount.value) / 100) * tCost
           : parseFloat(wholeDiscount.value);
       let calcPaybel =
         grandTotal >= wDiscount ? grandTotal - wDiscount : grandTotal;
@@ -679,7 +702,8 @@ const DuePayment = ({
         refund = gTotal > advance ? 0 : advance + (wDiscount || 0) - gTotal;
       }
       setTotalCost(tCost);
-      setTotalDiscount(wDiscount);
+      const finalTotalDiscount = tDiscount + wDiscount;
+      setTotalDiscount(finalTotalDiscount);
       setTotalTax(tTax);
       setGrandTotal(gTotal);
       setTotalPayable(calcPaybel);
@@ -694,7 +718,7 @@ const DuePayment = ({
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    totalCost,
+    // totalCost,
     totalDiscount,
     totalTax,
     grandTotal,
@@ -706,24 +730,50 @@ const DuePayment = ({
     paymentModes,
   ]);
 
+  console.log("editBillData", editBillData);
   useEffect(() => {
     if (editBillData) {
       const invoice =
         editBillData.type === OPD
           ? editBillData.receiptInvoice
           : editBillData.invoice;
-      setInvoiceList(invoice.invoiceList);
+      console.log("invoice", invoice);
+
+      const sendingArray = invoice?.invoiceList || [];
+
+      setWhileEditAvailablePrices(sendingArray);
+
+      setInvoiceList(
+        sendingArray.map((item) => ({
+          category: item?.category || "",
+          comments: item?.comments || "",
+          cost: item?.cost || 0,
+          slot: item?.slot || "",
+          unit: item?.unit || 1,
+          unitOfMeasurement: item?.unitOfMeasurement || "",
+          availablePrices: [],
+          isEditMode: true,
+          discount: item?.discount || 0,
+          discountType: item?.discountType || "₹",
+        })),
+      );
       setGrandTotal(invoice.grandTotal);
       setPaymentModes(invoice.paymentModes);
-      setWholeDiscount((prevValue) => ({
-        ...prevValue,
-        value: invoice.totalDiscount,
-      }));
+      const itemDisc =
+        invoice.invoiceList?.reduce(
+          (sum, item) => sum + (Number(item.discount) || 0),
+          0,
+        ) || 0;
+
+      setWholeDiscount({
+        unit: "₹",
+        value: (Number(invoice.totalDiscount) || 0) - itemDisc,
+      });
       setTotalPayable(invoice.payable);
       setTotalAdvance(invoice?.currentAdvance);
       validation.setFieldValue(
         "paymentModes",
-        paymentModes.reduce(
+        paymentModes?.reduce(
           (sum, val) => parseInt(sum) + parseInt(val.amount || 0),
           0,
         ),
@@ -810,6 +860,116 @@ const DuePayment = ({
     });
   };
 
+  console.log("invoiceList before valid cost fecth", invoiceList);
+
+  const fetchValidCosts = async (slotName) => {
+    if (!slotName) return;
+
+    try {
+      const slotNames = invoiceList.map((item) => item.slot);
+      const response = await getProceduresByCenterid({
+        proNames: slotNames,
+        centerId: center || patient?.center?._id,
+      });
+
+      const procedurePriceMap = {};
+
+      response?.data?.forEach((proc) => {
+        procedurePriceMap[proc.name] = proc?.center?.[0]?.prices || [];
+      });
+
+      setAvailablePrices(procedurePriceMap);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
+  console.log("availablePrices", availablePrices);
+
+  useEffect(() => {
+    if (!invoiceList?.length) return;
+
+    fetchValidCosts(invoiceList[0]?.slot);
+  }, [invoiceList[0]?.slot]);
+
+  // useEffect(() => {
+  //   if (!availablePrices?.length) return;
+
+  //   setInvoiceList((prev) =>
+  //     prev.map((item) => {
+  //       if (editBillData) {
+  //         return { ...item, availablePrices };
+  //       }
+
+  //       const matched = availablePrices.find(
+  //         (p) => p.unit === item.unitOfMeasurement,
+  //       );
+
+  //       // If no match is found AND the item is "new" (no cost/UOM yet),
+  //       // then apply the first default.
+  //       if (!matched && !item.unitOfMeasurement) {
+  //         const first = availablePrices[0];
+  //         return {
+  //           ...item,
+  //           availablePrices,
+  //           unitOfMeasurement: first.unit,
+  //           cost: first.price,
+  //         };
+  //       }
+
+  //       // If it already has a UOM but we found a price match, update just the cost/prices
+  //       return {
+  //         ...item,
+  //         availablePrices,
+  //         cost: matched ? matched.price : item.cost,
+  //       };
+  //     }),
+  //   );
+  // }, [availablePrices, editBillData]);
+
+ useEffect(() => {
+  if (!availablePrices || Object.keys(availablePrices).length === 0) return;
+
+  setInvoiceList((prev) =>
+    prev.map((item) => {
+      if (editBillData) {
+        return {
+          ...item,
+          availablePrices:
+            availablePrices[item.slot] || [],
+        };
+      }
+
+      const pricesForItem =
+        availablePrices[item.slot] || [];
+
+      const matched = pricesForItem.find(
+        (p) => p.unit === item.unitOfMeasurement
+      );
+
+      if (!matched && !item.unitOfMeasurement && pricesForItem.length) {
+        const first = pricesForItem[0];
+        return {
+          ...item,
+          availablePrices: pricesForItem,
+          unitOfMeasurement: first.unit,
+          cost: first.price,
+        };
+      }
+
+      return {
+        ...item,
+        availablePrices: pricesForItem,
+        cost: matched ? matched.price : item.cost,
+      };
+    })
+  );
+}, [availablePrices, editBillData]);
+
+
+  console.log("invoiceList from duepayment", invoiceList);
+  console.log("totalDiscount from duepayment", totalDiscount);
+
   return (
     <React.Fragment>
       <div>
@@ -832,6 +992,7 @@ const DuePayment = ({
             center={center || patient?.center}
           />
           <InvoiceTable
+            isEdit={Boolean(editBillData)}
             invoiceList={invoiceList}
             setInvoiceList={setInvoiceList}
             onUOMChange={handleUOMChange}
@@ -848,8 +1009,13 @@ const DuePayment = ({
             </>
           ) : null} */}
           <InvoiceFooter
+            isEdit={Boolean(editBillData)}
             totalCost={totalCost}
             totalDiscount={totalDiscount}
+            itemDiscount={invoiceList?.reduce(
+              (sum, item) => sum + (parseFloat(item.discount) || 0),
+              0,
+            )}
             totalTax={totalTax}
             grandTotal={grandTotal}
             wholeDiscount={wholeDiscount}

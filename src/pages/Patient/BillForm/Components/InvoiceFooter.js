@@ -13,6 +13,10 @@ import PaymentMode from "./paymentMode";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 
 const InvoiceFooter = (props) => {
+  const isEdit = props.isEdit;
+  console.log("isEdit from footer", isEdit);
+  const isDraft = props.isDraft === "draft"
+  console.log("Draffft", isDraft);
   const wDiscount =
     props.wholeDiscount.unit === "%"
       ? (parseFloat(props.wholeDiscount.value) / 100) * props.totalCost
@@ -71,10 +75,19 @@ const InvoiceFooter = (props) => {
     }
   };
 
+  const itemDiscount = Number(props.itemDiscount) || 0;
+  console.log("props", props);
+  console.log("itemDiscount", typeof itemDiscount);
+
+  const safeWhole = Number(props.wholeDiscount?.value) || 0;
+  const safeItemDiscount = Number(props.itemDiscount) || 0;
+
+  const editDisplayValue = Math.max(0, safeWhole - safeItemDiscount);
+
   return (
     <React.Fragment>
-      <Row className="d-flex justify-content-end mt-3">
-        <Col xs={6} lg={3} className="text-center">
+      <Row className="d-flex justify-content-center mt-3 gap-4">
+        <Col xs={6} lg={2} className="text-center">
           <div>
             <h6 className="text-muted d-flex justify-content-center align-items-center text-primary">
               <i className="ri-git-commit-line font-size-16"></i> TOTAL COST (₹)
@@ -82,19 +95,31 @@ const InvoiceFooter = (props) => {
             <p>{props.totalCost || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={3} className="text-center">
+        <Col xs={6} lg={2} className="text-center">
           <div className="ms-4">
             <h6
               style={{ whiteSpace: "nowrap" }}
               className="text-muted d-flex justify-content-center align-items-center text-primary pe-5 pe-lg-0"
             >
-              <i className="ri-git-commit-line font-size-16"></i> TOTAL DISCOUNT
-              (₹)
+              <i className="ri-git-commit-line font-size-16"></i> ADDITIONAL
+              DISCOUNT (₹)
             </h6>
             <p className="pe-5 pe-lg-0">{wDiscount?.toFixed(2) || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={3} className="text-center">
+        <Col xs={6} lg={2} className="text-center">
+          <div className="ms-4">
+            <h6
+              style={{ whiteSpace: "nowrap" }}
+              className="text-muted d-flex justify-content-center align-items-center text-primary pe-5 pe-lg-0"
+            >
+              <i className="ri-git-commit-line font-size-16"></i> ITEM DISCOUNT
+              (₹)
+            </h6>
+            <p className="pe-5 pe-lg-0">{itemDiscount?.toFixed(2) || "0.00"}</p>
+          </div>
+        </Col>
+        <Col xs={6} lg={2} className="text-center">
           <div className="ms-0 ms-lg-4">
             <h6 className="text-muted d-flex justify-content-center align-items-center text-primary">
               <i className="ri-git-commit-line font-size-16"></i> TOTAL ADVANCE
@@ -103,7 +128,7 @@ const InvoiceFooter = (props) => {
             <p>{props.advance || "0.00"}</p>
           </div>
         </Col>
-        <Col xs={6} lg={3} className="text-center">
+        <Col xs={6} lg={2} className="text-center">
           <div className="ms-4">
             <h6
               style={{ whiteSpace: "nowrap" }}
@@ -120,74 +145,103 @@ const InvoiceFooter = (props) => {
       <div className="w-100 bg-primary mt-3 mb-2" style={{ height: "1px" }} />
 
       <div>
-        <Row className="align-items-center justify-content-between">
-          <Col xs={12} lg={4}>
-            <div className="mt-4 mb-4 m-lg-0">
-              <h6 className="text-muted mt-2 mb-3 fs-10">Total Discount (₹)</h6>
-              <div className="input-group" style={{ width: "150px" }}>
-                <Input
-                  bsSize="sm"
-                  size={1}
-                  type="number"
-                  name="wholeDiscount"
-                  value={props.wholeDiscount.value || ""}
-                  style={{ height: "9px", width: "60px" }}
-                  className="form-control"
-                  onChange={(e) =>
-                    props.setWholeDiscount({
-                      unit: props.wholeDiscount.unit,
-                      value: parseFloat(e.target.value || 0),
-                    })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.which === 38 || e.which === 40) {
-                      e.preventDefault();
-                    }
-                  }}
-                />
-                <span className="input-group-text p-0 bg-light">
-                  <Input
-                    bsSize="sm"
-                    name="wholeUnit"
-                    style={{ height: "27px" }}
-                    className="border-0"
-                    size={"1"}
-                    type="select"
-                    value={props.wholeDiscount.unit || ""}
-                    onChange={(e) =>
-                      props.setWholeDiscount({
-                        value: props.wholeDiscount.value,
-                        unit: e.target.value,
-                      })
-                    }
-                  >
-                    <option>₹</option>
-                    <option>%</option>
-                  </Input>
-                </span>
-              </div>
-              <p className="mb-0">
-                {wDiscount > props.totalCost ? (
-                  <span className="text-danger font-size-10">
-                    should be less than total cost
-                  </span>
-                ) : (
-                  <span>₹{wDiscount?.toFixed(2) || "0.00"}</span>
-                )}
-              </p>
-            </div>
-          </Col>
+        <Row className="align-items-start">
+          <Col xs={12} lg={8}>
+            <Row className="g-4">
+              <Col xs={12} lg={3}>
+                <div className="mt-4 mb-4 m-lg-0">
+                  <h6 className="text-muted mt-2 mb-3 fs-10">
+                    Additional Discount (₹)
+                  </h6>
+                  <div className="input-group" style={{ width: "150px" }}>
+                    <Input
+                      bsSize="sm"
+                      size={1}
+                      type="number"
+                      name="wholeDiscount"
+                      value={props.wholeDiscount?.value ?? ""}
+                      style={{ height: "9px", width: "60px" }}
+                      className="form-control"
+                      onChange={(e) =>
+                        props.setWholeDiscount({
+                          unit: props.wholeDiscount.unit,
+                          value: parseFloat(e.target.value || 0),
+                        })
+                      }
+                      onKeyDown={(e) => {
+                        if (e.which === 38 || e.which === 40) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                    <span className="input-group-text p-0 bg-light">
+                      <Input
+                        bsSize="sm"
+                        name="wholeUnit"
+                        style={{ height: "27px" }}
+                        className="border-0"
+                        size={"1"}
+                        type="select"
+                        value={props.wholeDiscount.unit || ""}
+                        onChange={(e) =>
+                          props.setWholeDiscount({
+                            value: props.wholeDiscount.value,
+                            unit: e.target.value,
+                          })
+                        }
+                      >
+                        <option>₹</option>
+                        <option>%</option>
+                      </Input>
+                    </span>
+                  </div>
+                  <p className="mb-0">
+                    {wDiscount > props.totalCost - itemDiscount ? (
+                      <span className="text-danger font-size-10">
+                        should be less than remaining cost
+                      </span>
+                    ) : (
+                      <span>₹{wDiscount?.toFixed(2) || "0.00"}</span>
+                    )}
+                  </p>
+                </div>
+              </Col>
 
-          <RenderWhen isTrue={props.type === OPD}>
-            <Col xs={12} lg={4}>
-              <PaymentMode
-                paymentModes={props.paymentModes}
-                setPaymentModes={props.setPaymentModes}
-                payable={props.payable}
-                validation={props.validation}
-              />
-            </Col>
-          </RenderWhen>
+              <Col xs={12} lg={4}>
+                <div className="mt-4 mb-4 m-lg-0">
+                  <h6 className="text-muted mt-2 mb-3 fs-10">
+                    Items Discount (₹)
+                  </h6>
+
+                  <div className="input-group" style={{ width: "150px" }}>
+                    <Input
+                      bsSize="sm"
+                      type="number"
+                      value={itemDiscount || ""}
+                      disabled
+                      style={{ height: "27px", width: "100%" }}
+                      className="form-control bg-light"
+                    />
+                  </div>
+
+                  <p className="mb-0 mt-1">
+                    ₹{itemDiscount?.toFixed(2) || "0.00"}
+                  </p>
+                </div>
+              </Col>
+
+              <RenderWhen isTrue={props.type === OPD}>
+                <Col xs={12} lg={4}>
+                  <PaymentMode
+                    paymentModes={props.paymentModes}
+                    setPaymentModes={props.setPaymentModes}
+                    payable={props.payable}
+                    validation={props.validation}
+                  />
+                </Col>
+              </RenderWhen>
+            </Row>
+          </Col>
 
           <Col xs={12} lg={4}>
             <div className="w-50 ms-md-auto">
