@@ -7,7 +7,7 @@ import { Button, CardBody, Input, Spinner, UncontrolledTooltip } from "reactstra
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import Select from "react-select";
 import Header from "../../../Report/Components/Header";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, format } from "date-fns";
 import { CloudUpload, FileSpreadsheet, History, RotateCw } from "lucide-react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { attendanceColumns } from "../../components/Table/Columns/attendance";
@@ -17,12 +17,13 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import AttendanceHistoryModal from "../../components/AttendanceHistoryModal";
 import AttendanceUploadModal from "../../components/AttendanceUploadModal";
 import { downloadAttendanceTemplate } from "../../../../helpers/backend_helper";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
 
 const AttendanceLogs = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { data, pagination, loading } = useSelector((state) => state.HRMS);
+    const { data, pagination, loading, lastImportTime } = useSelector((state) => state.HRMS);
     const user = useSelector((state) => state.User);
 
     const handleAuthError = useAuthError();
@@ -218,27 +219,13 @@ const AttendanceLogs = () => {
                         </div>
                     </div>
 
-                    <div className="d-flex gap-2 justify-content-end">
-                        <Button
-                            id="refresh-data-btn"
-                            color="light"
-                            size="sm"
-                            disabled={loading}
-                            onClick={fetchEmployeeAttendance}
-                            className="rounded-circle d-flex align-items-center justify-content-center"
-                            style={{ width: 34, height: 34 }}
-                        >
-                            <RotateCw
-                                size={14}
-                                style={{
-                                    animation: loading ? "spin 1s linear infinite" : "none",
-                                }}
-                            />
-                        </Button>
-
-                        <UncontrolledTooltip target="refresh-data-btn">
-                            Refresh
-                        </UncontrolledTooltip>
+                    <div className="d-flex gap-2 justify-content-end align-items-center">
+                        {lastImportTime && (
+                            <div className="text-muted small me-3">
+                                Last Import: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
+                            </div>
+                        )}
+                        <RefreshButton loading={loading} onRefresh={fetchEmployeeAttendance} />
                         <Button
                             color="primary"
                             className="d-flex align-items-center gap-2 text-white"
@@ -328,6 +315,15 @@ const AttendanceLogs = () => {
                                 Upload
                             </Button>
                         </CheckPermission>
+                    </div>
+
+                    <div className="d-flex justify-content-between align-items-center p-2">
+                        {lastImportTime ? (
+                            <div className="text-muted small">
+                                Last Import: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
+                            </div>
+                        ) : <div></div>}
+                        <RefreshButton loading={loading} onRefresh={fetchEmployeeAttendance} />
                     </div>
                 </div>
 
