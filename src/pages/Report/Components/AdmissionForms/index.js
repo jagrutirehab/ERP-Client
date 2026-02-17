@@ -209,6 +209,41 @@ const AdmissionForms = ({
       maxWidth: "200px",
       minWidth: "200px",
     },
+    // Draft
+    {
+      name: "Draft - Admission Form",
+      selector: (row) => (row.admissionFormUploadedRaw ? "Yes" : "No"),
+      sortable: false,
+      wrap: true,
+      maxWidth: "200px",
+      minWidth: "200px",
+    },
+    {
+      name: "Draft - Consent Form",
+      selector: (row) => (row.consentFormUploadedRaw ? "Yes" : "No"),
+      sortable: false,
+      wrap: true,
+      maxWidth: "200px",
+      minWidth: "200px",
+    },
+    {
+      name: "Draft - Discharge Form",
+      selector: (row) => (row.dischargeFormUploadedRaw ? "Yes" : "No"),
+      sortable: false,
+      wrap: true,
+      maxWidth: "200px",
+      minWidth: "200px",
+    },
+    {
+      name: "Draft - Undertaking Discharge Form",
+      selector: (row) =>
+        row.undertakingDischargeFormUploadedRaw ? "Yes" : "No",
+      sortable: false,
+      wrap: true,
+      maxWidth: "250px",
+      minWidth: "250px",
+    },
+
     {
       name: "Room Type",
       selector: (row) => row.roomType || "-",
