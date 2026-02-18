@@ -5,34 +5,12 @@ import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { Input, Spinner } from "reactstrap";
+import { Input } from "reactstrap";
 import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
-
-
-const customStyles = {
-    table: {
-        style: {
-            minHeight: "450px",
-        },
-    },
-    headCells: {
-        style: {
-            backgroundColor: "#f8f9fa",
-            fontWeight: "600",
-            borderBottom: "2px solid #e9ecef",
-        },
-    },
-    rows: {
-        style: {
-            minHeight: "60px",
-            borderBottom: "1px solid #f1f1f1",
-        },
-    },
-};
+import DataTableComponent from "../../../../../Components/Common/DataTable";    
 
 const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
@@ -287,29 +265,18 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
 
             </div>
 
-            <DataTable
+            <DataTableComponent
                 columns={columns}
                 data={data}
-                highlightOnHover
-                pagination
-                paginationServer
-                paginationTotalRows={pagination?.totalDocs}
-                paginationPerPage={limit}
-                paginationDefaultPage={page}
-                progressPending={loading}
-                striped
-                fixedHeader
-                fixedHeaderScrollHeight="500px"
-                dense={isMobile}
-                responsive
-                customStyles={customStyles}
-                progressComponent={
-                    <div className="py-4 text-center">
-                        <Spinner className="text-primary" />
-                    </div>
-                }
-                onChangePage={(newPage) => setPage(newPage)}
-                onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+                loading={loading}
+                pagination={pagination}
+                page={page} 
+                setPage={setPage}
+                limit={limit}
+                setLimit={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
+                }}
             />
 
         </>
