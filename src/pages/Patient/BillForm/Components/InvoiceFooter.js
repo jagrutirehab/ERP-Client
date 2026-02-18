@@ -51,8 +51,35 @@ const InvoiceFooter = (props) => {
   const [amountInput, setAmountInput] = useState(String(initialValue || ""));
   const [error, setError] = useState("");
 
+  // useEffect(() => {
+  //   if (props.validation?.values?.bill === REFUND) {
+  //     const refundVal = String(props.refund || "");
+  //     setAmountInput(refundVal);
+  //     props.validation.setFieldValue("refund", refundVal);
+  //   } else {
+  //     const payableVal =
+  //       props.payable !== undefined && props.payable !== null
+  //         ? String(props.payable)
+  //         : "";
+  //     setAmountInput(payableVal);
+  //     props.validation.setFieldValue("refund", payableVal);
+  //   }
+  //   setError("");
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [props.validation?.values?.bill, props.refund, props.payable]);
+
   useEffect(() => {
-    if (props.validation?.values?.bill === REFUND) {
+    const billType = props.validation?.values?.bill;
+    if (billType === REFUND && isLatest === false) {
+      props.validation.setFieldValue("bill", INVOICE);
+      return;
+    }
+
+    const isNewBill = !props.data?._id;
+
+    const allowRefund = billType === REFUND && (isLatest === true || isNewBill);
+
+    if (allowRefund) {
       const refundVal = String(props.refund || "");
       setAmountInput(refundVal);
       props.validation.setFieldValue("refund", refundVal);
@@ -64,9 +91,15 @@ const InvoiceFooter = (props) => {
       setAmountInput(payableVal);
       props.validation.setFieldValue("refund", payableVal);
     }
+
     setError("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.validation?.values?.bill, props.refund, props.payable]);
+  }, [
+    props.validation?.values?.bill,
+    props.refund,
+    props.payable,
+    isLatest,
+    props.data?._id,
+  ]);
 
   const handleAmountChange = (e) => {
     const val = e.target.value;
@@ -101,6 +134,9 @@ const InvoiceFooter = (props) => {
   const safeItemDiscount = Number(props.itemDiscount) || 0;
 
   const editDisplayValue = Math.max(0, safeWhole - safeItemDiscount);
+
+  console.log("Bill lala:", props.validation?.values?.bill);
+  console.log("isLatest lala:", isLatest);
 
   return (
     <React.Fragment>
@@ -278,9 +314,7 @@ const InvoiceFooter = (props) => {
                   // }
                 >
                   <option value={INVOICE}>Payable</option>
-                  {isLatest !== false && (
-                    <option value={REFUND}>Refund</option>
-                  )}
+                  {isLatest !== false && <option value={REFUND}>Refund</option>}
                 </Input>
               </div>
               {error && (
@@ -296,16 +330,18 @@ const InvoiceFooter = (props) => {
                 disabled={
                   props.validation?.values?.bill !== REFUND ||
                   !props.refund ||
-                  Number.isNaN(props.refund)
+                  Number.isNaN(props.refund) ||
+                  isLatest !== true
                 }
               />
-              {props.validation?.values?.bill === REFUND && (
-                <div className="font-size-10 mt-1">
-                  <span className="text-muted">
-                    Refund limit: ₹{props.refund.toFixed(2)}
-                  </span>
-                </div>
-              )}
+              {props.validation?.values?.bill === REFUND &&
+                isLatest === true && (
+                  <div className="font-size-10 mt-1">
+                    <span className="text-muted">
+                      Refund limit: ₹{props.refund.toFixed(2)}
+                    </span>
+                  </div>
+                )}
             </div>
           </Col>
         </Row>
