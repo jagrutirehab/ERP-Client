@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
-import { Button, CardBody, Input, Spinner, UncontrolledTooltip } from "reactstrap";
+import { Button, CardBody, Input, Spinner } from "reactstrap";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import Select from "react-select";
 import Header from "../../../Report/Components/Header";
 import { startOfDay, endOfDay, format } from "date-fns";
-import { CloudUpload, FileSpreadsheet, History, RotateCw } from "lucide-react";
+import { CloudUpload, FileSpreadsheet, History, Fingerprint } from "lucide-react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { attendanceColumns } from "../../components/Table/Columns/attendance";
 import { fetchAttendance } from "../../../../store/actions";
@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import AttendanceHistoryModal from "../../components/AttendanceHistoryModal";
 import AttendanceUploadModal from "../../components/AttendanceUploadModal";
-import { downloadAttendanceTemplate } from "../../../../helpers/backend_helper";
+import { downloadAttendanceTemplate, refetchBiometricAttendanace } from "../../../../helpers/backend_helper";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 
 const AttendanceLogs = () => {
@@ -41,6 +41,7 @@ const AttendanceLogs = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isTemplateGenerating, setIsTemplateGenerating] = useState(false);
+    const [isRefetchingBiometricAttendance, setIsRefetchingBiometricAttendance] = useState(false);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -143,6 +144,23 @@ const AttendanceLogs = () => {
         }
     }
 
+    const handleRefetchBiometricAttendance = async () => {
+        setIsRefetchingBiometricAttendance(true);
+        try {
+            await refetchBiometricAttendanace();
+            toast.success("Attendance import initiated. Page will refresh in 10 seconds.");
+            setTimeout(() => {
+                fetchEmployeeAttendance();
+            }, 10000);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Something went wrong while refetching biometric attendance");
+            }
+        } finally {
+            setIsRefetchingBiometricAttendance(false);
+        }
+    }
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -222,19 +240,41 @@ const AttendanceLogs = () => {
                     <div className="d-flex gap-2 justify-content-end align-items-center">
                         {lastImportTime && (
                             <div className="text-muted small me-3">
-                                Last Import: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
+                                Last Biometric Logs Refetch: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
                             </div>
                         )}
                         <RefreshButton loading={loading} onRefresh={fetchEmployeeAttendance} />
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
-                            onClick={() => setIsHistoryModalOpen(true)}
-                        >
-                            <History size={20} />
-                            History
-                        </Button>
 
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess="ATTENDANCE_LOG"
+                            permission="create"
+                        >
+                            <Button
+                                color="primary"
+                                className="d-flex align-items-center gap-2 text-white"
+                                onClick={() => setIsHistoryModalOpen(true)}
+                            >
+                                <History size={20} />
+                                History
+                            </Button>
+
+                        </CheckPermission>
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess="ATTENDANCE_LOG"
+                            permission="create"
+                        >
+                            <Button
+                                color="primary"
+                                className="d-flex align-items-center gap-2 text-white"
+                                onClick={handleRefetchBiometricAttendance}
+                                disabled={isRefetchingBiometricAttendance}
+                            >
+                                {isRefetchingBiometricAttendance ? <Spinner size={"sm"} /> : <Fingerprint size={20} />}
+                                Refetch Biometric Logs
+                            </Button>
+                        </CheckPermission>
                         <Button
                             color="primary"
                             className="d-flex align-items-center gap-2 text-white"
@@ -284,22 +324,44 @@ const AttendanceLogs = () => {
                     />
 
                     <div className="d-flex gap-2">
-                        <Button
-                            color="primary"
-                            className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
-                            onClick={() => setIsHistoryModalOpen(true)}
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess="ATTENDANCE_LOG"
+                            permission="create"
                         >
-                            History
-                        </Button>
+                            <Button
+                                color="primary"
+                                size="sm"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                onClick={() => setIsHistoryModalOpen(true)}
+                            >
+                                History
+                            </Button>
+                        </CheckPermission>
+                        <CheckPermission
+                            accessRolePermission={roles?.permissions}
+                            subAccess="ATTENDANCE_LOG"
+                            permission="create"
+                        >
+                            <Button
+                                color="primary"
+                                size="sm"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                onClick={handleRefetchBiometricAttendance}
+                                disabled={isRefetchingBiometricAttendance}
+                            >
+                                {isRefetchingBiometricAttendance ? <Spinner size={"sm"} /> : "Refetch Logs"}
+                            </Button>
+                        </CheckPermission>
 
                         <Button
                             color="primary"
+                            size="sm"
                             className="d-flex align-items-center gap-2 text-white"
                             disabled={isTemplateGenerating}
                             onClick={handleDownloadXlsxTemplate}
                         >
-                            {isTemplateGenerating && <Spinner size={"sm"} />}
-                            Download Template
+                            {isTemplateGenerating ? <Spinner size={"sm"} /> : "Download Template"}
                         </Button>
 
                         <CheckPermission
@@ -309,6 +371,7 @@ const AttendanceLogs = () => {
                         >
                             <Button
                                 color="primary"
+                                size="sm"
                                 className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
                                 onClick={() => setIsUploadModalOpen(true)}
                             >
@@ -320,7 +383,7 @@ const AttendanceLogs = () => {
                     <div className="d-flex justify-content-between align-items-center p-2">
                         {lastImportTime ? (
                             <div className="text-muted small">
-                                Last Import: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
+                                Last Logs Refetch: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
                             </div>
                         ) : <div></div>}
                         <RefreshButton loading={loading} onRefresh={fetchEmployeeAttendance} />

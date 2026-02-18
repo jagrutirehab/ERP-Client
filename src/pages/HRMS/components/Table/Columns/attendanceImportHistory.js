@@ -36,8 +36,14 @@ export const attendanceImportHistoryColumns = ({
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            minWidth: "200px"
+            minWidth: "180px"
         },
+        ...importType === "LOG" ? [{
+            name: <div>Organization</div>,
+            selector: row => row?.organization?.toUpperCase() || "-",
+            wrap: true,
+            minWidth: "160px"
+        }] : [],
         {
             name: <div>Total Count</div>,
             selector: row => row?.totalRows,
