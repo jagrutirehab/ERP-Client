@@ -118,11 +118,11 @@ const Table = ({ bill }) => {
   let serial = 1;
 
   const data = transformInvoiceList(bill?.invoice?.invoiceList || []);
+  console.log("bill.type", bill.type);
   const payable =
     bill.type === OPD
-      ? addComma(bill.invoice?.payable ?? 0)
-      : addComma(parseFloat(bill.invoice?.calculatedPayable ?? 0).toFixed(2));
-
+      ? (bill.invoice?.payable ?? 0)
+      : Number(bill.invoice?.calculatedPayable ?? 0);
   // const data = [
   //   {
   //     category: "Room Charges",

@@ -15,21 +15,37 @@ import RenderWhen from "../../../../Components/Common/RenderWhen";
 const InvoiceFooter = (props) => {
   const isEdit = props.isEdit;
   console.log("isEdit from footer", isEdit);
-  const isDraft = props.isDraft === "draft"
+  const isDraft = props.isDraft === "draft";
   console.log("Draffft", isDraft);
+
+  console.log("props", props);
+  const isLatest = props.isLatest;
+  console.log("isLatest", isLatest);
+
+  const itemDiscount = Number(props.itemDiscount) || 0;
+
+  const remainingAmount =
+    Number(props.totalCost || 0) - Number(itemDiscount || 0);
+
   const wDiscount =
     props.wholeDiscount.unit === "%"
-      ? (parseFloat(props.wholeDiscount.value) / 100) * props.totalCost
-      : parseFloat(props.wholeDiscount.value);
+      ? (parseFloat(props.wholeDiscount.value || 0) / 100) * remainingAmount
+      : parseFloat(props.wholeDiscount.value || 0);
 
   let initialValue = null;
   if (props.validation.values.bill === DRAFT_INVOICE)
-    initialValue = props.payable;
+    initialValue =
+      props.payable !== undefined && props.payable !== null
+        ? props.payable
+        : "";
   else if (props.type === IPD) {
     initialValue =
       props.validation.values.bill === INVOICE ? props.payable : props.refund;
   } else {
-    initialValue = props.payable;
+    initialValue =
+      props.payable !== undefined && props.payable !== null
+        ? props.payable
+        : "";
   }
 
   const [amountInput, setAmountInput] = useState(String(initialValue || ""));
@@ -41,7 +57,10 @@ const InvoiceFooter = (props) => {
       setAmountInput(refundVal);
       props.validation.setFieldValue("refund", refundVal);
     } else {
-      const payableVal = String(props.payable || "");
+      const payableVal =
+        props.payable !== undefined && props.payable !== null
+          ? String(props.payable)
+          : "";
       setAmountInput(payableVal);
       props.validation.setFieldValue("refund", payableVal);
     }
@@ -75,7 +94,6 @@ const InvoiceFooter = (props) => {
     }
   };
 
-  const itemDiscount = Number(props.itemDiscount) || 0;
   console.log("props", props);
   console.log("itemDiscount", typeof itemDiscount);
 
@@ -260,7 +278,9 @@ const InvoiceFooter = (props) => {
                   // }
                 >
                   <option value={INVOICE}>Payable</option>
-                  <option value={REFUND}>Refund</option>
+                  {isLatest !== false && (
+                    <option value={REFUND}>Refund</option>
+                  )}
                 </Input>
               </div>
               {error && (

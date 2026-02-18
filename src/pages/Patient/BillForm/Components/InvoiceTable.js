@@ -449,10 +449,9 @@ const InvoiceTable = ({
   console.log("isDraft", isDraft);
 
   const calculateFinalTotal = (unit, cost, discount) => {
-    const total = unit && cost ? Number(unit) * Number(cost) : 0;
+    const total = Number(unit || 0) * Number(cost || 0);
 
     if (!total) return 0;
-
     if (!discount) return total;
 
     const final = total - Number(discount);
@@ -463,27 +462,34 @@ const InvoiceTable = ({
   const handleCostChange = (e, idx, item) => {
     const value = e.target.value;
     const newCost = value === "" ? "" : Number(value);
-    const updatedCenters = (item.centers || []).map((c) =>
-      String(c.center._id) === String(center._id)
-        ? { ...c, cost: value === "" ? "" : parseInt(value) }
-        : c,
-    );
-
-    const finalTotal = calculateFinalTotal(
-      item.unit,
-      newCost,
-      item.discount,
-      item.discountType,
-    );
 
     const newInvoiceList = [...invoiceList];
-    newInvoiceList[idx] = {
-      ...item,
-      centers: updatedCenters,
-      cost: value === "" ? "" : Number(value),
-      afterDiscount: finalTotal,
-    };
+    const updatedItem = { ...item };
 
+    const updatedCenters = (item.centers || []).map((c) =>
+      String(c.center._id) === String(center._id) ? { ...c, cost: newCost } : c,
+    );
+
+    updatedItem.cost = newCost;
+    updatedItem.centers = updatedCenters;
+
+    updatedItem.discount = "";
+    updatedItem.discountValue = "";
+
+    const newTotal = Number(updatedItem.unit || 0) * Number(newCost || 0);
+
+    // if (updatedItem.discountType === "%" && updatedItem.discountValue) {
+    //   const total = Number(updatedItem.unit || 0) * Number(newCost || 0);
+    //   updatedItem.discount = (total * Number(updatedItem.discountValue)) / 100;
+    // }
+
+    updatedItem.afterDiscount = calculateFinalTotal(
+      updatedItem.unit,
+      updatedItem.cost,
+      updatedItem.discount,
+    );
+
+    newInvoiceList[idx] = updatedItem;
     setInvoiceList(newInvoiceList);
   };
 
@@ -506,7 +512,6 @@ const InvoiceTable = ({
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
       );
-      // console.log("Found Price:", matchingPriceObj, "for unit:", value, "in list:", item.availablePrices);
 
       if (matchingPriceObj && !isEdit) {
         const newPrice = Number(matchingPriceObj.price);
@@ -519,12 +524,18 @@ const InvoiceTable = ({
               : c,
           );
         }
+        item.discount = "";
+        item.discountValue = "";
       }
     } else if (prop === "category") {
       const unitOptions = getUnitOptions(value);
       item.category = value;
       item.unitOfMeasurement =
         unitOptions.length === 1 ? unitOptions[0].value : "";
+    } else if (prop === "unit") {
+      item.unit = value;
+      item.discount = "";
+      item.discountValue = "";
     } else {
       item[prop] = value;
     }
@@ -770,12 +781,14 @@ const InvoiceTable = ({
                                   type="number"
                                   value={
                                     item.discountType === "%"
-                                      ? (
-                                          (Number(item.discount) /
-                                            (Number(item.unit || 0) *
-                                              Number(item.cost || 0))) *
-                                          100
-                                        ).toFixed(0)
+                                      ? item.discount && item.unit && item.cost
+                                        ? Math.round(
+                                            (Number(item.discount) /
+                                              (Number(item.unit) *
+                                                Number(item.cost))) *
+                                              100,
+                                          )
+                                        : ""
                                       : item.discount || ""
                                   }
                                   onChange={(e) => {
@@ -786,11 +799,12 @@ const InvoiceTable = ({
                                       Number(updatedItem.unit || 0) *
                                       Number(updatedItem.cost || 0);
 
+                                    updatedItem.discount = val;
+                                    updatedItem.discountValue = val;
+
                                     if (updatedItem.discountType === "%") {
                                       updatedItem.discount =
-                                        val === ""
-                                          ? ""
-                                          : (total * Number(val)) / 100;
+                                        (total * Number(val || 0)) / 100;
                                     } else {
                                       updatedItem.discount = val;
                                     }
@@ -864,15 +878,16 @@ const InvoiceTable = ({
                               const total =
                                 Number(item.unit || 0) * Number(item.cost || 0);
 
-                              if (isEdit || isDraft) {
-                                return (
-                                  total - Number(item.discount || 0)
-                                ).toFixed(2);
-                              }
+                              return calculateFinalTotal(
+                                item.unit,
+                                item.cost,
+                                item.discount,
+                                item.discountType,
+                              ).toFixed(2);
 
-                              return item.afterDiscount
-                                ? Number(item.afterDiscount).toFixed(2)
-                                : total.toFixed(2);
+                              // return item.afterDiscount
+                              //   ? Number(item.afterDiscount).toFixed(2)
+                              //   : total.toFixed(2);
                             })()}
                           </p>
                         </Col>
@@ -981,25 +996,39 @@ const InvoiceTable = ({
                           type="number"
                           value={
                             item.discountType === "%"
-                              ? (
-                                  (Number(item.discount) /
-                                    (Number(item.unit || 0) *
-                                      Number(item.cost || 0))) *
-                                  100
-                                ).toFixed(0)
+                              ? item.discount && item.unit && item.cost
+                                ? Math.round(
+                                    (Number(item.discount) /
+                                      (Number(item.unit) * Number(item.cost))) *
+                                      100,
+                                  )
+                                : ""
                               : item.discount || ""
                           }
                           onChange={(e) => {
                             const val = e.target.value;
                             const newInvoiceList = [...invoiceList];
                             const updatedItem = { ...item };
+
                             const total =
                               Number(updatedItem.unit || 0) *
                               Number(updatedItem.cost || 0);
 
-                            if (updatedItem.discountType === "%") {
+                            if (!total) {
+                              updatedItem.discount = "";
+                            } else if (updatedItem.discountType === "%") {
                               updatedItem.discount =
                                 val === "" ? "" : (total * Number(val)) / 100;
+                            } else {
+                              updatedItem.discount =
+                                val === "" ? "" : Number(val);
+                            }
+
+                            updatedItem.discountValue = val;
+
+                            if (updatedItem.discountType === "%") {
+                              updatedItem.discount =
+                                (total * Number(val || 0)) / 100;
                             } else {
                               updatedItem.discount = val;
                             }
@@ -1008,7 +1037,6 @@ const InvoiceTable = ({
                               updatedItem.unit,
                               updatedItem.cost,
                               updatedItem.discount,
-                              updatedItem.discountType || "₹",
                             );
 
                             newInvoiceList[idx] = updatedItem;
@@ -1061,15 +1089,16 @@ const InvoiceTable = ({
                           const total =
                             Number(item.unit || 0) * Number(item.cost || 0);
 
-                          if (isEdit || isDraft) {
-                            return (total - Number(item.discount || 0)).toFixed(
-                              2,
-                            );
-                          }
+                          return calculateFinalTotal(
+                            item.unit,
+                            item.cost,
+                            item.discount,
+                            item.discountType,
+                          ).toFixed(2);
 
-                          return item.afterDiscount
-                            ? Number(item.afterDiscount).toFixed(2)
-                            : total.toFixed(2);
+                          // return item.afterDiscount
+                          //   ? Number(item.afterDiscount).toFixed(2)
+                          //   : total.toFixed(2);
                         })()}
                       </p>
                     </Col>
