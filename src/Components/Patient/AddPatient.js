@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 import { Form, Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import Select from "react-select";
 import { format } from "date-fns";
@@ -121,6 +122,7 @@ const AddPatient = ({
         : leadData
           ? leadData.refferedBy
           : "",
+      referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
@@ -151,6 +153,17 @@ const AddPatient = ({
       guardianPhoneNumber: Yup.string().required(
         "Please Enter Guardian Phone Number",
       ),
+      referralPhoneNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .test(
+          "is-valid-referral-phone",
+          "Invalid phone number",
+          function (value) {
+            if (!value) return true; // optional
+            return isValidPhoneNumber(value);
+          },
+        ),
     }),
 
     onSubmit: (values) => {
@@ -496,12 +509,14 @@ const AddPatient = ({
                     if (option?.value === "other") {
                       setIsOtherReferral(true);
                       validation.setFieldValue("referredBy", "");
+                      validation.setFieldValue("referralPhoneNumber", "");
                     } else {
                       setIsOtherReferral(false);
                       validation.setFieldValue(
                         "referredBy",
                         option?.value || "",
                       );
+                      validation.setFieldValue("referralPhoneNumber", "");
                     }
                   }}
                   onBlur={() => validation.setFieldTouched("referredBy", true)}
@@ -545,25 +560,73 @@ const AddPatient = ({
                 />
 
                 {isOtherReferral && (
-                  <Input
-                    name="referredBy"
-                    className="form-control mt-2"
-                    placeholder="Enter doctor name"
-                    type="text"
-                    onChange={validation.handleChange}
-                    onBlur={validation.handleBlur}
-                    value={validation.values.referredBy || ""}
-                    invalid={
-                      validation.touched.referredBy &&
-                      validation.errors.referredBy
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "0.5rem 0.75rem",
-                      borderRadius: "0.375rem",
-                      fontSize: "1rem",
-                    }}
-                  />
+                  <>
+                    <Input
+                      name="referredBy"
+                      className="form-control mt-2"
+                      placeholder="Enter doctor name"
+                      type="text"
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values.referredBy || ""}
+                      invalid={
+                        validation.touched.referredBy &&
+                        validation.errors.referredBy
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.5rem 0.75rem",
+                        borderRadius: "0.375rem",
+                        fontSize: "1rem",
+                      }}
+                    />
+                    <div className="mt-2">
+                      <PhoneInputWithCountrySelect
+                        placeholder="Referral phone number (optional)"
+                        name="referralPhoneNumber"
+                        value={validation.values.referralPhoneNumber}
+                        onChange={(value) =>
+                          validation.setFieldValue(
+                            "referralPhoneNumber",
+                            value || "",
+                          )
+                        }
+                        onBlur={() =>
+                          validation.setFieldTouched(
+                            "referralPhoneNumber",
+                            true,
+                          )
+                        }
+                        defaultCountry="IN"
+                        limitMaxLength={true}
+                        style={{
+                          width: "100%",
+                          height: "42px",
+                          padding: "0.5rem 0.75rem",
+                          border: `1px solid ${
+                            validation.touched.referralPhoneNumber &&
+                            validation.errors.referralPhoneNumber
+                              ? "#dc3545"
+                              : "#ced4da"
+                          }`,
+                          borderRadius: "0.375rem",
+                          fontSize: "1rem",
+                        }}
+                      />
+                      {validation.touched.referralPhoneNumber &&
+                        validation.errors.referralPhoneNumber && (
+                          <div
+                            style={{
+                              color: "#dc3545",
+                              fontSize: "0.875rem",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {validation.errors.referralPhoneNumber}
+                          </div>
+                        )}
+                    </div>
+                  </>
                 )}
 
                 {validation.touched.referredBy &&
