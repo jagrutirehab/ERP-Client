@@ -8,14 +8,12 @@ import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { Button, Input, Spinner } from "reactstrap";
+import { Button, Input } from "reactstrap";
 import { CheckCheck, X } from "lucide-react";
-import DataTable from "react-data-table-component";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
 import { employeeTransferCurrentLocationAction } from "../../../../../helpers/backend_helper";
-
-
+import DataTableComponent from "../../../../../Components/Common/DataTable";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -310,48 +308,18 @@ const PendingApprovals = ({ activeTab }) => {
                 </div>
             </div>
 
-            <DataTable
+            <DataTableComponent
                 columns={columns}
                 data={data}
-                highlightOnHover
-                pagination
-                paginationServer
-                paginationTotalRows={pagination?.totalDocs}
-                paginationPerPage={limit}
-                paginationDefaultPage={page}
-                progressPending={loading}
-                striped
-                fixedHeader
-                fixedHeaderScrollHeight="500px"
-                dense={isMobile}
-                responsive
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "450px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
+                loading={loading}
+                pagination={pagination}
+                page={page}
+                setPage={setPage}
+                limit={limit}
+                setLimit={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
                 }}
-                progressComponent={
-                    <div className="py-4 text-center">
-                        <Spinner className="text-primary" />
-                    </div>
-                }
-                onChangePage={(newPage) => setPage(newPage)}
-                onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
 
             <ApproveModal
