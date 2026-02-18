@@ -2389,6 +2389,14 @@ export const getAttendanceSummary = (params = {}) => {
   });
 };
 
+export const refetchBiometricAttendanace = () => {
+  return api.create(url.REFETCH_BIOMETRIC_ATTENDANCE, {}, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+};
+
 export const getAttendanceLogs = (params = {}) => {
   return api.get(url.ATTENDANCE_LOGS, {
     params,

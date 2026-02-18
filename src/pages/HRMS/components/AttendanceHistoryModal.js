@@ -35,7 +35,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
         "DELETE"
     );
 
-    const modalImportType = importType === "LOG" ? ["LOG", "API"] : importType;
+    const modalImportType = importType === "LOG" ? ["UPLOAD", "API"] : importType;
 
     const loadAttendenceImportHistory = async () => {
         setLoading(true);

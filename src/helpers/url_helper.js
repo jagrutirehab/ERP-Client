@@ -489,6 +489,7 @@ export const ATTENDANCE_SUMMARY = "/hrms/attendance/summary";
 export const ATTENDANCE_LOGS = "/hrms/attendance/detailed";
 export const EMPLOYEE_CHECK_IN = "/hrms/attendance/check-in";
 export const EMPLOYEE_CHECK_OUT = "/hrms/attendance/check-out";
+export const REFETCH_BIOMETRIC_ATTENDANCE = "/hr/attendance/trigger-import";
 
 export const MONTHLY_ATTENDANCE = "/hr/attendance/monthly";
 export const UPLOAD_MONTHLY_ATTENDANCE = "/hr/attendance/monthly/upload";
