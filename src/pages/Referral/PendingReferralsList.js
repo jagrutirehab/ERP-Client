@@ -26,12 +26,12 @@ const PendingReferralsList = ({
   const hasApproveReferralPermission = hasPermission(
     "REFERRAL",
     "APPROVE_REFERRAL",
-    "WRITE"
+    "WRITE",
   );
   const hasRejectReferralPermission = hasPermission(
     "REFERRAL",
     "REJECT_REFERRAL",
-    "WRITE"
+    "WRITE",
   );
 
   if (loading) {
@@ -62,7 +62,7 @@ const PendingReferralsList = ({
     const from = (currentPage - 1) * (pagination.limit || 10) + 1;
     const to = Math.min(
       currentPage * (pagination.limit || 10),
-      pagination?.total || pendingReferrals.length
+      pagination?.total || pendingReferrals.length,
     );
 
     return (
@@ -159,7 +159,7 @@ const PendingReferralsList = ({
                 <tr key={referral._id}>
                   <td>{referral.doctorName}</td>
                   <td>{referral.patient?.name || "—"}</td>
-                  <td>{referral.patient?.phoneNumber || "—"}</td>
+                  <td>{referral.mobileNumber || "—"}</td>
                   <td>{new Date(referral.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div className="d-flex gap-2">
