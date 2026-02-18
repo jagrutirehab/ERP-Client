@@ -33,6 +33,7 @@ const DuePayment = ({
   appointment,
   type,
   shouldPrintAfterSave,
+  isLatest,
   ...rest
 }) => {
   const dispatch = useDispatch();
@@ -218,7 +219,6 @@ const DuePayment = ({
       let tTax = 0;
       let gTotal = 0;
       (invoiceList || []).forEach((item) => {
-        //only add discount to total discount if less than item total cost
         let discount = 0;
         let totalValue =
           item.unit && item.cost
@@ -226,27 +226,27 @@ const DuePayment = ({
             : 0;
 
         if (item.discount) {
-          discount =
-            item.discountUnit === "%"
-              ? parseFloat((parseInt(item.discount) / 100) * totalValue)
-              : parseInt(item.discount);
+          discount = parseFloat(item.discount);
         }
+
         const tax = () => (parseInt(item.tax) / 100) * totalValue;
         tCost += totalValue;
-        tDiscount += discount < totalValue ? discount : 0;
+        tDiscount += discount <= totalValue ? discount : totalValue;
         tTax += item.tax ? tax() : 0;
       });
 
+      gTotal = tCost - tDiscount + tTax;
+
       const wDiscount =
         wholeDiscount.unit === "%"
-          ? (parseFloat(wholeDiscount.value) / 100) * tCost
-          : parseFloat(wholeDiscount.value);
-      let calcPaybel =
-        grandTotal >= wDiscount ? grandTotal - wDiscount : grandTotal;
+          ? (parseFloat(wholeDiscount.value || 0) / 100) * gTotal
+          : parseFloat(wholeDiscount.value || 0);
+
+      let calcPaybel = gTotal >= wDiscount ? gTotal - wDiscount : 0;
 
       // setTotalPayable(calcPaybel);
 
-      gTotal = tCost - tDiscount + tTax;
+      // gTotal = tCost - tDiscount + tTax;
 
       const advance = editBillData
         ? editBillData?.invoice?.currentAdvance
@@ -487,45 +487,42 @@ const DuePayment = ({
   //   );
   // }, [availablePrices, editBillData]);
 
- useEffect(() => {
-  if (!availablePrices || Object.keys(availablePrices).length === 0) return;
+  useEffect(() => {
+    if (!availablePrices || Object.keys(availablePrices).length === 0) return;
 
-  setInvoiceList((prev) =>
-    prev.map((item) => {
-      if (editBillData) {
-        return {
-          ...item,
-          availablePrices:
-            availablePrices[item.slot] || [],
-        };
-      }
+    setInvoiceList((prev) =>
+      prev.map((item) => {
+        if (editBillData) {
+          return {
+            ...item,
+            availablePrices: availablePrices[item.slot] || [],
+          };
+        }
 
-      const pricesForItem =
-        availablePrices[item.slot] || [];
+        const pricesForItem = availablePrices[item.slot] || [];
 
-      const matched = pricesForItem.find(
-        (p) => p.unit === item.unitOfMeasurement
-      );
+        const matched = pricesForItem.find(
+          (p) => p.unit === item.unitOfMeasurement,
+        );
 
-      if (!matched && !item.unitOfMeasurement && pricesForItem.length) {
-        const first = pricesForItem[0];
+        if (!matched && !item.unitOfMeasurement && pricesForItem.length) {
+          const first = pricesForItem[0];
+          return {
+            ...item,
+            availablePrices: pricesForItem,
+            unitOfMeasurement: first.unit,
+            cost: first.price,
+          };
+        }
+
         return {
           ...item,
           availablePrices: pricesForItem,
-          unitOfMeasurement: first.unit,
-          cost: first.price,
+          cost: matched ? matched.price : item.cost,
         };
-      }
-
-      return {
-        ...item,
-        availablePrices: pricesForItem,
-        cost: matched ? matched.price : item.cost,
-      };
-    })
-  );
-}, [availablePrices, editBillData]);
-
+      }),
+    );
+  }, [availablePrices, editBillData]);
 
   console.log("invoiceList from duepayment", invoiceList);
   console.log("totalDiscount from duepayment", totalDiscount);
@@ -588,6 +585,7 @@ const DuePayment = ({
             type={type}
             paymentModes={paymentModes}
             setPaymentModes={setPaymentModes}
+            isLatest={isLatest}
             {...rest}
           />
           <SubmitForm

@@ -70,17 +70,12 @@ const Bills = ({
         center: dpstToAdvance.deposit?.center?._id,
         addmission: dpstToAdvance.deposit?.addmission,
         paymentModes: dpstToAdvance.deposit?.deposit?.paymentModes,
-      })
+      }),
     );
     setDepositToAdvance({
       deposit: null,
       isOpen: false,
     });
-  };
-
-  const editBill = (bill) => {
-    dispatch(createEditBill({ data: bill, bill: bill.bill, isOpen: false }));
-    toggleDateModal();
   };
 
   let calcAdvance = 0;
@@ -185,7 +180,7 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
         );
       } else if (bill.bill === DEPOSIT) {
         if (adReserve <= 0 && previousPayable <= 0) {
@@ -196,7 +191,7 @@ const Bills = ({
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         } else if (adReserve <= 0) {
           dispatch(
@@ -206,7 +201,7 @@ const Bills = ({
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         } else {
           dispatch(
@@ -216,7 +211,7 @@ const Bills = ({
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         }
       } else if (bill.bill === REFUND) {
@@ -227,7 +222,7 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
         );
       } else {
         dispatch(
@@ -237,7 +232,7 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
         );
       }
     } else if (!patient.addmissions?.includes(addmission?.addmissionId))
@@ -252,13 +247,25 @@ const Bills = ({
     });
   };
 
+  const latestInvoice = (newBills || [])
+    .filter((item) => item.bill === INVOICE)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+  const editBill = (bill) => {
+    const isLatest = bill.bill === INVOICE && bill._id === latestInvoice?._id;
+    dispatch(
+      createEditBill({ data: bill, bill: bill.bill, isOpen: false, isLatest }),
+    );
+    toggleDateModal();
+  };
+
   const deleteBill = async () => {
     const response = await dispatch(removeBill(bill.bill._id)).unwrap();
     dispatch(
       setBillingStatus({
         patientId: patient._id,
         billingStatus: response.billingStatus,
-      })
+      }),
     );
     setBill({
       bill: null,
@@ -275,7 +282,7 @@ const Bills = ({
 
   const printBill = (chart, patient) => {
     dispatch(
-      togglePrint({ data: chart, modal: true, patient, admission: addmission })
+      togglePrint({ data: chart, modal: true, patient, admission: addmission }),
     );
   };
 
@@ -322,13 +329,15 @@ const Bills = ({
                       user?.email !== "bishal@gmail.com"
                         ? true
                         : bill.bill === INVOICE &&
-                          superUser.includes(user.email)
-                        ? false
-                        : bill.bill === INVOICE &&
-                          differenceInDays(newDate, new Date(bill.createdAt)) >
-                            30
-                        ? true
-                        : false
+                            superUser.includes(user.email)
+                          ? false
+                          : bill.bill === INVOICE &&
+                              differenceInDays(
+                                newDate,
+                                new Date(bill.createdAt),
+                              ) > 30
+                            ? true
+                            : false
                     }
                     itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
                     disableDelete={addmission?.dischargeDate ? true : false}
