@@ -30,10 +30,7 @@ const ApproveReferralModal = ({ isOpen, toggle, referral, onConfirm }) => {
         referral?.hospitalClinic === "Pending"
           ? ""
           : referral?.hospitalClinic || "",
-      mobileNumber:
-        referral?.mobileNumber === "Pending"
-          ? ""
-          : referral?.mobileNumber || "",
+      mobileNumber: referral?.mobileNumber || "",
       email: referral?.email || "",
     },
     validationSchema: Yup.object({
