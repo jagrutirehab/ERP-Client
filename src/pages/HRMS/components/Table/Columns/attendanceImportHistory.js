@@ -21,18 +21,29 @@ export const attendanceImportHistoryColumns = ({
             wrap: true,
             minWidth: "120px"
         },
-        ...importType === "LOGS" ? [{
+        ...importType === "LOG" ? [{
             name: <div>Generation Date</div>,
             selector: row => row?.generatedOn || "-",
             wrap: true,
             minWidth: "120px"
         }] : [],
         {
+            name: <div>Import Type</div>,
+            selector: row => row?.importType?.toUpperCase() || "-",
+            wrap: true,
+        },
+        {
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            minWidth: "200px"
+            minWidth: "180px"
         },
+        ...importType === "LOG" ? [{
+            name: <div>Organization</div>,
+            selector: row => row?.organization?.toUpperCase() || "-",
+            wrap: true,
+            minWidth: "160px"
+        }] : [],
         {
             name: <div>Total Count</div>,
             selector: row => row?.totalRows,
