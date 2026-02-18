@@ -247,12 +247,12 @@ const Bills = ({
     });
   };
 
-  const latestInvoice = (newBills || [])
-    .filter((item) => item.bill === INVOICE)
+  const latestBill = (newBills || [])
+    .filter((item) => item.bill === INVOICE || item.bill === REFUND)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
   const editBill = (bill) => {
-    const isLatest = bill.bill === INVOICE && bill._id === latestInvoice?._id;
+    const isLatest = bill._id === latestBill?._id;
     dispatch(
       createEditBill({ data: bill, bill: bill.bill, isOpen: false, isLatest }),
     );
