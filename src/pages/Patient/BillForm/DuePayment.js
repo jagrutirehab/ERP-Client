@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Form, FormFeedback } from "reactstrap";
+import { Col, Form, FormFeedback, Row } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
@@ -20,6 +20,7 @@ import {
   getProceduresByCenterid,
   getProceduresByid,
 } from "../../../helpers/backend_helper";
+import InvoiceDateRange from "./Components/InvoiceDateRange";
 
 const DuePayment = ({
   author,
@@ -38,10 +39,12 @@ const DuePayment = ({
 }) => {
   const dispatch = useDispatch();
 
-  console.log("Data : ", {
-    patient,
-    center,
-  });
+  // console.log("Data : ", {
+  //   patient,
+  //   center,
+  // });
+
+  console.log("type type type", type);
 
   const editData = editBillData
     ? type === OPD
@@ -60,6 +63,8 @@ const DuePayment = ({
   const [arrayToSend, setArrayToSend] = useState(null);
   const [availablePrices, setAvailablePrices] = useState([]);
   const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
+  const [initialFromDate, setInitialFromDate] = useState("");
+  const [initialToDate, setInitialToDate] = useState("");
   const [wholeDiscount, setWholeDiscount] = useState({
     unit: "₹",
     value: 0,
@@ -91,15 +96,10 @@ const DuePayment = ({
       date: billDate,
       type,
       bill: invoiceType,
+      // fromDate: initialFromDate,
+      // toDate: initialToDate,
     },
     validationSchema: Yup.object({
-      // invoiceList: Yup.array().of(
-      //   Yup.object({
-      //     unitOfMeasurement: Yup.string().required(
-      //       "Unit of measurement is required",
-      //     ),
-      //   }),
-      // ),
       ...(type === OPD && {
         paymentModes: Yup.number().test(
           "paymentModes",
@@ -117,7 +117,26 @@ const DuePayment = ({
         ),
       }),
       bill: Yup.string().required("Bill type required!"),
+
+      // ...(type === "IPD" && {
+      //   fromDate: Yup.date().required("From date is required"),
+
+      //   toDate: Yup.date()
+      //     .required("To date is required")
+      //     .min(Yup.ref("fromDate"), "To date must be greater than From date")
+      //     .test(
+      //       "not-same-date",
+      //       "From and To date cannot be same",
+      //       function (value) {
+      //         const { fromDate } = this.parent;
+      //         if (!fromDate || !value) return true;
+
+      //         return new Date(fromDate).getTime() !== new Date(value).getTime();
+      //       },
+      //     ),
+      // }),
     }),
+
     onSubmit: async (values) => {
       if (editData) {
         const response = await dispatch(
@@ -182,6 +201,27 @@ const DuePayment = ({
 
             // Step 3: pick latest
             const latestInvoice = invoices[0];
+
+            // FromDate and to Date Carry Forward
+            if (latestInvoice?.invoice && type === "IPD") {
+              const previousInvoice = latestInvoice.invoice;
+
+              setInitialFromDate(
+                previousInvoice.fromDate
+                  ? new Date(previousInvoice.fromDate)
+                      .toISOString()
+                      .split("T")[0]
+                  : "",
+              );
+
+              setInitialToDate(
+                previousInvoice.toDate
+                  ? new Date(previousInvoice.toDate).toISOString().split("T")[0]
+                  : "",
+              );
+            }
+            // FromDate and to Date Carry Forward
+
             console.log("latestInvoice", latestInvoice);
             const sendingArray = latestInvoice?.invoice?.invoiceList || [];
 
@@ -298,6 +338,18 @@ const DuePayment = ({
           ? editBillData.receiptInvoice
           : editBillData.invoice;
       console.log("invoice", invoice);
+
+      setInitialFromDate(
+        invoice?.fromDate
+          ? new Date(invoice.fromDate).toISOString().split("T")[0]
+          : "",
+      );
+
+      setInitialToDate(
+        invoice?.toDate
+          ? new Date(invoice.toDate).toISOString().split("T")[0]
+          : "",
+      );
 
       const sendingArray = invoice?.invoiceList || [];
 
@@ -539,15 +591,26 @@ const DuePayment = ({
           className="needs-validation"
           action="#"
         >
-          <Inovice
-            data={invoiceList}
-            dataList={invoiceProcedures}
-            fieldName={"name"}
-            addItem={addInvoiceItem}
-            categories={categories}
-            setCategories={setCategories}
-            center={center || patient?.center}
-          />
+          <Row>
+            <Col md={8}>
+              <Inovice
+                data={invoiceList}
+                dataList={invoiceProcedures}
+                fieldName={"name"}
+                addItem={addInvoiceItem}
+                categories={categories}
+                setCategories={setCategories}
+                center={center || patient?.center}
+              />
+            </Col>
+
+            {/* {type === "IPD" && (
+              <Col md={4}>
+                <InvoiceDateRange validation={validation} />
+              </Col>
+            )} */}
+          </Row>
+
           <InvoiceTable
             isEdit={Boolean(editBillData)}
             invoiceList={invoiceList}
