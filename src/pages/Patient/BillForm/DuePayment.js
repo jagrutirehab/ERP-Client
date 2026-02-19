@@ -209,8 +209,8 @@ const DuePayment = ({
               setInitialFromDate(
                 previousInvoice.fromDate
                   ? new Date(previousInvoice.fromDate)
-                      .toISOString()
-                      .split("T")[0]
+                    .toISOString()
+                    .split("T")[0]
                   : "",
               );
 
@@ -570,7 +570,8 @@ const DuePayment = ({
         return {
           ...item,
           availablePrices: pricesForItem,
-          cost: matched ? matched.price : item.cost,
+          // cost: matched ? matched.price : item.cost,
+          cost: matched && matched.price > 0 ? matched.price : item.cost,
         };
       }),
     );
