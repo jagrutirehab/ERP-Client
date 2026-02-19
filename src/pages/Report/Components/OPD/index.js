@@ -352,6 +352,8 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
     "ortho consultation",
     "physician consultation",
     "opd charges",
+    "psychiatric consultation",
+    "psychological counselling"
   ];
 
   const headers = [
@@ -373,13 +375,13 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
 
   const csvOPD = () => {
     return data?.map((d, i) => {
-      console.log({ opd: d });
+      // console.log({ opd: d });
 
       const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
         opdChargesLabels.includes(inv.slot),
       );
 
-      console.log({ opdCharges });
+      // console.log({ opdCharges });
 
       return {
         ...d,
@@ -426,7 +428,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
       };
     }) || [];
 
-  console.log("mappedData", mappedData);
+  // console.log("mappedData", mappedData);
 
   const opds = mappedData.filter((d) => Number(d?.calculatedOpdCharges) > 0);
 
