@@ -1695,6 +1695,14 @@ export const getEmployeeId = (params = {}) => {
   });
 };
 
+export const updateEmployeeByKey = (data) => {
+  return api.update(url.EMPLOYEE_BY_KEY, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getEmployeeDetailsById = (id) => {
   return api.get(`${url.EMPLOYEE_DETAILS}/${id}`, {
     headers: {

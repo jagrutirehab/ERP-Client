@@ -20,6 +20,7 @@ import {
   getDepartments,
   getEmployeeId,
   postEmployee,
+  updateEmployeeByKey,
   uploadFile,
 } from "../../../../helpers/backend_helper";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
@@ -277,6 +278,7 @@ const EmployeeForm = ({
   const token = microUser ? JSON.parse(microUser).token : null;
   const isEdit = !!initialData?._id;
   const [eCodeLoader, setECodeLoader] = useState(false);
+  const [linking, setLinking] = useState(false);
   const [creatingDesignation, setCreatingDesignation] = useState(false);
 
   const [previewFile, setPreviewFile] = useState(null);
@@ -346,13 +348,6 @@ const EmployeeForm = ({
 
           formData.append(key, value);
         });
-
-        if (values.users) {
-          formData.append(
-            "users",
-            JSON.stringify(values.users.map((u) => u.value))
-          );
-        }
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
@@ -603,6 +598,27 @@ const EmployeeForm = ({
       }
     }
   }, [departmentOptions, isEdit, initialData]);
+
+  const handleLinkUsers = async () => {
+    if (!initialData?._id) return;
+    setLinking(true);
+    try {
+      const payload = {
+        id: initialData._id,
+        updates: {
+          users: values.users ? values.users.map((u) => u.value) : [],
+        }
+      };
+      await updateEmployeeByKey(payload);
+      toast.success("Users linked successfully");
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to link users");
+      }
+    } finally {
+      setLinking(false);
+    }
+  };
 
   const handleCreateDepartment = async (dept) => {
     try {
@@ -1504,21 +1520,34 @@ const EmployeeForm = ({
           </Col>
 
           {/* LINK USERS */}
-          {mode !== "NEW_JOINING" &&
+          {mode !== "NEW_JOINING" && (
             <Col md={12}>
               <Label htmlFor="users">Link With Associated Users</Label>
-              <AsyncSelect
-                inputId="users"
-                isMulti
-                defaultOptions
-                loadOptions={loadUserOptions}
-                placeholder="Search and select users..."
-                value={values.users}
-                onChange={(selectedOptions) =>
-                  setFieldValue("users", selectedOptions || [])
-                }
-              />
-            </Col>}
+              <div className="d-flex gap-2">
+                <div className="flex-grow-1">
+                  <AsyncSelect
+                    inputId="users"
+                    isMulti
+                    defaultOptions
+                    loadOptions={loadUserOptions}
+                    placeholder="Search and select users..."
+                    value={values.users}
+                    onChange={(selectedOptions) =>
+                      setFieldValue("users", selectedOptions || [])
+                    }
+                  />
+                </div>
+                <Button
+                  color="primary"
+                  className="text-white"
+                  onClick={handleLinkUsers}
+                  disabled={linking}
+                >
+                  {linking ? <Spinner size="sm" /> : "Link"}
+                </Button>
+              </div>
+            </Col>
+          )}
         </Row>
 
         <Col xs={12} className="mt-4">
