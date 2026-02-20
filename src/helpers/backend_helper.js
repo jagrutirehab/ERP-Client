@@ -1695,8 +1695,8 @@ export const getEmployeeId = (params = {}) => {
   });
 };
 
-export const getEmployeeFinanceById = (id) => {
-  return api.get(`${url.EMPLOYEE_FINANCE}/${id}`, {
+export const getEmployeeDetailsById = (id) => {
+  return api.get(`${url.EMPLOYEE_DETAILS}/${id}`, {
     headers: {
       "X-No-Cookie-Token": "true",
     },

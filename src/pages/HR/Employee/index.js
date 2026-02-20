@@ -10,7 +10,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { deleteEmployee, getDepartments, getEmployeeFinanceById } from "../../../helpers/backend_helper";
+import { deleteEmployee, getDepartments, getEmployeeDetailsById } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
@@ -188,11 +188,12 @@ const Employee = () => {
     setSelectedEmployee(row);
     setModalLoading(true);
     try {
-      const res = await getEmployeeFinanceById(row._id);
+      const res = await getEmployeeDetailsById(row._id);
 
       setSelectedEmployee({
         ...row,
         financeDetails: res?.data?.financeDetails,
+        users: res?.data?.users,
       });
 
       setModalOpen(true);

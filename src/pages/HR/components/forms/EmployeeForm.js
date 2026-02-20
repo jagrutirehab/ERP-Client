@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Button, Row, Col, Label, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
+import AsyncSelect from "react-select/async";
 import { toast } from "react-toastify";
+import debounce from "lodash.debounce";
 import PhoneInputWithCountrySelect, {
   isValidPhoneNumber,
 } from "react-phone-number-input";
@@ -14,6 +16,7 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import {
   createDepartment,
   editEmployee,
+  getAllUsers,
   getDepartments,
   getEmployeeId,
   postEmployee,
@@ -247,6 +250,13 @@ const getInitialValues = (initialData, mode) => ({
 
   debitStatementNarration:
     initialData?.financeDetails?.debitStatementNarration || "",
+
+  users: initialData?.users
+    ? initialData.users.map((u) => ({
+      value: u._id,
+      label: `${u.name} (${u.email})`,
+    }))
+    : [],
 });
 
 const EmployeeForm = ({
@@ -263,6 +273,8 @@ const EmployeeForm = ({
     (state) => state.HR,
   );
   const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const isEdit = !!initialData?._id;
   const [eCodeLoader, setECodeLoader] = useState(false);
   const [creatingDesignation, setCreatingDesignation] = useState(false);
@@ -329,11 +341,18 @@ const EmployeeForm = ({
 
         Object.entries(values).forEach(([key, value]) => {
           if (key === "eCode" && mode === "NEW_JOINING") return;
+          if (key === "users") return;
           if (value === undefined || value === null) return;
 
           formData.append(key, value);
         });
 
+        if (values.users) {
+          formData.append(
+            "users",
+            JSON.stringify(values.users.map((u) => u.value))
+          );
+        }
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
@@ -606,6 +625,41 @@ const EmployeeForm = ({
     } finally {
       fetchDepartment();
     }
+  };
+
+  const debouncedFetchUsers = useMemo(
+    () =>
+      debounce((inputValue, resolve) => {
+        if (!inputValue || !token) {
+          resolve([]);
+          return;
+        }
+        getAllUsers({
+          search: inputValue,
+          limit: 10,
+          token,
+          centerAccess,
+        })
+          .then((response) => {
+            resolve(
+              (response?.data?.data || []).map((user) => ({
+                value: user._id,
+                label: `${user.name} (${user.email})`,
+              }))
+            );
+          })
+          .catch((error) => {
+            console.error("Failed to search users", error);
+            resolve([]);
+          });
+      }, 500),
+    [token, centerAccess]
+  );
+
+  const loadUserOptions = (inputValue) => {
+    return new Promise((resolve) => {
+      debouncedFetchUsers(inputValue, resolve);
+    });
   };
 
   useEffect(() => {
@@ -1448,6 +1502,23 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
+
+          {/* LINK USERS */}
+          {mode !== "NEW_JOINING" &&
+            <Col md={12}>
+              <Label htmlFor="users">Link With Associated Users</Label>
+              <AsyncSelect
+                inputId="users"
+                isMulti
+                defaultOptions
+                loadOptions={loadUserOptions}
+                placeholder="Search and select users..."
+                value={values.users}
+                onChange={(selectedOptions) =>
+                  setFieldValue("users", selectedOptions || [])
+                }
+              />
+            </Col>}
         </Row>
 
         <Col xs={12} className="mt-4">
