@@ -428,6 +428,7 @@ export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
 export const EMPLOYEE_DETAILS = "/hr/employee/details";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+export const EMPLOYEE_BY_KEY = "/hr/employee/by-key";
 
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
 
