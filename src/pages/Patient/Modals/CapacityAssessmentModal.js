@@ -146,36 +146,23 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
 
+    // 1. Prepare Clone (Same as before)
     const clone = ref.current.cloneNode(true);
-
     const inputs = clone.querySelectorAll("input, textarea, select");
     inputs.forEach((input) => {
       const span = document.createElement("span");
-      let value = "";
-
-      if (input.type === "checkbox" || input.type === "radio") {
-        value = input.checked ? "YES" : "";
-      } else if (input.type === "date" && input.value) {
-        value = new Date(input.value).toLocaleDateString("en-GB");
-      } else {
-        value = input.value || "";
-      }
-
+      let value =
+        input.type === "checkbox" || input.type === "radio"
+          ? input.checked
+            ? "YES"
+            : ""
+          : input.value || "";
       span.innerText = value || "\u00A0";
-      // span.style.fontWeight = "bold";
-      // span.style.textTransform = "uppercase";
       span.style.borderBottom = "1px solid #000";
-      span.style.display = "inline-block";
+      span.style.display =
+        input.tagName === "TEXTAREA" ? "block" : "inline-block";
       span.style.minWidth = "100px";
       span.style.margin = "0 4px";
-
-      if (input.tagName === "TEXTAREA" || input.name === "managementPlan") {
-        span.style.display = "block";
-        span.style.width = "100%";
-        span.style.whiteSpace = "pre-wrap";
-        span.style.minHeight = "80px";
-      }
-
       input.parentNode.replaceChild(span, input);
     });
 
@@ -185,41 +172,86 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     clone.style.width = "900px";
     clone.style.background = "#fff";
     clone.style.padding = "40px";
-    clone.style.zIndex = "-1";
     document.body.appendChild(clone);
 
-    await new Promise((r) => setTimeout(r, 200));
-
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#fff",
-    });
-
+    // 2. Capture everything in ONE go (Fast)
+    const canvas = await html2canvas(clone, { scale: 2, useCORS: true });
     document.body.removeChild(clone);
 
-    // 3. Multi-page Slicing Logic
-    const imgData = canvas.toDataURL("image/jpeg", 1.0);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pdfWidth - margin * 2;
+    const pxToMm = contentWidth / canvas.width;
 
-    const imgWidth = pdfWidth - 40; // Horizontal margin
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    // Calculate height available for content per page
+    const pageHeightMm = pdfHeight - margin * 2;
+    const pageHeightPx = pageHeightMm / pxToMm;
 
-    let heightLeft = imgHeight;
-    let position = 20; // Start margin from top
+    let leftHeightPx = canvas.height;
+    let sY = 0; // Source Y
 
-    // Add the first page content
-    if (!isFirstPage) pdf.addPage();
-    pdf.addImage(imgData, "JPEG", 20, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight - 20;
+    while (leftHeightPx > 0) {
+      if (!isFirstPage || sY > 0) pdf.addPage();
 
-    // 4. While content remains, add new pages and shift the image up
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 20, position + 20, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
+      // Determine the slice height
+      let sliceHeightPx = Math.min(pageHeightPx, leftHeightPx);
+
+      // --- SMART CUT LOGIC ---
+      // If we aren't at the very end, we check if we are cutting through text.
+      // We sample the pixels at the 'cut line'. If it's not white, we move up.
+      if (leftHeightPx > pageHeightPx) {
+        const ctx = canvas.getContext("2d");
+        let checkY = sY + sliceHeightPx;
+        let isWhiteLine = false;
+
+        // Scan upwards (up to 50px) to find a white gap between lines
+        for (let scan = 0; scan < 50; scan++) {
+          const rowData = ctx.getImageData(
+            0,
+            checkY - scan,
+            canvas.width,
+            1,
+          ).data;
+          const isWhite = Array.from(rowData).every(
+            (val) => val === 255 || val === 0,
+          ); // 0 is alpha
+          if (isWhite) {
+            sliceHeightPx -= scan;
+            break;
+          }
+        }
+      }
+
+      // Add the image slice
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = sliceHeightPx;
+      tempCanvas
+        .getContext("2d")
+        .drawImage(
+          canvas,
+          0,
+          sY,
+          canvas.width,
+          sliceHeightPx,
+          0,
+          0,
+          canvas.width,
+          sliceHeightPx,
+        );
+
+      pdf.addImage(
+        tempCanvas.toDataURL("image/jpeg", 0.95),
+        "JPEG",
+        margin,
+        margin,
+        contentWidth,
+        sliceHeightPx * pxToMm,
+      );
+
+      sY += sliceHeightPx;
+      leftHeightPx -= sliceHeightPx;
     }
 
     return pdf;

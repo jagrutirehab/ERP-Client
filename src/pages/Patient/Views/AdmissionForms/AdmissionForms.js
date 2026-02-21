@@ -344,11 +344,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       const pdf = new jsPDF("p", "pt", "a4");
       await captureSection(admission1Ref, pdf, true);
       await captureSection(admission2Ref, pdf);
+
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
-      await captureSection(ectRef2, pdf);
       await captureSection(audioVideoRef, pdf);
+      await captureSection(ectRef2, pdf);
+
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
@@ -568,11 +570,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       const pdf = new jsPDF("p", "pt", "a4");
       await captureSection(admission1Ref, pdf, true);
       await captureSection(admission2Ref, pdf);
+
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
-      await captureSection(ectRef2, pdf);
       await captureSection(audioVideoRef, pdf);
+      await captureSection(ectRef2, pdf);
+
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
       formData.append(
@@ -1340,7 +1344,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Capacity Form {index + 1}{" "}
+                                            Download Draft Capacity Form{" "}
+                                            {index + 1}{" "}
                                             {form?.lastUpdatedAt
                                               ? `(${new Date(form.lastUpdatedAt).toLocaleDateString()})`
                                               : ""}
