@@ -520,5 +520,10 @@ export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_DEPARTMENTS = "/hr/get/departments";
 export const CREATE_DEPARTMENTS = "/hr/create/departments";
 
+// CAPACITY ASSESSMENT FORM
+export const SUBMIT_ASSESSMENT_FROM = "/patient/capacity-assessment-submit-file"
+
 // upload file
 export const UPLOAD_FILE = "/upload";
+
+

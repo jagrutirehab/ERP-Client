@@ -203,23 +203,23 @@ const DuePayment = ({
             const latestInvoice = invoices[0];
 
             // FromDate and to Date Carry Forward
-            if (latestInvoice?.invoice && type === "IPD") {
-              const previousInvoice = latestInvoice.invoice;
+            // if (latestInvoice?.invoice && type === "IPD") {
+            //   const previousInvoice = latestInvoice.invoice;
 
-              setInitialFromDate(
-                previousInvoice.fromDate
-                  ? new Date(previousInvoice.fromDate)
-                    .toISOString()
-                    .split("T")[0]
-                  : "",
-              );
+            //   setInitialFromDate(
+            //     previousInvoice.fromDate
+            //       ? new Date(previousInvoice.fromDate)
+            //           .toISOString()
+            //           .split("T")[0]
+            //       : "",
+            //   );
 
-              setInitialToDate(
-                previousInvoice.toDate
-                  ? new Date(previousInvoice.toDate).toISOString().split("T")[0]
-                  : "",
-              );
-            }
+            //   setInitialToDate(
+            //     previousInvoice.toDate
+            //       ? new Date(previousInvoice.toDate).toISOString().split("T")[0]
+            //       : "",
+            //   );
+            // }
             // FromDate and to Date Carry Forward
 
             console.log("latestInvoice", latestInvoice);
@@ -570,8 +570,8 @@ const DuePayment = ({
         return {
           ...item,
           availablePrices: pricesForItem,
-          // cost: matched ? matched.price : item.cost,
           cost: matched && matched.price > 0 ? matched.price : item.cost,
+          // cost: matched ? matched.price : item.cost,
         };
       }),
     );
@@ -594,6 +594,12 @@ const DuePayment = ({
         >
           <Row>
             <Col md={8}>
+              {/* {type === "IPD" && (
+                <div className="mb-3">
+                  <InvoiceDateRange validation={validation} />
+                </div>
+              )} */}
+
               <Inovice
                 data={invoiceList}
                 dataList={invoiceProcedures}
@@ -604,12 +610,6 @@ const DuePayment = ({
                 center={center || patient?.center}
               />
             </Col>
-
-            {/* {type === "IPD" && (
-              <Col md={4}>
-                <InvoiceDateRange validation={validation} />
-              </Col>
-            )} */}
           </Row>
 
           <InvoiceTable

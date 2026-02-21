@@ -9,6 +9,7 @@ import {
   INVOICE,
   OPD,
   REFUND,
+  WRITE_OFF
 } from "../../../Components/constants/patient";
 import AdvancePayment from "./AdvancePayment";
 import Invoice from "./Invoice";
@@ -85,6 +86,10 @@ const Bills = ({
   let totalAdvance = 0;
   let totalPayable = 0;
 
+  // const sortedData = (_.cloneDeep(data) || []).sort(
+  //   (a, b) => new Date(a.date) - new Date(b.date),
+  // );
+
   const newBills = (_.cloneDeep(data) || []).map((item, idx) => {
     if (item.bill === ADVANCE_PAYMENT) {
       calcAdvance += parseFloat(item.advancePayment?.totalAmount);
@@ -102,7 +107,21 @@ const Bills = ({
         adReserve = 0;
       }
       totalAdvance += item.advancePayment.totalAmount;
-    } else if (
+    }
+    // Write off
+    else if (item.bill === WRITE_OFF) {
+      const writeOffAmount = parseFloat(item.writeOff?.amount || 0);
+
+      if (previousPayable > 0) {
+        previousPayable -= writeOffAmount;
+
+        if (previousPayable < 0) {
+          previousPayable = 0;
+        }
+      }
+    }
+    // Write off
+    else if (
       (item.bill === INVOICE || item.bill === REFUND) &&
       item.type !== OPD
     ) {
@@ -163,6 +182,8 @@ const Bills = ({
     }
     return item;
   });
+
+  console.log("newBillsnewBills", newBills);
 
   useEffect(() => {
     if (
@@ -287,7 +308,6 @@ const Bills = ({
   };
 
   const newDate = new Date();
-
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -299,6 +319,7 @@ const Bills = ({
                 return (
                   <Wrapper
                     key={bill._id}
+                    data={bill?.invoice}
                     item={bill}
                     name="Billing"
                     editItem={editBill}

@@ -16,6 +16,7 @@ import {
   DRAFT_INVOICE,
   INVOICE,
   REFUND,
+  WRITE_OFF,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -285,6 +286,17 @@ const BillDate = ({
           >
             Inovice Draft
           </Button>
+          {/* {editBillData?.bill === null && (
+            <Button
+              outline
+              size="sm"
+              onClick={() => {
+                console.log("Write Off clicked");
+              }}
+            >
+              Write Off
+            </Button>
+          )} */}
         </div>
       </CustomModal>
     </React.Fragment>

@@ -14,6 +14,7 @@ import CustomModal from "../../../Components/Common/Modal";
 import { Forms } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
 import { createEditChart, setChartDate } from "../../../store/actions";
+import CapacityAssessmentModal from "./CapacityAssessmentModal";
 
 const AdmissionChart = ({
   isOpen,
@@ -26,12 +27,14 @@ const AdmissionChart = ({
   const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
+  const [capacityModal, setCapacityModal] = useState(false);
 
   useEffect(() => {
     const d = new Date();
     dispatch(setChartDate(d.toISOString()));
   }, [dispatch]);
 
+  // console.log("patient", patient);
   return (
     <React.Fragment>
       <CustomModal
@@ -118,14 +121,19 @@ const AdmissionChart = ({
                   <DropdownItem
                     key={idx + item.category}
                     onClick={() => {
-                      dispatch(
-                        createEditChart({
-                          ...editChartData,
-                          chart: item.category,
-                          patient,
-                          isOpen: true,
-                        })
-                      );
+                      if (item.name === "Capacity Assessment Form") {
+                        setCapacityModal(true);
+                      } else {
+                        dispatch(
+                          createEditChart({
+                            ...editChartData,
+                            chart: item.category,
+                            patient,
+                            isOpen: true,
+                          }),
+                        );
+                      }
+
                       toggle();
                     }}
                   >
@@ -137,6 +145,12 @@ const AdmissionChart = ({
           </Dropdown>
         </div>
       </CustomModal>
+      <CapacityAssessmentModal
+        isOpen={capacityModal}
+        toggle={() => setCapacityModal(false)}
+        patient={patient}
+        addmissionId={patient?.addmission._id}
+      />
     </React.Fragment>
   );
 };

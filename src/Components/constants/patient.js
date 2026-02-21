@@ -32,6 +32,7 @@ const INVOICE = "INVOICE";
 const DEPOSIT = "DEPOSIT";
 export const DRAFT_INVOICE = "DRAFT_INVOICE";
 const REFUND = "REFUND";
+export const WRITE_OFF = "WRITE_OFF";
 //Advance payment
 const CASH = "CASH";
 const CARD = "CARD";
@@ -99,6 +100,10 @@ const Forms = [
   {
     name: "Discharge Form",
     category: "DISCHARGE FORM",
+  },
+  {
+    name: "Capacity Assessment Form",
+    category: "CAPACITY ASSESSMENT FORM",
   },
 ];
 const testRecord = [

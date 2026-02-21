@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Form, FormFeedback } from "reactstrap";
+import { Col, Form, FormFeedback } from "reactstrap";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -8,6 +8,7 @@ import { useFormik } from "formik";
 
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
+import InvoiceDateRange from "./Components/InvoiceDateRange";
 import SubmitForm from "./Components/SubmitForm";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
@@ -51,6 +52,8 @@ const InvoiceDraft = ({
     unit: "₹",
     value: 0,
   });
+  const [initialFromDate, setInitialFromDate] = useState("");
+  const [initialToDate, setInitialToDate] = useState("");
   const [totalPayable, setTotalPayable] = useState(0);
   const [refund, setRefund] = useState(0);
   const [invoiceType, setInvoiceType] = useState(
@@ -76,9 +79,26 @@ const InvoiceDraft = ({
       date: billDate,
       type,
       bill: invoiceType,
+      // fromDate: initialFromDate,
+      // toDate: initialToDate,
     },
     validationSchema: Yup.object({
       bill: Yup.string().required("Bill type required!"),
+      fromDate: Yup.date().required("From date is required"),
+
+      // toDate: Yup.date()
+      //   .required("To date is required")
+      //   .min(Yup.ref("fromDate"), "To date must be greater than From date")
+      //   .test(
+      //     "not-same-date",
+      //     "From and To date cannot be same",
+      //     function (value) {
+      //       const { fromDate } = this.parent;
+      //       if (!fromDate || !value) return true;
+
+      //       return new Date(fromDate).getTime() !== new Date(value).getTime();
+      //     },
+      //   ),
     }),
     onSubmit: (values) => {
       const finalPayload = {
@@ -142,7 +162,7 @@ const InvoiceDraft = ({
 
     const payable = gTotal >= wDiscount ? gTotal - wDiscount : gTotal;
 
-  const advance = totalAdvance;
+    const advance = totalAdvance;
 
     let calculatedRefund = 0;
 
@@ -158,7 +178,6 @@ const InvoiceDraft = ({
   }, [invoiceList, wholeDiscount, invoiceType, totalAdvance]);
 
   console.log("editDraftData from draft", editDraftData);
-  
 
   useEffect(() => {
     if (editDraftData) {
@@ -204,12 +223,26 @@ const InvoiceDraft = ({
         value: (Number(invoice.totalDiscount) || 0) - itemDisc,
       });
       setTotalPayable(invoice.payable);
+
+      // FromDate and to Date
+      // const previousInvoice = invoice;
+      // setInitialFromDate(
+      //   previousInvoice.fromDate
+      //   ? new Date(previousInvoice.fromDate).toISOString().split("T")[0]
+      //   : "",
+      // );
+
+      // setInitialToDate(
+      //   previousInvoice.toDate
+      //     ? new Date(previousInvoice.toDate).toISOString().split("T")[0]
+      //     : "",
+      //   );
+      // FromDate and to Date
+
       // setTotalAdvance(invoice?.currentAdvance);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editDraftData]);
-
-  console.log("totalAdvance before useEffect", totalAdvance);
 
   // useEffect(() => {
   //   if (ttlAdvance && !editDraftData) setTotalAdvance(ttlAdvance);
@@ -262,8 +295,8 @@ const InvoiceDraft = ({
     }
   };
 
-  console.log("editDraftData from Redux:", editDraftData);
-  console.log("Total Refund:", refund);
+  // console.log("editDraftData from Redux:", editDraftData);
+  // console.log("Total Refund:", refund);
 
   return (
     <React.Fragment>
@@ -277,15 +310,21 @@ const InvoiceDraft = ({
           className="needs-validation"
           action="#"
         >
-          <Inovice
-            data={invoiceList}
-            dataList={invoiceProcedures}
-            fieldName={"name"}
-            addItem={addInvoiceItem}
-            categories={categories}
-            setCategories={setCategories}
-            center={center || patient?.center}
-          />
+          <Col md={8}>
+            {/* <div className="mb-3">
+              <InvoiceDateRange validation={validation} />
+            </div> */}
+            <Inovice
+              data={invoiceList}
+              dataList={invoiceProcedures}
+              fieldName={"name"}
+              addItem={addInvoiceItem}
+              categories={categories}
+              setCategories={setCategories}
+              center={center || patient?.center}
+            />
+          </Col>
+
           <InvoiceTable
             invoiceList={invoiceList}
             setInvoiceList={setInvoiceList}

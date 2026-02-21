@@ -5,7 +5,7 @@ import { Row, Col, Label, Input } from "reactstrap";
 const InvoiceDateRange = ({ validation }) => {
   return (
     <Row className="mb-3">
-      <Col md={6}>
+      <Col md={3}>
         <Label>From Date</Label>
         <Input
           type="date"
@@ -21,7 +21,7 @@ const InvoiceDateRange = ({ validation }) => {
         )}
       </Col>
 
-      <Col md={6}>
+      <Col md={3}>
         <Label>To Date</Label>
         <Input
           type="date"

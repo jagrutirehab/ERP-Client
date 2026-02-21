@@ -48,6 +48,7 @@ import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
 import ECTConsentForm2 from "./ECTConsentForm2";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
+import AudioVideoConsentForm from "./AudioVideoConsentForm";
 // import { Document, Page, pdfjs } from "react-pdf";
 // import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js";
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -86,12 +87,14 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const consentFileInputRef = useRef(null);
   const dischargeFileInputRef = useRef(null);
   const undertakingDischargeFileInputRef = useRef(null);
+  const capacityAssessmentFileInputRef = useRef(null);
   // const page1Ref = useRef(null);
   // const page2Ref = useRef(null);
   const seriousnessRef = useRef(null);
   const medicationRef = useRef(null);
   const ectRef = useRef(null);
   const ectRef2 = useRef(null);
+  const audioVideoRef = useRef(null);
   const admission1Ref = useRef(null);
   const admission2Ref = useRef(null);
   const adultRef = useRef(null);
@@ -345,6 +348,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
       await captureSection(ectRef2, pdf);
+      await captureSection(audioVideoRef, pdf);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
@@ -568,6 +572,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       await captureSection(medicationRef, pdf);
       await captureSection(ectRef, pdf);
       await captureSection(ectRef2, pdf);
+      await captureSection(audioVideoRef, pdf);
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
       formData.append(
@@ -770,6 +775,41 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
   }, [previewModal, pdfUrl, previewModal2, pdfUrl2]);
 
+  const handleCapacityAssessmentUploadClick = () => {
+    capacityAssessmentFileInputRef.current.click();
+  };
+
+  const handleFileChangeCapacityAssessment = async (e) => {
+    const file = e.target.files[0];
+    setIsGenerating2(true);
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("capacityAssessmentFormURL", file);
+      formData.append("id", addmissionId);
+
+      await axios.patch("/patient/capacity-assessment-upload-file", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast.success("Capacity Assessment PDF uploaded successfully!");
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setIsGenerating2(false);
+    }
+  };
+
   return (
     <>
       <div style={{ marginTop: "4rem" }}>
@@ -866,9 +906,10 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                         >
                           <div
                             style={{
-                              display: "flex",
-                              flexDirection: "row",
+                              display: "grid",
+                              gridTemplateColumns: "repeat(5, 1fr)",
                               gap: "30px",
+                              width: "100%",
                             }}
                           >
                             <div
@@ -1249,6 +1290,96 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 )}
                               </div>
                             </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleCapacityAssessmentUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Capacity Assessment"
+                                  )}
+                                </Button>
+
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={capacityAssessmentFileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeCapacityAssessment}
+                                />
+
+                                {test?.capacityAssessmentFormRaw?.length >
+                                  0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.capacityAssessmentFormRaw.map(
+                                      (form, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={form?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Capacity Form {index + 1}{" "}
+                                            {form?.lastUpdatedAt
+                                              ? `(${new Date(form.lastUpdatedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                                {test?.capacityAssessmentFormURL?.length >
+                                  0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.capacityAssessmentFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download Signed Capacity Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1454,6 +1585,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   admissions={admissions}
                 />
               </div>
+              <div ref={audioVideoRef}>
+                <AudioVideoConsentForm register={register} patient={patient} />
+              </div>
               <div ref={ectRef2}>
                 <ECTConsentForm2
                   register={register}
@@ -1461,6 +1595,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   admissions={admissions}
                 />
               </div>
+
               <div style={{ textAlign: "center", margin: "20px" }}>
                 <Button
                   color="secondary"
