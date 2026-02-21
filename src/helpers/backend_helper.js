@@ -2390,11 +2390,15 @@ export const getAttendanceSummary = (params = {}) => {
 };
 
 export const refetchBiometricAttendanace = () => {
-  return api.create(url.REFETCH_BIOMETRIC_ATTENDANCE, {}, {
-    headers: {
-      "X-No-Cookie-Token": "true",
+  return api.create(
+    url.REFETCH_BIOMETRIC_ATTENDANCE,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
     },
-  })
+  );
 };
 
 export const getAttendanceLogs = (params = {}) => {
@@ -2627,6 +2631,16 @@ export const uploadFile = (data) => {
   return api.create(url.UPLOAD_FILE, data, {
     headers: {
       "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// Submit assessment form
+
+export const submitAssessment = (id, payload) => {
+  return axios.patch(`${url.SUBMIT_ASSESSMENT_FROM}/${id}`, payload, {
+    headers: {
       "X-No-Cookie-Token": "true",
     },
   });

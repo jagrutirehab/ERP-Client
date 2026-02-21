@@ -37,6 +37,7 @@ import {
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
+  submitAssessment,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
@@ -71,7 +72,7 @@ export const fetchChartsAddmissions = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchCharts = createAsyncThunk(
@@ -84,7 +85,7 @@ export const fetchCharts = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchLatestCharts = createAsyncThunk(
@@ -97,7 +98,7 @@ export const fetchLatestCharts = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchGeneralCharts = createAsyncThunk(
@@ -110,7 +111,7 @@ export const fetchGeneralCharts = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchOPDPrescription = createAsyncThunk(
@@ -123,7 +124,7 @@ export const fetchOPDPrescription = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchCounsellingNote = createAsyncThunk(
@@ -136,7 +137,7 @@ export const fetchCounsellingNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addPrescription = createAsyncThunk(
@@ -148,7 +149,7 @@ export const addPrescription = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Prescription Saved Successfully",
-        })
+        }),
       );
       const payload = response?.payload;
       const patient = response?.patient;
@@ -168,7 +169,7 @@ export const addPrescription = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralPrescription = createAsyncThunk(
@@ -180,7 +181,7 @@ export const addGeneralPrescription = createAsyncThunk(
         setAlert({
           type: "success",
           message: "General Prescription Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -189,7 +190,7 @@ export const addGeneralPrescription = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updatePrescription = createAsyncThunk(
@@ -201,7 +202,7 @@ export const updatePrescription = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Prescription Updated Successfully",
-        })
+        }),
       );
 
       const payload = response?.payload;
@@ -213,7 +214,7 @@ export const updatePrescription = createAsyncThunk(
             chart: payload,
             appointment,
             patient: response.patient,
-          })
+          }),
         );
         // dispatch(viewPatient(patient));
         if (data.shouldPrintAfterSave)
@@ -223,7 +224,7 @@ export const updatePrescription = createAsyncThunk(
               data: payload,
               doctor: data.doctor,
               patient: response.patient,
-            })
+            }),
           );
       }
 
@@ -237,7 +238,7 @@ export const updatePrescription = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addVitalSign = createAsyncThunk(
@@ -249,7 +250,7 @@ export const addVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -258,7 +259,7 @@ export const addVitalSign = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralVitalSign = createAsyncThunk(
@@ -270,7 +271,7 @@ export const addGeneralVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "General Vital Sign Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -279,7 +280,7 @@ export const addGeneralVitalSign = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateVitalSign = createAsyncThunk(
@@ -291,7 +292,7 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -300,7 +301,7 @@ export const updateVitalSign = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addClinicalNote = createAsyncThunk(
@@ -312,7 +313,7 @@ export const addClinicalNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Clinical Note Saved Successfully",
-        })
+        }),
       );
 
       //FOR OPD PRESCRIPTION
@@ -335,7 +336,7 @@ export const addClinicalNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralClinicalNote = createAsyncThunk(
@@ -347,7 +348,7 @@ export const addGeneralClinicalNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "General Clinical Note Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -356,7 +357,7 @@ export const addGeneralClinicalNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const removeClinicalNoteFile = createAsyncThunk(
@@ -368,7 +369,7 @@ export const removeClinicalNoteFile = createAsyncThunk(
         setAlert({
           type: "success",
           message: "File Deleted Successfully",
-        })
+        }),
       );
       const payload = response?.payload;
       // const patient = response?.patient;
@@ -379,7 +380,7 @@ export const removeClinicalNoteFile = createAsyncThunk(
             chart: payload,
             appointment,
             patient: response.patient,
-          })
+          }),
         );
         // dispatch(viewPatient(patient));
         // if (data.shouldPrintAfterSave)
@@ -398,7 +399,7 @@ export const removeClinicalNoteFile = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateClinicalNote = createAsyncThunk(
@@ -410,7 +411,7 @@ export const updateClinicalNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Clinical Note Updated Successfully",
-        })
+        }),
       );
 
       const payload = response?.payload;
@@ -425,7 +426,7 @@ export const updateClinicalNote = createAsyncThunk(
             chart: payload,
             appointment,
             patient: response.patient,
-          })
+          }),
         );
         // dispatch(viewPatient(patient));
         if (response.shouldPrintAfterSave)
@@ -435,7 +436,7 @@ export const updateClinicalNote = createAsyncThunk(
               data: payload,
               doctor: response.doctor,
               patient: response.patient,
-            })
+            }),
           );
       }
 
@@ -445,7 +446,7 @@ export const updateClinicalNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addCounsellingNote = createAsyncThunk(
@@ -457,7 +458,7 @@ export const addCounsellingNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Counselling Note Saved Successfully",
-        })
+        }),
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -465,7 +466,7 @@ export const addCounsellingNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralCounsellingNote = createAsyncThunk(
@@ -477,7 +478,7 @@ export const addGeneralCounsellingNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Counselling Note Saved Successfully",
-        })
+        }),
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -485,7 +486,7 @@ export const addGeneralCounsellingNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateCounsellingNote = createAsyncThunk(
@@ -497,7 +498,7 @@ export const updateCounsellingNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Counselling Note Updated Successfully",
-        })
+        }),
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -505,7 +506,7 @@ export const updateCounsellingNote = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const removeCounsellingNoteFile = createAsyncThunk(
@@ -517,14 +518,14 @@ export const removeCounsellingNoteFile = createAsyncThunk(
         setAlert({
           type: "success",
           message: "File Deleted Successfully",
-        })
+        }),
       );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addLabReport = createAsyncThunk(
@@ -536,7 +537,7 @@ export const addLabReport = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Lab Report Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -545,7 +546,7 @@ export const addLabReport = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralLabReport = createAsyncThunk(
@@ -557,7 +558,7 @@ export const addGeneralLabReport = createAsyncThunk(
         setAlert({
           type: "success",
           message: "General Lab Report Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -566,7 +567,7 @@ export const addGeneralLabReport = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const removeLabReportFile = createAsyncThunk(
@@ -578,14 +579,14 @@ export const removeLabReportFile = createAsyncThunk(
         setAlert({
           type: "success",
           message: "File Deleted Successfully",
-        })
+        }),
       );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateLabReport = createAsyncThunk(
@@ -597,7 +598,7 @@ export const updateLabReport = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Lab Report Updated Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -606,7 +607,7 @@ export const updateLabReport = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addRelativeVisit = createAsyncThunk(
@@ -618,7 +619,7 @@ export const addRelativeVisit = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Relative Visit Chart Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -627,7 +628,7 @@ export const addRelativeVisit = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralRelativeVisit = createAsyncThunk(
@@ -639,7 +640,7 @@ export const addGeneralRelativeVisit = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Relative Visit Chart Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -648,7 +649,7 @@ export const addGeneralRelativeVisit = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateRelativeVisit = createAsyncThunk(
@@ -660,7 +661,7 @@ export const updateRelativeVisit = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Relative Visit Chart Updated Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -669,7 +670,7 @@ export const updateRelativeVisit = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addDischargeSummary = createAsyncThunk(
@@ -681,7 +682,7 @@ export const addDischargeSummary = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Discharge Summary Saved Successfully",
-        })
+        }),
       );
 
       if (response.medicines?.length)
@@ -694,7 +695,7 @@ export const addDischargeSummary = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateDischargeSummary = createAsyncThunk(
@@ -706,7 +707,7 @@ export const updateDischargeSummary = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Discharge Summary Updated Successfully",
-        })
+        }),
       );
 
       if (response.medicines?.length)
@@ -719,7 +720,7 @@ export const updateDischargeSummary = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addDetailAdmission = createAsyncThunk(
@@ -731,7 +732,7 @@ export const addDetailAdmission = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Detail Admission Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -740,7 +741,7 @@ export const addDetailAdmission = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralDetailAdmission = createAsyncThunk(
@@ -752,7 +753,7 @@ export const addGeneralDetailAdmission = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Detail Admission Saved Successfully",
-        })
+        }),
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
 
@@ -761,7 +762,7 @@ export const addGeneralDetailAdmission = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const removeDetailAdissionFile = createAsyncThunk(
@@ -773,7 +774,7 @@ export const removeDetailAdissionFile = createAsyncThunk(
         setAlert({
           type: "success",
           message: "File Deleted Successfully",
-        })
+        }),
       );
 
       return response;
@@ -781,7 +782,7 @@ export const removeDetailAdissionFile = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateDetailAdmission = createAsyncThunk(
@@ -793,7 +794,7 @@ export const updateDetailAdmission = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Detail Admission Updated Successfully",
-        })
+        }),
       );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
 
@@ -802,7 +803,7 @@ export const updateDetailAdmission = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addMentalExamination = createAsyncThunk(
@@ -814,7 +815,7 @@ export const addMentalExamination = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Clinical Notes V2 Saved Successfully",
-        })
+        }),
       );
 
       const payload = response?.payload;
@@ -836,7 +837,7 @@ export const addMentalExamination = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const addGeneralMentalExamination = createAsyncThunk(
@@ -848,7 +849,7 @@ export const addGeneralMentalExamination = createAsyncThunk(
         setAlert({
           type: "success",
           message: "General Clinical Notes V2 Saved Successfully",
-        })
+        }),
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -857,7 +858,7 @@ export const addGeneralMentalExamination = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const updateMentalExamination = createAsyncThunk(
@@ -869,7 +870,7 @@ export const updateMentalExamination = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Clinical Notes V2 Updated Successfully",
-        })
+        }),
       );
 
       const payload = response?.payload;
@@ -884,7 +885,7 @@ export const updateMentalExamination = createAsyncThunk(
             chart: payload,
             appointment,
             patient: response.patient,
-          })
+          }),
         );
         // dispatch(viewPatient(patient));
         if (response.shouldPrintAfterSave)
@@ -894,7 +895,7 @@ export const updateMentalExamination = createAsyncThunk(
               data: payload,
               doctor: response.doctor,
               patient: response.patient,
-            })
+            }),
           );
       }
 
@@ -904,7 +905,7 @@ export const updateMentalExamination = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const fetchLastMentalExamination = createAsyncThunk(
@@ -917,7 +918,7 @@ export const fetchLastMentalExamination = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
 );
 
 export const removeChart = createAsyncThunk(
@@ -929,7 +930,7 @@ export const removeChart = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Chart Deleted Successfully",
-        })
+        }),
       );
 
       if (response.payload?.type === OPD) {
@@ -941,7 +942,29 @@ export const removeChart = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
     }
-  }
+  },
+);
+
+export const addCapacityAssessment = createAsyncThunk(
+  "postCapacityAssessment",
+  async ({ addmissionId, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await submitAssessment(addmissionId, formData);
+      console.log("Capacity Response:", response);
+
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Capacity Assessment Saved Successfully",
+        }),
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message);
+    }
+  },
 );
 
 export const chartSlice = createSlice({
@@ -1024,7 +1047,7 @@ export const chartSlice = createSlice({
       .addCase(fetchCharts.fulfilled, (state, { payload }) => {
         state.chartLoading = false;
         const findIndex = state.data.findIndex(
-          (el) => el._id === payload.addmission
+          (el) => el._id === payload.addmission,
         );
         state.data[findIndex] = {
           charts: payload.payload,
@@ -1075,7 +1098,7 @@ export const chartSlice = createSlice({
           //IPD CHARTS
           if (payload.isAddmissionAvailable) {
             const findIndex = state.data.findIndex(
-              (el) => el._id === payload.addmission
+              (el) => el._id === payload.addmission,
             );
             state.data[findIndex].totalCharts += 1;
             state.data[findIndex].charts = [
@@ -1125,7 +1148,7 @@ export const chartSlice = createSlice({
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else if (payload.type !== "OPD" && state.data?.length > 0) {
@@ -1134,10 +1157,10 @@ export const chartSlice = createSlice({
 
           //IPD CHARTS
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1154,7 +1177,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1189,15 +1212,15 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1223,7 +1246,7 @@ export const chartSlice = createSlice({
 
           if (payload.isAddmissionAvailable) {
             const findIndex = state.data.findIndex(
-              (el) => el._id === payload.addmission
+              (el) => el._id === payload.addmission,
             );
             state.data[findIndex].totalCharts += 1;
             state.data[findIndex].charts = [
@@ -1259,7 +1282,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
           state.chartForm.data = payload.payload;
@@ -1269,10 +1292,10 @@ export const chartSlice = createSlice({
         } else {
           //IPD CHARTS
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
           state.chartForm.data = payload.payload;
@@ -1291,15 +1314,15 @@ export const chartSlice = createSlice({
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else if (payload.type !== "OPD" && !payload.appointment) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1316,7 +1339,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1338,10 +1361,10 @@ export const chartSlice = createSlice({
       .addCase(updateCounsellingNote.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findIndex = state.data.findIndex(
-          (el) => el._id === payload.payload.addmission
+          (el) => el._id === payload.payload.addmission,
         );
         const findChartIndex = state.data[findIndex].charts.findIndex(
-          (chart) => chart._id === payload.payload._id
+          (chart) => chart._id === payload.payload._id,
         );
         state.data[findIndex].charts[findChartIndex] = payload.payload;
       })
@@ -1356,10 +1379,10 @@ export const chartSlice = createSlice({
       .addCase(removeCounsellingNoteFile.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findIndex = state.data.findIndex(
-          (el) => el._id === payload.payload.addmission
+          (el) => el._id === payload.payload.addmission,
         );
         const findChartIndex = state.data[findIndex].charts.findIndex(
-          (chart) => chart._id === payload.payload._id
+          (chart) => chart._id === payload.payload._id,
         );
         state.data[findIndex].charts[findChartIndex] = payload.payload;
         state.chartForm.data = payload.payload;
@@ -1376,7 +1399,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1411,16 +1434,16 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
           state.chartForm.data = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
           state.chartForm.data = payload.payload;
@@ -1438,15 +1461,15 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1463,7 +1486,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1498,15 +1521,15 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1523,7 +1546,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1545,10 +1568,10 @@ export const chartSlice = createSlice({
       .addCase(updateDischargeSummary.fulfilled, (state, { payload }) => {
         state.loading = false;
         const findIndex = state.data.findIndex(
-          (el) => el._id === payload.payload.addmission
+          (el) => el._id === payload.payload.addmission,
         );
         const findChartIndex = state.data[findIndex].charts.findIndex(
-          (chart) => chart._id === payload.payload._id
+          (chart) => chart._id === payload.payload._id,
         );
         state.data[findIndex].charts[findChartIndex] = payload.payload;
       })
@@ -1564,7 +1587,7 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.addmission
+            (el) => el._id === payload.addmission,
           );
           state.data[findIndex].totalCharts += 1;
           state.data[findIndex].charts = [
@@ -1599,16 +1622,16 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
           state.chartForm.data = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
           state.chartForm.data = payload.payload;
@@ -1626,15 +1649,15 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1662,7 +1685,7 @@ export const chartSlice = createSlice({
           //IPD CHARTS
           if (payload.isAddmissionAvailable) {
             const findIndex = state.data.findIndex(
-              (el) => el._id === payload.addmission
+              (el) => el._id === payload.addmission,
             );
             state.data[findIndex].totalCharts += 1;
             state.data[findIndex].charts = [
@@ -1714,16 +1737,16 @@ export const chartSlice = createSlice({
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id
+            (el) => el._id === payload.payload._id,
           );
           state.charts[findIndex] = payload.payload;
         } else if (payload.type !== "OPD" && !payload.appointment) {
           // } else {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id
+            (chart) => chart._id === payload.payload._id,
           );
           state.data[findIndex].charts[findChartIndex] = payload.payload;
         }
@@ -1752,25 +1775,50 @@ export const chartSlice = createSlice({
         state.loading = false;
         if (payload.payload.type === "GENERAL") {
           state.charts = state.charts.filter(
-            (item) => item._id !== payload.chart._id
+            (item) => item._id !== payload.chart._id,
           );
         } else if (payload.payload.type === IPD) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission
+            (el) => el._id === payload.payload.addmission,
           );
           if (state?.data[findIndex]?.charts.length === 1) {
             state.data = state.data.filter(
-              (item) => item._id !== payload.payload.addmission
+              (item) => item._id !== payload.payload.addmission,
             );
           } else {
             state.data[findIndex].charts = state.data[findIndex].charts.filter(
-              (item) => item._id !== payload.payload._id
+              (item) => item._id !== payload.payload._id,
             );
             state.data[findIndex].totalCharts -= 1;
           }
         }
       })
       .addCase(removeChart.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addCapacityAssessment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addCapacityAssessment.fulfilled, (state, { payload }) => {
+        state.loading = false;
+
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addCapacityAssessment.rejected, (state) => {
         state.loading = false;
       });
   },

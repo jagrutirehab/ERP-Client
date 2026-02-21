@@ -24,6 +24,7 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const Wrapper = ({
   item,
+  data,
   children,
   editItem,
   deleteItem,
@@ -44,18 +45,21 @@ const Wrapper = ({
   const chart = item?.chart;
   const bill = item?.bill;
 
+  console.log("data from wrapper", data);
+  console.log("item from wrapper", item);
+
   const chartName = chart
     ? chart
-      .toLowerCase()
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-    : bill
-      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
+    : bill
+      ? bill
+          .toLowerCase()
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
       : "";
 
   return (
@@ -65,11 +69,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-    // transition={{
-    //   layout: {
-    //     duration: 1.5,
-    //   },
-    // }}
+      // transition={{
+      //   layout: {
+      //     duration: 1.5,
+      //   },
+      // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -78,7 +82,9 @@ const Wrapper = ({
               {" "}
               <h6 className="fs-md-12 fs-xs-9 text-info">{itemId}</h6>
             </RenderWhen>
-            <h5 className="display-6 fs-14 text-start">{chartName === "Mental Examination" ? "Clinical Note" : chartName}</h5>
+            <h5 className="display-6 fs-14 text-start">
+              {chartName === "Mental Examination" ? "Clinical Note" : chartName}
+            </h5>
           </div>
           <div className="d-flex justify-content-between ">
             <div>
@@ -95,6 +101,24 @@ const Wrapper = ({
                 </h6>
               </div>
             </div>
+
+            {/* <div>
+              <div className="d-flex align-items-center">
+                <span className="fs-xs-9">From :</span>
+                <h6 className="fs-xs-9 display-6 fs-6 mb-0 ms-2">
+                  {data?.fromDate &&
+                    format(new Date(data?.fromDate), "dd MMM yyyy") || "--"}
+                </h6>
+              </div>
+              <div className="d-flex align-items-center">
+                <span className="fs-xs-9">To :</span>
+                <h6 className="fs-xs-9 display-6 fs-6 mb-0 ms-2">
+                  {data?.toDate &&
+                    format(new Date(data?.toDate), "dd MMM yyyy") || "--"}
+                </h6>
+              </div>
+            </div> */}
+
             <div className="d-flex ">
               <div>
                 <div className="d-flex align-items-start">
@@ -183,7 +207,7 @@ const Wrapper = ({
                               bill: ADVANCE_PAYMENT,
                               isOpen: false,
                               paymentAgainstBillNo: itemId,
-                            })
+                            }),
                           );
                           toggleDateModal();
                         }}
