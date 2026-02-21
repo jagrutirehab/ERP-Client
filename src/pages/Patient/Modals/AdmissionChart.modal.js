@@ -149,7 +149,7 @@ const AdmissionChart = ({
         isOpen={capacityModal}
         toggle={() => setCapacityModal(false)}
         patient={patient}
-        addmissionId={patient?.addmission._id}
+        addmissionId={patient?.addmission?._id}
       />
     </React.Fragment>
   );

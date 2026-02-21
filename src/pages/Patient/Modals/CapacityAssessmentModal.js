@@ -25,7 +25,7 @@ import { addCapacityAssessment } from "../../../store/features/chart/chartSlice"
 const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   const [formData, setFormData] = useState({
     patientName: patient?.name || "",
-    uhidIpdNo: patient?.id?.prefix + patient?.id?.value || "",
+    uhidIpdNo: "",
     ageSex: "",
     wardUnit: "",
     assessmentDateTime: "",
@@ -182,7 +182,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     clone.style.position = "fixed";
     clone.style.top = "0";
     clone.style.left = "0";
-    clone.style.width = "900px"; 
+    clone.style.width = "900px";
     clone.style.background = "#fff";
     clone.style.padding = "40px";
     clone.style.zIndex = "-1";
@@ -250,7 +250,11 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
-        assessedBy : loggedInUserName || ""
+        assessedBy: loggedInUserName || "",
+        uhidIpdNo:
+          patient?.id?.prefix && patient?.id?.value
+            ? `${patient.id.prefix}${patient.id.value}`
+            : "",
       }));
     }
   }, [patient, loggedInUserName]);
