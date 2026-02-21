@@ -426,8 +426,9 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
-export const EMPLOYEE_FINANCE = "/hr/employee/finance";
+export const EMPLOYEE_DETAILS = "/hr/employee/details";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
+export const EMPLOYEE_BY_KEY = "/hr/employee/by-key";
 
 export const NEW_JOINING_ACTION = "/hr/employee/new-joining";
 

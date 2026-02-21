@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
-import { deleteEmployee, getEmployeeFinanceById, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
+import { deleteEmployee, getEmployeeDetailsById, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { downloadFile } from "../../../../../Components/Common/downloadFile";
@@ -161,7 +161,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         setSelectedEmployee(row);
         setModalLoading(true);
         try {
-            const res = await getEmployeeFinanceById(row._id);
+            const res = await getEmployeeDetailsById(row._id);
 
             setSelectedEmployee({
                 ...row,

@@ -352,6 +352,8 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
     "ortho consultation",
     "physician consultation",
     "opd charges",
+    "psychiatric consultation",
+    "psychological counselling"
   ];
 
   const headers = [
@@ -373,13 +375,10 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
 
   const csvOPD = () => {
     return data?.map((d, i) => {
-      console.log({ opd: d });
 
-      const opdCharges = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
-        opdChargesLabels.includes(inv.slot),
+      const opdChargesItems = d.bill?.receiptInvoice?.invoiceList?.filter((inv) =>
+        opdChargesLabels.includes(inv.slot)
       );
-
-      console.log({ opdCharges });
 
       return {
         ...d,
@@ -393,7 +392,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`,
           )
           .join(", "),
-        opdCharges: (opdCharges?.unit || 0) * (opdCharges?.cost || 0) || "",
+        opdCharges: opdChargesItems?.reduce((acc, curr) => acc + ((curr.unit || 0) * (curr.cost || 0)), 0) || "",
         isNoShow: d?.isCancelled ? "Yes" : "No",
         prescribed: d?.chart?.chart === "PRESCRIPTION" ? "Yes" : "No",
         isClinicalNoteCreated:
@@ -414,19 +413,19 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
   };
 
   const mappedData =
-    data?.map((d) => {
-      const opdChargesItem = d.bill?.receiptInvoice?.invoiceList?.find((inv) =>
+    data?.map((d, i) => {
+      const opdChargesItems = d.bill?.receiptInvoice?.invoiceList?.filter((inv) =>
         opdChargesLabels.includes(inv.slot?.toLowerCase()),
       );
       return {
         ...d,
         id: d._id,
         calculatedOpdCharges:
-          (opdChargesItem?.unit || 0) * (opdChargesItem?.cost || 0) || 0,
+          opdChargesItems?.reduce((acc, curr) => acc + ((curr.unit || 0) * (curr.cost || 0)), 0) || 0,
       };
     }) || [];
 
-  console.log("mappedData", mappedData);
+  // console.log("mappedData", mappedData);
 
   const opds = mappedData.filter((d) => Number(d?.calculatedOpdCharges) > 0);
 
