@@ -65,7 +65,8 @@ const validationSchema = (mode, isEdit) =>
         "Joining date cannot be in the future",
         (value) => {
           if (!value) return false;
-          return new Date(value) <= new Date();
+          const today = format(new Date(), "yyyy-MM-dd");
+          return value <= today;
         }
       ),
     gender: Yup.string().required("Gender is required"),
@@ -293,6 +294,12 @@ const EmployeeForm = ({
     adharFile: false,
     offerLetterFile: false,
   });
+
+  const [uploadedAt, setUploadedAt] = useState({
+    panOld: null,
+    adharOld: null,
+    offerLetterOld: null,
+  });
   const panFileRef = useRef(null);
   const adharFileRef = useRef(null);
   const offerLetterRef = useRef(null);
@@ -444,12 +451,11 @@ const EmployeeForm = ({
 
       const res = await uploadFile(fd);
 
-      // 1️⃣ Set value
       setFieldValue(urlField, res.url, false);
 
-      // 2️⃣ Mark as touched
       setFieldTouched(urlField, true, false);
 
+      setUploadedAt(prev => ({ ...prev, [urlField]: new Date().toISOString() }));
 
       form.setErrors(prev => ({
         ...prev,
@@ -466,12 +472,15 @@ const EmployeeForm = ({
     }
   };
 
-  const handleFilePreview = (file) => {
+  const getDocumentDate = (urlField) =>
+    uploadedAt[urlField] || initialData?.updatedAt;
+
+  const handleFilePreview = (file, urlField) => {
     if (!file?.url) return;
 
     const meta = getFilePreviewMeta(
       file,
-      initialData?.updatedAt,
+      getDocumentDate(urlField),
       FILE_PREVIEW_CUTOFF,
     );
 
@@ -483,12 +492,12 @@ const EmployeeForm = ({
     }
   };
 
-  const getFileActionLabel = (file) => {
+  const getFileActionLabel = (file, urlField) => {
     if (!file?.url) return "Download";
 
     const meta = getFilePreviewMeta(
       file,
-      initialData?.updatedAt,
+      getDocumentDate(urlField),
       FILE_PREVIEW_CUTOFF,
     );
 
@@ -1199,14 +1208,14 @@ const EmployeeForm = ({
                     handleFilePreview({
                       url: values.adharOld,
                       originalName: "Aadhaar",
-                    })
+                    }, "adharOld")
                   }
                   disabled={uploading.adharFile}
                 >
                   {getFileActionLabel({
                     url: values.adharOld,
                     originalName: "Aadhaar",
-                  })}
+                  }, "adharOld")}
                 </Button>
 
                 <Button
@@ -1295,14 +1304,14 @@ const EmployeeForm = ({
                     handleFilePreview({
                       url: values.panOld,
                       originalName: "Pan",
-                    })
+                    }, "panOld")
                   }
                   disabled={uploading.panFile}
                 >
                   {getFileActionLabel({
                     url: values.panOld,
                     originalName: "Pan",
-                  })}
+                  }, "panOld")}
                 </Button>
 
                 <Button
@@ -1374,14 +1383,14 @@ const EmployeeForm = ({
                     handleFilePreview({
                       url: values.offerLetterOld,
                       originalName: "Offerletter",
-                    })
+                    }, "offerLetterOld")
                   }
                   disabled={uploading.offerLetterFile}
                 >
                   {getFileActionLabel({
                     url: values.offerLetterOld,
                     originalName: "Offerletter",
-                  })}
+                  }, "offerLetterOld")}
                 </Button>
 
                 <Button
