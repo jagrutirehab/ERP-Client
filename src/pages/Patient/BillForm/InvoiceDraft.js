@@ -149,7 +149,7 @@ const InvoiceDraft = ({
       const tax = item.tax ? (Number(item.tax) / 100) * totalValue : 0;
 
       tCost += totalValue;
-      tDiscount += discount < totalValue ? discount : 0;
+      tDiscount += discount <= totalValue ? discount : totalValue;
       tTax += tax;
     });
 
