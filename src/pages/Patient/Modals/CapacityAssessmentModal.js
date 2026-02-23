@@ -602,65 +602,66 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
             <Table bordered size="sm" className="border-dark">
               <tbody>
                 <tr>
-                  <td style={{ width: "40%" }} className="fw-bold small">
+                  <td style={{ width: "30%" }} className="fw-bold">
                     Nominated Representative (NR) informed (Yes/No)
                   </td>
                   <td>
                     <Input
-                      type="text"
-                      plainText
+                      type="textarea"
+                      rows="2"
                       name="nominatedRepresentativeInformed"
                       onChange={handleChange}
-                      className="p-0 ps-2"
+                      className="border-0"
                     />
                   </td>
                 </tr>
                 <tr>
-                  <td className="fw-bold small">Name of NR</td>
+                  <td className="fw-bold">Name of NR</td>
                   <td>
                     <Input
-                      type="text"
-                      plainText
+                      type="textarea"
+                      rows="2"
                       name="representativeName"
                       onChange={handleChange}
-                      className="p-0 ps-2"
+                      className="border-0"
                     />
                   </td>
                 </tr>
                 <tr>
-                  <td className="fw-bold small">Relationship</td>
+                  <td className="fw-bold">Relationship</td>
                   <td>
                     <Input
-                      type="text"
-                      plainText
+                      type="textarea"
+                      rows="2"
                       name="relationship"
                       onChange={handleChange}
-                      className="p-0 ps-2"
+                      className="border-0"
                     />
                   </td>
                 </tr>
                 <tr>
-                  <td className="fw-bold small">
+                  <td className="fw-bold">
                     Supported admission initiated (if applicable)
                   </td>
                   <td>
                     <Input
-                      type="text"
-                      plainText
+                      type="textarea"
+                      rows="2"
                       name="supportedAdmissionInitiated"
                       onChange={handleChange}
-                      className="p-0 ps-2"
+                      className="border-0"
                     />
                   </td>
                 </tr>
                 <tr>
-                  <td className="fw-bold small">Next review date</td>
+                  <td className="fw-bold">Next review date</td>
                   <td>
                     <Input
                       type="date"
                       name="nextReviewDate"
                       onChange={handleChange}
-                      className="border-0 p-0"
+                      className="border-0"
+                      style={{ height: "52px" }}
                     />
                   </td>
                 </tr>
@@ -725,7 +726,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                   { role: "Witness (Nurse/Psychologist)", key: "witness" },
                 ].map((row, index) => (
                   <tr key={index} style={{ height: "90px" }}>
-                    <td className="text-start fw-bold small py-2 ps-2">
+                    <td className="text-start fw-bold  py-2 ps-2">
                       {row.role}
                     </td>
                     <td>

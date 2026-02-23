@@ -84,7 +84,7 @@ const InvoiceDraft = ({
     },
     validationSchema: Yup.object({
       bill: Yup.string().required("Bill type required!"),
-      fromDate: Yup.date().required("From date is required"),
+      // fromDate: Yup.date().required("From date is required"),
 
       // toDate: Yup.date()
       //   .required("To date is required")
@@ -149,7 +149,7 @@ const InvoiceDraft = ({
       const tax = item.tax ? (Number(item.tax) / 100) * totalValue : 0;
 
       tCost += totalValue;
-      tDiscount += discount < totalValue ? discount : 0;
+      tDiscount += discount <= totalValue ? discount : totalValue;
       tTax += tax;
     });
 
