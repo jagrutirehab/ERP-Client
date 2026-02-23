@@ -31,6 +31,7 @@ import {
 } from "../../../Components/constants/patient";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import DraftInvoice from "./Components/DraftInvoice";
+import { getWriteOff } from "../../../helpers/backend_helper";
 
 const Billing = ({
   user,
@@ -49,6 +50,7 @@ const Billing = ({
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const [admission, setAdmission] = useState(null);
+  const [writeOffArray, setWriteOffArray] = useState([]);
   const toggleModal = () => setDateModal(!dateModal);
 
   const handleAdmitPatient = () => {
@@ -87,6 +89,42 @@ const Billing = ({
     dispatch(fetchDraftBills({ patient: patient._id }));
   }, [dispatch, patient]);
 
+  console.log("PPatient", patient);
+  const fetchWriteOffs = async () => {
+    try {
+      const data = {
+        patient: patient?._id,
+        addmission: patient?.addmission?._id,
+        center: patient?.center?._id,
+      };
+
+      const response = await getWriteOff(data);
+      console.log("Response:", response.data);
+      setWriteOffArray(response?.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWriteOffs();
+  }, [patient]);
+
+  const writeOffGrouped = writeOffArray.reduce((acc, item) => {
+    if (!acc[item.addmission]) {
+      acc[item.addmission] = 0;
+    }
+    acc[item.addmission] += item.amount || 0;
+    return acc;
+  }, {});
+
+  const totalWriteOff = writeOffArray.reduce(
+    (sum, item) => sum + (item.amount || 0),
+    0,
+  );
+
+  const adjustedPayable = Math.max(calculatedPayable - totalWriteOff, 0);
+
   return (
     <div className="mt-3">
       <div className="d-flex align-items-center justify-content-between">
@@ -119,6 +157,7 @@ const Billing = ({
               className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-danger"
             >
               {calculatedPayable}
+              {/* {adjustedPayable} */}
             </h6>
           </RenderWhen>
           <RenderWhen isTrue={calculatedAdvance > calculatedPayable}>
@@ -173,6 +212,7 @@ const Billing = ({
       <div className="mt-3">
         <Row className="timeline-right row-gap-5">
           {(addmissionsBills || []).map((addmission, idx) => {
+            // const admissionWriteOff = writeOffGrouped[addmission._id] || 0;
             const payable =
               idx === 0 ? totalPayable : addmission.totalInvoicePayable;
             const advancePayment =
@@ -225,6 +265,12 @@ const Billing = ({
                         {advancePayment}
                       </h6>
                     </div>
+                    {/* <div className="d-flex">
+                      <span>Write Off Amount:</span>
+                      <h6 className="display-6 fs-6 mb-0 ms-2">
+                        {admissionWriteOff}
+                      </h6>
+                    </div> */}
                     {ttlDeposit > 0 && (
                       <div className="d-flex">
                         <span>Total Deposit Remaining:</span>
@@ -257,7 +303,7 @@ const Billing = ({
                             admitDischargePatient({
                               data: addmission,
                               isOpen: EDIT_ADMISSION,
-                            })
+                            }),
                           );
                         }}
                         id="edit-admission"

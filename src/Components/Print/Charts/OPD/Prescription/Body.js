@@ -254,7 +254,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             </Text>
           </View>
         )}
-        {chart?.ICD10_Code2 && (
+        {chart?.ICD10_Code2 ? (
           <View wrap={false} style={{ ...styles.mrgnTop10 }}>
             <Text style={{ ...styles.instr }}>
               Diagnosis ICD10 Code 2 :{" "}
@@ -266,11 +266,33 @@ const PrescriptionBody = ({ chart, doctor }) => {
                   ...styles.textWrap,
                 }}
               >
-                {chart?.ICD10_Code2}
+                {chart.ICD10_Code2}
               </Text>
             </Text>
           </View>
-        )}
+        ) : Array.isArray(chart?.icdCode2) ? (
+          chart.icdCode2.map((item, index) => (
+            <View
+              key={item?.code_id || index}
+              wrap={false}
+              style={{ ...styles.mrgnTop10 }}
+            >
+              <Text style={{ ...styles.instr }}>
+                Diagnosis ICD10 Code 2 :{" "}
+                <Text
+                  style={{
+                    ...styles.textGray,
+                    ...styles.fontNormal,
+                    ...styles.mrgnLeft10,
+                    ...styles.textWrap,
+                  }}
+                >
+                  {item?.code}
+                </Text>
+              </Text>
+            </View>
+          ))
+        ) : null}
         {/* <View style={{ ...styles.mrgnTop10 }}>
           <Text style={{ ...styles.fontBold }}>
             Next Visit:{" "}
@@ -308,7 +330,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             {safeText(
               "",
               { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
-              doctor?.name ? `${doctor.name}` : ""
+              doctor?.name ? `${doctor.name}` : "",
             )}
             {safeText(
               "",
@@ -317,7 +339,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.degrees
+              doctor?.degrees,
             )}
             {safeText(
               "",
@@ -326,7 +348,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.speciality
+              doctor?.speciality,
             )}
             {safeText(
               "Reg. No.",
@@ -335,7 +357,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.registrationNo
+              doctor?.registrationNo,
             )}
           </View>
         </View>

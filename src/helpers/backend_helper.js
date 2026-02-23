@@ -559,6 +559,10 @@ export const deleteBillPermanently = (param) =>
 export const postRestoreBill = (data) =>
   api.update(url.POST_RESTORE_BILL, data);
 
+// Write Off
+export const getWriteOff = (data) =>
+  api.get(url.GET_WRITE_OFF, { params: data });
+
 //recyclebin
 export const getDeletedCenters = (data) =>
   api.get(url.GET_DELETED_CENTERS, {
