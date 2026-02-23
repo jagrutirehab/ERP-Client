@@ -83,9 +83,19 @@ const Prescription = ({
   const [loading, setLoading] = useState(false);
   const [allICDCodes, setAllICDCodes] = useState([]);
   const [icdOptions, setIcdOptions] = useState([]);
+  const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
+
+  const isEditMode = !!editPrescription;
+  const isPopulateMode = populatePreviousAppointment && ptLatestOPDPrescription;
+
+  const sourcePrescription = isEditMode
+    ? editPrescription
+    : isPopulateMode
+      ? ptLatestOPDPrescription
+      : null;
 
   // console.log(patient.referredBy, "this is patient")
 
@@ -93,13 +103,13 @@ const Prescription = ({
   console.log({ patient, type });
   console.log("------------------");
 
-  // console.log("type", type)
+  console.log("type", type);
   useEffect(() => {
     if (populatePreviousAppointment)
       dispatch(
         fetchOPDPrescription({ id: appointment?.patient?._id || patient?._id }),
       );
-  }, [dispatch, appointment, populatePreviousAppointment, patient]);
+  }, [dispatch, appointment, populatePreviousAppointment, patient._id]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -113,67 +123,31 @@ const Prescription = ({
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
-      drNotes: editPrescription
-        ? editPrescription.drNotes
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.drNotes
-          : "",
-      diagnosis: editPrescription
-        ? editPrescription.diagnosis
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.diagnosis
-          : "",
+      drNotes: sourcePrescription?.drNotes || "",
+      diagnosis: sourcePrescription?.diagnosis || "",
       // diagnosis2: editPrescription
       //   ? editPrescription.diagnosis2
       //   : ptLatestOPDPrescription
       //     ? patientLatestOPDPrescription?.diagnosis2
       //     : "",
-      notes: editPrescription
-        ? editPrescription.notes
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.notes
-          : "",
-      followUp: editPrescription
-        ? editPrescription.followUp
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.followUp
-          : "",
+      notes: sourcePrescription?.notes || "",
+      followUp: sourcePrescription?.followUp || "",
       referredby: patient.referredBy?.doctorName || patient.referredBy || "",
       // editPrescription
       //   ? editPrescription.referredby
       //   : ptLatestOPDPrescription
       //   ? patientLatestOPDPrescription?.referredby
       //   :
-      investigationPlan: editPrescription
-        ? editPrescription.investigationPlan
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.investigationPlan
-          : "",
-      complaints: editPrescription
-        ? editPrescription.complaints
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.complaints
-          : "",
-      observation: editPrescription
-        ? editPrescription.observation
-        : ptLatestOPDPrescription
-          ? patientLatestOPDPrescription?.observation
-          : "",
+      investigationPlan: sourcePrescription?.investigationPlan || "",
+      complaints: sourcePrescription?.complaints || "",
+      observation: sourcePrescription?.observation || "",
       type,
       date: chartDate,
       icdCode:
         allICDCodes.find(
-          (item) =>
-            item.value ===
-            (editPrescription?.icdCode || ptLatestOPDPrescription?.icdCode),
+          (item) => item.value === sourcePrescription?.icdCode,
         ) || null,
-      icdCode2: editPrescription
-        ? allICDCodes.find(
-            (item) => item.value === editPrescription?.icdCode2,
-          ) || null
-        : allICDCodes.find(
-            (item) => item.value === ptLatestOPDPrescription?.icdCode2,
-          ) || null,
+      icdCode2: [],
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
@@ -191,15 +165,20 @@ const Prescription = ({
           "ICD Code 1 and ICD Code 2 cannot be same",
           function (value) {
             const { icdCode2 } = this.parent;
+            if (!value || !icdCode2?.length) return true;
 
-            if (!value || !icdCode2) return true;
-
-            return value.value !== icdCode2.value;
+            return !icdCode2.some((item) => item.value === value.value);
           },
         ),
     }),
     onSubmit: (values) => {
       console.log("values", values);
+      const formattedICD2 = Array.isArray(values.icdCode2)
+        ? values.icdCode2.map((item) => ({
+            code_id: item?.value,
+            code: item?.label,
+          }))
+        : [];
       if (editPrescription) {
         dispatch(
           updatePrescription({
@@ -211,7 +190,7 @@ const Prescription = ({
             ...values,
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
-            icdCode2: values.icdCode2?.value || null,
+            icdCode2: formattedICD2,
           }),
         );
       } else if (type === "GENERAL") {
@@ -220,7 +199,7 @@ const Prescription = ({
             ...values,
             medicines,
             icdCode: values.icdCode?.value || null,
-            icdCode2: values.icdCode2?.value || null,
+            icdCode2: formattedICD2,
           }),
         );
       } else {
@@ -233,7 +212,7 @@ const Prescription = ({
             medicines,
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
-            icdCode2: values.icdCode2?.value || null,
+            icdCode2: formattedICD2,
           }),
         );
       }
@@ -247,7 +226,7 @@ const Prescription = ({
   useEffect(() => {
     if (type !== "OPD" && !appointment) return;
     dispatch(fetchLatestCharts({ patient: patient?._id }));
-  }, [patient, dispatch]);
+  }, [patient?._id, dispatch]);
 
   // useEffect(() => {
   //   if (editPrescription) {
@@ -274,8 +253,7 @@ const Prescription = ({
   // }, [editPrescription, ptLatestOPDPrescription]);
 
   useEffect(() => {
-    const source =
-      editPrescription?.medicines || ptLatestOPDPrescription?.medicines;
+    const source = sourcePrescription?.medicines;
 
     if (!source) return;
 
@@ -337,14 +315,20 @@ const Prescription = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editPrescription, ptLatestOPDPrescription, drugs]);
 
+  // useEffect(() => {
+  //   if (!editPrescription) {
+  //     dispatch(setPtLatestOPDPrescription(null));
+  //     setMedicines([]);
+  //     validation.resetForm();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [dispatch, editPrescription]);
   useEffect(() => {
-    if (!editPrescription) {
-      dispatch(setPtLatestOPDPrescription(null));
+    if (!isEditMode && !isPopulateMode) {
       setMedicines([]);
-      validation.resetForm();
+      dispatch(setPtLatestOPDPrescription(null));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, editPrescription]);
+  }, [isEditMode, isPopulateMode]);
 
   const closeForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -448,23 +432,26 @@ const Prescription = ({
     setIcdOptions(filtered);
   };
 
-  // useEffect(() => {
-  //   //
-  //   const icdToPopulate =
-  //     editPrescription?.icdCode || ptLatestOPDPrescription?.icdCode;
+  useEffect(() => {
+    if (!allICDCodes.length) return;
+    if (icd2Initialized.current) return;
 
-  //   if (icdToPopulate && allICDCodes.length > 0) {
-  //     //
-  //     const selectedICD = allICDCodes.find(
-  //       (item) => item.value === icdToPopulate,
-  //     );
+    const sourceICD2 = Array.isArray(
+      editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2,
+    )
+      ? editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2
+      : [];
 
-  //     if (selectedICD) {
-  //       validation.setFieldValue("icdCode", selectedICD);
-  //     }
-  //   }
-  //   //
-  // }, [editPrescription, ptLatestOPDPrescription, allICDCodes]);
+    if (!sourceICD2.length) return;
+
+    const selected = sourceICD2
+      .map((item) => allICDCodes.find((opt) => opt.value === item.code_id))
+      .filter(Boolean);
+
+    validation.setFieldValue("icdCode2", selected);
+
+    icd2Initialized.current = true;
+  }, [allICDCodes]);
 
   return (
     <React.Fragment>
@@ -580,20 +567,20 @@ const Prescription = ({
                         )}
 
                       <Label className="fw-normal mt-3 mb-1 text-muted">
-                       Diagnosis ICD Code 2
+                        Diagnosis ICD Code 2
                       </Label>
                       <Select
-                        isClearable
+                        isMulti
                         placeholder="Search Diagnosis ICD Code 2..."
                         options={icdOptions}
-                        value={validation.values.icdCode2 || null}
+                        value={validation.values.icdCode2 || []}
                         onInputChange={(value, actionMeta) => {
                           if (actionMeta.action === "input-change") {
                             handleICDSearch(value);
                           }
                         }}
                         onChange={(selected) =>
-                          validation.setFieldValue("icdCode2", selected)
+                          validation.setFieldValue("icdCode2", selected || [])
                         }
                         filterOption={() => true}
                       />
@@ -651,7 +638,6 @@ const Prescription = ({
             </Col> */}
 
             <Col xs={12} md={6}>
-              
               <div className="mb-3">
                 <Label className="">Follow Up</Label>
                 <Flatpicker
@@ -670,7 +656,6 @@ const Prescription = ({
                 />
               </div>
 
-              
               <div className="mb-3">
                 <Label className="">Referred by</Label>
                 <Input
@@ -683,7 +668,6 @@ const Prescription = ({
               </div>
             </Col>
           </Row>
-
 
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">

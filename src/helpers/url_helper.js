@@ -180,6 +180,10 @@ export const DELETE_BILL = "/bill";
 export const POST_RESTORE_BILL = "/bill/restore";
 export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
 
+// Write Off
+export const GET_WRITE_OFF = "/bill/get/write/off";
+
+
 //MEDICINE
 export const GET_MEDICINES = "/medicine";
 export const GET_DELETED_MEDICINES = "/medicine/deleted";
