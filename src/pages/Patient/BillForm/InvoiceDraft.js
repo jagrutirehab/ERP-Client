@@ -282,7 +282,7 @@ const InvoiceDraft = ({
               typeof item.category === "object"
                 ? item.category.name
                 : item.category,
-            unit: parseInt(item.unit) || 0,
+            unit: parseInt(item.unit) || 1,
             cost: exactCost,
             unitOfMeasurement: dynamicUOM,
             comments: "",
