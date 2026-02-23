@@ -84,7 +84,7 @@ const InvoiceDraft = ({
     },
     validationSchema: Yup.object({
       bill: Yup.string().required("Bill type required!"),
-      fromDate: Yup.date().required("From date is required"),
+      // fromDate: Yup.date().required("From date is required"),
 
       // toDate: Yup.date()
       //   .required("To date is required")
