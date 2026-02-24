@@ -171,11 +171,11 @@ const DetailAdmission = ({
         ? detailAdmissionForm.detailAdmission?.referral
         : "",
       provisionaldiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id)
+        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id) || []
         : [],
 
       diagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id)
+        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id) || []
         : [],
 
 
