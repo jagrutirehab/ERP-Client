@@ -32,12 +32,12 @@ code {
 }
 
 /* Align react-select text vertically */
-.react-select__value-container {
+/* .react-select__value-container {
   height: 32px !important;
   padding: 0 8px !important;
   display: flex;
   align-items: center;
-}
+} */
 
 /* Remove extra padding */
 .react-select__control {
@@ -88,3 +88,4 @@ code {
   color: rgba(13, 110, 253, 1);
   text-decoration: underline;
 }
+

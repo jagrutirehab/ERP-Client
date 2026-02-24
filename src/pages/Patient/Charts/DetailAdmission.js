@@ -5,7 +5,7 @@ import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
-import { mentalExaminationV2Fields } from "../../../Components/constants/patient";
+import { COUNSELLING_NOTE, mentalExaminationV2Fields } from "../../../Components/constants/patient";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -35,6 +35,8 @@ const DetailAdmission = ({ data }) => {
       mentalExaminationV2FieldsMap[f.name] = f.label;
     }
   });
+
+  console.log("data?.doctorSignature", data?.doctorSignature);
 
 
   return (
@@ -353,7 +355,40 @@ const DetailAdmission = ({ data }) => {
                     <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
                       {formattedKey}:-
                     </span>
-                    {value}
+                    {
+                      Array.isArray(value)
+                        ? value
+                          .map((item) => {
+                            if (!item) return "";
+
+                            if (typeof item === "object" && item.code) {
+                              return item.code;
+                            }
+
+                            if (typeof item === "object") {
+                              const chars = Object.keys(item)
+                                .filter((k) => !isNaN(k)) 
+                                .sort((a, b) => a - b)
+                                .map((k) => item[k]);
+
+                              if (chars.length) {
+                                return chars.join("");
+                              }
+                            }
+
+                            // Case 3: pure string
+                            if (typeof item === "string") {
+                              return item;
+                            }
+
+                            return "";
+                          })
+                          .filter(Boolean)
+                          .join(", ")
+                        : typeof value === "string"
+                          ? value
+                          : ""
+                    }
                   </p>
                 </div>
               </Col>
