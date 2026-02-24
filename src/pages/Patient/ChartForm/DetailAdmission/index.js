@@ -79,6 +79,8 @@ const UploadedFiles = ({ id, chartId, files }) => {
     });
   };
 
+
+
   return (
     <Row className="row-gap-3 mb-3">
       <Col xs={12}>
@@ -123,9 +125,12 @@ const DetailAdmission = ({
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
+  console.log("editChartData", editChartData);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const isOldMentalExamination = Boolean(detailAdmissionForm?.mentalExamination);
+
+  console.log("detailAdmissionForm", detailAdmissionForm);
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -165,12 +170,16 @@ const DetailAdmission = ({
       referral: detailAdmissionForm
         ? detailAdmissionForm.detailAdmission?.referral
         : "",
-      provisionalDiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.detailAdmission?.provisionalDiagnosis
-        : "",
-      revisedDiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.detailAdmission?.revisedDiagnosis
-        : "",
+      provisionaldiagnosis: detailAdmissionForm
+        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id)
+        : [],
+
+      diagnosis: detailAdmissionForm
+        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id)
+        : [],
+
+
+
       //detail history
       informant: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.informant
@@ -393,11 +402,15 @@ const DetailAdmission = ({
         : "",
       //diagnosis & doctor signature
       provisionaldiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis
-        : "",
+        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id) || []
+        : [],
+
       diagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.diagnosis
-        : "",
+        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id) || []
+        : [],
+
+
+
       managmentPlan: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.managmentPlan
         : "",
@@ -418,6 +431,39 @@ const DetailAdmission = ({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
+
+      provisionaldiagnosis: Yup.array().of(Yup.string()).nullable(),
+
+      diagnosis: Yup.array()
+        .of(Yup.string())
+        .nullable()
+        .test(
+          "no-overlap",
+          "Final Diagnosis cannot be the same as Provisional Diagnosis",
+          function (value) {
+
+            const provisional = this.parent.provisionaldiagnosis;
+
+            const finalArr = Array.isArray(value)
+              ? value.filter(Boolean)
+              : [];
+
+            const provisionalArr = Array.isArray(provisional)
+              ? provisional.filter(Boolean)
+              : [];
+
+            if (finalArr.length === 0 || provisionalArr.length === 0) {
+              return true;
+            }
+
+            const hasOverlap = finalArr.some(v =>
+              provisionalArr.includes(v)
+            );
+
+            return !hasOverlap;
+          }
+        ),
+
     }),
     onSubmit: (values) => {
       /* appending */
@@ -450,6 +496,9 @@ const DetailAdmission = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, detailAdmissionForm]);
+
+
+
 
   const consentUploadedFiles = useMemo(() => {
     return (
@@ -521,6 +570,7 @@ const DetailAdmission = ({
           </div>
           <div className="mt-4">
             <Form
+              key={detailAdmissionForm?._id || "new"}
               onSubmit={(e) => {
                 e.preventDefault();
                 validation.handleSubmit();

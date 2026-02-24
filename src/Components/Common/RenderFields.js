@@ -2,8 +2,13 @@ import React from "react";
 import { Col, FormFeedback, Input, Label, Row } from "reactstrap";
 import { capitalizeWords } from "../../utils/toCapitalize";
 import Select from "react-select";
+import * as Yup from "yup";
 
 const RenderFields = ({ fields, validation }) => {
+
+
+  console.log('fields', fields)
+
   return (
     <React.Fragment>
       <Row>
@@ -77,43 +82,59 @@ const RenderFields = ({ fields, validation }) => {
                     </Input>
                   </>
                 ) : field.type === "select2" ? (
-                  <Select
-                    name={field.name}
-                    options={(field.options || []).map(opt => ({
-                      value: typeof opt === "string" ? opt : opt.value,
-                      label: typeof opt === "string" ? opt : opt.label,
-                    }))}
-                    value={
-                      (field.options || [])
-                        .map(opt => ({
-                          value: typeof opt === "string" ? opt : opt.value,
-                          label: typeof opt === "string" ? opt : opt.label,
-                        }))
-                        .find(option => option.value === validation.values[field.name]) || null
-                    }
-                    onChange={(selected) =>
-                      validation.setFieldValue(field.name, selected ? selected.value : "")
-                    }
-                    onBlur={() => validation.setFieldTouched(field.name, true)}
-                    placeholder={`Enter ${field.label}`}
-                    classNamePrefix="react-select"
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: 45,
-                        borderColor:
-                          validation.touched[field.name] && validation.errors[field.name]
-                            ? "red"
-                            : base.borderColor,
-                      }),
-                      singleValue: (base) => ({
-                        ...base,
-                        whiteSpace: "normal",
-                        lineHeight: "20px",
-                      }),
-                    }}
-                  />
+                  <>
+                    <Select
+                      name={field.name}
+                      options={field.options || []}
+                      isMulti={field.isMulti || false}
+                      value={
+                        field.isMulti
+                          ? (field.options || []).filter(opt =>
+                            (validation.values[field.name] || []).includes(opt.value)
+                          )
+                          : (field.options || []).find(
+                            opt => opt.value === validation.values[field.name]
+                          ) || null
+                      }
+                      onChange={(selected) => {
+                        if (field.isMulti) {
+                          validation.setFieldValue(
+                            field.name,
+                            selected ? selected.map(item => item.value) : []
+                          );
+                        } else {
+                          validation.setFieldValue(
+                            field.name,
+                            selected ? selected.value : ""
+                          );
+                        }
+                      }}
+                      onBlur={() => validation.setFieldTouched(field.name, true)}
+                      classNamePrefix="react-select"
+
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          height: "auto",
+                          alignItems: "flex-start",
+                        }),
+                        valueContainer: (base) => ({
+                          ...base,
+                          padding: "6px 8px",
+                          height: "auto",
+                          flexWrap: "wrap",
+                        }),
+                      }}
+                    />
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <div className="text-danger mt-1">
+                          {validation.errors[field.name]}
+                        </div>
+                      )}
+                  </>
                 )
+
                   : field.type === "checkbox" ? (
                     <>
                       <div className="d-flex flex-wrap">

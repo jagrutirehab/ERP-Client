@@ -70,6 +70,48 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
     </View>
   );
 
+  const formatDiagnosisValue = (value) => {
+    if (!value) return "";
+
+    // If array
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (!item) return "";
+
+          // new format → object with code
+          if (typeof item === "object" && item.code) {
+            return item.code;
+          }
+
+          // weird old object like {0:"N",1:"A",2:"A"}
+          if (typeof item === "object") {
+            const chars = Object.keys(item)
+              .filter((k) => !isNaN(k))
+              .sort((a, b) => a - b)
+              .map((k) => item[k]);
+
+            return chars.length ? chars.join("") : "";
+          }
+
+          // pure string
+          if (typeof item === "string") {
+            return item;
+          }
+
+          return "";
+        })
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    // If already string
+    if (typeof value === "string") {
+      return value;
+    }
+
+    return "";
+  };
   return (
     <View style={{
       flexDirection: "row",
@@ -87,7 +129,7 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
 
         <Row
           label="doctor consultant:"
-          value={data.doctorConsultant.toUpperCase()}
+          value={data.doctorConsultant.toUpperCase() || ""}
         />
         <Row label="name:" value={patient?.name} />
         {data.religion && <Row label="religion:" value={data.religion} />}
@@ -108,10 +150,17 @@ const DetailInfo = ({ chart, patient, data, styles, admission }) => {
           <Row label="source of referral:" value={data.referral} />
         )}
         {data.provisionalDiagnosis && (
-          <Row label="provisional diagnosis:" value={data.provisionalDiagnosis} />
+          <Row
+            label="provisional diagnosis:"
+            value={formatDiagnosisValue(data.provisionalDiagnosis)}
+          />
         )}
+
         {data.revisedDiagnosis && (
-          <Row label="revised diagnosis:" value={data.revisedDiagnosis} />
+          <Row
+            label="revised diagnosis:"
+            value={formatDiagnosisValue(data.revisedDiagnosis)}
+          />
         )}
       </View>
       <View style={{ width: "35%", alignItems: "flex-end", ...styles.mrgnTop10 }}>

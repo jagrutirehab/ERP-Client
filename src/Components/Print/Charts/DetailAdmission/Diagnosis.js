@@ -16,7 +16,48 @@ Font.register({
   ],
 });
 
+const formatDiagnosisValue = (value) => {
+  if (!value) return "";
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (!item) return "";
+
+        if (typeof item === "object" && item.code) {
+          return item.code;
+        }
+
+        if (typeof item === "object") {
+          const chars = Object.keys(item)
+            .filter((k) => !isNaN(k)) 
+            .sort((a, b) => Number(a) - Number(b))
+            .map((k) => item[k]);
+
+          return chars.length ? chars.join("") : "";
+        }
+
+        if (typeof item === "string") {
+          return item;
+        }
+
+        return "";
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  // If already string
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return "";
+};
+
 const Diagnosis = ({ data, styles }) => {
+  console.log("data", data);
+
   return (
     <React.Fragment>
       <View
@@ -32,7 +73,7 @@ const Diagnosis = ({ data, styles }) => {
               Daignosis Plan:
             </Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.provisionaldiagnosis || ""}
+              {formatDiagnosisValue(data?.provisionaldiagnosis)}
             </Text>
           </View>
         )}
@@ -42,7 +83,7 @@ const Diagnosis = ({ data, styles }) => {
               diagnosis:
             </Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.diagnosis || ""}
+              {formatDiagnosisValue(data?.diagnosis)}
             </Text>
           </View>
         )}
