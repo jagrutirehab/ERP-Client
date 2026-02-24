@@ -91,22 +91,26 @@ const Prescription = ({ data, startDate, endDate }) => {
             </p>
           </div>
         ) : Array.isArray(data?.icdCode2) ? (
-          data.icdCode2.length > 0 &&
-          data.icdCode2.map((item, index) => (
-            <div
-              className="d-flex justify-content-between mb-2"
-              key={item?.code_id || index}
-            >
+          data.icdCode2.length > 0 && (
+            <div className="d-flex  mb-2">
               <p className="fs-xs-9 font-size-14 mb-0">
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                   Diagnosis ICD10 Code 2 :
                 </span>
-                <span className="fs-xs-9 fs-md-12">{item?.code}</span>
               </p>
+
+              <div>
+                {data.icdCode2
+                  .filter(item => item?.code)
+                  .map((item, index) => (
+                    <div className="fs-xs-12" key={item?.code_id || index}>
+                      {item.code},
+                    </div>
+                  ))}
+              </div>
             </div>
-          ))
+          )
         ) : null}
-        {/* )} */}
         <div className="d-block text-center mt-3 mb-3">
           <Divider />
         </div>
