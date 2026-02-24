@@ -272,9 +272,26 @@ const PrescriptionBody = ({ chart, doctor }) => {
           </View>
         ) : Array.isArray(chart?.icdCode2) ? (
           chart.icdCode2.length > 0 && (
-            <View wrap={false} style={{ ...styles.mrgnTop10 }}>
-              <Text style={{ ...styles.instr }}>
-                Diagnosis ICD10 Code 2 :{" "}
+            <View
+              wrap={false}
+              style={{
+                ...styles.mrgnTop10,
+                flexDirection: "row",
+                alignItems: "flex-start",
+              }}
+            >
+              {/* Header Column */}
+              <Text
+                style={{
+                  ...styles.instr,
+                  width: 125,
+                }}
+              >
+                Diagnosis ICD10 Code 2 :
+              </Text>
+
+              {/* Codes Column */}
+              <View style={{ flex: 1 }}>
                 {chart.icdCode2
                   .filter(item => item?.code)
                   .map((item, index) => (
@@ -283,13 +300,14 @@ const PrescriptionBody = ({ chart, doctor }) => {
                       style={{
                         ...styles.textGray,
                         ...styles.fontNormal,
+                        marginBottom: 2,
                       }}
                     >
-                      {index === 0 ? "" : "\n"}
-                      {item.code},
+                      {item.code}
+                      {index !== chart.icdCode2.length - 1 ? "," : ""}
                     </Text>
                   ))}
-              </Text>
+              </View>
             </View>
           )
         ) : null}

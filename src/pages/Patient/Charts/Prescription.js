@@ -102,9 +102,10 @@ const Prescription = ({ data, startDate, endDate }) => {
               <div>
                 {data.icdCode2
                   .filter(item => item?.code)
-                  .map((item, index) => (
+                  .map((item, index, arr) => (
                     <div className="fs-xs-12" key={item?.code_id || index}>
-                      {item.code},
+                      {item.code}
+                      {index !== arr.length - 1 ? "," : ""}
                     </div>
                   ))}
               </div>
