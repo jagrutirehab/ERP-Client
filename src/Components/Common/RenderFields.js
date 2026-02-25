@@ -108,6 +108,7 @@ const RenderFields = ({ fields, validation }) => {
                             selected ? selected.value : ""
                           );
                         }
+                        validation.setFieldTouched(field.name, true);
                       }}
                       onBlur={() => validation.setFieldTouched(field.name, true)}
                       classNamePrefix="react-select"
@@ -132,6 +133,7 @@ const RenderFields = ({ fields, validation }) => {
                           {validation.errors[field.name]}
                         </div>
                       )}
+
                   </>
                 )
 
@@ -162,11 +164,12 @@ const RenderFields = ({ fields, validation }) => {
                             </React.Fragment>
                           );
                         })}
-                        {validation.touched[field.name] && validation.errors[field.name] ? (
-                          <FormFeedback type="invalid" className="d-block">
-                            {validation.errors[field.name]}
-                          </FormFeedback>
-                        ) : null}
+                        {validation.touched[field.name] &&
+                          validation.errors[field.name] && (
+                            <div className="text-danger mt-1" style={{ fontSize: "0.875em" }}>
+                              {validation.errors[field.name]}
+                            </div>
+                          )}
                       </div>
                     </>
                   ) : field.type === "radio" ? (
