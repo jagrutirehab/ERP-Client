@@ -432,26 +432,43 @@ const Prescription = ({
     setIcdOptions(filtered);
   };
 
+  // useEffect(() => {
+  //   if (!allICDCodes.length) return;
+  //   if (icd2Initialized.current) return;
+
+  //   const sourceICD2 = Array.isArray(
+  //     editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2,
+  //   )
+  //     ? editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2
+  //     : [];
+
+  //   if (!sourceICD2.length) return;
+
+  //   const selected = sourceICD2
+  //     .map((item) => allICDCodes.find((opt) => opt.value === item.code_id))
+  //     .filter(Boolean);
+
+  //   validation.setFieldValue("icdCode2", selected);
+
+  //   icd2Initialized.current = true;
+  // }, [allICDCodes]);
+
   useEffect(() => {
-    if (!allICDCodes.length) return;
-    if (icd2Initialized.current) return;
+  if (!allICDCodes.length) return;
 
-    const sourceICD2 = Array.isArray(
-      editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2,
+  if (!sourcePrescription?.icdCode2?.length) {
+    validation.setFieldValue("icdCode2", []);
+    return;
+  }
+
+  const selected = sourcePrescription.icdCode2
+    .map((item) =>
+      allICDCodes.find((opt) => opt.value === item.code_id)
     )
-      ? editPrescription?.icdCode2 || ptLatestOPDPrescription?.icdCode2
-      : [];
+    .filter(Boolean);
 
-    if (!sourceICD2.length) return;
-
-    const selected = sourceICD2
-      .map((item) => allICDCodes.find((opt) => opt.value === item.code_id))
-      .filter(Boolean);
-
-    validation.setFieldValue("icdCode2", selected);
-
-    icd2Initialized.current = true;
-  }, [allICDCodes]);
+  validation.setFieldValue("icdCode2", selected);
+}, [allICDCodes, sourcePrescription]);
 
   return (
     <React.Fragment>
