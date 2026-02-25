@@ -131,6 +131,22 @@ const DetailAdmission = ({
   const isOldMentalExamination = Boolean(detailAdmissionForm?.mentalExamination);
 
   console.log("detailAdmissionForm", detailAdmissionForm);
+
+  const isEdit = Boolean(editChartData?._id);
+
+  const hasExistingDiagnosis =
+    isEdit &&
+    detailAdmissionForm?.doctorSignature?.diagnosis?.length > 0;
+
+  console.log("hasExistingDiagnosis", hasExistingDiagnosis);
+
+  const hasExistingProDiagnosis =
+    isEdit &&
+    detailAdmissionForm?.doctorSignature?.provisionaldiagnosis?.length > 0;
+
+  console.log("hasExistingProDiagnosis", hasExistingProDiagnosis);
+
+
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -427,16 +443,86 @@ const DetailAdmission = ({
       date: chartDate,
       type,
     },
+
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
 
-      provisionaldiagnosis: Yup.array().of(Yup.string()).nullable(),
+      provisionaldiagnosis: Yup.array()
+        .of(Yup.string())
+        .nullable()
+        .test(
+          "required-if-edit-provisional",
+          "Please Re-Enter Provisional Diagnosis",
+          function (value) {
+
+            const isEdit = Boolean(editChartData?._id);
+
+            const existing =
+              detailAdmissionForm?.doctorSignature?.provisionaldiagnosis;
+
+            const hasValidCodeObject =
+              isEdit &&
+              Array.isArray(existing) &&
+              existing.some(
+                (item) =>
+                  item &&
+                  typeof item === "object" &&
+                  item.code?.trim() &&
+                  item.code_id?.trim()
+              );
+
+            if (hasValidCodeObject) return true;
+
+
+            const hasExisting =
+              isEdit &&
+              Array.isArray(existing) &&
+              existing.filter(Boolean).length > 0;
+
+            if (!hasExisting) return true;
+
+            return Array.isArray(value) && value.filter(Boolean).length > 0;
+          }
+        ),
 
       diagnosis: Yup.array()
         .of(Yup.string())
         .nullable()
+        .test(
+          "required-if-edit",
+          "Please Re-Enter Final Diagnosis",
+          function (value) {
+
+            const isEdit = Boolean(editChartData?._id);
+
+            const existingDiagnosis =
+              detailAdmissionForm?.doctorSignature?.diagnosis;
+
+            const hasValidCodeObject =
+              isEdit &&
+              Array.isArray(existingDiagnosis) &&
+              existingDiagnosis.some(
+                (item) =>
+                  item &&
+                  typeof item === "object" &&
+                  item.code?.trim() &&
+                  item.code_id?.trim()
+              );
+
+            if (hasValidCodeObject) return true;
+
+            const hasExisting =
+              isEdit &&
+              Array.isArray(existingDiagnosis) &&
+              existingDiagnosis.filter(Boolean).length > 0;
+
+            if (!hasExisting) return true;
+
+            return Array.isArray(value) && value.filter(Boolean).length > 0;
+          }
+        )
         .test(
           "no-overlap",
           "Final Diagnosis cannot be the same as Provisional Diagnosis",
@@ -463,6 +549,9 @@ const DetailAdmission = ({
             return !hasOverlap;
           }
         ),
+
+
+
 
     }),
     onSubmit: (values) => {
