@@ -29,6 +29,7 @@ import Divider from "../../../Components/Common/Divider";
 import { format } from "date-fns";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { getICDCodes } from "../../../helpers/backend_helper";
 
 const AdmitPatient = ({
   isOpen,
@@ -45,6 +46,7 @@ const AdmitPatient = ({
   const [step, setStep] = useState(1);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
+  const [icdOptions, setIcdOptions] = useState([]);
 
   const toggle = () =>
     dispatch(admitDischargePatient({ data: null, isOpen: "" }));
@@ -82,7 +84,7 @@ const AdmitPatient = ({
       }),
       psychologist: data ? data.psychologist?._id : "",
       doctor: data ? data.doctor?._id : "",
-      provisionalDiagnosis: data ? data.provisionalDiagnosis : "",
+      provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
     },
     validationSchema: Yup.object({
@@ -130,9 +132,9 @@ const AdmitPatient = ({
       center: Yup.string().required("Please select center"),
       psychologist: Yup.string().required("Please select Psychologist"),
       doctor: Yup.string().required("Please select Doctor"),
-      provisionalDiagnosis: Yup.string().required(
-        "Please select Provisional Diagnosis",
-      ),
+      // provisional_diagnosis: Yup.array()
+      //   .min(1, "Please select at least one Provisional Diagnosis")
+      //   .required("Please select Provisional Diagnosis"),
       Ipdnum: Yup.string().required("Please Wait for Ipd file number"),
     }),
     onSubmit: (values) => {
@@ -303,11 +305,33 @@ const AdmitPatient = ({
     // },
   ];
 
+
+  const loadIcds = async () => {
+    try {
+      const response = await getICDCodes();
+
+      const formatted = response.map((item) => ({
+        value: item._id,
+        label: `${item.code} - ${item.text}`,
+      }));
+
+      setIcdOptions(formatted);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    loadIcds();
+  }, [])
+
   const admissionFields = [
     {
       label: "Provisional Diagnosis",
-      name: "provisionalDiagnosis",
-      type: "text",
+      name: "provisional_diagnosis",
+      type: "select",
+      options: icdOptions,
+      isMulti: true,
     },
     {
       label: "Doctor",
@@ -404,7 +428,7 @@ const AdmitPatient = ({
                   ...provided,
                   borderColor:
                     validation.touched.referredBy &&
-                    validation.errors.referredBy
+                      validation.errors.referredBy
                       ? "#dc3545"
                       : "#ced4da",
                   boxShadow: state.isFocused
@@ -416,7 +440,7 @@ const AdmitPatient = ({
                   "&:hover": {
                     borderColor:
                       validation.touched.referredBy &&
-                      validation.errors.referredBy
+                        validation.errors.referredBy
                         ? "#dc3545"
                         : "#86b7fe",
                   },
@@ -463,12 +487,11 @@ const AdmitPatient = ({
                       width: "100%",
                       height: "42px",
                       padding: "0.5rem 0.75rem",
-                      border: `1px solid ${
-                        validation.touched.referralPhoneNumber &&
+                      border: `1px solid ${validation.touched.referralPhoneNumber &&
                         validation.errors.referralPhoneNumber
-                          ? "#dc3545"
-                          : "#ced4da"
-                      }`,
+                        ? "#dc3545"
+                        : "#ced4da"
+                        }`,
                       borderRadius: "0.375rem",
                       fontSize: "1rem",
                     }}
@@ -632,7 +655,7 @@ const AdmitPatient = ({
               className="form-control shadow-none bg-light"
             />
             {validation.touched.addmissionDate &&
-            validation.errors.addmissionDate ? (
+              validation.errors.addmissionDate ? (
               <FormFeedback className="d-block" type="invalid">
                 {validation.errors.addmissionDate}
               </FormFeedback>
@@ -671,7 +694,7 @@ const AdmitPatient = ({
                 className="form-control shadow-none bg-light"
               />
               {validation.touched.dischargeDate &&
-              validation.errors.dischargeDate ? (
+                validation.errors.dischargeDate ? (
                 <FormFeedback className="d-block" type="invalid">
                   {validation.errors.dischargeDate}
                 </FormFeedback>
@@ -725,7 +748,10 @@ const AdmitPatient = ({
             const step2Fields = [
               "center",
               "addmissionDate",
-              ...admissionFields.map((f) => f.name),
+              // ...admissionFields.map((f) => f.name),
+              ...admissionFields
+                .filter((f) => f.name !== "provisional_diagnosis")
+                .map((f) => f.name),
             ];
 
             // Touch all step 2 fields
