@@ -17,6 +17,7 @@ import {
   ADVANCE_PAYMENT,
   INVOICE,
   IPD,
+  WRITE_OFF,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
 import { createEditBill } from "../../../store/actions";
@@ -163,7 +164,7 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {disableEdit ? (
+                    {disableEdit || item?.bill === WRITE_OFF ? (
                       ""
                     ) : (
                       <CheckPermission permission={"edit"} subAccess={name}>

@@ -26,6 +26,7 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { differenceInDays } from "date-fns";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
+import WriteOffPayment from "./WriteOffPayment";
 
 const superUser = [
   // "rijutarafder000@gmail.com",
@@ -245,7 +246,19 @@ const Bills = ({
             totalDeposit,
           }),
         );
-      } else {
+      }
+      else if (bill.bill === WRITE_OFF) {
+        dispatch(
+          setTotalAmount({
+            calculatedPayable: previousPayable,
+            calculatedAdvance: calcAdvance,
+            totalPayable,
+            totalAdvance,
+            totalDeposit,
+          }),
+        );
+      }
+      else {
         dispatch(
           setTotalAmount({
             calculatedPayable: bill.advancePayment?.calculatedPayable ?? 0,
@@ -308,6 +321,8 @@ const Bills = ({
   };
 
   const newDate = new Date();
+
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -315,6 +330,24 @@ const Bills = ({
           <Row className="timeline-right">
             {(newBills || [])
               .sort((a, b) => new Date(b.date) - new Date(a.date))
+              // .sort((a, b) => {
+              //   const isAWriteOffEdited =
+              //     a.bill === WRITE_OFF &&
+              //     new Date(a.updatedAt).getTime() !== new Date(a.createdAt).getTime();
+
+              //   const isBWriteOffEdited =
+              //     b.bill === WRITE_OFF &&
+              //     new Date(b.updatedAt).getTime() !== new Date(b.createdAt).getTime();
+
+              //   // If A is recently edited WRITE_OFF → move to top
+              //   if (isAWriteOffEdited && !isBWriteOffEdited) return -1;
+
+              //   // If B is recently edited WRITE_OFF → move to top
+              //   if (!isAWriteOffEdited && isBWriteOffEdited) return 1;
+
+              //   // Otherwise normal date sorting
+              //   return new Date(b.date) - new Date(a.date);
+              // })
               .map((bill) => {
                 return (
                   <Wrapper
@@ -342,27 +375,30 @@ const Bills = ({
                     disableEdit={
                       (bill.bill === ADVANCE_PAYMENT ||
                         bill.bill === DEPOSIT) &&
-                      // || bill.bill === INVOICE
-                      user?.email !== "rijutarafder000@gmail.com" &&
-                      user?.email !== "surjeet.parida@gmail.com" &&
-                      user?.email !== "hemanthshinde@gmail.com" &&
-                      user?.email !== "vikas@jagrutirehab.org" &&
-                      user?.email !== "bishal@gmail.com"
+                        // || bill.bill === INVOICE
+                        // user?.email !== "rijutarafder000@gmail.com" &&
+                        user?.email !== "surjeet.parida@gmail.com" &&
+                        user?.email !== "hemanthshinde@gmail.com"
+                        // user?.email !== "vikas@jagrutirehab.org" &&
+                        // user?.email !== "bishal@gmail.com"
                         ? true
                         : bill.bill === INVOICE &&
-                            superUser.includes(user.email)
+                          superUser.includes(user.email)
                           ? false
                           : bill.bill === INVOICE &&
-                              differenceInDays(
-                                newDate,
-                                new Date(bill.createdAt),
-                              ) > 30
+                            differenceInDays(
+                              newDate,
+                              new Date(bill.createdAt),
+                            ) > 30
                             ? true
                             : false
                     }
                     itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
                     disableDelete={addmission?.dischargeDate ? true : false}
                   >
+                    <RenderWhen isTrue={bill.bill === WRITE_OFF}>
+                      <WriteOffPayment data={bill?.writeOffInvoice} />
+                    </RenderWhen>
                     <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT}>
                       <AdvancePayment data={bill?.advancePayment} />
                     </RenderWhen>
@@ -374,6 +410,7 @@ const Bills = ({
                     >
                       <Invoice data={bill?.invoice} bill={bill} />
                     </RenderWhen>
+
                   </Wrapper>
                 );
               })}

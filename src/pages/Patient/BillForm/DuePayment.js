@@ -170,6 +170,10 @@ const DuePayment = ({
             billingStatus: response.billingStatus,
           }),
         );
+        const admissionId = admission || patient?.addmission?._id;
+        if (admissionId) {
+          await dispatch(fetchBills(admissionId));
+        }
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
       validation.resetForm();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Accordion,
@@ -32,6 +32,7 @@ import {
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import DraftInvoice from "./Components/DraftInvoice";
 import { getWriteOff } from "../../../helpers/backend_helper";
+import { clearLogs } from "../../../store/features/report/dbLogSlice";
 
 const Billing = ({
   user,
@@ -50,7 +51,8 @@ const Billing = ({
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const [admission, setAdmission] = useState(null);
-  const [writeOffArray, setWriteOffArray] = useState([]);
+  const [withWriteOffPayableAmount, setWithWriteOffPayableAmount] = useState();
+  const [writeOffMap, setWriteOffMap] = useState({});
   const toggleModal = () => setDateModal(!dateModal);
 
   const handleAdmitPatient = () => {
@@ -79,6 +81,8 @@ const Billing = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, patient, addmissionsBills]);
+
+
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       dispatch(fetchBills(addmissionId));
@@ -89,41 +93,89 @@ const Billing = ({
     dispatch(fetchDraftBills({ patient: patient._id }));
   }, [dispatch, patient]);
 
-  console.log("PPatient", patient);
-  const fetchWriteOffs = async () => {
-    try {
-      const data = {
-        patient: patient?._id,
-        addmission: patient?.addmission?._id,
-        center: patient?.center?._id,
-      };
+  const latestAdmission = addmissionsBills?.length
+    ? addmissionsBills.reduce((latest, current) =>
+      new Date(current.addmissionDate) >
+        new Date(latest.addmissionDate)
+        ? current
+        : latest
+    )
+    : null;
 
-      const response = await getWriteOff(data);
-      console.log("Response:", response.data);
-      setWriteOffArray(response?.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  console.log("latestAdmission", latestAdmission);
+
+  const arrayOfWriteOffs = [];
+
+  // useEffect(() => {
+  //   if (!patient?._id || !addmissionsBills?.length) {
+  //     return;
+  //   }
+  //   console.log("patient", patient);
+
+  //   const fetchAllWriteOffs = async () => {
+  //     const data = {
+  //       patient: patient._id,
+  //       addmission: latestAdmission._id,
+  //       center: latestAdmission?.center?._id,
+  //     };
+  //     const response = await getWriteOff(data);
+  //     console.log("response", response);
+  //     setWithWriteOffPayableAmount(response?.data?.[0]?.writeOffInvoice?.amount)
+  //   }
+  //   fetchAllWriteOffs();
+  // }, [patient?._id, addmissionsBills]);
 
   useEffect(() => {
-    fetchWriteOffs();
-  }, [patient]);
+    if (!patient?._id || !addmissionsBills?.length) return;
 
-  const writeOffGrouped = writeOffArray.reduce((acc, item) => {
-    if (!acc[item.addmission]) {
-      acc[item.addmission] = 0;
-    }
-    acc[item.addmission] += item.amount || 0;
-    return acc;
-  }, {});
+    const fetchAllWriteOffs = async () => {
+      const newWriteOffs = {};
 
-  const totalWriteOff = writeOffArray.reduce(
-    (sum, item) => sum + (item.amount || 0),
-    0,
-  );
+      await Promise.all(
+        addmissionsBills.map(async (adm) => {
+          const queryParams = {
+            patient: patient._id,
+            addmission: adm._id || latestAdmission?.addmissionId,
+            center: patient?.center?._id,
+          };
+          try {
+            const res = await getWriteOff(queryParams);
 
-  const adjustedPayable = Math.max(calculatedPayable - totalWriteOff, 0);
+            const totalAmount =
+              res?.data?.reduce((sum, item) => {
+                return sum + (item?.writeOffInvoice?.amount || 0);
+              }, 0) || 0;
+
+            newWriteOffs[adm._id] = totalAmount;
+
+          } catch (err) {
+            newWriteOffs[adm._id] = 0;
+          }
+        })
+      );
+
+      setWriteOffMap(newWriteOffs);
+    };
+
+    fetchAllWriteOffs();
+  }, [patient?._id, addmissionsBills]);
+
+
+  console.log("WriteOffPayalbe", withWriteOffPayableAmount);
+
+  console.log("addmissionsBills", addmissionsBills);
+
+
+
+
+  const adjustedPayable = useMemo(() => {
+    const latestId = latestAdmission?._id;
+    const writeOff = Number(writeOffMap[latestId]) || 0;
+    const payable = Number(calculatedPayable) || 0;
+
+    return payable - writeOff;
+  }, [calculatedPayable, writeOffMap, latestAdmission?._id]);
+
 
   return (
     <div className="mt-3">
@@ -156,8 +208,8 @@ const Billing = ({
               id="payable-amount"
               className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-danger"
             >
-              {calculatedPayable}
-              {/* {adjustedPayable} */}
+              {/* {calculatedPayable} */}
+              {adjustedPayable}
             </h6>
           </RenderWhen>
           <RenderWhen isTrue={calculatedAdvance > calculatedPayable}>
@@ -206,13 +258,12 @@ const Billing = ({
           patient in order to create bills!
         </Alert>
       </RenderWhen>
-      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} />
+      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} adjustedPayable={adjustedPayable} />
       <BillForm type={IPD} />
 
       <div className="mt-3">
         <Row className="timeline-right row-gap-5">
           {(addmissionsBills || []).map((addmission, idx) => {
-            // const admissionWriteOff = writeOffGrouped[addmission._id] || 0;
             const payable =
               idx === 0 ? totalPayable : addmission.totalInvoicePayable;
             const advancePayment =
@@ -265,12 +316,12 @@ const Billing = ({
                         {advancePayment}
                       </h6>
                     </div>
-                    {/* <div className="d-flex">
+                    <div className="d-flex">
                       <span>Write Off Amount:</span>
                       <h6 className="display-6 fs-6 mb-0 ms-2">
-                        {admissionWriteOff}
+                        {writeOffMap[addmission._id] || 0}
                       </h6>
-                    </div> */}
+                    </div>
                     {ttlDeposit > 0 && (
                       <div className="d-flex">
                         <span>Total Deposit Remaining:</span>
@@ -290,30 +341,30 @@ const Billing = ({
                     user?.email === "owais@gmail.com" ||
                     user?.email === "bishal@gmail.com" ||
                     user?.email === "hemanthshinde@gmail.com") && (
-                    <div className="d-flex align-items-center">
-                      <UncontrolledTooltip
-                        placement="bottom"
-                        target="edit-admission"
-                      >
-                        Edit Admission
-                      </UncontrolledTooltip>
-                      <Button
-                        onClick={() => {
-                          dispatch(
-                            admitDischargePatient({
-                              data: addmission,
-                              isOpen: EDIT_ADMISSION,
-                            }),
-                          );
-                        }}
-                        id="edit-admission"
-                        size="sm"
-                        outline
-                      >
-                        <i className="ri-quill-pen-line text-muted fs-6"></i>
-                      </Button>
-                    </div>
-                  )}
+                      <div className="d-flex align-items-center">
+                        <UncontrolledTooltip
+                          placement="bottom"
+                          target="edit-admission"
+                        >
+                          Edit Admission
+                        </UncontrolledTooltip>
+                        <Button
+                          onClick={() => {
+                            dispatch(
+                              admitDischargePatient({
+                                data: addmission,
+                                isOpen: EDIT_ADMISSION,
+                              }),
+                            );
+                          }}
+                          id="edit-admission"
+                          size="sm"
+                          outline
+                        >
+                          <i className="ri-quill-pen-line text-muted fs-6"></i>
+                        </Button>
+                      </div>
+                    )}
 
                   <div className="d-flex align-items-center">
                     <UncontrolledTooltip
@@ -332,11 +383,10 @@ const Billing = ({
                       outline
                     >
                       <i
-                        className={`${
-                          open === idx.toString()
-                            ? " ri-arrow-up-s-line"
-                            : "ri-arrow-down-s-line"
-                        } fs-6`}
+                        className={`${open === idx.toString()
+                          ? " ri-arrow-up-s-line"
+                          : "ri-arrow-down-s-line"
+                          } fs-6`}
                       ></i>
                     </Button>
                   </div>

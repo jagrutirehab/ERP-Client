@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Form, Button } from "reactstrap";
 import { set } from "date-fns";
@@ -18,10 +18,13 @@ import {
   REFUND,
   WRITE_OFF,
 } from "../../../Components/constants/patient";
+import WriteOffModal from "./WriteOffModal";
 
 //redux
 import { connect, useDispatch, useSelector } from "react-redux";
-import { createEditBill, setBillDate } from "../../../store/actions";
+import { createEditBill, fetchBills, setBillDate } from "../../../store/actions";
+import { postWriteOff } from "../../../helpers/backend_helper";
+import { toast } from "react-toastify";
 
 const BillDate = ({
   isOpen,
@@ -30,11 +33,29 @@ const BillDate = ({
   editBillData,
   patient,
   admission,
+  adjustedPayable
 }) => {
   const dispatch = useDispatch();
+  const [showWriteOff, setShowWriteOff] = useState(false);
+  const [loading, setLoading] = useState(false);
   const PatientCenter = useSelector(
     (state) => state.Patient.patient.center._id,
   );
+  const billingAdmissions = useSelector(
+    (state) => state.Bill.data
+  );
+
+  console.log("adjustedPayable", adjustedPayable);
+
+
+
+  const latestBillingAdmission = billingAdmissions?.reduce(
+    (latest, current) =>
+      new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+        ? current
+        : latest
+  );
+  console.log("latestBillingAdmission", latestBillingAdmission);
 
   const paymentCenters = [
     "651f8abfed3d16334ae5a908",
@@ -49,7 +70,34 @@ const BillDate = ({
 
   console.log({ billDate, editBillData, patient, admission });
 
-  // console.log("patient", patient);
+  console.log("patient1 data : ", { patient: patient, admission: admission });
+
+
+  const handleWriteOffSubmit = async (data) => {
+    if (!latestBillingAdmission?._id) return;
+    try {
+      const payload = {
+        center: patient?.center?._id,
+        patient: patient?._id,
+        addmission: latestBillingAdmission?.addmissionId || latestBillingAdmission?._id,
+        amount: data?.amount,
+        reason: data?.reason
+      };
+      console.log("payload", payload);
+      const response = await postWriteOff(payload);
+      console.log("response", response);
+      toast.success(response?.message || "Write off added!")
+      setShowWriteOff(false);
+      toggle();
+      const admissionId = latestBillingAdmission?._id || latestBillingAdmission?.addmissionId;
+      if (admissionId) {
+        await dispatch(fetchBills(admissionId));
+      }
+    } catch (error) {
+      toast.error("Error Adding WRITE OFF!")
+    }
+  };
+
 
   return (
     <React.Fragment>
@@ -82,8 +130,8 @@ const BillDate = ({
                     maxDate: editBillData.bill
                       ? new Date()
                       : new Date(
-                          new Date().setMonth(new Date().getMonth() + 1),
-                        ),
+                        new Date().setMonth(new Date().getMonth() + 1),
+                      ),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
@@ -286,19 +334,22 @@ const BillDate = ({
           >
             Inovice Draft
           </Button>
-          {/* {editBillData?.bill === null && (
-            <Button
-              outline
-              size="sm"
-              onClick={() => {
-                console.log("Write Off clicked");
-              }}
-            >
-              Write Off
-            </Button>
-          )} */}
+          {adjustedPayable > 0 && <Button
+            outline
+            size="sm"
+            onClick={() => setShowWriteOff(true)}
+          >
+            Write Off
+          </Button>}
         </div>
       </CustomModal>
+
+      <WriteOffModal
+        isOpen={showWriteOff}
+        toggle={() => setShowWriteOff(false)}
+        onSubmit={handleWriteOffSubmit}
+        adjustedPayable={adjustedPayable}
+      />
     </React.Fragment>
   );
 };

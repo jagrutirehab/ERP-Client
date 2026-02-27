@@ -182,6 +182,7 @@ export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
 
 // Write Off
 export const GET_WRITE_OFF = "/bill/get/write/off";
+export const POST_WRITE_OFF = "/bill/post/write/off"
 
 
 //MEDICINE
