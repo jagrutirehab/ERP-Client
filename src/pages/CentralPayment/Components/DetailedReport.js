@@ -560,12 +560,14 @@ const DetailedReport = ({
   const handleExportXLSX = async () => {
     setIsExcelGenerating(true);
     try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const res = await exportDetailedCentralReportXLSX({
         page,
         limit,
         approvalStatus: selectedApprovalStatus,
         currentPaymentStatus: selectedPaymentStatus,
         centers: selectedCentersIds,
+        tz,
         ...(dateFilterEnabled && {
           startDate: reportDate.start.toISOString(),
           endDate: reportDate.end.toISOString(),
