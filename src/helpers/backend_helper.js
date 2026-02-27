@@ -560,8 +560,17 @@ export const postRestoreBill = (data) =>
   api.update(url.POST_RESTORE_BILL, data);
 
 // Write Off
-export const getWriteOff = (data) =>
-  api.get(url.GET_WRITE_OFF, { params: data });
+export const getWriteOff = (data) => {
+  return axios.get(url.GET_WRITE_OFF, {
+    params: {
+      patient: data.patient,
+      addmission: data.addmission,
+      center: data.center,
+    },
+  });
+};
+export const postWriteOff = (payload) =>
+  api.create(url.POST_WRITE_OFF, payload);
 
 //recyclebin
 export const getDeletedCenters = (data) =>
