@@ -273,8 +273,8 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             return;
         }
 
-        // special charracter not allowed in description
-        if (name === "description") {
+        // special charracter not allowed in description and vendor
+        if (name === "description" || name === "vendor") {
             const valid = /^[a-zA-Z0-9 ]*$/.test(value);
             if (!valid) {
                 form.setFieldTouched(name, true, false);

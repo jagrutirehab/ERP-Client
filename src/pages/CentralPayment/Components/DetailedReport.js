@@ -528,6 +528,7 @@ const DetailedReport = ({
             startDate: reportDate.start.toISOString(),
             endDate: reportDate.end.toISOString(),
           }),
+          tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
           ...(search !== "" && { search: parseInt(debouncedSearch) }),
         })
       ).unwrap();
@@ -566,9 +567,10 @@ const DetailedReport = ({
         approvalStatus: selectedApprovalStatus,
         currentPaymentStatus: selectedPaymentStatus,
         centers: selectedCentersIds,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(dateFilterEnabled && {
           startDate: reportDate.start.toISOString(),
-          endDate: reportDate.end.toISOString(),
+          endDate: reportDate.end.toISOString(),  
         }),
         ...(search !== "" && { search: parseInt(debouncedSearch) }),
       });
