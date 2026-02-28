@@ -2647,6 +2647,18 @@ export const uploadMonthlyAttendance = (data) => {
   });
 };
 
+export const getApprovalInbox = (params = {}) => {
+  return api.get(url.GET_APPROVAL_INBOX, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
 // upload file
 export const uploadFile = (data) => {
   return api.create(url.UPLOAD_FILE, data, {

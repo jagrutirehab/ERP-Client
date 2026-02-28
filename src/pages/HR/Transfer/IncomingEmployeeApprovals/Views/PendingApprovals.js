@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -15,17 +14,21 @@ import Select from "react-select";
 import { employeeTransferTransferLocationAction } from "../../../../../helpers/backend_helper";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
+import { useSearchParams } from "react-router-dom";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [modalLoading, setModalLoading] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
@@ -37,8 +40,6 @@ const PendingApprovals = ({ activeTab }) => {
 
     const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL", "READ");
-
-    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -82,6 +83,15 @@ const PendingApprovals = ({ activeTab }) => {
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
         try {

@@ -7,7 +7,7 @@ import { fetchDesignations, fetchTPMs } from "../../../../../store/features/HR/h
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
-import { Spinner } from "reactstrap";
+import { Spinner, Input } from "reactstrap";
 import DataTable from "react-data-table-component";
 import PropTypes from "prop-types";
 import Select from "react-select";
@@ -15,14 +15,20 @@ import { ExpandableText } from "../../../../../Components/Common/ExpandableText"
 import { TPMOptions } from "../../../../../Components/constants/HR";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { useSearchParams } from "react-router-dom";
 
 const ApprovalHistory = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading, designations: designationOptions } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [filters, setFilters] = useState({
-        center: "ALL",
+        center: queryCenter,
         designation: null
     });
     const [page, setPage] = useState(1);
@@ -75,6 +81,34 @@ const ApprovalHistory = ({ activeTab }) => {
     }, [filters.center, user?.centerAccess]);
 
     useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                }
+                return prev;
+            });
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setFilters(prev => ({ ...prev, center: c }));
+        setPage(1);
+    }, [activeTab]);
+
+    useEffect(() => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
@@ -102,7 +136,8 @@ const ApprovalHistory = ({ activeTab }) => {
                 limit,
                 centers,
                 view: "HISTORY",
-                ...filters.designation ? { designation: filters.designation } : {}
+                ...filters.designation ? { designation: filters.designation } : {},
+                ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
             if (!handleAuthError) {
@@ -115,7 +150,7 @@ const ApprovalHistory = ({ activeTab }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchTPMHistory();
         }
-    }, [page, limit, filters, user?.centerAccess, activeTab]);
+    }, [page, limit, filters, user?.centerAccess, activeTab, debouncedSearch]);
 
     const columns = [
         {
@@ -298,7 +333,17 @@ const ApprovalHistory = ({ activeTab }) => {
                             placeholder="Designation"
                             isClearable
                         />
+                    </div>
 
+                    {/* Search */}
+                    <div style={{ width: isMobile ? "100%" : "250px" }}>
+                        <Input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by name, ecode..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                     </div>
                     <div className="ms-auto">
                         <RefreshButton loading={loading} onRefresh={fetchTPMHistory} />

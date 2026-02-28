@@ -8,7 +8,7 @@ import DataTableComponent from "../../../../Components/Common/DataTable";
 import { leaveRequestsColumns } from "../../components/Table/Columns/leaveRequests";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -16,17 +16,20 @@ import { useSelector } from "react-redux";
 
 const ManageLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const [activeTab, setActiveTab] = useState("pending");
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const handleAuthError = useAuthError();
 
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryTab = searchParams.get("tab") || "pending";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const [activeTab, setActiveTab] = useState(queryTab);
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [loading, setLoading] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [requestsData, setRequestsData] = useState([]);
   const user = useSelector((state) => state.User);
   const navigate = useNavigate();
@@ -130,6 +133,16 @@ const ManageLeaves = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search.toLowerCase());
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(timer);

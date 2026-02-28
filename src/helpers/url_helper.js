@@ -480,6 +480,9 @@ export const UPDATE_PAYROLL_REMARKS = "/hr/payroll/remarks";
 export const MONTHLY_PAYROLL_TEMPLATE = "/hr/payroll/monthly/template";
 export const PAYROLL_ACTION = "/hr/payroll/action";
 export const PAYROLL_BULK_ACTION = "/hr/payroll/bulk-action";
+export const GET_DEPARTMENTS = "/hr/get/departments";
+export const CREATE_DEPARTMENTS = "/hr/create/departments";
+export const GET_APPROVAL_INBOX="/hr/approval-inbox";
 
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
@@ -522,8 +525,6 @@ export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
-export const GET_DEPARTMENTS = "/hr/get/departments";
-export const CREATE_DEPARTMENTS = "/hr/create/departments";
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM = "/patient/capacity-assessment-submit-file"

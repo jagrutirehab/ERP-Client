@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
@@ -50,11 +51,14 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+     const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -112,6 +116,15 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchMasterEmployeeList = async () => {
         try {

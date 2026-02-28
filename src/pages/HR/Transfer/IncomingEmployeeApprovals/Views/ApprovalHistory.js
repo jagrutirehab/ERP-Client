@@ -11,6 +11,7 @@ import { Input } from "reactstrap";
 import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
+import { useSearchParams } from "react-router-dom";
 
 
 
@@ -19,12 +20,14 @@ const PendingApprovals = ({ activeTab }) => {
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+     const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
-
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -75,6 +78,15 @@ const PendingApprovals = ({ activeTab }) => {
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchEmployeeTransferHistory = async () => {
         try {

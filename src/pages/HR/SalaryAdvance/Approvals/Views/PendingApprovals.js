@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchAdvanceSalaries } from "../../../../../store/features/HR/hrSlice";
@@ -25,11 +26,14 @@ const PendingApprovals = ({ activeTab }) => {
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [page, setPage] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -85,10 +89,29 @@ const PendingApprovals = ({ activeTab }) => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const c = searchParams.get("center") || "ALL";
+    setSearch(q);
+    setDebouncedSearch(q);
+    setSelectedCenter(c);
+    setPage(1);
+  }, [activeTab]);
 
   const fetchPendingAdvanceSalaryApprovals = async () => {
     try {
@@ -370,7 +393,7 @@ const PendingApprovals = ({ activeTab }) => {
             />
           </div>
           <div className="d-flex justify-content-end">
-              <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
+            <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
           </div>
         </div>
       </div>

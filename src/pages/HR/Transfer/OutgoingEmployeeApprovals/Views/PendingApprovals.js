@@ -9,22 +9,26 @@ import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input } from "reactstrap";
-import { CheckCheck, X } from "lucide-react";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
 import { employeeTransferCurrentLocationAction } from "../../../../../helpers/backend_helper";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
+import { useSearchParams } from "react-router-dom";
+import { CheckCheck, X } from "lucide-react";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [limit, setLimit] = useState(10);
     const [modalLoading, setModalLoading] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
@@ -81,6 +85,15 @@ const PendingApprovals = ({ activeTab }) => {
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
         try {

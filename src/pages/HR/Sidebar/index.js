@@ -186,6 +186,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasMyPendingApprovalsPermission = hasPermission(
+    "HR",
+    "MY_PENDING_APPROVALS",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -380,6 +386,8 @@ const Sidebar = () => {
     }
 
     if (page.id === "salary" && !hasSalaryPermission) return false;
+
+    if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     return true;
   });

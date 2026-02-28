@@ -16,6 +16,7 @@ import Select from "react-select";
 import { Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
+import { useSearchParams } from "react-router-dom";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -28,9 +29,11 @@ const ApprovalHistory = ({ activeTab }) => {
     designationLoading,
   } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
+  const [searchParams] = useSearchParams();
+  const queryDesignation = searchParams.get("q") || null;
   const [filters, setFilters] = useState({
     center: "ALL",
-    designation: null,
+    designation: queryDesignation,
     gender: null,
   });
   const [page, setPage] = useState(1);
