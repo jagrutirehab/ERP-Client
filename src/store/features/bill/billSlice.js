@@ -247,6 +247,7 @@ export const addDeposit = createAsyncThunk(
           message: "Deposit Saved Successfully",
         })
       );
+      console.log("Deposit Added Response:", response);
       if (response.addmission) {
         dispatch(fetchBills(response.addmission));
       }
