@@ -247,6 +247,9 @@ export const addDeposit = createAsyncThunk(
           message: "Deposit Saved Successfully",
         })
       );
+      if (response.addmission) {
+        dispatch(fetchBills(response.addmission));
+      }
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -266,6 +269,9 @@ export const updateDeposit = createAsyncThunk(
           message: "Deposit Updated Successfully",
         })
       );
+      if (response.addmission) {
+        dispatch(fetchBills(response.addmission));
+      }
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -279,12 +285,18 @@ export const depositToAdvance = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await convertDepositToAdvance(data);
+
       dispatch(
         setAlert({
           type: "success",
           message: "Deposit Converted to Advance Successfully",
         })
       );
+      if (response.addmission) {
+        dispatch(fetchBills(response.addmission));
+      }
+
+
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -491,8 +503,8 @@ export const billSlice = createSlice({
             state.totalRefund += payload.bill?.invoice?.refund ?? 0;
             state.totalAmount = Math.abs(
               state.totalInvoicePayment +
-                state.totalRefund -
-                state.totalAdvancePayment
+              state.totalRefund -
+              state.totalAdvancePayment
             );
 
             if (findIndex !== -1) {
@@ -513,8 +525,8 @@ export const billSlice = createSlice({
             state.totalRefund += payload.payload[0]?.totalRefund ?? 0;
             state.totalAmount = Math.abs(
               state.totalInvoicePayment +
-                (state.totalRefund || 0) -
-                state.totalAdvancePayment
+              (state.totalRefund || 0) -
+              state.totalAdvancePayment
             );
 
             const admission = {
@@ -557,8 +569,8 @@ export const billSlice = createSlice({
           state.totalRefund += payload.addmissionData[0]?.totalRefund;
           state.totalAmount = Math.abs(
             state.totalInvoicePayment -
-              state.totalAdvancePayment +
-              state.totalRefund
+            state.totalAdvancePayment +
+            state.totalRefund
           );
           state.data[findIndex].totalInvoicePayable =
             payload.addmissionData[0]?.totalInvoicePayable;
@@ -590,7 +602,7 @@ export const billSlice = createSlice({
           state.totalAdvancePayment += advanceAmount;
           state.totalAmount = Math.abs(
             state.totalAdvancePayment -
-              (state.totalInvoicePayment + state.totalRefund)
+            (state.totalInvoicePayment + state.totalRefund)
           );
 
           if (findIndex !== -1) {
@@ -602,8 +614,8 @@ export const billSlice = createSlice({
 
             admission.calculatedAmount = Math.abs(
               (admission.totalInvoicePayable || 0) +
-                (admission.totalRefund || 0) -
-                (admission.totalAdvancePayment || 0)
+              (admission.totalRefund || 0) -
+              (admission.totalAdvancePayment || 0)
             );
             admission.bills = payload.payload;
           } else {
@@ -628,8 +640,8 @@ export const billSlice = createSlice({
 
           state.totalAmount = Math.abs(
             state.totalInvoicePayment +
-              state.totalRefund -
-              state.totalAdvancePayment
+            state.totalRefund -
+            state.totalAdvancePayment
           );
 
           state.data = [...payload.payload, ...state.data];
@@ -660,8 +672,8 @@ export const billSlice = createSlice({
         state.totalRefund += payload.addmissionData[0]?.totalRefund;
         state.totalAmount = Math.abs(
           state.totalInvoicePayment -
-            state.totalAdvancePayment +
-            state.totalRefund
+          state.totalAdvancePayment +
+          state.totalRefund
         );
         state.data[findIndex].totalAdvancePayment =
           payload.addmissionData[0]?.totalAdvancePayment;
@@ -768,8 +780,8 @@ export const billSlice = createSlice({
 
             admissionData.calculatedAmount = Math.abs(
               admissionData.totalAdvancePayment -
-                admissionData.totalInvoicePayable +
-                admissionData.totalRefund
+              admissionData.totalInvoicePayable +
+              admissionData.totalRefund
             );
 
             state.totalInvoicePayment -= payload.payload.invoice.payable;
@@ -781,8 +793,8 @@ export const billSlice = createSlice({
 
           state.totalAmount = Math.abs(
             state.totalAdvancePayment -
-              state.totalInvoicePayment +
-              state.totalRefund || 0
+            state.totalInvoicePayment +
+            state.totalRefund || 0
           );
 
           if (admissionData.bills?.length === 1) {

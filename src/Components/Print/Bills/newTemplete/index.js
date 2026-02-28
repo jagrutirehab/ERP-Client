@@ -26,6 +26,8 @@ const styles = StyleSheet.create({
 });
 
 const InvoiceNewTemplate = ({ bill, center, patient, admission }) => {
+  console.log("Bill Type:", bill.bill);
+  console.log("PDF BILL ID:", bill._id);
   const formatTimeDate = (datetime) =>
     datetime ? format(new Date(datetime), "hh:mm a 'on' dd/MM/yyyy") : "--";
   return (
