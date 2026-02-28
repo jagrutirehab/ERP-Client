@@ -171,10 +171,16 @@ const Billing = ({
   const adjustedPayable = useMemo(() => {
     const latestId = latestAdmission?._id;
     const writeOff = Number(writeOffMap[latestId]) || 0;
+    const advance = Number(calculatedAdvance) || 0;
     const payable = Number(calculatedPayable) || 0;
 
-    return payable - writeOff;
-  }, [calculatedPayable, writeOffMap, latestAdmission?._id]);
+    return (advance + writeOff) - payable;
+  }, [
+    calculatedAdvance,
+    calculatedPayable,
+    writeOffMap,
+    latestAdmission?._id,
+  ]);
 
 
   return (
@@ -203,24 +209,25 @@ const Billing = ({
         </div>
 
         <div className="d-flex justify-content-aroun align-items-center gap-3">
-          <RenderWhen isTrue={calculatedPayable > calculatedAdvance}>
+          <RenderWhen isTrue={adjustedPayable < 0}>
             <h6
               id="payable-amount"
               className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-danger"
             >
-              {/* {calculatedPayable} */}
-              {adjustedPayable}
+              {Math.abs(adjustedPayable)}
             </h6>
           </RenderWhen>
-          <RenderWhen isTrue={calculatedAdvance > calculatedPayable}>
+
+          <RenderWhen isTrue={adjustedPayable > 0}>
             <h6
               id="payable-amount"
               className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-success"
             >
-              {calculatedAdvance}
+              {adjustedPayable}
             </h6>
           </RenderWhen>
-          <RenderWhen isTrue={!calculatedAdvance && !calculatedPayable}>
+
+          <RenderWhen isTrue={adjustedPayable === 0}>
             <h6
               id="payable-amount"
               className="display-6 fs-xs-12 fs-md-18 mb-0 me-4"
@@ -258,7 +265,9 @@ const Billing = ({
           patient in order to create bills!
         </Alert>
       </RenderWhen>
-      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} adjustedPayable={adjustedPayable} />
+      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} adjustedPayable={
+        adjustedPayable < 0 ? Math.abs(adjustedPayable) : 0
+      } />
       <BillForm type={IPD} />
 
       <div className="mt-3">

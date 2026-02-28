@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
 });
 
 const PrintHeader = ({ patient, center, bill, admission }) => {
+  console.log("WRITE OFF BILL DATA", bill);
   const renderImage = () => (
     <Image src={center?.logo ? center.logo?.url : Logo} style={styles.logo} />
   );
