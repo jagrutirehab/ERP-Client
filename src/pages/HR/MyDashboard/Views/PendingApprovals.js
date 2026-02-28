@@ -29,6 +29,7 @@ import {
     updateRegularizationStatus,
     employeeTransferTransferLocationAction,
 } from '../../../../helpers/backend_helper';
+import CheckPermission from '../../../../Components/HOC/CheckPermission';
 
 // Maps inbox type → ApproveModal mode
 const TYPE_TO_MODE = {
@@ -69,7 +70,7 @@ const PendingApprovals = ({ activeTab }) => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission } = usePermissions(token);
+    const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "MY_PENDING_APPROVALS", "READ");
 
     const centerOptions = [
@@ -308,23 +309,28 @@ const PendingApprovals = ({ activeTab }) => {
                             View
                         </Button>
                     ) : "-"}
-                    <Button
-                        color="success"
-                        className="text-white"
-                        size="sm"
-                        onClick={() => handleOpenModal(row, "APPROVE")}
-                    >
-                        <CheckCheck size={18} />
-                    </Button>
+                    <CheckPermission
+                        accessRolePermission={roles?.permissions}
+                        subAccess="MY_PENDING_APPROVALS"
+                        permission={"edit"}>
+                        <Button
+                            color="success"
+                            className="text-white"
+                            size="sm"
+                            onClick={() => handleOpenModal(row, "APPROVE")}
+                        >
+                            <CheckCheck size={18} />
+                        </Button>
 
-                    <Button
-                        color="danger"
-                        className="text-white"
-                        size="sm"
-                        onClick={() => handleOpenModal(row, "REJECT")}
-                    >
-                        <X size={16} />
-                    </Button>
+                        <Button
+                            color="danger"
+                            className="text-white"
+                            size="sm"
+                            onClick={() => handleOpenModal(row, "REJECT")}
+                        >
+                            <X size={16} />
+                        </Button>
+                    </CheckPermission>
                 </div>
 
             ),
