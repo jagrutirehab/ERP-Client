@@ -15,6 +15,7 @@ import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
 import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { useSearchParams } from "react-router-dom";
 
 
 const customStyles = {
@@ -43,10 +44,13 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
@@ -91,10 +95,29 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const c = searchParams.get("center") || "ALL";
+    setSearch(q);
+    setDebouncedSearch(q);
+    setSelectedCenter(c);
+    setPage(1);
+  }, [activeTab]);
 
   const fetchMasterEmployeeList = async () => {
     try {
@@ -538,7 +561,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             />
           </div>
           <div className="d-flex justify-content-end">
-              <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
+            <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -139,6 +139,15 @@ export const actionPayroll = createAsyncThunk("hr/payrollAction", async ({ id, .
 export const fetchMonthlyAttendance = createAsyncThunk("hr/getMonthlyAttendance", async (data, { rejectWithValue }) => {
     try {
         const response = await getMonthlyAttendance(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchApprovalInbox = createAsyncThunk("hr/getApprovalInbox", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getApprovalInbox(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -317,6 +326,19 @@ export const hrSlice = createSlice({
                 state.pagination = payload.pagination;
             })
             .addCase(fetchMonthlyAttendance.rejected, (state) => {
+                state.loading = false
+            });
+        
+         builder
+            .addCase(fetchApprovalInbox.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchApprovalInbox.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;  
+            })
+            .addCase(fetchApprovalInbox.rejected, (state) => {
                 state.loading = false
             });
     }

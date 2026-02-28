@@ -15,16 +15,20 @@ import { ExpandableText } from "../../../../../Components/Common/ExpandableText"
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { useSearchParams } from "react-router-dom";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
 
   const microUser = localStorage.getItem("micrologin");
@@ -73,10 +77,29 @@ const ApprovalHistory = ({ activeTab }) => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const c = searchParams.get("center") || "ALL";
+    setSearch(q);
+    setDebouncedSearch(q);
+    setSelectedCenter(c);
+    setPage(1);
+  }, [activeTab]);
 
 
   const fetchAdvanceSalaryHistory = async () => {
@@ -296,7 +319,7 @@ const ApprovalHistory = ({ activeTab }) => {
             />
           </div>
           <div className="d-flex justify-content-end">
-              <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
+            <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
           </div>
         </div>
       </div>

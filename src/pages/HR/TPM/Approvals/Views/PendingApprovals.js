@@ -9,9 +9,10 @@ import { toast } from 'react-toastify';
 import DataTable from 'react-data-table-component';
 import { capitalizeWords } from '../../../../../utils/toCapitalize';
 import { format } from 'date-fns';
-import { Button, Spinner } from 'reactstrap';
+import { Button, Spinner, Input } from 'reactstrap';
 import Select from "react-select";
 import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import CheckPermission from '../../../../../Components/HOC/CheckPermission';
 import { deleteTPM, TPMAction } from '../../../../../helpers/backend_helper';
 import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
@@ -25,8 +26,11 @@ const PendingApprovals = ({ activeTab }) => {
     const user = useSelector((state) => state.User);
     const { data, pagination, loading, designations: designationOptions } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
     const [filters, setFilters] = useState({
-        center: "ALL",
+        center: queryCenter,
         designation: null
     });
     const [page, setPage] = useState(1);
@@ -39,6 +43,8 @@ const PendingApprovals = ({ activeTab }) => {
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
     const [eCode, setECode] = useState(null);
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -87,6 +93,34 @@ const PendingApprovals = ({ activeTab }) => {
     }, [filters.center, user?.centerAccess]);
 
     useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                }
+                return prev;
+            });
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setFilters(prev => ({ ...prev, center: c }));
+        setPage(1);
+    }, [activeTab]);
+
+    useEffect(() => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
@@ -115,7 +149,8 @@ const PendingApprovals = ({ activeTab }) => {
                 limit,
                 centers,
                 view: "PENDING",
-                ...filters.designation ? { designation: filters.designation } : {}
+                ...filters.designation ? { designation: filters.designation } : {},
+                ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
             if (!handleAuthError) {
@@ -128,7 +163,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingTPMApprovals();
         }
-    }, [page, limit, filters, user?.centerAccess, activeTab]);
+    }, [page, limit, filters, user?.centerAccess, activeTab, debouncedSearch]);
 
     const handleDelete = async () => {
         setModalLoading(true);
@@ -378,7 +413,17 @@ const PendingApprovals = ({ activeTab }) => {
                             placeholder="Designation"
                             isClearable
                         />
+                    </div>
 
+                    {/* Search */}
+                    <div style={{ width: isMobile ? "100%" : "250px" }}>
+                        <Input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                     </div>
                     <div className="ms-auto">
                         <RefreshButton loading={loading} onRefresh={fetchPendingTPMApprovals} />

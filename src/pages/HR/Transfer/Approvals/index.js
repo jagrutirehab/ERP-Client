@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { Button, CardBody, Input, Spinner, } from 'reactstrap';
@@ -26,12 +26,13 @@ const TransferApprovals = () => {
     const user = useSelector((state) => state.User);
     const handleAuthError = useAuthError();
     const { data, pagination, loading } = useSelector((state) => state.HR);
-
+    const [searchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
     const [selectedRecord, setSelectedRecord] = useState(null);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);

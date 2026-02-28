@@ -45,6 +45,7 @@ import HiringManagement from "./Hiring/HiringManagement";
 import Salary from "./Salary";
 import FestiveLeaves from "../HRMS/Leaves/FestiveLeaves";
 import AttendanceMonthly from "../HRMS/Attendance/Monthly";
+import MyDashboard from "./MyDashboard";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -148,7 +149,7 @@ const HR = () => {
 
                 <Route path={`/attendance/main/dashboard`} element={<MainDashboard />} />
                 <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
-                  <Route path={`/attendance/monthly`} element={<AttendanceMonthly />} />
+                <Route path={`/attendance/monthly`} element={<AttendanceMonthly />} />
                 <Route
                   path={`/attendance/metrics`}
                   element={<AttendanceMetrics />}
@@ -184,6 +185,8 @@ const HR = () => {
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
 
                 <Route path={`/salary`} element={<Salary />} />
+
+                <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
               </Routes>
             </div>
           </Container>

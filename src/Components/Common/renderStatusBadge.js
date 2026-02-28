@@ -171,6 +171,54 @@ export const renderStatusBadge = (stage) => {
       text: "WIP",
       color: "warning",
     },
+    LEAVE: {
+      text: "Leave",
+      color: "info",
+    },
+    REGULARIZATION: {
+      text: "Regularization",
+      color: "primary",
+    },
+    ADVANCE_SALARY: {
+      text: "Advance Salary",
+      color: "warning",
+    },
+    INCENTIVE: {
+      text: "Incentive",
+      color: "success",
+    },
+    NEW_JOINING: {
+      text: "New Joining",
+      color: "secondary",
+    },
+    EXIT_EMPLOYEE: {
+      text: "Exit Employee",
+      color: "danger",
+    },
+    TRANSFER_INCOMING: {
+      text: "Transfer Incoming",
+      color: "dark",
+    },
+    TRANSFER_OUTGOING: {
+      text: "Transfer Outgoing",
+      color: "dark",
+    },
+    EXIT_REQUEST: {
+      text: "Exit Request",
+      color: "danger",
+    },
+    FNF_CLOSURE: {
+      text: "FNF Closure",
+      color: "danger",
+    },
+    HIRING_REQUEST: {
+      text: "Hiring Request",
+      color: "primary",
+    },
+    TPM: {
+      text: "TPM",
+      color: "info",
+    },
   };
 
   const config = map[stage];

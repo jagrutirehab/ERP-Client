@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
@@ -36,9 +37,11 @@ const PendingApprovals = ({ activeTab }) => {
     designations: designationOptions,
   } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
+  const [searchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || null;
   const [filters, setFilters] = useState({
     center: "ALL",
-    designation: null,
+    designation: querySearch,
     gender: null,
   });
   const [page, setPage] = useState(1);

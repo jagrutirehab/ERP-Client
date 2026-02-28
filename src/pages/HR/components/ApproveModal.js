@@ -221,7 +221,13 @@ const ApproveModal = ({
               </div>
             </div>
           )}
-        {((mode !== "SALARY") || (mode === "SALARY" && (actionType === "APPROVE" || actionType === "REJECT"))) && (
+        {(mode === "LEAVE" || mode === "REGULARIZATION") ? (
+          <div className="mb-3">
+            <p className="mb-0">
+              Are you sure you want to <strong>{actionType === "APPROVE" ? (mode === "REGULARIZATION" ? "regularize" : "approve") : "reject"}</strong> this {mode === "LEAVE" ? "leave" : "regularization"} request?
+            </p>
+          </div>
+        ) : ((mode !== "SALARY") || (mode === "SALARY" && (actionType === "APPROVE" || actionType === "REJECT"))) && (
           <div className="mb-3">
             <Label htmlFor="note" className="fw-bold">
               Note (Optional)

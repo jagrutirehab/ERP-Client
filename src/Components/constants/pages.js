@@ -535,6 +535,12 @@ export const HR = [
   //   icon: "bx bx-home",
   // },
   {
+    id: "my-pending-approvals",
+    label: "My Pending Approvals",
+    icon: "bx bx-grid-alt",
+    link: "/hr/my-pending-approvals",
+  },
+  {
     id: "master-employee",
     label: "Master Employee",
     link: "/hr/employee",
@@ -865,7 +871,7 @@ export const HR = [
     label: "Salary",
     icon: "bx bx-bar-chart-alt-2",
     link: "/hr/salary",
-  }
+  },
 ];
 
 export const HRMS = [

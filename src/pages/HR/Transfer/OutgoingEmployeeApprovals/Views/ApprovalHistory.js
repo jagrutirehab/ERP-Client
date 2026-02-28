@@ -1,14 +1,15 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
-import { usePermissions } from "../../../../../Components/Hooks/useRoles";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
-import { toast } from "react-toastify";
-import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import { Input } from "reactstrap";
 import Select from "react-select";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 
@@ -17,10 +18,13 @@ const PendingApprovals = ({ activeTab }) => {
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
 
     const microUser = localStorage.getItem("micrologin");
@@ -73,6 +77,15 @@ const PendingApprovals = ({ activeTab }) => {
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
         try {

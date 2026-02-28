@@ -9,7 +9,7 @@ import {
     TabPane,
 } from "reactstrap";
 import classnames from "classnames";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PendingApprovals from "./Views/PendingApprovals";
 import ApprovalHistory from "./Views/ApprovalHistory";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
@@ -18,7 +18,8 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 const SalaryAdvanceApproval = () => {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
-    const [activeTab, setActiveTab] = useState("PENDING");
+    const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "PENDING");
 
 
     const microUser = localStorage.getItem("micrologin");

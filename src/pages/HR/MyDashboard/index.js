@@ -1,21 +1,13 @@
 import { useState } from "react";
-import {
-    CardBody,
-    Nav,
-    NavItem,
-    NavLink,
-    Spinner,
-    TabContent,
-    TabPane,
-} from "reactstrap";
-import classnames from "classnames";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { CardBody, Nav, NavItem, Spinner, TabContent, TabPane, NavLink } from "reactstrap"
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import classnames from "classnames";
 import PendingApprovals from "./Views/PendingApprovals";
 import ApprovalHistory from "./Views/ApprovalHistory";
-import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
-import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
-const TPMApproval = () => {
+const MyDashboard = () => {
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [searchParams] = useSearchParams();
@@ -26,7 +18,7 @@ const TPMApproval = () => {
     const token = microUser ? JSON.parse(microUser).token : null;
 
     const { hasPermission, loading } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_APPROVAL", "READ");
+    const hasUserPermission = hasPermission("HR", "MY_PENDING_APPROVALS", "READ");
 
     if (!loading && !hasUserPermission) {
         navigate("/unauthorized");
@@ -43,6 +35,7 @@ const TPMApproval = () => {
     const toggle = (tab) => {
         if (activeTab !== tab) setActiveTab(tab);
     };
+
     return (
         <CardBody
             className="p-3 bg-white"
@@ -50,7 +43,7 @@ const TPMApproval = () => {
         >
             <div className="content-wrapper">
                 <div className="text-center text-md-left">
-                    <h1 className="display-6 fw-bold text-primary">TPM APPROVAL</h1>
+                    <h1 className="display-6 fw-bold text-primary">MY PENDING APPROVALS</h1>
                 </div>
                 <Nav tabs className="mb-3">
                     <NavItem>
@@ -87,8 +80,7 @@ const TPMApproval = () => {
                 </TabContent>
             </div>
         </CardBody>
-    );
-};
+    )
+}
 
-export default TPMApproval;
-
+export default MyDashboard
