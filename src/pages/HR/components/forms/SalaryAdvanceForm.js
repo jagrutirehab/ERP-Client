@@ -295,7 +295,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 )}
             </FormGroup>
 
-            <div className="d-flex gap-2 justify-content-end">
+            <div className="d-flex gap-2 justify-content-end mb-4">
                 {view === "MODAL" && <Button color="secondary" onClick={onCancel} disabled={form.isSubmitting}>
                     Cancel
                 </Button>}
