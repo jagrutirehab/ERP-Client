@@ -171,8 +171,11 @@ const Billing = ({
   const adjustedPayable = useMemo(() => {
     const latestId = latestAdmission?._id;
     const writeOff = Number(writeOffMap[latestId]) || 0;
-    const advance = Number(calculatedAdvance) || 0;
-    const payable = Number(calculatedPayable) || 0;
+    // const advance = Number(calculatedAdvance) || 0;
+    // const payable = Number(calculatedPayable) || 0;
+    const advance = Number(totalAdvance) || 0;
+    const payable = Number(totalPayable) || 0;
+
 
     return (advance + writeOff) - payable;
   }, [
@@ -181,6 +184,7 @@ const Billing = ({
     writeOffMap,
     latestAdmission?._id,
   ]);
+
 
 
   return (
