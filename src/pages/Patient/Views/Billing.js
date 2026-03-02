@@ -94,7 +94,7 @@ const Billing = ({
   }, [dispatch, patient]);
 
   const latestAdmission = addmissionsBills?.length
-    ? addmissionsBills.reduce((latest, current) =>
+    ? addmissionsBills?.reduce((latest, current) =>
       new Date(current.addmissionDate) >
         new Date(latest.addmissionDate)
         ? current
