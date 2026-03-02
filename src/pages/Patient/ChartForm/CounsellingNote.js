@@ -39,6 +39,8 @@ import {
   fetchCounsellingNote,
 } from "../../../store/features/chart/chartSlice";
 import { format } from "date-fns";
+import { useRef } from "react";
+import AudioRecorder from "./AaudioRecorder";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -109,6 +111,8 @@ const CounsellingNote = ({
 }) => {
   const dispatch = useDispatch();
   const [files, setFiles] = useState([]);
+  const [audioFile, setAudioFile] = useState(null);
+  const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
   const editCounsellingNote = editChartData?.counsellingNote;
@@ -181,7 +185,11 @@ const CounsellingNote = ({
     formData.append("reviewPreviousTask", reviewPreviousTask);
     formData.append("nextEndGoal", nextEndGoal);
     formData.append("nextSessionDate", nextSessionDate);
-    files.forEach((file) => formData.append("file", file.file));
+    // files.forEach((file) => formData.append("file", file.file));
+    files.forEach((file) => {
+      const actualFile = file.file || file;
+      formData.append("file", actualFile);
+    });
 
     if (editClinicalNote) {
       formData.append("id", editChartData._id);
@@ -220,8 +228,29 @@ const CounsellingNote = ({
       shouldPrintAfterSave,
     },
     validationSchema: Yup.object({}),
-    onSubmit: (values) => {
-      onSubmitClinicalForm(values, files, editChartData, editCounsellingNote);
+    // onSubmit: (values) => {
+    //   onSubmitClinicalForm(values, files, editChartData, editCounsellingNote);
+    // },
+    onSubmit: async (values) => {
+      const allFiles = [...files];
+
+      if (audioFinalizeRef.current) {
+        const finalAudio = await audioFinalizeRef.current();
+        if (finalAudio) {
+          allFiles.push(finalAudio);
+        } else if (audioFile) {
+          allFiles.push(audioFile);
+        }
+      } else if (audioFile) {
+        allFiles.push(audioFile);
+      }
+
+      onSubmitClinicalForm(
+        values,
+        allFiles,
+        editChartData,
+        editCounsellingNote
+      );
     },
   });
 
@@ -330,6 +359,17 @@ const CounsellingNote = ({
               </Card>
             </Col>
           )
+        )}
+        {type === "IPD" && (
+          <Col xs={12} className="mt-3">
+            <h5>Audio Recording</h5>
+            <AudioRecorder
+              onReady={(file, stopFn) => {
+                if (file) setAudioFile(file);
+                if (stopFn) audioFinalizeRef.current = stopFn;
+              }}
+            />
+          </Col>
         )}
         <Col xs={12} className="mt-3 mb-4">
           {counsellingFiles}
