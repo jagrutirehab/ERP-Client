@@ -21,16 +21,39 @@ import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
 import TallyLogRecords from "./TallyLogRecords";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const Tally = ({ centers, centerAccess }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("1");
   const [selectedDate, setSelectedDate] = useState(new Date());
   // ... (rest of initializations)
-  const [selectedTypes, setSelectedTypes] = useState(["INVOICE"]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
   const [sending, setSending] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isDone, setIsDone] = useState(false);
   const eventSourceRef = useRef(null);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasTallyPermission = hasPermission("TALLY", null, "READ");
+  const hasTallyCreatePermission = hasPermission(
+    "TALLY",
+    "SEND_TO_TALLY",
+    "WRITE",
+  );
+  const hasTallyLogsPermission = hasPermission("TALLY", "TALLY_LOGS", "READ");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasTallyPermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasTallyPermission, permissionLoader]);
 
   // Center selection state
   const [centerOptions, setCenterOptions] = useState(
@@ -210,54 +233,62 @@ const Tally = ({ centers, centerAccess }) => {
                     Tally Integration
                   </h4>
                   <Nav tabs className="border-bottom-0">
-                    <NavItem>
-                      <NavLink
-                        className={classnames({ active: activeTab === "1" })}
-                        onClick={() => toggleTab("1")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        Live Sync
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({ active: activeTab === "2" })}
-                        onClick={() => toggleTab("2")}
-                        style={{ cursor: "pointer" }}
-                      >
-                        Log Records
-                      </NavLink>
-                    </NavItem>
+                    {hasTallyCreatePermission && (
+                      <NavItem>
+                        <NavLink
+                          className={classnames({ active: activeTab === "1" })}
+                          onClick={() => toggleTab("1")}
+                          style={{ cursor: "pointer" }}
+                        >
+                          Live Sync
+                        </NavLink>
+                      </NavItem>
+                    )}
+                    {hasTallyLogsPermission && (
+                      <NavItem>
+                        <NavLink
+                          className={classnames({ active: activeTab === "2" })}
+                          onClick={() => toggleTab("2")}
+                          style={{ cursor: "pointer" }}
+                        >
+                          Log Records
+                        </NavLink>
+                      </NavItem>
+                    )}
                   </Nav>
                 </div>
               </CardHeader>
               <CardBody>
                 <TabContent activeTab={activeTab}>
-                  <TabPane tabId="1">
-                    <TallyHeader
-                      selectedDate={selectedDate}
-                      setSelectedDate={setSelectedDate}
-                      centerOptions={centerOptions}
-                      selectedCentersIds={selectedCentersIds}
-                      setSelectedCentersIds={setSelectedCentersIds}
-                      selectedTypes={selectedTypes}
-                      onTypeToggle={handleTypeToggle}
-                      sending={sending}
-                      onSend={handleSend}
-                    />
+                  {hasTallyCreatePermission && (
+                    <TabPane tabId="1">
+                      <TallyHeader
+                        selectedDate={selectedDate}
+                        setSelectedDate={setSelectedDate}
+                        centerOptions={centerOptions}
+                        selectedCentersIds={selectedCentersIds}
+                        setSelectedCentersIds={setSelectedCentersIds}
+                        selectedTypes={selectedTypes}
+                        onTypeToggle={handleTypeToggle}
+                        sending={sending}
+                        onSend={handleSend}
+                      />
 
-                    <LogConsole
-                      logs={logs}
-                      sending={sending}
-                      onClear={() => setLogs([])}
-                    />
-                  </TabPane>
-                  <TabPane tabId="2">
-                    <TallyLogRecords
-                      centerOptions={centerOptions}
-                      initialCenters={selectedCentersIds}
-                    />
-                  </TabPane>
+                      <LogConsole
+                        logs={logs}
+                        sending={sending}
+                        onClear={() => setLogs([])}
+                      />
+                    </TabPane>
+                  )}
+                  {hasTallyLogsPermission && (
+                    <TabPane tabId="2">
+                      <TallyLogRecords
+                        centerOptions={centerOptions}
+                        initialCenters={selectedCentersIds}
+                      />
+                    </TabPane>
+                  )}
                 </TabContent>
               </CardBody>
             </Card>
