@@ -15,6 +15,9 @@ const CounsellingNote = ({ data }) => {
     setFileModal({ img, isOpen: true });
   };
 
+  console.log("data", data);
+
+
   return (
     <React.Fragment>
       <div>
@@ -94,6 +97,15 @@ const CounsellingNote = ({ data }) => {
                 </Col>
               ))}
             </Row>
+          </div>
+        )}
+        {data?.audioFile?.url && (
+          <div className="mt-3">
+            <h6 className="display-6 fs-5 fs-xs-12">Audio Recording</h6>
+            <audio controls style={{ width: "100%" }}>
+              <source src={data.audioFile.url} type={data.audioFile.type} />
+              Your browser does not support the audio element.
+            </audio>
           </div>
         )}
         <PreviewFile
