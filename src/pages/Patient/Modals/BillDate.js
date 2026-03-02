@@ -49,12 +49,22 @@ const BillDate = ({
 
 
 
-  const latestBillingAdmission = billingAdmissions?.reduce(
-    (latest, current) =>
-      new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+  // const latestBillingAdmission = billingAdmissions?.reduce(
+  //   (latest, current) =>
+  //     new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+  //       ? current
+  //       : latest
+  // );
+  const latestBillingAdmission = Array.isArray(billingAdmissions) &&
+    billingAdmissions.length > 0
+    ? billingAdmissions?.reduce((latest, current) =>
+      new Date(current.addmissionDate) >
+        new Date(latest.addmissionDate)
         ? current
         : latest
-  );
+    )
+    : null;
+
   console.log("latestBillingAdmission", latestBillingAdmission);
 
   const paymentCenters = [
