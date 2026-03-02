@@ -182,8 +182,7 @@ export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
 
 // Write Off
 export const GET_WRITE_OFF = "/bill/get/write/off";
-export const POST_WRITE_OFF = "/bill/post/write/off"
-
+export const POST_WRITE_OFF = "/bill/post/write/off";
 
 //MEDICINE
 export const GET_MEDICINES = "/medicine";
@@ -205,7 +204,8 @@ export const GET_ALL_BILL_ITEMS = "/bill-setting/all";
 export const EDIT_BILL_ITEM = "/bill-setting";
 export const GET_PROCEDURES_BY_ID = "/bill-setting/procedures";
 export const GET_PROCEDURES_BY_CENTER_ID = "/bill-setting/get/procedures";
-export const DETELE_CENTER_IN_PROCEDURE = "/bill-setting/procedures/delete/center";
+export const DETELE_CENTER_IN_PROCEDURE =
+  "/bill-setting/procedures/delete/center";
 export const ADD_CENTERS_IN_PROCEDURE = "/bill-setting/procedures/add/center";
 export const GET_CATEGORIES_OF_PROCEDURE =
   "/bill-setting/procedures/get/catgeories";
@@ -482,7 +482,7 @@ export const PAYROLL_ACTION = "/hr/payroll/action";
 export const PAYROLL_BULK_ACTION = "/hr/payroll/bulk-action";
 export const GET_DEPARTMENTS = "/hr/get/departments";
 export const CREATE_DEPARTMENTS = "/hr/create/departments";
-export const GET_APPROVAL_INBOX="/hr/approval-inbox";
+export const GET_APPROVAL_INBOX = "/hr/approval-inbox";
 
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
@@ -527,9 +527,12 @@ export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
 
 // CAPACITY ASSESSMENT FORM
-export const SUBMIT_ASSESSMENT_FROM = "/patient/capacity-assessment-submit-file"
+export const SUBMIT_ASSESSMENT_FROM =
+  "/patient/capacity-assessment-submit-file";
 
 // upload file
 export const UPLOAD_FILE = "/upload";
 
-
+// TALLY
+export const POST_TALLY_SEND = "/tally/send";
+export const GET_TALLY_LOGS = "/tally/logs";

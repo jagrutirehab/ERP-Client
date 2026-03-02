@@ -39,6 +39,8 @@ import {
   fetchCounsellingNote,
 } from "../../../store/features/chart/chartSlice";
 import { format } from "date-fns";
+import { useRef } from "react";
+import AudioRecorder from "./AaudioRecorder";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -109,6 +111,8 @@ const CounsellingNote = ({
 }) => {
   const dispatch = useDispatch();
   const [files, setFiles] = useState([]);
+  const [audioFile, setAudioFile] = useState(null);
+  const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
   const editCounsellingNote = editChartData?.counsellingNote;
@@ -181,7 +185,11 @@ const CounsellingNote = ({
     formData.append("reviewPreviousTask", reviewPreviousTask);
     formData.append("nextEndGoal", nextEndGoal);
     formData.append("nextSessionDate", nextSessionDate);
-    files.forEach((file) => formData.append("file", file.file));
+    // files.forEach((file) => formData.append("file", file.file));
+    files.forEach((file) => {
+      const actualFile = file.file || file;
+      formData.append("file", actualFile);
+    });
 
     if (editClinicalNote) {
       formData.append("id", editChartData._id);
@@ -220,8 +228,29 @@ const CounsellingNote = ({
       shouldPrintAfterSave,
     },
     validationSchema: Yup.object({}),
-    onSubmit: (values) => {
-      onSubmitClinicalForm(values, files, editChartData, editCounsellingNote);
+    // onSubmit: (values) => {
+    //   onSubmitClinicalForm(values, files, editChartData, editCounsellingNote);
+    // },
+    onSubmit: async (values) => {
+      const allFiles = [...files];
+
+      // finalize recording if exists
+      if (audioFinalizeRef.current) {
+        const finalAudio = await audioFinalizeRef.current();
+        if (finalAudio) allFiles.push(finalAudio);
+      }
+
+      // fallback
+      if (audioFile && !audioFinalizeRef.current) {
+        allFiles.push(audioFile);
+      }
+
+      onSubmitClinicalForm(
+        values,
+        allFiles,
+        editChartData,
+        editCounsellingNote
+      );
     },
   });
 
@@ -270,13 +299,17 @@ const CounsellingNote = ({
           allowMultiple={true}
           maxFiles={10}
           name="files"
-          acceptedFileTypes={["image/*", "application/pdf"]}
+          acceptedFileTypes={["image/*"]}
           className="filepond filepond-input-multiple"
           labelFileTypeNotAllowed={true}
         />
       </CardBody>
     );
   }, [files]);
+
+
+  const showAudioRecorder =
+    editChartData ? true : type === "IPD";
 
   return (
     <Form
@@ -330,6 +363,17 @@ const CounsellingNote = ({
               </Card>
             </Col>
           )
+        )}
+        {showAudioRecorder && (
+          <Col xs={12} className="mt-3">
+            <h5>Audio Recording</h5>
+            <AudioRecorder
+              onReady={(file, stopFn) => {
+                if (file) setAudioFile(file);
+                if (stopFn) audioFinalizeRef.current = stopFn;
+              }}
+            />
+          </Col>
         )}
         <Col xs={12} className="mt-3 mb-4">
           {counsellingFiles}

@@ -15,6 +15,9 @@ const CounsellingNote = ({ data }) => {
     setFileModal({ img, isOpen: true });
   };
 
+  console.log("data", data);
+
+
   return (
     <React.Fragment>
       <div>
@@ -94,6 +97,20 @@ const CounsellingNote = ({ data }) => {
                 </Col>
               ))}
             </Row>
+          </div>
+        )}
+        {data?.audioFile?.length > 0 && (
+          <div className="mt-3">
+            <h6 className="display-6 fs-5 fs-xs-12">Audio Recordings</h6>
+
+            {data.audioFile.map((audio, index) => (
+              <div key={audio._id || index} className="mb-3">
+                <audio controls style={{ width: "100%" }}>
+                  <source src={audio.url} type={audio.type} />
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            ))}
           </div>
         )}
         <PreviewFile

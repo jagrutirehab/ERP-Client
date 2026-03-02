@@ -125,6 +125,14 @@ export const permissionList = [
     ],
   },
   {
+    key: "TALLY",
+    label: "Tally",
+    subModules: [
+      { name: "SEND_TO_TALLY", label: "Send to Tally" },
+      { name: "TALLY_LOGS", label: "Tally Logs" },
+    ],
+  },
+  {
     key: "REPORT",
     label: "Report",
     subModules: [
