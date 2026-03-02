@@ -29,6 +29,7 @@ const PendingApprovals = ({ activeTab }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryExitId = searchParams.get("id") || "";
     const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -88,6 +89,17 @@ const PendingApprovals = ({ activeTab }) => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
             setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                    prev.delete("id");
+                }
+                return prev;
+            });
         }, 500);
 
         return () => clearTimeout(handler);
@@ -114,7 +126,8 @@ const PendingApprovals = ({ activeTab }) => {
                 limit,
                 centers,
                 stage: "FNF_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryExitId !== "" && { exitId: queryExitId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -329,6 +342,12 @@ const PendingApprovals = ({ activeTab }) => {
                                 onChange={(option) => {
                                     setSelectedCenter(option?.value);
                                     setPage(1);
+                                    if (queryExitId) {
+                                        setSearchParams((prev) => {
+                                            prev.delete("id");
+                                            return prev;
+                                        });
+                                    }
                                 }}
                                 options={centerOptions}
                                 placeholder="All Centers"
@@ -358,6 +377,12 @@ const PendingApprovals = ({ activeTab }) => {
                             onChange={(option) => {
                                 setSelectedCenter(option?.value);
                                 setPage(1);
+                                if (queryExitId) {
+                                    setSearchParams((prev) => {
+                                        prev.delete("id");
+                                        return prev;
+                                    });
+                                }
                             }}
                             options={centerOptions}
                             placeholder="All Centers"

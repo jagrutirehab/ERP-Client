@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,8 +31,11 @@ const Status = ({ activeTab }) => {
     designationLoading,
   } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryHiringId = searchParams.get("id") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
   const [filters, setFilters] = useState({
-    center: "ALL",
+    center: queryCenter,
     designation: null,
     gender: null,
     updateStatus: null,
@@ -127,6 +131,7 @@ const Status = ({ activeTab }) => {
           ...(filters.updateStatus
             ? { updateStatus: filters.updateStatus }
             : {}),
+          ...(queryHiringId !== "" && { hiringId: queryHiringId }),
         }),
       ).unwrap();
     } catch (error) {
@@ -411,6 +416,12 @@ const Status = ({ activeTab }) => {
                   center: opt?.value || "ALL",
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="All Centers"
             />
@@ -427,6 +438,12 @@ const Status = ({ activeTab }) => {
                   gender: opt ? opt.value : null,
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="Gender"
               isClearable
@@ -444,6 +461,12 @@ const Status = ({ activeTab }) => {
                   designation: opt ? opt.value : null,
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               isLoading={designationLoading || loading}
               placeholder="Designation"
@@ -461,6 +484,12 @@ const Status = ({ activeTab }) => {
                   updateStatus: opt ? opt.value : null,
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="Update Status"
               isClearable

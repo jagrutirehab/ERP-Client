@@ -37,10 +37,12 @@ const PendingApprovals = ({ activeTab }) => {
     designations: designationOptions,
   } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const querySearch = searchParams.get("q") || null;
+  const queryCenter = searchParams.get("center") || "ALL";
+  const queryHiringId = searchParams.get("id") || "";
   const [filters, setFilters] = useState({
-    center: "ALL",
+    center: queryCenter,
     designation: querySearch,
     gender: null,
   });
@@ -135,6 +137,7 @@ const PendingApprovals = ({ activeTab }) => {
           view: "PENDING",
           ...(filters.designation ? { designation: filters.designation } : {}),
           ...(filters.gender ? { gender: filters.gender } : {}),
+          ...(queryHiringId !== "" && { hiringId: queryHiringId }),
         }),
       ).unwrap();
     } catch (error) {
@@ -366,6 +369,12 @@ const PendingApprovals = ({ activeTab }) => {
                   center: opt?.value || "ALL",
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="All Centers"
             />
@@ -382,6 +391,12 @@ const PendingApprovals = ({ activeTab }) => {
                   gender: opt ? opt.value : null,
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="Gender"
               isClearable
@@ -399,6 +414,12 @@ const PendingApprovals = ({ activeTab }) => {
                   designation: opt ? opt.value : null,
                 }));
                 setPage(1);
+                if (queryHiringId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
               }}
               placeholder="Designation"
               isClearable
