@@ -47,6 +47,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySearch = searchParams.get("q") || "";
   const queryCenter = searchParams.get("center") || "ALL";
+  const queryEmployeeId = searchParams.get("id") || "";
   const [search, setSearch] = useState(querySearch);
   const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
   const [selectedCenter, setSelectedCenter] = useState(queryCenter);
@@ -102,6 +103,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
           prev.delete("q");
           prev.delete("tab");
           prev.delete("center");
+          prev.delete("id");
         }
         return prev;
       });
@@ -131,7 +133,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         limit,
         centers,
         view: "NEW_JOINING_HISTORY",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(queryEmployeeId !== "" && { employeeId: queryEmployeeId })
       })).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {

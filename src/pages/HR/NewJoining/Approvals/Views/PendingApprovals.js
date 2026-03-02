@@ -54,6 +54,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
      const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryEmployeeId = searchParams.get("id") || "";
     const [search, setSearch] = useState(querySearch);
     const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [selectedCenter, setSelectedCenter] = useState(queryCenter);
@@ -112,6 +113,17 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
             setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                    prev.delete("id");
+                }
+                return prev;
+            });
         }, 500);
 
         return () => clearTimeout(handler);
@@ -138,7 +150,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 limit,
                 centers,
                 view: "NEW_JOINING_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryEmployeeId !== "" && { employeeId: queryEmployeeId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {

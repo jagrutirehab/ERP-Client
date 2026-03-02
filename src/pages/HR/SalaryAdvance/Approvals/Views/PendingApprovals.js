@@ -29,6 +29,8 @@ const PendingApprovals = ({ activeTab }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySearch = searchParams.get("q") || "";
   const queryCenter = searchParams.get("center") || "ALL";
+  const queryAdvanceSalaryId = searchParams.get("id") || "";
+  
   const [search, setSearch] = useState(querySearch);
   const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
   const [selectedCenter, setSelectedCenter] = useState(queryCenter);
@@ -96,6 +98,7 @@ const PendingApprovals = ({ activeTab }) => {
           prev.delete("q");
           prev.delete("tab");
           prev.delete("center");
+          prev.delete("id");
         }
         return prev;
       });
@@ -125,7 +128,8 @@ const PendingApprovals = ({ activeTab }) => {
         limit,
         centers,
         view: "PENDING",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(queryAdvanceSalaryId !== "" && { advanceSalaryId: queryAdvanceSalaryId })
       })).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {

@@ -453,7 +453,7 @@ const PendingApprovals = ({ activeTab }) => {
                     setSelectedEmployee(null)
                 }}
                 onSubmit={handleAction}
-                mode="EXIT_EMPLOYEES_EXIT_PENDING"
+                mode="EXIT_EMPLOYEES_FNF_PENDING"
                 loading={modalLoading}
                 actionType={actionType}
                 setActionType={setActionType}
