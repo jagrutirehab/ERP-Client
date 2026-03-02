@@ -234,14 +234,14 @@ const CounsellingNote = ({
     onSubmit: async (values) => {
       const allFiles = [...files];
 
+      // finalize recording if exists
       if (audioFinalizeRef.current) {
         const finalAudio = await audioFinalizeRef.current();
-        if (finalAudio) {
-          allFiles.push(finalAudio);
-        } else if (audioFile) {
-          allFiles.push(audioFile);
-        }
-      } else if (audioFile) {
+        if (finalAudio) allFiles.push(finalAudio);
+      }
+
+      // fallback
+      if (audioFile && !audioFinalizeRef.current) {
         allFiles.push(audioFile);
       }
 
@@ -299,13 +299,17 @@ const CounsellingNote = ({
           allowMultiple={true}
           maxFiles={10}
           name="files"
-          acceptedFileTypes={["image/*", "application/pdf"]}
+          acceptedFileTypes={["image/*"]}
           className="filepond filepond-input-multiple"
           labelFileTypeNotAllowed={true}
         />
       </CardBody>
     );
   }, [files]);
+
+
+  const showAudioRecorder =
+    editChartData ? true : type === "IPD";
 
   return (
     <Form
@@ -360,7 +364,7 @@ const CounsellingNote = ({
             </Col>
           )
         )}
-        {type === "IPD" && (
+        {showAudioRecorder && (
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
             <AudioRecorder

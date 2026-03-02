@@ -59,7 +59,7 @@ const records = [
     category: VITAL_SIGN,
   },
   // {
-  //   name: "Clinical Notes",
+  //   name: "Clinical Notes v2",
   //   category: CLINICAL_NOTE,
   // },
   {
