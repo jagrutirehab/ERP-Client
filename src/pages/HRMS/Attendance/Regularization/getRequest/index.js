@@ -22,6 +22,7 @@ const GetRegularizationsRequest = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySearch = searchParams.get("q") || "";
   const queryCenter = searchParams.get("center") || "ALL";
+  const queryRegularizationId = searchParams.get("id") || "";
   const [search, setSearch] = useState(querySearch);
   const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
   const [loading, setLoading] = useState(false);
@@ -110,6 +111,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
         year: selectedYear,
         month: selectedMonth,
         ...(debouncedSearch && { search: debouncedSearch }),
+        ...(queryRegularizationId !== "" && { regularizationId: queryRegularizationId }),
       });
 
       setRequestsData(res?.data || []);
@@ -147,6 +149,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
           prev.delete("q");
           prev.delete("tab");
           prev.delete("center");
+          prev.delete("id");
         }
         return prev;
       });
@@ -205,7 +208,16 @@ const [selectedMonth, setSelectedMonth] = useState("all");
           <NavItem key={tab}>
             <NavLink
               className={classnames({ active: activeTab === tab })}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setPage(1);
+                if (queryRegularizationId) {
+                  setSearchParams((prev) => {
+                    prev.delete("id");
+                    return prev;
+                  });
+                }
+              }}
               style={{ cursor: "pointer", fontWeight: 500 }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -221,6 +233,12 @@ const [selectedMonth, setSelectedMonth] = useState("all");
             onChange={(option) => {
               setSelectedCenter(option?.value);
               setPage(1);
+              if (queryRegularizationId) {
+                setSearchParams((prev) => {
+                  prev.delete("id");
+                  return prev;
+                });
+              }
             }}
             options={centerOptions}
             placeholder="All Centers"
@@ -241,7 +259,16 @@ const [selectedMonth, setSelectedMonth] = useState("all");
           className="form-select form-select-sm"
           style={{ width: "120px" }}
           value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
+          onChange={(e) => {
+            setSelectedYear(e.target.value);
+            setPage(1);
+            if (queryRegularizationId) {
+              setSearchParams((prev) => {
+                prev.delete("id");
+                return prev;
+              });
+            }
+          }}
         >
           <option value="all">All Years</option>
           {allYears.map((y) => (

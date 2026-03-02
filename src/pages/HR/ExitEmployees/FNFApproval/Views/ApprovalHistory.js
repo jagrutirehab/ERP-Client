@@ -21,6 +21,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryExitId = searchParams.get("id") || "";
     const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState(querySearch);
@@ -67,6 +68,17 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
             setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                    prev.delete("id");
+                }
+                return prev;
+            });
         }, 500);
 
         return () => clearTimeout(handler);
@@ -94,7 +106,8 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 limit,
                 centers,
                 stage: "HISTORY",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryExitId !== "" && { exitId: queryExitId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -261,6 +274,12 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 onChange={(option) => {
                                     setSelectedCenter(option?.value);
                                     setPage(1);
+                                    if (queryExitId) {
+                                        setSearchParams((prev) => {
+                                            prev.delete("id");
+                                            return prev;
+                                        });
+                                    }
                                 }}
                                 options={centerOptions}
                                 placeholder="All Centers"
@@ -290,6 +309,12 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                             onChange={(option) => {
                                 setSelectedCenter(option?.value);
                                 setPage(1);
+                                if (queryExitId) {
+                                    setSearchParams((prev) => {
+                                        prev.delete("id");
+                                        return prev;
+                                    });
+                                }
                             }}
                             options={centerOptions}
                             placeholder="All Centers"
