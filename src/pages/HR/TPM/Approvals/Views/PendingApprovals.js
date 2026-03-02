@@ -29,6 +29,7 @@ const PendingApprovals = ({ activeTab }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryTpmId = searchParams.get("id") || "";
     const [filters, setFilters] = useState({
         center: queryCenter,
         designation: null
@@ -103,6 +104,7 @@ const PendingApprovals = ({ activeTab }) => {
                     prev.delete("q");
                     prev.delete("tab");
                     prev.delete("center");
+                    prev.delete("id");
                 }
                 return prev;
             });
@@ -150,7 +152,9 @@ const PendingApprovals = ({ activeTab }) => {
                 centers,
                 view: "PENDING",
                 ...filters.designation ? { designation: filters.designation } : {},
-                ...search.trim() !== "" && { search: debouncedSearch }
+                status: "PENDING",
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryTpmId !== "" && { tpmId: queryTpmId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError) {

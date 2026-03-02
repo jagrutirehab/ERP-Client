@@ -293,18 +293,27 @@ const PendingApprovals = ({ activeTab }) => {
                 return format(date, "dd MMM yyyy, hh:mm a");
             },
             wrap: true,
-            minWidth: "180px",
+            minWidth: "120px",
         },
         {
             name: <div>Action</div>,
             cell: row => (
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-2 align-items-center">
                     {row?.detailPagePath ? (
                         <Button
                             color='primary'
                             size='sm'
                             className="text-white"
-                            onClick={() => navigate(row.detailPagePath)}
+                            onClick={() => {
+                                const id = row?.type === "LEAVE" ? row?.metadata?.leaveId : row?.relatedId;
+                                let path = row.detailPagePath;
+                                if (id) {
+                                    path = path.includes('?')
+                                        ? `${path}&id=${id}`
+                                        : `${path}?id=${id}`;
+                                }
+                                navigate(path);
+                            }}
                         >
                             View
                         </Button>

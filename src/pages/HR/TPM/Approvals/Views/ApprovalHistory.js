@@ -25,6 +25,7 @@ const ApprovalHistory = ({ activeTab }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryTpmId = searchParams.get("id") || "";
     const [search, setSearch] = useState(querySearch);
     const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [filters, setFilters] = useState({
@@ -91,6 +92,7 @@ const ApprovalHistory = ({ activeTab }) => {
                     prev.delete("q");
                     prev.delete("tab");
                     prev.delete("center");
+                    prev.delete("id");
                 }
                 return prev;
             });
@@ -137,7 +139,8 @@ const ApprovalHistory = ({ activeTab }) => {
                 centers,
                 view: "HISTORY",
                 ...filters.designation ? { designation: filters.designation } : {},
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryTpmId !== "" && { tpmId: queryTpmId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError) {

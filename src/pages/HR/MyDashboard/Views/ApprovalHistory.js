@@ -121,17 +121,15 @@ const ApprovalHistory = ({ activeTab }) => {
       wrap: true
     },
     {
-      name: <div>Acted By</div>,
-      selector: row => (
-        <div>
-          <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>
-            {row?.actedBy?.email || "-"}
-          </div>
-        </div>
-      ),
+      name: <div>Last Updated</div>,
+      selector: row => {
+        if (!row?.updatedAt) return "-";
+        const date = new Date(row.updatedAt);
+        if (isNaN(date)) return "-";
+        return format(date, "dd MMM yyyy, hh:mm a");
+      },
       wrap: true,
-      minWidth: "200px"
+      minWidth: "120px",
     },
     {
       name: <div>Acted At</div>,
@@ -142,34 +140,44 @@ const ApprovalHistory = ({ activeTab }) => {
         return format(date, "dd MMM yyyy, hh:mm a");
       },
       wrap: true,
-      minWidth: "120",
+      minWidth: "120px",
     },
     {
       name: <div>Action</div>,
       cell: row => (
-        <div className="d-flex gap-2">
-          {row?.detailPagePath ? (
+        <div className="d-flex gap-2 align-items-center">
+          {(row?.type === "EXIT_REQUEST" || (row?.type === "FNF_CLOSURE" && row?.action === "REJECTED")) ? (
+            <i className="text-muted small">Action not available</i>
+          ) : row?.detailPagePath ? (
             <Button
               color='primary'
               size='sm'
               className="text-white"
               onClick={() => {
+                const id = row?.type === "LEAVE" ? row?.metadata?.leaveId : row?.relatedId;
+                let basePath = row.detailPagePath;
+                if (id) {
+                  basePath = basePath.includes('?')
+                    ? `${basePath}&id=${id}`
+                    : `${basePath}?id=${id}`;
+                }
+
                 if (row.type === "LEAVE") {
                   const leaveTab = row.action === "APPROVED" ? "approved" : "rejected";
-                  const path = row.detailPagePath.includes('?')
-                    ? `${row.detailPagePath}&tab=${leaveTab}`
-                    : `${row.detailPagePath}?tab=${leaveTab}`;
+                  const path = basePath.includes('?')
+                    ? `${basePath}&tab=${leaveTab}`
+                    : `${basePath}?tab=${leaveTab}`;
                   navigate(path);
                 } else if (row.type === "REGULARIZATION") {
                   const regTab = row.action === "REGULARIZED" ? "regularized" : "rejected";
-                  const path = row.detailPagePath.includes('?')
-                    ? `${row.detailPagePath}&tab=${regTab}`
-                    : `${row.detailPagePath}?tab=${regTab}`;
+                  const path = basePath.includes('?')
+                    ? `${basePath}&tab=${regTab}`
+                    : `${basePath}?tab=${regTab}`;
                   navigate(path);
                 } else {
-                  const pathWithTab = row.detailPagePath.includes('?')
-                    ? `${row.detailPagePath}&tab=HISTORY`
-                    : `${row.detailPagePath}?tab=HISTORY`;
+                  const pathWithTab = basePath.includes('?')
+                    ? `${basePath}&tab=HISTORY`
+                    : `${basePath}?tab=HISTORY`;
                   navigate(pathWithTab);
                 }
               }}
