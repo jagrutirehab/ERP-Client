@@ -23,6 +23,7 @@ const ManageLeaves = () => {
   const querySearch = searchParams.get("q") || "";
   const queryTab = searchParams.get("tab") || "pending";
   const queryCenter = searchParams.get("center") || "ALL";
+  const queryLeaveId = searchParams.get("id") || "";
   const [activeTab, setActiveTab] = useState(queryTab);
   const [search, setSearch] = useState(querySearch);
   const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
@@ -50,12 +51,12 @@ const ManageLeaves = () => {
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -100,6 +101,7 @@ const ManageLeaves = () => {
         year: selectedYear,
         month: selectedMonth,
         ...(debouncedSearch && { search: debouncedSearch }),
+        ...(queryLeaveId !== "" && { leaveId: queryLeaveId })
       });
       // console.log("res", res);
       setRequestsData(res?.data || []);
@@ -140,6 +142,7 @@ const ManageLeaves = () => {
           prev.delete("q");
           prev.delete("tab");
           prev.delete("center");
+          prev.delete("id");
         }
         return prev;
       });
@@ -154,11 +157,11 @@ const ManageLeaves = () => {
     if (!Array.isArray(requestsData)) return [];
 
     return requestsData.map((item) => ({
-      ...item.leaves, 
+      ...item.leaves,
       parentDocId: item._id,
-      leaveId: item.leaves._id, 
+      leaveId: item.leaves._id,
       employeeId: item.id,
-      center: item.center, 
+      center: item.center,
       approvalAuthority: item.approvalAuthority,
       createdAt: item.createdAt,
       eCode: item.eCode,

@@ -24,6 +24,7 @@ const ApprovalHistory = ({ activeTab }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
+    const queryIncentiveId = searchParams.get("id") || "";
     const [search, setSearch] = useState(querySearch);
     const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [selectedCenter, setSelectedCenter] = useState(queryCenter);
@@ -83,6 +84,7 @@ const ApprovalHistory = ({ activeTab }) => {
                     prev.delete("q");
                     prev.delete("tab");
                     prev.delete("center");
+                    prev.delete("id");
                 }
                 return prev;
             });
@@ -113,7 +115,8 @@ const ApprovalHistory = ({ activeTab }) => {
                 limit,
                 centers,
                 view: "HISTORY",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryIncentiveId !== "" && { incentiveId: queryIncentiveId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
