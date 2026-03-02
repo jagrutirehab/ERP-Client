@@ -231,18 +231,41 @@ const CounsellingNote = ({
     // onSubmit: (values) => {
     //   onSubmitClinicalForm(values, files, editChartData, editCounsellingNote);
     // },
+    // onSubmit: async (values) => {
+    //   const allFiles = [...files];
+
+    //   // finalize recording if exists
+    //   if (audioFinalizeRef.current) {
+    //     const finalAudio = await audioFinalizeRef.current();
+    //     if (finalAudio) allFiles.push(finalAudio);
+    //   }
+
+    //   // fallback
+    //   if (audioFile && !audioFinalizeRef.current) {
+    //     allFiles.push(audioFile);
+    //   }
+
+    //   onSubmitClinicalForm(
+    //     values,
+    //     allFiles,
+    //     editChartData,
+    //     editCounsellingNote
+    //   );
+    // },
     onSubmit: async (values) => {
       const allFiles = [...files];
 
-      // finalize recording if exists
-      if (audioFinalizeRef.current) {
-        const finalAudio = await audioFinalizeRef.current();
-        if (finalAudio) allFiles.push(finalAudio);
-      }
+      if (!editCounsellingNote) {
+        // finalize recording if exists
+        if (audioFinalizeRef.current) {
+          const finalAudio = await audioFinalizeRef.current();
+          if (finalAudio) allFiles.push(finalAudio);
+        }
 
-      // fallback
-      if (audioFile && !audioFinalizeRef.current) {
-        allFiles.push(audioFile);
+        // fallback
+        if (audioFile && !audioFinalizeRef.current) {
+          allFiles.push(audioFile);
+        }
       }
 
       onSubmitClinicalForm(
@@ -251,7 +274,7 @@ const CounsellingNote = ({
         editChartData,
         editCounsellingNote
       );
-    },
+    }
   });
 
   useEffect(() => {
@@ -299,7 +322,12 @@ const CounsellingNote = ({
           allowMultiple={true}
           maxFiles={10}
           name="files"
-          acceptedFileTypes={["image/*"]}
+          acceptedFileTypes={[
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/webp"
+          ]}
           className="filepond filepond-input-multiple"
           labelFileTypeNotAllowed={true}
         />
@@ -308,8 +336,7 @@ const CounsellingNote = ({
   }, [files]);
 
 
-  const showAudioRecorder =
-    editChartData ? true : type === "IPD";
+  const showAudioRecorder = !editCounsellingNote && (editChartData ? true : type === "IPD");
 
   return (
     <Form
