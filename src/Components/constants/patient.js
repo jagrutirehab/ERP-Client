@@ -2,6 +2,7 @@ const FORMS_VIEW = "FORMS";
 const CHARTING_VIEW = "CHARTING";
 const BILLING_VIEW = "BILLING";
 const TIMELINE_VIEW = "TIMELINE";
+const BELONGINGS_VIEW = "BELONGINGS"
 const OPD_VIEW = "OPD";
 //Charts
 const PRESCRIPTION = "PRESCRIPTION";
@@ -1475,6 +1476,562 @@ const categoryUnitOptions = {
   ],
 };
 
+const belongingsData = [
+  {
+    "category": "Clothing",
+    "belongings": "Clothes (General)",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing clothes (general) yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Socks",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing socks yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Undergarments",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing undergarments yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Slip-on Shoes",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing slip-on shoes yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Sneakers / Sports Shoes",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing sneakers / sports shoes yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Slippers (No Laces)",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing slippers (no laces) yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Towel",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "clothing towel yes low"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Belt (Leather/Fabric/Metal)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing belt (leather/fabric/metal) no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Dupatta",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing dupatta no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Scarves/Stoles",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing scarves/stoles no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Saree (High Risk Ward)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing saree (high risk ward) no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Long Shawls",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing long shawls no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Drawstrings (Hoodies/Pyjamas)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing drawstrings (hoodies/pyjamas) no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Shoe Laces",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing shoe laces no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Yoga Strap / Exercise Bands",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing yoga strap / exercise bands no high"
+  },
+  {
+    "category": "Clothing",
+    "belongings": "Ropes / Strings / Cords",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "clothing ropes / strings / cords no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Mobile Phone",
+    "allowed_with_patient": "Conditional",
+    "associated_risk": "Moderate",
+    "searchIndex": "electronics mobile phone conditional moderate"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Chargers",
+    "allowed_with_patient": "Supervised Charging",
+    "associated_risk": "Moderate",
+    "searchIndex": "electronics chargers supervised charging moderate"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Charging Cable",
+    "allowed_with_patient": "Nursing Custody",
+    "associated_risk": "High",
+    "searchIndex": "electronics charging cable nursing custody high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Electrical Wires",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics electrical wires no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Earphone Wire",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics earphone wire no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Extension Cable",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics extension cable no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Iron Box",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics iron box no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Power Bank",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics power bank no high"
+  },
+  {
+    "category": "Electronics",
+    "belongings": "Aerosol Sprays",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "electronics aerosol sprays no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Scissors",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted scissors no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Razors/Shaving Blade",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted razors/shaving blade no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Nail Cutter",
+    "allowed_with_patient": "Supervised",
+    "associated_risk": "Moderate",
+    "searchIndex": "restricted nail cutter supervised moderate"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Nail Filer",
+    "allowed_with_patient": "Supervised",
+    "associated_risk": "Moderate",
+    "searchIndex": "restricted nail filer supervised moderate"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Safety Pins",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted safety pins no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Sewing Needles",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted sewing needles no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Knitting Needles",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted knitting needles no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Knives (Any Size)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted knives (any size) no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Pencil Sharpeners",
+    "allowed_with_patient": "Nursing Custody",
+    "associated_risk": "Moderate",
+    "searchIndex": "restricted pencil sharpeners nursing custody moderate"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Compass / Divider",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted compass / divider no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Metal Ruler",
+    "allowed_with_patient": "No",
+    "associated_risk": "Moderate",
+    "searchIndex": "restricted metal ruler no moderate"
+  },
+  {
+    "category": "Medication",
+    "belongings": "Personal Medicines",
+    "allowed_with_patient": "Pharmacy/Nursing Custody",
+    "associated_risk": "High",
+    "searchIndex": "medication personal medicines pharmacy/nursing custody high"
+  },
+  {
+    "category": "Medication",
+    "belongings": "Psychiatric Medication",
+    "allowed_with_patient": "Pharmacy Custody",
+    "associated_risk": "High",
+    "searchIndex": "medication psychiatric medication pharmacy custody high"
+  },
+  {
+    "category": "Medication",
+    "belongings": "Alcohol Syrups",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "medication alcohol syrups no high"
+  },
+  {
+    "category": "Medication",
+    "belongings": "Inhalers",
+    "allowed_with_patient": "Nursing Custody",
+    "associated_risk": "Moderate",
+    "searchIndex": "medication inhalers nursing custody moderate"
+  },
+  {
+    "category": "Medication",
+    "belongings": "Nicotine Patch",
+    "allowed_with_patient": "Conditional (Prescription Only)",
+    "associated_risk": "Moderate",
+    "searchIndex": "medication nicotine patch conditional (prescription only) moderate"
+  },
+  {
+    "category": "Chemicals",
+    "belongings": "Mosquito Repellent Liquid",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "chemicals mosquito repellent liquid no high"
+  },
+  {
+    "category": "Chemicals",
+    "belongings": "Phenyl Bottle",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "chemicals phenyl bottle no high"
+  },
+  {
+    "category": "Chemicals",
+    "belongings": "Hand Sanitizer",
+    "allowed_with_patient": "Supervised Only",
+    "associated_risk": "Moderate",
+    "searchIndex": "chemicals hand sanitizer supervised only moderate"
+  },
+  {
+    "category": "Chemicals",
+    "belongings": "Solvents/Glue/Whitener",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "chemicals solvents/glue/whitener no high"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Toothbrush",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries toothbrush yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Toothpaste",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries toothpaste yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Shampoo",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries shampoo yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Soap",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries soap yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Conditioner",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries conditioner yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Comb (Plastic Only)",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries comb (plastic only) yes low"
+  },
+  {
+    "category": "Toiletries",
+    "belongings": "Feminine Hygiene Products",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "toiletries feminine hygiene products yes low"
+  },
+  {
+    "category": "Cosmetics",
+    "belongings": "Nail Polish",
+    "allowed_with_patient": "No",
+    "associated_risk": "Moderate",
+    "searchIndex": "cosmetics nail polish no moderate"
+  },
+  {
+    "category": "Cosmetics",
+    "belongings": "Nail Polish Remover",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "cosmetics nail polish remover no high"
+  },
+  {
+    "category": "Cosmetics",
+    "belongings": "Perfume Glass Bottle",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "cosmetics perfume glass bottle no high"
+  },
+  {
+    "category": "Cosmetics",
+    "belongings": "Deodorant Spray",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "cosmetics deodorant spray no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Ceramic Crockery",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted ceramic crockery no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Glass Crockery",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted glass crockery no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Mirrors (Glass)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted mirrors (glass) no high"
+  },
+  {
+    "category": "Restricted",
+    "belongings": "Glass Photo Frames",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "restricted glass photo frames no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Matchboxes",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk matchboxes no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Lighters",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk lighters no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Cigarettes",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk cigarettes no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Tobacco Products",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk tobacco products no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Vape / E Cigarette",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk vape / e cigarette no high"
+  },
+  {
+    "category": "Addiction Risk",
+    "belongings": "Alcohol (Any Form)",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "addiction risk alcohol (any form) no high"
+  },
+  {
+    "category": "Tools",
+    "belongings": "Screwdrivers",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "tools screwdrivers no high"
+  },
+  {
+    "category": "Tools",
+    "belongings": "Hammer",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "tools hammer no high"
+  },
+  {
+    "category": "Tools",
+    "belongings": "Dumbbells",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "tools dumbbells no high"
+  },
+  {
+    "category": "Tools",
+    "belongings": "Umbrella (Metal Tip)",
+    "allowed_with_patient": "No",
+    "associated_risk": "Moderate",
+    "searchIndex": "tools umbrella (metal tip) no moderate"
+  },
+  {
+    "category": "Documents",
+    "belongings": "Books",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "documents books yes low"
+  },
+  {
+    "category": "Documents",
+    "belongings": "Notebook / Journal",
+    "allowed_with_patient": "Yes (No Metal Binding)",
+    "associated_risk": "Low",
+    "searchIndex": "documents notebook / journal yes (no metal binding) low"
+  },
+  {
+    "category": "Documents",
+    "belongings": "Papers",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "documents papers yes low"
+  },
+  {
+    "category": "Elder Care",
+    "belongings": "Hearing Aid",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "elder care hearing aid yes low"
+  },
+  {
+    "category": "Elder Care",
+    "belongings": "Eyeglasses",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "elder care eyeglasses yes low"
+  },
+  {
+    "category": "Elder Care",
+    "belongings": "Prescribed Medication",
+    "allowed_with_patient": "Nursing Administered",
+    "associated_risk": "Moderate",
+    "searchIndex": "elder care prescribed medication nursing administered moderate"
+  },
+  {
+    "category": "Food Storage",
+    "belongings": "Plastic Bottle (Oil etc.)",
+    "allowed_with_patient": "Yes",
+    "associated_risk": "Low",
+    "searchIndex": "food storage plastic bottle (oil etc.) yes low"
+  },
+  {
+    "category": "Food",
+    "belongings": "Alcohol Containing Food",
+    "allowed_with_patient": "No",
+    "associated_risk": "High",
+    "searchIndex": "food alcohol containing food no high"
+  },
+  {
+    "category": "Other",
+    "belongings": "",
+    "allowed_with_patient": "To be assessed case by case",
+    "associated_risk": "TBD",
+    "searchIndex": "other  to be assessed case by case tbd"
+  }
+];
+
 export {
   //PATIENT STATUS
   ADMIT_PATIENT,
@@ -1486,6 +2043,7 @@ export {
   BILLING_VIEW,
   TIMELINE_VIEW,
   OPD_VIEW,
+  BELONGINGS_VIEW,
   //INVOICE CATEGORIES
   categoryUnitOptions,
   //PATIENT CHARTS
@@ -1548,4 +2106,5 @@ export {
   INTERN,
   InternTimelineFilter,
   Forms,
+  belongingsData
 };
