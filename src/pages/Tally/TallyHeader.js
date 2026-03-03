@@ -7,7 +7,7 @@ import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDow
 
 const VOUCHER_TYPES = [
   { id: "INVOICE", label: "Invoice", enabled: true },
-  { id: "ADVANCE_PAYMENT", label: "Advance Payment", enabled: false },
+  { id: "ADVANCE_PAYMENT", label: "Advance Payment", enabled: true },
   { id: "CENTRAL_PAYMENT", label: "Central Payment", enabled: true },
   { id: "CASH_PAYMENT", label: "Cash Payment", enabled: false },
 ];
