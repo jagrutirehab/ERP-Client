@@ -7,6 +7,7 @@ import {
   TIMELINE_VIEW,
   OPD_VIEW,
   FORMS_VIEW,
+  BELONGINGS_VIEW,
 } from "../../../Components/constants/patient";
 
 //components
@@ -25,6 +26,7 @@ import ACDSQuestion from "./Components/ACDSQuestion";
 import HAMAQuestion from "./Components/HAMAQuestion";
 import HAMDQuestion from "./Components/HAMDQuestion";
 import PANSSQuestion from "./Components/PANSSQuestion";
+import Belongings from "./Belongings";
 
 const Views = (props) => {
   const ref = useRef();
@@ -39,6 +41,7 @@ const Views = (props) => {
     Billing: BILLING_VIEW,
     OPD: OPD_VIEW,
     Timeline: TIMELINE_VIEW,
+    Belongings: BELONGINGS_VIEW,
   };
 
   const patientPage = props?.pageAccess?.find((pg) => pg.name === "Patient");
@@ -68,13 +71,15 @@ const Views = (props) => {
                 {props?.pageAccess
                   ?.find((pg) => pg.name === "Patient")
                   ?.subAccess?.filter((s) => s.name !== "OPD")
-                  .sort((a, b) =>
-                    a.name.toUpperCase() === "FORMS"
-                      ? 1
-                      : b.name.toUpperCase() === "FORMS"
-                      ? -1
-                      : 0
-                  )
+                  .sort((a, b) => {
+                    const aName = a.name.toUpperCase();
+                    const bName = b.name.toUpperCase();
+                    if (aName === "BELONGINGS" || aName === BELONGINGS_VIEW) return 1;
+                    if (bName === "BELONGINGS" || bName === BELONGINGS_VIEW) return -1;
+                    if (aName === "FORMS" || aName === FORMS_VIEW) return 1;
+                    if (bName === "FORMS" || bName === FORMS_VIEW) return -1;
+                    return 0;
+                  })
                   .map((sub) => {
                     const vw =
                       sub?.name.toUpperCase() === CHARTING_VIEW
@@ -85,6 +90,8 @@ const Views = (props) => {
                         ? TIMELINE_VIEW
                         : sub.name.toUpperCase() === FORMS_VIEW
                         ? FORMS_VIEW
+                        : sub.name.toUpperCase() === BELONGINGS_VIEW
+                        ? BELONGINGS_VIEW
                         : "";
                     return (
                       <Button
@@ -104,6 +111,7 @@ const Views = (props) => {
               {view === BILLING_VIEW && <Billing view={view} />}
               {view === TIMELINE_VIEW && <Timeline view={view} />}
               {view === FORMS_VIEW && <AddmissionForms view={view} />}
+              {view === BELONGINGS_VIEW && <Belongings view={view} />}
             </div>
           </div>
         ) : (

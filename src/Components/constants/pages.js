@@ -202,6 +202,14 @@ const pages = [
       {
         name: "Timeline",
       },
+      {
+        name: "Belongings",
+        permissions: {
+          create: true,
+          edit: true,
+          delete: true,
+        },
+      },
     ],
   },
   {
