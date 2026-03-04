@@ -5,12 +5,14 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import BelongingsDate from "../Modals/BelongingsDate";
 import BelongingsFormModal from "../Modals/BelongingsForm.modal";
-import { uploadSignedBelonging, getPatientBelongings } from "../../../helpers/backend_helper";
+import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PreviewFile from "../../../Components/Common/PreviewFile";
+import DeleteModal from "../../../Components/Common/DeleteModal";
 
 import { format, isValid } from "date-fns";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const formatDateTime = (isoStr) => {
     if (!isoStr) return "";
@@ -23,9 +25,10 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const [dateModal, setDateModal] = useState(false);
     const [dateModal2, setDateModal2] = useState(false);
     const [formModal, setFormModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
-    const [editBelongingId, setEditBelongingId] = useState(null);
-    const [printBelongingId, setPrintBelongingId] = useState(null);
+    const [selectedBelongingId, setSelectedBelongingId] = useState(null);
+    const [isPrintMode, setIsPrintMode] = useState(false);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState(null);
@@ -33,22 +36,45 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const toggleModal = () => setDateModal(!dateModal);
     const toggleModal2 = () => setDateModal2(!dateModal2);
     const toggleFormModal = () => setFormModal(!formModal);
+    const toggleDeleteModal = () => setDeleteModal(!deleteModal);
 
     const handleStartForm = (date) => {
         setSelectedDate(date);
         toggleFormModal();
     };
 
-    const handleEditBelonging = (belongingId) => {
-        setEditBelongingId(belongingId);
-        setPrintBelongingId(null);
+    const handleEditBelonging = (belongingId, date) => {
+        setSelectedBelongingId(belongingId);
+        setSelectedDate(date);
+        setIsPrintMode(false);
         setDateModal2(true);
     };
 
-    const handlePrintBelonging = (belongingId) => {
-        setPrintBelongingId(belongingId);
-        setEditBelongingId(belongingId); // still pass the ID to fetch data
+    const handlePrintBelonging = (belongingId, date) => {
+        setSelectedBelongingId(belongingId);
+        setSelectedDate(date);
+        setIsPrintMode(true);
         setFormModal(true);
+    };
+
+    const handleDeleteBelonging = (belongingId) => {
+        setSelectedBelongingId(belongingId);
+        setDeleteModal(true);
+    };
+
+    const executeDelete = async () => {
+        if (!selectedBelongingId) return;
+        try {
+            await deletePatientBelonging(selectedBelongingId);
+            toast.success("Belonging form deleted successfully");
+            setDeleteModal(false);
+            setSelectedBelongingId(null);
+            fetchBelongings();
+        } catch (err) {
+            if (!handleAuthError(err)) {
+                toast.error(err?.message || "Failed to delete belonging");
+            }
+        }
     };
 
     const [chartType, setChartType] = useState("");
@@ -75,14 +101,12 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         }
     };
 
-    // Fetch belongings list
     const fetchBelongings = useCallback(async () => {
         if (!patient?._id) return;
         setLoadingBelongings(true);
         try {
             const res = await getPatientBelongings(patient._id);
             const data = res?.data || [];
-            // Build a map: admissionId -> belongings[]
             const map = {};
             data.forEach((group) => {
                 map[group.addmission] = group.belongings || [];
@@ -119,9 +143,9 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
 
             await uploadSignedBelonging(signedBelongingId, fd);
             toast.success("Signed copy uploaded successfully");
+
             setSignedPreviewModal(false);
             resetSignedState();
-            // Refresh the list to show updated signedFileUrl
             fetchBelongings();
         } catch (err) {
             if (!handleAuthError(err)) {
@@ -165,17 +189,19 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
 
                                 <div style={{ flex: 1, textAlign: "center" }}>
                                     {admissionBelongings.length === 0 && (
-                                        <Button
-                                            onClick={() => {
-                                                setEditBelongingId(null);
-                                                setAddmissionId(test?._id);
-                                                toggleModal2();
-                                                setChartType("BELONGINGS");
-                                            }}
-                                            size="sm"
-                                        >
-                                            Create New Form
-                                        </Button>
+                                        <CheckPermission permission={"edit"} subAccess={"Belongings"}>
+                                            <Button
+                                                onClick={() => {
+                                                    setSelectedBelongingId(null);
+                                                    setAddmissionId(test?._id);
+                                                    toggleModal2();
+                                                    setChartType("BELONGINGS");
+                                                }}
+                                                size="sm"
+                                            >
+                                                Create New Form
+                                            </Button>
+                                        </CheckPermission>
                                     )}
                                 </div>
 
@@ -226,7 +252,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                             </div>
                                         ) : (
                                             <div className="py-2">
-                                                {admissionBelongings.map((belonging, bIdx) => (
+                                                {admissionBelongings.map((belonging) => (
                                                     <div
                                                         key={belonging._id}
                                                         className="d-flex flex-wrap justify-content-between align-items-center border rounded px-3 py-2 mb-2 bg-white gap-3"
@@ -262,7 +288,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                             color="info"
                                                                             className="text-white"
                                                                             size="sm"
-                                                                            onClick={() => handlePrintBelonging(belonging._id)}
+                                                                            onClick={() => handlePrintBelonging(belonging._id, belonging.date)}
                                                                         >
                                                                             <i className="ri-file-search-line me-1"></i>
                                                                             View Unsigned Copy
@@ -286,30 +312,51 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                                 View Signed Copy {signedFiles.length > 1 ? idx + 1 : ""}
                                                                             </Button>
                                                                         ))}
-                                                                        <Button
-                                                                            color="primary"
-                                                                            className="text-white"
-                                                                            size="sm"
-                                                                            onClick={() => {
-                                                                                setSignedBelongingId(belonging._id);
-                                                                                fileInputRef.current?.click();
-                                                                            }}
-                                                                        >
-                                                                            <i className="ri-upload-2-line me-1"></i>
-                                                                            {isSigned ? "Upload Another Copy" : "Upload Signed Copy"}
-                                                                        </Button>
-                                                                        <Button
-                                                                            id={`edit-belonging-${belonging._id}`}
-                                                                            color="light"
-                                                                            size="sm"
-                                                                            className="btn-icon p-1"
-                                                                            onClick={() => handleEditBelonging(belonging._id)}
-                                                                        >
-                                                                            <i className="ri-edit-line fs-5 text-primary"></i>
-                                                                        </Button>
-                                                                        <UncontrolledTooltip placement="top" target={`edit-belonging-${belonging._id}`}>
-                                                                            Edit
-                                                                        </UncontrolledTooltip>
+
+                                                                        <CheckPermission permission={"edit"} subAccess={"Belongings"}>
+                                                                            <Button
+                                                                                color="primary"
+                                                                                className="text-white"
+                                                                                size="sm"
+                                                                                onClick={() => {
+                                                                                    setSignedBelongingId(belonging._id);
+                                                                                    fileInputRef.current?.click();
+                                                                                }}
+                                                                            >
+                                                                                <i className="ri-upload-2-line me-1"></i>
+                                                                                {isSigned ? "Upload Another Copy" : "Upload Signed Copy"}
+                                                                            </Button>
+                                                                        </CheckPermission>
+
+                                                                        <CheckPermission permission={"edit"} subAccess={"Belongings"}>
+                                                                            <Button
+                                                                                id={`edit-belonging-${belonging._id}`}
+                                                                                color="light"
+                                                                                size="sm"
+                                                                                className="btn-icon p-1 me-1"
+                                                                                onClick={() => handleEditBelonging(belonging._id, belonging.date)}
+                                                                            >
+                                                                                <i className="ri-pencil-line fs-5 text-primary"></i>
+                                                                            </Button>
+                                                                            <UncontrolledTooltip placement="top" target={`edit-belonging-${belonging._id}`}>
+                                                                                Edit
+                                                                            </UncontrolledTooltip>
+                                                                        </CheckPermission>
+
+                                                                        <CheckPermission permission={"delete"} subAccess={"Belongings"}>
+                                                                            <Button
+                                                                                id={`delete-belonging-${belonging._id}`}
+                                                                                color="light"
+                                                                                size="sm"
+                                                                                className="btn-icon p-1"
+                                                                                onClick={() => handleDeleteBelonging(belonging._id)}
+                                                                            >
+                                                                                <i className="ri-delete-bin-line fs-5 text-danger"></i>
+                                                                            </Button>
+                                                                            <UncontrolledTooltip placement="top" target={`delete-belonging-${belonging._id}`}>
+                                                                                Delete
+                                                                            </UncontrolledTooltip>
+                                                                        </CheckPermission>
                                                                     </>
                                                                 );
                                                             })()}
@@ -331,9 +378,14 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                 type="file"
                 ref={fileInputRef}
                 hidden
-                accept="image/*,.pdf"
+                accept="image/jpeg, image/png, image/jpg, .pdf"
                 onChange={(e) => {
                     const file = e.target.files[0];
+                    if (file && file.type === "image/webp") {
+                        toast.error("WebP images are not supported");
+                        e.target.value = "";
+                        return;
+                    }
                     if (file && signedBelongingId) {
                         handleSignedFileSelect(file, signedBelongingId);
                     }
@@ -346,14 +398,14 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                 isOpen={formModal}
                 toggle={() => {
                     toggleFormModal();
-                    setEditBelongingId(null);
-                    setPrintBelongingId(null);
+                    setSelectedBelongingId(null);
+                    setIsPrintMode(false);
                 }}
                 date={selectedDate}
                 patient={patient}
                 addmissionId={addmissionId}
-                editBelongingId={editBelongingId}
-                printMode={!!printBelongingId}
+                editBelongingId={selectedBelongingId}
+                printMode={isPrintMode}
                 onSaved={fetchBelongings}
             />
 
@@ -390,6 +442,15 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                     )}
                 </ModalBody>
                 <ModalFooter>
+                    {signedPreviewUrl && (
+                        <a
+                            href={signedPreviewUrl}
+                            download={signedFile?.name || "signed_copy"}
+                            className="btn btn-primary"
+                        >
+                            <i className="ri-download-2-line me-1"></i> Download
+                        </a>
+                    )}
                     <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }}>
                         Cancel
                     </Button>
@@ -411,6 +472,17 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                     setPreviewOpen(false);
                     setPreviewFile(null);
                 }}
+                allowDownload={true}
+            />
+
+            <DeleteModal
+                show={deleteModal}
+                onDeleteClick={executeDelete}
+                onCloseClick={() => {
+                    setDeleteModal(false);
+                    setSelectedBelongingId(null);
+                }}
+                messsage="Are you sure you want to delete this belonging form?"
             />
         </div>
     )

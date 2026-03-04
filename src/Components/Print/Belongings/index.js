@@ -10,6 +10,7 @@ import {
 import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
 import { format } from "date-fns";
 import Footer from "../Charts/Footer";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 Font.register({
   family: "Roboto",
@@ -354,7 +355,7 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
                 <Text style={styles.cellText}>{idx + 1}</Text>
               </View>
               <View style={styles.cellCategory}>
-                <Text style={styles.cellText}>{item.category || "-"}</Text>
+                <Text style={styles.cellTextCaps}>{capitalizeWords(item.category || "-")}</Text>
               </View>
               <View style={styles.cellItem}>
                 <Text style={styles.cellTextCaps}>
@@ -369,19 +370,19 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
                       : styles.cellText
                   }
                 >
-                  {item.associatedRisk || "-"}
+                  {capitalizeWords(item.associatedRisk || "-")}
                 </Text>
               </View>
               <View style={styles.cellAllowed}>
                 <Text style={styles.cellText}>
-                  {item.allowedWithPatient || "-"}
+                  {capitalizeWords(item.allowedWithPatient || "-")}
                 </Text>
               </View>
               <View style={styles.cellQty}>
                 <Text style={styles.cellText}>{item.quantity || 1}</Text>
               </View>
               <View style={styles.cellRemarks}>
-                <Text style={styles.cellText}>{item.remarks || "-"}</Text>
+                <Text style={styles.cellTextCaps}>{capitalizeWords(item.remarks || "-")}</Text>
               </View>
               <View style={styles.cellAttachment}>
                 <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 15)}</Text>

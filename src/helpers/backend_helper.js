@@ -1069,6 +1069,14 @@ export const getPatientBelongingById = (id) => {
   });
 };
 
+export const deletePatientBelonging = (id) => {
+  return api.delete(`${url.PATIENT_BELONGING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // cash management
 export const postBankDeposit = (data) => {
   return api.create(url.ADD_BANK_DEPOSIT, data, {

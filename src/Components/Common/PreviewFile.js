@@ -6,7 +6,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { downloadFile } from "./downloadFile";
 import * as XLSX from "xlsx";
 
-const PreviewFile = ({ title = "Preview File", file, isOpen, toggle }) => {
+const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownload = false }) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState([]);
 
@@ -43,28 +43,32 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle }) => {
     }
   }, [file, isLocalExcel]);
 
-  const footer = (
-    <div className="d-flex w-100 justify-content-end">
-      <Button
-        className="text-white"
-        color="primary"
-        onClick={() => downloadFile(file)}
-      >
-        <i className="ri-download-2-line align-bottom me-1"></i> Download
-      </Button>
-    </div>
-  );
-
   if (!file) return null;
+
+  const headerTitle = (
+    <>
+      <span className="me-3">{title}</span>
+      {allowDownload && (
+        <Button
+          className="text-white mt-1"
+          color="primary"
+          size="sm"
+          onClick={() => downloadFile(file)}
+          style={{ position: "absolute", right: "50px", top: "12px", zIndex: 10 }}
+        >
+          <i className="ri-download-2-line align-bottom me-1"></i> Download
+        </Button>
+      )}
+    </>
+  );
 
   return (
     <CustomModal
       size="xl"
       centered
-      title={title}
+      title={headerTitle}
       isOpen={isOpen}
       toggle={toggle}
-      footer={(isExcel && !isLocalExcel) ? footer : null}
     >
       {loading && (isPdf || isImage) && (
         <div
@@ -163,6 +167,7 @@ PreviewFile.propTypes = {
   }),
   isOpen: PropTypes.bool.isRequired,
   toggle: PropTypes.func.isRequired,
+  allowDownload: PropTypes.bool,
 };
 
 export default PreviewFile;
