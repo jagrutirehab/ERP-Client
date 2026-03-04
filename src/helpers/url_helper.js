@@ -536,3 +536,6 @@ export const UPLOAD_FILE = "/upload";
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
 export const GET_TALLY_LOGS = "/tally/logs";
+
+// Issues
+export const GET_ISSUES = "/issues/getx"
