@@ -161,20 +161,22 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                     alignItems: "center",
                                 }}
                             >
-                                {/* Empty spacer for left side */}
                                 <div style={{ flex: 1 }}></div>
 
                                 <div style={{ flex: 1, textAlign: "center" }}>
-                                    <Button
-                                        onClick={() => {
-                                            setEditBelongingId(null);
-                                            toggleModal2();
-                                            setChartType("BELONGINGS");
-                                        }}
-                                        size="sm"
-                                    >
-                                        Create New Form
-                                    </Button>
+                                    {admissionBelongings.length === 0 && (
+                                        <Button
+                                            onClick={() => {
+                                                setEditBelongingId(null);
+                                                setAddmissionId(test?._id);
+                                                toggleModal2();
+                                                setChartType("BELONGINGS");
+                                            }}
+                                            size="sm"
+                                        >
+                                            Create New Form
+                                        </Button>
+                                    )}
                                 </div>
 
                                 <div
@@ -231,7 +233,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                     >
                                                         <div className="flex-grow-1">
                                                             <strong className="me-2">
-                                                                Belongings Form #{admissionBelongings.length - bIdx}
+                                                                Belongings Form
                                                             </strong>
                                                             <small className="text-muted">
                                                                 {formatDateTime(belonging.date)}
@@ -256,15 +258,6 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                 const isSigned = signedFiles.length > 0;
                                                                 return (
                                                                     <>
-                                                                <Button
-                                                                    color="light"
-                                                                    size="sm"
-                                                                    className="btn-icon p-1"
-                                                                    title="Edit"
-                                                                    onClick={() => handleEditBelonging(belonging._id)}
-                                                                >
-                                                                    <i className="ri-edit-line fs-5 text-primary"></i>
-                                                                </Button>
                                                                         <Button
                                                                             color="info"
                                                                             className="text-white"
@@ -305,6 +298,18 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                             <i className="ri-upload-2-line me-1"></i>
                                                                             {isSigned ? "Upload Another Copy" : "Upload Signed Copy"}
                                                                         </Button>
+                                                                        <Button
+                                                                            id={`edit-belonging-${belonging._id}`}
+                                                                            color="light"
+                                                                            size="sm"
+                                                                            className="btn-icon p-1"
+                                                                            onClick={() => handleEditBelonging(belonging._id)}
+                                                                        >
+                                                                            <i className="ri-edit-line fs-5 text-primary"></i>
+                                                                        </Button>
+                                                                        <UncontrolledTooltip placement="top" target={`edit-belonging-${belonging._id}`}>
+                                                                            Edit
+                                                                        </UncontrolledTooltip>
                                                                     </>
                                                                 );
                                                             })()}
