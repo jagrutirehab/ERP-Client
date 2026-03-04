@@ -104,6 +104,10 @@ export const UNASSIGN_NURSE_TO_PATIENT = "/patient/unassign-nurse";
 
 export const GET_ICD_CODES = "/patient/get/icd";
 
+// BELONGINGS
+export const SEARCH_BELONGINGS = "/patient/belongings/search";
+export const PATIENT_BELONGING = "/patient/belongings";
+
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
 export const GET_USER_TIMELINE = "/timeline/user";

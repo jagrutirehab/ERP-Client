@@ -1015,6 +1015,60 @@ export const getICDCodes = () => {
   return api.get(url.GET_ICD_CODES);
 };
 
+// Belongings
+export const searchBelongings = (search) => {
+  return api.get(url.SEARCH_BELONGINGS, {
+    params: {
+      q: encodeURIComponent(search),
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const createPatientBelonging = (data) => {
+  return api.create(url.PATIENT_BELONGING, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updatePatientBelonging = (id, data) => {
+  return api.update(`${url.PATIENT_BELONGING}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const uploadSignedBelonging = (id, formData) => {
+  return api.update(`${url.PATIENT_BELONGING}/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getPatientBelongings = (patientId) => {
+  return api.get(url.PATIENT_BELONGING, {
+    params: { patient: patientId },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getPatientBelongingById = (id) => {
+  return api.get(`${url.PATIENT_BELONGING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // cash management
 export const postBankDeposit = (data) => {
   return api.create(url.ADD_BANK_DEPOSIT, data, {

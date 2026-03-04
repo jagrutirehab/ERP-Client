@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
     Button,
@@ -18,11 +18,15 @@ import {
 import { connect } from "react-redux";
 import { BlobProvider, PDFDownloadLink } from "@react-pdf/renderer";
 import CustomModal from "../../../Components/Common/Modal";
-import { belongingsData } from "../../../Components/constants/patient";
+import { searchBelongings, uploadFile, createPatientBelonging, updatePatientBelonging, getPatientBelongingById } from "../../../helpers/backend_helper";
+import debounce from "lodash.debounce";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import BelongingsPDF from "../../../Components/Print/Belongings";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
 
 const riskBadgeColor = (risk) => {
     switch (risk?.toLowerCase()) {
@@ -37,46 +41,146 @@ const riskBadgeColor = (risk) => {
     }
 };
 
-const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
+const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmissionId, editBelongingId, printMode, onSaved }) => {
+    const handleAuthError = useAuthError();
     const [search, setSearch] = useState("");
     const [selectedItems, setSelectedItems] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [showPDF, setShowPDF] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [savedBelongingId, setSavedBelongingId] = useState(null);
+    const [isDirty, setIsDirty] = useState(false);
 
-    // Custom "Other" item fields
     const [customName, setCustomName] = useState("");
     const [customCategory, setCustomCategory] = useState("Other");
     const [customRisk, setCustomRisk] = useState("TBD");
     const [customAllowed, setCustomAllowed] = useState("To be assessed");
     const [showOtherForm, setShowOtherForm] = useState(false);
 
+    const [fetchingDetail, setFetchingDetail] = useState(false);
+
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState(null);
 
     const isMobile = useMediaQuery("(max-width: 640px)");
 
-    const filteredItems = search.trim()
-        ? belongingsData.filter(
-            (item) =>
-                item.searchIndex.includes(search.toLowerCase()) &&
-                !selectedItems.find(
-                    (s) =>
-                        s.belongings === item.belongings && s.category === item.category
-                )
-        )
-        : [];
+    const [belongingsSuggestions, setBelongingsSuggestions] = useState([]);
+    const [belongingsLoading, setBelongingsLoading] = useState(false);
+
+    const debouncedSearch = useMemo(
+        () =>
+            debounce(async (query) => {
+                if (!query.trim()) {
+                    setBelongingsSuggestions([]);
+                    setBelongingsLoading(false);
+                    return;
+                }
+                try {
+                    const res = await searchBelongings(query.trim());
+                    const items = (res?.data || []).map((item) => ({
+                        ...item,
+                        allowedWithPatient: item.allowedWithPatient ? "Yes" : "No",
+                        associatedRisk: capitalizeWords(item.associatedRisk || ""),
+                        category: capitalizeWords(item.category || ""),
+                    }));
+                    setBelongingsSuggestions(items);
+                } catch (err) {
+                    if (!handleAuthError(err)) {
+                        setBelongingsSuggestions([]);
+                        toast.error("Failed to fetch belongings");
+                    }
+                } finally {
+                    setBelongingsLoading(false);
+                }
+            }, 400),
+        []
+    );
+
+    useEffect(() => {
+        if (!search.trim()) {
+            setBelongingsSuggestions([]);
+            setBelongingsLoading(false);
+            return;
+        }
+        setBelongingsLoading(true);
+        debouncedSearch(search);
+        return () => debouncedSearch.cancel();
+    }, [search, debouncedSearch]);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (editBelongingId) {
+                // Fetch the existing belonging
+                const fetchDetails = async () => {
+                    setFetchingDetail(true);
+                    try {
+                        const res = await getPatientBelongingById(editBelongingId);
+                        if (res?.data) {
+                            const { items, _id } = res.data;
+                            const mappedItems = items.map((itm) => ({
+                                _id: itm.belongingItem?._id || null,
+                                name: itm.belongingItem?.name || itm.otherItemName || "Custom Item",
+                                category: itm.belongingItem?.category || "Other",
+                                associatedRisk: itm.belongingItem?.associatedRisk || "TBD",
+                                allowedWithPatient: itm.belongingItem?.allowedWithPatient !== undefined
+                                    ? (itm.belongingItem?.allowedWithPatient ? "Yes" : "No")
+                                    : "To be assessed",
+                                quantity: itm.quantity || 1,
+                                remarks: itm.remarks || "",
+                                image: typeof itm.attachments?.[0] === "string"
+                                    ? itm.attachments[0]
+                                    : itm.attachments?.[0]?.url || null,
+                                imageName: typeof itm.attachments?.[0] === "string"
+                                    ? "attachment"
+                                    : itm.attachments?.[0]?.name || null,
+                                originalAttachments: itm.attachments || [],
+                                isCustom: !itm.belongingItem?._id,
+                            }));
+                            setSelectedItems(mappedItems);
+                            setSavedBelongingId(_id);
+                            setIsDirty(true);
+                            if (printMode) {
+                                setShowPDF(true);
+                            } else {
+                                setShowPDF(false);
+                            }
+                        }
+                    } catch (error) {
+                        if (!handleAuthError(error)) {
+                            toast.error(error?.message || "Failed to fetch belonging details");
+                        }
+                    } finally {
+                        setFetchingDetail(false);
+                    }
+                };
+                fetchDetails();
+            } else {
+                setSelectedItems([]);
+                setSavedBelongingId(null);
+                setIsDirty(false);
+                setShowPDF(false);
+            }
+        }
+    }, [isOpen, editBelongingId, printMode]);
+
+    const filteredItems = belongingsSuggestions.filter(
+        (item) =>
+            !selectedItems.find(
+                (s) => s.name === item.name && s.category === item.category
+            )
+    );
 
     const addItem = useCallback(
         (item) => {
             if (
                 !selectedItems.find(
                     (s) =>
-                        s.belongings === item.belongings && s.category === item.category
+                        s.name === item.name && s.category === item.category
                 )
             ) {
-                // Check if this is the "Other" item (empty belongings name)
-                if (item.category === "Other" && !item.belongings) {
+                // Check if this is the "Other" item (empty name)
+                if (item.category === "Other" && !item.name) {
                     setShowOtherForm(true);
                     setSearch("");
                     setShowSuggestions(false);
@@ -86,6 +190,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
                     ...prev,
                     { ...item, quantity: 1, remarks: "", image: null },
                 ]);
+                setIsDirty(true);
             }
             setSearch("");
             setShowSuggestions(false);
@@ -98,16 +203,17 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
         setSelectedItems((prev) => [
             ...prev,
             {
-                belongings: customName.trim(),
+                name: customName.trim(),
                 category: customCategory,
-                associated_risk: customRisk,
-                allowed_with_patient: customAllowed,
+                associatedRisk: customRisk,
+                allowedWithPatient: customAllowed,
                 quantity: 1,
                 remarks: "",
                 isCustom: true,
                 image: null,
             },
         ]);
+        setIsDirty(true);
         setCustomName("");
         setCustomCategory("Other");
         setCustomRisk("TBD");
@@ -117,6 +223,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
 
     const removeItem = (idx) => {
         setSelectedItems((prev) => prev.filter((_, i) => i !== idx));
+        setIsDirty(true);
     };
 
     const updateQuantity = (idx, val) => {
@@ -125,31 +232,51 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
                 i === idx ? { ...item, quantity: Math.max(1, Number(val) || 1) } : item
             )
         );
+        setIsDirty(true);
     };
 
     const updateRemarks = (idx, val) => {
         setSelectedItems((prev) =>
             prev.map((item, i) => (i === idx ? { ...item, remarks: val } : item))
         );
+        setIsDirty(true);
     };
 
-    const updateImage = (idx, file) => {
+    const updateImage = async (idx, file) => {
         if (!file) return;
-        const reader = new FileReader();
-        reader.onloadend = () => {
+        try {
             setSelectedItems((prev) =>
                 prev.map((item, i) =>
-                    i === idx ? { ...item, image: reader.result, imageName: file.name } : item
+                    i === idx ? { ...item, uploading: true } : item
                 )
             );
-        };
-        reader.readAsDataURL(file);
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("uploadPath", "BELONGING");
+            const res = await uploadFile(fd);
+            setSelectedItems((prev) =>
+                prev.map((item, i) =>
+                    i === idx ? { ...item, image: res.url, imageName: res.fileName || file.name, uploading: false } : item
+                )
+            );
+            setIsDirty(true);
+        } catch (err) {
+            if (!handleAuthError(err)) {
+                toast.error("Failed to upload attachment");
+            }
+            setSelectedItems((prev) =>
+                prev.map((item, i) =>
+                    i === idx ? { ...item, uploading: false } : item
+                )
+            );
+        }
     };
 
     const removeImage = (idx) => {
         setSelectedItems((prev) =>
             prev.map((item, i) => (i === idx ? { ...item, image: null, imageName: null } : item))
         );
+        setIsDirty(true);
     };
 
     const visibleItems = filteredItems.slice(0, 15);
@@ -192,16 +319,52 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
         }
     };
 
-    const formattedDate = date
-        ? new Date(date).toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        })
-        : "";
+    const handleSubmit = async () => {
+        if (selectedItems.length === 0) return;
+        setSubmitting(true);
+        try {
+            const items = selectedItems.map((item) => ({
+                ...(item.isCustom || !item._id
+                    ? { otherItemName: item.name }
+                    : { belongingItem: item._id }),
+                quantity: item.quantity || 1,
+                attachments: item.image
+                    ? (item.originalAttachments?.length > 0 &&
+                        (item.originalAttachments[0]?.url === item.image || item.originalAttachments[0] === item.image)
+                        ? item.originalAttachments
+                        : [{ url: item.image, name: item.imageName || "attachment" }])
+                    : [],
+                remarks: item.remarks || "",
+            }));
+
+            const payload = {
+                patient: patient?._id,
+                addmission: addmissionId || patient?.addmission?._id,
+                center: center?._id || center,
+                date: date,
+                items,
+            };
+
+            if (savedBelongingId) {
+                await updatePatientBelonging(savedBelongingId, payload);
+                toast.success("Belongings updated successfully");
+            } else {
+                const res = await createPatientBelonging(payload);
+                setSavedBelongingId(res?.data?._id || res?._id);
+                toast.success("Belongings saved successfully");
+            }
+
+            setIsDirty(false);
+            onSaved?.();
+            setShowPDF(true);
+        } catch (err) {
+            if (!handleAuthError(err)) {
+                toast.error(err?.message || "Failed to save belongings");
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     if (showPDF) {
         return (
@@ -215,14 +378,16 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
                 size="xl"
             >
                 <div className="mb-2 d-flex justify-content-between">
-                    <Button
-                        color="secondary"
-                        size="sm"
-                        outline
-                        onClick={() => setShowPDF(false)}
-                    >
-                        <i className="ri-arrow-left-line me-1"></i> Back to Form
-                    </Button>
+                    {!printMode && (
+                        <Button
+                            color="secondary"
+                            size="sm"
+                            outline
+                            onClick={() => setShowPDF(false)}
+                        >
+                            <i className="ri-arrow-left-line me-1"></i> Back to Form
+                        </Button>
+                    )}
 
                     <PDFDownloadLink
                         document={
@@ -311,317 +476,342 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center }) => {
 
     return (
         <>
-        <CustomModal
-            isOpen={isOpen}
-            toggle={toggle}
-            title="Belongings Form"
-            size="xl"
-        >
-            <div>
-                {/* Patient & Date info */}
-                <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <p className="mb-0 text-muted">
-                        <strong>Patient:</strong>{" "}
-                        <span className="text-primary">
-                            {(patient?.name || "").toUpperCase()}
-                        </span>
-                    </p>
-                    <p className="mb-0 text-muted">
-                        <strong>Date:</strong>{" "}
-                        <span className="text-primary">{formattedDate}</span>
-                    </p>
-                </div>
-
-                {/* Search */}
-                <div className="position-relative mb-3">
-                    <InputGroup>
-                        <Input
-                            type="text"
-                            placeholder="Search belongings to add..."
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                setShowSuggestions(true);
-                                setHighlightedIndex(-1);
-                            }}
-                            onFocus={() => setShowSuggestions(true)}
-                            onKeyDown={handleKeyDown}
-                        />
-                        <Button
-                            id="btn-add-suggestion"
-                            color="primary"
-                            className="text-white"
-                            disabled={filteredItems.length === 0}
-                            onClick={() => {
-                                if (filteredItems.length > 0) addItem(filteredItems[0]);
-                            }}
-                        >
-                            <i className="ri-send-plane-fill"></i>
-                        </Button>
-                        <UncontrolledTooltip target="btn-add-suggestion" placement="top">
-                            Add Item
-                        </UncontrolledTooltip>
-                        <Button
-                            id="btn-add-custom"
-                            color="info"
-                            className="text-white ms-2"
-                            onClick={() => setShowOtherForm(!showOtherForm)}
-                        >
-                            <i className="ri-edit-line"></i>
-                        </Button>
-                        <UncontrolledTooltip target="btn-add-custom" placement="top">
-                            Add other item
-                        </UncontrolledTooltip>
-                    </InputGroup>
-
-                    {/* Suggestions dropdown */}
-                    {showSuggestions && visibleItems.length > 0 && (
-                        <ListGroup
-                            className="position-absolute w-100 shadow"
-                            style={{ zIndex: 1050, maxHeight: 220, overflowY: "auto" }}
-                        >
-                            {visibleItems.map((item, idx) => (
-                                <ListGroupItem
-                                    key={idx}
-                                    tag="button"
-                                    action
-                                    style={idx === highlightedIndex ? { backgroundColor: "#e9ecef" } : {}}
-                                    className="d-flex justify-content-between align-items-center py-2"
-                                    onClick={() => addItem(item)}
-                                    onMouseEnter={() => setHighlightedIndex(idx)}
-                                >
-                                    <span>
-                                        <strong>{item.belongings || "(Other - Custom)"}</strong>{" "}
-                                        <small className="text-muted">({item.category})</small>
+            <CustomModal
+                isOpen={isOpen}
+                toggle={toggle}
+                title="Belongings Form"
+                size="xl"
+            >
+                <div>
+                    {fetchingDetail ? (
+                        <div className="text-center py-5">
+                            <Spinner color="primary" />
+                            <p className="mt-2 text-muted">Loading belongings form...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Patient & Date info */}
+                            <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <p className="mb-0 text-muted">
+                                    <strong>Patient:</strong>{" "}
+                                    <span className="text-primary">
+                                        {(patient?.name || "").toUpperCase()}
                                     </span>
-                                    <Badge color={riskBadgeColor(item.associated_risk)} pill>
-                                        {item.associated_risk}
-                                    </Badge>
-                                </ListGroupItem>
-                            ))}
-                        </ListGroup>
-                    )}
-                </div>
+                                </p>
+                                <p className="mb-0 text-muted">
+                                    <strong>Date:</strong>{" "}
+                                    <span className="text-primary">{date
+                                        ? format(new Date(date), "dd MMM yyyy, hh:mm a")
+                                        : ""}</span>
+                                </p>
+                            </div>
 
-                {/* Custom "Other" item form */}
-                {showOtherForm && (
-                    <div className="border rounded p-3 mb-3 bg-light">
-                        <h6 className="mb-3">
-                            <i className="ri-add-circle-line me-1"></i> Add Custom Item
-                        </h6>
-                        <Row>
-                            <Col md={3}>
-                                <FormGroup>
-                                    <Label className="small">Item Name *</Label>
+                            {/* Search */}
+                            <div className="position-relative mb-3">
+                                <InputGroup>
                                     <Input
-                                        bsSize="sm"
-                                        value={customName}
-                                        onChange={(e) => setCustomName(e.target.value)}
-                                        placeholder="e.g. Blanket"
+                                        type="text"
+                                        placeholder="Search belongings to add..."
+                                        value={search}
+                                        onChange={(e) => {
+                                            setSearch(e.target.value);
+                                            setShowSuggestions(true);
+                                            setHighlightedIndex(-1);
+                                        }}
+                                        onFocus={() => setShowSuggestions(true)}
+                                        onKeyDown={handleKeyDown}
                                     />
-                                </FormGroup>
-                            </Col>
-                            <Col md={3}>
-                                <FormGroup>
-                                    <Label className="small">Category</Label>
-                                    <Input
-                                        bsSize="sm"
-                                        value={customCategory}
-                                        onChange={(e) => setCustomCategory(e.target.value)}
-                                        placeholder="e.g. Clothing"
-                                    />
-                                </FormGroup>
-                            </Col>
-                            <Col md={2}>
-                                <FormGroup>
-                                    <Label className="small">Associated Risk</Label>
-                                    <Input
-                                        type="select"
-                                        bsSize="sm"
-                                        value={customRisk}
-                                        onChange={(e) => setCustomRisk(e.target.value)}
+                                    <Button
+                                        id="btn-add-suggestion"
+                                        color="primary"
+                                        className="text-white"
+                                        disabled={filteredItems.length === 0}
+                                        onClick={() => {
+                                            if (filteredItems.length > 0) addItem(filteredItems[0]);
+                                        }}
                                     >
-                                        <option value="Low">Low</option>
-                                        <option value="Moderate">Moderate</option>
-                                        <option value="High">High</option>
-                                        <option value="TBD">TBD</option>
-                                    </Input>
-                                </FormGroup>
-                            </Col>
-                            <Col md={2}>
-                                <FormGroup>
-                                    <Label className="small">Allowed With Patient</Label>
-                                    <Input
-                                        type="select"
-                                        bsSize="sm"
-                                        value={customAllowed}
-                                        onChange={(e) => setCustomAllowed(e.target.value)}
+                                        <i className="ri-send-plane-fill"></i>
+                                    </Button>
+                                    <UncontrolledTooltip target="btn-add-suggestion" placement="top">
+                                        Add Item
+                                    </UncontrolledTooltip>
+                                    <Button
+                                        id="btn-add-custom"
+                                        color="info"
+                                        className="text-white ms-2"
+                                        onClick={() => setShowOtherForm(!showOtherForm)}
                                     >
-                                        <option value="Yes">Yes</option>
-                                        <option value="No">No</option>
-                                        <option value="Conditional">Conditional</option>
-                                        <option value="Supervised">Supervised</option>
-                                        <option value="To be assessed">To be assessed</option>
-                                    </Input>
-                                </FormGroup>
-                            </Col>
-                            <Col md={2} className="d-flex align-items-end mb-3">
-                                <Button
-                                    color="success"
-                                    size="sm"
-                                    className="w-100"
-                                    disabled={!customName.trim()}
-                                    onClick={addCustomItem}
+                                        <i className="ri-edit-line"></i>
+                                    </Button>
+                                    <UncontrolledTooltip target="btn-add-custom" placement="top">
+                                        Add other item
+                                    </UncontrolledTooltip>
+                                </InputGroup>
+
+                                {/* Suggestions dropdown */}
+                                {showSuggestions && search.trim() && (belongingsLoading || visibleItems.length > 0) && (
+                                    <ListGroup
+                                        className="position-absolute w-100 shadow"
+                                        style={{ zIndex: 1050, maxHeight: 220, overflowY: "auto" }}
+                                    >
+                                        {belongingsLoading ? (
+                                            <ListGroupItem className="text-center py-2">
+                                                <Spinner size="sm" color="primary" /> <small className="text-muted ms-1">Searching...</small>
+                                            </ListGroupItem>
+                                        ) : visibleItems.length > 0 ? (
+                                            visibleItems.map((item, idx) => (
+                                                <ListGroupItem
+                                                    key={idx}
+                                                    tag="button"
+                                                    action
+                                                    style={idx === highlightedIndex ? { backgroundColor: "#e9ecef" } : {}}
+                                                    className="d-flex justify-content-between align-items-center py-2"
+                                                    onClick={() => addItem(item)}
+                                                    onMouseEnter={() => setHighlightedIndex(idx)}
+                                                >
+                                                    <span>
+                                                        <strong>{item.name || "(Other - Custom)"}</strong>{" "}
+                                                        <small className="text-muted">({item.category})</small>
+                                                    </span>
+                                                    <Badge color={riskBadgeColor(item.associatedRisk)} pill>
+                                                        {item.associatedRisk}
+                                                    </Badge>
+                                                </ListGroupItem>
+                                            ))
+                                        ) : null}
+                                    </ListGroup>
+                                )}
+                            </div>
+
+                            {/* Custom "Other" item form */}
+                            {showOtherForm && (
+                                <div className="border rounded p-3 mb-3 bg-light">
+                                    <h6 className="mb-3">
+                                        <i className="ri-add-circle-line me-1"></i> Add Custom Item
+                                    </h6>
+                                    <Row>
+                                        <Col md={3}>
+                                            <FormGroup>
+                                                <Label className="small">Item Name *</Label>
+                                                <Input
+                                                    bsSize="sm"
+                                                    value={customName}
+                                                    onChange={(e) => setCustomName(e.target.value)}
+                                                    placeholder="e.g. Blanket"
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md={3}>
+                                            <FormGroup>
+                                                <Label className="small">Category</Label>
+                                                <Input
+                                                    bsSize="sm"
+                                                    disabled
+                                                    value={customCategory}
+                                                    onChange={(e) => setCustomCategory(e.target.value)}
+                                                    placeholder="Other"
+                                                />
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md={2}>
+                                            <FormGroup>
+                                                <Label className="small">Associated Risk</Label>
+                                                <Input
+                                                    type="select"
+                                                    bsSize="sm"
+                                                    value={customRisk}
+                                                    onChange={(e) => setCustomRisk(e.target.value)}
+                                                >
+                                                    <option value="Low">Low</option>
+                                                    <option value="Moderate">Moderate</option>
+                                                    <option value="High">High</option>
+                                                    <option value="TBD">TBD</option>
+                                                </Input>
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md={2}>
+                                            <FormGroup>
+                                                <Label className="small">Allowed With Patient</Label>
+                                                <Input
+                                                    type="select"
+                                                    bsSize="sm"
+                                                    value={customAllowed}
+                                                    onChange={(e) => setCustomAllowed(e.target.value)}
+                                                >
+                                                    <option value="Yes">Yes</option>
+                                                    <option value="No">No</option>
+                                                    <option value="Conditional">Conditional</option>
+                                                    <option value="Supervised">Supervised</option>
+                                                    <option value="To be assessed">To be assessed</option>
+                                                </Input>
+                                            </FormGroup>
+                                        </Col>
+                                        <Col md={2} className="d-flex align-items-end mb-3">
+                                            <Button
+                                                color="success"
+                                                size="sm"
+                                                className="w-100"
+                                                disabled={!customName.trim()}
+                                                onClick={addCustomItem}
+                                            >
+                                                <i className="ri-add-line me-1"></i> Add
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                </div>
+                            )}
+
+                            {/* Selected Items Table */}
+                            {selectedItems.length > 0 && (
+                                <div
+                                    style={{ maxHeight: 350, overflowY: "auto" }}
+                                    className="border rounded mb-3"
                                 >
-                                    <i className="ri-add-line me-1"></i> Add
-                                </Button>
-                            </Col>
-                        </Row>
-                    </div>
-                )}
-
-                {/* Selected Items Table */}
-                {selectedItems.length > 0 && (
-                    <div
-                        style={{ maxHeight: 350, overflowY: "auto" }}
-                        className="border rounded mb-3"
-                    >
-                        <Table bordered hover responsive size="sm" className="mb-0">
-                            <thead className="table-light">
-                                <tr>
-                                    <th style={{ width: 30 }}>#</th>
-                                    <th>Category</th>
-                                    <th>Item</th>
-                                    <th style={{ width: 60 }}>Associated Risk</th>
-                                    <th style={{ width: 85 }}>Allowed With Patient</th>
-                                    <th style={{ width: 65 }}>Qty</th>
-                                    <th style={{ width: 140 }}>Remarks</th>
-                                    <th style={{ width: 90 }}>Attachment</th>
-                                    <th style={{ width: 40 }}></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {selectedItems.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td>{idx + 1}</td>
-                                        <td>
-                                            <small>{item.category}</small>
-                                        </td>
-                                        <td>
-                                            {capitalizeWords(item.belongings)}
-                                            {/* {item.isCustom && (
+                                    <Table bordered hover responsive size="sm" className="mb-0">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th style={{ width: 30 }}>#</th>
+                                                <th>Category</th>
+                                                <th>Item</th>
+                                                <th style={{ width: 60 }}>Associated Risk</th>
+                                                <th style={{ width: 85 }}>Allowed With Patient</th>
+                                                <th style={{ width: 65 }}>Qty</th>
+                                                <th style={{ width: 140 }}>Remarks</th>
+                                                <th style={{ width: 90 }}>Attachment</th>
+                                                <th style={{ width: 40 }}></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selectedItems.map((item, idx) => (
+                                                <tr key={idx}>
+                                                    <td>{idx + 1}</td>
+                                                    <td>
+                                                        <small>{item.category}</small>
+                                                    </td>
+                                                    <td>
+                                                        {capitalizeWords(item.name)}
+                                                        {/* {item.isCustom && (
                                                 <Badge color="info" className="ms-1" pill>
                                                     Custom
                                                 </Badge>
                                             )} */}
-                                        </td>
-                                        <td>
-                                            <Badge
-                                                color={riskBadgeColor(item.associated_risk)}
-                                                pill
-                                            >
-                                                {item.associated_risk}
-                                            </Badge>
-                                        </td>
-                                        <td>
-                                            <small>{item.allowed_with_patient}</small>
-                                        </td>
-                                        <td>
-                                            <Input
-                                                type="number"
-                                                min={1}
-                                                value={item.quantity}
-                                                onChange={(e) => updateQuantity(idx, e.target.value)}
-                                                bsSize="sm"
-                                                style={{ width: 55 }}
-                                            />
-                                        </td>
-                                        <td>
-                                            <Input
-                                                type="text"
-                                                value={item.remarks}
-                                                onChange={(e) => updateRemarks(idx, e.target.value)}
-                                                bsSize="sm"
-                                                placeholder="..."
-                                            />
-                                        </td>
-                                        <td className="text-center">
-                                            {item.image ? (
-                                                <div className="d-flex align-items-center gap-1">
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.belongings}
-                                                        style={{ width: 35, height: 35, objectFit: "cover", borderRadius: 4, cursor: "pointer" }}
-                                                        onClick={() => {
-                                                            setPreviewFile({
-                                                                url: item.image,
-                                                                type: "image/png",
-                                                                originalName: item.belongings || "Attachment",
-                                                            });
-                                                            setPreviewOpen(true);
-                                                        }}
-                                                    />
-                                                    <Button
-                                                        color="link"
-                                                        size="sm"
-                                                        className="p-0 text-danger"
-                                                        onClick={() => removeImage(idx)}
-                                                    >
-                                                        <i className="ri-close-circle-fill"></i>
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <label className="btn btn-sm btn-outline-secondary mb-0" style={{ cursor: "pointer" }}>
-                                                    <i className="ri-camera-line"></i>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        hidden
-                                                        onChange={(e) => updateImage(idx, e.target.files[0])}
-                                                    />
-                                                </label>
-                                            )}
-                                        </td>
-                                        <td className="text-center">
-                                            <Button
-                                                color="danger"
-                                                size="sm"
-                                                outline
-                                                onClick={() => removeItem(idx)}
-                                            >
-                                                <i className="ri-delete-bin-line"></i>
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </div>
-                )}
+                                                    </td>
+                                                    <td>
+                                                        <Badge
+                                                            color={riskBadgeColor(item.associatedRisk)}
+                                                            pill
+                                                        >
+                                                            {item.associatedRisk}
+                                                        </Badge>
+                                                    </td>
+                                                    <td>
+                                                        <small>{item.allowedWithPatient}</small>
+                                                    </td>
+                                                    <td>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={item.quantity}
+                                                            onChange={(e) => updateQuantity(idx, e.target.value)}
+                                                            bsSize="sm"
+                                                            style={{ width: 55 }}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Input
+                                                            type="text"
+                                                            value={item.remarks}
+                                                            onChange={(e) => updateRemarks(idx, e.target.value)}
+                                                            bsSize="sm"
+                                                            placeholder="..."
+                                                        />
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {item.uploading ? (
+                                                            <Spinner size="sm" color="primary" />
+                                                        ) : item.image ? (
+                                                            <div className="d-flex align-items-center gap-1">
+                                                                <img
+                                                                    src={item.image}
+                                                                    alt={item.name}
+                                                                    style={{ width: 35, height: 35, objectFit: "cover", borderRadius: 4, cursor: "pointer" }}
+                                                                    onClick={() => {
+                                                                        setPreviewFile({
+                                                                            url: item.image,
+                                                                            type: "image/png",
+                                                                            originalName: item.name || "Attachment",
+                                                                        });
+                                                                        setPreviewOpen(true);
+                                                                    }}
+                                                                />
+                                                                <Button
+                                                                    color="link"
+                                                                    size="sm"
+                                                                    className="p-0 text-danger"
+                                                                    onClick={() => removeImage(idx)}
+                                                                >
+                                                                    <i className="ri-close-circle-fill"></i>
+                                                                </Button>
+                                                            </div>
+                                                        ) : (
+                                                            <label className="btn btn-sm btn-outline-secondary mb-0" style={{ cursor: "pointer" }}>
+                                                                <i className="ri-camera-line"></i>
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    hidden
+                                                                    onChange={(e) => updateImage(idx, e.target.files[0])}
+                                                                />
+                                                            </label>
+                                                        )}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <Button
+                                                            color="danger"
+                                                            size="sm"
+                                                            outline
+                                                            onClick={() => removeItem(idx)}
+                                                        >
+                                                            <i className="ri-delete-bin-line"></i>
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            )}
 
-                {selectedItems.length === 0 && (
-                    <div className="text-center text-muted py-4 border rounded mb-3">
-                        <i className="ri-inbox-line fs-1 d-block mb-2"></i>
-                        Search and add belongings above
-                    </div>
-                )}
+                            {selectedItems.length === 0 && (
+                                <div className="text-center text-muted py-4 border rounded mb-3">
+                                    <i className="ri-inbox-line fs-1 d-block mb-2"></i>
+                                    Search and add belongings above
+                                </div>
+                            )}
 
-                {/* Action buttons */}
-                <div className="d-flex justify-content-end gap-2 border-top pt-3">
-                    <Button color="secondary" outline onClick={toggle}>
-                        Cancel
-                    </Button>
-                    <Button
-                        color="primary"
-                        className="text-white"
-                        disabled={selectedItems.length === 0}
-                        onClick={() => setShowPDF(true)}
-                    >
-                        <i className="ri-printer-line me-1"></i> Print
-                    </Button>
+                            <div className="d-flex justify-content-end gap-2 border-top pt-3">
+                                <Button color="secondary" outline onClick={toggle}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color="success"
+                                    className="text-white"
+                                    disabled={selectedItems.length === 0 || submitting || (savedBelongingId && !isDirty)}
+                                    onClick={handleSubmit}
+                                >
+                                    {submitting ? (
+                                        <><Spinner size="sm" className="me-1" /> Saving...</>
+                                    ) : savedBelongingId ? (
+                                        <><i className="ri-edit-line me-1"></i> Update & Print</>
+                                    ) : (
+                                        <><i className="ri-save-line me-1"></i> Save & Print</>
+                                    )}
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </div>
-            </div>
-        </CustomModal>
+            </CustomModal>
             <PreviewFile
                 title={previewFile?.originalName || "Attachment Preview"}
                 file={previewFile}
@@ -641,6 +831,9 @@ BelongingsFormModal.propTypes = {
     date: PropTypes.string,
     patient: PropTypes.object,
     center: PropTypes.object,
+    editBelongingId: PropTypes.string,
+    printMode: PropTypes.bool,
+    onSaved: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({

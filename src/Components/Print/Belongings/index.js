@@ -121,6 +121,9 @@ const styles = StyleSheet.create({
   tableRowAlt: {
     backgroundColor: "#f8f8f8",
   },
+  tableRowNotAllowed: {
+    backgroundColor: "#fde0e0",
+  },
   cellSl: { width: "5%", paddingRight: 2 },
   cellItem: { width: "20%", paddingRight: 4 },
   cellCategory: { width: "13%", paddingRight: 4 },
@@ -212,10 +215,11 @@ const styles = StyleSheet.create({
   },
 });
 
-// Break long text by inserting zero-width spaces for wrapping
-const breakLongText = (text, chunkSize = 12) => {
-  if (!text || text.length <= chunkSize) return text;
-  return text.match(new RegExp(`.{1,${chunkSize}}`, "g")).join("\u200B");
+const breakLongText = (text, chunkSize = 15) => {
+  if (!text) return "-";
+  if (text.length <= chunkSize) return text;
+  const match = text.match(new RegExp(`.{1,${chunkSize}}`, "g"));
+  return match ? match.join("\n") : text;
 };
 
 const BelongingsPDF = ({ items, patient, date, center }) => {
@@ -340,7 +344,9 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
               key={idx}
               style={[
                 styles.tableRow,
-                idx % 2 !== 0 ? styles.tableRowAlt : {},
+                item.allowedWithPatient?.toLowerCase() === "no"
+                  ? styles.tableRowNotAllowed
+                  : idx % 2 !== 0 ? styles.tableRowAlt : {},
               ]}
               wrap={false}
             >
@@ -352,23 +358,23 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
               </View>
               <View style={styles.cellItem}>
                 <Text style={styles.cellTextCaps}>
-                  {item.belongings || item.customName || "-"}
+                  {item.name || item.customName || "-"}
                 </Text>
               </View>
               <View style={styles.cellRisk}>
                 <Text
                   style={
-                    item.associated_risk?.toLowerCase() === "high"
+                    item.associatedRisk?.toLowerCase() === "high"
                       ? styles.riskHigh
                       : styles.cellText
                   }
                 >
-                  {item.associated_risk || "-"}
+                  {item.associatedRisk || "-"}
                 </Text>
               </View>
               <View style={styles.cellAllowed}>
                 <Text style={styles.cellText}>
-                  {item.allowed_with_patient || "-"}
+                  {item.allowedWithPatient || "-"}
                 </Text>
               </View>
               <View style={styles.cellQty}>
@@ -378,7 +384,7 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
                 <Text style={styles.cellText}>{item.remarks || "-"}</Text>
               </View>
               <View style={styles.cellAttachment}>
-                <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 8) || "-"}</Text>
+                <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 15)}</Text>
               </View>
             </View>
           ))}
@@ -402,7 +408,7 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
                   <View key={idx} style={styles.imageBox} wrap={false}>
                     <Image src={item.image} style={styles.imageThumb} />
                     <Text style={styles.imageLabel}>
-                      {item.belongings || item.customName || "Item"}{" "}
+                      {item.name || item.customName || "Item"}{" "}
                       ({item.category || "N/A"})
                     </Text>
                   </View>
