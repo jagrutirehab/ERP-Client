@@ -2666,3 +2666,11 @@ export const submitAssessment = (id, payload) => {
     },
   });
 };
+
+// Issues
+
+export const getIssues = (params = {}) => {
+  return axios.get(url.GET_ISSUES, {
+    params,
+  });
+};

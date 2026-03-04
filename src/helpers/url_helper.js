@@ -532,3 +532,5 @@ export const SUBMIT_ASSESSMENT_FROM = "/patient/capacity-assessment-submit-file"
 export const UPLOAD_FILE = "/upload";
 
 
+// Issues
+export const GET_ISSUES = "/issues/getx"
