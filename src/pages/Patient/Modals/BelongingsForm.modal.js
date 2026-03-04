@@ -178,24 +178,28 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
     const addItem = useCallback(
         (item) => {
             if (
-                !selectedItems.find(
+                selectedItems.find(
                     (s) =>
                         s.name === item.name && s.category === item.category
                 )
             ) {
-                // Check if this is the "Other" item (empty name)
-                if (item.category === "Other" && !item.name) {
-                    setShowOtherForm(true);
-                    setSearch("");
-                    setShowSuggestions(false);
-                    return;
-                }
-                setSelectedItems((prev) => [
-                    ...prev,
-                    { ...item, quantity: 1, remarks: "", image: null },
-                ]);
-                setIsDirty(true);
+                toast.warning(`"${item.name}" is already added`);
+                setSearch("");
+                setShowSuggestions(false);
+                return;
             }
+            // Check if this is the "Other" item (empty name)
+            if (item.category === "Other" && !item.name) {
+                setShowOtherForm(true);
+                setSearch("");
+                setShowSuggestions(false);
+                return;
+            }
+            setSelectedItems((prev) => [
+                ...prev,
+                { ...item, quantity: 1, remarks: "", image: null },
+            ]);
+            setIsDirty(true);
             setSearch("");
             setShowSuggestions(false);
         },
@@ -204,6 +208,10 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
 
     const addCustomItem = () => {
         if (!customName.trim()) return;
+        if (selectedItems.find((s) => s.name.toLowerCase() === customName.trim().toLowerCase())) {
+            toast.warning(`"${customName.trim()}" is already added`);
+            return;
+        }
         setSelectedItems((prev) => [
             ...prev,
             {
@@ -721,29 +729,24 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                         </thead>
                                         <tbody>
                                             {selectedItems.map((item, idx) => (
-                                                <tr key={idx}>
+                                                <tr key={idx} style={item.associatedRisk?.toLowerCase() === "high" ? { backgroundColor: "#fff0f0" } : {}}>
                                                     <td>{idx + 1}</td>
                                                     <td>
-                                                        <small>{item.category}</small>
+                                                        <small>{capitalizeWords(item.category)}</small>
                                                     </td>
                                                     <td>
                                                         {capitalizeWords(item.name)}
-                                                        {/* {item.isCustom && (
-                                                <Badge color="info" className="ms-1" pill>
-                                                    Custom
-                                                </Badge>
-                                            )} */}
                                                     </td>
                                                     <td>
                                                         <Badge
                                                             color={riskBadgeColor(item.associatedRisk)}
                                                             pill
                                                         >
-                                                            {item.associatedRisk}
+                                                            {capitalizeWords(item.associatedRisk)}
                                                         </Badge>
                                                     </td>
                                                     <td>
-                                                        <small>{item.allowedWithPatient}</small>
+                                                        <small>{capitalizeWords(item.allowedWithPatient)}</small>
                                                     </td>
                                                     <td>
                                                         <Input
