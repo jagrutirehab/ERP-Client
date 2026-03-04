@@ -38,6 +38,7 @@ const HR = React.lazy(() => import("../pages/HR"));
 const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
+const Issues = React.lazy(() => import("../pages/Issues"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -62,6 +63,7 @@ const allElements = [
   { element: HRMS, label: "HRMS" },
   { element: WebCamStats, label: "Web Cam Stats" },
   { element: Referral, label: "Referral" },
+  { element: Issues, label: "Issues" },
 ];
 
 const authProtectedRoutes = [
@@ -85,6 +87,7 @@ const authProtectedRoutes = [
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
+  { path: "/issues/*", component: Issues },
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },

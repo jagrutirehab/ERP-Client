@@ -293,6 +293,13 @@ const pages = [
     icon: "bx bx-body",
   },
   {
+    id: "issues",
+    label: "Issues",
+    name: "Issues",
+    link: "/issues",
+    icon: "bx bx-error-circle",
+  },
+  {
     id: "hrms",
     label: "HRMS",
     name: "HRMS",
@@ -307,6 +314,8 @@ const pages = [
     icon: "bx bx-group",
   },
 ];
+
+
 
 export const WebcamStats = [
   {
@@ -965,6 +974,29 @@ export const HRMS = [
   //     },
   //   ],
   // },
+];
+
+export const ISSUES = [
+  {
+    id: "issues-type",
+    label: "Issues",
+    icon: "bx bx-error-circle",
+    // isAccordion: true,
+    children: [
+      {
+        id: "tech-issues",
+        label: "Tech Issues",
+        link: "/issues/tech",
+        icon: "bx bx-chip",
+      },
+      {
+        id: "other-issues",
+        label: "Other Issues",
+        link: "/issues/other",
+        icon: "bx bx-category",
+      },
+    ],
+  },
 ];
 
 export default pages;

@@ -321,6 +321,13 @@ export const permissionList = [
       { name: "APIKEYS", label: "Apikeys" },
     ],
   },
+  // {
+  //   key: "ISSUES",
+  //   label: "Issues",
+  //   subModules: [
+  //     { name: "TECH ISSUES", label: "Tech Issues" },
+  //   ],
+  // },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];
