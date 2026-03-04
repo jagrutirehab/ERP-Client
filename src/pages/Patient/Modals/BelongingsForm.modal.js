@@ -420,6 +420,29 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
     }, []);
 
     if (showPDF) {
+        const headerTitle = (
+            <>
+                <span className="me-3">Belongings PDF Preview</span>
+                <PDFDownloadLink
+                    document={
+                        <BelongingsPDF
+                            items={selectedItems}
+                            patient={patient}
+                            date={date}
+                            center={center}
+                        />
+                    }
+                    fileName={`Belongings_${patient?.name || "patient"}.pdf`}
+                    className="btn btn-primary btn-sm text-white"
+                    style={{ position: "absolute", right: "50px", top: "20px", zIndex: 10 }}
+                >
+                    {({ loading }) =>
+                        loading ? <Spinner size="sm" /> : "Download"
+                    }
+                </PDFDownloadLink>
+            </>
+        );
+
         return (
             <CustomModal
                 isOpen={isOpen}
@@ -427,10 +450,10 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                     setShowPDF(false);
                     toggle();
                 }}
-                title="Belongings PDF Preview"
+                title={headerTitle}
                 size="xl"
             >
-                <div className="mb-2 d-flex justify-content-between">
+                <div className="mb-2">
                     {!printMode && (
                         <Button
                             color="secondary"
@@ -441,23 +464,6 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             <i className="ri-arrow-left-line me-1"></i> Back to Form
                         </Button>
                     )}
-
-                    <PDFDownloadLink
-                        document={
-                            <BelongingsPDF
-                                items={selectedItems}
-                                patient={patient}
-                                date={date}
-                                center={center}
-                            />
-                        }
-                        fileName={`Belongings_${patient?.name || "patient"}.pdf`}
-                        className="btn btn-primary btn-sm text-white ms-auto"
-                    >
-                        {({ loading }) =>
-                            loading ? <Spinner size="sm" /> : "Download PDF"
-                        }
-                    </PDFDownloadLink>
                 </div>
                 {!isMobile ? (
                     <div style={{ position: "relative", minHeight: 550 }}>
@@ -511,7 +517,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             className="btn btn-primary btn-sm"
                         >
                             {({ loading }) =>
-                                loading ? <Spinner size="sm" /> : "Download PDF"
+                                loading ? <Spinner size="sm" /> : "Download"
                             }
                         </PDFDownloadLink>
                     </div>
@@ -632,9 +638,19 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             {/* Custom "Other" item form */}
                             {showOtherForm && (
                                 <div className="border rounded p-3 mb-3 bg-light">
-                                    <h6 className="mb-3">
-                                        <i className="ri-add-circle-line me-1"></i> Add Custom Item
-                                    </h6>
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 className="mb-0">
+                                            <i className="ri-add-circle-line me-1"></i> Add Custom Item
+                                        </h6>
+                                        <Button
+                                            color="danger"
+                                            className="text-white d-flex justify-content-center align-items-center p-0"
+                                            style={{ width: "24px", height: "24px" }}
+                                            onClick={() => setShowOtherForm(false)}
+                                        >
+                                            <i className="ri-close-line fs-5"></i>
+                                        </Button>
+                                    </div>
                                     <Row>
                                         <Col md={3}>
                                             <FormGroup>
@@ -765,6 +781,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                             onChange={(e) => updateRemarks(idx, e.target.value)}
                                                             bsSize="sm"
                                                             placeholder="..."
+                                                            style={{ textTransform: "capitalize" }}
                                                         />
                                                     </td>
                                                     <td className="text-center">
@@ -799,9 +816,17 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                                 <i className="ri-camera-line"></i>
                                                                 <input
                                                                     type="file"
-                                                                    accept="image/*"
+                                                                    accept="image/jpeg, image/png, image/jpg"
                                                                     hidden
-                                                                    onChange={(e) => updateImage(idx, e.target.files[0])}
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files[0];
+                                                                        if (file && file.type === "image/webp") {
+                                                                            toast.error("WebP images are not supported");
+                                                                            e.target.value = "";
+                                                                            return;
+                                                                        }
+                                                                        updateImage(idx, file);
+                                                                    }}
                                                                 />
                                                             </label>
                                                         )}

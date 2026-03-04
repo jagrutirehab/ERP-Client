@@ -26,6 +26,15 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
 
     const handleAuthError = useAuthError();
 
+    const checkIsExcel = (file) => {
+        if (!file) return false;
+        return (
+            /\.(xlsx|xls)$/i.test(file?.name || file?.url) ||
+            file?.type?.includes("excel") ||
+            file?.type?.includes("spreadsheet")
+        );
+    };
+
     const getStatusBadgeColor = (status) => {
         switch (status) {
             case "APPROVED":
@@ -49,7 +58,6 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
             setPreviewFile(null);
         }
     };
-
 
     const closePreview = () => {
         setPreviewOpen(false);
@@ -291,6 +299,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 file={previewFile}
                 isOpen={previewOpen}
                 toggle={closePreview}
+                allowDownload={checkIsExcel(previewFile)}
             />
         </React.Fragment>
     );
