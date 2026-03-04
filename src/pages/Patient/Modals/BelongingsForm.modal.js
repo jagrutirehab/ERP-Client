@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import {
     Button,
@@ -16,7 +16,7 @@ import {
     Spinner,
 } from "reactstrap";
 import { connect } from "react-redux";
-import { BlobProvider, PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf, PDFDownloadLink } from "@react-pdf/renderer";
 import CustomModal from "../../../Components/Common/Modal";
 import { searchBelongings, uploadFile, createPatientBelonging, updatePatientBelonging, getPatientBelongingById } from "../../../helpers/backend_helper";
 import debounce from "lodash.debounce";
@@ -62,6 +62,11 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState(null);
+
+    const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfError, setPdfError] = useState(false);
+    const pdfBlobUrlRef = useRef(null);
 
     const isMobile = useMediaQuery("(max-width: 640px)");
 
@@ -111,7 +116,6 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
     useEffect(() => {
         if (isOpen) {
             if (editBelongingId) {
-                // Fetch the existing belonging
                 const fetchDetails = async () => {
                     setFetchingDetail(true);
                     try {
@@ -366,6 +370,47 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
         }
     };
 
+    // Generate PDF blob manually with retry for reliable preview
+    useEffect(() => {
+        if (!showPDF || isMobile) return;
+        let cancelled = false;
+        const generatePdf = async (attempt = 1) => {
+            setPdfLoading(true);
+            setPdfError(false);
+            try {
+                const blob = await pdf(
+                    <BelongingsPDF items={selectedItems} patient={patient} date={date} center={center} />
+                ).toBlob();
+                if (cancelled) return;
+                // Revoke previous URL
+                if (pdfBlobUrlRef.current) URL.revokeObjectURL(pdfBlobUrlRef.current);
+                const url = URL.createObjectURL(blob);
+                pdfBlobUrlRef.current = url;
+                setPdfBlobUrl(url);
+                setPdfLoading(false);
+            } catch (err) {
+                if (cancelled) return;
+                if (attempt < 3) {
+                    setTimeout(() => generatePdf(attempt + 1), 500);
+                } else {
+                    setPdfLoading(false);
+                    setPdfError(true);
+                }
+            }
+        };
+        generatePdf();
+        return () => {
+            cancelled = true;
+        };
+    }, [showPDF, isMobile, selectedItems, patient, date, center]);
+
+    // Cleanup blob URL on unmount
+    useEffect(() => {
+        return () => {
+            if (pdfBlobUrlRef.current) URL.revokeObjectURL(pdfBlobUrlRef.current);
+        };
+    }, []);
+
     if (showPDF) {
         return (
             <CustomModal
@@ -399,7 +444,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             />
                         }
                         fileName={`Belongings_${patient?.name || "patient"}.pdf`}
-                        className="btn btn-primary btn-sm text-white"
+                        className="btn btn-primary btn-sm text-white ms-auto"
                     >
                         {({ loading }) =>
                             loading ? <Spinner size="sm" /> : "Download PDF"
@@ -407,46 +452,39 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                     </PDFDownloadLink>
                 </div>
                 {!isMobile ? (
-                    <BlobProvider
-                        document={
-                            <BelongingsPDF
-                                items={selectedItems}
-                                patient={patient}
-                                date={date}
-                                center={center}
-                            />
-                        }
-                    >
-                        {({ url, loading }) => (
-                            <div style={{ position: "relative", minHeight: 550 }}>
-                                {(loading || !url) ? (
-                                    <div
-                                        className="d-flex flex-column justify-content-center align-items-center"
-                                        style={{
-                                            position: "absolute",
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundColor: "rgba(255,255,255,0.85)",
-                                            zIndex: 10,
-                                        }}
-                                    >
-                                        <Spinner color="primary" />
-                                        <p className="text-muted mt-2 mb-0">Generating PDF...</p>
-                                    </div>
-                                ) : (
-                                    <iframe
-                                        src={url}
-                                        title="Belongings PDF"
-                                        width="100%"
-                                        height={550}
-                                        style={{ border: "none" }}
-                                    />
-                                )}
+                    <div style={{ position: "relative", minHeight: 550 }}>
+                        {pdfLoading ? (
+                            <div
+                                className="d-flex flex-column justify-content-center align-items-center"
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    backgroundColor: "rgba(255,255,255,0.85)",
+                                    zIndex: 10,
+                                }}
+                            >
+                                <Spinner color="primary" />
+                                <p className="text-muted mt-2 mb-0">Generating PDF...</p>
                             </div>
+                        ) : pdfError || !pdfBlobUrl ? (
+                            <div className="d-flex flex-column justify-content-center align-items-center py-5">
+                                <i className="ri-file-damage-line fs-1 text-warning mb-2"></i>
+                                <p className="text-muted mb-2">PDF preview could not be loaded.</p>
+                                <p className="text-muted small mb-3">Please use the Download button above.</p>
+                            </div>
+                        ) : (
+                            <iframe
+                                src={pdfBlobUrl}
+                                title="Belongings PDF"
+                                width="100%"
+                                height={550}
+                                style={{ border: "none" }}
+                            />
                         )}
-                    </BlobProvider>
+                    </div>
                 ) : (
                     <div className="text-center p-4 border rounded bg-light">
                         <p className="text-muted mb-3">
