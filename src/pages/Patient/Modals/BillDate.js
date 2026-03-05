@@ -58,7 +58,7 @@ const BillDate = ({
     "hemanthshinde@gmail.com",
     "sarang.padulkar@jagrutirehab.org",
     "surjeet.parida@gmail.com",
-    "pratikkadlag911@gmail.com"
+    "Pratikkadlag911@gmail.com"
   ];
 
   const isPrivilegedUser = privilegedEmails.includes(user?.email);
