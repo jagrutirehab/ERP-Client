@@ -39,35 +39,15 @@ const BillDate = ({
   const [showWriteOff, setShowWriteOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const PatientCenter = useSelector(
-    (state) => state?.Patient?.patient?.center._id,
+    (state) => state.Patient.patient.center._id,
   );
-  console.log("PatientCenter:", PatientCenter);
   const billingAdmissions = useSelector(
-    (state) => state?.Bill?.data
+    (state) => state.Bill.data
   );
-  console.log("billingAdmissions:", billingAdmissions);
-
 
   const user = useSelector((state) => state?.User?.user);
-  console.log("User:", user);
-
-  const privilegedEmails = [
-    "rijutarafder000@gmail.com",
-    "owais@gmail.com",
-    "bishal@gmail.com",
-    "hemanthshinde@gmail.com",
-    "sarang.padulkar@jagrutirehab.org",
-    "surjeet.parida@gmail.com",
-    "Pratikkadlag911@gmail.com"
-  ];
-
-  const isPrivilegedUser = privilegedEmails.includes(user?.email);
 
 
-
-
-
-  console.log("adjustedPayable", adjustedPayable);
 
 
 
@@ -87,10 +67,29 @@ const BillDate = ({
     )
     : null;
 
-  const isDischarged = Boolean(latestBillingAdmission?.dischargeDate);
-  const disableOtherButtons = isDischarged && !isPrivilegedUser;
-
   console.log("latestBillingAdmission", latestBillingAdmission);
+  console.log("admission", admission);
+
+  const specialEmails = [
+    "rijutarafder000@gmail.com",
+    "owais@gmail.com",
+    "bishal@gmail.com",
+    "hemanthshinde@gmail.com",
+    "surjeet.parida@gmail.com",
+    "sarang.padulkar@jagrutirehab.org"
+  ];
+
+  const isSpecialUser = specialEmails.includes(user?.email);
+  const isCurrentAdmissionDischarged =
+    latestBillingAdmission?.dischargeDate &&
+    (latestBillingAdmission?._id === admission || latestBillingAdmission?.addmissionId === admission);
+  const canShowSpecialButtons = isSpecialUser && isCurrentAdmissionDischarged;
+  const shouldShowWriteOff = isCurrentAdmissionDischarged;
+  const isNormalUserAndDischarged = !isSpecialUser && isCurrentAdmissionDischarged;
+
+
+
+
 
   const paymentCenters = [
     "651f8abfed3d16334ae5a908",
@@ -278,7 +277,6 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              disableOtherButtons ||
               editBillData.bill === null ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
@@ -303,11 +301,13 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              disableOtherButtons ||
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === ADVANCE_PAYMENT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons && (
+                editBillData.bill === INVOICE ||
+                editBillData.bill === REFUND ||
+                editBillData.bill === DRAFT_INVOICE ||
+                editBillData.bill === ADVANCE_PAYMENT
+              ))
             }
             size="sm"
             onClick={() => {
@@ -327,10 +327,12 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              disableOtherButtons ||
-              editBillData.bill === ADVANCE_PAYMENT ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons && (
+                editBillData.bill === ADVANCE_PAYMENT ||
+                editBillData.bill === DRAFT_INVOICE ||
+                editBillData.bill === DEPOSIT
+              ))
             }
             size="sm"
             onClick={() => {
@@ -351,11 +353,13 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              disableOtherButtons ||
-              editBillData.bill === ADVANCE_PAYMENT ||
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DEPOSIT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons && (
+                editBillData.bill === ADVANCE_PAYMENT ||
+                editBillData.bill === INVOICE ||
+                editBillData.bill === REFUND ||
+                editBillData.bill === DEPOSIT
+              ))
             }
             size="sm"
             onClick={() => {
@@ -373,13 +377,15 @@ const BillDate = ({
           >
             Inovice Draft
           </Button>
-          {adjustedPayable > 0 && isDischarged && <Button
-            outline
-            size="sm"
-            onClick={() => setShowWriteOff(true)}
-          >
-            Write Off
-          </Button>}
+          {shouldShowWriteOff && adjustedPayable > 0 && (
+            <Button
+              outline
+              size="sm"
+              onClick={() => setShowWriteOff(true)}
+            >
+              Write Off
+            </Button>
+          )}
         </div>
       </CustomModal>
 

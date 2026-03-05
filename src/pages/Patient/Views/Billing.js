@@ -103,6 +103,9 @@ const Billing = ({
     : null;
 
   console.log("latestAdmission", latestAdmission);
+  console.log("addmissionsBills", addmissionsBills);
+
+
 
   const arrayOfWriteOffs = [];
 
@@ -163,7 +166,8 @@ const Billing = ({
 
   console.log("WriteOffPayalbe", withWriteOffPayableAmount);
 
-  console.log("addmissionsBills", addmissionsBills);
+
+
 
 
 
@@ -293,20 +297,27 @@ const Billing = ({
                 <div className="d-flex align-items-center mt-2 flex-column">
                   <RenderWhen
                     isTrue={
-                      addmission.dischargeDate &&
-                      addmission._id === latestAdmission?._id &&
-                      (
-                        adjustedPayable < 0 ||
-                        user?.email === "rijutarafder000@gmail.com" ||
-                        user?.email === "owais@gmail.com" ||
-                        user?.email === "bishal@gmail.com" ||
-                        user?.email === "hemanthshinde@gmail.com" ||
-                        user?.email === "sarang.padulkar@jagrutirehab.org" ||
-                        user?.email === "surjeet.parida@gmail.com" ||
-                        user?.email === "Pratikkadlag911@gmail.com"
-                      )
+                      (() => {
+                        const specialEmails = [
+                          "rijutarafder000@gmail.com",
+                          "owais@gmail.com",
+                          "bishal@gmail.com",
+                          "hemanthshinde@gmail.com",
+                          "surjeet.parida@gmail.com",
+                          "sarang.padulkar@jagrutirehab.org"
+                        ];
+
+                        const isSpecialUser = specialEmails.includes(user?.email);
+                        const hasBasicRequirements = addmission.dischargeDate && latestAdmission._id === addmission._id;
+
+                        if (isSpecialUser) {
+                          return hasBasicRequirements;
+                        }
+                        return hasBasicRequirements && adjustedPayable < 0;
+                      })()
                     }
                   >
+                    {/* sarang.padulkar@jagrutirehab.org */}
                     <Button
                       className="text-nowrap"
                       onClick={() => {
@@ -445,7 +456,7 @@ Billing.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  user: state?.User?.user,
+  user: state.User.user,
   patient: state.Patient.patient,
   addmissionsBills: state.Bill.data,
   calculatedAdvance: state.Bill.calculatedAdvance,
