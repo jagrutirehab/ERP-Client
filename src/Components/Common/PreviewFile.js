@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "./Modal";
 import { Spinner, Button } from "reactstrap";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { downloadFile } from "./downloadFile";
 import * as XLSX from "xlsx";
+import axios from "axios";
 
 const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownload = false }) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState([]);
-  const imgRef = useRef(null);
 
   const url = file?.url;
   const isPdf =
@@ -44,33 +44,28 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
     }
   }, [file, isLocalExcel]);
 
-  const handleDownload = useCallback(() => {
-    if (isImage && imgRef.current) {
-      try {
-        const img = imgRef.current;
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext("2d").drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const blobUrl = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.download = file?.originalName || "download";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(blobUrl);
-          }
+  const handleDownload = () => {
+    if (isImage && url) {
+      axios
+        .get(url, { responseType: "blob" })
+        .then((res) => {
+          const blob = res.data || res;
+          const blobUrl = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = blobUrl;
+          link.download = file?.originalName || "download";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        })
+        .catch(() => {
+          downloadFile(file);
         });
-      } catch {
-        downloadFile(file);
-      }
     } else {
       downloadFile(file);
     }
-  }, [file, isImage]);
+  };
 
   if (!file) return null;
 
@@ -132,8 +127,6 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
         >
           <TransformComponent>
             <img
-              ref={imgRef}
-              crossOrigin="anonymous"
               src={url}
               alt="Preview"
               className="img-fluid mx-auto d-block"
