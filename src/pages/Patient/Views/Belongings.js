@@ -324,7 +324,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                                 }}
                                                                             >
                                                                                 <i className="ri-upload-2-line me-1"></i>
-                                                                                {isSigned ? "Upload Another Copy" : "Upload Signed Copy"}
+                                                                                {isSigned ? "Upload Another Signed Copy" : "Upload Signed Copy"}
                                                                             </Button>
                                                                         </CheckPermission>
 
@@ -442,15 +442,6 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                     )}
                 </ModalBody>
                 <ModalFooter>
-                    {signedPreviewUrl && (
-                        <a
-                            href={signedPreviewUrl}
-                            download={signedFile?.name || "signed_copy"}
-                            className="btn btn-primary"
-                        >
-                            <i className="ri-download-2-line me-1"></i> Download
-                        </a>
-                    )}
                     <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }}>
                         Cancel
                     </Button>
