@@ -237,9 +237,9 @@ const AttendanceLogs = () => {
                         </div>
                     </div>
 
-                    <div className="d-flex gap-2 justify-content-end align-items-center">
+                    <div className="d-flex gap-2 justify-content-end align-items-center flex-wrap">
                         {lastImportTime && (
-                            <div className="text-muted small me-3">
+                            <div className="text-muted small me-3 text-nowrap">
                                 Last Biometric Logs Refetch: <span className="fw-medium">{format(new Date(lastImportTime), "dd MMM yyyy, hh:mm a")}</span>
                             </div>
                         )}
@@ -252,7 +252,7 @@ const AttendanceLogs = () => {
                         >
                             <Button
                                 color="primary"
-                                className="d-flex align-items-center gap-2 text-white"
+                                className="d-flex align-items-center gap-2 text-white text-nowrap"
                                 onClick={() => setIsHistoryModalOpen(true)}
                             >
                                 <History size={20} />
@@ -267,7 +267,7 @@ const AttendanceLogs = () => {
                         >
                             <Button
                                 color="primary"
-                                className="d-flex align-items-center gap-2 text-white"
+                                className="d-flex align-items-center gap-2 text-white text-nowrap"
                                 onClick={handleRefetchBiometricAttendance}
                                 disabled={isRefetchingBiometricAttendance}
                             >
@@ -277,7 +277,7 @@ const AttendanceLogs = () => {
                         </CheckPermission>
                         <Button
                             color="primary"
-                            className="d-flex align-items-center gap-2 text-white"
+                            className="d-flex align-items-center gap-2 text-white text-nowrap"
                             disabled={isTemplateGenerating}
                             onClick={handleDownloadXlsxTemplate}
                         >
@@ -292,7 +292,7 @@ const AttendanceLogs = () => {
                         >
                             <Button
                                 color="primary"
-                                className="d-flex align-items-center gap-2 text-white"
+                                className="d-flex align-items-center gap-2 text-white text-nowrap"
                                 onClick={() => setIsUploadModalOpen(true)}
                             >
                                 <CloudUpload size={20} />
@@ -323,7 +323,7 @@ const AttendanceLogs = () => {
                         setReportDate={setReportDate}
                     />
 
-                    <div className="d-flex gap-2">
+                    <div className="d-flex gap-2 flex-wrap">
                         <CheckPermission
                             accessRolePermission={roles?.permissions}
                             subAccess="ATTENDANCE_LOG"
@@ -332,7 +332,7 @@ const AttendanceLogs = () => {
                             <Button
                                 color="primary"
                                 size="sm"
-                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white flex-fill"
                                 onClick={() => setIsHistoryModalOpen(true)}
                             >
                                 History
@@ -346,7 +346,7 @@ const AttendanceLogs = () => {
                             <Button
                                 color="primary"
                                 size="sm"
-                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white flex-fill"
                                 onClick={handleRefetchBiometricAttendance}
                                 disabled={isRefetchingBiometricAttendance}
                             >
@@ -357,7 +357,7 @@ const AttendanceLogs = () => {
                         <Button
                             color="primary"
                             size="sm"
-                            className="d-flex align-items-center gap-2 text-white"
+                            className="d-flex align-items-center justify-content-center gap-2 text-white flex-fill"
                             disabled={isTemplateGenerating}
                             onClick={handleDownloadXlsxTemplate}
                         >
@@ -372,7 +372,7 @@ const AttendanceLogs = () => {
                             <Button
                                 color="primary"
                                 size="sm"
-                                className="d-flex align-items-center justify-content-center gap-2 text-white w-50"
+                                className="d-flex align-items-center justify-content-center gap-2 text-white flex-fill"
                                 onClick={() => setIsUploadModalOpen(true)}
                             >
                                 Upload

@@ -63,6 +63,7 @@ const EmployeeReportingForm = ({
   const { roles, loading: permissionLoader } = usePermissions(token);
 
   const [employeeCache, setEmployeeCache] = useState([]);
+  const [managerCache, setManagerCache] = useState([]);
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [managerSearch, setManagerSearch] = useState("");
   const [searching, setSearching] = useState(false);
@@ -76,34 +77,28 @@ const EmployeeReportingForm = ({
       ? `${initialData.manager.name} (${initialData.manager.eCode})`
       : "";
 
-
-  useEffect(() => {
-    if (employees?.length) {
-      setEmployeeCache((prev) => {
-        const map = new Map(prev.map(e => [e._id, e]));
-        employees.forEach(e => map.set(e._id, e));
-        return Array.from(map.values());
-      });
-    }
-  }, [employees]);
-
-  const searchEmployees = async (text) => {
+  const searchEmployees = async (text, searchView = "ASSIGN_MANAGER") => {
     if (!text) return;
     setSearching(true);
     try {
-      await dispatch(
+      const res = await dispatch(
         getExitEmployeesBySearch({
           query: text,
           centers: centerAccess,
-          view: "ASSIGN_MANAGER",
+          view: searchView,
         })
       ).unwrap();
+      const results = res?.data || res || [];
+      if (searchView === "ASSIGN_MANAGER_EMPLOYEE") {
+        setEmployeeCache(results);
+      } else {
+        setManagerCache(results);
+      }
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error?.message || "Failed to search employees");
       }
-    }
-    finally {
+    } finally {
       setSearching(false);
     }
   };
@@ -114,16 +109,17 @@ const EmployeeReportingForm = ({
   );
 
   useEffect(() => {
-    if (employeeSearch.trim()) debouncedSearch(employeeSearch);
+    if (employeeSearch.trim()) debouncedSearch(employeeSearch, "ASSIGN_MANAGER_EMPLOYEE");
   }, [employeeSearch]);
 
   useEffect(() => {
-    if (managerSearch.trim()) debouncedSearch(managerSearch);
+    if (managerSearch.trim()) debouncedSearch(managerSearch, "ASSIGN_MANAGER");
   }, [managerSearch]);
 
   useEffect(() => {
     return () => {
       setEmployeeCache([]);
+      setManagerCache([]);
       setEmployeeSearch("");
       setManagerSearch("");
       setSearching(false);
@@ -207,28 +203,29 @@ const EmployeeReportingForm = ({
   }, [employeeCache]);
 
   const managerOptions = useMemo(() => {
-    if (isEdit && form.values.manager) {
-      const selected = employeeOptions.find(
-        o => o.value === form.values.manager
-      );
+    const allManagerOpts = managerCache.map(e => ({
+      value: e._id,
+      label: `${e.name} (${e.eCode})`,
+    }));
 
-      if (!managerSearch.trim()) {
-        return selected ? [selected] : [];
-      }
+    if (isEdit && form.values.manager && !managerSearch.trim()) {
+      // In edit mode with no active search, show the currently selected manager
+      const selected = allManagerOpts.find(o => o.value === form.values.manager);
+      return selected ? [selected] : [];
     }
 
     if (!managerSearch.trim()) return [];
 
-    return employeeOptions.filter(
-      o => o.value !== form.values.employee
-    );
-  }, [isEdit, managerSearch, employeeOptions, form.values]);
+    return allManagerOpts.filter(o => o.value !== form.values.employee);
+  }, [isEdit, managerSearch, managerCache, form.values]);
 
   useEffect(() => {
     if (isEdit) return;
 
-    setManagerSearch("");
-    form.setFieldValue("manager", "");
+    if (form.values.manager && form.values.manager === form.values.employee) {
+      setManagerSearch("");
+      form.setFieldValue("manager", "");
+    }
   }, [form.values.employee]);
 
   const hasTiming =
@@ -244,20 +241,8 @@ const EmployeeReportingForm = ({
   }, [form.values.timing]);
 
   useEffect(() => {
-    if (initialData) {
-      setEmployeeCache((prev) => {
-        const map = new Map(prev.map(employee => [employee._id, employee]));
-
-        if (initialData.employee) {
-          map.set(initialData.employee._id, initialData.employee);
-        }
-
-        if (initialData.manager) {
-          map.set(initialData.manager._id, initialData.manager);
-        }
-
-        return Array.from(map.values());
-      });
+    if (initialData?.manager) {
+      setManagerCache([initialData.manager]);
     }
   }, [initialData]);
 
@@ -299,6 +284,7 @@ const EmployeeReportingForm = ({
                 : "Start typing to search employee"
             }
             menuIsOpen={employeeSearch.trim() ? undefined : false}
+            cacheOptions={false}
           />
         )}
       </FormGroup>
@@ -320,7 +306,7 @@ const EmployeeReportingForm = ({
             isLoading={searching}
             options={managerOptions}
             value={
-              employeeOptions.find(
+              managerOptions.find(
                 o => o.value === form.values.manager
               ) || null
             }
@@ -345,6 +331,7 @@ const EmployeeReportingForm = ({
                   ? undefined
                   : false
             }
+            cacheOptions={false}
           />
         )}
       </FormGroup>
