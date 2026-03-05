@@ -91,7 +91,7 @@ const AttachmentCell = ({ attachments = [], showAsButton = false, onPreview }) =
                                     }}
                                 >
                                     <FileText size={15} />
-                                    <span title={file.originalName}>{truncateName(file.originalName)}</span>
+                                    <span title={file.originalName}>{truncateMiddle(file.originalName)}</span>
                                 </button>
                             </li>
                         ))}
