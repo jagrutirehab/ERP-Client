@@ -981,7 +981,6 @@ export const ISSUES = [
     id: "issues-type",
     label: "Issues",
     icon: "bx bx-error-circle",
-    // isAccordion: true,
     children: [
       {
         id: "tech-issues",
@@ -997,6 +996,12 @@ export const ISSUES = [
       },
     ],
   },
+  {
+    id: "my-issues",
+    label: "My Tickets",
+    icon: "bx bx-user-circle",
+    link: "/issues/my/issues",
+  }
 ];
 
 export default pages;

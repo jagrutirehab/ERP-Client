@@ -344,7 +344,7 @@ const BillDate = ({
           >
             Inovice Draft
           </Button>
-          {adjustedPayable > 0 && <Button
+          {adjustedPayable > 0 && latestBillingAdmission?.dischargeDate && <Button
             outline
             size="sm"
             onClick={() => setShowWriteOff(true)}

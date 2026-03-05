@@ -173,7 +173,7 @@ const Billing = ({
     const writeOff = Number(writeOffMap[latestId]) || 0;
     const advance = Number(calculatedAdvance) || 0;
     const payable = Number(calculatedPayable) || 0;
-    
+
 
     return (advance + writeOff) - payable;
   }, [
@@ -297,6 +297,7 @@ const Billing = ({
                         user?.email === "owais@gmail.com" ||
                         user?.email === "bishal@gmail.com" ||
                         user?.email === "hemanthshinde@gmail.com" ||
+                        user?.email === "sarang.padulkar@jagrutirehab.org" ||
                         user?.email === "surjeet.parida@gmail.com") &&
                       addmission.dischargeDate
                     }
