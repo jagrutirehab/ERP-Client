@@ -4,6 +4,7 @@ import { Container, Spinner } from "reactstrap";
 import React from "react";
 import IssuesSidebar from "./Sidebar/sidebar";
 import TechIssues from "./Views/TechIssue";
+import MyIssues from "./Pages/MyIssues";
 // import IssuesSidebar from "./Sidebar";
 // import TechIssues from "./TechIssues";
 // import OtherIssues from "./OtherIssues";
@@ -49,8 +50,9 @@ const Issues = () => {
                                         <IssuesSidebar />
 
                                         <Routes>
-                                            <Route index element={<TechIssues />} />
+                                            {/* <Route index element={<TechIssues />} /> */}
                                             <Route path="tech" element={<TechIssues />} />
+                                            <Route path="my/issues" element={<MyIssues/>}/>
                                         </Routes>
 
                                     </div>
