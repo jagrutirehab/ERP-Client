@@ -440,7 +440,7 @@ Billing.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  user: state.User.user,
+  user: state?.User?.user,
   patient: state.Patient.patient,
   addmissionsBills: state.Bill.data,
   calculatedAdvance: state.Bill.calculatedAdvance,

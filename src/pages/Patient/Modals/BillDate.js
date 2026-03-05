@@ -39,14 +39,17 @@ const BillDate = ({
   const [showWriteOff, setShowWriteOff] = useState(false);
   const [loading, setLoading] = useState(false);
   const PatientCenter = useSelector(
-    (state) => state.Patient.patient.center._id,
+    (state) => state?.Patient?.patient?.center._id,
   );
+  console.log("PatientCenter:", PatientCenter);
   const billingAdmissions = useSelector(
-    (state) => state.Bill.data
+    (state) => state?.Bill?.data
   );
+  console.log("billingAdmissions:", billingAdmissions);
 
 
-  const user = useSelector((state) => state.User.user);
+  const user = useSelector((state) => state?.User?.user);
+  console.log("User:", user);
 
   const privilegedEmails = [
     "rijutarafder000@gmail.com",
