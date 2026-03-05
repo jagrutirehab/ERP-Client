@@ -2674,3 +2674,13 @@ export const getIssues = (params = {}) => {
     params,
   });
 };
+
+export const getMyIssues = (params = {}) => {
+  return axios.get(url.GET_MY_ISSUES, {
+    params,
+  });
+};
+
+export const changeStatus = (data) => {
+  return axios.patch(url.CHANGE_STATUS, data);
+};

@@ -533,4 +533,6 @@ export const UPLOAD_FILE = "/upload";
 
 
 // Issues
-export const GET_ISSUES = "/issues/getx"
+export const GET_ISSUES = "/issues/get"
+export const GET_MY_ISSUES = "/issues/my/tickets"
+export const CHANGE_STATUS = "/issues/change/status"
