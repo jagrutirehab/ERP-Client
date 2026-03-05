@@ -29,6 +29,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedBelongingId, setSelectedBelongingId] = useState(null);
     const [isPrintMode, setIsPrintMode] = useState(false);
+    const [selectedCenter, setSelectedCenter] = useState(null);
 
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewFile, setPreviewFile] = useState(null);
@@ -43,16 +44,18 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         toggleFormModal();
     };
 
-    const handleEditBelonging = (belongingId, date) => {
+    const handleEditBelonging = (belongingId, date, center) => {
         setSelectedBelongingId(belongingId);
         setSelectedDate(date);
+        setSelectedCenter(center);
         setIsPrintMode(false);
         setDateModal2(true);
     };
 
-    const handlePrintBelonging = (belongingId, date) => {
+    const handlePrintBelonging = (belongingId, date, center) => {
         setSelectedBelongingId(belongingId);
         setSelectedDate(date);
+        setSelectedCenter(center);
         setIsPrintMode(true);
         setFormModal(true);
     };
@@ -194,6 +197,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                 onClick={() => {
                                                     setSelectedBelongingId(null);
                                                     setAddmissionId(test?._id);
+                                                    setSelectedCenter(test?.center);
                                                     toggleModal2();
                                                     setChartType("BELONGINGS");
                                                 }}
@@ -288,7 +292,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                             color="info"
                                                                             className="text-white"
                                                                             size="sm"
-                                                                            onClick={() => handlePrintBelonging(belonging._id, belonging.date)}
+                                                                            onClick={() => handlePrintBelonging(belonging._id, belonging.date, test?.center)}
                                                                         >
                                                                             <i className="ri-file-search-line me-1"></i>
                                                                             View Unsigned Copy
@@ -334,7 +338,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                                 color="light"
                                                                                 size="sm"
                                                                                 className="btn-icon p-1 me-1"
-                                                                                onClick={() => handleEditBelonging(belonging._id, belonging.date)}
+                                                                                onClick={() => handleEditBelonging(belonging._id, belonging.date, test?.center)}
                                                                             >
                                                                                 <i className="ri-pencil-line fs-5 text-primary"></i>
                                                                             </Button>
@@ -404,6 +408,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                 date={selectedDate}
                 patient={patient}
                 addmissionId={addmissionId}
+                center={selectedCenter}
                 editBelongingId={selectedBelongingId}
                 printMode={isPrintMode}
                 onSaved={fetchBelongings}

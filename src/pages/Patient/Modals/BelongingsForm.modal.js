@@ -902,9 +902,9 @@ BelongingsFormModal.propTypes = {
     onSaved: PropTypes.func,
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
     patient: state.Patient.patient,
-    center: state.Patient.patient?.center,
+    center: ownProps.center || state.Patient.patient?.center,
 });
 
 export default connect(mapStateToProps)(BelongingsFormModal);
