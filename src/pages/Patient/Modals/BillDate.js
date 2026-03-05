@@ -45,6 +45,25 @@ const BillDate = ({
     (state) => state.Bill.data
   );
 
+
+  const user = useSelector((state) => state.User.user);
+
+  const privilegedEmails = [
+    "rijutarafder000@gmail.com",
+    "owais@gmail.com",
+    "bishal@gmail.com",
+    "hemanthshinde@gmail.com",
+    "sarang.padulkar@jagrutirehab.org",
+    "surjeet.parida@gmail.com",
+    "pratikkadlag911@gmail.com"
+  ];
+
+  const isPrivilegedUser = privilegedEmails.includes(user?.email);
+
+
+
+
+
   console.log("adjustedPayable", adjustedPayable);
 
 
@@ -64,6 +83,9 @@ const BillDate = ({
         : latest
     )
     : null;
+
+  const isDischarged = Boolean(latestBillingAdmission?.dischargeDate);
+  const disableOtherButtons = isDischarged && !isPrivilegedUser;
 
   console.log("latestBillingAdmission", latestBillingAdmission);
 
@@ -253,6 +275,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
+              disableOtherButtons ||
               editBillData.bill === null ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
@@ -277,6 +300,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
+              disableOtherButtons ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
               editBillData.bill === DRAFT_INVOICE ||
@@ -300,6 +324,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
+              disableOtherButtons ||
               editBillData.bill === ADVANCE_PAYMENT ||
               editBillData.bill === DRAFT_INVOICE ||
               editBillData.bill === DEPOSIT
@@ -323,6 +348,7 @@ const BillDate = ({
           <Button
             outline
             disabled={
+              disableOtherButtons ||
               editBillData.bill === ADVANCE_PAYMENT ||
               editBillData.bill === INVOICE ||
               editBillData.bill === REFUND ||
@@ -344,7 +370,7 @@ const BillDate = ({
           >
             Inovice Draft
           </Button>
-          {adjustedPayable > 0 && latestBillingAdmission?.dischargeDate && <Button
+          {adjustedPayable > 0 && isDischarged && <Button
             outline
             size="sm"
             onClick={() => setShowWriteOff(true)}
