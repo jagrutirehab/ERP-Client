@@ -3,6 +3,14 @@ import { Modal, ModalHeader, ModalBody, Button } from "reactstrap";
 import { FileText, Paperclip } from "lucide-react";
 import PropTypes from "prop-types";
 
+const truncateMiddle = (name, maxLength = 28) => {
+    if (!name || name.length <= maxLength) return name;
+    const ext = name.includes(".") ? name.slice(name.lastIndexOf(".")) : "";
+    const start = name.slice(0, Math.ceil((maxLength - ext.length) / 2));
+    const end = name.slice(name.length - Math.floor((maxLength - ext.length) / 2) - ext.length);
+    return `${start}...${end}`;
+};
+
 const AttachmentCell = ({ attachments = [], showAsButton = false, onPreview }) => {
     const [open, setOpen] = useState(false);
 
@@ -39,7 +47,7 @@ const AttachmentCell = ({ attachments = [], showAsButton = false, onPreview }) =
                             key={file._id || i}
                             type="button"
                             className="btn btn-link p-0 text-primary text-decoration-underline mb-1 d-flex align-items-center gap-1"
-                            style={{ whiteSpace: "normal", wordBreak: "break-all" }}
+                            style={{ whiteSpace: "nowrap" }}
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
@@ -47,7 +55,7 @@ const AttachmentCell = ({ attachments = [], showAsButton = false, onPreview }) =
                             }}
                         >
                             <Paperclip size={14} />
-                            {file.originalName}
+                            <span title={file.originalName}>{truncateMiddle(file.originalName)}</span>
                         </button>
                     ))}
 
@@ -83,7 +91,7 @@ const AttachmentCell = ({ attachments = [], showAsButton = false, onPreview }) =
                                     }}
                                 >
                                     <FileText size={15} />
-                                    {file.originalName}
+                                    <span title={file.originalName}>{truncateName(file.originalName)}</span>
                                 </button>
                             </li>
                         ))}

@@ -22,12 +22,12 @@ import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
 import { formatCurrency } from '../../../utils/formatCurrency';
 
-const clearableFields = [
-    "invoiceNo",
-    // "IFSCCode",
-    // "accountHolderName",
-    // "accountNo",
-];
+// const clearableFields = [
+//     // "invoiceNo",
+//     // "IFSCCode",
+//     // "accountHolderName",
+//     // "accountNo",
+// ];
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const dispatch = useDispatch();
@@ -90,7 +90,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .max(20, "Description cannot be more than 20 characters")
             .required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
-        invoiceNo: Yup.string().nullable(),
+        invoiceNo: Yup.string().required("Invoice number is required"),
         totalAmountWithGST: Yup.string()
             .required("Total amount with GST is required")
             .matches(/^\d+(\.\d{1,2})?$/, "Total amount can have at most 2 decimal places")
@@ -202,12 +202,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     return;
                 }
 
-                if (clearableFields.includes(key)) {
-                    if (val !== undefined && val !== null) {
-                        formData.append(key, val);
-                    }
-                    return;
-                }
+                // if (clearableFields.includes(key)) {
+                //     if (val !== undefined && val !== null) {
+                //         formData.append(key, val);
+                //     }
+                //     return;
+                // }
 
                 if (key === "TDSRate") {
                     formData.append("TDSRate", val === "" ? 0 : val);
@@ -593,7 +593,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
             <FormGroup>
                 <Label for="invoiceNo" className="fw-medium">
-                    Invoice No
+                    Invoice No <span className="text-danger">*</span>
                 </Label>
                 <Input
                     type="text"
