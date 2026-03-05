@@ -34,6 +34,7 @@ import {
 import { categoryOptions } from "../../../Components/constants/centralPayment";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
+import { checkIsExcel } from "../../../utils/checkIsExcel";
 
 const DetailedReport = ({
   centers,
@@ -851,6 +852,7 @@ const DetailedReport = ({
         file={previewFile}
         isOpen={previewOpen}
         toggle={closePreview}
+        allowDownload={checkIsExcel(previewFile)}
       />
     </TabPane>
   );

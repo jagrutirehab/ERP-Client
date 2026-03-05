@@ -16,6 +16,7 @@ import PreviewFile from "../../../Components/Common/PreviewFile";
 import { isPreviewable } from "../../../utils/isPreviewable";
 import { downloadFile } from "../../../Components/Common/downloadFile";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import { checkIsExcel } from "../../../utils/checkIsExcel";
 
 const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
     const dispatch = useDispatch();
@@ -25,15 +26,6 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
     const [previewFile, setPreviewFile] = useState(null);
 
     const handleAuthError = useAuthError();
-
-    const checkIsExcel = (file) => {
-        if (!file) return false;
-        return (
-            /\.(xlsx|xls)$/i.test(file?.name || file?.url) ||
-            file?.type?.includes("excel") ||
-            file?.type?.includes("spreadsheet")
-        );
-    };
 
     const getStatusBadgeColor = (status) => {
         switch (status) {

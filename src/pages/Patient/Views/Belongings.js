@@ -189,7 +189,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
 
                                 <div style={{ flex: 1, textAlign: "center" }}>
                                     {admissionBelongings.length === 0 && (
-                                        <CheckPermission permission={"edit"} subAccess={"Belongings"}>
+                                        <CheckPermission permission={"create"} subAccess={"Belongings"}>
                                             <Button
                                                 onClick={() => {
                                                     setSelectedBelongingId(null);
