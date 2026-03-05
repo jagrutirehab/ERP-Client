@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormik } from "formik";
 import {
   Button,
@@ -55,7 +55,6 @@ const EmployeeReportingForm = ({
   const handleAuthError = useAuthError();
   const isEdit = Boolean(initialData?._id);
 
-  const { employees } = useSelector((state) => state.HR);
   const { centerAccess } = useSelector((state) => state.User);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;

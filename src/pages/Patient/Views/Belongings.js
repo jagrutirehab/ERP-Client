@@ -37,7 +37,6 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const toggleModal = () => setDateModal(!dateModal);
     const toggleModal2 = () => setDateModal2(!dateModal2);
     const toggleFormModal = () => setFormModal(!formModal);
-    const toggleDeleteModal = () => setDeleteModal(!deleteModal);
 
     const handleStartForm = (date) => {
         setSelectedDate(date);
