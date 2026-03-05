@@ -293,12 +293,12 @@ const Billing = ({
                 <div className="d-flex align-items-center mt-2 flex-column">
                   <RenderWhen
                     isTrue={
-                      (user?.email === "rijutarafder000@gmail.com" ||
-                        user?.email === "owais@gmail.com" ||
-                        user?.email === "bishal@gmail.com" ||
-                        user?.email === "hemanthshinde@gmail.com" ||
-                        user?.email === "sarang.padulkar@jagrutirehab.org" ||
-                        user?.email === "surjeet.parida@gmail.com") &&
+                      // (user?.email === "rijutarafder000@gmail.com" ||
+                      //   user?.email === "owais@gmail.com" ||
+                      //   user?.email === "bishal@gmail.com" ||
+                      //   user?.email === "hemanthshinde@gmail.com" ||
+                      //   user?.email === "sarang.padulkar@jagrutirehab.org" ||
+                      //   user?.email === "surjeet.parida@gmail.com") &&
                       addmission.dischargeDate
                     }
                   >
