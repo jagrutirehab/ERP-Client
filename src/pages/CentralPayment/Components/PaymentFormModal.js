@@ -19,6 +19,8 @@ const paymentValidationSchema = Yup.object({
         .required("Transaction ID is required to complete the UTR confirmation")
         .min(3, "Transaction ID must be at least 3 characters")
         .max(50, "Transaction ID must be less than 50 characters"),
+    transactionBankName: Yup.string().required("Transaction Bank Name is required"),
+    transactionAccountNo: Yup.string().required("Transaction Account No is required"),
     currentPaymentStatus: Yup.string()
         .required("Approval status is required")
         .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
@@ -45,6 +47,8 @@ const PaymentFormModal = ({
     const formik = useFormik({
         initialValues: {
             transactionId: "",
+            transactionBankName: "",
+            transactionAccountNo: "",
             currentPaymentStatus: "PENDING"
         },
         validationSchema: paymentValidationSchema,
@@ -53,6 +57,11 @@ const PaymentFormModal = ({
         },
         enableReinitialize: true
     });
+
+    const handleUppercaseChange = (e, fieldName) => {
+        const val = e.target.value.toUpperCase();
+        formik.setFieldValue(fieldName, val);
+    };
 
     useEffect(() => {
         if (isOpen && item?._id) {
@@ -65,6 +74,8 @@ const PaymentFormModal = ({
         if (paymentDetails && paymentDetails._id === item?._id) {
             formik.setValues({
                 transactionId: paymentDetails.transactionId || "",
+                transactionBankName: paymentDetails.transactionBankDetails?.bankName || "",
+                transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
                 currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING"
             });
         }
@@ -219,7 +230,7 @@ const PaymentFormModal = ({
                         {mode === "UTRConfirmation" && hasCreatePermission && (
                             <>
                                 <Row>
-                                    <Col md={6}>
+                                    <Col md={12} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionId">
                                                 Transaction ID/UTR <span className="text-danger">*</span>
@@ -230,7 +241,7 @@ const PaymentFormModal = ({
                                                 name="transactionId"
                                                 placeholder="Enter transaction ID"
                                                 value={formik.values.transactionId}
-                                                onChange={formik.handleChange}
+                                                onChange={(e) => handleUppercaseChange(e, "transactionId")}
                                                 onBlur={formik.handleBlur}
                                                 invalid={formik.touched.transactionId && Boolean(formik.errors.transactionId)}
                                                 disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
@@ -238,6 +249,52 @@ const PaymentFormModal = ({
                                             {formik.touched.transactionId && formik.errors.transactionId && (
                                                 <div className="text-danger small mt-1">
                                                     {formik.errors.transactionId}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md={6} className="mb-3">
+                                        <FormGroup>
+                                            <Label for="transactionBankName">
+                                                Transaction Bank Name <span className="text-danger">*</span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                id="transactionBankName"
+                                                name="transactionBankName"
+                                                placeholder="Enter transaction bank name"
+                                                value={formik.values.transactionBankName}
+                                                onChange={(e) => handleUppercaseChange(e, "transactionBankName")}
+                                                onBlur={formik.handleBlur}
+                                                invalid={formik.touched.transactionBankName && Boolean(formik.errors.transactionBankName)}
+                                                disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            />
+                                            {formik.touched.transactionBankName && formik.errors.transactionBankName && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.transactionBankName}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md={6} className="mb-3">
+                                        <FormGroup>
+                                            <Label for="transactionAccountNo">
+                                                Transaction Account No <span className="text-danger">*</span>
+                                            </Label>
+                                            <Input
+                                                type="text"
+                                                id="transactionAccountNo"
+                                                name="transactionAccountNo"
+                                                placeholder="Enter transaction account no"
+                                                value={formik.values.transactionAccountNo}
+                                                onChange={(e) => handleUppercaseChange(e, "transactionAccountNo")}
+                                                onBlur={formik.handleBlur}
+                                                invalid={formik.touched.transactionAccountNo && Boolean(formik.errors.transactionAccountNo)}
+                                                disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            />
+                                            {formik.touched.transactionAccountNo && formik.errors.transactionAccountNo && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.transactionAccountNo}
                                                 </div>
                                             )}
                                         </FormGroup>
@@ -279,7 +336,7 @@ const PaymentFormModal = ({
 
                     <ModalFooter>
                         {hasCreatePermission && (
-                            mode === "approval" ? (
+                            (mode === "financeApproval" || mode === "approval") ? (
                                 <div className="d-flex justify-content-end">
                                     <Button
                                         size="sm"
@@ -381,11 +438,17 @@ const PaymentFormModal = ({
                                             className="d-flex align-items-center text-white"
                                             disabled={
                                                 !formik.values.transactionId.trim() ||
+                                                !formik.values.transactionBankName.trim() ||
+                                                !formik.values.transactionAccountNo.trim() ||
                                                 (isProcessing.id === item._id && isProcessing.type === "COMPLETED")
                                             }
                                             onClick={() => {
                                                 onConfirm({
                                                     transactionId: formik.values.transactionId,
+                                                    transactionBankDetails: {
+                                                        bankName: formik.values.transactionBankName,
+                                                        accountNo: formik.values.transactionAccountNo
+                                                    },
                                                     currentPaymentStatus: "COMPLETED"
                                                 });
                                             }}

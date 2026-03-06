@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { APPROVAL_VIEW, PAYMENT_PROCESSING_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
+import { APPROVAL_VIEW, FINANCE_APPROVAL_VIEW, PAYMENT_PROCESSING_VIEW, REPORTS_VIEW, SPENDING_VIEW } from '../../../Components/constants/centralPayment';
 import { Button, ButtonGroup, Spinner } from 'reactstrap';
 import Reports from './Reports';
 import Spending from './Spending';
 import ApprovalDashboard from './ApprovalDashboard';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import PaymentProcessingDashboard from './PaymentProcessingDashboard';
+import FinanceApprovalDashboard from './FinanceApprovalDashboard';
 
 const priorityOrder = [
     SPENDING_VIEW,
@@ -24,6 +25,7 @@ const Views = () => {
     const hasApprovalsPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTAPPROVAL", "READ");
     const hasSpendingPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "READ");
     const hasPaymentProcessingPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "READ");
+    const hasFinanceApprovalPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTFINANCEAPPROVAL", "READ");
 
     const availableViews = [
         // SPENDING LATER RENAMED AS EXPENSE
@@ -34,22 +36,28 @@ const Views = () => {
             order: 0,
         },
         {
+            name: "Finance Approval Dashboard",
+            view: FINANCE_APPROVAL_VIEW,
+            hasAccess: hasFinanceApprovalPermission,
+            order: 1,
+        },
+        {
             name: "Approval Dashboard",
             view: APPROVAL_VIEW,
             hasAccess: hasApprovalsPermission,
-            order: 1,
+            order: 2,
         },
         {
             name: "Payment Processing Dashboard",
             view: PAYMENT_PROCESSING_VIEW,
             hasAccess: hasPaymentProcessingPermission,
-            order: 2,
+            order: 3,
         },
         {
             name: "Reports",
             view: REPORTS_VIEW,
             hasAccess: hasReportsPermission,
-            order: 3,
+            order: 4,
         },
     ]
         .filter((view) => view.hasAccess)
@@ -102,24 +110,27 @@ const Views = () => {
             <div className="h-auto" style={{ overflow: "auto !important" }}>
                 <div className="position-relative overflow-auto mt-1 py-3">
                     <div className="d-flex justify-content-between flex-wrap mb-3">
-                        <ButtonGroup size="sm">
-                            {availableViews.map((sub) => (
-                                <Button
-                                    key={sub.view}
-                                    outline={view !== sub.view}
-                                    onClick={() => handleView(sub.view)}
-                                >
-                                    {sub.name === "Balance"
-                                        ? "Set Base Balance"
-                                        : sub.name === "Deposits"
-                                            ? "Bank Deposits"
-                                            : sub.name}
-                                </Button>
-                            ))}
-                        </ButtonGroup>
+                        <div style={{ overflowX: "auto", maxWidth: "100%" }}>
+                            <ButtonGroup size="sm" style={{ flexWrap: "nowrap", whiteSpace: "nowrap" }}>
+                                {availableViews.map((sub) => (
+                                    <Button
+                                        key={sub.view}
+                                        outline={view !== sub.view}
+                                        onClick={() => handleView(sub.view)}
+                                    >
+                                        {sub.name === "Balance"
+                                            ? "Set Base Balance"
+                                            : sub.name === "Deposits"
+                                                ? "Bank Deposits"
+                                                : sub.name}
+                                    </Button>
+                                ))}
+                            </ButtonGroup>
+                        </div>
                     </div>
                     <div className="bg-white px-3 py-3 vh-90">
                         {view === SPENDING_VIEW && <Spending />}
+                        {view===FINANCE_APPROVAL_VIEW && <FinanceApprovalDashboard />}
                         {view === APPROVAL_VIEW && <ApprovalDashboard />}
                         {view === PAYMENT_PROCESSING_VIEW && <PaymentProcessingDashboard />}
                         {view === REPORTS_VIEW && <Reports />}

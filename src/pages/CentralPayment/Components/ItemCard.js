@@ -56,6 +56,20 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         setPreviewFile(null);
     };
 
+    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus) => {
+        setUpdating({ id: paymentId, type: approvalStatus });
+        try {
+            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus })).unwrap();
+            toast.success(`Finance Approval ${approvalStatus.toLowerCase()} successfully!`);
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to update finance approval Status.");
+            }
+        } finally {
+            setUpdating({ id: null, type: null });
+        }
+    }
+
     const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
@@ -76,6 +90,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
             await dispatch(updateCentralPaymentAction({
                 paymentId: item._id,
                 transactionId: formData.transactionId,
+                transactionBankDetails: formData.transactionBankDetails,
                 currentPaymentStatus: formData.currentPaymentStatus
             })).unwrap();
 
@@ -222,13 +237,18 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                         Payable (TDS Deducted)
                                     </i>
                                 )}
+                                {flag === "financeApproval" && (
+                                    <span className="mt-1 ">
+                                        <span className="fw-bold">TDS Rate:</span> {item?.TDSRate ?? 0}%
+                                    </span>
+                                )}
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
                                     {item.initialPaymentStatus === "PENDING" ? "To Be Paid" : "Paid"}
                                 </span>
                             </div>
                         </Col>
                     </Row>
-                    {(flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
+                    {(flag === "financeApproval" || flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
                             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
@@ -238,6 +258,14 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                             <i className="text-muted d-block">Initiator:</i>
                                             <span className="fw-semibold text-dark d-block">
                                                 {item.author?.name?.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {flag === "approval" && item?.financeApprovedBy && (
+                                        <div style={{ minWidth: 140 }}>
+                                            <i className="text-muted d-block">Finance Approved by:</i>
+                                            <span className="fw-semibold text-dark d-block">
+                                                {item.financeApprovedBy?.name?.toUpperCase()}
                                             </span>
                                         </div>
                                     )}
@@ -266,7 +294,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                     )}
                                     <span className="text-truncate">
                                         {hasCreatePermission
-                                            ? (flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
+                                            ? (flag === "financeApproval" ? "Process Payment" : flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
                                             : flag === "processPayment" ? "Copy E-Net" : "Details"
                                         }
                                     </span>
@@ -282,7 +310,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                 toggle={closePaymentModal}
                 item={item}
                 mode={flag}
-                onConfirm={flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
+                onConfirm={flag === "financeApproval" ? handleUpdateFinanceApprovalStatus : flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
                 isProcessing={updating}
                 hasCreatePermission={hasCreatePermission}
             />

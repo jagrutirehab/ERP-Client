@@ -84,11 +84,9 @@ export const permissionList = [
     label: "Central Payment",
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
+      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
-      {
-        name: "CENTRALPAYMENTPROCESSING",
-        label: "Payment Processing Dashboard",
-      },
+      { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },

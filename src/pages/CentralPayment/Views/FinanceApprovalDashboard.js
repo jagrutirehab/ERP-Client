@@ -1,17 +1,15 @@
-import { useDispatch } from "react-redux";
-import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import React, { useEffect, useState } from "react";
-import { usePermissions } from "../../../../../Components/Hooks/useRoles";
-import { getApprovals } from "../../../../../store/features/centralPayment/centralPaymentSlice";
+import { connect, useDispatch } from "react-redux";
+import { Button, Col, Container, Row, Spinner } from "reactstrap"
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
-import { Button, Col, Container, Row, Spinner } from "reactstrap";
-import ItemCard from "../../../Components/ItemCard";
+import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
 
-
-const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
+const FinanceApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -22,9 +20,10 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
     const { hasPermission } = usePermissions(token);
+
     const hasCreatePermission =
-        hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "WRITE") ||
-        hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTPROCESSING", "DELETE");
+        hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTFINANCEAPPROVAL", "WRITE") ||
+        hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTFINANCEAPPROVAL", "DELETE");
 
     const centerOptions = [
         ...(centerAccess?.length > 1
@@ -60,34 +59,30 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
         }
     }, [selectedCenter, centerAccess]);
 
-    const fetchApprovedPayments = async () => {
-        try {
-            const centers =
-                selectedCenter === "ALL"
-                    ? centerAccess
-                    : !centerAccess.length ? [] : [selectedCenter];
+    useEffect(() => {
+        const fetchPendingFinanceApprovals = async () => {
+            try {
+                const centers =
+                    selectedCenter === "ALL"
+                        ? centerAccess
+                        : !centerAccess.length ? [] : [selectedCenter];
 
-            await dispatch(getApprovals({
-                page,
-                limit,
-                centers: centers,
-                financeApprovalStatus: "APPROVED",
-                approvalStatus: "APPROVED",
-                currentPaymentStatus: "PENDING",
-                processStatus: "COMPLETED",
-            })).unwrap();
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to fetch spendings.");
+                await dispatch(getApprovals({
+                    page,
+                    limit,
+                    centers: centers,
+                    financeApprovalStatus: "PENDING"
+                })).unwrap();
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error(error.message || "Failed to fetch pending finance approvals.");
+                }
             }
         }
-    }
 
-    useEffect(() => {
-        if (activeTab === "UTR_CONFIRMATION") {
-            fetchApprovedPayments();
-        }
-    }, [centerAccess, dispatch, page, limit, activeTab, selectedCenter]);
+        fetchPendingFinanceApprovals();
+    }, [centerAccess, selectedCenter, dispatch, page, limit]);
+
 
 
     if (loading) {
@@ -100,14 +95,12 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
             </div>
         );
     }
-
-
     return (
         <React.Fragment>
             <div className="d-flex flex-column">
                 <Container fluid>
-                    <div className="mb-3">
-                        <Row className="align-items-center g-2">
+                    <div className="mb-5">
+                        <Row className="mb-3 align-items-center">
                             <Col lg="2" md="6" sm="12">
                                 <Select
                                     value={selectedCenterOption}
@@ -121,34 +114,28 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
                                 />
                             </Col>
                         </Row>
-                    </div>
-
-                    <div className="mb-5">
                         {approvals?.data?.length > 0 ? (
-                            <>
-                                <Row>
-                                    {(approvals?.data || []).map((payment) => (
-                                        <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
-                                            <ItemCard
-                                                hasCreatePermission={hasCreatePermission}
-                                                item={payment}
-                                                border={true}
-                                                flag="UTRConfirmation"
-                                            />
-                                        </Col>
-                                    ))}
-                                </Row>
-                            </>
+                            <Row>
+                                {(approvals?.data || []).map((payment) => (
+                                    <Col xxl="6" lg="6" md="12" sm="12" xs="12" key={payment._id} className="mb-3">
+                                        <ItemCard
+                                            item={payment}
+                                            flag="financeApproval"
+                                            border={true}
+                                            hasCreatePermission={hasCreatePermission}
+                                        />
+                                    </Col>
+                                ))}
+                            </Row>
                         ) : (
                             <div
                                 className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
                                 style={{ minHeight: "40vh" }}
                             >
-                                <h6 className="mb-1">No pending UTR confirmation requests</h6>
+                                <h6 className="mb-1">No pending finance approvals</h6>
                             </div>
                         )}
                     </div>
-
                     {!loading && approvals?.pagination?.totalPages > 1 && (
                         <>
                             {/* Mobile Layout */}
@@ -210,13 +197,13 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
     )
 }
 
-UTRCofrmation.prototype = {
+FinanceApprovalDashboard.prototype = {
     loading: PropTypes.bool,
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
     userCenters: PropTypes.array,
-    activeTab: PropTypes.string,
 }
+
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,
@@ -225,4 +212,4 @@ const mapStateToProps = (state) => ({
     approvals: state.CentralPayment?.approvals
 });
 
-export default connect(mapStateToProps)(UTRCofrmation);
+export default connect(mapStateToProps)(FinanceApprovalDashboard);

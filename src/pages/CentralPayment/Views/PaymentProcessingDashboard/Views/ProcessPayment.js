@@ -86,6 +86,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                 page,
                 limit,
                 centers: centers,
+                financeApprovalStatus: "APPROVED",
                 approvalStatus: "APPROVED",
                 currentPaymentStatus: "PENDING",
                 processStatus: "PENDING",
