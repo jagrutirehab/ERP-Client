@@ -117,7 +117,7 @@ const Header = ({
 
                   {/* Patient Search */}
                   {patient !== undefined && setPatient && (
-                    <div style={{ minWidth: "200px" }}>
+                    <div style={{ minWidth: "100px" }}>
                       <SearchPatient
                         setPatient={setPatient}
                         patient={patient}
