@@ -337,10 +337,10 @@ export const permissionList = [
   //   label: "Issues",
   //   subModules: [
   //     { name: "ISSUES", label: "Issues" },
-  //      { name: "MY_ISSUES", label: "My Issues" },
+  //     { name: "MY_ISSUES", label: "My Issues" },
   //   ],
   // },
-  
+
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

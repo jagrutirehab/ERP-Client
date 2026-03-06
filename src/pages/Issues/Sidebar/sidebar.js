@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { ISSUES } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
@@ -18,6 +18,8 @@ const IssuesSidebar = () => {
   const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
   const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
   console.log("hasIssuesPermission", hasIssuesPermission);
+
+  const navigate = useNavigate();
 
 
   const filteredIssuesOptions = ISSUES.filter((page) => {
@@ -152,15 +154,15 @@ const IssuesSidebar = () => {
                       </div>
                     </>
                   ) : (
-                    <Link
-                      to={page.link}
-                      className={`d-flex align-items-center py-2 text-decoration-none ${location.pathname.startsWith(page.link) ? "active" : ""
+                    <div
+                      onClick={() => navigate(page.link)}
+                      className={`d-flex align-items-center py-2 ${location.pathname.startsWith(page.link) ? "active" : ""
                         }`}
-                      style={{ paddingLeft: "0px" }}
+                      style={{ paddingLeft: "0px", cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
-                      <span className="fs-15">{page.label}</span>
-                    </Link>
+                      <span className="fs-14">{page.label}</span>
+                    </div>
                   )}
                 </li>
               );
