@@ -214,7 +214,7 @@ const Billing = ({
           </CheckPermission>
         </div>
 
-
+{/*  */}
         {addmissionId && !loading && (<div className="d-flex justify-content-aroun align-items-center gap-3">
           <RenderWhen isTrue={adjustedPayable < 0}>
             <h6
