@@ -34,6 +34,20 @@ import AdmissionForms from "./Components/AdmissionForms";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import RenderWhen from "../../Components/Common/RenderWhen";
 
+const NAV_ITEMS = [
+  { key: DASHBOARD, label: "Dashboard" },
+  { key: REPORT, label: "Report" },
+  { key: FINANACE, label: "Finance" },
+  { key: ADMISSION_FORMS, label: "Admission" },
+  { key: PATIENT_ANALYTICS, label: "Patient Analytics" },
+  { key: DOCTOR_ANALYTICS, label: "Doctor Analytics" },
+  { key: DB_LOGS, label: "DB Logs" },
+  { key: LEAD_ANALYTICS, label: "Lead Analytics" },
+  { key: OPD_ANALYTICS, label: "OPD Analytics" },
+  { key: BOOKING, label: "Booking" },
+  { key: CENTER_BEDS_ANALYTICS, label: "Center Beds" },
+];
+
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
 
@@ -44,89 +58,35 @@ const Report = ({}) => {
       <div className="page-content">
         <Container fluid>
           <BreadCrumb title={"Report"} pageTitle={"Report"} />
-          <ButtonGroup>
-            {" "}
-            <Button
-              outline={view !== DASHBOARD}
-              onClick={() => handleView(DASHBOARD)}
-            >
-              Dashboard
-            </Button>{" "}
-            <Button
-              outline={view !== REPORT}
-              onClick={() => handleView(REPORT)}
-            >
-              Report
-            </Button>{" "}
-            <Button
-              outline={view !== FINANACE}
-              onClick={() => handleView(FINANACE)}
-            >
-              Finance
-            </Button>
-            <Button
-              outline={view !== ADMISSION_FORMS}
-              onClick={() => handleView(ADMISSION_FORMS)}
-            >
-              Admission
-            </Button>
-            <Button
-              outline={view !== PATIENT_ANALYTICS}
-              onClick={() => handleView(PATIENT_ANALYTICS)}
-            >
-              Patient Analytics
-            </Button>
-            <Button
-              outline={view !== DOCTOR_ANALYTICS}
-              onClick={() => handleView(DOCTOR_ANALYTICS)}
-            >
-              Doctor Analytics
-            </Button>
-            <Button
-              outline={view !== DB_LOGS}
-              onClick={() => handleView(DB_LOGS)}
-            >
-              DB Logs
-            </Button>
-            <Button
-              outline={view !== LEAD_ANALYTICS}
-              onClick={() => handleView(LEAD_ANALYTICS)}
-            >
-              Lead Analytics
-            </Button>
-            <Button
-              outline={view !== OPD_ANALYTICS}
-              onClick={() => handleView(OPD_ANALYTICS)}
-            >
-              OPD Analytics
-            </Button>
-            <Button
-              outline={view !== BOOKING}
-              onClick={() => handleView(BOOKING)}
-            >
-              Booking
-            </Button>
-            <Button
-              outline={view !== CENTER_BEDS_ANALYTICS}
-              onClick={() => handleView(CENTER_BEDS_ANALYTICS)}
-            >
-              Center Beds Analytics
-            </Button>
-            {/* <RenderWhen isTrue={hasMiReportingPermission}>
+          {/* Desktop: original ButtonGroup look */}
+          <ButtonGroup className="d-none d-lg-flex mb-3">
+            {NAV_ITEMS.map(({ key, label }) => (
               <Button
-                outline={view !== MI_REPORTING}
-                onClick={() => handleView(MI_REPORTING)}
+                key={key}
+                color="primary"
+                outline={view !== key}
+                onClick={() => handleView(key)}
               >
-                MI Reporting
+                {label}
               </Button>
-            </RenderWhen> */}
-            {/* <Button
-              outline={view !== HUBSPOT_CONTACTS}
-              onClick={() => handleView(HUBSPOT_CONTACTS)}
-            >
-              Hubspot Contacts
-            </Button> */}
+            ))}
           </ButtonGroup>
+
+          {/* Mobile: wrapped pill buttons */}
+          <div className="d-flex d-lg-none flex-wrap gap-2 mb-3">
+            {NAV_ITEMS.map(({ key, label }) => (
+              <Button
+                key={key}
+                size="sm"
+                color="primary"
+                outline={view !== key}
+                className="rounded-pill"
+                onClick={() => handleView(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
           <div>
             {view === DASHBOARD && <Dashboard view={view} />}
             {view === REPORT && <ReportAnalytics view={view} />}
@@ -142,9 +102,6 @@ const Report = ({}) => {
             {view === CENTER_BEDS_ANALYTICS && (
               <CenterBedsAnalytics view={view} />
             )}
-            {/* {view === MI_REPORTING && hasMiReportingPermission && (
-              <MIReporting view={view} />
-            )} */}
           </div>
         </Container>
       </div>
