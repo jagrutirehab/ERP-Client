@@ -139,7 +139,8 @@ const Billing = ({
           const queryParams = {
             patient: patient._id,
             addmission: adm._id || latestAdmission?.addmissionId,
-            center: patient?.center?._id,
+            // center: patient?.center?._id,
+            center: adm?.center?._id || patient?.center?._id,
           };
           try {
             const res = await getWriteOff(queryParams);
