@@ -445,6 +445,7 @@ const AudioRecorder = ({ onReady }) => {
       setIsRecording(true);
     }
 
+
     const MAX_DURATION = 30 * 60 * 1000;
     // const MAX_DURATION = 20000;
 
