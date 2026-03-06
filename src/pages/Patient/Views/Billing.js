@@ -283,6 +283,7 @@ const Billing = ({
               idx === 0 ? totalPayable : addmission.totalInvoicePayable;
             const advancePayment =
               idx === 0 ? totalAdvance : addmission.totalAdvancePayment;
+              
             const ttlDeposit =
               idx === 0
                 ? totalDeposit
@@ -350,7 +351,7 @@ const Billing = ({
                         {writeOffMap[addmission._id] || 0}
                       </h6>
                     </div>
-                    {ttlDeposit > 0 && (
+                    {ttlDeposit > 0  && advancePayment === 0 && (
                       <div className="d-flex">
                         <span>Total Deposit Remaining:</span>
                         <h6 className="display-6 fs-6 mb-0 ms-2">
