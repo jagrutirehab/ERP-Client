@@ -214,7 +214,8 @@ const Billing = ({
           </CheckPermission>
         </div>
 
-        <div className="d-flex justify-content-aroun align-items-center gap-3">
+        {/*  Random Comment */}
+        {addmissionId && !loading && (<div className="d-flex justify-content-aroun align-items-center gap-3">
           <RenderWhen isTrue={adjustedPayable < 0}>
             <h6
               id="payable-amount"
@@ -241,7 +242,8 @@ const Billing = ({
               0
             </h6>
           </RenderWhen>
-        </div>
+        </div>)}
+
       </div>
 
       <RenderWhen isTrue={Boolean(drafts?.length)}>
@@ -283,7 +285,7 @@ const Billing = ({
               idx === 0 ? totalPayable : addmission.totalInvoicePayable;
             const advancePayment =
               idx === 0 ? totalAdvance : addmission.totalAdvancePayment;
-              
+
             const ttlDeposit =
               idx === 0
                 ? totalDeposit
@@ -351,7 +353,7 @@ const Billing = ({
                         {writeOffMap[addmission._id] || 0}
                       </h6>
                     </div>
-                    {ttlDeposit > 0  && advancePayment === 0 && (
+                    {ttlDeposit > 0 && advancePayment === 0 && (
                       <div className="d-flex">
                         <span>Total Deposit Remaining:</span>
                         <h6 className="display-6 fs-6 mb-0 ms-2">
