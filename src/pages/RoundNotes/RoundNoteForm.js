@@ -147,6 +147,7 @@ const RoundNoteForm = ({
 
   // watch date
   const selectedDate = watch("date");
+  const selectedCenter = watch("center");
 
   // Reset form when editing or carryForwardSource provided
   useEffect(() => {
@@ -274,8 +275,6 @@ const RoundNoteForm = ({
     });
   });
 
-  console.log({ field: getValues("center") });
-
   return (
     <Modal size="xl" toggle={onClose} isOpen={isOpen} direction="end">
       <ModalHeader toggle={onClose}>
@@ -334,12 +333,11 @@ const RoundNoteForm = ({
                 render={({ field }) => (
                   <Flatpickr
                     disabled={
-                      getValues("center")?.value ===
-                        "694e565ed6e6dd32a39c9815" ||
-                      getValues("center")?.label === "Gurgaon"
+                      selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
+                      selectedCenter?.label === "Gurgaon"
                     }
-                    className={`form-control ${getValues("center")?.value === "694e565ed6e6dd32a39c9815" || getValues("center")?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
-                    options={{ dateFormat: "d-m-Y" }}
+                    className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
+                    options={{ dateFormat: "d-m-Y", disableMobile: true }}
                     value={field.value}
                     onChange={(dates) => {
                       field.onChange(dates[0]);
