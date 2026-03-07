@@ -52,6 +52,8 @@ const ChartDate = ({
     }
   }, [dispatch, isOpen]);
 
+  console.log("patient", patient);
+
   return (
     <React.Fragment>
       <CustomModal
@@ -70,7 +72,13 @@ const ChartDate = ({
               <span>
                 <Flatpicker
                   name="dateOfAdmission"
-                  disabled={type === "CLINICTEST" ? true : false}
+                  disabled={
+                    type === "CLINICTEST" ||
+                    patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                    patient.center.title === "Gurgaon"
+                      ? true
+                      : false
+                  }
                   value={chartDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
@@ -88,7 +96,7 @@ const ChartDate = ({
                     //   },
                     // ],
                   }}
-                  className="form-control shadow-none bg-light "
+                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon" ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -97,7 +105,13 @@ const ChartDate = ({
                 <Flatpicker
                   name="dateOfAdmission"
                   value={chartDate || ""}
-                  disabled={type === "CLINICTEST" ? true : false}
+                  disabled={
+                    type === "CLINICTEST" ||
+                    patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                    patient.center.title === "Gurgaon"
+                      ? true
+                      : false
+                  }
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
                       hours: e.getHours(),
@@ -114,7 +128,7 @@ const ChartDate = ({
                     time_24hr: false,
                     // defaultDate: moment().format('LT'),
                   }}
-                  className="form-control shadow-none bg-light"
+                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon" ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -149,9 +163,9 @@ const ChartDate = ({
                         editChartData.data.chart !== item.category
                           ? true
                           : type === "GENERAL" &&
-                            item.category === DISCHARGE_SUMMARY
-                          ? true
-                          : false
+                              item.category === DISCHARGE_SUMMARY
+                            ? true
+                            : false
                       }
                       key={idx + item.category}
                       onClick={() => {
@@ -165,7 +179,7 @@ const ChartDate = ({
                             ...(item.category === PRESCRIPTION && {
                               populatePreviousAppointment: true,
                             }),
-                          })
+                          }),
                         );
                         toggle();
                       }}
