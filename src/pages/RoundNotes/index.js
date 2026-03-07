@@ -69,9 +69,18 @@ const RoundNotes = () => {
   const [patientOption, setPatientOption] = useState(null);
   const [selectedStaffOptions, setSelectedStaffOptions] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
+  const centers = useSelector((state) => state.Center.data);
   const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      })),
+  );
   const [centerIds, setCenterIds] = useState(
-    centerAccess?.map((center) => center._id) || [],
+    centerOptions?.map((c) => c._id) || [],
   );
 
   const microUser = localStorage.getItem("micrologin");
@@ -91,10 +100,17 @@ const RoundNotes = () => {
   }, [filters, hasIncidentPermission, permissionLoader]);
 
   useEffect(() => {
-    if (centerAccess && !drawer.isOpen) {
-      setCenterIds(centerAccess?.map((center) => center._id) || []);
-    }
-  }, [centerAccess, drawer.isOpen]);
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        })),
+    );
+  }, [centerAccess, centers]);
+
+  console.log({ centerAccess });
 
   const loadPatientOptions = useCallback(async (inputValue) => {
     if (!inputValue) return [];
@@ -166,10 +182,10 @@ const RoundNotes = () => {
 
     if (filters.patientId) payload.patientId = filters.patientId;
     if (filters.staffIds?.length) payload.staffIds = filters.staffIds;
-    if (filters.center?.length) payload.center = filters.center;
+    if (centerIds?.length) payload.center = centerIds;
 
     return payload;
-  }, [filters, page, limit]);
+  }, [filters, page, limit, centerIds]);
 
   useEffect(() => {
     dispatch(fetchRoundNotes(queryPayload));
@@ -214,15 +230,6 @@ const RoundNotes = () => {
     dispatch(
       setRoundNotesFilters({
         staffIds: options?.map((option) => option.value) || [],
-      }),
-    );
-    setPage(1);
-  };
-
-  const handleCenterChange = (selectedIds) => {
-    dispatch(
-      setRoundNotesFilters({
-        center: selectedIds || [],
       }),
     );
     setPage(1);
@@ -287,6 +294,8 @@ const RoundNotes = () => {
 
   const totalPages = pagination.totalPages || 1;
 
+  console.log({ filters: filters });
+
   return (
     <div className="page-content">
       <Row>
@@ -317,12 +326,9 @@ const RoundNotes = () => {
                 <FormGroup>
                   <Label>Center</Label>
                   <CenterDropdown
-                    options={centerAccess.map((c) => ({
-                      _id: c._id,
-                      title: c.title,
-                    }))}
-                    value={filters.center || []}
-                    onChange={handleCenterChange}
+                    options={centerOptions}
+                    value={centerIds || []}
+                    onChange={setCenterIds}
                     className="w-100 border rounded bg-white"
                   />
                 </FormGroup>
