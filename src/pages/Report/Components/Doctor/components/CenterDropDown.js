@@ -24,7 +24,8 @@ const CenterDropdown = ({
 
   const toggle = () => setDropdownOpen(!dropdownOpen);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = (e) => {
+    e.preventDefault();
     const validIds = options.map((o) => o._id);
     setTempValue(validIds);
   };
@@ -38,7 +39,8 @@ const CenterDropdown = ({
     }
   };
 
-  const handleUnselectAll = () => {
+  const handleUnselectAll = (e) => {
+    e.preventDefault();
     setTempValue([]);
   };
 
@@ -46,6 +48,8 @@ const CenterDropdown = ({
     onChange(tempValue);
     toggle();
   };
+
+  console.log({ options, value, onChange });
 
   return (
     <Dropdown isOpen={dropdownOpen} toggle={toggle} className={className}>
