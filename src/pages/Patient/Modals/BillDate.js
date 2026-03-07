@@ -111,7 +111,7 @@ const BillDate = ({
     if (!latestBillingAdmission?._id) return;
     try {
       const payload = {
-        center: patient?.center?._id,
+        center: latestBillingAdmission?.center?._id || latestBillingAdmission?.center,
         patient: patient?._id,
         addmission: latestBillingAdmission?.addmissionId || latestBillingAdmission?._id,
         amount: data?.amount,
