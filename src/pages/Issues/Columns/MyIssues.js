@@ -7,9 +7,10 @@ export const MyIssuesCol = (
   handleViewDescription,
   handleViewImages,
   activeTab,
-  handleAction
+  handleAction,
+  type
+
 ) => {
-  console.log("ACTIVE TAB:", activeTab);
   return [
     {
       name: <div className="text-center">Author</div>,
@@ -29,22 +30,107 @@ export const MyIssuesCol = (
     {
       name: <div className="text-center">Issue Type</div>,
       selector: (row) => row?.issueType || "-",
-      width: "140px",
+      width: "180px",
     },
 
-    {
-      name: <div className="text-center">Description</div>,
-      width: "160px",
-      cell: (row) => (
-        <span
-          style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-          onClick={() => handleViewDescription(row?.techIssue?.description)}
-        >
-          View
-        </span>
-      ),
-    },
+    ...(type === "TECH" ?
+      [{
+        name: <div className="text-center">Description</div>,
+        width: "160px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewDescription(row?.techIssue?.description)}
+          >
+            View
+          </span>
+        ),
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.techIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      }
+      ] : []
+    ),
+    ...(type === "PURCHASE" ?
+      [
+        {
+          name: <div className="text-center">Item Name</div>,
+          selector: (row) => row?.purchaseIssue?.itemName || "-",
+          // center: true,
+          width: "140px",
+        },
+        {
+          name: <div className="text-center">Item Quantity</div>,
+          selector: (row) => row?.purchaseIssue?.itemQty || "-",
+          // center: true,
+          width: "140px",
+        },
+        {
+          name: <div className="text-center">Comments</div>,
+          width: "160px",
+          cell: (row) => (
+            <span
+              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+              onClick={() => handleViewDescription(row?.purchaseIssue?.comment)}
+            >
+              View
+            </span>
+          ),
+        }, {
+          name: <div className="text-center">Images</div>,
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+              onClick={() => handleViewImages(row?.purchaseIssue?.files)}
+            >
+              View Images
+            </span>
+          ),
+        },
 
+      ] : []
+
+    ),
+     ...(type === "REVIEW_SUBMISSION" ?
+    [
+      {
+        name: <div className="text-center">Responsible Reviewer</div>,
+        selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
+        // center: true,
+        width: "180px",
+      },
+      {
+        name: <div className="text-center">Review Taken From</div>,
+        selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
+        // center: true,
+        width: "180px",
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.reviewSubmissionIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      },
+
+    ] : []
+
+  ),
     ...(activeTab !== "new"
       ? [
         {
@@ -112,19 +198,6 @@ export const MyIssuesCol = (
       width: "180px",
     },
 
-    {
-      name: <div className="text-center">Images</div>,
-      width: "140px",
-      cell: (row) => (
-        <span
-          style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-          onClick={() => handleViewImages(row?.techIssue?.files)}
-        >
-          View Images
-        </span>
-      ),
-    },
-
     ...(activeTab && activeTab !== "resolved"
       ? [
         {
@@ -154,5 +227,33 @@ export const MyIssuesCol = (
         },
       ]
       : []),
+
+    ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+      ? [
+        ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+          ? [
+            {
+              name: <div className="text-center">Approved By</div>,
+              selector: (row) =>
+                row?.approval?.approvedBy
+                  ? row.approval.approvedBy.charAt(0).toUpperCase() +
+                  row.approval.approvedBy.slice(1).toLowerCase()
+                  : "-",
+              width: "160px",
+            },
+            {
+              name: <div className="text-center">Approval Action By</div>,
+              selector: (row) =>
+                row?.approval?.actionByName
+                  ? row.approval.actionByName.charAt(0).toUpperCase() +
+                  row.approval.actionByName.slice(1).toLowerCase()
+                  : "-",
+              width: "180px",
+            },
+          ]
+          : [])
+      ]
+      : []
+    )
   ]
 }

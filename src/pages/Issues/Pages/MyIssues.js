@@ -11,6 +11,8 @@ import DescriptionModal from "../Components/DescriptionModal";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import StatusModal from "../Components/StatusModal";
 import { changeStatus } from "../../../helpers/backend_helper";
+import ApprovalModal from "../Components/ApprovalModal";
+import Select from "react-select";
 
 const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
 
@@ -63,7 +65,7 @@ const MyIssues = () => {
 
       const response = await getMyTickets(type, params);
       console.log("response", response);
-      
+
 
       setIssues(response?.data || []);
       setPagination(response?.pagination || null);
@@ -110,7 +112,6 @@ const MyIssues = () => {
 
     try {
       const response = await changeStatus(payload)
-      console.log("RESPONSE", response);
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
       setStatus(selectedIssue.nextStatus)
       loadIssues();
@@ -120,6 +121,17 @@ const MyIssues = () => {
     }
   }
 
+  const issueTypeOptions = issueTypes.map((t) => ({
+    value: t,
+    label: t,
+  }));
+
+  const statusOptions = statuses.map((s) => ({
+    value: s,
+    label: normalizeStatus(s),
+  }));
+
+
   return (
     <>
       <CardBody
@@ -127,41 +139,34 @@ const MyIssues = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">MY ISSUES</h1>
+          <h1 className="display-6 fw-bold text-primary">MY TICKETS</h1>
         </div>
 
         {/* Filters */}
         <div className="d-flex gap-3 mb-3 flex-wrap">
 
           {/* Issue Type */}
-          <select
-            className="form-select"
-            style={{ width: "200px" }}
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            {issueTypes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+          <Select
+            options={issueTypeOptions}
+            value={issueTypeOptions.find((o) => o.value === type)}
+            onChange={(selected) => setType(selected.value)}
+            styles={{ container: (base) => ({ ...base, width: 200 }) }}
+          />
 
           {/* Status */}
-          <select
-            className="form-select"
-            style={{ width: "200px" }}
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="">All Status</option>
-
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {normalizeStatus(s)}
-              </option>
-            ))}
-          </select>
+          <Select
+            options={[
+              { value: "", label: "All Status" },
+              ...statusOptions,
+            ]}
+            value={
+              status
+                ? statusOptions.find((o) => o.value === status)
+                : { value: "", label: "All Status" }
+            }
+            onChange={(selected) => setStatus(selected.value)}
+            styles={{ container: (base) => ({ ...base, width: 200 }) }}
+          />
 
         </div>
 
@@ -171,7 +176,8 @@ const MyIssues = () => {
             handleViewDescription,
             handleViewImages,
             status,
-            handleAction
+            handleAction,
+            type
           )}
           data={issues}
           loading={loading}
@@ -201,8 +207,10 @@ const MyIssues = () => {
         issue={selectedIssue}
         onAssign={handleAssignSubmit}
         activeTab={status}
-        title={"Update Issue Status"}
+        title={`Update Issue Status to ${selectedIssue?.nextStatus?.replaceAll("_", " ")}`}
       />
+
+
     </>
   );
 };

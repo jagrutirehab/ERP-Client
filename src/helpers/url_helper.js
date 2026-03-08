@@ -545,3 +545,5 @@ export const GET_TALLY_LOGS = "/tally/logs";
 export const GET_ISSUES = "/issues/get"
 export const GET_MY_ISSUES = "/issues/my/tickets"
 export const CHANGE_STATUS = "/issues/change/status"
+export const APPROVE_ISSUE = "/issues/approval"
+export const POST_ISSUE = "/issues/post"
