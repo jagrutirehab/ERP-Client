@@ -286,6 +286,9 @@ const Billing = ({
             const advancePayment =
               idx === 0 ? totalAdvance : addmission.totalAdvancePayment;
 
+            console.log("totalDeposit", totalDeposit);
+            console.log("addmission", addmission);
+
             const ttlDeposit =
               idx === 0
                 ? totalDeposit
@@ -353,14 +356,22 @@ const Billing = ({
                         {writeOffMap[addmission._id] || 0}
                       </h6>
                     </div>
-                    {ttlDeposit > 0 && advancePayment === 0 && (
+                    {ttlDeposit > 0 && (
+                      <div className="d-flex">
+                        <span>Total Deposit Remaining :</span>
+                        <h6 className="display-6 fs-6 mb-0 ms-2">
+                          {ttlDeposit}
+                        </h6>
+                      </div>
+                    )}
+                    {/* {addmission._id === latestAdmission?._id && ttlDeposit > 0 && (
                       <div className="d-flex">
                         <span>Total Deposit Remaining:</span>
                         <h6 className="display-6 fs-6 mb-0 ms-2">
                           {ttlDeposit}
                         </h6>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
                 <div className="d-flex align-items-center mt-2 flex-column">
