@@ -49,15 +49,13 @@ const CenterDropdown = ({
     toggle();
   };
 
-  console.log({ options, value, onChange });
-
   return (
     <Dropdown isOpen={dropdownOpen} toggle={toggle} className={className}>
       <DropdownToggle
         caret
         color="primary"
         outline
-        className="d-flex align-items-center gap-2 px-3 py-2 hover:text-white"
+        className="d-flex w-100 align-items-center gap-2 px-3 py-2 hover:text-white"
       >
         <i className="bx bx-category-alt fs-18"></i>
         <span className="fw-semibold fs-13">
