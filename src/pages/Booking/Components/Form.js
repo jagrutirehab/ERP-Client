@@ -485,6 +485,8 @@ const EventForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uidPatient]);
 
+  console.log({ isOPDPatient });
+
   return (
     <React.Fragment>
       <div>
@@ -570,10 +572,7 @@ const EventForm = ({
                         );
                         validation.setFieldValue("gender", item.gender);
                         validation.setFieldValue("center", item.center?._id);
-                        setOPDPatient(
-                          (!item.isAdmit && item.isDischarge) ||
-                            (!item.isAdmit && !item.isDischarge),
-                        );
+                        setOPDPatient(!item.isAdmit);
                       }}
                     >
                       <span>{item.name}</span>
@@ -677,10 +676,7 @@ const EventForm = ({
                         );
                         validation.setFieldValue("gender", item.gender);
                         validation.setFieldValue("center", item.center?._id);
-                        setOPDPatient(
-                          (!item.isAdmit && item.isDischarge) ||
-                            (!item.isAdmit && !item.isDischarge),
-                        );
+                        setOPDPatient(!item.isAdmit);
                       }}
                     >
                       <span>{item.name}</span>
@@ -707,6 +703,7 @@ const EventForm = ({
                   validation={validation}
                   editEvent={editEvent}
                   disabled={editEvent ? true : false}
+                  setOPDPatient={setOPDPatient}
                 />
                 {validation.touched.patient && validation.errors.patient ? (
                   <FormFeedback type="invalid" className="d-block">
