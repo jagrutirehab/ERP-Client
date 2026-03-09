@@ -320,6 +320,7 @@ const RoundNotes = () => {
                     setPage(1);
                     setSelectedStaffOptions([]);
                     dispatch(resetRoundNotesFilters());
+                    setCenterIds(centerAccess);
                     // setRoundNotesFilters({
                     //   startDate: null,
                     //   endDate: null,
