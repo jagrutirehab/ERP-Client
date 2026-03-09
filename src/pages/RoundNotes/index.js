@@ -46,6 +46,7 @@ import RoundNoteForm, { CarryForwardStrip } from "./RoundNoteForm";
 import RoundNoteCard from "./RoundCard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { getRoundNoteStaff } from "../../helpers/backend_helper";
+import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDown";
 
 const RoundNotes = () => {
   const dispatch = useDispatch();
@@ -68,9 +69,19 @@ const RoundNotes = () => {
   const [patientOption, setPatientOption] = useState(null);
   const [selectedStaffOptions, setSelectedStaffOptions] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
-  const centerAccess = useSelector((state) => state.Center.data);
+  const centers = useSelector((state) => state.Center.data);
+  const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      })),
+  );
   const [centerIds, setCenterIds] = useState(
-    centerAccess?.map((center) => center._id) || []
+    [],
+    // centerOptions?.map((c) => c._id) || [],
   );
 
   const microUser = localStorage.getItem("micrologin");
@@ -90,10 +101,23 @@ const RoundNotes = () => {
   }, [filters, hasIncidentPermission, permissionLoader]);
 
   useEffect(() => {
-    if (centerAccess && !drawer.isOpen) {
-      setCenterIds(centerAccess?.map((center) => center._id) || []);
+    if (centerAccess?.length) {
+      setCenterIds(centerAccess);
     }
-  }, [centerAccess, drawer.isOpen]);
+  }, [centerAccess]);
+
+  useEffect(() => {
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        })),
+    );
+  }, [centerAccess, centers]);
+
+  console.log({ centerAccess });
 
   const loadPatientOptions = useCallback(async (inputValue) => {
     if (!inputValue) return [];
@@ -111,7 +135,7 @@ const RoundNotes = () => {
       label: `${patient.name} (${patient.patientId || ""})`,
       value: patient._id,
     }),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -142,6 +166,16 @@ const RoundNotes = () => {
     }
   }, [filters.patientId, formatPatientFilterOption, patientOption]);
 
+  useEffect(() => {
+    if (centerAccess?.length > 0 && !filters.center) {
+      dispatch(
+        setRoundNotesFilters({
+          center: centerAccess.map((c) => c._id),
+        }),
+      );
+    }
+  }, [centerAccess, filters.center, dispatch]);
+
   console.log({ centerAccess });
 
   const queryPayload = useMemo(() => {
@@ -155,10 +189,10 @@ const RoundNotes = () => {
 
     if (filters.patientId) payload.patientId = filters.patientId;
     if (filters.staffIds?.length) payload.staffIds = filters.staffIds;
-    if (filters.center?.length) payload.center = filters.center;
+    if (centerIds?.length) payload.center = centerIds;
 
     return payload;
-  }, [filters, page, limit]);
+  }, [filters, page, limit, centerIds]);
 
   useEffect(() => {
     dispatch(fetchRoundNotes(queryPayload));
@@ -190,7 +224,7 @@ const RoundNotes = () => {
         setRoundNotesFilters({
           startDate: moment(start).format("YYYY-MM-DD"),
           endDate: moment(end).format("YYYY-MM-DD"),
-        })
+        }),
       );
       setPage(1);
     }
@@ -203,16 +237,7 @@ const RoundNotes = () => {
     dispatch(
       setRoundNotesFilters({
         staffIds: options?.map((option) => option.value) || [],
-      })
-    );
-    setPage(1);
-  };
-
-  const handleCenterChange = (options) => {
-    dispatch(
-      setRoundNotesFilters({
-        center: options?.map((option) => option.value) || [],
-      })
+      }),
     );
     setPage(1);
   };
@@ -222,7 +247,7 @@ const RoundNotes = () => {
     dispatch(
       setRoundNotesFilters({
         patientId: option?.value || null,
-      })
+      }),
     );
     setPage(1);
     if (option?.value) {
@@ -233,7 +258,7 @@ const RoundNotes = () => {
   const handleDrawerSubmit = async (payload) => {
     if (drawer.mode === "edit" && drawer.data?._id) {
       await dispatch(
-        updateRoundNoteEntry({ id: drawer.data._id, data: payload })
+        updateRoundNoteEntry({ id: drawer.data._id, data: payload }),
       ).unwrap();
     } else {
       await dispatch(createRoundNote(payload)).unwrap();
@@ -269,12 +294,14 @@ const RoundNotes = () => {
       updateRoundNoteEntry({
         id: note._id,
         data: { carryForward: false, carryForwardStatus: "closed" },
-      })
+      }),
     ).unwrap();
     dispatch(fetchRoundNotes(queryPayload));
   };
 
   const totalPages = pagination.totalPages || 1;
+
+  console.log({ filters: filters });
 
   return (
     <div className="page-content">
@@ -293,6 +320,7 @@ const RoundNotes = () => {
                     setPage(1);
                     setSelectedStaffOptions([]);
                     dispatch(resetRoundNotesFilters());
+                    setCenterIds(centerAccess);
                     // setRoundNotesFilters({
                     //   startDate: null,
                     //   endDate: null,
@@ -305,19 +333,11 @@ const RoundNotes = () => {
               <Form className="d-flex flex-column gap-3">
                 <FormGroup>
                   <Label>Center</Label>
-                  <Select
-                    isMulti
-                    options={centerAccess.map((c) => ({
-                      label: c.title,
-                      value: c._id,
-                    }))}
-                    value={centerAccess
-                      .map((c) => ({ label: c.title, value: c._id }))
-                      .filter((option) =>
-                        filters.center?.includes(option.value)
-                      )}
-                    onChange={handleCenterChange}
-                    classNamePrefix="select2"
+                  <CenterDropdown
+                    options={centerOptions}
+                    value={centerIds || []}
+                    onChange={setCenterIds}
+                    className="w-100 border rounded bg-white"
                   />
                 </FormGroup>
                 <FormGroup>
@@ -408,7 +428,7 @@ const RoundNotes = () => {
                       mode: "create",
                       data: null,
                       carryForwardSource: null,
-                    })
+                    }),
                   )
                 }
               >
@@ -431,7 +451,7 @@ const RoundNotes = () => {
                       mode: "create",
                       data: null,
                       carryForwardSource: note,
-                    })
+                    }),
                   )
                 }
                 onCloseCarryForward={handleCarryForwardClose}
@@ -454,7 +474,7 @@ const RoundNotes = () => {
                           mode: "edit",
                           data: current,
                           carryForwardSource: null,
-                        })
+                        }),
                       )
                     }
                     onDelete={handleDelete}
@@ -465,7 +485,7 @@ const RoundNotes = () => {
                           mode: "create",
                           data: null,
                           carryForwardSource: current,
-                        })
+                        }),
                       )
                     }
                     onCloseCarryForward={handleCarryForwardClose}
@@ -549,7 +569,7 @@ const RoundNotes = () => {
               isOpen: false,
               data: null,
               carryForwardSource: null,
-            })
+            }),
           )
         }
         onSubmit={handleDrawerSubmit}

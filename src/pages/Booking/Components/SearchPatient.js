@@ -96,6 +96,7 @@ const SearchPatient = ({
   editEvent,
   centerAccess,
   showNewTag = true,
+  setOPDPatient,
 }) => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -133,10 +134,6 @@ const SearchPatient = ({
 
   const isNewPatient = !validation.values.patient;
   const isClearAvai = validation.values.patient;
-
-  console.log("---------------------------");
-  console.log({ values: validation.values });
-  console.log("---------------------------");
 
   return (
     <React.Fragment>
@@ -218,11 +215,14 @@ const SearchPatient = ({
                     "phoneNumber",
                     item.phoneNumber.includes("+91")
                       ? item.phoneNumber
-                      : "+91" + item.phoneNumber
+                      : "+91" + item.phoneNumber,
                   );
                   validation.setFieldValue("gender", item.gender);
                   if (centerAccess.includes(item.center?._id))
                     validation.setFieldValue("center", item.center?._id);
+                  console.log({ item: item });
+
+                  setOPDPatient(!item.isAdmit);
                 }}
               >
                 <span>{item?.name}</span>

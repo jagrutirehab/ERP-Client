@@ -6,6 +6,7 @@ import { connect, useDispatch } from "react-redux";
 import {
   addClinicalNote,
   cancelAppointment,
+  fetchAllCenters,
   fetchAllDoctorSchedule,
   fetchAppointments,
   fetchCenters,
@@ -64,16 +65,17 @@ const Booking = ({
     dispatch(
       fetchAllDoctorSchedule({
         centerAccess: JSON.stringify(user?.centerAccess),
-      })
+      }),
     );
     dispatch(
       fetchAppointments({
         centerAccess,
         start: startOfDay(new Date()),
         end: endOfDay(new Date()),
-      })
+      }),
     );
     dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+    dispatch(fetchAllCenters());
   }, [dispatch, user, centerAccess, patients]);
 
   useEffect(() => {
@@ -84,7 +86,7 @@ const Booking = ({
     values,
     files,
     editChartData,
-    editClinicalNote
+    editClinicalNote,
   ) => {
     const {
       author,
@@ -134,7 +136,7 @@ const Booking = ({
       toggleAppointmentForm({
         isOpen: !appointmentForm.isOpen,
         data: data,
-      })
+      }),
     );
   };
 
@@ -222,7 +224,7 @@ const Booking = ({
                   centerAccess,
                   start: startOfDay(range[0]),
                   end: endOfDay(range[0]),
-                })
+                }),
               );
             else if (range?.length > 1)
               dispatch(
@@ -230,7 +232,7 @@ const Booking = ({
                   centerAccess,
                   start: startOfDay(range[0]),
                   end: endOfDay(range[range.length - 1]),
-                })
+                }),
               );
             else
               dispatch(
@@ -238,7 +240,7 @@ const Booking = ({
                   centerAccess,
                   start: startOfDay(range.start),
                   end: endOfDay(range.end),
-                })
+                }),
               );
           }}
           eventPropGetter={(event, start, end, isSelected) => {
@@ -251,8 +253,8 @@ const Booking = ({
                   event.isCancelled || (event.chart && event.bill)
                     ? "rgba(0, 0, 0, 0.3)"
                     : event.chart
-                    ? ""
-                    : backgroundColor,
+                      ? ""
+                      : backgroundColor,
                 ...(event.chart &&
                   !event.bill && {
                     background: "linear-gradient(to right, #bdc3c7, #2c3e50)",
@@ -319,7 +321,7 @@ const Booking = ({
               setCurrentEvent({
                 isOpen: false,
                 data: null,
-              })
+              }),
             );
           }}
         />

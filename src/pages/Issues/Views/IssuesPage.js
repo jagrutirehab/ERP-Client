@@ -10,10 +10,12 @@ import classnames from "classnames";
 import { normalizeStatus } from "../Components/normalizeStatus";
 import { useSelector } from "react-redux";
 import StatusModal from "../Components/StatusModal";
-import { changeStatus } from "../../../helpers/backend_helper";
+import { approveIssue, changeStatus } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
+import ApprovalModal from "../Components/ApprovalModal";
+import Select from "react-select";
 
-const TechIssues = () => {
+const IssuesPage = ({ type }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const user = useSelector((state) => state.User);
 
@@ -33,7 +35,11 @@ const TechIssues = () => {
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-    const type = "TECH";
+    const [approvalModal, setApprovalModal] = useState(false);
+    const [approvalIssue, setApprovalIssue] = useState(null);
+    const [approvalStatus, setApprovalStatus] = useState("");
+
+
 
     const loadIssues = async () => {
         try {
@@ -55,7 +61,10 @@ const TechIssues = () => {
                 centers,
                 status: activeTab,
                 page,
-                limit
+                limit,
+                ...(activeTab === "resolved" && approvalStatus
+                    ? { approvalStatus }
+                    : {})
             });
 
             setIssues(data?.data || []);
@@ -69,7 +78,7 @@ const TechIssues = () => {
     useEffect(() => {
         if (!user?.centerAccess) return;
         loadIssues();
-    }, [selectedCenter, user?.centerAccess, activeTab, page, limit]);
+    }, [selectedCenter, user?.centerAccess, activeTab, page, limit, approvalStatus, type]);
 
     const handleViewDescription = (desc) => {
         setDescription(desc);
@@ -113,12 +122,45 @@ const TechIssues = () => {
             loadIssues();
         } catch (error) {
             console.log(error);
-            toast.error("Error Assigning")
+            toast.error(error?.message || "Error Assigning")
 
         }
     };
 
 
+    const handleApproveClick = (issue) => {
+        setApprovalIssue(issue);
+        setApprovalModal(true);
+    };
+
+    const handleApprovalSubmit = async (data) => {
+        try {
+
+            const payload = {
+                issueId: data.issueId,
+                approvedBy: data.approvedBy
+            }
+
+            const response = await approveIssue(payload)
+            console.log("payload", payload);
+
+            toast.success(response?.message || "Issue Approved")
+
+            setApprovalModal(false)
+            setActiveTab("resolved")
+            loadIssues()
+
+        } catch (error) {
+            toast.error(error?.message || "Approval Failed")
+        }
+    }
+
+
+    const approvalOptions = [
+        { value: "", label: "All" },
+        { value: "approved", label: "Approved" },
+        { value: "not_approved", label: "Not Approved" },
+    ];
 
     return (
         <>
@@ -127,11 +169,11 @@ const TechIssues = () => {
                 style={isMobile ? { width: "100%" } : { width: "78%" }}
             >
                 <div className="text-center text-md-left mb-4">
-                    <h1 className="display-6 fw-bold text-primary">TECH ISSUES</h1>
+                    <h1 className="display-6 fw-bold text-primary">{type?.replaceAll("_", " ")} ISSUES</h1>
                 </div>
 
                 <Nav tabs className="mb-3">
-                    {["new", "assigned", "in_progress", "on_hold", "pending_user", "pending_release", "resolved", "closed"].map((tab) => (
+                    {["new", "assigned", "in_progress", "on_hold", "pending_user", "pending_release", "resolved"].map((tab) => (
                         <NavItem key={tab}>
                             <NavLink
                                 className={classnames({ active: activeTab === tab })}
@@ -144,27 +186,36 @@ const TechIssues = () => {
                     ))}
                 </Nav>
 
-                <div className="mb-3">
-                    <select
-                        className="form-select"
-                        style={{ width: "200px" }}
-                        value={selectedCenter}
-                        onChange={(e) => setSelectedCenter(e.target.value)}
-                        disabled={!centerOptions?.length}
-                    >
-                        {!centerOptions?.length ? (
-                            <option value="">No Center Selected</option>
-                        ) : (
-                            centerOptions.map((c) => (
-                                <option key={c.value} value={c.value}>
-                                    {c.label}
-                                </option>
-                            ))
-                        )}
-                    </select>
+                <div className="mb-3 d-flex gap-2">
+                    <Select
+                        options={centerOptions || []}
+                        value={centerOptions?.find((c) => c.value === selectedCenter) || null}
+                        onChange={(selected) => setSelectedCenter(selected?.value || "")}
+                        isDisabled={!centerOptions?.length}
+                        placeholder={centerOptions?.length ? "Select Center" : "No Center Selected"}
+                        styles={{ container: (base) => ({ ...base, width: 200 }) }}
+                    />
+                    {activeTab === "resolved" && (
+                        <Select
+                            options={approvalOptions}
+                            value={approvalOptions.find((o) => o.value === approvalStatus) || null}
+                            onChange={(selected) => setApprovalStatus(selected?.value || "")}
+                            styles={{ container: (base) => ({ ...base, width: 200 }) }}
+                        />
+                    )}
                 </div>
+
+
+
                 <DataTableComponent
-                    columns={Issues(handleViewDescription, handleViewImages, activeTab, handleAssign)}
+                    columns={
+                        Issues(handleViewDescription,
+                            handleViewImages,
+                            activeTab,
+                            handleAssign,
+                            handleApproveClick,
+                            type
+                        )}
                     data={issues}
                     loading={loading}
                     pagination={pagination}
@@ -195,10 +246,16 @@ const TechIssues = () => {
                 onAssign={handleAssignSubmit}
                 activeTab={activeTab}
                 title={"Assign Issue to employee"}
-            // status={"assigned"}
+            />
+
+            <ApprovalModal
+                isOpen={approvalModal}
+                toggle={() => setApprovalModal(false)}
+                issue={approvalIssue}
+                onSubmit={handleApprovalSubmit}
             />
         </>
     );
 };
 
-export default TechIssues;
+export default IssuesPage;

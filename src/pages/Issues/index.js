@@ -3,8 +3,9 @@ import { usePermissions } from "../../Components/Hooks/useRoles";
 import { Container, Spinner } from "reactstrap";
 import React from "react";
 import IssuesSidebar from "./Sidebar/sidebar";
-import TechIssues from "./Views/TechIssue";
 import MyIssues from "./Pages/MyIssues";
+import IssuesPage from "./Views/IssuesPage";
+import RaiseTicket from "./Pages/RaiseTicket";
 // import IssuesSidebar from "./Sidebar";
 // import TechIssues from "./TechIssues";
 // import OtherIssues from "./OtherIssues";
@@ -37,6 +38,8 @@ const Issues = () => {
 
     document.title = "Issues Dashboard";
 
+    const type = "";
+
     return (
         <React.Fragment>
             <div className="page-content p-0 overflow-hidden">
@@ -51,10 +54,12 @@ const Issues = () => {
 
                                         <Routes>
                                             {/* <Route index element={<TechIssues />} /> */}
-                                            <Route path="tech" element={<TechIssues />} />
-                                            <Route path="my/issues" element={<MyIssues/>}/>
+                                            <Route path="tech" element={<IssuesPage type={"TECH"} />} />
+                                            <Route path="purchase" element={<IssuesPage type={"PURCHASE"} />} />
+                                            <Route path="review-submissions" element={<IssuesPage type={"REVIEW_SUBMISSION"} />} />
+                                            <Route path="my/issues" element={<MyIssues />} />
+                                            <Route path="raise/ticket" element={<RaiseTicket />} />
                                         </Routes>
-
                                     </div>
                                 </Container>
                             </div>
