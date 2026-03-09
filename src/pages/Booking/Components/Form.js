@@ -120,6 +120,7 @@ const EventForm = ({
   toggleForm,
   eventDate,
   centers,
+  allCenters,
   doctor,
   slotsLoading,
   doctorAvailableSlots,
@@ -137,6 +138,7 @@ const EventForm = ({
   const [dropdown, setDropdown] = useState(false);
   const [uidDropdown, setUidDropdown] = useState(false);
   const [slotsError, setSlotsError] = useState(false);
+  const [isOPDPatient, setOPDPatient] = useState(false);
 
   //ref for slots dropdown
   const selectRef = useRef(null);
@@ -160,13 +162,13 @@ const EventForm = ({
       startDate: editEvent
         ? new Date(editEvent.startDate)
         : eventDate
-        ? new Date(eventDate)
-        : "",
+          ? new Date(eventDate)
+          : "",
       endDate: editEvent
         ? new Date(editEvent.endDate)
         : eventDate
-        ? addMinutes(new Date(eventDate), 15)
-        : "",
+          ? addMinutes(new Date(eventDate), 15)
+          : "",
       at: editEvent ? new Date(editEvent.startDate) : "",
       // at: editEvent
       // ? new Date(editEvent.startDate)
@@ -176,10 +178,10 @@ const EventForm = ({
       duration: editEvent
         ? `${differenceInHours(
             new Date(editEvent.endDate),
-            new Date(editEvent.startDate)
+            new Date(editEvent.startDate),
           )}-${differenceInMinutes(
             new Date(editEvent.endDate),
-            new Date(editEvent.startDate)
+            new Date(editEvent.startDate),
           )}`
         : `0-15`,
     },
@@ -188,7 +190,7 @@ const EventForm = ({
       // uid: Yup.string().required("Please Enter Patient UID"),
       doctor: Yup.string().required("Please Enter Doctor"),
       consultationType: Yup.string().required(
-        "Please Select Consultation type"
+        "Please Select Consultation type",
       ),
       phoneNumber: Yup.string()
         .required("Please Enter Phone number")
@@ -209,7 +211,7 @@ const EventForm = ({
             appointmentsInRange?.find(
               (val) =>
                 format(new Date(val.startDate), "HH:mm") ===
-                format(new Date(value), "HH:mm")
+                format(new Date(value), "HH:mm"),
             );
           if (isBooked && !editEvent) return false;
           else return true;
@@ -232,15 +234,15 @@ const EventForm = ({
                     {
                       start: new Date(e.startDate),
                       end: new Date(e.endDate),
-                    }
+                    },
                   )
                 );
-              }
+              },
             );
             if (doesItOverlapsExsitingEvents) {
               return false;
             } else return true;
-          }
+          },
         ),
     }),
     onSubmit: (values) => {
@@ -253,7 +255,7 @@ const EventForm = ({
             uid: values.uid
               ? values.uid
               : generatedPatientId?.value?.replace(/\D/g, ""),
-          })
+          }),
         );
       }
       // toggleForm();
@@ -294,7 +296,7 @@ const EventForm = ({
     }));
 
     return (docCenters || []).filter((doc) =>
-      doc?.centerAccess?.includes(validation.values.center)
+      doc?.centerAccess?.includes(validation.values.center),
     );
   };
 
@@ -310,7 +312,7 @@ const EventForm = ({
     if (
       patientPreviousDoctor &&
       filterDoctors(doctors).find(
-        (doc) => doc.user?._id === patientPreviousDoctor._id
+        (doc) => doc.user?._id === patientPreviousDoctor._id,
       )
     ) {
       validation.setFieldValue("doctor", patientPreviousDoctor._id);
@@ -336,7 +338,7 @@ const EventForm = ({
           date: format(startDate, "yyyy-MM-dd"),
           meetingType: validation.values.consultationType,
           slotDuration: hours * 60 + minutes,
-        })
+        }),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -364,7 +366,7 @@ const EventForm = ({
 
   const findDocCenterSchedule = (cen, doc, day) => {
     const findCenter = doc?.workingSchedule?.workingSchedule?.find(
-      (item) => item?.center?._id === cen && item.days?.includes(day?.getDay())
+      (item) => item?.center?._id === cen && item.days?.includes(day?.getDay()),
     );
 
     return findCenter;
@@ -456,7 +458,7 @@ const EventForm = ({
   const calcDuration = () => {
     const totalMinutes = differenceInMinutes(
       new Date(validation.values.endDate),
-      new Date(validation.values.startDate)
+      new Date(validation.values.startDate),
     );
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
@@ -534,7 +536,7 @@ const EventForm = ({
                       dispatch(
                         searchUidPatient({
                           uid: validation.values.uid,
-                        })
+                        }),
                       );
                     }}
                     className="btn btn-sm py-0 px-1 my-auto dropdown-input-icon"
@@ -564,10 +566,14 @@ const EventForm = ({
                           "phoneNumber",
                           item.phoneNumber.includes("+91")
                             ? item.phoneNumber
-                            : "+91" + item.phoneNumber
+                            : "+91" + item.phoneNumber,
                         );
                         validation.setFieldValue("gender", item.gender);
                         validation.setFieldValue("center", item.center?._id);
+                        setOPDPatient(
+                          (!item.isAdmit && item.isDischarge) ||
+                            (!item.isAdmit && !item.isDischarge),
+                        );
                       }}
                     >
                       <span>{item.name}</span>
@@ -618,7 +624,7 @@ const EventForm = ({
                         dispatch(
                           searchPatientPhoneNumber({
                             phoneNumber: number,
-                          })
+                          }),
                         ); // Manually trigger the phone search
                       }
                     }}
@@ -636,7 +642,7 @@ const EventForm = ({
                       dispatch(
                         searchPatientPhoneNumber({
                           phoneNumber: number,
-                        })
+                        }),
                       );
                     }}
                     type="button"
@@ -667,10 +673,14 @@ const EventForm = ({
                           "phoneNumber",
                           item.phoneNumber.includes("+91")
                             ? item.phoneNumber
-                            : "+91" + item.phoneNumber
+                            : "+91" + item.phoneNumber,
                         );
                         validation.setFieldValue("gender", item.gender);
                         validation.setFieldValue("center", item.center?._id);
+                        setOPDPatient(
+                          (!item.isAdmit && item.isDischarge) ||
+                            (!item.isAdmit && !item.isDischarge),
+                        );
                       }}
                     >
                       <span>{item.name}</span>
@@ -780,7 +790,7 @@ const EventForm = ({
                     validation.handleChange(e);
                     const findCenter = findDocCenterSchedule(
                       e.target.value,
-                      doctor
+                      doctor,
                     );
                     if (!findCenter) {
                       validation.setFieldValue("doctor", "");
@@ -801,11 +811,13 @@ const EventForm = ({
                   <option value="" selected disabled hidden>
                     Choose here
                   </option>
-                  {(centers || []).map((option, idx) => (
-                    <option key={idx} value={option._id}>
-                      {option.title}
-                    </option>
-                  ))}
+                  {(isOPDPatient ? allCenters : centers || []).map(
+                    (option, idx) => (
+                      <option key={idx} value={option._id}>
+                        {option.title}
+                      </option>
+                    ),
+                  )}
                 </Input>
                 {validation.touched.doctor && validation.errors.doctor ? (
                   <FormFeedback type="invalid">
@@ -874,11 +886,11 @@ const EventForm = ({
                     const nDate = new Date(validation.values.endDate);
                     const updateSDate = setDate(
                       setMonth(setYear(sDate, e.getFullYear()), e.getMonth()),
-                      e.getDate()
+                      e.getDate(),
                     );
                     const updateNDate = setDate(
                       setMonth(setYear(nDate, e.getFullYear()), e.getMonth()),
-                      e.getDate()
+                      e.getDate(),
                     );
 
                     if (isValid(e)) {
@@ -927,21 +939,21 @@ const EventForm = ({
 
                       const updatedSDate = setHours(
                         sDate,
-                        d.getHours()
+                        d.getHours(),
                       ).setMinutes(d.getMinutes());
                       const updatedNDate = addMinutes(
                         addHours(new Date(updatedSDate), diffHours),
-                        diffMinutes
+                        diffMinutes,
                       );
 
                       validation.setFieldValue(
                         "startDate",
-                        new Date(updatedSDate)
+                        new Date(updatedSDate),
                       );
                       validation.setFieldValue("at", new Date(updatedSDate));
                       validation.setFieldValue(
                         "endDate",
-                        new Date(updatedNDate)
+                        new Date(updatedNDate),
                       );
                     }}
                     invalid={
@@ -1033,7 +1045,7 @@ const EventForm = ({
                     if (date) {
                       const endDate = addHours(
                         addMinutes(date, minutes),
-                        hours
+                        hours,
                       );
 
                       validation.setFieldValue("duration", value);
@@ -1099,6 +1111,7 @@ EventForm.propTypes = {};
 const mapStateToProps = (state) => ({
   eventDate: state.Booking.eventDate,
   centers: state.Center.data,
+  allCenters: state.Center.allCenters,
   centerAccess: state.User?.centerAccess,
   doctors: state.Setting.doctorSchedule,
   slotsLoading: state.Setting.loading,
