@@ -80,7 +80,8 @@ const RoundNotes = () => {
       })),
   );
   const [centerIds, setCenterIds] = useState(
-    centerOptions?.map((c) => c._id) || [],
+    [],
+    // centerOptions?.map((c) => c._id) || [],
   );
 
   const microUser = localStorage.getItem("micrologin");
@@ -98,6 +99,12 @@ const RoundNotes = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, hasIncidentPermission, permissionLoader]);
+
+  useEffect(() => {
+    if (centerAccess?.length) {
+      setCenterIds(centerAccess);
+    }
+  }, [centerAccess]);
 
   useEffect(() => {
     setCenterOptions(
