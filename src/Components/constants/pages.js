@@ -999,21 +999,33 @@ export const HRMS = [
 
 export const ISSUES = [
   {
+    id: "raise-ticket",
+    label: "Raise Ticket",
+    icon: "bx bx-message-square-add",
+    link: "/issues/raise/ticket",
+  },
+  {
     id: "issues-type",
     label: "Issues",
     icon: "bx bx-error-circle",
     children: [
       {
         id: "tech-issues",
-        label: "Tech Issues",
+        label: "Technical",
         link: "/issues/tech",
         icon: "bx bx-chip",
       },
       {
-        id: "other-issues",
-        label: "Other Issues",
-        link: "/issues/other",
+        id: "purchase-issues",
+        label: "Purchase",
+        link: "/issues/purchase",
         icon: "bx bx-category",
+      },
+      {
+        id: "review-submissions",
+        label: "Review Submissions",
+        link: "/issues/review-submissions",
+        icon: "bx bx-check-shield"
       },
     ],
   },

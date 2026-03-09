@@ -24,7 +24,8 @@ const CenterDropdown = ({
 
   const toggle = () => setDropdownOpen(!dropdownOpen);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = (e) => {
+    e.preventDefault();
     const validIds = options.map((o) => o._id);
     setTempValue(validIds);
   };
@@ -38,7 +39,8 @@ const CenterDropdown = ({
     }
   };
 
-  const handleUnselectAll = () => {
+  const handleUnselectAll = (e) => {
+    e.preventDefault();
     setTempValue([]);
   };
 
@@ -53,7 +55,7 @@ const CenterDropdown = ({
         caret
         color="primary"
         outline
-        className="d-flex align-items-center gap-2 px-3 py-2 hover:text-white"
+        className="d-flex w-100 align-items-center gap-2 px-3 py-2 hover:text-white"
       >
         <i className="bx bx-category-alt fs-18"></i>
         <span className="fw-semibold fs-13">

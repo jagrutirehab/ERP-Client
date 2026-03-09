@@ -106,21 +106,11 @@ const RoundNoteForm = ({
   function getCurrentSession() {
     const hour = new Date().getHours();
 
-    console.log({ hour });
-
     if (hour >= 5 && hour < 12) return "Morning";
     if (hour >= 12 && hour < 17) return "Afternoon";
     if (hour >= 17 && hour < 21) return "Evening";
     return "Night"; // 21–4
   }
-
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log(getCurrentSession());
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log("-------------------------");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -157,6 +147,7 @@ const RoundNoteForm = ({
 
   // watch date
   const selectedDate = watch("date");
+  const selectedCenter = watch("center");
 
   // Reset form when editing or carryForwardSource provided
   useEffect(() => {
@@ -241,7 +232,6 @@ const RoundNoteForm = ({
   }, [data, mode, carryForwardSource, reset]);
 
   const submit = handleSubmit((values) => {
-    console.log({ values });
     // Build payload matching your mongoose schema
     const date = new Date(values.date);
     setHours(date, new Date().getHours());
@@ -260,7 +250,7 @@ const RoundNoteForm = ({
           (n) =>
             (n.note && n.note.trim().length > 0 && n.patientsCategory) ||
             n.patient?._id ||
-            n.floor
+            n.floor,
         ) // Only include rows with actual content
         .map((n) => ({
           floor: n.floor || "",
@@ -322,7 +312,7 @@ const RoundNoteForm = ({
                   patientsCategory: "All Patients",
                   roundTakenBy: [],
                   note: "",
-                })
+                }),
               ),
             ]);
           }}
@@ -342,8 +332,12 @@ const RoundNoteForm = ({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <Flatpickr
-                    className="form-control"
-                    options={{ dateFormat: "d-m-Y" }}
+                    disabled={
+                      selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
+                      selectedCenter?.label === "Gurgaon"
+                    }
+                    className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
+                    options={{ dateFormat: "d-m-Y", disableMobile: true }}
                     value={field.value}
                     onChange={(dates) => {
                       field.onChange(dates[0]);
@@ -411,7 +405,14 @@ const RoundNoteForm = ({
                     classNamePrefix="select2"
                     onChange={(val) => {
                       field.onChange(val);
-                      console.log({ val });
+
+                      const ifCenterIsGurgaon =
+                        val.value === "694e565ed6e6dd32a39c9815" ||
+                        val.label === "Gurgaon";
+
+                      if (ifCenterIsGurgaon) {
+                        setValue("date", new Date());
+                      }
 
                       setCenterIds([val.value]);
                     }}
@@ -502,7 +503,7 @@ const RoundNoteForm = ({
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
-                        }))
+                        })),
                       )
                     }
                   >
@@ -517,7 +518,7 @@ const RoundNoteForm = ({
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
-                        }))
+                        })),
                       )
                     }
                   >
@@ -593,13 +594,13 @@ const RoundNoteForm = ({
                                   // Patient selected
                                   setValue(
                                     `notes.${index}.patientsCategory`,
-                                    "Selected Patients"
+                                    "Selected Patients",
                                   );
                                 } else {
                                   // Patient cleared
                                   setValue(
                                     `notes.${index}.patientsCategory`,
-                                    "All Patients"
+                                    "All Patients",
                                   );
                                 }
                               }

@@ -1,8 +1,8 @@
-import { Badge } from "reactstrap";
+import { Badge, Button } from "reactstrap";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { getStatusColor } from "../Helpers/getStatusColor";
 
-export const Issues = (handleViewDescription, handleViewImages, status, handleAssign) => [
+export const Issues = (handleViewDescription, handleViewImages, status, handleAssign, handleApproveClick, type) => [
   {
     name: <div className="text-center">Author</div>,
     selector: (row) => row?.author?.name || "-",
@@ -25,30 +25,130 @@ export const Issues = (handleViewDescription, handleViewImages, status, handleAs
     name: <div className="text-center">Issue Type</div>,
     selector: (row) => row?.issueType || "-",
     // center: true,
-    width: "140px",
+    width: "180px",
   },
-  {
-    name: <div className="text-center">Description</div>,
-    width: "160px",
-    // center: true,
-    cell: (row) => (
-      <span
-        style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-        onClick={() => handleViewDescription(row?.techIssue?.description)}
-      >
-        View
-      </span>
-    ),
-  },
+  ...(type === "TECH" ?
+    [{
+      name: <div className="text-center">Description</div>,
+      width: "160px",
+      cell: (row) => (
+        <span
+          style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+          onClick={() => handleViewDescription(row?.techIssue?.description)}
+        >
+          View
+        </span>
+      ),
+    },
+    {
+      name: <div className="text-center">Images</div>,
+      width: "140px",
+      cell: (row) => (
+        <span
+          style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+          onClick={() => handleViewImages(row?.techIssue?.files)}
+        >
+          View Images
+        </span>
+      ),
+    }
+    ] : []
+  ),
+  ...(type === "PURCHASE" ?
+    [
+      {
+        name: <div className="text-center">Item Name</div>,
+        selector: (row) => row?.purchaseIssue?.itemName || "-",
+        // center: true,
+        width: "140px",
+      },
+      {
+        name: <div className="text-center">Item Quantity</div>,
+        selector: (row) => row?.purchaseIssue?.itemQty || "-",
+        // center: true,
+        width: "140px",
+      },
+      {
+        name: <div className="text-center">Comments</div>,
+        width: "160px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewDescription(row?.purchaseIssue?.comment)}
+          >
+            View
+          </span>
+        ),
+      }, {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.purchaseIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      },
+
+    ] : []
+
+  ),
+  ...(type === "REVIEW_SUBMISSION" ?
+    [
+      {
+        name: <div className="text-center">Responsible Reviewer</div>,
+        selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
+        // center: true,
+        width: "180px",
+      },
+      {
+        name: <div className="text-center">Review Taken From</div>,
+        selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
+        // center: true,
+        width: "180px",
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.reviewSubmissionIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      },
+
+    ] : []
+
+  ),
+
   ...(status !== "new"
     ? [{
       name: <div className="text-center">Assigned To</div>,
-      selector: (row) =>
-        row?.assignedTo?.name
+      width: "160px",
+      cell: (row) => {
+        const name = row?.assignedTo?.name
           ? row.assignedTo.name.charAt(0).toUpperCase() +
           row.assignedTo.name.slice(1).toLowerCase()
-          : "-",
-      width: "160px",
+          : "-";
+
+        const eCode = row?.assignedTo?.eCode;
+
+        return (
+          <div className="text-center">
+            <div>{name}</div>
+            {/* {eCode && (
+              <div style={{ fontSize: "12px", color: "#6c757d", marginTop: '4px' }}>
+                {eCode}
+              </div>
+            )} */}
+          </div>
+        );
+      },
     }]
     : []),
   ...(status !== "new"
@@ -103,18 +203,7 @@ export const Issues = (handleViewDescription, handleViewImages, status, handleAs
     // center: true,
     width: "180px",
   },
-  {
-    name: <div className="text-center">Images</div>,
-    width: "140px",
-    cell: (row) => (
-      <span
-        style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-        onClick={() => handleViewImages(row?.techIssue?.files)}
-      >
-        View Images
-      </span>
-    ),
-  },
+
   ...(status === "new"
     ? [{
       name: <div className="text-center">Assign</div>,
@@ -129,4 +218,53 @@ export const Issues = (handleViewDescription, handleViewImages, status, handleAs
       ),
     }]
     : []),
+  ...(status === undefined || status === "" || status === null || status === "resolved"
+    ? [
+      ...(status === undefined || status === "" || status === null || status === "resolved"
+        ? [
+          {
+            name: <div className="text-center">Approved By</div>,
+            selector: (row) =>
+              row?.approval?.approvedBy
+                ? row.approval.approvedBy.charAt(0).toUpperCase() +
+                row.approval.approvedBy.slice(1).toLowerCase()
+                : "-",
+            width: "160px",
+          },
+          {
+            name: <div className="text-center">Approval Action By</div>,
+            selector: (row) =>
+              row?.approval?.actionByName
+                ? row.approval.actionByName.charAt(0).toUpperCase() +
+                row.approval.actionByName.slice(1).toLowerCase()
+                : "-",
+            width: "180px",
+          },
+        ]
+        : [])
+    ]
+    : []
+  ),
+
+  {
+    name: <div className="text-center">Approval</div>,
+    width: "160px",
+    cell: (row) => {
+      const approvedBy = row?.approval?.approvedBy;
+      const actionBy = row?.approval?.actionByName;
+
+      if (row?.status === "resolved" && !approvedBy && !actionBy) {
+        return (
+          <Button
+            size="sm"
+            color="danger"
+            onClick={() => handleApproveClick(row)}
+          >
+            Approve
+          </Button>
+        );
+      }
+      return row?.approval?.isApproved ? <Badge color={getStatusColor("approved")}>Approved</Badge> : "-";
+    }
+  },
 ];

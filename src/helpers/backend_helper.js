@@ -2761,3 +2761,13 @@ export const getMyIssues = (params = {}) => {
 export const changeStatus = (data) => {
   return axios.patch(url.CHANGE_STATUS, data);
 };
+export const approveIssue = (data) => {
+  return axios.patch(url.APPROVE_ISSUE, data)
+}
+export const postIssue = (formData) => {
+  return axios.post(url.POST_ISSUE, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
