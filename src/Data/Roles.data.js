@@ -330,16 +330,16 @@ export const permissionList = [
       { name: "APIKEYS", label: "Apikeys" },
     ],
   },
-  {
-    key: "ISSUES",
-    label: "Issues",
-    subModules: [
-      { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
-      { name: "RAISE_TICKET", label: "Raise Ticket" },
-      { name: "ISSUES", label: "Issues" },
-      { name: "MY_ISSUES", label: "My Issues" },
-    ],
-  },
+  // {
+  //   key: "ISSUES",
+  //   label: "Issues",
+  //   subModules: [
+  //     { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
+  //     { name: "RAISE_TICKET", label: "Raise Ticket" },
+  //     { name: "ISSUES", label: "Issues" },
+  //     { name: "MY_ISSUES", label: "My Issues" },
+  //   ],
+  // },
 
 ];
 
