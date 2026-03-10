@@ -977,12 +977,12 @@ export const HRMS = [
 ];
 
 export const ISSUES = [
-  // {
-  //   id: "tickets-dashboard",
-  //   label: "Tickets Dashboard",
-  //   icon: "bx bx-bar-chart-alt-2",
-  //   link: "/issues/dashboard",
-  // },
+  {
+    id: "tickets-dashboard",
+    label: "Tickets Dashboard",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/issues/dashboard",
+  },
   {
     id: "raise-ticket",
     label: "Raise Ticket",
