@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { CardBody, Form, Input, Label, Row, Col } from "reactstrap";
 import Select from "react-select";
 import debounce from "lodash.debounce";
@@ -32,13 +32,26 @@ const RaiseTicket = () => {
   const [loader, setLoader] = useState(false);
 
   const [form, setForm] = useState(initialFormState);
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    setForm({ ...form, files: [...e.target.files] });
+    const newFiles = Array.from(e.target.files);
+
+    const combinedFiles = [...form.files, ...newFiles];
+
+    setForm((prev) => ({
+      ...prev,
+      files: combinedFiles,
+    }));
+    if (fileInputRef.current) {
+      const dataTransfer = new DataTransfer();
+      combinedFiles.forEach((file) => dataTransfer.items.add(file));
+      fileInputRef.current.files = dataTransfer.files;
+    }
   };
 
   const fetchEmployees = async (searchText) => {
@@ -147,6 +160,9 @@ const RaiseTicket = () => {
       setForm(initialFormState);
       setSelectedCenter(null);
       setIssueType("TECH");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
 
     } catch (error) {
       console.log(error);
@@ -157,37 +173,32 @@ const RaiseTicket = () => {
   };
 
   return (
-    <div style={{ width: "100%", padding: "20px 0" }}>
-      <div
-        style={{
-          maxWidth: "1000px",
-          margin: "0 auto"
-        }}
-      >
-        <CardBody className="p-4 bg-white shadow-sm rounded">
-          <div className="text-center mb-4">
-            <h2 className="fw-bold text-primary">Raise a Ticket</h2>
-          </div>
-
-          <TicketForm
-            issueType={issueType}
-            setIssueType={setIssueType}
-            centers={centers}
-            selectedCenter={selectedCenter}
-            setSelectedCenter={setSelectedCenter}
-            employees={employees}
-            loadingEmployees={loadingEmployees}
-            debouncedFetchEmployees={debouncedFetchEmployees}
-            form={form}
-            setForm={setForm}
-            handleChange={handleChange}
-            handleFileChange={handleFileChange}
-            handleSubmit={handleSubmit}
-            loader={loader}
-          />
-        </CardBody>
+    <CardBody
+      className="p-4 bg-white shadow-sm rounded"
+      style={isMobile ? { width: "100%" } : { width: "78%", margin: "0 auto" }}
+    >
+      <div className="text-center mb-4">
+        <h1 className="fw-bold text-primary">RAISE A TICKET</h1>
       </div>
-    </div>
+
+      <TicketForm
+        issueType={issueType}
+        setIssueType={setIssueType}
+        centers={centers}
+        selectedCenter={selectedCenter}
+        setSelectedCenter={setSelectedCenter}
+        employees={employees}
+        loadingEmployees={loadingEmployees}
+        debouncedFetchEmployees={debouncedFetchEmployees}
+        form={form}
+        setForm={setForm}
+        handleChange={handleChange}
+        handleFileChange={handleFileChange}
+        handleSubmit={handleSubmit}
+        loader={loader}
+        fileInputRef={fileInputRef}
+      />
+    </CardBody>
   );
 };
 
