@@ -547,3 +547,5 @@ export const GET_MY_ISSUES = "/issues/my/tickets"
 export const CHANGE_STATUS = "/issues/change/status"
 export const APPROVE_ISSUE = "/issues/approval"
 export const POST_ISSUE = "/issues/post"
+
+export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
