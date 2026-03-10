@@ -20,7 +20,7 @@ const paymentValidationSchema = Yup.object({
         .min(3, "Transaction ID must be at least 3 characters")
         .max(50, "Transaction ID must be less than 50 characters"),
     transactionBankName: Yup.string().required("Transaction Bank Name is required"),
-    transactionAccountNo: Yup.string().required("Transaction Account No is required"),
+    transactionAccountNo: Yup.string().required("Bank Account No is required"),
     currentPaymentStatus: Yup.string()
         .required("Approval status is required")
         .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
@@ -279,13 +279,13 @@ const PaymentFormModal = ({
                                     <Col md={6} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionAccountNo">
-                                                Transaction Account No <span className="text-danger">*</span>
+                                                Bank Account No <span className="text-danger">*</span>
                                             </Label>
                                             <Input
                                                 type="text"
                                                 id="transactionAccountNo"
                                                 name="transactionAccountNo"
-                                                placeholder="Enter transaction account no"
+                                                placeholder="Enter bank account no"
                                                 value={formik.values.transactionAccountNo}
                                                 onChange={(e) => handleUppercaseChange(e, "transactionAccountNo")}
                                                 onBlur={formik.handleBlur}
