@@ -75,7 +75,7 @@ const Navdata = () => {
       link: "/centers",
     },
     ...sortPages(filteredDynamicPages),
-    pages.find((p) => p.id === "issues"),
+    // pages.find((p) => p.id === "issues"),
   ];
 
   console.log({ userPages, menuItems });

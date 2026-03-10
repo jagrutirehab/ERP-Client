@@ -10,9 +10,11 @@ const DashboardTable = ({ data = [] }) => {
         .slice(0, 5);
 
     return (
-        <div className="bg-white mt-5  ">
+        <div className="bg-white ">
 
-            <h5 className="mb-3 fw-bold ">Latest Tickets</h5>
+            <h5 className="mb-3 fw-bold">
+                Latest Tickets <span className="fw-normal">(last 5 tickets)</span>
+            </h5>
 
             <div
                 className="table-responsive "
