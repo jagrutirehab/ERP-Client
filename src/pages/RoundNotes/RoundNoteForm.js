@@ -332,12 +332,12 @@ const RoundNoteForm = ({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <Flatpickr
-                    // disabled={
-                    //   selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
-                    //   selectedCenter?.label === "Gurgaon"
-                    // }
-                    className={`form-control`}
-                    // className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
+                    disabled={
+                      selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
+                      selectedCenter?.label === "Gurgaon"
+                    }
+                    // className={`form-control`}
+                    className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
                     options={{ dateFormat: "d-m-Y", disableMobile: true }}
                     value={field.value}
                     onChange={(dates) => {
@@ -407,13 +407,13 @@ const RoundNoteForm = ({
                     onChange={(val) => {
                       field.onChange(val);
 
-                      // const ifCenterIsGurgaon =
-                      //   val.value === "694e565ed6e6dd32a39c9815" ||
-                      //   val.label === "Gurgaon";
+                      const ifCenterIsGurgaon =
+                        val.value === "694e565ed6e6dd32a39c9815" ||
+                        val.label === "Gurgaon";
 
-                      // if (ifCenterIsGurgaon) {
-                      //   setValue("date", new Date());
-                      // }
+                      if (ifCenterIsGurgaon) {
+                        setValue("date", new Date());
+                      }
 
                       setCenterIds([val.value]);
                     }}
