@@ -10,10 +10,10 @@ export const Issues = (handleViewDescription, handleViewImages, status, handleAs
     width: "160px",
   },
   {
-    name: <div className="text-center">Requested From</div>,
+    name: <div className="text-center">Requested For</div>,
     selector: (row) => row?.requestedFrom?.name || "-",
     // center: true,
-    width: "180px",
+    width: "210px",
   },
   {
     name: <div className="text-center">Center</div>,
@@ -101,13 +101,13 @@ export const Issues = (handleViewDescription, handleViewImages, status, handleAs
         name: <div className="text-center">Responsible Reviewer</div>,
         selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
         // center: true,
-        width: "180px",
+        width: "210px",
       },
       {
         name: <div className="text-center">Review Taken From</div>,
         selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
         // center: true,
-        width: "180px",
+        width: "210px",
       },
       {
         name: <div className="text-center">Images</div>,

@@ -85,7 +85,7 @@
     "react-tsparticles": "^2.10.1",
     "react-zoom-pan-pinch": "^3.7.0",
     "reactstrap": "^9.2.0",
-    "recharts": "^3.6.0",
+    "recharts": "^3.8.0",
     "redux-persist": "^6.0.0",
     "redux-saga": "^1.2.3",
     "sass": "^1.81.0",
@@ -104,7 +104,6 @@
     "@react-pdf/pdfkit": "3.0.4",
     "react-refresh": "0.11.0"
   },
-
   "scripts": {
     "start:prod": "serve -s build",
     "dev": "env-cmd -f .env.development react-scripts start",

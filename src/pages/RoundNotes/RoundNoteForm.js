@@ -336,6 +336,7 @@ const RoundNoteForm = ({
                       selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
                       selectedCenter?.label === "Gurgaon"
                     }
+                    // className={`form-control`}
                     className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
                     options={{ dateFormat: "d-m-Y", disableMobile: true }}
                     value={field.value}
