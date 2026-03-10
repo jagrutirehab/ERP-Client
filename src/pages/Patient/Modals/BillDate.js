@@ -22,7 +22,11 @@ import WriteOffModal from "./WriteOffModal";
 
 //redux
 import { connect, useDispatch, useSelector } from "react-redux";
-import { createEditBill, fetchBills, setBillDate } from "../../../store/actions";
+import {
+  createEditBill,
+  fetchBills,
+  setBillDate,
+} from "../../../store/actions";
 import { postWriteOff } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 
@@ -33,7 +37,7 @@ const BillDate = ({
   editBillData,
   patient,
   admission,
-  adjustedPayable
+  adjustedPayable,
 }) => {
   const dispatch = useDispatch();
   const [showWriteOff, setShowWriteOff] = useState(false);
@@ -41,15 +45,9 @@ const BillDate = ({
   const PatientCenter = useSelector(
     (state) => state.Patient.patient.center._id,
   );
-  const billingAdmissions = useSelector(
-    (state) => state.Bill.data
-  );
+  const billingAdmissions = useSelector((state) => state.Bill.data);
 
   const user = useSelector((state) => state?.User?.user);
-
-
-
-
 
   // const latestBillingAdmission = billingAdmissions?.reduce(
   //   (latest, current) =>
@@ -57,15 +55,14 @@ const BillDate = ({
   //       ? current
   //       : latest
   // );
-  const latestBillingAdmission = Array.isArray(billingAdmissions) &&
-    billingAdmissions.length > 0
-    ? billingAdmissions?.reduce((latest, current) =>
-      new Date(current.addmissionDate) >
-        new Date(latest.addmissionDate)
-        ? current
-        : latest
-    )
-    : null;
+  const latestBillingAdmission =
+    Array.isArray(billingAdmissions) && billingAdmissions.length > 0
+      ? billingAdmissions?.reduce((latest, current) =>
+          new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+            ? current
+            : latest,
+        )
+      : null;
 
   console.log("latestBillingAdmission", latestBillingAdmission);
   console.log("admission", admission);
@@ -76,20 +73,18 @@ const BillDate = ({
     "bishal@gmail.com",
     "hemanthshinde@gmail.com",
     "surjeet.parida@gmail.com",
-    "sarang.padulkar@jagrutirehab.org"
+    "sarang.padulkar@jagrutirehab.org",
   ];
 
   const isSpecialUser = specialEmails.includes(user?.email);
   const isCurrentAdmissionDischarged =
     latestBillingAdmission?.dischargeDate &&
-    (latestBillingAdmission?._id === admission || latestBillingAdmission?.addmissionId === admission);
+    (latestBillingAdmission?._id === admission ||
+      latestBillingAdmission?.addmissionId === admission);
   const canShowSpecialButtons = isSpecialUser && isCurrentAdmissionDischarged;
   const shouldShowWriteOff = isCurrentAdmissionDischarged;
-  const isNormalUserAndDischarged = !isSpecialUser && isCurrentAdmissionDischarged;
-
-
-
-
+  const isNormalUserAndDischarged =
+    !isSpecialUser && isCurrentAdmissionDischarged;
 
   const paymentCenters = [
     "651f8abfed3d16334ae5a908",
@@ -106,32 +101,33 @@ const BillDate = ({
 
   console.log("patient1 data : ", { patient: patient, admission: admission });
 
-
   const handleWriteOffSubmit = async (data) => {
     if (!latestBillingAdmission?._id) return;
     try {
       const payload = {
-        center: latestBillingAdmission?.center?._id || latestBillingAdmission?.center,
+        center:
+          latestBillingAdmission?.center?._id || latestBillingAdmission?.center,
         patient: patient?._id,
-        addmission: latestBillingAdmission?.addmissionId || latestBillingAdmission?._id,
+        addmission:
+          latestBillingAdmission?.addmissionId || latestBillingAdmission?._id,
         amount: data?.amount,
-        reason: data?.reason
+        reason: data?.reason,
       };
       console.log("payload", payload);
       const response = await postWriteOff(payload);
       console.log("response", response);
-      toast.success(response?.message || "Write off added!")
+      toast.success(response?.message || "Write off added!");
       setShowWriteOff(false);
       toggle();
-      const admissionId = latestBillingAdmission?._id || latestBillingAdmission?.addmissionId;
+      const admissionId =
+        latestBillingAdmission?._id || latestBillingAdmission?.addmissionId;
       if (admissionId) {
         await dispatch(fetchBills(admissionId));
       }
     } catch (error) {
-      toast.error("Error Adding WRITE OFF!")
+      toast.error("Error Adding WRITE OFF!");
     }
   };
-
 
   return (
     <React.Fragment>
@@ -161,11 +157,12 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
+                    disableMobile: true,
                     maxDate: editBillData.bill
                       ? new Date()
                       : new Date(
-                        new Date().setMonth(new Date().getMonth() + 1),
-                      ),
+                          new Date().setMonth(new Date().getMonth() + 1),
+                        ),
                     // enable: [
                     //   function (date) {
                     //     return date.getDate() === new Date().getDate();
@@ -195,6 +192,7 @@ const BillDate = ({
                     noCalendar: true,
                     dateFormat: "G:i:S K",
                     time_24hr: false,
+                    disableMobile: true,
                     // defaultDate: moment().format('LT'),
                   }}
                   className="form-control shadow-none bg-light"
@@ -302,12 +300,11 @@ const BillDate = ({
             outline
             disabled={
               isNormalUserAndDischarged || // Block if normal user + discharged
-              (!canShowSpecialButtons && (
-                editBillData.bill === INVOICE ||
-                editBillData.bill === REFUND ||
-                editBillData.bill === DRAFT_INVOICE ||
-                editBillData.bill === ADVANCE_PAYMENT
-              ))
+              (!canShowSpecialButtons &&
+                (editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === ADVANCE_PAYMENT))
             }
             size="sm"
             onClick={() => {
@@ -328,11 +325,10 @@ const BillDate = ({
             outline
             disabled={
               isNormalUserAndDischarged || // Block if normal user + discharged
-              (!canShowSpecialButtons && (
-                editBillData.bill === ADVANCE_PAYMENT ||
-                editBillData.bill === DRAFT_INVOICE ||
-                editBillData.bill === DEPOSIT
-              ))
+              (!canShowSpecialButtons &&
+                (editBillData.bill === ADVANCE_PAYMENT ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT))
             }
             size="sm"
             onClick={() => {
@@ -354,12 +350,11 @@ const BillDate = ({
             outline
             disabled={
               isNormalUserAndDischarged || // Block if normal user + discharged
-              (!canShowSpecialButtons && (
-                editBillData.bill === ADVANCE_PAYMENT ||
-                editBillData.bill === INVOICE ||
-                editBillData.bill === REFUND ||
-                editBillData.bill === DEPOSIT
-              ))
+              (!canShowSpecialButtons &&
+                (editBillData.bill === ADVANCE_PAYMENT ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DEPOSIT))
             }
             size="sm"
             onClick={() => {
@@ -378,11 +373,7 @@ const BillDate = ({
             Inovice Draft
           </Button>
           {shouldShowWriteOff && adjustedPayable > 0 && (
-            <Button
-              outline
-              size="sm"
-              onClick={() => setShowWriteOff(true)}
-            >
+            <Button outline size="sm" onClick={() => setShowWriteOff(true)}>
               Write Off
             </Button>
           )}
