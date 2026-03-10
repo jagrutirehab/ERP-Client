@@ -5,6 +5,7 @@ import { CardBody, Spinner } from "reactstrap";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import IssueTypeAnalysis from "../Components/IssueTypeAnalysis";
 import DashboardTable from "../Components/DashboardTable";
+import PieAndResolvesAnalysis from "../Components/PieAndResolvesAnalysis";
 
 const monthOptions = [
   { label: "All", value: "all" },
@@ -63,7 +64,11 @@ const Dashboard = () => {
     <>
       <CardBody
         className="p-3 bg-white"
-        style={isMobile ? { width: "100%" } : { width: "78%" }}
+        style={{
+          width: isMobile ? "100%" : "78%",
+          maxHeight: "100vh",
+          overflowY: "auto",
+        }}
       >
         {loading ? (
           <div
@@ -111,8 +116,11 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <IssueTypeAnalysis data={data} />
-           <DashboardTable data={data} type={issueType.value} />
+            <div className="d-flex flex-column gap-4">
+              <IssueTypeAnalysis data={data} />
+              <PieAndResolvesAnalysis data={data} />
+              <DashboardTable data={data} type={issueType.value} />
+            </div>
           </>
         )}
       </CardBody>
