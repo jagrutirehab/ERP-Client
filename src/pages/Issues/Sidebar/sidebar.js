@@ -18,7 +18,7 @@ const IssuesSidebar = () => {
   const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
   const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
   const hasRaiseTicketPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
-  const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
+  // const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
 
   const navigate = useNavigate();
 
@@ -40,10 +40,10 @@ const IssuesSidebar = () => {
       return true;
     }
 
-    if (page.id === "tickets-dashboard") {
-      if (!hasTicketDashboardPermission) return false;
-      return true;
-    }
+    // if (page.id === "tickets-dashboard") {
+    //   if (!hasTicketDashboardPermission) return false;
+    //   return true;
+    // }
 
 
 
