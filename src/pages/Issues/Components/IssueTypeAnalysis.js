@@ -13,7 +13,7 @@ const IssueTypeAnalysis = ({ data = [] }) => {
     pending_user: data.filter(d => d.status === "pending_user").length,
     pending_release: data.filter(d => d.status === "pending_release").length,
     resolved: data.filter(d => d.status === "resolved").length,
-    closed: data.filter(d => d.status === "closed").length
+    // closed: data.filter(d => d.status === "closed").length
   };
 
   const boxes = [
@@ -24,7 +24,7 @@ const IssueTypeAnalysis = ({ data = [] }) => {
     { label: "Pending User", value: statusCounts.pending_user, color: "#20c997" },
     { label: "Pending Release", value: statusCounts.pending_release, color: "#6610f2" },
     { label: "Resolved", value: statusCounts.resolved, color: "#198754" },
-    { label: "Closed", value: statusCounts.closed, color: "#6c757d" },
+    // { label: "Closed", value: statusCounts.closed, color: "#6c757d" },
   ];
 
   return (
