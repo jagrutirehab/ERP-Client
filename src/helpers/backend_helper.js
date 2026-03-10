@@ -2694,3 +2694,11 @@ export const postIssue = (formData) => {
     },
   });
 };
+export const getTicketsDashboardData = ({ month, issueType }) => {
+  return axios.get(url.GET_TICKET_DASHBOARD_DATA, {
+    params: {
+      month,
+      issueType,
+    },
+  });
+};

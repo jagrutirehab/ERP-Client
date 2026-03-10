@@ -68,7 +68,10 @@ const IssuesPage = ({ type }) => {
             });
 
             setIssues(data?.data || []);
-            setPagination(data?.pagination || null);
+            setPagination({
+                ...data?.pagination,
+                totalDocs: data?.pagination?.totalRecords,
+            });
         } catch (error) {
             console.log(error);
         } finally {
