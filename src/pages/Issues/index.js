@@ -6,6 +6,7 @@ import IssuesSidebar from "./Sidebar/sidebar";
 import MyIssues from "./Pages/MyIssues";
 import IssuesPage from "./Views/IssuesPage";
 import RaiseTicket from "./Pages/RaiseTicket";
+import Dashboard from "./Pages/Dashboard";
 // import IssuesSidebar from "./Sidebar";
 // import TechIssues from "./TechIssues";
 // import OtherIssues from "./OtherIssues";
@@ -59,6 +60,7 @@ const Issues = () => {
                                             <Route path="review-submissions" element={<IssuesPage type={"REVIEW_SUBMISSION"} />} />
                                             <Route path="my/issues" element={<MyIssues />} />
                                             <Route path="raise/ticket" element={<RaiseTicket />} />
+                                            <Route path="dashboard" element={<Dashboard />} />
                                         </Routes>
                                     </div>
                                 </Container>

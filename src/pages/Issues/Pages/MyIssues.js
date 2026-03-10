@@ -13,6 +13,7 @@ import StatusModal from "../Components/StatusModal";
 import { changeStatus } from "../../../helpers/backend_helper";
 import ApprovalModal from "../Components/ApprovalModal";
 import Select from "react-select";
+import { useSelector } from "react-redux";
 
 const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
 
@@ -48,15 +49,31 @@ const MyIssues = () => {
   const [pagination, setPagination] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
 
+
+  const user = useSelector((state) => state.User);
 
   const loadIssues = async () => {
     try {
       setLoading(true);
 
+      let centers = [];
+
+      if (selectedCenter === "") {
+        centers = [];
+      }
+      else if (selectedCenter === "ALL") {
+        centers = user?.centerAccess || [];
+      }
+      else {
+        centers = [selectedCenter];
+      }
+
       const params = {
         page,
         limit,
+        centers
       };
 
       if (status) {
@@ -64,11 +81,13 @@ const MyIssues = () => {
       }
 
       const response = await getMyTickets(type, params);
-      console.log("response", response);
 
 
       setIssues(response?.data || []);
-      setPagination(response?.pagination || null);
+      setPagination({
+        ...response?.pagination,
+        totalDocs: response?.pagination?.totalRecords,
+      });
     } catch (error) {
       console.log(error);
       toast.error(error?.message || "ERROR");
@@ -77,11 +96,33 @@ const MyIssues = () => {
     }
   };
 
+
+
   useEffect(() => {
     if (hasUserPermission) {
+      if (!user?.centerAccess) return;
       loadIssues();
     }
-  }, [type, status, page, limit]);
+  }, [type, status, page, limit, selectedCenter, user?.centerAccess]);
+
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [
+        {
+          value: "ALL",
+          label: "All Centers",
+        },
+      ]
+      : []),
+    ...(user?.centerAccess?.map((id) => {
+      const center = user?.userCenters?.find((c) => c._id === id);
+      return {
+        value: id,
+        label: center?.title || "Unknown Center",
+      };
+    }) || []),
+  ];
 
   const handleViewDescription = (desc) => {
     setDescription(desc);
@@ -144,6 +185,16 @@ const MyIssues = () => {
 
         {/* Filters */}
         <div className="d-flex gap-3 mb-3 flex-wrap">
+
+
+          <Select
+            options={centerOptions || []}
+            value={centerOptions?.find((c) => c.value === selectedCenter) || null}
+            onChange={(selected) => setSelectedCenter(selected?.value || "")}
+            isDisabled={!centerOptions?.length}
+            placeholder={centerOptions?.length ? "Select Center" : "No Center Selected"}
+            styles={{ container: (base) => ({ ...base, width: 200 }) }}
+          />
 
           {/* Issue Type */}
           <Select

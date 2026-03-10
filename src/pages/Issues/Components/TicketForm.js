@@ -1,5 +1,5 @@
-import React from "react";
-import { Form, Input, Label, Row, Col, Spinner } from "reactstrap";
+import React, { useRef } from "react";
+import { Form, Input, Label, Row, Col, Spinner, UncontrolledTooltip } from "reactstrap";
 import Select from "react-select";
 
 const selectStyles = {
@@ -24,29 +24,56 @@ const TicketForm = ({
     handleChange,
     handleFileChange,
     handleSubmit,
-    loader
+    loader,
+    fileInputRef,
 }) => {
+    const isFormValid = () => {
+
+        if (!selectedCenter) return false;
+
+        if (!form.requestedFrom) return false;
+
+        if (issueType === "TECH" && !form.description) return false;
+
+        if (issueType === "PURCHASE") {
+            if (!form.itemName) return false;
+            if (!form.itemQty) return false;
+        }
+
+        if (issueType === "REVIEW_SUBMISSION") {
+            if (!form.responsibleReviewer) return false;
+            if (!form.reviewTakenFrom) return false;
+        }
+        if (!form.files || form.files.length === 0) return false;
+
+        return true;
+    };
+
+    const issueTypeOptions = [
+        { value: "TECH", label: "TECH" },
+        { value: "PURCHASE", label: "PURCHASE" },
+        { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
+    ];
+
     return (
         <Form onSubmit={handleSubmit}>
             <Row className="g-4">
 
                 {/* ISSUE TYPE */}
                 <Col md={6}>
-                    <Label className="fw-semibold">Issue Type</Label>
-                    <Input
-                        type="select"
-                        value={issueType}
-                        onChange={(e) => setIssueType(e.target.value)}
-                    >
-                        <option value="TECH">TECH</option>
-                        <option value="PURCHASE">PURCHASE</option>
-                        <option value="REVIEW_SUBMISSION">REVIEW SUBMISSION</option>
-                    </Input>
-                </Col>
+                    <Label className="fw-semibold">
+                        Ticket Type <span className="text-danger">*</span>
+                    </Label>
 
+                    <Select
+                        options={issueTypeOptions}
+                        value={issueTypeOptions.find(opt => opt.value === issueType)}
+                        onChange={(selected) => setIssueType(selected.value)}
+                    />
+                </Col>
                 {/* CENTER */}
                 <Col md={6}>
-                    <Label className="fw-semibold">Center</Label>
+                    <Label className="fw-semibold">Center<span className="text-danger">*</span></Label>
                     <Select
                         placeholder="Select Center"
                         options={centers}
@@ -61,10 +88,11 @@ const TicketForm = ({
 
                 {/* REQUESTED FROM */}
                 <Col md={12}>
-                    <Label className="fw-semibold">Requested From</Label>
+                    <Label className="fw-semibold">Requested For<span className="text-danger">*</span></Label>
                     <Select
                         placeholder="Search employee..."
                         options={employees}
+                        value={form.requestedFrom}
                         isLoading={loadingEmployees}
                         styles={selectStyles}
                         onInputChange={(value, { action }) => {
@@ -81,7 +109,7 @@ const TicketForm = ({
                 {/* TECH */}
                 {issueType === "TECH" && (
                     <Col md={12}>
-                        <Label className="fw-semibold">Description</Label>
+                        <Label className="fw-semibold">Description<span className="text-danger">*</span></Label>
                         <Input
                             type="textarea"
                             rows="4"
@@ -96,7 +124,7 @@ const TicketForm = ({
                 {issueType === "PURCHASE" && (
                     <>
                         <Col md={6}>
-                            <Label className="fw-semibold">Item Name</Label>
+                            <Label className="fw-semibold">Item Name<span className="text-danger">*</span></Label>
                             <Input
                                 name="itemName"
                                 value={form.itemName}
@@ -105,7 +133,7 @@ const TicketForm = ({
                         </Col>
 
                         <Col md={6}>
-                            <Label className="fw-semibold">Item Quantity</Label>
+                            <Label className="fw-semibold">Item Quantity<span className="text-danger">*</span></Label>
                             <Input
                                 type="number"
                                 name="itemQty"
@@ -115,7 +143,7 @@ const TicketForm = ({
                         </Col>
 
                         <Col md={12}>
-                            <Label className="fw-semibold">Comment</Label>
+                            <Label className="fw-semibold">Comment<span className="text-danger">*</span></Label>
                             <Input
                                 type="textarea"
                                 rows="3"
@@ -131,7 +159,7 @@ const TicketForm = ({
                 {issueType === "REVIEW_SUBMISSION" && (
                     <>
                         <Col md={6}>
-                            <Label className="fw-semibold">Responsible Reviewer</Label>
+                            <Label className="fw-semibold">Responsible Reviewer<span className="text-danger">*</span></Label>
                             <Select
                                 options={employees}
                                 isLoading={loadingEmployees}
@@ -148,7 +176,7 @@ const TicketForm = ({
                         </Col>
 
                         <Col md={6}>
-                            <Label className="fw-semibold">Review Taken From</Label>
+                            <Label className="fw-semibold">Review Taken From<span className="text-danger">*</span></Label>
                             <Select
                                 options={employees}
                                 isLoading={loadingEmployees}
@@ -168,22 +196,76 @@ const TicketForm = ({
 
                 {/* FILE UPLOAD */}
                 <Col md={12}>
-                    <Label className="fw-semibold">Upload Files</Label>
-                    <Input type="file" multiple onChange={handleFileChange} />
+                    <Label className="fw-semibold">Upload Files<span className="text-danger">*</span></Label>
+                    <Input
+                        type="file"
+                        innerRef={fileInputRef}
+                        multiple
+                        onChange={handleFileChange}
+                    />
+                    {form.files?.length > 0 && (
+                        <div className="mt-2">
+                            {form.files.map((file, index) => (
+                                <div
+                                    key={index}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                        marginBottom: "5px"
+                                    }}
+                                >
+                                    <span>{file.name}</span>
+
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => {
+                                            const updatedFiles = form.files.filter((_, i) => i !== index);
+                                            setForm({ ...form, files: updatedFiles });
+
+                                            if (fileInputRef.current) {
+                                                if (updatedFiles.length === 0) {
+                                                    fileInputRef.current.value = "";
+                                                } else {
+                                                    const dataTransfer = new DataTransfer();
+                                                    updatedFiles.forEach((file) => dataTransfer.items.add(file));
+                                                    fileInputRef.current.files = dataTransfer.files;
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </Col>
 
+
                 <Col md={12} className="text-start">
-                    <button
-                        type="submit"
-                        className="btn btn-primary px-4"
-                        disabled={loader}
-                    >
-                        {loader ? (
-                            <Spinner size="sm" color="light" />
-                        ) : (
-                            "Submit Ticket"
-                        )}
-                    </button>
+
+                    <div id="submitTicketWrapper" style={{ display: "inline-block" }}>
+                        <button
+                            type="submit"
+                            className="btn btn-primary px-4"
+                            disabled={loader || !isFormValid()}
+                        >
+                            {loader ? (
+                                <Spinner size="sm" color="light" />
+                            ) : (
+                                "Submit Ticket"
+                            )}
+                        </button>
+                    </div>
+
+                    {!isFormValid() && (
+                        <UncontrolledTooltip placement="top" target="submitTicketWrapper">
+                            Please fill required fields
+                        </UncontrolledTooltip>
+                    )}
+
                 </Col>
             </Row>
 
@@ -193,3 +275,5 @@ const TicketForm = ({
 };
 
 export default TicketForm;
+
+
