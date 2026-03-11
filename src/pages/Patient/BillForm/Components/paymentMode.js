@@ -6,11 +6,14 @@ import {
   CHEQUE,
   UPI,
 } from "../../../../Components/constants/patient";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 const PaymentMode = ({
   paymentModes,
   setPaymentModes,
   validation,
+  paymentAccounts,
 }) => {
   const addPaymentMode = (e) => {
     const value = e.target.value;
@@ -166,6 +169,31 @@ const PaymentMode = ({
                 </Col>
               )}
 
+              {val.type !== CASH && (
+                <Col className="me-2" xs={12} md={12}>
+                  <Label className="text-muted fs-10">Bank Accounts</Label>
+                  <Input
+                    id={idx}
+                    bsSize="sm"
+                    size={"1"}
+                    name="bankAccount"
+                    value={val.bankAccount || ""}
+                    onChange={handleChange}
+                    type="select"
+                    required
+                  >
+                    <option value={""} selected defaultValue={""}>
+                      No Bank Account Selected
+                    </option>
+                    {(paymentAccounts || []).map((item) => (
+                      <option key={item._id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+              )}
+
               <Col>
                 <div className="d-flex align-items-center h-100">
                   <Button
@@ -192,4 +220,13 @@ const PaymentMode = ({
   );
 };
 
-export default PaymentMode;
+PaymentMode.propTypes = {
+  paymentModes: PropTypes.array,
+  setPaymentModes: PropTypes.func,
+};
+
+const mapStateToProps = (state) => ({
+  paymentAccounts: state.Setting.paymentAccounts,
+});
+
+export default connect(mapStateToProps)(PaymentMode);
