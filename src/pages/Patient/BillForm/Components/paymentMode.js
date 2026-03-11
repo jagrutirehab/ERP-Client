@@ -86,7 +86,7 @@ const PaymentMode = ({
                   required
                   size={"1"}
                   name="amount"
-                  style={{ width: "50px" }}
+                  style={{ width: "70px !important" }}
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
@@ -96,7 +96,10 @@ const PaymentMode = ({
               {val?.type === CARD && (
                 <Col className="me-2" md={4} lg={4}>
                   <div className="">
-                    <Label className="text-muted fs-10">Card Number</Label>
+                    <Label className="text-muted fs-10">
+                      Card Number
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       bsSize="sm"
                       className="w-100 fs-10"
@@ -116,7 +119,10 @@ const PaymentMode = ({
                 <>
                   <Col className="me-2" md={4} lg={4}>
                     <div>
-                      <Label className="text-muted fs-10">Bank Name</Label>
+                      <Label className="text-muted fs-10">
+                        Bank Name
+                        <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         bsSize="sm"
                         className="w-100 fs-10"
@@ -133,7 +139,10 @@ const PaymentMode = ({
 
                   <Col className="me-2" md={4} lg={4}>
                     <div>
-                      <Label className="text-muted fs-10">Cheque Number</Label>
+                      <Label className="text-muted fs-10">
+                        Cheque Number
+                        <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         bsSize="sm"
                         className="w-100 fs-10"
@@ -153,7 +162,10 @@ const PaymentMode = ({
               {val?.type === UPI && (
                 <Col className="me-2" md={4} lg={4}>
                   <div>
-                    <Label className="text-muted fs-10">Transaction id</Label>
+                    <Label className="text-muted fs-10">
+                      Transaction id
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       bsSize="sm"
                       className="w-100 fs-10"
