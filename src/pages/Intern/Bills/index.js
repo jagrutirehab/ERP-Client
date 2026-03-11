@@ -43,7 +43,7 @@ const Bills = ({ bills, toggleDateModal, internId, intern }) => {
   };
   const editBill = (bill) => {
     dispatch(
-      createEditInternBill({ data: bill, bill: bill.bill, isOpen: false })
+      createEditInternBill({ data: bill, bill: bill.bill, isOpen: false }),
     );
     toggleDateModal();
   };
@@ -56,6 +56,9 @@ const Bills = ({ bills, toggleDateModal, internId, intern }) => {
   const printBill = (bill) => {
     dispatch(togglePrint({ data: bill, modal: true, intern }));
   };
+
+  console.log({ bills });
+
   return (
     <>
       <div className="timeline-2">
