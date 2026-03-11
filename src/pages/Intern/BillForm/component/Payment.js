@@ -119,7 +119,10 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
 
                 {item.paymentMode === UPI && (
                   <Col xs={12} md={4}>
-                    <Label>Transaction Id</Label>
+                    <Label>
+                      Transaction Id
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       id={idx}
                       bsSize="sm"
