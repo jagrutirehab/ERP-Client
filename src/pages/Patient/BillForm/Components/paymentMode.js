@@ -82,11 +82,10 @@ const PaymentMode = ({
                 <Input
                   bsSize="sm"
                   id={idx}
-                  className="w-100"
                   required
                   size={"1"}
                   name="amount"
-                  style={{ width: "70px !important" }}
+                  style={{ width: "70px" }}
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
