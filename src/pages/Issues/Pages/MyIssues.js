@@ -146,15 +146,14 @@ const MyIssues = () => {
   const handleAssignSubmit = async (data) => {
 
     const payload = {
-      issueId: selectedIssue._id,
-      status: selectedIssue.nextStatus,
+      issueId: data.issueId,
+      status: data.status,
       note: data.note
     }
-
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(selectedIssue.nextStatus)
+      setStatus(data?.status)
       loadIssues();
 
     } catch (error) {
@@ -258,7 +257,7 @@ const MyIssues = () => {
         issue={selectedIssue}
         onAssign={handleAssignSubmit}
         activeTab={status}
-        title={`Update Issue Status to ${selectedIssue?.nextStatus?.replaceAll("_", " ")}`}
+        title={`Update Issue Status`}
       />
 
 
