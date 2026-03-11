@@ -135,7 +135,10 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
 
                 {item.paymentMode !== CASH && (
                   <Col xs={12} md={4}>
-                    <Label>Bank Accounts</Label>
+                    <Label>
+                      Bank Accounts
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       id={idx}
                       bsSize="sm"

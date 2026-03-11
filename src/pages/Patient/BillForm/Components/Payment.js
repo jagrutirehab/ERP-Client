@@ -112,9 +112,29 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                     </Col>
                   </>
                 )}
+
+                {item.paymentMode === UPI && (
+                  <Col xs={12} md={4}>
+                    <Label>Transaction Id</Label>
+                    <Input
+                      id={idx}
+                      bsSize="sm"
+                      size={"1"}
+                      name="transactionId"
+                      value={item.transactionId || ""}
+                      onChange={handleChange}
+                      type="text"
+                      required
+                    />
+                  </Col>
+                )}
+
                 {item.paymentMode !== CASH && (
                   <Col xs={12} md={4}>
-                    <Label>Bank Accounts</Label>
+                    <Label>
+                      Bank Accounts
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       id={idx}
                       bsSize="sm"
@@ -134,22 +154,6 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                         </option>
                       ))}
                     </Input>
-                  </Col>
-                )}
-
-                {item.paymentMode === UPI && (
-                  <Col xs={12} md={4}>
-                    <Label>Transaction Id</Label>
-                    <Input
-                      id={idx}
-                      bsSize="sm"
-                      size={"1"}
-                      name="transactionId"
-                      value={item.transactionId || ""}
-                      onChange={handleChange}
-                      type="text"
-                      required
-                    />
                   </Col>
                 )}
 
