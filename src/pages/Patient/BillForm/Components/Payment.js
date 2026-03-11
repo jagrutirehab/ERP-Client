@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import {
   BANK,
   CARD,
+  CASH,
   CHEQUE,
   UPI,
 } from "../../../../Components/constants/patient";
@@ -111,7 +112,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                     </Col>
                   </>
                 )}
-                {item.paymentMode === BANK && (
+                {item.paymentMode !== CASH && (
                   <Col xs={12} md={4}>
                     <Label>Bank Accounts</Label>
                     <Input
