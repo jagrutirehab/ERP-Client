@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button, Row, Col, Label, Input, Spinner } from "reactstrap";
 import Select from "react-select";
@@ -26,11 +26,66 @@ const changeTypeOptions = [
   { value: "JOINING", label: "Joining" },
 ];
 
-const getFinanceInitialValues = (initialData, isEdit) => ({
+const salaryBreakupFields = [
+  "basicAmount",
+  "HRAAmount",
+  "SPLAllowance",
+  "conveyanceAllowance",
+  "statutoryBonus",
+];
+
+const getNumericValue = (value) => Number(value || 0);
+
+const getSalaryBreakupTotal = (values) =>
+  salaryBreakupFields.reduce(
+    (total, fieldName) => total + getNumericValue(values[fieldName]),
+    0
+  );
+
+const buildNumberSchema = (label, { max } = {}) => {
+  let schema = Yup.number()
+    .transform((value, originalValue) =>
+      originalValue === "" || originalValue === null ? 0 : value
+    )
+    .typeError(`${label} must be a valid number`)
+    .min(0, `${label} must be 0 or more`);
+
+  if (typeof max === "number") {
+    schema = schema.max(max, `${label} cannot be more than ${max}`);
+  }
+
+  return schema.optional();
+};
+
+const buildGrossBoundSchema = (label) =>
+  buildNumberSchema(label)
+    .test(
+      "within-gross-salary",
+      `${label} cannot be greater than Gross Salary`,
+      function (value) {
+        const grossSalary = getNumericValue(this.parent.grossSalary);
+        const fieldValue = getNumericValue(value);
+
+        if (!grossSalary || !fieldValue) return true;
+        return fieldValue <= grossSalary;
+      }
+    )
+    .test(
+      "breakup-total-within-gross",
+      "Salary breakup total cannot be greater than Gross Salary",
+      function () {
+        const grossSalary = getNumericValue(this.parent.grossSalary);
+        const breakupTotal = getSalaryBreakupTotal(this.parent);
+
+        if (!grossSalary || !breakupTotal) return true;
+        return breakupTotal <= grossSalary;
+      }
+    );
+
+const getFinanceInitialValues = (initialData) => ({
   employeeId: "",
   changeType: initialData?.changeType || "",
   note: initialData?.note || "",
-  //
   employeeGroups: initialData?.financeDetails?.employeeGroups || "",
   account: initialData?.financeDetails?.account || "",
   grossSalary: initialData?.financeDetails?.grossSalary || 0,
@@ -46,9 +101,8 @@ const getFinanceInitialValues = (initialData, isEdit) => ({
   LWFEmployer: initialData?.financeDetails?.LWFEmployer || 0,
   insurance: initialData?.financeDetails?.insurance || 0,
   TDSRate: initialData?.financeDetails?.TDSRate || 0,
-  debitStatementNarration: initialData?.financeDetails?.debitStatementNarration || "",
-
-  // Computed fields (read-only)
+  debitStatementNarration:
+    initialData?.financeDetails?.debitStatementNarration || "",
   basicPercentage: initialData?.financeDetails?.basicPercentage || 0,
   HRAPercentage: initialData?.financeDetails?.HRAPercentage || 0,
   shortWages: initialData?.financeDetails?.shortWages || 0,
@@ -76,44 +130,35 @@ const validationSchema = (isEdit, step) => {
     note: Yup.string().optional(),
     employeeGroups: Yup.string().nullable().optional(),
     account: Yup.string().nullable().optional(),
-    minimumWages: Yup.number().min(0).optional(),
+    minimumWages: buildNumberSchema("Minimum Wages"),
     grossSalary: Yup.number()
+      .transform((value, originalValue) =>
+        originalValue === "" || originalValue === null ? undefined : value
+      )
+      .typeError("Gross Salary must be a valid number")
       .min(0, "Gross Salary must be 0 or more")
       .required("Gross Salary is required")
       .test(
         "gross-breakup-exact-match",
         "Basic + HRA + SPL + Conveyance + Statutory Bonus must be exactly equal to Gross Salary",
         function (gross) {
-          const {
-            basicAmount = 0,
-            HRAAmount = 0,
-            SPLAllowance = 0,
-            conveyanceAllowance = 0,
-            statutoryBonus = 0,
-          } = this.parent;
-
-          const breakupTotal =
-            Number(basicAmount) +
-            Number(HRAAmount) +
-            Number(SPLAllowance) +
-            Number(conveyanceAllowance) +
-            Number(statutoryBonus);
+          const breakupTotal = getSalaryBreakupTotal(this.parent);
 
           if (gross === undefined || gross === null) return true;
-          return Number(gross) === breakupTotal;
+          return getNumericValue(gross) === breakupTotal;
         }
       ),
-    basicAmount: Yup.number().min(0).optional(),
-    HRAAmount: Yup.number().min(0).optional(),
-    SPLAllowance: Yup.number().min(0).optional(),
-    conveyanceAllowance: Yup.number().min(0).optional(),
-    statutoryBonus: Yup.number().min(0).optional(),
-    insurance: Yup.number().min(0).optional(),
-    TDSRate: Yup.number().min(0).optional(),
-    ESICSalary: Yup.number().min(0).optional(),
-    LWFSalary: Yup.number().min(0).optional(),
-    LWFEmployee: Yup.number().min(0).optional(),
-    LWFEmployer: Yup.number().min(0).optional(),
+    basicAmount: buildGrossBoundSchema("Basic Amount"),
+    HRAAmount: buildGrossBoundSchema("HRA"),
+    SPLAllowance: buildGrossBoundSchema("SPL Allowance"),
+    conveyanceAllowance: buildGrossBoundSchema("Conveyance Allowance"),
+    statutoryBonus: buildGrossBoundSchema("Statutory Bonus"),
+    insurance: buildNumberSchema("Insurance"),
+    TDSRate: buildNumberSchema("TDS Rate", { max: 100 }),
+    ESICSalary: buildNumberSchema("ESIC Salary"),
+    LWFSalary: buildNumberSchema("LWF Salary"),
+    LWFEmployee: buildNumberSchema("LWF Employee"),
+    LWFEmployer: buildNumberSchema("LWF Employer"),
     debitStatementNarration: Yup.string().nullable().optional(),
   });
 };
@@ -124,14 +169,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   const { centerAccess } = useSelector((state) => state.User);
 
   const isEdit = mode === "EDIT";
-
-  // Step state for "CHANGE" mode
   const [step, setStep] = useState(isEdit ? 2 : 1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const form = useFormik({
     enableReinitialize: true,
-    initialValues: getFinanceInitialValues(isEdit ? initialData : null, isEdit),
+    validateOnMount: true,
+    initialValues: getFinanceInitialValues(isEdit ? initialData : null),
     validationSchema: validationSchema(isEdit, step),
     onSubmit: async (values) => {
       if (step === 1 && !isEdit) {
@@ -160,13 +204,11 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         };
 
         if (isEdit) {
-          // Edit existing finance record
           if (values.changeType) payload.changeType = values.changeType;
           if (values.note) payload.note = values.note;
           await editFinance(initialData._id, payload);
           toast.success("Finance details updated successfully");
         } else {
-          // Create / Change salary
           payload.employeeId = values.employeeId;
           payload.changeType = values.changeType;
           if (values.note) payload.note = values.note;
@@ -183,46 +225,39 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     },
   });
 
-  // Recalculate payroll whenever relevant fields change
-  useEffect(() => {
-    // We need pfApplicable and gender from the employee data for payroll calc
-    const employeeData = isEdit
-      ? initialData?.employee
-      : selectedEmployee?.raw;
+  const employeeData = useMemo(
+    () => (isEdit ? initialData?.employee : selectedEmployee?.raw),
+    [initialData, isEdit, selectedEmployee]
+  );
 
-    const payrollInput = {
+  useEffect(() => {
+    const payroll = calculatePayroll({
       ...form.values,
       pfApplicable: employeeData?.pfApplicable ?? false,
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
-    };
-
-    const payroll = calculatePayroll(payrollInput);
-
-    // Only set fields if they actually changed to prevent loops
-    Object.entries(payroll).forEach(([key, val]) => {
-      if (form.values[key] !== val) {
-        form.setFieldValue(key, val, false);
-      }
     });
 
+    Object.entries(payroll).forEach(([key, value]) => {
+      if (form.values[key] !== value) {
+        form.setFieldValue(key, value, false);
+      }
+    });
   }, [
-    form.values.grossSalary,
-    form.values.basicAmount,
-    form.values.HRAAmount,
-    form.values.SPLAllowance,
-    form.values.conveyanceAllowance,
+    employeeData,
+    form,
     form.values.ESICSalary,
+    form.values.HRAAmount,
     form.values.LWFEmployee,
-    form.values.TDSRate,
+    form.values.SPLAllowance,
+    form.values.basicAmount,
+    form.values.conveyanceAllowance,
+    form.values.grossSalary,
     form.values.insurance,
     form.values.minimumWages,
-    isEdit,
-    initialData,
-    selectedEmployee,
+    form.values.TDSRate,
   ]);
 
-  // Employee search for CHANGE mode — dispatch thunk, read from unwrapped payload
   const loadEmployeeOptions = (inputValue) => {
     if (!inputValue) return Promise.resolve([]);
 
@@ -234,13 +269,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       })
     )
       .unwrap()
-      .then((response) => {
-        return (response?.data || []).map((emp) => ({
+      .then((response) =>
+        (response?.data || []).map((emp) => ({
           value: emp._id,
           label: `${emp.name} (${emp.eCode || "N/A"})`,
           raw: emp,
-        }));
-      })
+        }))
+      )
       .catch(() => []);
   };
 
@@ -249,18 +284,43 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
   const errorText = (fieldName) => {
     if (form.touched[fieldName] && form.errors[fieldName]) {
-      return (
-        <div className="text-danger small mt-1">{form.errors[fieldName]}</div>
-      );
+      return <div className="text-danger small mt-1">{form.errors[fieldName]}</div>;
     }
+
     return null;
+  };
+
+  const markGrossBreakupFieldsTouched = (changedFieldName) => {
+    form.setFieldTouched("grossSalary", true, false);
+
+    salaryBreakupFields.forEach((fieldName) => {
+      if (
+        fieldName === changedFieldName ||
+        getNumericValue(form.values[fieldName]) > 0
+      ) {
+        form.setFieldTouched(fieldName, true, false);
+      }
+    });
+  };
+
+  const handleNumericFieldChange = (event) => {
+    const { name, value } = event.target;
+
+    form.setFieldValue(name, value);
+    form.setFieldTouched(name, true, false);
+
+    if (salaryBreakupFields.includes(name) || name === "grossSalary") {
+      markGrossBreakupFieldsTouched(name);
+    }
   };
 
   const handleBack = () => {
     setStep(1);
   };
 
-  // ── STEP 1: Employee Search + Change Type ──
+  const submitDisabled =
+    form.isSubmitting || !form.isValid || (isEdit && !initialData?._id);
+
   if (step === 1 && !isEdit) {
     return (
       <div>
@@ -297,7 +357,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                   </Col>
                   <Col md={4}>
                     <strong>Current Location:</strong>{" "}
-                    {selectedEmployee.raw?.center?.name || "-"}
+                    {selectedEmployee.raw?.currentLocation || "-"}
                   </Col>
                   <Col md={4}>
                     <strong>PF Applicable:</strong>{" "}
@@ -309,7 +369,11 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                   </Col>
                   <Col md={4}>
                     <strong>Joining Date:</strong>{" "}
-                    {selectedEmployee.raw?.joinningDate ? new Date(selectedEmployee.raw.joinningDate).toLocaleDateString("en-IN") : "-"}
+                    {selectedEmployee.raw?.joinningDate
+                      ? new Date(
+                          selectedEmployee.raw.joinningDate
+                        ).toLocaleDateString("en-IN")
+                      : "-"}
                   </Col>
                 </Row>
               </div>
@@ -324,7 +388,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               inputId="changeType"
               options={changeTypeOptions}
               value={selectedChangeTypeOption}
-              onChange={(opt) => form.setFieldValue("changeType", opt ? opt.value : "")}
+              onChange={(opt) =>
+                form.setFieldValue("changeType", opt ? opt.value : "")
+              }
               onBlur={() => form.setFieldTouched("changeType", true)}
               placeholder="Select change type..."
               isClearable
@@ -351,15 +417,19 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           <Button color="secondary" className="text-white" onClick={onCancel}>
             Cancel
           </Button>
-          <Button color="primary" className="text-white" onClick={form.handleSubmit}>
-            Next →
+          <Button
+            color="primary"
+            className="text-white"
+            onClick={form.handleSubmit}
+            disabled={form.isSubmitting || !form.isValid}
+          >
+            Next
           </Button>
         </div>
       </div>
     );
   }
 
-  // ── STEP 2: Salary Split Inputs ──
   return (
     <div>
       {!isEdit && (
@@ -369,13 +439,19 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               <strong>Employee:</strong> {selectedEmployee?.label}
             </Col>
             <Col md={4}>
-              <strong>PF Applicable:</strong> {selectedEmployee?.raw?.pfApplicable ? "Yes" : "No"}
+              <strong>PF Applicable:</strong>{" "}
+              {selectedEmployee?.raw?.pfApplicable ? "Yes" : "No"}
             </Col>
             <Col md={4}>
               <strong>Gender:</strong> {selectedEmployee?.raw?.gender || "-"}
             </Col>
             <Col md={4}>
-              <strong>Joining Date:</strong> {selectedEmployee?.raw?.joinningDate ? new Date(selectedEmployee.raw.joinningDate).toLocaleDateString("en-IN") : "-"}
+              <strong>Joining Date:</strong>{" "}
+              {selectedEmployee?.raw?.joinningDate
+                ? new Date(selectedEmployee.raw.joinningDate).toLocaleDateString(
+                    "en-IN"
+                  )
+                : "-"}
             </Col>
             <Col md={4}>
               <strong>Change Type:</strong> {selectedChangeTypeOption?.label}
@@ -395,7 +471,8 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             <Row className="g-2">
               <Col md={4}>
                 <strong>Employee:</strong>{" "}
-                {initialData?.employee?.name || "-"} ({initialData?.employee?.eCode || "-"})
+                {initialData?.employee?.name || "-"} (
+                {initialData?.employee?.eCode || "-"})
               </Col>
               <Col md={4}>
                 <strong>Department:</strong>{" "}
@@ -403,19 +480,22 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               </Col>
               <Col md={4}>
                 <strong>Current Location:</strong>{" "}
-                {initialData?.employee?.currentLocation || "-"}
+                {initialData?.employee?.center?.title || "-"}
               </Col>
               <Col md={4}>
                 <strong>PF Applicable:</strong>{" "}
                 {initialData?.employee?.pfApplicable ? "Yes" : "No"}
               </Col>
               <Col md={4}>
-                <strong>Gender:</strong>{" "}
-                {initialData?.employee?.gender || "-"}
+                <strong>Gender:</strong> {initialData?.employee?.gender || "-"}
               </Col>
               <Col md={4}>
                 <strong>Joining Date:</strong>{" "}
-                {initialData?.employee?.joinningDate ? new Date(initialData.employee.joinningDate).toLocaleDateString("en-IN") : "-"}
+                {initialData?.employee?.joinningDate
+                  ? new Date(
+                      initialData.employee.joinningDate
+                    ).toLocaleDateString("en-IN")
+                  : "-"}
               </Col>
             </Row>
           </div>
@@ -427,7 +507,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 inputId="editChangeType"
                 options={changeTypeOptions}
                 value={selectedChangeTypeOption}
-                onChange={(opt) => form.setFieldValue("changeType", opt ? opt.value : "")}
+                onChange={(opt) =>
+                  form.setFieldValue("changeType", opt ? opt.value : "")
+                }
                 placeholder="Select change type (optional)..."
                 isClearable
                 isDisabled
@@ -455,7 +537,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       </Col>
 
       <Row className="g-3 mx-2">
-        {/* EMPLOYEE GROUPS */}
         <Col md={6}>
           <Label htmlFor="employeeGroups">Employee Group</Label>
           <Select
@@ -466,24 +547,27 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 (opt) => opt.value === form.values.employeeGroups
               ) || null
             }
-            onChange={(opt) => form.setFieldValue("employeeGroups", opt ? opt.value : "")}
+            onChange={(opt) =>
+              form.setFieldValue("employeeGroups", opt ? opt.value : "")
+            }
           />
         </Col>
 
-        {/* ACCOUNT */}
         <Col md={6}>
           <Label htmlFor="account">Account</Label>
           <Select
             inputId="account"
             options={accountOptions}
             value={
-              accountOptions.find((opt) => opt.value === form.values.account) || null
+              accountOptions.find((opt) => opt.value === form.values.account) ||
+              null
             }
-            onChange={(opt) => form.setFieldValue("account", opt ? opt.value : "")}
+            onChange={(opt) =>
+              form.setFieldValue("account", opt ? opt.value : "")
+            }
           />
         </Col>
 
-        {/* MINIMUM WAGES */}
         <Col md={6}>
           <Label htmlFor="minimumWages">Minimum Wages</Label>
           <Input
@@ -491,12 +575,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="minimumWages"
             type="number"
             value={form.values.minimumWages}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.minimumWages && !!form.errors.minimumWages}
           />
+          {errorText("minimumWages")}
         </Col>
 
-        {/* SHORT WAGES */}
         <Col md={6}>
           <Label htmlFor="shortWages">Short Wages</Label>
           <Input
@@ -508,7 +593,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           />
         </Col>
 
-        {/* GROSS SALARY */}
         <Col md={6}>
           <Label htmlFor="grossSalary">Gross Salary</Label>
           <Input
@@ -516,14 +600,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="grossSalary"
             type="number"
             value={form.values.grossSalary}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
             invalid={form.touched.grossSalary && !!form.errors.grossSalary}
           />
           {errorText("grossSalary")}
         </Col>
 
-        {/* BASIC AMOUNT */}
         <Col md={6}>
           <Label htmlFor="basicAmount">Basic Amount</Label>
           <Input
@@ -531,12 +614,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="basicAmount"
             type="number"
             value={form.values.basicAmount}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.basicAmount && !!form.errors.basicAmount}
           />
+          {errorText("basicAmount")}
         </Col>
 
-        {/* BASIC PERCENTAGE */}
         <Col md={6}>
           <Label htmlFor="basicPercentage">Basic Percentage</Label>
           <Input
@@ -548,7 +632,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           />
         </Col>
 
-        {/* HRA */}
         <Col md={6}>
           <Label htmlFor="HRAAmount">HRA</Label>
           <Input
@@ -556,12 +639,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="HRAAmount"
             type="number"
             value={form.values.HRAAmount}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.HRAAmount && !!form.errors.HRAAmount}
           />
+          {errorText("HRAAmount")}
         </Col>
 
-        {/* HRA PERCENTAGE */}
         <Col md={6}>
           <Label htmlFor="HRAPercentage">HRA Percentage</Label>
           <Input
@@ -573,7 +657,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           />
         </Col>
 
-        {/* SPL ALLOWANCE */}
         <Col md={6}>
           <Label htmlFor="SPLAllowance">SPL Allowance</Label>
           <Input
@@ -581,12 +664,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="SPLAllowance"
             type="number"
             value={form.values.SPLAllowance}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.SPLAllowance && !!form.errors.SPLAllowance}
           />
+          {errorText("SPLAllowance")}
         </Col>
 
-        {/* CONVEYANCE ALLOWANCE */}
         <Col md={6}>
           <Label htmlFor="conveyanceAllowance">Conveyance Allowance</Label>
           <Input
@@ -594,12 +678,16 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="conveyanceAllowance"
             type="number"
             value={form.values.conveyanceAllowance}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={
+              form.touched.conveyanceAllowance &&
+              !!form.errors.conveyanceAllowance
+            }
           />
+          {errorText("conveyanceAllowance")}
         </Col>
 
-        {/* STATUTORY BONUS */}
         <Col md={6}>
           <Label htmlFor="statutoryBonus">Statutory Bonus</Label>
           <Input
@@ -607,12 +695,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="statutoryBonus"
             type="number"
             value={form.values.statutoryBonus}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.statutoryBonus && !!form.errors.statutoryBonus}
           />
+          {errorText("statutoryBonus")}
         </Col>
 
-        {/* INSURANCE */}
         <Col md={6}>
           <Label htmlFor="insurance">Insurance</Label>
           <Input
@@ -620,12 +709,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="insurance"
             type="number"
             value={form.values.insurance}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.insurance && !!form.errors.insurance}
           />
+          {errorText("insurance")}
         </Col>
 
-        {/* LWF SALARY */}
         <Col md={6}>
           <Label htmlFor="LWFSalary">LWF Salary</Label>
           <Input
@@ -633,12 +723,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="LWFSalary"
             type="number"
             value={form.values.LWFSalary}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.LWFSalary && !!form.errors.LWFSalary}
           />
+          {errorText("LWFSalary")}
         </Col>
 
-        {/* LWF EMPLOYEE */}
         <Col md={6}>
           <Label htmlFor="LWFEmployee">LWF Employee</Label>
           <Input
@@ -646,12 +737,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="LWFEmployee"
             type="number"
             value={form.values.LWFEmployee}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.LWFEmployee && !!form.errors.LWFEmployee}
           />
+          {errorText("LWFEmployee")}
         </Col>
 
-        {/* LWF EMPLOYER */}
         <Col md={6}>
           <Label htmlFor="LWFEmployer">LWF Employer</Label>
           <Input
@@ -659,12 +751,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="LWFEmployer"
             type="number"
             value={form.values.LWFEmployer}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.LWFEmployer && !!form.errors.LWFEmployer}
           />
+          {errorText("LWFEmployer")}
         </Col>
 
-        {/* ESIC SALARY */}
         <Col md={6}>
           <Label htmlFor="ESICSalary">ESIC Salary</Label>
           <Input
@@ -672,24 +765,33 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="ESICSalary"
             type="number"
             value={form.values.ESICSalary}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.ESICSalary && !!form.errors.ESICSalary}
+          />
+          {errorText("ESICSalary")}
+        </Col>
+
+        <Col md={6}>
+          <Label htmlFor="ESICEmployee">ESIC Employee</Label>
+          <Input
+            disabled
+            id="ESICEmployee"
+            type="number"
+            value={form.values.ESICEmployee}
           />
         </Col>
 
-        {/* ESIC EMPLOYEE */}
-        <Col md={6}>
-          <Label htmlFor="ESICEmployee">ESIC Employee</Label>
-          <Input disabled id="ESICEmployee" type="number" value={form.values.ESICEmployee} />
-        </Col>
-
-        {/* ESIC EMPLOYER */}
         <Col md={6}>
           <Label htmlFor="ESICEmployer">ESIC Employer</Label>
-          <Input disabled id="ESICEmployer" type="number" value={form.values.ESICEmployer} />
+          <Input
+            disabled
+            id="ESICEmployer"
+            type="number"
+            value={form.values.ESICEmployer}
+          />
         </Col>
 
-        {/* TDS RATE */}
         <Col md={6}>
           <Label htmlFor="TDSRate">TDS Rate</Label>
           <Input
@@ -697,42 +799,53 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="TDSRate"
             type="number"
             value={form.values.TDSRate}
-            onChange={form.handleChange}
+            onChange={handleNumericFieldChange}
             onBlur={form.handleBlur}
+            invalid={form.touched.TDSRate && !!form.errors.TDSRate}
           />
+          {errorText("TDSRate")}
         </Col>
 
-        {/* PT */}
         <Col md={6}>
           <Label htmlFor="PT">PT</Label>
           <Input disabled id="PT" type="number" value={form.values.PT} />
         </Col>
 
-        {/* PF AMOUNT */}
         <Col md={6}>
           <Label htmlFor="PFAmount">PF Amount</Label>
           <Input disabled id="PFAmount" type="number" value={form.values.PFAmount} />
         </Col>
 
-        {/* PF EMPLOYEE */}
         <Col md={6}>
           <Label htmlFor="PFEmployee">PF Employee Contribution</Label>
-          <Input disabled id="PFEmployee" type="number" value={form.values.PFEmployee} />
+          <Input
+            disabled
+            id="PFEmployee"
+            type="number"
+            value={form.values.PFEmployee}
+          />
         </Col>
 
-        {/* PF EMPLOYER */}
         <Col md={6}>
           <Label htmlFor="PFEmployer">PF Employer Contribution</Label>
-          <Input disabled id="PFEmployer" type="number" value={form.values.PFEmployer} />
+          <Input
+            disabled
+            id="PFEmployer"
+            type="number"
+            value={form.values.PFEmployer}
+          />
         </Col>
 
-        {/* IN HAND SALARY */}
         <Col md={6}>
           <Label htmlFor="inHandSalary">In Hand Salary</Label>
-          <Input disabled id="inHandSalary" type="number" value={form.values.inHandSalary} />
+          <Input
+            disabled
+            id="inHandSalary"
+            type="number"
+            value={form.values.inHandSalary}
+          />
         </Col>
 
-        {/* DEBIT STATEMENT NARRATION */}
         <Col md={6}>
           <Label htmlFor="debitStatementNarration">
             Debit Statement Narration
@@ -742,7 +855,10 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="debitStatementNarration"
             value={form.values.debitStatementNarration}
             onChange={(e) =>
-              form.setFieldValue("debitStatementNarration", e.target.value.toUpperCase())
+              form.setFieldValue(
+                "debitStatementNarration",
+                e.target.value.toUpperCase()
+              )
             }
             onBlur={form.handleBlur}
           />
@@ -752,17 +868,22 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       <div className="d-flex gap-2 justify-content-end my-4 mx-3">
         {!isEdit && (
           <Button color="secondary" className="text-white" onClick={handleBack}>
-            ← Back
+            Back
           </Button>
         )}
-        <Button color="secondary" className="text-white" onClick={onCancel} disabled={form.isSubmitting}>
+        <Button
+          color="secondary"
+          className="text-white"
+          onClick={onCancel}
+          disabled={form.isSubmitting}
+        >
           Cancel
         </Button>
         <Button
           color="primary"
           className="text-white"
           onClick={form.handleSubmit}
-          disabled={form.isSubmitting}
+          disabled={submitDisabled}
         >
           {form.isSubmitting ? (
             <Spinner size="sm" />

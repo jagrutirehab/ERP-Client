@@ -239,7 +239,7 @@ const PaymentFormModal = ({
                         {mode === "UTRConfirmation" && hasCreatePermission && (
                             <>
                                 <Row>
-                                    <Col md={12} className="mb-3">
+                                    <Col md={6} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionId">
                                                 Transaction ID/UTR <span className="text-danger">*</span>
@@ -258,6 +258,30 @@ const PaymentFormModal = ({
                                             {formik.touched.transactionId && formik.errors.transactionId && (
                                                 <div className="text-danger small mt-1">
                                                     {formik.errors.transactionId}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md={6} className="mb-3">
+                                        <FormGroup>
+                                            <Label for="tallyAccount">
+                                                Tally Bank Account <span className="text-danger">*</span>
+                                            </Label>
+                                            <Select
+                                                id="tallyAccount"
+                                                name="tallyAccount"
+                                                options={tallyBankAccounts}
+                                                value={formik.values.tallyAccount}
+                                                onChange={(option) => formik.setFieldValue("tallyAccount", option)}
+                                                onBlur={() => formik.setFieldTouched("tallyAccount", true)}
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Tally bank account"
+                                                isClearable
+                                                isDisabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            />
+                                            {formik.touched.tallyAccount && formik.errors.tallyAccount && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.tallyAccount}
                                                 </div>
                                             )}
                                         </FormGroup>
@@ -308,30 +332,7 @@ const PaymentFormModal = ({
                                             )}
                                         </FormGroup>
                                     </Col> */}
-                                    <Col md={12} className="mb-3">
-                                        <FormGroup>
-                                            <Label for="tallyBankAccount">
-                                                Tally Bank Account <span className="text-danger">*</span>
-                                            </Label>
-                                            <Select
-                                                id="tallyAccount"
-                                                name="tallyAccount"
-                                                options={tallyBankAccounts}
-                                                value={formik.values.tallyAccount}
-                                                onChange={(option) => formik.setFieldValue("tallyAccount", option)}
-                                                onBlur={() => formik.setFieldTouched("tallyAccount", true)}
-                                                classNamePrefix="react-select"
-                                                placeholder="Select Tally bank account"
-                                                isClearable
-                                                isDisabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
-                                            />
-                                            {formik.touched.tallyAccount && formik.errors.tallyAccount && (
-                                                <div className="text-danger small mt-1">
-                                                    {formik.errors.tallyAccount}
-                                                </div>
-                                            )}
-                                        </FormGroup>
-                                    </Col>
+
                                     {/* <Col md={3}>
                                         <FormGroup>
                                             <Label for="currentPaymentStatus">
