@@ -125,7 +125,9 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       type="select"
                       required
                     >
-                      <option>No Bank Account Selected</option>
+                      <option value={""} selected defaultValue={""}>
+                        No Bank Account Selected
+                      </option>
                       {(paymentAccounts || []).map((item) => (
                         <option key={item._id} value={item.name}>
                           {item.name}
