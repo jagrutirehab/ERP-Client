@@ -362,7 +362,7 @@ const DetailedReport = ({
       cell: (row) => <span>{row?.transactionBankDetails?.tallyAccount?.toUpperCase() || row?.transactionBankDetails?.tallyAccountNo?.toUpperCase() || row?.transactionBankDetails?.tallyBankAccount?.toUpperCase() || "-"}</span>,
       wrap: true,
       minWidth: "120px",
-      maxWidth: "200px",
+      maxWidth: "250px",
     },
     {
       name: <div>Initial Payment Status</div>,
