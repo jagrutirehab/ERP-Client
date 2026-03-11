@@ -2182,6 +2182,34 @@ export const deleteTPM = (id) => {
   });
 };
 
+export const getFinance = (params = {}) => {
+  return api.get(url.FINANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const editFinance = (id, data) => {
+  return api.update(`${url.FINANCE}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const changeSalary = (data) => {
+  return api.create(url.CHANGE_SALARY, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS
 export const getAttendance = (params = {}) => {
   return api.get(url.ATTENDANCE, {

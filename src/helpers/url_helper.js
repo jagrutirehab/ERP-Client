@@ -488,6 +488,9 @@ export const GET_DEPARTMENTS = "/hr/get/departments";
 export const CREATE_DEPARTMENTS = "/hr/create/departments";
 export const GET_APPROVAL_INBOX = "/hr/approval-inbox";
 
+export const FINANCE = "/hr/salary";
+export const CHANGE_SALARY = "/hr/salary/change";
+
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";

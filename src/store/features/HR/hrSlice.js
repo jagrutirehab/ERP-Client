@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getFinance, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -148,6 +148,15 @@ export const fetchMonthlyAttendance = createAsyncThunk("hr/getMonthlyAttendance"
 export const fetchApprovalInbox = createAsyncThunk("hr/getApprovalInbox", async (data, { rejectWithValue }) => {
     try {
         const response = await getApprovalInbox(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchFinance = createAsyncThunk("hr/getFinance", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getFinance(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -328,17 +337,30 @@ export const hrSlice = createSlice({
             .addCase(fetchMonthlyAttendance.rejected, (state) => {
                 state.loading = false
             });
-        
-         builder
+
+        builder
             .addCase(fetchApprovalInbox.pending, (state) => {
                 state.loading = true
             })
             .addCase(fetchApprovalInbox.fulfilled, (state, { payload }) => {
                 state.loading = false;
                 state.data = payload.data;
-                state.pagination = payload.pagination;  
+                state.pagination = payload.pagination;
             })
             .addCase(fetchApprovalInbox.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder
+            .addCase(fetchFinance.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchFinance.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchFinance.rejected, (state) => {
                 state.loading = false
             });
     }
