@@ -358,6 +358,13 @@ const DetailedReport = ({
       maxWidth: "150px",
     },
     {
+      name: <div>Tally Account</div>,
+      cell: (row) => <span>{row?.transactionBankDetails?.tallyAccount?.toUpperCase() || row?.transactionBankDetails?.tallyAccountNo?.toUpperCase() || row?.transactionBankDetails?.tallyBankAccount?.toUpperCase() || "-"}</span>,
+      wrap: true,
+      minWidth: "120px",
+      maxWidth: "200px",
+    },
+    {
       name: <div>Initial Payment Status</div>,
       selector: (row) => {
         const status = row?.initialPaymentStatus;

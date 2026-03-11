@@ -1,4 +1,5 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner, Form, FormGroup, Label, Input, Row, Col } from "reactstrap";
+import Select from "react-select";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
 import { useFormik } from "formik";
@@ -11,7 +12,7 @@ import { Check, Pencil, X } from "lucide-react";
 import moment from "moment";
 import SpendingForm from "./SpendingForm";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { categoryOptions } from "../../../Components/constants/centralPayment";
+import { categoryOptions, tallyBankAccounts } from "../../../Components/constants/centralPayment";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
 const paymentValidationSchema = Yup.object({
@@ -19,8 +20,11 @@ const paymentValidationSchema = Yup.object({
         .required("Transaction ID is required to complete the UTR confirmation")
         .min(3, "Transaction ID must be at least 3 characters")
         .max(50, "Transaction ID must be less than 50 characters"),
-    transactionBankName: Yup.string().required("Transaction Bank Name is required"),
-    transactionAccountNo: Yup.string().required("Transaction Account No is required"),
+    // transactionBankName: Yup.string().required("Transaction Bank Name is required"),
+    // transactionAccountNo: Yup.string().required("Transaction Account No is required"),
+    tallyAccount: Yup.object()
+        .required("Tally Bank Account is required")
+        .nullable(),
     currentPaymentStatus: Yup.string()
         .required("Approval status is required")
         .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
@@ -47,8 +51,9 @@ const PaymentFormModal = ({
     const formik = useFormik({
         initialValues: {
             transactionId: "",
-            transactionBankName: "",
-            transactionAccountNo: "",
+            // transactionBankName: "",
+            // transactionAccountNo: "",
+            tallyAccount: null,
             currentPaymentStatus: "PENDING"
         },
         validationSchema: paymentValidationSchema,
@@ -72,10 +77,14 @@ const PaymentFormModal = ({
 
     useEffect(() => {
         if (paymentDetails && paymentDetails._id === item?._id) {
+            const tallyBankValue = paymentDetails.transactionBankDetails?.tallyAccount || paymentDetails.transactionBankDetails?.tallyAccountNo || paymentDetails.transactionBankDetails?.tallyBankAccount;
+            const selectedOption = tallyBankAccounts.find(opt => opt.value === tallyBankValue) || null;
+
             formik.setValues({
                 transactionId: paymentDetails.transactionId || "",
-                transactionBankName: paymentDetails.transactionBankDetails?.bankName || "",
-                transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
+                // transactionBankName: paymentDetails.transactionBankDetails?.bankName || "",
+                // transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
+                tallyAccount: selectedOption,
                 currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING"
             });
         }
@@ -253,7 +262,7 @@ const PaymentFormModal = ({
                                             )}
                                         </FormGroup>
                                     </Col>
-                                    <Col md={6} className="mb-3">
+                                    {/* <Col md={6} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionBankName">
                                                 Transaction Bank Name <span className="text-danger">*</span>
@@ -295,6 +304,30 @@ const PaymentFormModal = ({
                                             {formik.touched.transactionAccountNo && formik.errors.transactionAccountNo && (
                                                 <div className="text-danger small mt-1">
                                                     {formik.errors.transactionAccountNo}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    </Col> */}
+                                    <Col md={12} className="mb-3">
+                                        <FormGroup>
+                                            <Label for="tallyBankAccount">
+                                                Tally Bank Account <span className="text-danger">*</span>
+                                            </Label>
+                                            <Select
+                                                id="tallyAccount"
+                                                name="tallyAccount"
+                                                options={tallyBankAccounts}
+                                                value={formik.values.tallyAccount}
+                                                onChange={(option) => formik.setFieldValue("tallyAccount", option)}
+                                                onBlur={() => formik.setFieldTouched("tallyAccount", true)}
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Tally bank account"
+                                                isClearable
+                                                isDisabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
+                                            />
+                                            {formik.touched.tallyAccount && formik.errors.tallyAccount && (
+                                                <div className="text-danger small mt-1">
+                                                    {formik.errors.tallyAccount}
                                                 </div>
                                             )}
                                         </FormGroup>
@@ -438,16 +471,16 @@ const PaymentFormModal = ({
                                             className="d-flex align-items-center text-white"
                                             disabled={
                                                 !formik.values.transactionId.trim() ||
-                                                !formik.values.transactionBankName.trim() ||
-                                                !formik.values.transactionAccountNo.trim() ||
+                                                !formik.values.tallyAccount ||
                                                 (isProcessing.id === item._id && isProcessing.type === "COMPLETED")
                                             }
                                             onClick={() => {
                                                 onConfirm({
                                                     transactionId: formik.values.transactionId,
                                                     transactionBankDetails: {
-                                                        bankName: formik.values.transactionBankName,
-                                                        accountNo: formik.values.transactionAccountNo
+                                                        // bankName: formik.values.transactionBankName,
+                                                        // accountNo: formik.values.transactionAccountNo,
+                                                        tallyAccount: formik.values.tallyAccount?.value,
                                                     },
                                                     currentPaymentStatus: "COMPLETED"
                                                 });
