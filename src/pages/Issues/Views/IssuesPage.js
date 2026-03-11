@@ -38,6 +38,10 @@ const IssuesPage = ({ type }) => {
     const [approvalModal, setApprovalModal] = useState(false);
     const [approvalIssue, setApprovalIssue] = useState(null);
     const [approvalStatus, setApprovalStatus] = useState("");
+    const [editRowId, setEditRowId] = useState(null);
+    const [editedApproval, setEditedApproval] = useState("");
+    const [editedApprovalBy, setEditedApprovalBy] = useState("");
+    const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
 
 
@@ -165,6 +169,55 @@ const IssuesPage = ({ type }) => {
         { value: "not_approved", label: "Not Approved" },
     ];
 
+    // const handleEdit = (row) => {
+    //     setEditRowId(row._id);
+
+    //     // start with empty values
+    //     setEditedApproval("");
+    //     setEditedApprovalBy("");
+    // };
+
+    const handleEdit = (row) => {
+        setEditRowId(row._id);
+
+        // prefill approval dropdown
+        if (row?.approval?.isApproved === true) {
+            setEditedApproval("yes");
+        } else if (row?.approval?.isApproved === false) {
+            setEditedApproval("no");
+        } else {
+            setEditedApproval("");
+        }
+
+        // prefill approvedBy dropdown
+        setEditedApprovalBy(row?.approval?.approvedBy || "");
+    };
+    const handleSave = async (row) => {
+        try {
+
+            const payload = {
+                issueId: row._id
+            };
+
+            if (editedApprovalBy) {
+                payload.approvedBy = editedApprovalBy;
+            }
+
+            if (editedApproval) {
+                payload.isApproved = editedApproval === "yes";
+            }
+
+            const response = await approveIssue(payload);
+
+            toast.success(response?.message || "Approval Updated");
+
+            setEditRowId(null);
+            loadIssues();
+
+        } catch (error) {
+            toast.error(error?.message || "Update Failed");
+        }
+    };
     return (
         <>
             <CardBody
@@ -212,12 +265,22 @@ const IssuesPage = ({ type }) => {
 
                 <DataTableComponent
                     columns={
-                        Issues(handleViewDescription,
+                        Issues(
+                            handleViewDescription,
                             handleViewImages,
                             activeTab,
                             handleAssign,
                             handleApproveClick,
-                            type
+                            type,
+                            editRowId,
+                            handleEdit,
+                            handleSave,
+                            editedApproval,
+                            setEditedApproval,
+                            editedApprovalBy,
+                            setEditedApprovalBy,
+                            approvers,
+                            setEditRowId
                         )}
                     data={issues}
                     loading={loading}

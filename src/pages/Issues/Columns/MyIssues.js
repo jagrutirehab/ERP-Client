@@ -36,14 +36,19 @@ export const MyIssuesCol = (
     ...(type === "TECH" ?
       [{
         name: <div className="text-center">Description</div>,
-        width: "160px",
+        width: "300px",
         cell: (row) => (
-          <span
-            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-            onClick={() => handleViewDescription(row?.techIssue?.description)}
+          <div
+            style={{
+              maxHeight: "80px",
+              overflowY: "auto",
+              paddingRight: "6px",
+              lineHeight: "1.4",
+              wordBreak: "break-word",
+            }}
           >
-            View
-          </span>
+            {row?.techIssue?.description || "-"}
+          </div>
         ),
       },
       {
@@ -76,14 +81,19 @@ export const MyIssuesCol = (
         },
         {
           name: <div className="text-center">Comments</div>,
-          width: "160px",
+          width: "200px",
           cell: (row) => (
-            <span
-              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-              onClick={() => handleViewDescription(row?.purchaseIssue?.comment)}
+            <div
+              style={{
+                maxHeight: "80px",
+                overflowY: "auto",
+                paddingRight: "6px",
+                lineHeight: "1.4",
+                wordBreak: "break-word",
+              }}
             >
-              View
-            </span>
+              {row?.purchaseIssue?.comment || "-"}
+            </div>
           ),
         }, {
           name: <div className="text-center">Images</div>,
@@ -101,36 +111,36 @@ export const MyIssuesCol = (
       ] : []
 
     ),
-     ...(type === "REVIEW_SUBMISSION" ?
-    [
-      {
-        name: <div className="text-center">Responsible Reviewer</div>,
-        selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
-        // center: true,
-        width: "210px",
-      },
-      {
-        name: <div className="text-center">Review Taken From</div>,
-        selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
-        // center: true,
-        width: "210px",
-      },
-      {
-        name: <div className="text-center">Images</div>,
-        width: "140px",
-        cell: (row) => (
-          <span
-            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-            onClick={() => handleViewImages(row?.reviewSubmissionIssue?.files)}
-          >
-            View Images
-          </span>
-        ),
-      },
+    ...(type === "REVIEW_SUBMISSION" ?
+      [
+        {
+          name: <div className="text-center">Responsible Reviewer</div>,
+          selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
+          // center: true,
+          width: "210px",
+        },
+        {
+          name: <div className="text-center">Review Taken From</div>,
+          selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
+          // center: true,
+          width: "210px",
+        },
+        {
+          name: <div className="text-center">Images</div>,
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+              onClick={() => handleViewImages(row?.reviewSubmissionIssue?.files)}
+            >
+              View Images
+            </span>
+          ),
+        },
 
-    ] : []
+      ] : []
 
-  ),
+    ),
     ...(activeTab !== "new"
       ? [
         {
@@ -198,40 +208,25 @@ export const MyIssuesCol = (
       width: "180px",
     },
 
-    ...(activeTab && activeTab !== "resolved"
-      ? [
-        {
-          name: <div className="text-center">Action</div>,
-          width: "200px",
-          cell: (row) => {
-            const buttonText = returnButtonText(activeTab);
-            const nextStatus = getNextStatus(activeTab);
 
-            if (!buttonText || !nextStatus) return "-";
-
-            return (
-              <Button
-                size="sm"
-                color="primary"
-                onClick={() =>
-                  handleAction({
-                    issue: row,
-                    nextStatus,
-                  })
-                }
-              >
-                {buttonText}
-              </Button>
-            );
-          },
-        },
-      ]
-      : []),
 
     ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
       ? [
         ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
           ? [
+            {
+              name: <div className="text-center">Approval</div>,
+              width: "120px",
+              cell: (row) => {
+                if (!row?.approval) return "-";
+
+                return row.approval.isApproved ? (
+                  <Badge color="success">Yes</Badge>
+                ) : (
+                  <Badge color="danger">No</Badge>
+                );
+              },
+            },
             {
               name: <div className="text-center">Approved By</div>,
               selector: (row) =>
@@ -241,19 +236,40 @@ export const MyIssuesCol = (
                   : "-",
               width: "160px",
             },
-            {
-              name: <div className="text-center">Approval Action By</div>,
-              selector: (row) =>
-                row?.approval?.actionByName
-                  ? row.approval.actionByName.charAt(0).toUpperCase() +
-                  row.approval.actionByName.slice(1).toLowerCase()
-                  : "-",
-              width: "180px",
-            },
+
           ]
           : [])
       ]
       : []
-    )
+    ),
+    ...(activeTab !== "resolved" || activeTab === ""
+      ? [
+        {
+          name: <div className="text-center">Action</div>,
+          width: "200px",
+          cell: (row) => {
+
+            // prevent button only for resolved rows
+            if (row?.status === "resolved") return "-";
+
+            return (
+              <Button
+                size="sm"
+                color="primary"
+                onClick={() =>
+                  handleAction({
+                    issue: row,
+                    nextStatus: row?.status
+                  })
+                }
+              >
+                Change Status
+              </Button>
+            );
+          },
+        },
+      ]
+      : [])
   ]
+
 }
