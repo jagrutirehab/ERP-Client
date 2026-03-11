@@ -168,7 +168,7 @@ const FinanceDashboard = () => {
                     name: <div>Action</div>,
                     cell: (row) => (
                         <button
-                            className="btn btn-sm btn-soft-primary"
+                            className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                             title="Edit Finance"
                             onClick={() => {
                                 setSelectedRecord(row);
@@ -176,7 +176,7 @@ const FinanceDashboard = () => {
                                 setModalOpen(true);
                             }}
                         >
-                            <Pencil size={14} />
+                            <Pencil size={16} />
                         </button>
                     ),
                     width: "70px",
@@ -230,7 +230,21 @@ const FinanceDashboard = () => {
             sortable: true,
             minWidth: "130px",
         },
-         {
+        {
+            name: <div>Employee Group</div>,
+            selector: (row) => capitalizeWords(row?.financeDetails?.employeeGroups?.replace(/_/g, " ")) || "-",
+            sortable: true,
+            wrap: true,
+            minWidth: "150px",
+        },
+        {
+            name: <div>Account Type</div>,
+            selector: (row) => capitalizeWords(row?.financeDetails?.account?.replace(/_/g, " ")) || "-",
+            sortable: true,
+            wrap: true,
+            minWidth: "160px",
+        },
+        {
             name: <div>Short Wages</div>,
             selector: (row) => formatCurrency(row?.financeDetails?.shortWages),
             sortable: true,
@@ -278,7 +292,7 @@ const FinanceDashboard = () => {
             sortable: true,
             minWidth: "120px",
         },
-         {
+        {
             name: <div>Statutory Bonus</div>,
             selector: (row) => formatCurrency(row?.financeDetails?.statutoryBonus),
             sortable: true,
