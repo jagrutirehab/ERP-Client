@@ -101,7 +101,10 @@ const PieAndResolvesAnalysis = ({ data = [] }) => {
                     flex: "1 1 250px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "12px"
+                    gap: "12px",
+                    maxHeight: "260px",
+                    overflowY: "auto",
+                    paddingRight: "5px"
                 }}
             >
 
