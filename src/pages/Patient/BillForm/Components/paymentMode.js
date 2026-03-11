@@ -6,11 +6,14 @@ import {
   CHEQUE,
   UPI,
 } from "../../../../Components/constants/patient";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
 
 const PaymentMode = ({
   paymentModes,
   setPaymentModes,
   validation,
+  paymentAccounts,
 }) => {
   const addPaymentMode = (e) => {
     const value = e.target.value;
@@ -79,11 +82,10 @@ const PaymentMode = ({
                 <Input
                   bsSize="sm"
                   id={idx}
-                  className="w-100"
                   required
                   size={"1"}
                   name="amount"
-                  style={{ width: "50px" }}
+                  style={{ width: "70px" }}
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
@@ -93,7 +95,10 @@ const PaymentMode = ({
               {val?.type === CARD && (
                 <Col className="me-2" md={4} lg={4}>
                   <div className="">
-                    <Label className="text-muted fs-10">Card Number</Label>
+                    <Label className="text-muted fs-10">
+                      Card Number
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       bsSize="sm"
                       className="w-100 fs-10"
@@ -113,7 +118,10 @@ const PaymentMode = ({
                 <>
                   <Col className="me-2" md={4} lg={4}>
                     <div>
-                      <Label className="text-muted fs-10">Bank Name</Label>
+                      <Label className="text-muted fs-10">
+                        Bank Name
+                        <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         bsSize="sm"
                         className="w-100 fs-10"
@@ -130,7 +138,10 @@ const PaymentMode = ({
 
                   <Col className="me-2" md={4} lg={4}>
                     <div>
-                      <Label className="text-muted fs-10">Cheque Number</Label>
+                      <Label className="text-muted fs-10">
+                        Cheque Number
+                        <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         bsSize="sm"
                         className="w-100 fs-10"
@@ -150,7 +161,10 @@ const PaymentMode = ({
               {val?.type === UPI && (
                 <Col className="me-2" md={4} lg={4}>
                   <div>
-                    <Label className="text-muted fs-10">Transaction id</Label>
+                    <Label className="text-muted fs-10">
+                      Transaction id
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       bsSize="sm"
                       className="w-100 fs-10"
@@ -163,6 +177,34 @@ const PaymentMode = ({
                       type="text"
                     />
                   </div>
+                </Col>
+              )}
+
+              {val.type !== CASH && (
+                <Col className="me-2" xs={12} md={12}>
+                  <Label className="text-muted fs-10">
+                    Bank Accounts
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    id={idx}
+                    bsSize="sm"
+                    size={"1"}
+                    name="bankAccount"
+                    value={val.bankAccount || ""}
+                    onChange={handleChange}
+                    type="select"
+                    required
+                  >
+                    <option value={""} selected defaultValue={""}>
+                      No Bank Account Selected
+                    </option>
+                    {(paymentAccounts || []).map((item) => (
+                      <option key={item._id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </Input>
                 </Col>
               )}
 
@@ -192,4 +234,13 @@ const PaymentMode = ({
   );
 };
 
-export default PaymentMode;
+PaymentMode.propTypes = {
+  paymentModes: PropTypes.array,
+  setPaymentModes: PropTypes.func,
+};
+
+const mapStateToProps = (state) => ({
+  paymentAccounts: state.Setting.paymentAccounts,
+});
+
+export default connect(mapStateToProps)(PaymentMode);

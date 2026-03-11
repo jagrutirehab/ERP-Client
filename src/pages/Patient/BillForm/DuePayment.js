@@ -11,6 +11,7 @@ import {
   addInvoice,
   createEditBill,
   fetchBills,
+  fetchPaymentAccounts,
   updateInvoice,
 } from "../../../store/actions";
 import { CASH, INVOICE, OPD } from "../../../Components/constants/patient";
@@ -76,8 +77,6 @@ const DuePayment = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
-
-  console.log("center", center);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -179,6 +178,19 @@ const DuePayment = ({
       validation.resetForm();
     },
   });
+
+  useEffect(() => {
+    if (center) {
+      dispatch(
+        fetchPaymentAccounts({
+          centerIds: [center],
+          page: 1,
+          limit: 1000,
+        }),
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+      );
+    }
+  }, [dispatch, patient.center._id]);
 
   useEffect(() => {
     if (!editBillData) {
@@ -334,14 +346,12 @@ const DuePayment = ({
     paymentModes,
   ]);
 
-  console.log("editBillData", editBillData);
   useEffect(() => {
     if (editBillData) {
       const invoice =
         editBillData.type === OPD
           ? editBillData.receiptInvoice
           : editBillData.invoice;
-      console.log("invoice", invoice);
 
       setInitialFromDate(
         invoice?.fromDate
@@ -422,8 +432,6 @@ const DuePayment = ({
           ? centerMatch.prices[0]
           : null;
 
-      console.log("defaultPriceObj", defaultPriceObj);
-
       const exactCost = defaultPriceObj ? defaultPriceObj.price : 0;
       const dynamicUOM =
         defaultPriceObj?.unit ||
@@ -476,8 +484,6 @@ const DuePayment = ({
     });
   };
 
-  console.log("invoiceList before valid cost fecth", invoiceList);
-
   const fetchValidCosts = async (slotName) => {
     if (!slotName) return;
 
@@ -499,8 +505,6 @@ const DuePayment = ({
       console.log("error", error);
     }
   };
-
-  console.log("availablePrices", availablePrices);
 
   useEffect(() => {
     if (!invoiceList?.length) return;
@@ -580,9 +584,6 @@ const DuePayment = ({
       }),
     );
   }, [availablePrices, editBillData]);
-
-  console.log("invoiceList from duepayment", invoiceList);
-  console.log("totalDiscount from duepayment", totalDiscount);
 
   return (
     <React.Fragment>
