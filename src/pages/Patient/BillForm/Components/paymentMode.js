@@ -171,7 +171,10 @@ const PaymentMode = ({
 
               {val.type !== CASH && (
                 <Col className="me-2" xs={12} md={12}>
-                  <Label className="text-muted fs-10">Bank Accounts</Label>
+                  <Label className="text-muted fs-10">
+                    Bank Accounts
+                    <span className="text-danger">*</span>
+                  </Label>
                   <Input
                     id={idx}
                     bsSize="sm"
