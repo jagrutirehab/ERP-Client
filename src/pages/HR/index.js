@@ -46,6 +46,7 @@ import Salary from "./Salary";
 import FestiveLeaves from "../HRMS/Leaves/FestiveLeaves";
 import AttendanceMonthly from "../HRMS/Attendance/Monthly";
 import MyDashboard from "./MyDashboard";
+import FinanceDashboard from "./Finance";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -187,6 +188,8 @@ const HR = () => {
                 <Route path={`/salary`} element={<Salary />} />
 
                 <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
+
+                <Route path={`/finance`} element={<FinanceDashboard />} />
               </Routes>
             </div>
           </Container>
