@@ -306,6 +306,46 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
+
+
+        // detect interruption like phone call / mic loss
+        const track = stream.getAudioTracks()[0];
+
+        track.onended = () => {
+          console.log("Microphone interrupted");
+
+          if (mediaRecorderRef.current?.state === "recording") {
+            mediaRecorderRef.current.requestData(); // save current chunk
+            mediaRecorderRef.current.pause();
+            setIsRecording(false);
+          }
+
+          if (audioContextRef.current?.state === "running") {
+            audioContextRef.current.suspend();
+          }
+        };
+
+        track.onmute = () => {
+          console.log("Microphone muted (call interruption)");
+
+          if (mediaRecorderRef.current?.state === "recording") {
+            mediaRecorderRef.current.requestData(); // save chunk
+            mediaRecorderRef.current.pause();
+            setIsRecording(false);
+          }
+
+          if (audioContextRef.current?.state === "running") {
+            audioContextRef.current.suspend();
+          }
+        };
+
+        track.onunmute = () => {
+          console.log("Microphone active again");
+        };
+        // detect interruption like phone call / mic loss
+
+        
+
         mediaRecorderRef.current = new MediaRecorder(stream);
 
         mediaRecorderRef.current.ondataavailable = (event) => {
