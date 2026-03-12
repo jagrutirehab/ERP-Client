@@ -441,7 +441,7 @@ const AudioRecorder = ({ onReady }) => {
     mimeType = "audio/mp4";
   }
 
-  const extension = mimeType.includes("webm") ? "webm" : "mp4";
+  const extension = mimeType.includes("webm") ? "webm" : "m4a";
 
   const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
