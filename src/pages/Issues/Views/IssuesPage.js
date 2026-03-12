@@ -14,6 +14,7 @@ import { approveIssue, changeStatus } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import ApprovalModal from "../Components/ApprovalModal";
 import Select from "react-select";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const IssuesPage = ({ type }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -41,6 +42,18 @@ const IssuesPage = ({ type }) => {
     const [editRowId, setEditRowId] = useState(null);
     const [editedApproval, setEditedApproval] = useState("");
     const [editedApprovalBy, setEditedApprovalBy] = useState("");
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+    const { hasPermission } = usePermissions(token);
+
+    const hasWritePermission = hasPermission("ISSUES", "ISSUES", "WRITE");
+    const hasDeletePermission = hasPermission("ISSUES", "ISSUES", "DELETE");
+
+    const canEdit = hasWritePermission || hasDeletePermission;
+
+    console.log("Can Edit", canEdit);
+    
+
     const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
 
@@ -280,7 +293,8 @@ const IssuesPage = ({ type }) => {
                             editedApprovalBy,
                             setEditedApprovalBy,
                             approvers,
-                            setEditRowId
+                            setEditRowId,
+                            canEdit
                         )}
                     data={issues}
                     loading={loading}

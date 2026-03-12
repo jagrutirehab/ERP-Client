@@ -7,6 +7,7 @@ import { getEmployeesBySearch, postIssue } from "../../../helpers/backend_helper
 import { getAllCenters } from "../../../helpers/backend_helper";
 import TicketForm from "../Components/TicketForm";
 import { toast } from "react-toastify";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const initialFormState = {
   requestedFrom: null,
@@ -33,6 +34,20 @@ const RaiseTicket = () => {
 
   const [form, setForm] = useState(initialFormState);
   const fileInputRef = useRef(null);
+
+
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+
+  const hasReadPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
+  const hasWritePermission = hasPermission("ISSUES", "RAISE_TICKET", "WRITE");
+  const hasDeletePermission = hasPermission("ISSUES", "RAISE_TICKET", "DELETE");
+  console.log("Has Read Perm", hasReadPermission);
+  console.log("Has Write Perm", hasWritePermission);
+  console.log("Has Delete Perm", hasDeletePermission);
+  const canSubmit = hasWritePermission || hasDeletePermission;
+  console.log("Can Submit", canSubmit);
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -197,6 +212,7 @@ const RaiseTicket = () => {
         handleSubmit={handleSubmit}
         loader={loader}
         fileInputRef={fileInputRef}
+        canSubmit={canSubmit}
       />
     </CardBody>
   );

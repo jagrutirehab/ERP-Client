@@ -31,6 +31,10 @@ const MyIssues = () => {
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
+  const hasWritePermission = hasPermission("ISSUES", "MY_ISSUES", "WRITE");
+  const hasDeletePermission = hasPermission("ISSUES", "MY_ISSUES", "DELETE");
+
+  const canChangeStatus = hasWritePermission || hasDeletePermission;
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -227,7 +231,8 @@ const MyIssues = () => {
             handleViewImages,
             status,
             handleAction,
-            type
+            type,
+            canChangeStatus
           )}
           data={issues}
           loading={loading}

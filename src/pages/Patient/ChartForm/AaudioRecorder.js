@@ -306,6 +306,7 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
+
         mediaRecorderRef.current = new MediaRecorder(stream);
 
         mediaRecorderRef.current.ondataavailable = (event) => {
