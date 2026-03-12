@@ -71,10 +71,10 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
                 page,
                 limit,
                 centers: centers,
-                financeApprovalStatus: "APPROVED",
                 approvalStatus: "APPROVED",
-                currentPaymentStatus: "PENDING",
+                financeApprovalStatus: "APPROVED",
                 processStatus: "COMPLETED",
+                currentPaymentStatus: "PENDING",
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {

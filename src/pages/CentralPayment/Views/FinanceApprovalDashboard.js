@@ -71,6 +71,7 @@ const FinanceApprovalDashboard = ({ centerAccess, userCenters, loading, approval
                     page,
                     limit,
                     centers: centers,
+                    approvalStatus: "APPROVED",
                     financeApprovalStatus: "PENDING"
                 })).unwrap();
             } catch (error) {
