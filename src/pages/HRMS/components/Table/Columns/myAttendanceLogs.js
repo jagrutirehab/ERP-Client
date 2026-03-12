@@ -15,6 +15,7 @@ export const myAttendanceLogsColumns = ({
   setRegularizeModalOpen,
   loading,
   canShowActionButton,
+  hasMyRegularizationPermission
 }) => [
   {
     name: <div>Date</div>,
@@ -97,33 +98,35 @@ export const myAttendanceLogsColumns = ({
     },
     wrap: true,
   },
-
-  {
-    name: <div>Action</div>,
-    cell: (row) =>
-      !loading &&
-      canShowActionButton &&
-      !row?.regularizations?.regularization_id &&
-      !isFutureDate(row?.date) && ( 
-        <button
-          className="btn btn-sm btn-outline-primary"
-          style={{
-            borderRadius: "6px",
-            fontSize: "13px",
-            padding: "4px 10px",
-            fontWeight: 500,
-          }}
-          onClick={() => {
-            setSelectedRow(row);
-            setRegularizeModalOpen(true);
-          }}
-        >
-          Regularize
-        </button>
-      ),
-    wrap: true,
-    minWidth: "120px",
-  },
+  ...(canShowActionButton && hasMyRegularizationPermission
+    ? [
+        {
+          name: <div>Action</div>,
+          cell: (row) =>
+            !loading &&
+            !row?.regularizations?.regularization_id &&
+            !isFutureDate(row?.date) && (
+              <button
+                className="btn btn-sm btn-outline-primary"
+                style={{
+                  borderRadius: "6px",
+                  fontSize: "13px",
+                  padding: "4px 10px",
+                  fontWeight: 500,
+                }}
+                onClick={() => {
+                  setSelectedRow(row);
+                  setRegularizeModalOpen(true);
+                }}
+              >
+                Regularize
+              </button>
+            ),
+          wrap: true,
+          minWidth: "120px",
+        },
+      ]
+    : []),
 
   ...(hasUserAllViewPermission
     ? [

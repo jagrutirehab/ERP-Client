@@ -86,10 +86,10 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                 page,
                 limit,
                 centers: centers,
-                financeApprovalStatus: "APPROVED",
                 approvalStatus: "APPROVED",
-                currentPaymentStatus: "PENDING",
+                financeApprovalStatus: "APPROVED",
                 processStatus: "PENDING",
+                currentPaymentStatus: "PENDING",
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {

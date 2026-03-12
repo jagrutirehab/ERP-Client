@@ -43,6 +43,8 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
   const hasWriteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "WRITE");
   const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
 
+  const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
+
   const loadMyAttendanceLogs = async () => {
     try {
       await dispatch(
@@ -104,7 +106,8 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
     setSelectedRow,
     setRegularizeModalOpen,
     loading,
-    canShowActionButton
+    canShowActionButton,
+    hasMyRegularizationPermission
   });
 
   const reloadAttendance = () => {

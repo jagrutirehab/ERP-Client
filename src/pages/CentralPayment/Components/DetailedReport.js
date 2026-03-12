@@ -756,7 +756,7 @@ const DetailedReport = ({
             />
           </div>
           <div
-            className="d-flex align-items-center gap-2 flex-grow-1 mb-3"
+            className="d-flex align-items-center gap-2 flex-grow-1"
             style={{ minWidth: "250px" }}
           >
             <Input
@@ -791,7 +791,7 @@ const DetailedReport = ({
               </Button>
             )}
           </div>
-          <div className="mb-3">
+          <div className="mb-2">
             <Button
               className="d-flex align-items-center gap-1"
               onClick={handleExportXLSX}
