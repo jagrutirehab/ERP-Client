@@ -8,7 +8,8 @@ export const MyIssuesCol = (
   handleViewImages,
   activeTab,
   handleAction,
-  type
+  type,
+  canChangeStatus
 
 ) => {
   return [
@@ -242,7 +243,7 @@ export const MyIssuesCol = (
       ]
       : []
     ),
-    ...(activeTab !== "resolved" || activeTab === ""
+    ...(canChangeStatus && (activeTab !== "resolved" || activeTab === "")
       ? [
         {
           name: <div className="text-center">Action</div>,
