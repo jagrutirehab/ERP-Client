@@ -425,35 +425,35 @@ const AudioRecorder = ({ onReady }) => {
   // };
 
   const buildAndSendFile = () => {
-    if (audioChunksRef.current.length === 0) return null;
+  if (audioChunksRef.current.length === 0) return null;
 
-    let mimeType = "";
+  let mimeType = "";
 
-    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-      mimeType = "audio/webm;codecs=opus";
-    } else if (MediaRecorder.isTypeSupported("audio/webm")) {
-      mimeType = "audio/webm";
-    } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
-      mimeType = "audio/mp4;codecs=mp4a.40.2";
-    } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-      mimeType = "audio/mp4";
-    } else {
-      mimeType = "audio/mp4";
-    }
+  if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+    mimeType = "audio/webm;codecs=opus";
+  } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+    mimeType = "audio/webm";
+  } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+    mimeType = "audio/mp4;codecs=mp4a.40.2";
+  } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+    mimeType = "audio/mp4";
+  } else {
+    mimeType = "audio/mp4";
+  }
 
-    const extension = mimeType.includes("webm") ? "webm" : "m4a";
+  const extension = mimeType.includes("webm") ? "webm" : "mp4";
 
-    const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+  const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
-    const file = new File([audioBlob], `recording.${extension}`, {
-      type: mimeType,
-    });
+  const file = new File([audioBlob], `recording.${extension}`, {
+    type: mimeType,
+  });
 
-    const url = URL.createObjectURL(audioBlob);
-    setPreviewUrl(url);
+  const url = URL.createObjectURL(audioBlob);
+  setPreviewUrl(url);
 
-    return file;
-  };
+  return file;
+};
 
   const drawVisualizer = () => {
     const canvas = canvasRef.current;
@@ -485,7 +485,7 @@ const AudioRecorder = ({ onReady }) => {
   const handleStart = () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
-      mediaRecorderRef.current.start(1000);
+      mediaRecorderRef.current.start();
       setIsRecording(true);
     }
 
