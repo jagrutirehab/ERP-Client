@@ -1,4 +1,3 @@
-// /* eslint-disable react-hooks/exhaustive-deps */
 // import React, { useEffect, useState, useRef } from "react";
 // import { Button, Alert } from "reactstrap";
 
@@ -281,6 +280,7 @@
 // export default AudioRecorder;
 
 
+// /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Alert } from "reactstrap";
 
@@ -313,12 +313,22 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
-        // mediaRecorderRef.current = new MediaRecorder(stream);
-        const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-          ? "audio/webm"
-          : "audio/mp4";
 
-        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
+        let mimeType = "";
+
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+          mimeType = "audio/mp4;codecs=mp4a.40.2";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        }
+
+        mediaRecorderRef.current = mimeType
+          ? new MediaRecorder(stream, { mimeType })
+          : new MediaRecorder(stream);
 
         mediaRecorderRef.current.ondataavailable = (event) => {
           if (event.data.size > 0) audioChunksRef.current.push(event.data);
@@ -333,9 +343,13 @@ const AudioRecorder = ({ onReady }) => {
           }
         };
 
-        audioContextRef.current = new (
-          window.AudioContext || window.webkitAudioContext
-        )();
+        audioContextRef.current = new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+        if (audioContextRef.current.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+
         const source = audioContextRef.current.createMediaStreamSource(stream);
 
         const highpass = audioContextRef.current.createBiquadFilter();
@@ -345,20 +359,20 @@ const AudioRecorder = ({ onReady }) => {
         const compressor = audioContextRef.current.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(
           -50,
-          audioContextRef.current.currentTime,
+          audioContextRef.current.currentTime
         );
         compressor.knee.setValueAtTime(40, audioContextRef.current.currentTime);
         compressor.ratio.setValueAtTime(
           12,
-          audioContextRef.current.currentTime,
+          audioContextRef.current.currentTime
         );
         compressor.attack.setValueAtTime(
           0,
-          audioContextRef.current.currentTime,
+          audioContextRef.current.currentTime
         );
         compressor.release.setValueAtTime(
           0.25,
-          audioContextRef.current.currentTime,
+          audioContextRef.current.currentTime
         );
 
         const gainNode = audioContextRef.current.createGain();
@@ -394,29 +408,40 @@ const AudioRecorder = ({ onReady }) => {
     };
   }, []);
 
-
   // const buildAndSendFile = () => {
-  //   if (audioChunksRef.current.length === 0) return null;
+  //   if (audioChunksRef.current.length === 0) return;
 
   //   const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
   //   const file = new File([audioBlob], "recording.webm", {
   //     type: "audio/webm",
   //   });
 
+  //   // update preview
   //   const url = URL.createObjectURL(audioBlob);
   //   setPreviewUrl(url);
 
-  //   return file;
+  //   // send file to parent
+  //   if (onReady) onReady(file);
   // };
 
   const buildAndSendFile = () => {
     if (audioChunksRef.current.length === 0) return null;
 
-    const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-      ? "audio/webm"
-      : "audio/mp4";
+    let mimeType = "";
 
-    const extension = mimeType.includes("webm") ? "webm" : "mp4";
+    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+      mimeType = "audio/webm;codecs=opus";
+    } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+      mimeType = "audio/webm";
+    } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+      mimeType = "audio/mp4;codecs=mp4a.40.2";
+    } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+      mimeType = "audio/mp4";
+    } else {
+      mimeType = "audio/mp4";
+    }
+
+    const extension = mimeType.includes("webm") ? "webm" : "m4a";
 
     const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
@@ -456,6 +481,7 @@ const AudioRecorder = ({ onReady }) => {
     draw();
   };
 
+
   const handleStart = () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
@@ -473,6 +499,7 @@ const AudioRecorder = ({ onReady }) => {
         setIsRecording(false);
       }
     }, MAX_DURATION);
+
   };
 
   const handlePause = () => {
@@ -503,6 +530,7 @@ const AudioRecorder = ({ onReady }) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
       if (mediaRecorderRef.current.state !== "inactive") {
+
         mediaRecorderRef.current.requestData(); // VERY IMPORTANT
 
         mediaRecorderRef.current.onstop = () => {
@@ -569,3 +597,5 @@ const AudioRecorder = ({ onReady }) => {
 };
 
 export default AudioRecorder;
+
+
