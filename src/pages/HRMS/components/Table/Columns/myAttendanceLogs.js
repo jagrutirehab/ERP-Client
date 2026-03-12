@@ -15,6 +15,7 @@ export const myAttendanceLogsColumns = ({
   setRegularizeModalOpen,
   loading,
   canShowActionButton,
+  hasMyRegularizationPermission
 }) => [
   {
     name: <div>Date</div>,
@@ -104,7 +105,7 @@ export const myAttendanceLogsColumns = ({
       !loading &&
       canShowActionButton &&
       !row?.regularizations?.regularization_id &&
-      !isFutureDate(row?.date) && ( 
+      !isFutureDate(row?.date) && hasMyRegularizationPermission && (
         <button
           className="btn btn-sm btn-outline-primary"
           style={{
