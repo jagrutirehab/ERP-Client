@@ -12,6 +12,8 @@ import FinanceApprovalDashboard from './FinanceApprovalDashboard';
 const priorityOrder = [
     SPENDING_VIEW,
     APPROVAL_VIEW,
+    FINANCE_APPROVAL_VIEW,
+    PAYMENT_PROCESSING_VIEW,
     REPORTS_VIEW,
 ];
 
@@ -36,15 +38,15 @@ const Views = () => {
             order: 0,
         },
         {
-            name: "Finance Approval Dashboard",
-            view: FINANCE_APPROVAL_VIEW,
-            hasAccess: hasFinanceApprovalPermission,
-            order: 1,
-        },
-        {
             name: "Approval Dashboard",
             view: APPROVAL_VIEW,
             hasAccess: hasApprovalsPermission,
+            order: 1,
+        },
+        {
+            name: "Finance Approval Dashboard",
+            view: FINANCE_APPROVAL_VIEW,
+            hasAccess: hasFinanceApprovalPermission,
             order: 2,
         },
         {
@@ -130,8 +132,8 @@ const Views = () => {
                     </div>
                     <div className="bg-white px-3 py-3 vh-90">
                         {view === SPENDING_VIEW && <Spending />}
-                        {view===FINANCE_APPROVAL_VIEW && <FinanceApprovalDashboard />}
                         {view === APPROVAL_VIEW && <ApprovalDashboard />}
+                        {view===FINANCE_APPROVAL_VIEW && <FinanceApprovalDashboard />}
                         {view === PAYMENT_PROCESSING_VIEW && <PaymentProcessingDashboard />}
                         {view === REPORTS_VIEW && <Reports />}
                     </div>

@@ -31,6 +31,10 @@ const MyIssues = () => {
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
+  const hasWritePermission = hasPermission("ISSUES", "MY_ISSUES", "WRITE");
+  const hasDeletePermission = hasPermission("ISSUES", "MY_ISSUES", "DELETE");
+
+  const canChangeStatus = hasWritePermission || hasDeletePermission;
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -146,15 +150,14 @@ const MyIssues = () => {
   const handleAssignSubmit = async (data) => {
 
     const payload = {
-      issueId: selectedIssue._id,
-      status: selectedIssue.nextStatus,
+      issueId: data.issueId,
+      status: data.status,
       note: data.note
     }
-
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(selectedIssue.nextStatus)
+      setStatus(data?.status)
       loadIssues();
 
     } catch (error) {
@@ -228,7 +231,8 @@ const MyIssues = () => {
             handleViewImages,
             status,
             handleAction,
-            type
+            type,
+            canChangeStatus
           )}
           data={issues}
           loading={loading}
@@ -258,7 +262,7 @@ const MyIssues = () => {
         issue={selectedIssue}
         onAssign={handleAssignSubmit}
         activeTab={status}
-        title={`Update Issue Status to ${selectedIssue?.nextStatus?.replaceAll("_", " ")}`}
+        title={`Update Issue Status`}
       />
 
 

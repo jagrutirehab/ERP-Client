@@ -14,6 +14,7 @@ import { approveIssue, changeStatus } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import ApprovalModal from "../Components/ApprovalModal";
 import Select from "react-select";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const IssuesPage = ({ type }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -38,6 +39,22 @@ const IssuesPage = ({ type }) => {
     const [approvalModal, setApprovalModal] = useState(false);
     const [approvalIssue, setApprovalIssue] = useState(null);
     const [approvalStatus, setApprovalStatus] = useState("");
+    const [editRowId, setEditRowId] = useState(null);
+    const [editedApproval, setEditedApproval] = useState("");
+    const [editedApprovalBy, setEditedApprovalBy] = useState("");
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+    const { hasPermission } = usePermissions(token);
+
+    const hasWritePermission = hasPermission("ISSUES", "ISSUES", "WRITE");
+    const hasDeletePermission = hasPermission("ISSUES", "ISSUES", "DELETE");
+
+    const canEdit = hasWritePermission || hasDeletePermission;
+
+    console.log("Can Edit", canEdit);
+    
+
+    const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
 
 
@@ -165,6 +182,55 @@ const IssuesPage = ({ type }) => {
         { value: "not_approved", label: "Not Approved" },
     ];
 
+    // const handleEdit = (row) => {
+    //     setEditRowId(row._id);
+
+    //     // start with empty values
+    //     setEditedApproval("");
+    //     setEditedApprovalBy("");
+    // };
+
+    const handleEdit = (row) => {
+        setEditRowId(row._id);
+
+        // prefill approval dropdown
+        if (row?.approval?.isApproved === true) {
+            setEditedApproval("yes");
+        } else if (row?.approval?.isApproved === false) {
+            setEditedApproval("no");
+        } else {
+            setEditedApproval("");
+        }
+
+        // prefill approvedBy dropdown
+        setEditedApprovalBy(row?.approval?.approvedBy || "");
+    };
+    const handleSave = async (row) => {
+        try {
+
+            const payload = {
+                issueId: row._id
+            };
+
+            if (editedApprovalBy) {
+                payload.approvedBy = editedApprovalBy;
+            }
+
+            if (editedApproval) {
+                payload.isApproved = editedApproval === "yes";
+            }
+
+            const response = await approveIssue(payload);
+
+            toast.success(response?.message || "Approval Updated");
+
+            setEditRowId(null);
+            loadIssues();
+
+        } catch (error) {
+            toast.error(error?.message || "Update Failed");
+        }
+    };
     return (
         <>
             <CardBody
@@ -212,12 +278,23 @@ const IssuesPage = ({ type }) => {
 
                 <DataTableComponent
                     columns={
-                        Issues(handleViewDescription,
+                        Issues(
+                            handleViewDescription,
                             handleViewImages,
                             activeTab,
                             handleAssign,
                             handleApproveClick,
-                            type
+                            type,
+                            editRowId,
+                            handleEdit,
+                            handleSave,
+                            editedApproval,
+                            setEditedApproval,
+                            editedApprovalBy,
+                            setEditedApprovalBy,
+                            approvers,
+                            setEditRowId,
+                            canEdit
                         )}
                     data={issues}
                     loading={loading}

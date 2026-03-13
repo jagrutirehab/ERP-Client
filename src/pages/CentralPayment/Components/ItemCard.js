@@ -237,7 +237,7 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                         Payable (TDS Deducted)
                                     </i>
                                 )}
-                                {flag === "financeApproval" && (
+                                {(flag === "financeApproval" || flag === "approval") && (
                                     <span className="mt-1 ">
                                         <span className="fw-bold">TDS Rate:</span> {item?.TDSRate ?? 0}%
                                     </span>

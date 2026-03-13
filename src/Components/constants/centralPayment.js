@@ -57,3 +57,70 @@ export const categoryOptions = [
   { value: "WATER_PURIFIER", label: "WATER PURIFIER" },
   { value: "OTHERS", label: "OTHERS" },
 ];
+
+export const tallyBankAccounts = [
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200062589316",
+    label: "HDFC Bank Ltd. A/c No. 50200062589316"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200075783148",
+    label: "HDFC Bank Ltd. A/c No. 50200075783148"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200075819168",
+    label: "HDFC Bank Ltd. A/c No. 50200075819168"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200075878457",
+    label: "HDFC Bank Ltd. A/c No. 50200075878457"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200084303252",
+    label: "HDFC Bank Ltd. A/c No. 50200084303252"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200084304087",
+    label: "HDFC Bank Ltd. A/c No. 50200084304087"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200095551698",
+    label: "HDFC Bank Ltd. A/c No. 50200095551698"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200095551709",
+    label: "HDFC Bank Ltd. A/c No. 50200095551709"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200095551712",
+    label: "HDFC Bank Ltd. A/c No. 50200095551712"
+  },
+  {
+    value: "HDFC Bank Ltd. A/c No. 50200095551889",
+    label: "HDFC Bank Ltd. A/c No. 50200095551889"
+  },
+  {
+    value: "HDFC Bank A/c - 50200041620478",
+    label: "HDFC Bank A/c - 50200041620478"
+  },
+  {
+    value: "ICICI Bank 98601536483 A/c",
+    label: "ICICI Bank 98601536483 A/c"
+  },
+  {
+    value: "HDFC Bank (CA-50200057792757) A/c",
+    label: "HDFC Bank (CA-50200057792757) A/c"
+  },
+  {
+    value: "HDFC Bank - 50100046293125 A/c",
+    label: "HDFC Bank - 50100046293125 A/c"
+  },
+  {
+    value: "HDFC Bank - 50200054518072",
+    label: "HDFC Bank - 50200054518072"
+  },
+  {
+    value: "HDFC Bank - 50200005112131",
+    label: "HDFC Bank - 50200005112131"
+  }
+];
