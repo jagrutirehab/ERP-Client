@@ -1816,6 +1816,19 @@ export const getEmployees = (params = {}) => {
   });
 };
 
+export const exportEmployeesXLSX = (params = {}) => {
+  return api.get(url.EMPLOYEE, {
+    params: { ...params, isExcel: true },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
 export const deleteEmployee = (id) => {
   return api.delete(`${url.EMPLOYEE}/${id}`, {
     headers: {
