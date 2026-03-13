@@ -20,6 +20,13 @@ export const leaveTypes = [
     "LEAVE_WTIHOUT_PAYS",
 ];
 
+export const leaveTypeOptions = [
+    { value: "EARNED_LEAVE", label: "Earned Leave" },
+    { value: "WEEK_OFFS", label: "Week Off" },
+    { value: "FESTIVE_LEAVE", label: "Festive Leave" },
+    { value: "LEAVE_WTIHOUT_PAYS", label: "Unpaid Leave" },
+];
+
 export const statusTitleMap = {
     PRESENT: "Present",
     ABSENT: "Absent",
@@ -35,5 +42,11 @@ export const statusTitleMap = {
 
     HALF_DAY: "Half Day",
 };
+
+export const shiftTimeOptions = [
+    { value: "FULL_DAY", label: "Full Day" },
+    { value: "FIRST_HALF", label: "First Half" },
+    { value: "SECOND_HALF", label: "Second Half" },
+];
 
 
