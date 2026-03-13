@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderText: {
     fontFamily: "Roboto",
-    fontSize: 9,
+    fontSize: 8,
     textTransform: "uppercase",
   },
   tableRow: {
@@ -135,21 +135,21 @@ const styles = StyleSheet.create({
   cellHandedOver: { width: "18%", paddingLeft: 4 },
   cellAttachment: { width: "13%", paddingLeft: 4 },
   cellText: {
-    fontSize: 10,
+    fontSize: 9,
   },
   cellTextCaps: {
-    fontSize: 10,
+    fontSize: 9,
     textTransform: "capitalize",
   },
   riskHigh: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Roboto",
   },
   riskModerate: {
-    fontSize: 10,
+    fontSize: 9,
   },
   riskLow: {
-    fontSize: 10,
+    fontSize: 9,
   },
   // Summary
   summaryRow: {

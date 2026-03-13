@@ -129,7 +129,7 @@ export const myAttendanceLogsColumns = ({
                     Regularize
                   </Button>
                 )}
-                {!row?.leave && !isSelf && (
+                {row?.leave?.status !== "approved" && !isSelf && (
                   <Button
                     size="sm"
                     color="primary"
