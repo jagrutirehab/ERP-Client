@@ -125,14 +125,15 @@ const styles = StyleSheet.create({
   tableRowNotAllowed: {
     backgroundColor: "#fde0e0",
   },
-  cellSl: { width: "5%", paddingRight: 2 },
-  cellItem: { width: "20%", paddingRight: 4 },
-  cellCategory: { width: "13%", paddingRight: 4 },
-  cellRisk: { width: "12%", paddingRight: 4 },
-  cellAllowed: { width: "13%", paddingRight: 4 },
-  cellQty: { width: "6%", textAlign: "center" },
-  cellRemarks: { width: "17%", paddingLeft: 4 },
-  cellAttachment: { width: "14%", paddingLeft: 4 },
+  cellSl: { width: "4%", paddingRight: 2 },
+  cellItem: { width: "16%", paddingRight: 4 },
+  cellCategory: { width: "11%", paddingRight: 4 },
+  cellRisk: { width: "10%", paddingRight: 4 },
+  cellAllowed: { width: "11%", paddingRight: 4 },
+  cellQty: { width: "5%", textAlign: "center" },
+  cellRemarks: { width: "12%", paddingLeft: 4 },
+  cellHandedOver: { width: "18%", paddingLeft: 4 },
+  cellAttachment: { width: "13%", paddingLeft: 4 },
   cellText: {
     fontSize: 10,
   },
@@ -223,7 +224,7 @@ const breakLongText = (text, chunkSize = 15) => {
   return match ? match.join("\n") : text;
 };
 
-const BelongingsPDF = ({ items, patient, date, center }) => {
+const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
   const formattedDate = date
     ? format(new Date(date), "dd MMM yyyy, hh:mm a")
     : "";
@@ -332,6 +333,9 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
             <View style={styles.cellRemarks}>
               <Text style={styles.tableHeaderText}>Remarks</Text>
             </View>
+            <View style={styles.cellHandedOver}>
+              <Text style={styles.tableHeaderText}>Handover Status</Text>
+            </View>
             <View style={styles.cellAttachment}>
               <Text style={styles.tableHeaderText}>Attachment</Text>
             </View>
@@ -383,6 +387,9 @@ const BelongingsPDF = ({ items, patient, date, center }) => {
               </View>
               <View style={styles.cellRemarks}>
                 <Text style={styles.cellTextCaps}>{capitalizeWords(item.remarks || "-")}</Text>
+              </View>
+              <View style={styles.cellHandedOver}>
+                <Text style={{ fontSize: 7, textTransform: "capitalize" }}>{item.handedOverTo ? `Handed Over to ${item.handedOverTo}` : "-"}</Text>
               </View>
               <View style={styles.cellAttachment}>
                 <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 15)}</Text>
