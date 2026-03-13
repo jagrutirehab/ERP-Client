@@ -16,6 +16,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
     const [employees, setEmployees] = useState([]);
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [note, setNote] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState(null);
 
     const isECodeLike = (value) => {
         return /^[A-Za-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*$/.test(value);
@@ -59,18 +60,54 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
         return debounce(fetchEmployees, 400);
     }, []);
 
+    // const handleSubmit = () => {
+    //     onAssign({
+    //         issueId: issue?._id,
+    //         assignedTo: employee?.value,
+    //         note,
+    //         status: "assigned",
+    //     });
+
+    //     setEmployee(null);
+    //     setNote("");
+    //     toggle();
+    // };
+    console.log(selectedStatus?.value, "lala");
+    
     const handleSubmit = () => {
-        onAssign({
-            issueId: issue?._id,
-            assignedTo: employee?.value,
-            note,
-            status: "assigned",
-        });
+
+        if (activeTab === "new") {
+            onAssign({
+                issueId: issue?._id,
+                assignedTo: employee?.value,
+                note,
+                status: "assigned",
+            });
+        }
+
+        if (activeTab !== "new") {
+            onAssign({
+                issueId: issue?._id,
+                note,
+                status: selectedStatus?.value,
+            });
+        }
 
         setEmployee(null);
+        setSelectedStatus(null);
         setNote("");
+
         toggle();
     };
+
+    const statusOptions = [
+        // { value: "assigned", label: "Assigned" },
+        { value: "in_progress", label: "In Progress" },
+        { value: "on_hold", label: "On Hold" },
+        { value: "pending_user", label: "Pending User" },
+        { value: "pending_release", label: "Pending Release" },
+        { value: "resolved", label: "Resolved" },
+    ];
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>
@@ -99,6 +136,21 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
                                     ? "Searching employees..."
                                     : "Search employee..."
                             }
+                        />
+                    </div>
+                )}
+
+
+                {activeTab !== "new" && (
+                    <div className="mb-3">
+                        <label className="form-label fw-semibold">Change Status</label>
+
+                        <Select
+                            placeholder="Select status"
+                            options={statusOptions}
+                            value={selectedStatus}
+                            onChange={(option) => setSelectedStatus(option)}
+                            isClearable
                         />
                     </div>
                 )}

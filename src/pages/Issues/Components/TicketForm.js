@@ -26,6 +26,7 @@ const TicketForm = ({
     handleSubmit,
     loader,
     fileInputRef,
+    canSubmit
 }) => {
     const isFormValid = () => {
 
@@ -244,29 +245,32 @@ const TicketForm = ({
                 </Col>
 
 
-                <Col md={12} className="text-start">
+                {
+                    canSubmit && (
+                        <Col md={12} className="text-start">
 
-                    <div id="submitTicketWrapper" style={{ display: "inline-block" }}>
-                        <button
-                            type="submit"
-                            className="btn btn-primary px-4"
-                            disabled={loader || !isFormValid()}
-                        >
-                            {loader ? (
-                                <Spinner size="sm" color="light" />
-                            ) : (
-                                "Submit Ticket"
+                            <div id="submitTicketWrapper" style={{ display: "inline-block" }}>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary px-4"
+                                    disabled={loader || !isFormValid()}
+                                >
+                                    {loader ? (
+                                        <Spinner size="sm" color="light" />
+                                    ) : (
+                                        "Submit Ticket"
+                                    )}
+                                </button>
+                            </div>
+
+                            {!isFormValid() && (
+                                <UncontrolledTooltip placement="top" target="submitTicketWrapper">
+                                    Please fill required fields
+                                </UncontrolledTooltip>
                             )}
-                        </button>
-                    </div>
 
-                    {!isFormValid() && (
-                        <UncontrolledTooltip placement="top" target="submitTicketWrapper">
-                            Please fill required fields
-                        </UncontrolledTooltip>
-                    )}
-
-                </Col>
+                        </Col>)
+                }
             </Row>
 
 

@@ -84,8 +84,8 @@ export const permissionList = [
     label: "Central Payment",
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
-      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
       { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
@@ -278,6 +278,7 @@ export const permissionList = [
       // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
+      { name: "MY_ATTENDANCE_REGULARIZATION", label: "My Attendance Regularization" },
 
       // Regularization
       { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
@@ -304,6 +305,7 @@ export const permissionList = [
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
       { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
+      { name: "FINANCE", label: "Finance" },
     ],
   },
   // {
@@ -330,16 +332,16 @@ export const permissionList = [
       { name: "APIKEYS", label: "Apikeys" },
     ],
   },
-  // {
-  //   key: "ISSUES",
-  //   label: "Issues",
-  //   subModules: [
-  //     { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
-  //     { name: "RAISE_TICKET", label: "Raise Ticket" },
-  //     { name: "ISSUES", label: "Issues" },
-  //     { name: "MY_ISSUES", label: "My Issues" },
-  //   ],
-  // },
+  {
+    key: "ISSUES",
+    label: "Issues",
+    subModules: [
+      // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
+      { name: "RAISE_TICKET", label: "Raise Ticket" },
+      { name: "ISSUES", label: "Issues" },
+      { name: "MY_ISSUES", label: "My Issues" },
+    ],
+  },
 
 ];
 

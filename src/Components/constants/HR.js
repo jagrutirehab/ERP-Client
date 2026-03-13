@@ -135,15 +135,21 @@ export const approvalStatusOptions = [
 export const FILE_PREVIEW_CUTOFF = "2026-02-06";
 
 export const myDashboardTypeOptions = [
-  { value: "", label: "All Types" },
-  { value: "LEAVE", label: "Leave" },
-  { value: "REGULARIZATION", label: "Regularization" },
-  { value: "ADVANCE_SALARY", label: "Advance Salary" },
-  { value: "INCENTIVE", label: "Incentive" },
-  { value: "NEW_JOINING", label: "New Joining" },
-  { value: "EXIT_EMPLOYEE", label: "Exit Employee" },
-  { value: "TRANSFER_OUTGOING", label: "Transfer Outgoing" },
-  { value: "TRANSFER_INCOMING", label: "Transfer Incoming" },
-  { value: "HIRING_REQUEST", label: "Hiring Request" },
-  { value: "TPM", label: "TPM" },
+    { value: "", label: "All Types" },
+    { value: "LEAVE", label: "Leave" },
+    { value: "REGULARIZATION", label: "Regularization" },
+    { value: "ADVANCE_SALARY", label: "Advance Salary" },
+    { value: "INCENTIVE", label: "Incentive" },
+    { value: "NEW_JOINING", label: "New Joining" },
+    { value: "EXIT_EMPLOYEE", label: "Exit Employee" },
+    { value: "TRANSFER_OUTGOING", label: "Transfer Outgoing" },
+    { value: "TRANSFER_INCOMING", label: "Transfer Incoming" },
+    { value: "HIRING_REQUEST", label: "Hiring Request" },
+    { value: "TPM", label: "TPM" },
+];
+
+export const activeFinanceOptions = [
+    { value: "ALL", label: "All" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "INACTIVE", label: "InActive" },
 ];

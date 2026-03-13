@@ -307,13 +307,13 @@ const pages = [
     link: "/issues",
     icon: "bx bx-error-circle",
   },
-  {
-    id: "hrms",
-    label: "HRMS",
-    name: "HRMS",
-    link: "/hrms",
-    icon: "bx bx-group",
-  },
+  // {
+  //   id: "hrms",
+  //   label: "HRMS",
+  //   name: "HRMS",
+  //   link: "/hrms",
+  //   icon: "bx bx-group",
+  // },
   {
     id: "webcamstats",
     label: "Web Cam Stats",
@@ -896,6 +896,12 @@ export const HR = [
     icon: "bx bx-bar-chart-alt-2",
     link: "/hr/salary",
   },
+  {
+    id: "finance",
+    label: "Finance",
+    icon: "bx bx-line-chart",
+    link: "/hr/finance",
+  },
 ];
 
 export const HRMS = [
@@ -998,12 +1004,12 @@ export const HRMS = [
 ];
 
 export const ISSUES = [
-  {
-    id: "tickets-dashboard",
-    label: "Tickets Dashboard",
-    icon: "bx bx-bar-chart-alt-2",
-    link: "/issues/dashboard",
-  },
+  // {
+  //   id: "tickets-dashboard",
+  //   label: "Tickets Dashboard",
+  //   icon: "bx bx-bar-chart-alt-2",
+  //   link: "/issues/dashboard",
+  // },
   {
     id: "raise-ticket",
     label: "Raise Ticket",

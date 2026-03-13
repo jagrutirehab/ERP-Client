@@ -117,7 +117,9 @@ const Employee = () => {
         );
         dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] }));
       } catch (error) {
-        console.error("Failed to fetch dropdowns", error);
+        if (!handleAuthError(error)) {
+          toast.error(error.message || "Failed to fetch designations")
+        }
       }
     };
     fetchDropdowns();
@@ -355,7 +357,6 @@ const Employee = () => {
       minWidth: "150px",
       center: true,
     },
-
     {
       name: <div>Gender</div>,
       selector: (row) => capitalizeWords(row?.gender || "-"),
@@ -574,7 +575,6 @@ const Employee = () => {
         }
         return format(new Date(createdAt), "dd MMM yyyy, hh:mm a");
       },
-      sortable: true,
       wrap: true,
       minWidth: "180px",
     },

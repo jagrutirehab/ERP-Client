@@ -14,7 +14,7 @@ export const calculatePayroll = (values) => {
     const shortWages = diffPaise > 0 ? -(diffPaise / 100) : 0;
 
     const basicPercentage = gross > 0 ? Math.round((basic / gross) * 100) : 0;
-    const HRAPercentage = gross > 0 ? Math.round((hra / basic) * 100) : 0;
+    const HRAPercentage = basic > 0 ? Math.round((hra / basic) * 100) : 0;
 
     // ----- PF -----
     let PFEmployee = 0;
