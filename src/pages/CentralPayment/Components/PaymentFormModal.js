@@ -1,4 +1,17 @@
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner, Form, FormGroup, Label, Input, Row, Col } from "reactstrap";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Spinner,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Row,
+  Col,
+} from "reactstrap";
 import Select from "react-select";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
@@ -12,281 +25,385 @@ import { Check, Pencil, X } from "lucide-react";
 import moment from "moment";
 import SpendingForm from "./SpendingForm";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { categoryOptions, tallyBankAccounts } from "../../../Components/constants/centralPayment";
+import {
+  categoryOptions,
+  tallyBankAccounts,
+} from "../../../Components/constants/centralPayment";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
 const paymentValidationSchema = Yup.object({
-    transactionId: Yup.string()
-        .required("Transaction ID is required to complete the UTR confirmation")
-        .min(3, "Transaction ID must be at least 3 characters")
-        .max(50, "Transaction ID must be less than 50 characters"),
-    // transactionBankName: Yup.string().required("Transaction Bank Name is required"),
-    // transactionAccountNo: Yup.string().required("Transaction Account No is required"),
-    tallyAccount: Yup.object()
-        .required("Tally Bank Account is required")
-        .nullable(),
-    currentPaymentStatus: Yup.string()
-        .required("Approval status is required")
-        .oneOf(["COMPLETED", "PENDING", "REJECTED"], "Invalid Current Payment status"),
+  transactionId: Yup.string()
+    .required("Transaction ID is required to complete the UTR confirmation")
+    .min(3, "Transaction ID must be at least 3 characters")
+    .max(50, "Transaction ID must be less than 50 characters"),
+  transactionBankName: Yup.string().required(
+    "Transaction Bank Name is required",
+  ),
+  transactionAccountNo: Yup.string().required("Bank Account No is required"),
+  // transactionBankName: Yup.string().required("Transaction Bank Name is required"),
+  // transactionAccountNo: Yup.string().required("Transaction Account No is required"),
+  tallyAccount: Yup.object()
+    .required("Tally Bank Account is required")
+    .nullable(),
+  currentPaymentStatus: Yup.string()
+    .required("Approval status is required")
+    .oneOf(
+      ["COMPLETED", "PENDING", "REJECTED"],
+      "Invalid Current Payment status",
+    ),
 });
 
-
 const PaymentFormModal = ({
-    isOpen,
-    toggle,
-    item,
-    onConfirm,
-    isProcessing,
-    paymentDetails,
-    loading,
-    mode,
-    hasCreatePermission
+  isOpen,
+  toggle,
+  item,
+  onConfirm,
+  isProcessing,
+  paymentDetails,
+  loading,
+  mode,
+  hasCreatePermission,
 }) => {
-    const dispatch = useDispatch();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [previewOpen, setPreviewOpen] = useState(false);
-    const [previewFile, setPreviewFile] = useState(null);
+  const dispatch = useDispatch();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
+  const formik = useFormik({
+    initialValues: {
+      transactionId: "",
+      // transactionBankName: "",
+      // transactionAccountNo: "",
+      tallyAccount: null,
+      currentPaymentStatus: "PENDING",
+    },
+    validationSchema: paymentValidationSchema,
+    onSubmit: (values) => {
+      onConfirm(values);
+    },
+    enableReinitialize: true,
+  });
 
-    const formik = useFormik({
-        initialValues: {
-            transactionId: "",
-            // transactionBankName: "",
-            // transactionAccountNo: "",
-            tallyAccount: null,
-            currentPaymentStatus: "PENDING"
-        },
-        validationSchema: paymentValidationSchema,
-        onSubmit: (values) => {
-            onConfirm(values);
-        },
-        enableReinitialize: true
-    });
+  const handleUppercaseChange = (e, fieldName) => {
+    const val = e.target.value.toUpperCase();
+    formik.setFieldValue(fieldName, val);
+  };
 
-    const handleUppercaseChange = (e, fieldName) => {
-        const val = e.target.value.toUpperCase();
-        formik.setFieldValue(fieldName, val);
-    };
-
-    useEffect(() => {
-        if (isOpen && item?._id) {
-            dispatch(getPaymentDetails(item._id));
-        }
-    }, [isOpen]);
-
-
-    useEffect(() => {
-        if (paymentDetails && paymentDetails._id === item?._id) {
-            const tallyBankValue = paymentDetails.transactionBankDetails?.tallyAccount || paymentDetails.transactionBankDetails?.tallyAccountNo || paymentDetails.transactionBankDetails?.tallyBankAccount;
-            const selectedOption = tallyBankAccounts.find(opt => opt.value === tallyBankValue) || null;
-
-            formik.setValues({
-                transactionId: paymentDetails.transactionId || "",
-                // transactionBankName: paymentDetails.transactionBankDetails?.bankName || "",
-                // transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
-                tallyAccount: selectedOption,
-                currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING"
-            });
-        }
-    }, [paymentDetails, item?._id]);
-
-    const handleToggle = () => {
-        formik.resetForm();
-        closePreview();
-        toggle();
-    };
-
-
-    const handleSpendingUpdate = () => {
-        setIsEditModalOpen(false);
-        dispatch(getPaymentDetails(item._id));
-
+  useEffect(() => {
+    if (isOpen && item?._id) {
+      dispatch(getPaymentDetails(item._id));
     }
+  }, [isOpen]);
 
-    const openPreview = (file) => {
-        setPreviewFile(file);
-        setPreviewOpen(true);
-    };
+  useEffect(() => {
+    if (paymentDetails && paymentDetails._id === item?._id) {
+      const tallyBankValue =
+        paymentDetails.transactionBankDetails?.tallyAccount ||
+        paymentDetails.transactionBankDetails?.tallyAccountNo ||
+        paymentDetails.transactionBankDetails?.tallyBankAccount;
+      const selectedOption =
+        tallyBankAccounts.find((opt) => opt.value === tallyBankValue) || null;
 
-    const closePreview = () => {
-        setPreviewOpen(false);
-        setPreviewFile(null);
-    };
-
-    if (loading) {
-        return (
-            <Modal isOpen={isOpen} toggle={handleToggle}>
-                <ModalHeader toggle={handleToggle}>
-                    Process Payment
-                </ModalHeader>
-                <ModalBody>
-                    <div className="text-center py-4">
-                        <Spinner color="primary" />
-                        <div className="mt-2">Loading payment details...</div>
-                    </div>
-                </ModalBody>
-            </Modal>
-        );
+      formik.setValues({
+        transactionId: paymentDetails.transactionId || "",
+        // transactionBankName: paymentDetails.transactionBankDetails?.bankName || "",
+        // transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
+        tallyAccount: selectedOption,
+        currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING",
+      });
     }
+  }, [paymentDetails, item?._id]);
 
+  const handleToggle = () => {
+    formik.resetForm();
+    closePreview();
+    toggle();
+  };
+
+  const handleSpendingUpdate = () => {
+    setIsEditModalOpen(false);
+    dispatch(getPaymentDetails(item._id));
+  };
+
+  const openPreview = (file) => {
+    setPreviewFile(file);
+    setPreviewOpen(true);
+  };
+
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewFile(null);
+  };
+
+  if (loading) {
     return (
-        <>
-            <Modal size="xl" isOpen={isOpen} toggle={handleToggle}>
-                <Form onSubmit={formik.handleSubmit}>
-                    <ModalHeader toggle={handleToggle}>
-                        <div className="d-flex align-items-center gap-2">
-                            {
-                                hasCreatePermission
-                                    ? (mode === "approval" ? "Process Approval" : "UTR Confirmation")
-                                    : "Expense Overview"
-                            }
-                        </div>
-                    </ModalHeader>
-                    <ModalBody>
-                        <div className="mb-3">
-                            <p>
-                                {
-                                    hasCreatePermission
-                                    && (mode === "approval"
-                                        ? "Expense Details"
-                                        : "Please provide payment details for")
-                                }
+      <Modal isOpen={isOpen} toggle={handleToggle}>
+        <ModalHeader toggle={handleToggle}>Process Payment</ModalHeader>
+        <ModalBody>
+          <div className="text-center py-4">
+            <Spinner color="primary" />
+            <div className="mt-2">Loading payment details...</div>
+          </div>
+        </ModalBody>
+      </Modal>
+    );
+  }
+
+  return (
+    <>
+      <Modal size="xl" isOpen={isOpen} toggle={handleToggle}>
+        <Form onSubmit={formik.handleSubmit}>
+          <ModalHeader toggle={handleToggle}>
+            <div className="d-flex align-items-center gap-2">
+              {hasCreatePermission
+                ? mode === "approval"
+                  ? "Process Approval"
+                  : "UTR Confirmation"
+                : "Expense Overview"}
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <div className="mb-3">
+              <p>
+                {hasCreatePermission &&
+                  (mode === "approval"
+                    ? "Expense Details"
+                    : "Please provide payment details for")}
+              </p>
+              <div className="border p-3 rounded bg-light">
+                <Row>
+                  <Col md={6}>
+                    <p className="mb-0">
+                      <strong>ID:</strong> {paymentDetails?.id || "-"}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Initiator:</strong>{" "}
+                      {paymentDetails?.author?.name?.toUpperCase() || "-"}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Center:</strong>{" "}
+                      {capitalizeWords(paymentDetails?.center?.title) ||
+                        "Unknown Center"}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Items:</strong> {paymentDetails?.items || "-"}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Item Category:</strong>{" "}
+                      {categoryOptions.find(
+                        (option) => option.value === paymentDetails?.category,
+                      )?.label || "-"}
+                    </p>
+                    {paymentDetails?.category === "OTHERS" && (
+                      <p className="mb-0">
+                        <strong>Item Category Details:</strong>
+                        <ExpandableText
+                          text={paymentDetails?.otherCategory || "-"}
+                        />
+                      </p>
+                    )}
+                    {paymentDetails?.category === "SALARY_ADVANCE" && (
+                      <p className="mb-0">
+                        <strong>Employee:</strong>{" "}
+                        {paymentDetails?.employee
+                          ? `${paymentDetails.employee?.name}(${paymentDetails.employee?.eCode})`
+                          : "-"}
+                      </p>
+                    )}
+                    {paymentDetails?.category === "SALARY_ADVANCE" && (
+                      <p className="mb-0">
+                        <strong>Employee's Monthly Deduction Amount:</strong>{" "}
+                        {formatCurrency(paymentDetails?.monthlyDeductionAmount)}
+                      </p>
+                    )}
+                    <p className="mb-0">
+                      <strong>Total Amount (with GST):</strong>{" "}
+                      {formatCurrency(paymentDetails?.totalAmountWithGST)}
+                    </p>
+                    <p className="mb-0">
+                      <strong>GST Amount:</strong>{" "}
+                      {formatCurrency(paymentDetails?.GSTAmount)}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Payable (TDS Deducted):</strong>{" "}
+                      {formatCurrency(paymentDetails?.finalAmount)}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Vendor:</strong> {paymentDetails?.vendor || "-"}
+                    </p>
+                    {paymentDetails?.invoiceNo && (
+                      <p className="mb-0">
+                        <strong>Invoice:</strong>{" "}
+                        {paymentDetails.invoiceNo || "-"}
+                      </p>
+                    )}
+                    {paymentDetails?.date && (
+                      <p className="mb-0">
+                        <strong>Date:</strong>{" "}
+                        {moment(paymentDetails.date).format("lll")}
+                      </p>
+                    )}
+                  </Col>
+
+                  <Col md={6}>
+                    {paymentDetails?.description && (
+                      <p className="mb-0">
+                        <strong>Description:</strong>{" "}
+                        <ExpandableText
+                          text={paymentDetails.description || "-"}
+                        />
+                      </p>
+                    )}
+                    {paymentDetails?.eNet && (
+                      <p className="mb-0 text-break">
+                        <strong>E-Net:</strong>{" "}
+                        <span className="border-bottom border-dark">
+                          {paymentDetails.eNet}
+                        </span>
+                      </p>
+                    )}
+                    {paymentDetails?.TDSRate !== null &&
+                      paymentDetails?.TDSRate !== undefined && (
+                        <p className="mb-0">
+                          <strong>TDS Rate:</strong> {paymentDetails.TDSRate}
+                        </p>
+                      )}
+                    {paymentDetails?.TDSAmount !== null &&
+                      paymentDetails?.TDSAmount !== undefined && (
+                        <p className="mb-0">
+                          <strong>TDS Amount:</strong>{" "}
+                          {formatCurrency(paymentDetails.TDSAmount)}
+                        </p>
+                      )}
+                    {paymentDetails?.transactionType && (
+                      <p className="mb-0">
+                        <strong>Transaction Type:</strong>{" "}
+                        {paymentDetails.transactionType}
+                      </p>
+                    )}
+                    {paymentDetails?.bankDetails?.accountHolderName && (
+                      <p className="mb-0">
+                        <strong>Account Holder:</strong>{" "}
+                        {paymentDetails.bankDetails.accountHolderName}
+                      </p>
+                    )}
+                    {paymentDetails?.bankDetails?.accountNo && (
+                      <p className="mb-0">
+                        <strong>Account No:</strong>{" "}
+                        {paymentDetails.bankDetails.accountNo}
+                      </p>
+                    )}
+                    {paymentDetails?.bankDetails?.IFSCCode && (
+                      <p className="mb-0">
+                        <strong>IFSC Code:</strong>{" "}
+                        {paymentDetails.bankDetails.IFSCCode}
+                      </p>
+                    )}
+                    <p className="mb-0">
+                      <strong>Initial Payment Status:</strong>{" "}
+                      {paymentDetails?.initialPaymentStatus === "PENDING"
+                        ? "To Be Paid"
+                        : paymentDetails?.initialPaymentStatus === "COMPLETED"
+                          ? "Paid"
+                          : "-"}
+                    </p>
+                  </Col>
+                </Row>
+
+                {paymentDetails?.attachments &&
+                  paymentDetails?.attachments.length > 0 && (
+                    <div className="mt-3 pt-3 border-top">
+                      <strong>
+                        {capitalizeWords(paymentDetails?.attachmentType)}
+                      </strong>
+                      <div>
+                        {paymentDetails?.attachments.map(
+                          (attachment, index) => (
+                            <p
+                              key={attachment._id || index}
+                              onClick={() => openPreview(attachment)}
+                              className="text-primary text-decoration-underline cursor-pointer mb-1"
+                            >
+                              {attachment.originalName}
                             </p>
-                            <div className="border p-3 rounded bg-light">
-                                <Row>
-                                    <Col md={6}>
-                                        <p className="mb-0"><strong>ID:</strong> {paymentDetails?.id || "-"}</p>
-                                        <p className="mb-0"><strong>Initiator:</strong> {paymentDetails?.author?.name?.toUpperCase() || "-"}</p>
-                                        <p className="mb-0"><strong>Center:</strong> {capitalizeWords(paymentDetails?.center?.title) || "Unknown Center"}</p>
-                                        <p className="mb-0"><strong>Items:</strong> {paymentDetails?.items || "-"}</p>
-                                        <p className="mb-0"><strong>Item Category:</strong> {categoryOptions.find(
-                                            (option) => option.value === paymentDetails?.category
-                                        )?.label || "-"}</p>
-                                        {paymentDetails?.category === "OTHERS" && <p className="mb-0"><strong>Item Category Details:</strong><ExpandableText text={paymentDetails?.otherCategory || "-"} /></p>}
-                                        {paymentDetails?.category === "SALARY_ADVANCE" && <p className="mb-0"><strong>Employee:</strong> {paymentDetails?.employee ? `${paymentDetails.employee?.name}(${paymentDetails.employee?.eCode})` : "-"}</p>}
-                                        {paymentDetails?.category === "SALARY_ADVANCE" && <p className="mb-0"><strong>Employee's Monthly Deduction Amount:</strong>  {formatCurrency(paymentDetails?.monthlyDeductionAmount)}</p>}
-                                        <p className="mb-0"><strong>Total Amount (with GST):</strong> {formatCurrency(paymentDetails?.totalAmountWithGST)}</p>
-                                        <p className="mb-0"><strong>GST Amount:</strong> {formatCurrency(paymentDetails?.GSTAmount)}</p>
-                                        <p className="mb-0"><strong>Payable (TDS Deducted):</strong> {formatCurrency(paymentDetails?.finalAmount)}</p>
-                                        <p className="mb-0"><strong>Vendor:</strong> {paymentDetails?.vendor || "-"}</p>
-                                        {paymentDetails?.invoiceNo && (
-                                            <p className="mb-0"><strong>Invoice:</strong> {paymentDetails.invoiceNo || "-"}</p>
-                                        )}
-                                        {paymentDetails?.date && (
-                                            <p className="mb-0"><strong>Date:</strong> {moment(paymentDetails.date).format("lll")}</p>
-                                        )}
-                                    </Col>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
 
-                                    <Col md={6}>
-                                        {paymentDetails?.description && (
-                                            <p className="mb-0">
-                                                <strong>Description:</strong> <ExpandableText text={paymentDetails.description || "-"} />
-                                            </p>
-                                        )}
-                                        {paymentDetails?.eNet && (
-                                            <p className="mb-0 text-break">
-                                                <strong>E-Net:</strong>{" "}
-                                                <span className="border-bottom border-dark">{paymentDetails.eNet}</span>
-                                            </p>
-                                        )}
-                                        {paymentDetails?.TDSRate !== null &&
-                                            paymentDetails?.TDSRate !== undefined && (
-                                                <p className="mb-0">
-                                                    <strong>TDS Rate:</strong> {paymentDetails.TDSRate}
-                                                </p>
-                                            )}
-                                        {paymentDetails?.TDSAmount !== null &&
-                                            paymentDetails?.TDSAmount !== undefined && (
-                                                <p className="mb-0">
-                                                    <strong>TDS Amount:</strong> {formatCurrency(paymentDetails.TDSAmount)}
-                                                </p>
-                                            )}
-                                        {paymentDetails?.transactionType && (
-                                            <p className="mb-0"><strong>Transaction Type:</strong> {paymentDetails.transactionType}</p>
-                                        )}
-                                        {paymentDetails?.bankDetails?.accountHolderName && (
-                                            <p className="mb-0"><strong>Account Holder:</strong> {paymentDetails.bankDetails.accountHolderName}</p>
-                                        )}
-                                        {paymentDetails?.bankDetails?.accountNo && (
-                                            <p className="mb-0"><strong>Account No:</strong> {paymentDetails.bankDetails.accountNo}</p>
-                                        )}
-                                        {paymentDetails?.bankDetails?.IFSCCode && (
-                                            <p className="mb-0"><strong>IFSC Code:</strong> {paymentDetails.bankDetails.IFSCCode}</p>
-                                        )}
-                                        <p className="mb-0"><strong>Initial Payment Status:</strong> {(paymentDetails?.initialPaymentStatus === "PENDING" ? "To Be Paid" : paymentDetails?.initialPaymentStatus === "COMPLETED" ? "Paid" : "-")}</p>
-                                    </Col>
-                                </Row>
-
-                                {paymentDetails?.attachments && paymentDetails?.attachments.length > 0 && (
-                                    <div className="mt-3 pt-3 border-top">
-                                        <strong>{capitalizeWords(paymentDetails?.attachmentType)}</strong>
-                                        <div>
-                                            {paymentDetails?.attachments.map((attachment, index) => (
-                                                <p
-                                                    key={attachment._id || index}
-                                                    onClick={() => openPreview(attachment)}
-                                                    className="text-primary text-decoration-underline cursor-pointer mb-1"
-                                                >
-                                                    {attachment.originalName}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {mode === "UTRConfirmation" && hasCreatePermission && (
-                            <>
-                                <Row>
-                                    <Col md={6} className="mb-3">
-                                        <FormGroup>
-                                            <Label for="transactionId">
-                                                Transaction ID/UTR <span className="text-danger">*</span>
-                                            </Label>
-                                            <Input
-                                                type="text"
-                                                id="transactionId"
-                                                name="transactionId"
-                                                placeholder="Enter transaction ID"
-                                                value={formik.values.transactionId}
-                                                onChange={(e) => handleUppercaseChange(e, "transactionId")}
-                                                onBlur={formik.handleBlur}
-                                                invalid={formik.touched.transactionId && Boolean(formik.errors.transactionId)}
-                                                disabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
-                                            />
-                                            {formik.touched.transactionId && formik.errors.transactionId && (
-                                                <div className="text-danger small mt-1">
-                                                    {formik.errors.transactionId}
-                                                </div>
-                                            )}
-                                        </FormGroup>
-                                    </Col>
-                                    <Col md={6} className="mb-3">
-                                        <FormGroup>
-                                            <Label for="tallyAccount">
-                                                Tally Bank Account <span className="text-danger">*</span>
-                                            </Label>
-                                            <Select
-                                                id="tallyAccount"
-                                                name="tallyAccount"
-                                                options={tallyBankAccounts}
-                                                value={formik.values.tallyAccount}
-                                                onChange={(option) => formik.setFieldValue("tallyAccount", option)}
-                                                onBlur={() => formik.setFieldTouched("tallyAccount", true)}
-                                                classNamePrefix="react-select"
-                                                placeholder="Select Tally bank account"
-                                                isClearable
-                                                isDisabled={isProcessing.id === item._id && isProcessing.type === "PROCESSING"}
-                                            />
-                                            {formik.touched.tallyAccount && formik.errors.tallyAccount && (
-                                                <div className="text-danger small mt-1">
-                                                    {formik.errors.tallyAccount}
-                                                </div>
-                                            )}
-                                        </FormGroup>
-                                    </Col>
-                                    {/* <Col md={6} className="mb-3">
+            {mode === "UTRConfirmation" && hasCreatePermission && (
+              <>
+                <Row>
+                  <Col md={6} className="mb-3">
+                    <FormGroup>
+                      <Label for="transactionId">
+                        Transaction ID/UTR{" "}
+                        <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        type="text"
+                        id="transactionId"
+                        name="transactionId"
+                        placeholder="Enter transaction ID"
+                        value={formik.values.transactionId}
+                        onChange={(e) =>
+                          handleUppercaseChange(e, "transactionId")
+                        }
+                        onBlur={formik.handleBlur}
+                        invalid={
+                          formik.touched.transactionId &&
+                          Boolean(formik.errors.transactionId)
+                        }
+                        disabled={
+                          isProcessing.id === item._id &&
+                          isProcessing.type === "PROCESSING"
+                        }
+                      />
+                      {formik.touched.transactionId &&
+                        formik.errors.transactionId && (
+                          <div className="text-danger small mt-1">
+                            {formik.errors.transactionId}
+                          </div>
+                        )}
+                    </FormGroup>
+                  </Col>
+                  <Col md={6} className="mb-3">
+                    <FormGroup>
+                      <Label for="tallyAccount">
+                        Tally Bank Account{" "}
+                        <span className="text-danger">*</span>
+                      </Label>
+                      <Select
+                        id="tallyAccount"
+                        name="tallyAccount"
+                        options={tallyBankAccounts}
+                        value={formik.values.tallyAccount}
+                        onChange={(option) =>
+                          formik.setFieldValue("tallyAccount", option)
+                        }
+                        onBlur={() =>
+                          formik.setFieldTouched("tallyAccount", true)
+                        }
+                        classNamePrefix="react-select"
+                        placeholder="Select Tally bank account"
+                        isClearable
+                        isDisabled={
+                          isProcessing.id === item._id &&
+                          isProcessing.type === "PROCESSING"
+                        }
+                      />
+                      {formik.touched.tallyAccount &&
+                        formik.errors.tallyAccount && (
+                          <div className="text-danger small mt-1">
+                            {formik.errors.tallyAccount}
+                          </div>
+                        )}
+                    </FormGroup>
+                  </Col>
+                  {/* <Col md={6} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionBankName">
                                                 Transaction Bank Name <span className="text-danger">*</span>
@@ -312,13 +429,13 @@ const PaymentFormModal = ({
                                     <Col md={6} className="mb-3">
                                         <FormGroup>
                                             <Label for="transactionAccountNo">
-                                                Transaction Account No <span className="text-danger">*</span>
+                                                Bank Account No <span className="text-danger">*</span>
                                             </Label>
                                             <Input
                                                 type="text"
                                                 id="transactionAccountNo"
                                                 name="transactionAccountNo"
-                                                placeholder="Enter transaction account no"
+                                                placeholder="Enter bank account no"
                                                 value={formik.values.transactionAccountNo}
                                                 onChange={(e) => handleUppercaseChange(e, "transactionAccountNo")}
                                                 onBlur={formik.handleBlur}
@@ -333,7 +450,7 @@ const PaymentFormModal = ({
                                         </FormGroup>
                                     </Col> */}
 
-                                    {/* <Col md={3}>
+                  {/* <Col md={3}>
                                         <FormGroup>
                                             <Label for="currentPaymentStatus">
                                                 Current Payment Status *
@@ -359,63 +476,72 @@ const PaymentFormModal = ({
                                             )}
                                         </FormGroup>
                                     </Col> */}
-                                </Row>
+                </Row>
 
-                                <p className="mt-3 text-warning small">
-                                    <strong>Note:</strong> Please verify all details before submitting. This action cannot be undone.
-                                </p>
-                            </>
-                        )}
-                    </ModalBody>
+                <p className="mt-3 text-warning small">
+                  <strong>Note:</strong> Please verify all details before
+                  submitting. This action cannot be undone.
+                </p>
+              </>
+            )}
+          </ModalBody>
 
-                    <ModalFooter>
-                        {hasCreatePermission && (
-                            (mode === "financeApproval" || mode === "approval") ? (
-                                <div className="d-flex justify-content-end">
-                                    <Button
-                                        size="sm"
-                                        color="primary"
-                                        className="me-2"
-                                        outline
-                                        onClick={() => setIsEditModalOpen(true)}
-                                    >
-                                        <Pencil size={16} className="me-1" />
-                                        Edit Expense
-                                    </Button>
+          <ModalFooter>
+            {hasCreatePermission &&
+              (mode === "financeApproval" || mode === "approval" ? (
+                <div className="d-flex justify-content-end">
+                  <Button
+                    size="sm"
+                    color="primary"
+                    className="me-2"
+                    outline
+                    onClick={() => setIsEditModalOpen(true)}
+                  >
+                    <Pencil size={16} className="me-1" />
+                    Edit Expense
+                  </Button>
 
-                                    <Button
-                                        onClick={() => onConfirm(item._id, "REJECTED")}
-                                        color="danger"
-                                        size="sm"
-                                        className="me-2 d-flex align-items-center text-white"
-                                        disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
-                                    >
-                                        {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
-                                            <Spinner size="sm" color="light" className="me-1" />
-                                        ) : (
-                                            <X size={16} className="me-1" />
-                                        )}
-                                        Reject
-                                    </Button>
+                  <Button
+                    onClick={() => onConfirm(item._id, "REJECTED")}
+                    color="danger"
+                    size="sm"
+                    className="me-2 d-flex align-items-center text-white"
+                    disabled={
+                      isProcessing.id === item._id &&
+                      isProcessing.type === "REJECTED"
+                    }
+                  >
+                    {isProcessing.id === item._id &&
+                    isProcessing.type === "REJECTED" ? (
+                      <Spinner size="sm" color="light" className="me-1" />
+                    ) : (
+                      <X size={16} className="me-1" />
+                    )}
+                    Reject
+                  </Button>
 
-                                    <Button
-                                        onClick={() => onConfirm(item._id, "APPROVED")}
-                                        color="success"
-                                        size="sm"
-                                        className="d-flex align-items-center text-white"
-                                        disabled={isProcessing.id === item._id && isProcessing.type === "APPROVED"}
-                                    >
-                                        {isProcessing.id === item._id && isProcessing.type === "APPROVED" ? (
-                                            <Spinner size="sm" color="light" className="me-1" />
-                                        ) : (
-                                            <Check size={16} className="me-1" />
-                                        )}
-                                        Approve
-                                    </Button>
-                                </div>
-                            ) : (
-                                <>
-                                    {/* <Button
+                  <Button
+                    onClick={() => onConfirm(item._id, "APPROVED")}
+                    color="success"
+                    size="sm"
+                    className="d-flex align-items-center text-white"
+                    disabled={
+                      isProcessing.id === item._id &&
+                      isProcessing.type === "APPROVED"
+                    }
+                  >
+                    {isProcessing.id === item._id &&
+                    isProcessing.type === "APPROVED" ? (
+                      <Spinner size="sm" color="light" className="me-1" />
+                    ) : (
+                      <Check size={16} className="me-1" />
+                    )}
+                    Approve
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* <Button
                                         type="button"
                                         color="secondary"
                                         onClick={handleToggle}
@@ -445,104 +571,109 @@ const PaymentFormModal = ({
                                             "Process Payment"
                                         )}
                                     </Button> */}
-                                    <div className="d-flex justify-content-end gap-2">
-                                        <Button
-                                            color="danger"
-                                            size="sm"
-                                            className="d-flex align-items-center text-white"
-                                            disabled={isProcessing.id === item._id && isProcessing.type === "REJECTED"}
-                                            onClick={() => {
-                                                onConfirm({
-                                                    transactionId: formik.values.transactionId,
-                                                    currentPaymentStatus: "REJECTED"
-                                                });
-                                            }}
-                                        >
-                                            {isProcessing.id === item._id && isProcessing.type === "REJECTED" ? (
-                                                <Spinner size="sm" color="light" className="me-1" />
-                                            ) : (
-                                                <X size={16} className="me-1" />
-                                            )}
-                                            Reject
-                                        </Button>
+                  <div className="d-flex justify-content-end gap-2">
+                    <Button
+                      color="danger"
+                      size="sm"
+                      className="d-flex align-items-center text-white"
+                      disabled={
+                        isProcessing.id === item._id &&
+                        isProcessing.type === "REJECTED"
+                      }
+                      onClick={() => {
+                        onConfirm({
+                          transactionId: formik.values.transactionId,
+                          currentPaymentStatus: "REJECTED",
+                        });
+                      }}
+                    >
+                      {isProcessing.id === item._id &&
+                      isProcessing.type === "REJECTED" ? (
+                        <Spinner size="sm" color="light" className="me-1" />
+                      ) : (
+                        <X size={16} className="me-1" />
+                      )}
+                      Reject
+                    </Button>
 
-                                        <Button
-                                            color="success"
-                                            size="sm"
-                                            className="d-flex align-items-center text-white"
-                                            disabled={
-                                                !formik.values.transactionId.trim() ||
-                                                !formik.values.tallyAccount ||
-                                                (isProcessing.id === item._id && isProcessing.type === "COMPLETED")
-                                            }
-                                            onClick={() => {
-                                                onConfirm({
-                                                    transactionId: formik.values.transactionId,
-                                                    transactionBankDetails: {
-                                                        // bankName: formik.values.transactionBankName,
-                                                        // accountNo: formik.values.transactionAccountNo,
-                                                        tallyAccount: formik.values.tallyAccount?.value,
-                                                    },
-                                                    currentPaymentStatus: "COMPLETED"
-                                                });
-                                            }}
-                                        >
-                                            {isProcessing.id === item._id && isProcessing.type === "COMPLETED" ? (
-                                                <Spinner size="sm" color="light" className="me-1" />
-                                            ) : (
-                                                <Check size={16} className="me-1" />
-                                            )}
-                                            Complete
-                                        </Button>
-                                    </div>
-                                </>
-                            )
-                        )}
+                    <Button
+                      color="success"
+                      size="sm"
+                      className="d-flex align-items-center text-white"
+                      disabled={
+                        !formik.values.transactionId.trim() ||
+                        !formik.values.tallyAccount ||
+                        (isProcessing.id === item._id &&
+                          isProcessing.type === "COMPLETED")
+                      }
+                      onClick={() => {
+                        onConfirm({
+                          transactionId: formik.values.transactionId,
+                          transactionBankDetails: {
+                            // bankName: formik.values.transactionBankName,
+                            // accountNo: formik.values.transactionAccountNo,
+                            tallyAccount: formik.values.tallyAccount?.value,
+                          },
+                          currentPaymentStatus: "COMPLETED",
+                        });
+                      }}
+                    >
+                      {isProcessing.id === item._id &&
+                      isProcessing.type === "COMPLETED" ? (
+                        <Spinner size="sm" color="light" className="me-1" />
+                      ) : (
+                        <Check size={16} className="me-1" />
+                      )}
+                      Complete
+                    </Button>
+                  </div>
+                </>
+              ))}
+          </ModalFooter>
+        </Form>
+      </Modal>
+      <Modal
+        isOpen={isEditModalOpen}
+        toggle={() => setIsEditModalOpen(false)}
+        size="lg"
+      >
+        <ModalHeader toggle={() => setIsEditModalOpen(false)}>
+          Edit Spending
+        </ModalHeader>
 
-                    </ModalFooter>
+        <ModalBody>
+          <SpendingForm
+            paymentData={paymentDetails}
+            onUpdate={handleSpendingUpdate}
+          />
+        </ModalBody>
+      </Modal>
 
-                </Form>
-            </Modal >
-            <Modal isOpen={isEditModalOpen} toggle={() => setIsEditModalOpen(false)} size="lg">
-                <ModalHeader toggle={() => setIsEditModalOpen(false)}>
-                    Edit Spending
-                </ModalHeader>
-
-                <ModalBody>
-                    <SpendingForm
-                        paymentData={paymentDetails}
-                        onUpdate={handleSpendingUpdate}
-                    />
-                </ModalBody>
-            </Modal>
-
-            <PreviewFile
-                title="Attachment Preview"
-                file={previewFile}
-                isOpen={previewOpen}
-                toggle={closePreview}
-            />
-        </>
-
-    );
+      <PreviewFile
+        title="Attachment Preview"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={closePreview}
+      />
+    </>
+  );
 };
 
 PaymentFormModal.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    toggle: PropTypes.func.isRequired,
-    item: PropTypes.object.isRequired,
-    onConfirm: PropTypes.func.isRequired,
-    isProcessing: PropTypes.object,
-    loading: PropTypes.bool,
-    paymentDetails: PropTypes.object,
-    mode: PropTypes.string,
-    hasCreatePermission: PropTypes.bool
+  isOpen: PropTypes.bool.isRequired,
+  toggle: PropTypes.func.isRequired,
+  item: PropTypes.object.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  isProcessing: PropTypes.object,
+  loading: PropTypes.bool,
+  paymentDetails: PropTypes.object,
+  mode: PropTypes.string,
+  hasCreatePermission: PropTypes.bool,
 };
 
-
 const mapStateToProps = (state) => ({
-    loading: state.CentralPayment.paymentDetailsLoading,
-    paymentDetails: state.CentralPayment?.paymentDetails
-})
+  loading: state.CentralPayment.paymentDetailsLoading,
+  paymentDetails: state.CentralPayment?.paymentDetails,
+});
 
 export default connect(mapStateToProps)(PaymentFormModal);

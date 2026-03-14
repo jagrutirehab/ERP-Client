@@ -68,8 +68,8 @@ export const attendanceImportHistoryColumns = ({
             name: <div>Failed File</div>,
             selector: row => row?.failed?.url,
             cell: (row) =>
-                row.failed.url ? (
-                    <p onClick={() => downloadFile({ url: row.failed.url })}
+                row.failed?.url ? (
+                    <p onClick={() => downloadFile({ url: row.failed.url, originalName: row.failed.originalName || "attendance_API_error_records.xlsx" })}
                         className="text-primary text-decoration-underline cursor-pointer"
                     >
                         Download
