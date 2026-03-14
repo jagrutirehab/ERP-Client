@@ -426,6 +426,12 @@ const Employee = () => {
       wrap: true,
       minWidth: "150px",
     },
+     {
+      name: <div>Account Holder's Name</div>,
+      selector: (row) => row?.bankDetails?.accountName || "-",
+      wrap: true,
+      minWidth: "150px",
+    },
     {
       name: <div>PF Applicable</div>,
       selector: (row) =>
