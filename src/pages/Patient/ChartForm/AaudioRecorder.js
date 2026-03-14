@@ -561,7 +561,7 @@ const AudioRecorder = ({ onReady }) => {
           onClick={handlePause}
           disabled={!isRecording || !!error}
         >
-          Pause & Preview
+          Pause
         </Button>
         <Button
           color="success"
@@ -587,7 +587,7 @@ const AudioRecorder = ({ onReady }) => {
       {previewUrl && !isRecording && (
         <audio
           controls
-          autoPlay
+          // autoPlay
           src={previewUrl}
           style={{ marginTop: "10px" }}
         />
