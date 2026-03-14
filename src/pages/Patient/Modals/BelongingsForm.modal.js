@@ -17,16 +17,17 @@ import {
 } from "reactstrap";
 import { connect } from "react-redux";
 import { pdf, PDFDownloadLink } from "@react-pdf/renderer";
+import debounce from "lodash.debounce";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import Select from "react-select";
 import CustomModal from "../../../Components/Common/Modal";
 import { searchBelongings, uploadFile, createPatientBelonging, updatePatientBelonging, getPatientBelongingById } from "../../../helpers/backend_helper";
-import debounce from "lodash.debounce";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import BelongingsPDF from "../../../Components/Print/Belongings";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
-import { format } from "date-fns";
 
 const riskBadgeColor = (risk) => {
     switch (risk?.toLowerCase()) {
@@ -754,7 +755,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                 <th style={{ width: 85 }}>Allowed With Patient</th>
                                                 <th style={{ width: 65 }}>Qty</th>
                                                 <th style={{ width: 140 }}>Remarks</th>
-                                                <th style={{ width: 160 }}>Handed Over To</th>
+                                                <th style={{ width: 250 }}>HandOver Status</th>
                                                 <th style={{ width: 90 }}>Attachment</th>
                                                 <th style={{ width: 40 }}></th>
                                             </tr>
@@ -801,15 +802,23 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                         />
                                                     </td>
                                                     <td>
-                                                        <Input
-                                                            type="select"
-                                                            value={item.handedOverTo || ""}
-                                                            onChange={(e) => updateHandedOverTo(idx, e.target.value)}
-                                                            bsSize="sm"
-                                                        >
-                                                            <option value="">-- Select --</option>
-                                                            <option value="Patient's Relative/Guardian/NOK">Relative / Guardian / NOK</option>
-                                                        </Input>
+                                                        <Select
+                                                            value={item.handedOverTo ? { value: item.handedOverTo, label: "Handed Over To Patient's Relative / Guardian / NOK" } : null}
+                                                            onChange={(opt) => updateHandedOverTo(idx, opt ? opt.value : "")}
+                                                            options={[
+                                                                { value: "Patient's Relative/Guardian/NOK", label: "Handed Over To Patient's Relative / Guardian / NOK" },
+                                                            ]}
+                                                            isClearable
+                                                            placeholder="-- Select --"
+                                                            menuPortalTarget={document.body}
+                                                            styles={{
+                                                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                                control: (base) => ({ ...base, minHeight: 31, fontSize: 13 }),
+                                                                singleValue: (base) => ({ ...base, fontSize: 13, whiteSpace: "normal", overflow: "visible", textOverflow: "unset" }),
+                                                                option: (base) => ({ ...base, fontSize: 13 }),
+                                                                valueContainer: (base) => ({ ...base, flexWrap: "wrap" }),
+                                                            }}
+                                                        />
                                                     </td>
                                                     <td className="text-center">
                                                         {item.uploading ? (
