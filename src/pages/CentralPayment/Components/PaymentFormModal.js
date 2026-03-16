@@ -76,6 +76,7 @@ const PaymentFormModal = ({
       // transactionAccountNo: "",
       tallyAccount: null,
       currentPaymentStatus: "PENDING",
+      approvalRemarks: "",
     },
     validationSchema: paymentValidationSchema,
     onSubmit: (values) => {
@@ -110,6 +111,7 @@ const PaymentFormModal = ({
         // transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
         tallyAccount: selectedOption,
         currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING",
+        approvalRemarks: "",
       });
     }
   }, [paymentDetails, item?._id]);
@@ -484,6 +486,33 @@ const PaymentFormModal = ({
                 </p>
               </>
             )}
+
+            {hasCreatePermission && mode === "approval" && (
+              <>
+                <Row className="mt-3">
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label for="approvalRemarks">Remarks (Optional)</Label>
+                      <Input
+                        type="textarea"
+                        id="approvalRemarks"
+                        name="approvalRemarks"
+                        placeholder="Enter remarks"
+                        value={formik.values.approvalRemarks}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        disabled={
+                          isProcessing.id === item._id &&
+                          (isProcessing.type === "REJECTED" ||
+                            isProcessing.type === "APPROVED")
+                        }
+                        rows={3}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </>
+            )}
           </ModalBody>
 
           <ModalFooter>
@@ -502,7 +531,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "REJECTED")}
+                    onClick={() => onConfirm(item._id, "REJECTED", formik.values.approvalRemarks)}
                     color="danger"
                     size="sm"
                     className="me-2 d-flex align-items-center text-white"
@@ -521,7 +550,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "APPROVED")}
+                    onClick={() => onConfirm(item._id, "APPROVED", formik.values.approvalRemarks)}
                     color="success"
                     size="sm"
                     className="d-flex align-items-center text-white"

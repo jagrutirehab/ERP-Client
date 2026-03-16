@@ -70,10 +70,10 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     }
 
-    const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
+    const handleUpdateApprovalStatus = async (paymentId, approvalStatus, approvalRemarks) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
-            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus })).unwrap();
+            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus, approvalRemarks })).unwrap();
             toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
