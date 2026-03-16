@@ -173,15 +173,26 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Approved By</div>,
+      selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
+      wrap: true,
+    },
+    {
       name: <div>Finance Approved By</div>,
       selector: (row) => capitalizeWords(row.financeApprovedBy?.name || "-"),
       wrap: true,
       minWidth: "120px",
     },
     {
-      name: <div>Approved By</div>,
-      selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
+      name: <div>Approval Remarks</div>,
+      selector: (row) =>
+        row?.approvalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.approvalRemarks)} limit={30} />
+        ) : (
+          "-"
+        ),
       wrap: true,
+      minWidth: "150px",
     },
     {
       name: <div>Name</div>,
@@ -382,25 +393,6 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Finance Approval Status</div>,
-      selector: (row) => {
-        const status = row?.financeApprovalStatus;
-        return (
-          <Badge
-            color={getBadgeColor(status)}
-            style={{
-              display: "inline-block",
-              whiteSpace: "normal",
-              wordBreak: "break-word",
-            }}
-          >
-            {capitalizeWords(status || "-")}
-          </Badge>
-        );
-      },
-      wrap: true,
-    },
-    {
       name: <div>Approval Status</div>,
       selector: (row) => {
         const status = row?.approvalStatus;
@@ -420,15 +412,23 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Approval Remarks</div>,
-      selector: (row) =>
-        row?.approvalRemarks ? (
-          <ExpandableText text={row.approvalRemarks} limit={30} />
-        ) : (
-          "-"
-        ),
+      name: <div>Finance Approval Status</div>,
+      selector: (row) => {
+        const status = row?.financeApprovalStatus;
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
+      },
       wrap: true,
-      minWidth: "150px",
     },
     {
       name: <div>Process Status</div>,
