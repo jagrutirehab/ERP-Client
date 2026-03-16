@@ -337,6 +337,7 @@ const AudioRecorder = ({ onReady }) => {
 
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const dbRef = useRef(null);
   const pendingWritesRef = useRef(0);
   const stopResolveRef = useRef(null);
