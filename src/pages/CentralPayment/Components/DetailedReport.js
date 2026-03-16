@@ -420,6 +420,17 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Approval Remarks</div>,
+      selector: (row) =>
+        row?.approvalRemarks ? (
+          <ExpandableText text={row.approvalRemarks} limit={30} />
+        ) : (
+          "-"
+        ),
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Process Status</div>,
       selector: (row) => (
         <Badge
