@@ -331,6 +331,14 @@ export const permissionList = [
       { name: "MY_ISSUES", label: "My Issues" },
     ],
   },
+  {
+    key: "RECORDINGS",
+    label: "Recordings",
+    subModules: [
+      { name: "CALL_RECORDINGS", label: "Call Recordings" },
+      { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
+    ],
+  },
 
 ];
 

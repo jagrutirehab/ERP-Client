@@ -39,6 +39,7 @@ const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
 const Issues = React.lazy(() => import("../pages/Issues"));
+const Recordings = React.lazy(() => import("../pages/Recordings"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -88,6 +89,7 @@ const authProtectedRoutes = [
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
   { path: "/issues/*", component: Issues },
+  { path: "/recordings/*", component: Recordings },
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
@@ -98,7 +100,7 @@ const authProtectedRoutes = [
     exact: true,
     component: () => <Navigate to="/dashboard" />,
   },
-];
+];  
 
 const publicRoutes = [
   { path: "/logout", component: Logout },

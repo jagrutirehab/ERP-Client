@@ -75,6 +75,7 @@ const Navdata = () => {
     },
     ...sortPages(filteredDynamicPages),
     pages.find((p) => p.id === "issues"),
+    pages.find((p) => p.id === "recordings"),
   ];
 
   return <React.Fragment>{menuItems}</React.Fragment>;
