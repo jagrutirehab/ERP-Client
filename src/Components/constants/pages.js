@@ -300,6 +300,13 @@ const pages = [
     icon: "bx bx-error-circle",
   },
   {
+    id: "recordings",
+    label: "Recordings",
+    name: "Recordings",
+    link: "/recordings",
+    icon: "bx bx-microphone"
+  },
+  {
     id: "hrms",
     label: "HRMS",
     name: "HRMS",
@@ -1019,6 +1026,22 @@ export const ISSUES = [
     label: "My Tickets",
     icon: "bx bx-user-circle",
     link: "/issues/my/issues",
+  },
+
+];
+
+export const RECORDINGS = [
+  {
+    id: "call-recordings",
+    label: "Call Recordings",
+    link: "/recordings/call",
+    icon: "bx bx-phone"
+  },
+  {
+    id: "feedback-recordings",
+    label: "Feedback Recordings",
+    link: "/recordings/feedback",
+    icon: "bx bx-comment-detail"
   }
 ];
 
