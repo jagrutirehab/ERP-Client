@@ -279,7 +279,7 @@
 
 // /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
-import { Button, Alert } from "reactstrap";
+import { Button, Alert, Spinner } from "reactstrap";
 
 const DB_NAME = "AudioRecordingDB";
 const STORE_NAME = "chunks";
@@ -333,11 +333,13 @@ const AudioRecorder = ({ onReady }) => {
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [duration, setDuration] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
-  const audioChunksRef = useRef([]); // Fallback
   const dbRef = useRef(null);
+  const pendingWritesRef = useRef(0);
+  const stopResolveRef = useRef(null);
   const canvasRef = useRef(null);
   const analyserRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -382,25 +384,44 @@ const AudioRecorder = ({ onReady }) => {
           if (event.data.size > 0) {
             audioChunksRef.current.push(event.data);
             if (dbRef.current) {
+              pendingWritesRef.current++;
               try {
                 await saveChunkToDB(dbRef.current, event.data);
               } catch (e) {
                 console.error("Failed to save chunk to IndexedDB", e);
+              } finally {
+                pendingWritesRef.current--;
               }
             }
           }
         };
 
-        // create File when stopped
+        // SHARED stop handler
         mediaRecorderRef.current.onstop = async () => {
+          // Wait for any pending async writes to complete
+          let retryCount = 0;
+          while (pendingWritesRef.current > 0 && retryCount < 20) {
+            await new Promise((r) => setTimeout(r, 100));
+            retryCount++;
+          }
+
           const file = await buildAndSendFile();
+
+          // If there is a pending promise from stopAndFinalize, resolve it
+          if (stopResolveRef.current) {
+            stopResolveRef.current(file);
+            stopResolveRef.current = null;
+          }
 
           if (onReady && file) {
             onReady(file, null);
           }
-          if (dbRef.current) {
-            await clearDB(dbRef.current);
-          }
+        };
+
+        mediaRecorderRef.current.onerror = (event) => {
+          console.error("MediaRecorder error:", event.error);
+          setError("Recording interrupted. Please try again.");
+          setIsRecording(false);
         };
 
         audioContextRef.current = new (
@@ -449,6 +470,22 @@ const AudioRecorder = ({ onReady }) => {
 
         drawVisualizer();
         handleStart();
+
+        // Handle mobile interrupts (calls, etc.)
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === "hidden" && isRecording) {
+            console.log("Page hidden during recording. Requesting data...");
+            if (mediaRecorderRef.current?.state === "recording") {
+              mediaRecorderRef.current.requestData();
+            }
+          }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () =>
+          document.removeEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+          );
       } catch (err) {
         console.error(err);
         setError("Microphone access denied or unavailable.");
@@ -555,14 +592,17 @@ const AudioRecorder = ({ onReady }) => {
 
     const extension = mimeType.includes("webm") ? "webm" : "m4a";
 
-    const audioBlob = new Blob(chunks, { type: mimeType });
+    const cleanMimeType = mimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
+
+    const audioBlob = new Blob(chunks, { type: cleanMimeType });
 
     const file = new File([audioBlob], `recording.${extension}`, {
-      type: mimeType,
+      type: cleanMimeType,
     });
 
     const url = URL.createObjectURL(audioBlob);
     setPreviewUrl(url);
+    setIsProcessing(false);
 
     return file;
   };
@@ -598,7 +638,7 @@ const AudioRecorder = ({ onReady }) => {
       audioChunksRef.current = [];
       if (dbRef.current) await clearDB(dbRef.current);
       setDuration(0);
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.start(5000); // 5s timeslice for periodic saving
       setIsRecording(true);
     }
 
@@ -616,24 +656,42 @@ const AudioRecorder = ({ onReady }) => {
 
   const handlePause = async () => {
     if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.pause();
-      setIsRecording(false);
-      mediaRecorderRef.current.requestData();
+      try {
+        mediaRecorderRef.current.pause();
+        setIsRecording(false);
+        mediaRecorderRef.current.requestData();
 
-      // immediately build file on pause
-      setTimeout(async () => {
-        await buildAndSendFile();
-      }, 200);
+        // immediately build file on pause
+        setTimeout(async () => {
+          await buildAndSendFile();
+        }, 200);
+      } catch (e) {
+        console.error("Pause failed", e);
+      }
     }
   };
 
   const handleResume = async () => {
-    if (mediaRecorderRef.current?.state === "paused") {
-      if (audioContextRef.current?.state === "suspended") {
-        await audioContextRef.current.resume();
+    try {
+      if (mediaRecorderRef.current?.state === "paused") {
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+        mediaRecorderRef.current.resume();
+        setIsRecording(true);
+      } else if (
+        mediaRecorderRef.current?.state === "inactive" ||
+        !mediaRecorderRef.current
+      ) {
+        // If it was killed by the OS, we might need to restart it
+        // but for now, let's just error gracefully
+        setError(
+          "Recording session lost during interrupt. Please start a new recording. Your previous data is saved below."
+        );
       }
-      mediaRecorderRef.current.resume();
-      setIsRecording(true);
+    } catch (e) {
+      console.error("Resume failed", e);
+      setError("Failed to resume recording after interrupt.");
     }
   };
 
@@ -642,13 +700,9 @@ const AudioRecorder = ({ onReady }) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
       if (mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.requestData(); // VERY IMPORTANT
-
-        mediaRecorderRef.current.onstop = async () => {
-          const file = await buildAndSendFile();
-          resolve(file);
-        };
-
+        setIsProcessing(true);
+        stopResolveRef.current = resolve;
+        mediaRecorderRef.current.requestData();
         mediaRecorderRef.current.stop();
       } else {
         resolve(null);
@@ -669,6 +723,7 @@ const AudioRecorder = ({ onReady }) => {
       <div className="d-flex gap-2 mb-2">
         <Button
           color="warning"
+          type="button"
           onClick={handlePause}
           disabled={!isRecording || !!error}
         >
@@ -676,6 +731,7 @@ const AudioRecorder = ({ onReady }) => {
         </Button>
         <Button
           color="success"
+          type="button"
           onClick={handleResume}
           disabled={isRecording || !!error}
         >
@@ -694,6 +750,13 @@ const AudioRecorder = ({ onReady }) => {
           display: isRecording ? "block" : "none",
         }}
       />
+
+      {isProcessing && (
+        <Alert color="info" className="d-flex align-items-center gap-3">
+          <Spinner size="sm" color="primary" />
+          <span>Finalizing audio recording... Please wait.</span>
+        </Alert>
+      )}
 
       {isRecording && (
         <div className="d-flex align-items-center gap-2 mb-2">
