@@ -403,6 +403,12 @@ const AudioRecorder = ({ onReady }) => {
           }
         };
 
+        mediaRecorderRef.current.onerror = (event) => {
+          console.error("MediaRecorder error:", event.error);
+          setError("Recording interrupted. Please try again.");
+          setIsRecording(false);
+        };
+
         audioContextRef.current = new (
           window.AudioContext || window.webkitAudioContext
         )();
@@ -449,6 +455,22 @@ const AudioRecorder = ({ onReady }) => {
 
         drawVisualizer();
         handleStart();
+
+        // Handle mobile interrupts (calls, etc.)
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === "hidden" && isRecording) {
+            console.log("Page hidden during recording. Requesting data...");
+            if (mediaRecorderRef.current?.state === "recording") {
+              mediaRecorderRef.current.requestData();
+            }
+          }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () =>
+          document.removeEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+          );
       } catch (err) {
         console.error(err);
         setError("Microphone access denied or unavailable.");
@@ -616,24 +638,42 @@ const AudioRecorder = ({ onReady }) => {
 
   const handlePause = async () => {
     if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.pause();
-      setIsRecording(false);
-      mediaRecorderRef.current.requestData();
+      try {
+        mediaRecorderRef.current.pause();
+        setIsRecording(false);
+        mediaRecorderRef.current.requestData();
 
-      // immediately build file on pause
-      setTimeout(async () => {
-        await buildAndSendFile();
-      }, 200);
+        // immediately build file on pause
+        setTimeout(async () => {
+          await buildAndSendFile();
+        }, 200);
+      } catch (e) {
+        console.error("Pause failed", e);
+      }
     }
   };
 
   const handleResume = async () => {
-    if (mediaRecorderRef.current?.state === "paused") {
-      if (audioContextRef.current?.state === "suspended") {
-        await audioContextRef.current.resume();
+    try {
+      if (mediaRecorderRef.current?.state === "paused") {
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+        mediaRecorderRef.current.resume();
+        setIsRecording(true);
+      } else if (
+        mediaRecorderRef.current?.state === "inactive" ||
+        !mediaRecorderRef.current
+      ) {
+        // If it was killed by the OS, we might need to restart it
+        // but for now, let's just error gracefully
+        setError(
+          "Recording session lost during interrupt. Please start a new recording. Your previous data is saved below."
+        );
       }
-      mediaRecorderRef.current.resume();
-      setIsRecording(true);
+    } catch (e) {
+      console.error("Resume failed", e);
+      setError("Failed to resume recording after interrupt.");
     }
   };
 
@@ -669,6 +709,7 @@ const AudioRecorder = ({ onReady }) => {
       <div className="d-flex gap-2 mb-2">
         <Button
           color="warning"
+          type="button"
           onClick={handlePause}
           disabled={!isRecording || !!error}
         >
@@ -676,6 +717,7 @@ const AudioRecorder = ({ onReady }) => {
         </Button>
         <Button
           color="success"
+          type="button"
           onClick={handleResume}
           disabled={isRecording || !!error}
         >
