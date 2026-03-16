@@ -144,16 +144,16 @@ class APIClient {
     return response;
   };
 
-  create = (url, data, headers) => {
-    return axios.post(url, data, headers);
+  create = (url, data, config) => {
+    return axios.post(url, data, config);
   };
 
-  update = (url, data, headers) => {
-    return axios.patch(url, data, headers);
+  update = (url, data, config) => {
+    return axios.patch(url, data, config);
   };
 
-  put = (url, data, headers) => {
-    return axios.put(url, data, headers);
+  put = (url, data, config) => {
+    return axios.put(url, data, config);
   };
 
   delete = (url, config) => {

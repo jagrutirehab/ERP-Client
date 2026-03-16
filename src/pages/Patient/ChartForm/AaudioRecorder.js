@@ -30,7 +30,6 @@
 //           },
 //         });
 
-
 //         mediaRecorderRef.current = new MediaRecorder(stream);
 
 //         mediaRecorderRef.current.ondataavailable = (event) => {
@@ -162,7 +161,6 @@
 //     draw();
 //   };
 
-
 //   const handleStart = () => {
 //     if (mediaRecorderRef.current) {
 //       audioChunksRef.current = [];
@@ -279,18 +277,67 @@
 
 // export default AudioRecorder;
 
-
 // /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Alert } from "reactstrap";
+
+const DB_NAME = "AudioRecordingDB";
+const STORE_NAME = "chunks";
+
+const initDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { autoIncrement: true });
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+};
+
+const saveChunkToDB = async (db, chunk) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.add(chunk);
+    request.onsuccess = () => resolve();
+    request.onerror = (e) => reject(e.target.error);
+  });
+};
+
+const getAllChunksFromDB = async (db) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+};
+
+const clearDB = async (db) => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = (e) => reject(e.target.error);
+  });
+};
 
 const AudioRecorder = ({ onReady }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [duration, setDuration] = useState(0);
 
   const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const timerRef = useRef(null);
+  const audioChunksRef = useRef([]); // Fallback
+  const dbRef = useRef(null);
   const canvasRef = useRef(null);
   const analyserRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -313,14 +360,15 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
-
         let mimeType = "";
 
         if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
           mimeType = "audio/webm;codecs=opus";
         } else if (MediaRecorder.isTypeSupported("audio/webm")) {
           mimeType = "audio/webm";
-        } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+        } else if (
+          MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
+        ) {
           mimeType = "audio/mp4;codecs=mp4a.40.2";
         } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
           mimeType = "audio/mp4";
@@ -330,21 +378,34 @@ const AudioRecorder = ({ onReady }) => {
           ? new MediaRecorder(stream, { mimeType })
           : new MediaRecorder(stream);
 
-        mediaRecorderRef.current.ondataavailable = (event) => {
-          if (event.data.size > 0) audioChunksRef.current.push(event.data);
+        mediaRecorderRef.current.ondataavailable = async (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+            if (dbRef.current) {
+              try {
+                await saveChunkToDB(dbRef.current, event.data);
+              } catch (e) {
+                console.error("Failed to save chunk to IndexedDB", e);
+              }
+            }
+          }
         };
 
         // create File when stopped
-        mediaRecorderRef.current.onstop = () => {
-          const file = buildAndSendFile();
+        mediaRecorderRef.current.onstop = async () => {
+          const file = await buildAndSendFile();
 
           if (onReady && file) {
             onReady(file, null);
           }
+          if (dbRef.current) {
+            await clearDB(dbRef.current);
+          }
         };
 
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        audioContextRef.current = new (
+          window.AudioContext || window.webkitAudioContext
+        )();
 
         if (audioContextRef.current.state === "suspended") {
           await audioContextRef.current.resume();
@@ -359,20 +420,20 @@ const AudioRecorder = ({ onReady }) => {
         const compressor = audioContextRef.current.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(
           -50,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.knee.setValueAtTime(40, audioContextRef.current.currentTime);
         compressor.ratio.setValueAtTime(
           12,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.attack.setValueAtTime(
           0,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.release.setValueAtTime(
           0.25,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
 
         const gainNode = audioContextRef.current.createGain();
@@ -394,6 +455,20 @@ const AudioRecorder = ({ onReady }) => {
       }
     };
 
+    const setupDB = async () => {
+      try {
+        dbRef.current = await initDB();
+        const existingChunks = await getAllChunksFromDB(dbRef.current);
+        if (existingChunks && existingChunks.length > 0) {
+          console.log("Unsaved audio found, recovering...");
+          await buildAndSendFile();
+        }
+      } catch (e) {
+        console.error("IndexedDB initialization failed", e);
+      }
+    };
+
+    setupDB();
     initRecording();
 
     return () => {
@@ -405,8 +480,32 @@ const AudioRecorder = ({ onReady }) => {
       }
       cancelAnimationFrame(animationRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (isRecording) {
+      timerRef.current = setInterval(() => {
+        setDuration((d) => d + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isRecording]);
+
+  const formatDuration = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s]
+      .map((v) => (v < 10 ? "0" + v : v))
+      .filter((v, i) => v !== "00" || i > 0)
+      .join(":");
+  };
 
   // const buildAndSendFile = () => {
   //   if (audioChunksRef.current.length === 0) return;
@@ -424,8 +523,21 @@ const AudioRecorder = ({ onReady }) => {
   //   if (onReady) onReady(file);
   // };
 
-  const buildAndSendFile = () => {
-    if (audioChunksRef.current.length === 0) return null;
+  const buildAndSendFile = async () => {
+    let chunks = audioChunksRef.current;
+
+    if (dbRef.current) {
+      try {
+        const dbChunks = await getAllChunksFromDB(dbRef.current);
+        if (dbChunks && dbChunks.length > 0) {
+          chunks = dbChunks;
+        }
+      } catch (e) {
+        console.error("Failed to get chunks from IndexedDB", e);
+      }
+    }
+
+    if (chunks.length === 0) return null;
 
     let mimeType = "";
 
@@ -443,7 +555,7 @@ const AudioRecorder = ({ onReady }) => {
 
     const extension = mimeType.includes("webm") ? "webm" : "m4a";
 
-    const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+    const audioBlob = new Blob(chunks, { type: mimeType });
 
     const file = new File([audioBlob], `recording.${extension}`, {
       type: mimeType,
@@ -481,10 +593,11 @@ const AudioRecorder = ({ onReady }) => {
     draw();
   };
 
-
-  const handleStart = () => {
+  const handleStart = async () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
+      if (dbRef.current) await clearDB(dbRef.current);
+      setDuration(0);
       mediaRecorderRef.current.start();
       setIsRecording(true);
     }
@@ -499,18 +612,17 @@ const AudioRecorder = ({ onReady }) => {
         setIsRecording(false);
       }
     }, MAX_DURATION);
-
   };
 
-  const handlePause = () => {
+  const handlePause = async () => {
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.pause();
       setIsRecording(false);
       mediaRecorderRef.current.requestData();
 
       // immediately build file on pause
-      setTimeout(() => {
-        buildAndSendFile();
+      setTimeout(async () => {
+        await buildAndSendFile();
       }, 200);
     }
   };
@@ -530,11 +642,10 @@ const AudioRecorder = ({ onReady }) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
       if (mediaRecorderRef.current.state !== "inactive") {
-
         mediaRecorderRef.current.requestData(); // VERY IMPORTANT
 
-        mediaRecorderRef.current.onstop = () => {
-          const file = buildAndSendFile();
+        mediaRecorderRef.current.onstop = async () => {
+          const file = await buildAndSendFile();
           resolve(file);
         };
 
@@ -584,6 +695,26 @@ const AudioRecorder = ({ onReady }) => {
         }}
       />
 
+      {isRecording && (
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <div
+            className="bg-danger rounded-circle pulse"
+            style={{ width: "12px", height: "12px" }}
+          ></div>
+          <span className="fw-bold text-danger">
+            Recording: {formatDuration(duration)}
+          </span>
+        </div>
+      )}
+
+      {duration > 1800 && isRecording && (
+        <Alert color="warning" className="py-2 small">
+          <i className="ri-error-warning-line me-2"></i>
+          Large recordings (over 30 mins) consume significant browser memory.
+          Consider saving and starting a new note for very long sessions.
+        </Alert>
+      )}
+
       {previewUrl && !isRecording && (
         <audio
           controls
@@ -597,5 +728,3 @@ const AudioRecorder = ({ onReady }) => {
 };
 
 export default AudioRecorder;
-
-

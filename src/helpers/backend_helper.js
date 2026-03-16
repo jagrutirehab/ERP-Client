@@ -417,13 +417,15 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
-export const postClinicalNote = (data) =>
+export const postClinicalNote = (data, config = {}) =>
   api.create(url.POST_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
-export const editClinicalNote = (data) =>
+export const editClinicalNote = (data, config = {}) =>
   api.put(url.EDIT_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
 export const postCounsellingNote = (data) =>
   api.create(url.POST_COUNSELLING_NOTE, data, {
