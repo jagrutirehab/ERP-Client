@@ -42,8 +42,8 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
   const hasWrite = hasPermission("HR", "MY_ATTENDANCE", "WRITE");
   const hasDelete = hasPermission("HR", "MY_ATTENDANCE", "DELETE");
 
-  const hasWriteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "WRITE");
-  const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
+  // const hasWriteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "WRITE");
+  // const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
 
   const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
 
@@ -98,10 +98,10 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
     setPage(1);
   };
 
-  const isMetrics = Boolean(employeeId);
-  const canShowActionButton = isMetrics
-    ? (hasWriteForMetrics || hasDeleteForMetrics)
-    : (hasWrite || hasDelete);
+  // const isMetrics = Boolean(employeeId);
+  // const canShowActionButton = isMetrics
+  //   ? (hasWriteForMetrics || hasDeleteForMetrics)
+  //   : (hasWrite || hasDelete);
 
   const columns = myAttendanceLogsColumns({
     hasUserAllViewPermission,
@@ -109,7 +109,7 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
     setRegularizeModalOpen,
     setLeaveModalOpen,
     loading,
-    canShowActionButton,
+    // canShowActionButton,
     hasMyRegularizationPermission,
     isSelf: !employeeId
   });

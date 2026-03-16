@@ -16,7 +16,7 @@ export const myAttendanceLogsColumns = ({
   setRegularizeModalOpen,
   setLeaveModalOpen,
   loading,
-  canShowActionButton,
+  // canShowActionButton,
   hasMyRegularizationPermission,
   isSelf
 }) => [
@@ -109,7 +109,7 @@ export const myAttendanceLogsColumns = ({
       },
       wrap: true,
     },
-    ...(canShowActionButton && hasMyRegularizationPermission
+    ...(hasMyRegularizationPermission
       ? [
         {
           name: <div className="text-center">Action</div>,
