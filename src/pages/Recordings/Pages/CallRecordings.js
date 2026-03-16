@@ -11,6 +11,8 @@ import Select from "react-select";
 import BulkOverviewModal from '../Components/BulkOverviewModal';
 import { all } from 'axios';
 import UploadXlsxModal from '../Components/UploadXlsxModal';
+import { useSelector } from 'react-redux';
+import { usePermissions } from '../../../Components/Hooks/useRoles';
 
 const CallRecordings = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -42,8 +44,15 @@ const CallRecordings = () => {
   const [bulkProgress, setBulkProgress] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission, loading: isLoading } = usePermissions(token);
 
-  const fileInputRef = useRef(null);
+  const hasReadPermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "READ");
+  const hasWritePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "WRITE");
+  const hasDeletePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "DELETE");
+  const canAction = hasWritePermission || hasDeletePermission;
+
+  // const fileInputRef = useRef(null);
 
   const loadRecordings = async (page = pagination?.page, limit = pagination?.limit) => {
     setLoading(true);
@@ -322,7 +331,7 @@ const CallRecordings = () => {
           </div>
 
           {/* RIGHT SIDE BUTTONS */}
-          <div className="d-flex gap-2">
+          {canAction && <div className="d-flex gap-2">
 
             <button
               className="btn btn-success"
@@ -339,7 +348,7 @@ const CallRecordings = () => {
               Upload XLSX
             </button>
 
-          </div>
+          </div>}
 
         </div>
 
@@ -383,7 +392,8 @@ const CallRecordings = () => {
             navigate,
             recordings,
             setSelectedRecording,
-            setShowGenerateModal
+            setShowGenerateModal,
+            canAction
           )}
           loading={loading}
           data={recordings}
