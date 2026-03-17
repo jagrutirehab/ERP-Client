@@ -260,6 +260,12 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Invoice Date</div>,
+      selector: (row) => row?.invoiceDate ? format(new Date(row.invoiceDate), "d MMM yyyy") : "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
       name: <div>E-Net</div>,
       selector: (row) => (
         <div className="d-flex align-items-center gap-1">
@@ -294,10 +300,12 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Total Amount</div>,
-      cell: (row) => <span>{formatCurrency(row?.totalAmountWithGST)}</span>,
+      name: <div>Gross Amount (Excl. GST)</div>,
+      cell: (row) => (
+        <span>{formatCurrency(row?.totalAmountWithoutGST)}</span>
+      ),
       wrap: true,
-      minWidth: "120px",
+      minWidth: "150px",
     },
     {
       name: <div>GST Amount</div>,
@@ -305,6 +313,12 @@ const DetailedReport = ({
         <span>{formatCurrency(row?.GSTAmount)}</span>
       ),
       wrap: true,
+    },
+    {
+      name: <div>Total Amount(With GST)</div>,
+      cell: (row) => <span>{formatCurrency(row?.totalAmountWithGST)}</span>,
+      wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>TDS Rate</div>,
