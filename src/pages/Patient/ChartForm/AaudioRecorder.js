@@ -363,6 +363,14 @@ const AudioRecorder = ({ onReady }) => {
   const requestDataIntervalRef = useRef(null);
   // True while iOS soft-pause is active; prevents onstop from calling onReady
   const iosPauseRef = useRef(false);
+  // Lock to prevent concurrent buildAndSendFile() calls racing on URL/state
+  const isBuildingFileRef = useRef(false);
+  // Ref to the non-iOS pause preview-build timeout so it can be cancelled
+  const previewBuildTimeoutRef = useRef(null);
+  // Ref to the 2-hour auto-stop timeout so it can be cancelled on unmount
+  const maxDurationTimerRef = useRef(null);
+  // Ref to the visibilitychange handler so it can be removed on unmount
+  const visibilityHandlerRef = useRef(null);
 
   useEffect(() => {
     const initRecording = async () => {
@@ -426,6 +434,8 @@ const AudioRecorder = ({ onReady }) => {
         // Store the actual MIME type negotiated by the browser (critical for iOS)
         mimeTypeRef.current =
           mediaRecorderRef.current.mimeType || mimeType || "audio/mp4";
+        // Persist so crash recovery on next mount uses the correct format
+        try { localStorage.setItem("audioRecorderMimeType", mimeTypeRef.current); } catch (e) {}
 
         mediaRecorderRef.current.ondataavailable = async (event) => {
           if (event.data.size > 0) {
@@ -454,6 +464,12 @@ const AudioRecorder = ({ onReady }) => {
 
         // SHARED stop handler
         mediaRecorderRef.current.onstop = async () => {
+          // On iOS, ondataavailable from the final requestData() call fires
+          // AFTER onstop. Without this delay the pendingWritesRef counter is
+          // still 0 when the loop below runs, so chunks are missed entirely.
+          if (isIOS) {
+            await new Promise((r) => setTimeout(r, 500));
+          }
           // Wait for any pending async writes to complete
           let retryCount = 0;
           while (pendingWritesRef.current > 0 && retryCount < 20) {
@@ -565,12 +581,10 @@ const AudioRecorder = ({ onReady }) => {
             }
           }
         };
+        // Store the handler in a ref so the useEffect cleanup can remove it.
+        // (The `return` inside an async function is NOT the useEffect cleanup.)
+        visibilityHandlerRef.current = handleVisibilityChange;
         document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () =>
-          document.removeEventListener(
-            "visibilitychange",
-            handleVisibilityChange
-          );
       } catch (err) {
         console.error(err);
         setError("Microphone access denied or unavailable.");
@@ -595,17 +609,27 @@ const AudioRecorder = ({ onReady }) => {
     setupDB().then(() => initRecording());
 
     return () => {
+      // Stop the recorder if still active
       if (
         mediaRecorderRef.current &&
         mediaRecorderRef.current.state !== "inactive"
       ) {
         mediaRecorderRef.current.stop();
       }
+      // Cancel pending timers/intervals
       cancelAnimationFrame(animationRef.current);
-      if (audioContextRef.current) audioContextRef.current.close();
       if (timerRef.current) clearInterval(timerRef.current);
-      if (requestDataIntervalRef.current)
-        clearInterval(requestDataIntervalRef.current);
+      if (requestDataIntervalRef.current) clearInterval(requestDataIntervalRef.current);
+      if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
+      if (previewBuildTimeoutRef.current) clearTimeout(previewBuildTimeoutRef.current);
+      // Remove visibility listener stored by initRecording
+      if (visibilityHandlerRef.current) {
+        document.removeEventListener("visibilitychange", visibilityHandlerRef.current);
+      }
+      // Revoke any active preview blob URL to free memory
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+      // Close AudioContext last (after recorder is stopped)
+      if (audioContextRef.current) audioContextRef.current.close();
     };
   }, []);
 
@@ -654,53 +678,68 @@ const AudioRecorder = ({ onReady }) => {
   // };
 
   const buildAndSendFile = async () => {
-    // Wait for any pending async writes to complete (max 2 seconds)
-    let retryCount = 0;
-    while (pendingWritesRef.current > 0 && retryCount < 20) {
-      await new Promise((r) => setTimeout(r, 100));
-      retryCount++;
-    }
+    // Prevent two concurrent calls from racing on URL revocation / state updates
+    if (isBuildingFileRef.current) return null;
+    isBuildingFileRef.current = true;
 
-    let chunks = audioChunksRef.current;
-
-    if (dbRef.current) {
-      try {
-        const dbChunks = await getAllChunksFromDB(dbRef.current);
-        if (dbChunks && dbChunks.length > 0) {
-          chunks = dbChunks;
-        }
-      } catch (e) {
-        console.error("Failed to get chunks from IndexedDB", e);
+    try {
+      // Wait for any pending async writes to complete (max 2 seconds)
+      let retryCount = 0;
+      while (pendingWritesRef.current > 0 && retryCount < 20) {
+        await new Promise((r) => setTimeout(r, 100));
+        retryCount++;
       }
+
+      let chunks = audioChunksRef.current;
+
+      if (dbRef.current) {
+        try {
+          const dbChunks = await getAllChunksFromDB(dbRef.current);
+          if (dbChunks && dbChunks.length > 0) {
+            chunks = dbChunks;
+          }
+        } catch (e) {
+          console.error("Failed to get chunks from IndexedDB", e);
+        }
+      }
+
+      if (chunks.length === 0) return null;
+
+      // Use the MIME type that the MediaRecorder instance actually negotiated.
+      // Re-detecting here can produce a different type (e.g. webm on a device
+      // that recorded mp4), which corrupts the blob on iOS.
+      // Fall back to localStorage for crash recovery when mimeTypeRef is empty.
+      const usedMimeType =
+        mimeTypeRef.current ||
+        (() => { try { return localStorage.getItem("audioRecorderMimeType"); } catch (e) { return null; } })() ||
+        "audio/mp4";
+      const extension = usedMimeType.includes("webm") ? "webm" : "m4a";
+      const cleanMimeType = usedMimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
+
+      const audioBlob = new Blob(chunks, { type: cleanMimeType });
+
+      const file = new File([audioBlob], `recording.${extension}`, {
+        type: cleanMimeType,
+      });
+
+      // Cleanup old URL
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+
+      const url = URL.createObjectURL(audioBlob);
+      previewUrlRef.current = url;
+      setPreviewUrl(url);
+      setPreviewMimeType(cleanMimeType);
+
+      return file;
+    } finally {
+      // Always clear the processing spinner — covers both the success path and
+      // the empty-chunks early-return (where the try block exits before reaching
+      // the old setIsProcessing(false) call, leaving the spinner on screen forever).
+      setIsProcessing(false);
+      isBuildingFileRef.current = false;
     }
-
-    if (chunks.length === 0) return null;
-
-    // Use the MIME type that the MediaRecorder instance actually negotiated.
-    // Re-detecting here can produce a different type (e.g. webm on a device
-    // that recorded mp4), which corrupts the blob on iOS.
-    const usedMimeType = mimeTypeRef.current || "audio/mp4";
-    const extension = usedMimeType.includes("webm") ? "webm" : "m4a";
-    const cleanMimeType = usedMimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
-
-    const audioBlob = new Blob(chunks, { type: cleanMimeType });
-
-    const file = new File([audioBlob], `recording.${extension}`, {
-      type: cleanMimeType,
-    });
-
-    // Cleanup old URL
-    if (previewUrlRef.current) {
-      URL.revokeObjectURL(previewUrlRef.current);
-    }
-
-    const url = URL.createObjectURL(audioBlob);
-    previewUrlRef.current = url;
-    setPreviewUrl(url);
-    setPreviewMimeType(cleanMimeType);
-    setIsProcessing(false);
-
-    return file;
   };
 
   const drawVisualizer = () => {
@@ -795,7 +834,8 @@ const AudioRecorder = ({ onReady }) => {
     const MAX_DURATION = 120 * 60 * 1000;
     // const MAX_DURATION = 10000;
 
-    setTimeout(() => {
+    maxDurationTimerRef.current = setTimeout(() => {
+      maxDurationTimerRef.current = null;
       if (mediaRecorderRef.current?.state === "recording") {
         if (requestDataIntervalRef.current) {
           clearInterval(requestDataIntervalRef.current);
@@ -839,8 +879,11 @@ const AudioRecorder = ({ onReady }) => {
           requestDataIntervalRef.current = null;
         }
 
-        // Build preview file shortly after pause so user can play it back
-        setTimeout(async () => {
+        // Build preview file shortly after pause so user can play it back.
+        // Use a ref so stopAndFinalize can cancel this if Stop is tapped fast.
+        if (previewBuildTimeoutRef.current) clearTimeout(previewBuildTimeoutRef.current);
+        previewBuildTimeoutRef.current = setTimeout(async () => {
+          previewBuildTimeoutRef.current = null;
           await buildAndSendFile();
         }, 200);
       } catch (e) {
@@ -894,6 +937,10 @@ const AudioRecorder = ({ onReady }) => {
       };
 
       newRecorder.onstop = async () => {
+        // Same iOS timing fix: ondataavailable fires after onstop on iOS.
+        if (isIOS) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
         let retries = 0;
         while (pendingWritesRef.current > 0 && retries < 20) {
           await new Promise((r) => setTimeout(r, 100));
@@ -979,11 +1026,22 @@ const AudioRecorder = ({ onReady }) => {
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
+      // Cancel any pending preview-build timeout from a non-iOS pause
+      if (previewBuildTimeoutRef.current) {
+        clearTimeout(previewBuildTimeoutRef.current);
+        previewBuildTimeoutRef.current = null;
+      }
+
       // Clear the iOS periodic flush interval before stopping
       if (requestDataIntervalRef.current) {
         clearInterval(requestDataIntervalRef.current);
         requestDataIntervalRef.current = null;
       }
+
+      // If the user paused on iOS (soft-pause) and then taps Stop without
+      // resuming, iosPauseRef is still true. Clear it so onstop will call
+      // onReady() and deliver the final file to the parent.
+      iosPauseRef.current = false;
 
       if (mediaRecorderRef.current.state !== "inactive") {
         setIsProcessing(true);
@@ -991,7 +1049,9 @@ const AudioRecorder = ({ onReady }) => {
         mediaRecorderRef.current.requestData();
         mediaRecorderRef.current.stop();
       } else {
-        resolve(null);
+        // Recorder already inactive (e.g. iOS soft-pause left it stopped).
+        // Build the file from whatever is in IndexedDB and resolve.
+        buildAndSendFile().then((file) => resolve(file));
       }
     });
   };
