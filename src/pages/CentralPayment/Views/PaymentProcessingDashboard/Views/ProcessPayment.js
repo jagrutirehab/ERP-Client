@@ -272,7 +272,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                     className="d-flex flex-column flex-md-row justify-content-md-end align-items-stretch gap-2"
                                 >
                                     <div className="d-flex align-items-center me-3">
-                                        <span className="text-muted me-1">Total Pending Balance:</span>
+                                        <span className="text-muted me-1">Total Balance:</span>
                                         <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
                                     </div>
                                     <Button
@@ -306,7 +306,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                             )}
                             {!approvals?.data?.length && (
                                 <Col xs="auto" className="d-flex align-items-center">
-                                    <span className="text-muted me-1">Total Pending Balance:</span>
+                                    <span className="text-muted me-1">Total Balance:</span>
                                     <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
                                 </Col>
                             )}

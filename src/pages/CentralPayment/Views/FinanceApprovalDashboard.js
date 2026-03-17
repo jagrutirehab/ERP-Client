@@ -116,7 +116,7 @@ const FinanceApprovalDashboard = ({ centerAccess, userCenters, loading, approval
                                 />
                             </Col>
                             <Col xs="auto" className="d-flex align-items-center">
-                                <span className="text-muted me-1">Total Pending Balance:</span>
+                                <span className="text-muted me-1">Total Balance:</span>
                                 <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
                             </Col>
                         </Row>
