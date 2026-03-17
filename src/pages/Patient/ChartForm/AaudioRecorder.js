@@ -361,6 +361,8 @@ const AudioRecorder = ({ onReady }) => {
   const isRecordingRef = useRef(false);
   // Interval that manually calls requestData() on iOS where timeslice is unreliable
   const requestDataIntervalRef = useRef(null);
+  // True while iOS soft-pause is active; prevents onstop from calling onReady
+  const iosPauseRef = useRef(false);
 
   useEffect(() => {
     const initRecording = async () => {
@@ -467,9 +469,12 @@ const AudioRecorder = ({ onReady }) => {
             stopResolveRef.current = null;
           }
 
-          if (onReady && file) {
+          // Skip onReady when stop() was triggered by iOS soft-pause —
+          // the recording isn't finished yet, just mid-session paused.
+          if (!iosPauseRef.current && onReady && file) {
             onReady(file, null);
           }
+          iosPauseRef.current = false;
         };
 
         mediaRecorderRef.current.onerror = (event) => {
@@ -805,14 +810,24 @@ const AudioRecorder = ({ onReady }) => {
 
   const handlePause = async () => {
     if (mediaRecorderRef.current?.state === "recording") {
-      // iOS Safari does not support pause() — it throws NotSupportedError.
-      // Use setWarn (not setError) so the Resume button stays enabled.
       if (isIOS) {
-        setWarn(
-          "Pause is not supported on iOS Safari. Your recording is continuing — tap Stop in the form when you are done.",
-        );
+        // iOS Safari doesn't support pause(). We simulate it by stopping the
+        // recorder — all chunks are saved to IndexedDB. On Resume a fresh
+        // recorder starts and appends new chunks so buildAndSendFile()
+        // combines everything into one seamless file.
+        iosPauseRef.current = true;
+        if (requestDataIntervalRef.current) {
+          clearInterval(requestDataIntervalRef.current);
+          requestDataIntervalRef.current = null;
+        }
+        try {
+          mediaRecorderRef.current.requestData();
+        } catch (e) {}
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
         return;
       }
+
       try {
         mediaRecorderRef.current.pause();
         setIsRecording(false);
@@ -889,7 +904,8 @@ const AudioRecorder = ({ onReady }) => {
           stopResolveRef.current(file);
           stopResolveRef.current = null;
         }
-        if (onReady && file) onReady(file, null);
+        if (!iosPauseRef.current && onReady && file) onReady(file, null);
+        iosPauseRef.current = false;
       };
 
       newRecorder.onerror = () => {
