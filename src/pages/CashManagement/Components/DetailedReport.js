@@ -85,6 +85,11 @@ const DetailedReport = ({
 
   const columns = [
     {
+      name: "ID",
+      selector: (row) => row.id,
+      wrap: true,
+    },
+    {
       name: "Date",
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
@@ -97,7 +102,7 @@ const DetailedReport = ({
     },
     {
       name: "Name",
-      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.id || "-"})` : "-",
+      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.patientId || row?.internId || "-"})` : "-",
       wrap: true,
     },
     {
