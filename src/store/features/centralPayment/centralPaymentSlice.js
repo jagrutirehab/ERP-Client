@@ -238,7 +238,7 @@ export const centralPaymentSlice = createSlice({
             }
             if (Array.isArray(state.approvals?.data)) {
                 state.approvals.data = state.approvals.data.map((approval) =>
-                    approval._id === payload._id ? { ...payload, author: approval.author } : approval
+                    approval._id === payload._id ? { ...payload, author: approval.author, approvedBy: approval.approvedBy } : approval
                 );
             }
         });
