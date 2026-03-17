@@ -334,6 +334,7 @@ const AudioRecorder = ({ onReady }) => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const previewUrlRef = useRef("");
 
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
@@ -562,6 +563,13 @@ const AudioRecorder = ({ onReady }) => {
   // };
 
   const buildAndSendFile = async () => {
+    // Wait for any pending async writes to complete (max 2 seconds)
+    let retryCount = 0;
+    while (pendingWritesRef.current > 0 && retryCount < 20) {
+      await new Promise((r) => setTimeout(r, 100));
+      retryCount++;
+    }
+
     let chunks = audioChunksRef.current;
 
     if (dbRef.current) {
@@ -601,7 +609,13 @@ const AudioRecorder = ({ onReady }) => {
       type: cleanMimeType,
     });
 
+    // Cleanup old URL
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+
     const url = URL.createObjectURL(audioBlob);
+    previewUrlRef.current = url;
     setPreviewUrl(url);
     setIsProcessing(false);
 
@@ -782,9 +796,10 @@ const AudioRecorder = ({ onReady }) => {
       {previewUrl && !isRecording && (
         <audio
           controls
+          type={previewUrl.includes("webm") ? "audio/webm" : "audio/mp4"}
           // autoPlay
           src={previewUrl}
-          style={{ marginTop: "10px" }}
+          style={{ marginTop: "10px", width: "100%" }}
         />
       )}
     </div>
