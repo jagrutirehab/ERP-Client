@@ -15,7 +15,7 @@ const RecordingIndex = () => {
     const { loading: permissionLoader, hasPermission } =
         usePermissions(token);
 
-    // const hasUserPermission = hasPermission("ISSUES", null, "READ");
+    const hasUserPermission = hasPermission("RECORDINGS", null, "READ");
 
     if (permissionLoader) {
         return (
@@ -28,9 +28,9 @@ const RecordingIndex = () => {
         );
     }
 
-    // if (!permissionLoader && !hasUserPermission) {
-    //     navigate("/unauthorized");
-    // }
+    if (!permissionLoader && !hasUserPermission) {
+        navigate("/unauthorized");
+    }
 
     // document.title = "recording Dashboard";
 

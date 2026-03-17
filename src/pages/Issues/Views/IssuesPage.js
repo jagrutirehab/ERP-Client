@@ -46,8 +46,8 @@ const IssuesPage = ({ type }) => {
 
     const { hasPermission } = usePermissions(token);
 
-    const hasWritePermission = hasPermission("ISSUES", "ISSUES", "WRITE");
-    const hasDeletePermission = hasPermission("ISSUES", "ISSUES", "DELETE");
+    const hasWritePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "WRITE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "WRITE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
+    const hasDeletePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
 
     const canEdit = hasWritePermission || hasDeletePermission;
 

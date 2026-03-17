@@ -20,7 +20,8 @@ const BulkOverviewModal = ({ isOpen, toggle, onGenerate, currentFilters, progres
 
     const talkTimeOptions = [
         { value: "", label: "All Durations" },
-        { value: "0_5", label: "0 - 5 min" },
+        { value: "0_2", label: "0 - 2 min" },
+        { value: "2_5", label: "2 - 5 min" },
         { value: "5_10", label: "5 - 10 min" },
         { value: "10_15", label: "10 - 15 min" },
         { value: "over_15", label: "Over 15 min" }
@@ -228,7 +229,7 @@ const BulkOverviewModal = ({ isOpen, toggle, onGenerate, currentFilters, progres
                 {/* --- NEW WARNING MESSAGE --- */}
                 <Alert color="warning" className="p-2 py-1 mb-2 border-0" style={{ fontSize: '13px' }}>
                     <i className="ri-error-warning-line me-1"></i>
-                    <strong>Note:</strong> To prevent duplicates, only recordings with <strong>no generated overview</strong> or <strong>API errors</strong> are listed here.
+                    <strong>Note:</strong> To prevent overlapping, only recordings with <strong>no generated overview</strong> or <strong>API/server errors</strong> are listed here.
                 </Alert>
 
                 <hr className="mt-1" />

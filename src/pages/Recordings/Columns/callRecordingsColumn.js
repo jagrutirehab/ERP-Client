@@ -92,6 +92,7 @@ export const callRecordingsColumns = (
                 recordings,
                 index,
                 limit,
+                page
               },
             })
           }

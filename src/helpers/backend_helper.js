@@ -2703,6 +2703,12 @@ export const getTicketsDashboardData = ({ month, issueType }) => {
   });
 };
 
+export const getRaisedIssues = (params = {}) => {
+  return axios.get(url.GET_RAISED_TICKETS, {
+    params,
+  });
+}
+
 // Recordings
 // Call recordings
 export const getCallRecordings = (params = {}) => {

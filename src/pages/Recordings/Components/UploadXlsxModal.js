@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
+import { FiUploadCloud, FiFileText } from "react-icons/fi";
 
 const UploadXlsxModal = ({ isOpen, toggle, onUpload, loading }) => {
 
@@ -25,36 +26,59 @@ const UploadXlsxModal = ({ isOpen, toggle, onUpload, loading }) => {
       return;
     }
 
-    onUpload(file); 
+    onUpload(file);
   };
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered>
       <ModalHeader toggle={toggle}>
-        Upload XLSX File
+        Upload Excel File
       </ModalHeader>
 
-      <ModalBody className="text-center">
+      <ModalBody>
 
-        <div style={{ fontSize: "60px" }}>
-          ☁️
+        <div
+          style={{
+            border: "2px dashed #dee2e6",
+            borderRadius: "10px",
+            padding: "35px",
+            textAlign: "center",
+            background: "#fafafa",
+            cursor: "pointer"
+          }}
+        >
+
+          <FiUploadCloud size={45} color="#6c757d" />
+
+          <h6 className="mt-3 mb-1">
+            Upload XLSX File
+          </h6>
+
+          <p className="text-muted mb-3" style={{ fontSize: "14px" }}>
+            Choose an Excel file (.xlsx or .xls)
+          </p>
+
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            className="form-control"
+            onChange={handleFileChange}
+          />
+
         </div>
 
-        <p className="mt-2">
-          Select an Excel file
-        </p>
-
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          className="form-control"
-          onChange={handleFileChange}
-        />
-
         {file && (
-          <p className="text-success mt-2">
-            {file.name}
-          </p>
+          <div
+            className="d-flex align-items-center justify-content-center mt-3 p-2"
+            style={{
+              border: "1px solid #e9ecef",
+              borderRadius: "6px",
+              background: "#f8f9fa"
+            }}
+          >
+            <FiFileText size={18} className="me-2 text-success" />
+            <span className="text-dark">{file.name}</span>
+          </div>
         )}
 
       </ModalBody>
