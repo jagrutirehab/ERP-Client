@@ -135,7 +135,8 @@ const CallRecordings = () => {
 
   const talkTimeOptions = [
     { value: "", label: "Talk Time" },
-    { value: "0_5", label: "0 - 5 min" },
+    { value: "0_2", label: "0 - 2 min" },
+    { value: "2_5", label: "2 - 5 min" },
     { value: "5_10", label: "5 - 10 min" },
     { value: "10_15", label: "10 - 15 min" },
     { value: "over_15", label: "Over 15 min" }

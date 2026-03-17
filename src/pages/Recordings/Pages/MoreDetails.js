@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getRecordingById } from "../../../helpers/backend_helper";
+import { getCallRecordings, getRecordingById } from "../../../helpers/backend_helper";
 import { Card, CardBody, Row, Col, Spinner } from "reactstrap";
 import { normalizeGeminiResponse } from "../Helpers/normalizeGeminiResponse";
 import { normalizeDates } from "../Helpers/normalizeDates";
@@ -40,11 +40,10 @@ const MoreDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const { recordings = [], index = 0 } = location.state || {};
+    const { recordings = [], index = 0, page = 1, limit = 10 } = location.state || {};
 
-    const prevId = recordings[index - 1]?._id;
-    const nextId = recordings[index + 1]?._id;
-
+    const prevRecording = recordings[index - 1];
+    const nextRecording = recordings[index + 1];
 
 
     const loadById = async () => {
@@ -62,14 +61,22 @@ const MoreDetails = () => {
 
     useEffect(() => {
         loadById();
-        // Scroll to top when moving between records
         window.scrollTo(0, 0);
     }, [id]);
 
     if (loading) {
         return (
-            <div className="text-center mt-5">
-                <Spinner />
+            <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                    height: "calc(100vh - 120px)",
+                    width: "100%"
+                }}
+            >
+                <Spinner
+                    color="primary"
+                    style={{ width: "2rem", height: "2rem" }}
+                />
             </div>
         );
     }
@@ -112,27 +119,27 @@ const MoreDetails = () => {
             !renderedFields.includes(key) &&
             !["Files", "_id", "__v", "createdAt", "updatedAt"].includes(key)
     );
-    const handleNext = () => {
-        if (nextId) {
-            navigate(`/recordings/more/${nextId}`, {
-                state: {
-                    recordings,
-                    index: index + 1
-                }
-            });
-        }
-    };
+    // const handleNext = () => {
+    //     if (nextId) {
+    //         navigate(`/recordings/more/${nextId}`, {
+    //             state: {
+    //                 recordings,
+    //                 index: index + 1
+    //             }
+    //         });
+    //     }
+    // };
 
-    const handlePrevious = () => {
-        if (prevId) {
-            navigate(`/recordings/more/${prevId}`, {
-                state: {
-                    recordings,
-                    index: index - 1
-                }
-            });
-        }
-    };
+    // const handlePrevious = () => {
+    //     if (prevId) {
+    //         navigate(`/recordings/more/${prevId}`, {
+    //             state: {
+    //                 recordings,
+    //                 index: index - 1
+    //             }
+    //         });
+    //     }
+    // };
     return (
         <div className="container-fluid px-4">
 
@@ -142,18 +149,102 @@ const MoreDetails = () => {
                     <div className="d-flex justify-content-between mb-3">
 
                         <button
-                            className="btn btn-outline-secondary"
-                            onClick={handlePrevious}
-                        disabled={!prevId}
+                            disabled={!prevRecording && page === 1}
+                            className="btn btn-light rounded-circle d-flex align-items-center justify-content-center"
+
+                            style={{
+                                width: "40px",
+                                height: "40px",
+                                border: "1px solid #e5e7eb",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+
+                            }}
+                            onClick={async () => {
+
+                                if (prevRecording) {
+                                    navigate(`/recordings/more/${prevRecording._id}`, {
+                                        state: {
+                                            recordings,
+                                            index: index - 1,
+                                            page,
+                                            limit
+                                        }
+                                    });
+                                }
+                                else {
+                                    const prevPage = page - 1;
+
+                                    if (prevPage < 1) return;
+
+                                    const response = await getCallRecordings({
+                                        page: prevPage,
+                                        limit
+                                    });
+
+                                    const prevPageData = response?.data || [];
+
+                                    if (prevPageData.length > 0) {
+                                        navigate(`/recordings/more/${prevPageData[prevPageData.length - 1]._id}`, {
+                                            state: {
+                                                recordings: prevPageData,
+                                                index: prevPageData.length - 1,
+                                                page: prevPage,
+                                                limit
+                                            }
+                                        });
+                                    }
+                                }
+
+                            }}
                         >
-                            ← Previous
+                            <i className="bx bx-chevron-left fs-4"></i>
                         </button>
                         <button
-                            className="btn btn-outline-primary"
-                            onClick={handleNext}
-                        disabled={!nextId}
+                            className="btn btn-light rounded-circle d-flex align-items-center justify-content-center"
+                            style={{
+                                width: "40px",
+                                height: "40px",
+                                border: "1px solid #e5e7eb",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+                            }}
+                            disabled={!nextRecording && recordings.length < limit}
+                            onClick={async () => {
+
+                                if (nextRecording) {
+                                    navigate(`/recordings/more/${nextRecording._id}`, {
+                                        state: {
+                                            recordings,
+                                            index: index + 1,
+                                            page,
+                                            limit
+                                        }
+                                    });
+                                }
+                                else {
+                                    const nextPage = page + 1;
+
+                                    const response = await getCallRecordings({
+                                        page: nextPage,
+                                        limit
+                                    });
+
+                                    const nextPageData = response?.data || [];
+
+                                    if (nextPageData.length > 0) {
+                                        navigate(`/recordings/more/${nextPageData[0]._id}`, {
+                                            state: {
+                                                recordings: nextPageData,
+                                                index: 0,
+                                                page: nextPage,
+                                                limit
+                                            }
+                                        });
+                                    }
+                                }
+
+                            }}
                         >
-                            Next →
+                            <i className="bx bx-chevron-right fs-4"></i>
                         </button>
 
                     </div>
@@ -249,7 +340,7 @@ const MoreDetails = () => {
                                     >
                                         <div
                                             style={{
-                                                maxHeight: "300px",
+                                                // maxHeight: "300px",
                                                 overflowY: "auto",
                                                 lineHeight: "1.7",
                                                 fontSize: "14px",

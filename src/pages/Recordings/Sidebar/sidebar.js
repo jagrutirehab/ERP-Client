@@ -23,11 +23,11 @@ const RecordingSidebar = () => {
     "READ"
   );
 
-  const hasFeedbackRecordingsPermission = hasPermission(
-    "RECORDINGS",
-    "FEEDBACK_RECORDINGS",
-    "READ"
-  );
+  // const hasFeedbackRecordingsPermission = hasPermission(
+  //   "RECORDINGS",
+  //   "FEEDBACK_RECORDINGS",
+  //   "READ"
+  // );
 
   const navigate = useNavigate();
 
@@ -37,10 +37,10 @@ const RecordingSidebar = () => {
       return true;
     }
 
-    if (page.id === "feedback-recordings") {
-      if (!hasFeedbackRecordingsPermission) return false;
-      return true;
-    }
+    // if (page.id === "feedback-recordings") {
+    //   if (!hasFeedbackRecordingsPermission) return false;
+    //   return true;
+    // }
 
     return true;
   });
