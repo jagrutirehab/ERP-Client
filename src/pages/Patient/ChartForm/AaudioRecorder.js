@@ -388,6 +388,25 @@ const AudioRecorder = ({ onReady }) => {
   // Caches the last File/File[] delivered by buildAndSendFile so stopAndFinalize's
   // fallback can resolve without rebuilding (prevents double-onReady after auto-stop)
   const lastBuiltFileRef = useRef(null);
+  // Screen Wake Lock — keeps the display on while recording so iOS/Android don't
+  // auto-lock and kill the MediaRecorder.
+  const wakeLockRef = useRef(null);
+
+  const requestWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      }
+    } catch (e) {
+      // Wake lock can fail silently (e.g. low battery mode)
+    }
+  };
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  };
 
   useEffect(() => {
     const initRecording = async () => {
@@ -539,6 +558,24 @@ const AudioRecorder = ({ onReady }) => {
             return; // don't call onReady yet — user can resume to add more parts
           }
 
+          // iOS unexpected stop: iOS killed the recorder in the background (e.g., app switch,
+          // phone call) BEFORE our handleAutoInterrupt could set iosPauseRef. Nobody asked for
+          // this stop (no stopResolveRef, no isFinalizingRef), so save as a recoverable chunk
+          // instead of calling onReady — the user can Resume to continue recording.
+          if (isIOS && !isFinalizingRef.current && !stopResolveRef.current) {
+            const result = await buildIosChunkFile();
+            if (result) {
+              const partNumber = iosCompletedFilesRef.current.length + 1;
+              iosCompletedFilesRef.current.push(result.file);
+              iosChunkUrlsRef.current.push(result.url);
+              setIosCompletedChunks((prev) => [
+                ...prev,
+                { url: result.url, mimeType: result.mimeType, label: `Part ${partNumber}` },
+              ]);
+            }
+            return;
+          }
+
           // Final stop
           let fileOrFiles;
           if (isIOS && iosCompletedFilesRef.current.length > 0) {
@@ -638,6 +675,10 @@ const AudioRecorder = ({ onReady }) => {
             if (audioContextRef.current?.state === "suspended") {
               audioContextRef.current.resume().catch(() => {});
             }
+            // Wake lock is auto-released when page goes hidden — re-acquire if still recording
+            if (isRecordingRef.current) {
+              requestWakeLock();
+            }
             if (
               isRecordingRef.current &&
               mediaRecorderRef.current?.state !== "recording" &&
@@ -680,6 +721,7 @@ const AudioRecorder = ({ onReady }) => {
         mediaRecorderRef.current.stop();
       }
       cancelAnimationFrame(animationRef.current);
+      releaseWakeLock();
       if (timerRef.current) clearInterval(timerRef.current);
       if (requestDataIntervalRef.current) clearInterval(requestDataIntervalRef.current);
       if (iosAutoChunkIntervalRef.current) clearInterval(iosAutoChunkIntervalRef.current);
@@ -857,6 +899,7 @@ const AudioRecorder = ({ onReady }) => {
   };
   const handleAutoInterrupt = () => {
     if (!isRecordingRef.current) return;
+    releaseWakeLock();
 
     if (mediaRecorderRef.current?.state === "recording") {
       try {
@@ -925,6 +968,7 @@ const AudioRecorder = ({ onReady }) => {
       }
 
       setIsRecording(true);
+      requestWakeLock();
     }
 
     const MAX_DURATION = 120 * 60 * 1000;
@@ -933,6 +977,8 @@ const AudioRecorder = ({ onReady }) => {
     maxDurationTimerRef.current = setTimeout(() => {
       maxDurationTimerRef.current = null;
       if (mediaRecorderRef.current?.state === "recording") {
+        // Mark as intentional stop so onstop's "unexpected iOS stop" guard is skipped
+        isFinalizingRef.current = true;
         if (requestDataIntervalRef.current) {
           clearInterval(requestDataIntervalRef.current);
           requestDataIntervalRef.current = null;
@@ -945,6 +991,7 @@ const AudioRecorder = ({ onReady }) => {
   };
 
   const handlePause = async () => {
+    releaseWakeLock();
     if (mediaRecorderRef.current?.state === "recording") {
       if (isIOS) {
         iosPauseRef.current = true;
@@ -1038,6 +1085,7 @@ const AudioRecorder = ({ onReady }) => {
 
   const handleResume = async () => {
     try {
+      requestWakeLock();
       if (mediaRecorderRef.current?.state === "paused") {
         if (audioContextRef.current?.state === "suspended" ||
             audioContextRef.current?.state === "interrupted") {
@@ -1058,6 +1106,7 @@ const AudioRecorder = ({ onReady }) => {
   };
 
   const stopAndFinalize = () => {
+    releaseWakeLock();
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current) return resolve(null);
       if (previewBuildTimeoutRef.current) {
