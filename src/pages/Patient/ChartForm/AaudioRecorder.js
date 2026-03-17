@@ -795,12 +795,17 @@ const AudioRecorder = ({ onReady }) => {
 
       {previewUrl && !isRecording && (
         <audio
+          key={previewUrl}
           controls
-          type={previewUrl.includes("webm") ? "audio/webm" : "audio/mp4"}
-          // autoPlay
-          src={previewUrl}
+          preload="metadata"
           style={{ marginTop: "10px", width: "100%" }}
-        />
+        >
+          <source
+            src={previewUrl}
+            type={previewUrl.includes("webm") ? "audio/webm" : "audio/mp4"}
+          />
+          Your browser does not support the audio element.
+        </audio>
       )}
     </div>
   );
