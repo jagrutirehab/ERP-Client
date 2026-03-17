@@ -66,6 +66,7 @@ import PropTypes from "prop-types";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
 const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) => {
 
@@ -158,7 +159,7 @@ const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) =>
       <div className="d-flex flex-column">
         <Container fluid>
           <div className="mb-5">
-            <Row className="mb-3 align-items-center">
+            <Row className="mb-3 align-items-center justify-content-between">
               <Col lg="2" md="6" sm="12">
                 <Select
                   value={selectedCenterOption}
@@ -170,6 +171,10 @@ const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) =>
                   placeholder="All Centers"
                   classNamePrefix="react-select"
                 />
+              </Col>
+              <Col xs="auto" className="d-flex align-items-center">
+                <span className="text-muted me-1">Total Pending Balance:</span>
+                <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
               </Col>
             </Row>
             {approvals?.data?.length > 0 ? (

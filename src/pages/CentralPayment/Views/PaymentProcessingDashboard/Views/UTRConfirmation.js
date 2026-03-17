@@ -9,6 +9,7 @@ import ItemCard from "../../../Components/ItemCard";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import Select from "react-select";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
 
 
 const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
@@ -107,7 +108,7 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
             <div className="d-flex flex-column">
                 <Container fluid>
                     <div className="mb-3">
-                        <Row className="align-items-center g-2">
+                        <Row className="align-items-center g-2 justify-content-between">
                             <Col lg="2" md="6" sm="12">
                                 <Select
                                     value={selectedCenterOption}
@@ -119,6 +120,10 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
                                     placeholder="All Centers"
                                     classNamePrefix="react-select"
                                 />
+                            </Col>
+                            <Col xs="auto" className="d-flex align-items-center">
+                                <span className="text-muted me-1">Total Pending Balance:</span>
+                                <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
                             </Col>
                         </Row>
                     </div>
