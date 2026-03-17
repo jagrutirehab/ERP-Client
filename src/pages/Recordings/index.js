@@ -2,17 +2,11 @@ import { Route, Routes, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { Container, Spinner } from "reactstrap";
 import React from "react";
-import IssuesSidebar from "./Sidebar/sidebar";
-import MyIssues from "./Pages/MyIssues";
-import IssuesPage from "./Views/IssuesPage";
-import RaiseTicket from "./Pages/RaiseTicket";
-import Dashboard from "./Pages/Dashboard";
-import MyRaisedTickets from "./Pages/MyRaisedTickets";
-// import IssuesSidebar from "./Sidebar";
-// import TechIssues from "./TechIssues";
-// import OtherIssues from "./OtherIssues";
+import RecordingSidebar from "./Sidebar/sidebar";
+import CallRecordings from "./Pages/CallRecordings";
+import MoreDetails from "./Pages/MoreDetails";
 
-const Issues = () => {
+const RecordingIndex = () => {
     const navigate = useNavigate();
 
     const microUser = localStorage.getItem("micrologin");
@@ -21,7 +15,7 @@ const Issues = () => {
     const { loading: permissionLoader, hasPermission } =
         usePermissions(token);
 
-    const hasUserPermission = hasPermission("ISSUES", null, "READ");
+    const hasUserPermission = hasPermission("RECORDINGS", null, "READ");
 
     if (permissionLoader) {
         return (
@@ -38,7 +32,7 @@ const Issues = () => {
         navigate("/unauthorized");
     }
 
-    document.title = "Issues Dashboard";
+    // document.title = "recording Dashboard";
 
     const type = "";
 
@@ -52,17 +46,12 @@ const Issues = () => {
                                 <Container fluid>
                                     <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">
 
-                                        <IssuesSidebar />
+                                        <RecordingSidebar />
 
                                         <Routes>
                                             {/* <Route index element={<TechIssues />} /> */}
-                                            <Route path="tech" element={<IssuesPage type={"TECH"} />} />
-                                            <Route path="purchase" element={<IssuesPage type={"PURCHASE"} />} />
-                                            <Route path="review-submissions" element={<IssuesPage type={"REVIEW_SUBMISSION"} />} />
-                                            <Route path="my/issues" element={<MyIssues />} />
-                                            <Route path="my/raised/tickets" element={<MyRaisedTickets />} />
-                                            <Route path="raise/ticket" element={<RaiseTicket />} />
-                                            <Route path="dashboard" element={<Dashboard />} />
+                                            <Route path="call" element={<CallRecordings/>} />
+                                            <Route path="more/:id" element={<MoreDetails />} />
                                         </Routes>
                                     </div>
                                 </Container>
@@ -75,4 +64,4 @@ const Issues = () => {
     );
 };
 
-export default Issues;
+export default RecordingIndex;

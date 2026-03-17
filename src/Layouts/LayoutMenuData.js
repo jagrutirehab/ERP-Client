@@ -16,6 +16,8 @@ const Navdata = () => {
   const filteredDynamicPages = dynamicPages?.filter(
     (page) => page && page.id !== "hrms",
   );
+ 
+  
 
   console.log("User Pages:", userPages);
   const sortPages = (routes) => {
@@ -76,6 +78,7 @@ const Navdata = () => {
     },
     ...sortPages(filteredDynamicPages),
     pages.find((p) => p.id === "issues"),
+    pages.find((p) => p.id === "recordings"),
   ];
 
   console.log({ userPages, menuItems });

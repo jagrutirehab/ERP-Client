@@ -2822,3 +2822,35 @@ export const getTicketsDashboardData = ({ month, issueType }) => {
     },
   });
 };
+
+export const getRaisedIssues = (params = {}) => {
+  return axios.get(url.GET_RAISED_TICKETS, {
+    params,
+  });
+}
+
+// Recordings
+// Call recordings
+export const getCallRecordings = (params = {}) => {
+  return axios.get(url.GET_RECORDINGS, {
+    params,
+  });
+};
+export const getRecordingById = (id) => {
+  return axios.get(`${url.GET_RECORDING_BY_ID}/${id}`);
+}
+
+export const generateOverviewRecording = (id, recordingUrl) => {
+  return axios.post(url.GENERATE_OVERVIEW_RECORDING, { id, recordingUrl });
+}
+
+export const bulkGenerateOverviewRecording = (ids) => {
+  return axios.post(url.BULK_GENERATE_OVERVIEW_RECORDING, ids);
+}
+export const uploadXlsx = (data) => {
+  return axios.post(url.UPLOAD_XLSX_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};

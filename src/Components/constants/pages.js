@@ -307,6 +307,13 @@ const pages = [
     link: "/issues",
     icon: "bx bx-error-circle",
   },
+  {
+    id: "recordings",
+    label: "Recordings",
+    name: "Recordings",
+    link: "/recordings",
+    icon: "bx bx-microphone"
+  },
   // {
   //   id: "hrms",
   //   label: "HRMS",
@@ -1017,36 +1024,51 @@ export const ISSUES = [
     link: "/issues/raise/ticket",
   },
   {
-    id: "issues-type",
-    label: "Issues",
-    icon: "bx bx-error-circle",
-    children: [
-      {
-        id: "tech-issues",
-        label: "Technical",
-        link: "/issues/tech",
-        icon: "bx bx-chip",
-      },
-      {
-        id: "purchase-issues",
-        label: "Purchase",
-        link: "/issues/purchase",
-        icon: "bx bx-category",
-      },
-      {
-        id: "review-submissions",
-        label: "Review Submissions",
-        link: "/issues/review-submissions",
-        icon: "bx bx-check-shield"
-      },
-    ],
+    id: "tech-issues",
+    label: "Technical",
+    link: "/issues/tech",
+    icon: "bx bx-chip",
+  },
+  {
+    id: "purchase-issues",
+    label: "Purchase",
+    link: "/issues/purchase",
+    icon: "bx bx-category",
+  },
+  {
+    id: "review-submissions",
+    label: "Review Submissions",
+    link: "/issues/review-submissions",
+    icon: "bx bx-check-shield",
   },
   {
     id: "my-issues",
-    label: "My Tickets",
+    label: "My Assigned Tickets",
     icon: "bx bx-user-circle",
     link: "/issues/my/issues",
-  }
+  },
+  {
+    id: "my-raised-tickets",
+    label: "My Raised Tickets",
+    icon: "bx bx-user-check",
+    link: "/issues/my/raised/tickets",
+  },
+
+];
+
+export const RECORDINGS = [
+  {
+    id: "call-recordings",
+    label: "Call Recordings",
+    link: "/recordings/call",
+    icon: "bx bx-phone"
+  },
+  // {
+  //   id: "feedback-recordings",
+  //   label: "Feedback Recordings",
+  //   link: "/recordings/feedback",
+  //   icon: "bx bx-comment-detail"
+  // }
 ];
 
 export default pages;
