@@ -328,10 +328,19 @@ const clearDB = async (db) => {
   });
 };
 
+// Detect iOS once at module level (navigator is always available in browser)
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 const AudioRecorder = ({ onReady }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState("");
+  // Non-fatal informational messages (e.g. iOS pause not supported)
+  const [warn, setWarn] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  // Tracks the actual MIME type of the last built preview so <source> is correct
+  const [previewMimeType, setPreviewMimeType] = useState("audio/mp4");
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const previewUrlRef = useRef("");
@@ -346,6 +355,12 @@ const AudioRecorder = ({ onReady }) => {
   const analyserRef = useRef(null);
   const audioContextRef = useRef(null);
   const animationRef = useRef(null);
+  // Stores the actual MIME type used by the MediaRecorder instance
+  const mimeTypeRef = useRef("");
+  // Ref-copy of isRecording for use inside event handler closures (avoids stale state)
+  const isRecordingRef = useRef(false);
+  // Interval that manually calls requestData() on iOS where timeslice is unreliable
+  const requestDataIntervalRef = useRef(null);
 
   useEffect(() => {
     const initRecording = async () => {
@@ -356,13 +371,37 @@ const AudioRecorder = ({ onReady }) => {
           setError("No microphone detected.");
           return;
         }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
+
+        // MediaRecorder is unavailable in very old browsers (Firefox < 25,
+        // Samsung Internet < 5, some older Android WebViews).
+        if (typeof MediaRecorder === "undefined") {
+          setError(
+            "Audio recording is not supported in this browser. Please use Chrome, Firefox, or Safari 14.5+.",
+          );
+          return;
+        }
+
+        // Some older Android devices / budget phones reject specific constraints
+        // with OverconstrainedError or NotFoundError. Fall back to plain audio.
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+          });
+        } catch (constraintErr) {
+          if (
+            constraintErr.name === "OverconstrainedError" ||
+            constraintErr.name === "NotFoundError"
+          ) {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } else {
+            throw constraintErr;
+          }
+        }
 
         let mimeType = "";
 
@@ -382,18 +421,31 @@ const AudioRecorder = ({ onReady }) => {
           ? new MediaRecorder(stream, { mimeType })
           : new MediaRecorder(stream);
 
+        // Store the actual MIME type negotiated by the browser (critical for iOS)
+        mimeTypeRef.current =
+          mediaRecorderRef.current.mimeType || mimeType || "audio/mp4";
+
         mediaRecorderRef.current.ondataavailable = async (event) => {
           if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
             if (dbRef.current) {
+              // Primary storage: IndexedDB only — avoids doubling memory usage
+              // on long recordings (critical on iOS where RAM is limited).
               pendingWritesRef.current++;
               try {
                 await saveChunkToDB(dbRef.current, event.data);
               } catch (e) {
-                console.error("Failed to save chunk to IndexedDB", e);
+                console.error(
+                  "Failed to save chunk to IndexedDB, keeping in memory",
+                  e,
+                );
+                // Fallback: keep in memory if DB write fails
+                audioChunksRef.current.push(event.data);
               } finally {
                 pendingWritesRef.current--;
               }
+            } else {
+              // No DB available (e.g. private browsing on iOS): memory only
+              audioChunksRef.current.push(event.data);
             }
           }
         };
@@ -473,12 +525,38 @@ const AudioRecorder = ({ onReady }) => {
         drawVisualizer();
         handleStart();
 
-        // Handle mobile interrupts (calls, etc.)
+        // ── iOS AudioContext interruption (phone call, Siri, alarm, etc.) ────
+        // iOS fires "interrupted" on the AudioContext BEFORE the page is
+        // hidden — this is the earliest possible signal to flush and pause.
+        audioContextRef.current.onstatechange = () => {
+          if (audioContextRef.current?.state === "interrupted") {
+            handleAutoInterrupt();
+          }
+        };
+
+        // ── Visibility change (tab hidden / shown) ────────────────────────────
         const handleVisibilityChange = () => {
-          if (document.visibilityState === "hidden" && isRecording) {
-            console.log("Page hidden during recording. Requesting data...");
-            if (mediaRecorderRef.current?.state === "recording") {
-              mediaRecorderRef.current.requestData();
+          if (document.visibilityState === "hidden") {
+            // Phone call / app switch — auto-pause and flush to IndexedDB.
+            handleAutoInterrupt();
+          } else if (document.visibilityState === "visible") {
+            // User returned after call ended.
+            // Resume a suspended AudioContext (iOS suspends it during a call).
+            if (audioContextRef.current?.state === "suspended") {
+              audioContextRef.current.resume().catch(() => {});
+            }
+            // Safety net: if the recorder died silently (no onstatechange /
+            // onerror fired), make sure the UI reflects reality so the user
+            // can tap Resume.
+            if (
+              isRecordingRef.current &&
+              mediaRecorderRef.current?.state !== "recording" &&
+              mediaRecorderRef.current?.state !== "paused"
+            ) {
+              setIsRecording(false);
+              setWarn(
+                "Recording was interrupted. Tap Resume to continue — your audio will be combined.",
+              );
             }
           }
         };
@@ -507,8 +585,9 @@ const AudioRecorder = ({ onReady }) => {
       }
     };
 
-    setupDB();
-    initRecording();
+    // Await DB init before starting the recorder so ondataavailable
+    // always has a valid dbRef and chunks go to IndexedDB from the first one.
+    setupDB().then(() => initRecording());
 
     return () => {
       if (
@@ -520,8 +599,15 @@ const AudioRecorder = ({ onReady }) => {
       cancelAnimationFrame(animationRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
       if (timerRef.current) clearInterval(timerRef.current);
+      if (requestDataIntervalRef.current)
+        clearInterval(requestDataIntervalRef.current);
     };
   }, []);
+
+  // Keep ref in sync so event handler closures always read the current value
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
   useEffect(() => {
     if (isRecording) {
@@ -585,23 +671,12 @@ const AudioRecorder = ({ onReady }) => {
 
     if (chunks.length === 0) return null;
 
-    let mimeType = "";
-
-    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-      mimeType = "audio/webm;codecs=opus";
-    } else if (MediaRecorder.isTypeSupported("audio/webm")) {
-      mimeType = "audio/webm";
-    } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
-      mimeType = "audio/mp4;codecs=mp4a.40.2";
-    } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
-      mimeType = "audio/mp4";
-    } else {
-      mimeType = "audio/mp4";
-    }
-
-    const extension = mimeType.includes("webm") ? "webm" : "m4a";
-
-    const cleanMimeType = mimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
+    // Use the MIME type that the MediaRecorder instance actually negotiated.
+    // Re-detecting here can produce a different type (e.g. webm on a device
+    // that recorded mp4), which corrupts the blob on iOS.
+    const usedMimeType = mimeTypeRef.current || "audio/mp4";
+    const extension = usedMimeType.includes("webm") ? "webm" : "m4a";
+    const cleanMimeType = usedMimeType.includes("mp4") ? "audio/mp4" : "audio/webm";
 
     const audioBlob = new Blob(chunks, { type: cleanMimeType });
 
@@ -617,6 +692,7 @@ const AudioRecorder = ({ onReady }) => {
     const url = URL.createObjectURL(audioBlob);
     previewUrlRef.current = url;
     setPreviewUrl(url);
+    setPreviewMimeType(cleanMimeType);
     setIsProcessing(false);
 
     return file;
@@ -624,12 +700,15 @@ const AudioRecorder = ({ onReady }) => {
 
   const drawVisualizer = () => {
     const canvas = canvasRef.current;
+    if (!canvas || !analyserRef.current) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const bufferLength = analyserRef.current.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
+      if (!analyserRef.current) return;
       analyserRef.current.getByteFrequencyData(dataArray);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -648,12 +727,63 @@ const AudioRecorder = ({ onReady }) => {
     draw();
   };
 
+  // Called automatically when a phone call / Siri / alarm interrupts the session.
+  // Flushes buffered audio to IndexedDB, pauses the recorder (non-iOS),
+  // and updates the UI so the user knows they can tap Resume to continue.
+  const handleAutoInterrupt = () => {
+    if (!isRecordingRef.current) return;
+
+    if (mediaRecorderRef.current?.state === "recording") {
+      // Flush current buffer so nothing is lost
+      try {
+        mediaRecorderRef.current.requestData();
+      } catch (e) {}
+
+      // Pause where supported (Android / Desktop); iOS will throw but
+      // the OS kills the recorder anyway — the flush above is enough.
+      if (!isIOS) {
+        try {
+          mediaRecorderRef.current.pause();
+          if (requestDataIntervalRef.current) {
+            clearInterval(requestDataIntervalRef.current);
+            requestDataIntervalRef.current = null;
+          }
+        } catch (e) {}
+      }
+    }
+
+    setIsRecording(false);
+    setWarn(
+      "Recording paused — phone call detected. Tap Resume to continue recording from where you left off.",
+    );
+  };
+
   const handleStart = async () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
       if (dbRef.current) await clearDB(dbRef.current);
       setDuration(0);
-      mediaRecorderRef.current.start(5000); // 5s timeslice for periodic saving
+      setWarn("");
+      setError("");
+
+      if (isIOS) {
+        // iOS Safari ignores the timeslice argument and may never fire
+        // ondataavailable until stop(). We start without a timeslice and
+        // manually call requestData() every 5 s to flush chunks periodically.
+        mediaRecorderRef.current.start();
+        requestDataIntervalRef.current = setInterval(() => {
+          if (mediaRecorderRef.current?.state === "recording") {
+            try {
+              mediaRecorderRef.current.requestData();
+            } catch (e) {
+              console.warn("requestData failed on iOS", e);
+            }
+          }
+        }, 5000);
+      } else {
+        mediaRecorderRef.current.start(5000); // 5 s timeslice for periodic saving
+      }
+
       setIsRecording(true);
     }
 
@@ -662,6 +792,10 @@ const AudioRecorder = ({ onReady }) => {
 
     setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
+        if (requestDataIntervalRef.current) {
+          clearInterval(requestDataIntervalRef.current);
+          requestDataIntervalRef.current = null;
+        }
         mediaRecorderRef.current.requestData();
         mediaRecorderRef.current.stop();
         setIsRecording(false);
@@ -671,18 +805,121 @@ const AudioRecorder = ({ onReady }) => {
 
   const handlePause = async () => {
     if (mediaRecorderRef.current?.state === "recording") {
+      // iOS Safari does not support pause() — it throws NotSupportedError.
+      // Use setWarn (not setError) so the Resume button stays enabled.
+      if (isIOS) {
+        setWarn(
+          "Pause is not supported on iOS Safari. Your recording is continuing — tap Stop in the form when you are done.",
+        );
+        return;
+      }
       try {
         mediaRecorderRef.current.pause();
         setIsRecording(false);
         mediaRecorderRef.current.requestData();
 
-        // immediately build file on pause
+        // Stop the manual requestData interval while paused
+        if (requestDataIntervalRef.current) {
+          clearInterval(requestDataIntervalRef.current);
+          requestDataIntervalRef.current = null;
+        }
+
+        // Build preview file shortly after pause so user can play it back
         setTimeout(async () => {
           await buildAndSendFile();
         }, 200);
       } catch (e) {
         console.error("Pause failed", e);
+        setError("Pause is not supported on this device.");
       }
+    }
+  };
+
+  // Restarts the MediaRecorder after the OS killed it (e.g. iOS during a call).
+  // Crucially does NOT clear IndexedDB — new chunks are appended alongside the
+  // pre-call chunks, so buildAndSendFile() returns one combined audio file.
+  const restartRecorderAfterInterrupt = async () => {
+    try {
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      const mt = mimeTypeRef.current;
+      const newRecorder = mt
+        ? new MediaRecorder(stream, { mimeType: mt })
+        : new MediaRecorder(stream);
+      mediaRecorderRef.current = newRecorder;
+
+      // Re-attach the same handlers — DB is NOT cleared, so new chunks
+      // are appended to old ones automatically.
+      newRecorder.ondataavailable = async (event) => {
+        if (event.data.size > 0) {
+          if (dbRef.current) {
+            pendingWritesRef.current++;
+            try {
+              await saveChunkToDB(dbRef.current, event.data);
+            } catch (e) {
+              audioChunksRef.current.push(event.data);
+            } finally {
+              pendingWritesRef.current--;
+            }
+          } else {
+            audioChunksRef.current.push(event.data);
+          }
+        }
+      };
+
+      newRecorder.onstop = async () => {
+        let retries = 0;
+        while (pendingWritesRef.current > 0 && retries < 20) {
+          await new Promise((r) => setTimeout(r, 100));
+          retries++;
+        }
+        const file = await buildAndSendFile();
+        if (stopResolveRef.current) {
+          stopResolveRef.current(file);
+          stopResolveRef.current = null;
+        }
+        if (onReady && file) onReady(file, null);
+      };
+
+      newRecorder.onerror = () => {
+        setError("Recording interrupted. Please try again.");
+        setIsRecording(false);
+      };
+
+      // Start WITHOUT clearing DB
+      if (isIOS) {
+        newRecorder.start();
+        requestDataIntervalRef.current = setInterval(() => {
+          if (mediaRecorderRef.current?.state === "recording") {
+            try {
+              mediaRecorderRef.current.requestData();
+            } catch (e) {}
+          }
+        }, 5000);
+      } else {
+        newRecorder.start(5000);
+      }
+
+      setIsRecording(true);
+      setWarn(
+        "Continuing — new audio will be merged with your previous recording.",
+      );
+    } catch (e) {
+      console.error("Failed to restart recorder after interrupt", e);
+      setError(
+        "Could not restart recording after the call. Your saved audio is available below.",
+      );
     }
   };
 
@@ -694,15 +931,27 @@ const AudioRecorder = ({ onReady }) => {
         }
         mediaRecorderRef.current.resume();
         setIsRecording(true);
+
+        // Restart periodic requestData interval for iOS after resume
+        if (isIOS && !requestDataIntervalRef.current) {
+          requestDataIntervalRef.current = setInterval(() => {
+            if (mediaRecorderRef.current?.state === "recording") {
+              try {
+                mediaRecorderRef.current.requestData();
+              } catch (e) {
+                console.warn("requestData failed on iOS", e);
+              }
+            }
+          }, 5000);
+        }
       } else if (
         mediaRecorderRef.current?.state === "inactive" ||
         !mediaRecorderRef.current
       ) {
-        // If it was killed by the OS, we might need to restart it
-        // but for now, let's just error gracefully
-        setError(
-          "Recording session lost during interrupt. Please start a new recording. Your previous data is saved below."
-        );
+        // Recorder was killed by the OS (e.g. iOS during a phone call).
+        // Restart it WITHOUT clearing IndexedDB so pre-call + post-call
+        // audio are combined into one file by buildAndSendFile().
+        await restartRecorderAfterInterrupt();
       }
     } catch (e) {
       console.error("Resume failed", e);
@@ -713,6 +962,12 @@ const AudioRecorder = ({ onReady }) => {
   const stopAndFinalize = () => {
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current) return resolve(null);
+
+      // Clear the iOS periodic flush interval before stopping
+      if (requestDataIntervalRef.current) {
+        clearInterval(requestDataIntervalRef.current);
+        requestDataIntervalRef.current = null;
+      }
 
       if (mediaRecorderRef.current.state !== "inactive") {
         setIsProcessing(true);
@@ -734,6 +989,11 @@ const AudioRecorder = ({ onReady }) => {
   return (
     <div className="my-3">
       {error && <Alert color="danger">{error}</Alert>}
+      {warn && !error && (
+        <Alert color="warning" toggle={() => setWarn("")}>
+          {warn}
+        </Alert>
+      )}
 
       <div className="d-flex gap-2 mb-2">
         <Button
@@ -800,10 +1060,7 @@ const AudioRecorder = ({ onReady }) => {
           preload="metadata"
           style={{ marginTop: "10px", width: "100%" }}
         >
-          <source
-            src={previewUrl}
-            type={previewUrl.includes("webm") ? "audio/webm" : "audio/mp4"}
-          />
+          <source src={previewUrl} type={previewMimeType} />
           Your browser does not support the audio element.
         </audio>
       )}
