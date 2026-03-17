@@ -2848,7 +2848,7 @@ export const bulkGenerateOverviewRecording = (ids) => {
   return axios.post(url.BULK_GENERATE_OVERVIEW_RECORDING, ids);
 }
 export const uploadXlsx = (data) => {
-  return axios.post(url.UPLOAD_XLSX_FILE, data, {
+  return api.create(url.UPLOAD_XLSX_FILE, data, {
     headers: {
       "Content-Type": "multipart/form-data"
     }
