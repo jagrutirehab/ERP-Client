@@ -216,9 +216,15 @@ export const centralPaymentSlice = createSlice({
 
         builder.addCase(updateCentralPaymentAction.fulfilled, (state, { payload }) => {
             if (Array.isArray(state.approvals.data)) {
+                const removed = state.approvals.data.find(
+                    (approval) => approval._id === payload.payload._id
+                );
                 state.approvals.data = state.approvals.data.filter(
                     (approval) => approval._id !== payload.payload._id
                 );
+                if (removed && state.approvals.totalFinalAmount != null) {
+                    state.approvals.totalFinalAmount -= removed.finalAmount || 0;
+                }
             }
         });
 
