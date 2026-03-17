@@ -160,7 +160,9 @@ const PaymentFormModal = ({
               {hasCreatePermission
                 ? mode === "approval"
                   ? "Process Approval"
-                  : "UTR Confirmation"
+                  : mode === "financeApproval"
+                    ? "Finance Approval"
+                    : "UTR Confirmation"
                 : "Expense Overview"}
             </div>
           </ModalHeader>
@@ -512,6 +514,23 @@ const PaymentFormModal = ({
                   </Col>
                 </Row>
               </>
+            )}
+
+            {mode !== "approval" && paymentDetails?.approvalRemarks && (
+              <Row className="mt-3">
+                <Col md={12}>
+                  <FormGroup>
+                    <Label><strong>Approval Remarks</strong></Label>
+                    <Input
+                      type="textarea"
+                      value={paymentDetails.approvalRemarks}
+                      readOnly
+                      disabled
+                      rows={3}
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
             )}
           </ModalBody>
 

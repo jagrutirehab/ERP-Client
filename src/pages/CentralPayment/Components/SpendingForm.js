@@ -948,11 +948,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 )}
             </FormGroup>
 
+            {/* {console.log("FORM DEBUG:", { errors: form.errors, isValid: form.isValid, dirty: form.dirty, values: form.values })} */}
             <Button
                 color="primary"
                 type="submit"
                 className="w-100 text-white"
-                disabled={form.isSubmitting || !form.isValid || !form.dirty}
+                disabled={form.isSubmitting || !form.isValid || (!paymentData?._id && !form.dirty)}
             >
                 {form.isSubmitting ? (
                     <Spinner size="sm" className="me-2" />
