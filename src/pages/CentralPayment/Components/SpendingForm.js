@@ -72,7 +72,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     null,
                     function (val) {
                         const { totalAmountWithGST } = this.parent;
-                        const total = Number(totalAmountWithGST) || 0;
+                        const total = Math.round(Number(totalAmountWithGST) || 0);
                         const isValid = !val || Number(val) <= total;
 
                         if (!isValid) {
@@ -91,12 +91,13 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .required("Description is required"),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().required("Invoice number is required"),
-        totalAmountWithGST: Yup.string()
-            .required("Total amount with GST is required")
-            .matches(/^\d+(\.\d{1,2})?$/, "Total amount can have at most 2 decimal places")
+        invoiceDate: Yup.string().required("Invoice date is required"),
+        grossAmount: Yup.string()
+            .required("Gross amount is required")
+            .matches(/^\d+(\.\d{1,2})?$/, "Gross amount can have at most 2 decimal places")
             .test(
                 "greater-than-zero",
-                "Total amount must be greater than 0",
+                "Gross amount must be greater than 0",
                 (val) => val && Number(val) > 0
             ),
         GSTAmount: Yup.string()
@@ -163,8 +164,10 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             description: paymentData?.description || "",
             vendor: paymentData?.vendor || "",
             invoiceNo: paymentData?.invoiceNo || "",
-            totalAmountWithGST: paymentData?.totalAmountWithGST || 0,
-            GSTAmount: paymentData?.GSTAmount || 0,
+            invoiceDate: paymentData?.invoiceDate ? format(new Date(paymentData.invoiceDate), "yyyy-MM-dd") : "",
+            grossAmount: paymentData?.totalAmountWithoutGST ? String(paymentData.totalAmountWithoutGST) : "",
+            GSTAmount: paymentData?.GSTAmount ? String(paymentData.GSTAmount) : "0",
+            totalAmountWithGST: paymentData?.totalAmountWithGST ? String(Math.round(paymentData.totalAmountWithGST)) : "0",
             IFSCCode: paymentData?.bankDetails?.IFSCCode || "",
             accountHolderName: paymentData?.bankDetails?.accountHolderName || "",
             accountNo: paymentData?.bankDetails?.accountNo || "",
@@ -190,7 +193,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             Object.entries(values).forEach(([key, val]) => {
                 if (key === "attachments") return;
 
-                if (key === "date") {
+                if (key === "date" || key === "invoiceDate") {
                     const now = new Date();
                     const spendingDate = new Date(val);
                     spendingDate.setHours(
@@ -214,7 +217,16 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     return;
                 }
 
-                if (key === "totalAmountWithGST" || key === "GSTAmount") {
+                if (key === "grossAmount") {
+                    formData.append("totalAmountWithoutGST", Number(val));
+                    return;
+                }
+
+                if (key === "totalAmountWithGST") {
+                    return; 
+                }
+
+                if (key === "GSTAmount") {
                     formData.append(key, Number(val));
                     return;
                 }
@@ -616,26 +628,56 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
 
             <FormGroup>
-                <Label for="totalAmountWithGST" className="fw-medium">
-                    Total Amount including GST <span className="text-danger">*</span>
+                <Label for="invoiceDate" className="fw-medium">
+                    Invoice Date <span className="text-danger">*</span>
                 </Label>
                 <Input
-                    type="text"
-                    id="totalAmountWithGST"
-                    name="totalAmountWithGST"
-                    value={form.values.totalAmountWithGST}
-                    onChange={(e) => normalizeAmountInput(e)}
+                    type="date"
+                    id="invoiceDate"
+                    name="invoiceDate"
+                    value={form.values.invoiceDate}
+                    onChange={form.handleChange}
                     onBlur={form.handleBlur}
-                    placeholder="0.00"
-                    className={`form-control ${form.touched.totalAmountWithGST && form.errors.totalAmountWithGST
+                    className={`form-control ${form.touched.invoiceDate && form.errors.invoiceDate
                         ? "is-invalid"
                         : ""
                         }`}
                 />
-                {form.touched.totalAmountWithGST && form.errors.totalAmountWithGST && (
+                {form.touched.invoiceDate && form.errors.invoiceDate && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
-                        {form.errors.totalAmountWithGST}
+                        {form.errors.invoiceDate}
+                    </div>
+                )}
+            </FormGroup>
+
+            <FormGroup>
+                <Label for="grossAmount" className="fw-medium">
+                    Gross Amount (Excl. GST) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="grossAmount"
+                    name="grossAmount"
+                    value={form.values.grossAmount}
+                    onChange={(e) => {
+                        const { value } = e.target;
+                        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+                        form.setFieldValue("grossAmount", value);
+                        const total = Math.round(Number(value || 0) + Number(form.values.GSTAmount || 0));
+                        form.setFieldValue("totalAmountWithGST", String(total));
+                    }}
+                    onBlur={form.handleBlur}
+                    placeholder="0.00"
+                    className={`form-control ${form.touched.grossAmount && form.errors.grossAmount
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.grossAmount && form.errors.grossAmount && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.grossAmount}
                     </div>
                 )}
             </FormGroup>
@@ -648,7 +690,13 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="GSTAmount"
                     name="GSTAmount"
                     value={form.values.GSTAmount}
-                    onChange={(e) => normalizeAmountInput(e)}
+                    onChange={(e) => {
+                        const { value } = e.target;
+                        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+                        form.setFieldValue("GSTAmount", value);
+                        const total = Math.round(Number(form.values.grossAmount || 0) + Number(value || 0));
+                        form.setFieldValue("totalAmountWithGST", String(total));
+                    }}
                     onBlur={form.handleBlur}
                     placeholder="0.00"
                     className={`form-control ${form.touched.GSTAmount && form.errors.GSTAmount
@@ -662,6 +710,20 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         {form.errors.GSTAmount}
                     </div>
                 )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="totalAmountWithGST" className="fw-medium">
+                    Total Amount including GST
+                </Label>
+                <Input
+                    type="text"
+                    id="totalAmountWithGST"
+                    name="totalAmountWithGST"
+                    value={form.values.totalAmountWithGST}
+                    readOnly
+                    disabled
+                    className="form-control"
+                />
             </FormGroup>
             <FormGroup>
                 <Label for="IFSCCode" className="fw-medium">

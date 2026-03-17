@@ -221,12 +221,16 @@ const PaymentFormModal = ({
                       </p>
                     )}
                     <p className="mb-0">
-                      <strong>Total Amount (with GST):</strong>{" "}
-                      {formatCurrency(paymentDetails?.totalAmountWithGST)}
+                      <strong>Gross Amount (Excl. GST):</strong>{" "}
+                      {formatCurrency(paymentDetails?.totalAmountWithoutGST)}
                     </p>
                     <p className="mb-0">
                       <strong>GST Amount:</strong>{" "}
                       {formatCurrency(paymentDetails?.GSTAmount)}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Total Amount (with GST):</strong>{" "}
+                      {formatCurrency(paymentDetails?.totalAmountWithGST)}
                     </p>
                     <p className="mb-0">
                       <strong>Payable (TDS Deducted):</strong>{" "}
@@ -239,6 +243,12 @@ const PaymentFormModal = ({
                       <p className="mb-0">
                         <strong>Invoice:</strong>{" "}
                         {paymentDetails.invoiceNo || "-"}
+                      </p>
+                    )}
+                    {paymentDetails?.invoiceDate && (
+                      <p className="mb-0">
+                        <strong>Invoice Date:</strong>{" "}
+                        {moment(paymentDetails.invoiceDate).format("lll")}
                       </p>
                     )}
                     {paymentDetails?.date && (
