@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getCallRecordings, getRecordingById } from "../../../helpers/backend_helper";
+import { getCallRecordings, getFeedbackRecordingById, getFeedbackRecordings, getRecordingById } from "../../../helpers/backend_helper";
 import { Card, CardBody, Row, Col, Spinner } from "reactstrap";
 import { normalizeGeminiResponse } from "../Helpers/normalizeGeminiResponse";
 import { normalizeDates } from "../Helpers/normalizeDates";
@@ -32,7 +32,7 @@ const Section = ({ title, children }) => {
     );
 };
 
-const MoreDetails = () => {
+const MoreDetailsFeedback = () => {
     const { id } = useParams();
 
     const [data, setData] = useState(null);
@@ -49,7 +49,7 @@ const MoreDetails = () => {
     const loadById = async () => {
         setLoading(true);
         try {
-            const response = await getRecordingById(id);
+            const response = await getFeedbackRecordingById(id);
             console.log("Details:", response);
             setData(response?.recording || null);
         } catch (error) {
@@ -168,7 +168,7 @@ const MoreDetails = () => {
                             onClick={async () => {
 
                                 if (prevRecording) {
-                                    navigate(`/recordings/more/${prevRecording._id}`, {
+                                    navigate(`/recordings/more-feedback/${prevRecording._id}`, {
                                         state: {
                                             recordings,
                                             index: index - 1,
@@ -182,7 +182,7 @@ const MoreDetails = () => {
 
                                     if (prevPage < 1) return;
 
-                                    const response = await getCallRecordings({
+                                    const response = await getFeedbackRecordings({
                                         page: prevPage,
                                         limit
                                     });
@@ -190,7 +190,7 @@ const MoreDetails = () => {
                                     const prevPageData = response?.data || [];
 
                                     if (prevPageData.length > 0) {
-                                        navigate(`/recordings/more/${prevPageData[prevPageData.length - 1]._id}`, {
+                                        navigate(`/recordings/more-feedback/${prevPageData[prevPageData.length - 1]._id}`, {
                                             state: {
                                                 recordings: prevPageData,
                                                 index: prevPageData.length - 1,
@@ -217,7 +217,7 @@ const MoreDetails = () => {
                             onClick={async () => {
 
                                 if (nextRecording) {
-                                    navigate(`/recordings/more/${nextRecording._id}`, {
+                                    navigate(`/recordings/more-feedback/${nextRecording._id}`, {
                                         state: {
                                             recordings,
                                             index: index + 1,
@@ -229,7 +229,7 @@ const MoreDetails = () => {
                                 else {
                                     const nextPage = page + 1;
 
-                                    const response = await getCallRecordings({
+                                    const response = await getFeedbackRecordings({
                                         page: nextPage,
                                         limit
                                     });
@@ -237,7 +237,7 @@ const MoreDetails = () => {
                                     const nextPageData = response?.data || [];
 
                                     if (nextPageData.length > 0) {
-                                        navigate(`/recordings/more/${nextPageData[0]._id}`, {
+                                        navigate(`/recordings/more-feedback/${nextPageData[0]._id}`, {
                                             state: {
                                                 recordings: nextPageData,
                                                 index: 0,
@@ -304,7 +304,6 @@ const MoreDetails = () => {
                             </Col>
                         )}
 
-
                     <Row>
 
                         {/* Call Information */}
@@ -363,6 +362,7 @@ const MoreDetails = () => {
 
 
 
+
                         {/* Additional Call Metadata */}
                         {extraFields.length > 0 && (
                             <Col md={12}>
@@ -390,4 +390,4 @@ const MoreDetails = () => {
     );
 };
 
-export default MoreDetails;
+export default MoreDetailsFeedback;
