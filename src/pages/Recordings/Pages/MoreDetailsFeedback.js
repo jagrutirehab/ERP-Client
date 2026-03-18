@@ -144,7 +144,13 @@ const MoreDetailsFeedback = () => {
         <div className="container-fluid px-4">
 
             <Card className="shadow-sm w-100">
-                <CardBody>
+                <CardBody
+                    style={{
+                        maxHeight: "100vh",
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                    }}
+                >
 
                     <div className="d-flex justify-content-between mb-3">
 
@@ -262,6 +268,42 @@ const MoreDetailsFeedback = () => {
                         </Section>
                     )}
 
+                    {/* Gemini AI Overview */}
+                    {data?.Files?.geminiResponse &&
+                        !data?.Files?.geminiResponse?.startsWith("API Error") && (
+                            <Col md={12}>
+                                <Section
+                                    title={
+                                        <div className="d-flex justify-content-between align-items-center w-100">
+                                            <span>AI Call Summary & Analysis</span>
+
+                                            {data?.Files?.geminResponseGeneratedOn && (
+                                                <small className="text-muted">
+                                                    {normalizeDates(
+                                                        data?.Files?.geminResponseGeneratedOn
+                                                    )}
+                                                </small>
+                                            )}
+                                        </div>
+                                    }
+                                >
+                                    <div
+                                        style={{
+                                            // maxHeight: "300px",
+                                            overflowY: "auto",
+                                            lineHeight: "1.7",
+                                            fontSize: "14px",
+                                            whiteSpace: "pre-wrap"
+                                        }}
+                                    >
+                                        {normalizeGeminiResponse(
+                                            data?.Files?.geminiResponse
+                                        )}
+                                    </div>
+                                </Section>
+                            </Col>
+                        )}
+
                     <Row>
 
                         {/* Call Information */}
@@ -319,41 +361,7 @@ const MoreDetailsFeedback = () => {
                         </Col>
 
 
-                        {/* Gemini AI Overview */}
-                        {data?.Files?.geminiResponse &&
-                            !data?.Files?.geminiResponse?.startsWith("API Error") && (
-                                <Col md={12}>
-                                    <Section
-                                        title={
-                                            <div className="d-flex justify-content-between align-items-center w-100">
-                                                <span>AI Call Summary & Analysis</span>
 
-                                                {data?.Files?.geminResponseGeneratedOn && (
-                                                    <small className="text-muted">
-                                                        {normalizeDates(
-                                                            data?.Files?.geminResponseGeneratedOn
-                                                        )}
-                                                    </small>
-                                                )}
-                                            </div>
-                                        }
-                                    >
-                                        <div
-                                            style={{
-                                                // maxHeight: "300px",
-                                                overflowY: "auto",
-                                                lineHeight: "1.7",
-                                                fontSize: "14px",
-                                                whiteSpace: "pre-wrap"
-                                            }}
-                                        >
-                                            {normalizeGeminiResponse(
-                                                data?.Files?.geminiResponse
-                                            )}
-                                        </div>
-                                    </Section>
-                                </Col>
-                            )}
 
                         {/* Additional Call Metadata */}
                         {extraFields.length > 0 && (

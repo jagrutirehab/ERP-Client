@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { bulkGenerateOverviewRecording, generateFeedbackOverviewRecording, generateOverviewRecording, getFeedbackRecordings, uploadXlsx } from '../../../helpers/backend_helper';
+import { bulkGenerateFeedbackOverviewRecording, bulkGenerateOverviewRecording, generateFeedbackOverviewRecording, generateOverviewRecording, getFeedbackRecordings, uploadFeedbackXlsx, uploadXlsx } from '../../../helpers/backend_helper';
 import { toast } from 'react-toastify';
 import { CardBody, Label, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
@@ -14,6 +14,7 @@ import UploadXlsxModal from '../Components/UploadXlsxModal';
 import { useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { feedbackRecordingsColumns } from '../Columns/feedbackColumn';
+import BulkFeedbackModal from '../Components/BulkFeedbackModal';
 
 const FeedbackRecording = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -154,7 +155,7 @@ const FeedbackRecording = () => {
       for (let i = 0; i < allIds.length; i += chunkSize) {
         const chunk = allIds.slice(i, i + chunkSize);
 
-        const response = await bulkGenerateOverviewRecording({ ids: chunk });
+        const response = await bulkGenerateFeedbackOverviewRecording({ ids: chunk });
         console.log("Response", response);
 
 
@@ -187,7 +188,7 @@ const FeedbackRecording = () => {
 
       console.log("Uploading file:", file);
 
-      const response = await uploadXlsx(formData);
+      const response = await uploadFeedbackXlsx(formData);
 
       console.log("Upload response:", response);
 
@@ -417,7 +418,7 @@ const FeedbackRecording = () => {
         />
 
       </CardBody>
-      <BulkOverviewModal
+      <BulkFeedbackModal
         isOpen={showBulkOverviewModal}
         toggle={() => setShowBulkOverviewModal(false)}
         onGenerate={handleGenerateBulkOverview}
