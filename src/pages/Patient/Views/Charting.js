@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { Alert, Button } from "reactstrap";
+import { Alert, Button, Progress } from "reactstrap";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addClinicalNote,
@@ -45,6 +45,7 @@ const Charting = ({
   const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
   const [chartType, setChartType] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const toggleModal = () => setDateModal(!dateModal);
 
   const handleAdmitPatient = () => {
@@ -146,14 +147,27 @@ const Charting = ({
     });
     // files.forEach((file) => formData.append("file", file.file));
 
+    const config = {
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        setUploadProgress(percentCompleted);
+      },
+    };
+
     if (editClinicalNote) {
       formData.append("id", editChartData._id);
       formData.append("chartId", editClinicalNote._id);
-      dispatch(updateClinicalNote(formData));
+      dispatch(updateClinicalNote({ data: formData, config })).finally(() =>
+        setUploadProgress(0)
+      );
     } else if (chartType === "GENERAL") {
       dispatch(addGeneralClinicalNote(values));
     } else {
-      dispatch(addClinicalNote(formData));
+      dispatch(addClinicalNote({ data: formData, config })).finally(() =>
+        setUploadProgress(0)
+      );
     }
   };
 
@@ -278,6 +292,15 @@ const Charting = ({
           </li>
         </ul>
       </div>
+      {uploadProgress > 0 && (
+        <div className="mb-3 px-3">
+          <div className="d-flex justify-content-between mb-1">
+            <span className="text-muted fw-medium">Uploading Files...</span>
+            <span className="text-primary fw-bold">{uploadProgress}%</span>
+          </div>
+          <Progress value={uploadProgress} color="primary" striped animated />
+        </div>
+      )}
       <div className="mb-2">
         <CheckPermission permission={"create"} subAccess={"Charting"}>
           <RenderWhen isTrue={tab === OPD && !patient.isAdmit}>

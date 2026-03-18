@@ -85,6 +85,11 @@ const DetailedReport = ({
 
   const columns = [
     {
+      name: "ID",
+      selector: (row) => row.id,
+      wrap: true,
+    },
+    {
       name: "Date",
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
@@ -97,7 +102,7 @@ const DetailedReport = ({
     },
     {
       name: "Name",
-      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.id || "-"})` : "-",
+      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.patientId || row?.internId || "-"})` : "-",
       wrap: true,
     },
     {
@@ -215,6 +220,7 @@ const DetailedReport = ({
               centers: selectedCentersIds,
               startDate: reportDate.start.toISOString(),
               endDate: reportDate.end.toISOString(),
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
           ).unwrap();
         } catch (error) {
@@ -248,6 +254,7 @@ const DetailedReport = ({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
         exportExcel: true,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
       const blob = new Blob([res.data], {
@@ -266,7 +273,7 @@ const DetailedReport = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error("Failed to download report");
+        toast.error(error.message || "Failed to download report");
       }
     } finally {
       setIsExcelGenerating(false);

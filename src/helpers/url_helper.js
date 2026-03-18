@@ -550,5 +550,12 @@ export const GET_MY_ISSUES = "/issues/my/tickets"
 export const CHANGE_STATUS = "/issues/change/status"
 export const APPROVE_ISSUE = "/issues/approval"
 export const POST_ISSUE = "/issues/post"
-
 export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
+export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
+
+// recordings
+export const GET_RECORDINGS = "/ozonetel/get";
+export const GET_RECORDING_BY_ID = "/ozonetel/get";
+export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
+export const BULK_GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-bulk-overview";
+export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";

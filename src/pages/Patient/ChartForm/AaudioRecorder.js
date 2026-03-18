@@ -30,7 +30,6 @@
 //           },
 //         });
 
-
 //         mediaRecorderRef.current = new MediaRecorder(stream);
 
 //         mediaRecorderRef.current.ondataavailable = (event) => {
@@ -162,7 +161,6 @@
 //     draw();
 //   };
 
-
 //   const handleStart = () => {
 //     if (mediaRecorderRef.current) {
 //       audioChunksRef.current = [];
@@ -279,7 +277,6 @@
 
 // export default AudioRecorder;
 
-
 // /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Alert } from "reactstrap";
@@ -313,14 +310,15 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
-
         let mimeType = "";
 
         if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
           mimeType = "audio/webm;codecs=opus";
         } else if (MediaRecorder.isTypeSupported("audio/webm")) {
           mimeType = "audio/webm";
-        } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+        } else if (
+          MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
+        ) {
           mimeType = "audio/mp4;codecs=mp4a.40.2";
         } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
           mimeType = "audio/mp4";
@@ -343,8 +341,9 @@ const AudioRecorder = ({ onReady }) => {
           }
         };
 
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        audioContextRef.current = new (
+          window.AudioContext || window.webkitAudioContext
+        )();
 
         if (audioContextRef.current.state === "suspended") {
           await audioContextRef.current.resume();
@@ -359,20 +358,20 @@ const AudioRecorder = ({ onReady }) => {
         const compressor = audioContextRef.current.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(
           -50,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.knee.setValueAtTime(40, audioContextRef.current.currentTime);
         compressor.ratio.setValueAtTime(
           12,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.attack.setValueAtTime(
           0,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.release.setValueAtTime(
           0.25,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
 
         const gainNode = audioContextRef.current.createGain();
@@ -481,7 +480,6 @@ const AudioRecorder = ({ onReady }) => {
     draw();
   };
 
-
   const handleStart = () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
@@ -499,7 +497,6 @@ const AudioRecorder = ({ onReady }) => {
         setIsRecording(false);
       }
     }, MAX_DURATION);
-
   };
 
   const handlePause = () => {
@@ -530,7 +527,6 @@ const AudioRecorder = ({ onReady }) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
       if (mediaRecorderRef.current.state !== "inactive") {
-
         mediaRecorderRef.current.requestData(); // VERY IMPORTANT
 
         mediaRecorderRef.current.onstop = () => {
@@ -597,5 +593,3 @@ const AudioRecorder = ({ onReady }) => {
 };
 
 export default AudioRecorder;
-
-

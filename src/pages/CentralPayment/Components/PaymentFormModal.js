@@ -76,6 +76,7 @@ const PaymentFormModal = ({
       // transactionAccountNo: "",
       tallyAccount: null,
       currentPaymentStatus: "PENDING",
+      approvalRemarks: "",
     },
     validationSchema: paymentValidationSchema,
     onSubmit: (values) => {
@@ -110,6 +111,7 @@ const PaymentFormModal = ({
         // transactionAccountNo: paymentDetails.transactionBankDetails?.accountNo || "",
         tallyAccount: selectedOption,
         currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING",
+        approvalRemarks: "",
       });
     }
   }, [paymentDetails, item?._id]);
@@ -158,7 +160,9 @@ const PaymentFormModal = ({
               {hasCreatePermission
                 ? mode === "approval"
                   ? "Process Approval"
-                  : "UTR Confirmation"
+                  : mode === "financeApproval"
+                    ? "Finance Approval"
+                    : "UTR Confirmation"
                 : "Expense Overview"}
             </div>
           </ModalHeader>
@@ -217,12 +221,16 @@ const PaymentFormModal = ({
                       </p>
                     )}
                     <p className="mb-0">
-                      <strong>Total Amount (with GST):</strong>{" "}
-                      {formatCurrency(paymentDetails?.totalAmountWithGST)}
+                      <strong>Gross Amount (Excl. GST):</strong>{" "}
+                      {formatCurrency(paymentDetails?.totalAmountWithoutGST)}
                     </p>
                     <p className="mb-0">
                       <strong>GST Amount:</strong>{" "}
                       {formatCurrency(paymentDetails?.GSTAmount)}
+                    </p>
+                    <p className="mb-0">
+                      <strong>Total Amount (with GST):</strong>{" "}
+                      {formatCurrency(paymentDetails?.totalAmountWithGST)}
                     </p>
                     <p className="mb-0">
                       <strong>Payable (TDS Deducted):</strong>{" "}
@@ -235,6 +243,12 @@ const PaymentFormModal = ({
                       <p className="mb-0">
                         <strong>Invoice:</strong>{" "}
                         {paymentDetails.invoiceNo || "-"}
+                      </p>
+                    )}
+                    {paymentDetails?.invoiceDate && (
+                      <p className="mb-0">
+                        <strong>Invoice Date:</strong>{" "}
+                        {moment(paymentDetails.invoiceDate).format("lll")}
                       </p>
                     )}
                     {paymentDetails?.date && (
@@ -484,6 +498,50 @@ const PaymentFormModal = ({
                 </p>
               </>
             )}
+
+            {hasCreatePermission && mode === "approval" && (
+              <>
+                <Row className="mt-3">
+                  <Col md={12}>
+                    <FormGroup>
+                      <Label for="approvalRemarks">Remarks (Optional)</Label>
+                      <Input
+                        type="textarea"
+                        id="approvalRemarks"
+                        name="approvalRemarks"
+                        placeholder="Enter remarks"
+                        value={formik.values.approvalRemarks}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        disabled={
+                          isProcessing.id === item._id &&
+                          (isProcessing.type === "REJECTED" ||
+                            isProcessing.type === "APPROVED")
+                        }
+                        rows={3}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </>
+            )}
+
+            {mode !== "approval" && paymentDetails?.approvalRemarks && (
+              <Row className="mt-3">
+                <Col md={12}>
+                  <FormGroup>
+                    <Label><strong>Approval Remarks</strong></Label>
+                    <Input
+                      type="textarea"
+                      value={paymentDetails.approvalRemarks}
+                      readOnly
+                      disabled
+                      rows={3}
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
+            )}
           </ModalBody>
 
           <ModalFooter>
@@ -502,7 +560,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "REJECTED")}
+                    onClick={() => onConfirm(item._id, "REJECTED", formik.values.approvalRemarks)}
                     color="danger"
                     size="sm"
                     className="me-2 d-flex align-items-center text-white"
@@ -521,7 +579,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "APPROVED")}
+                    onClick={() => onConfirm(item._id, "APPROVED", formik.values.approvalRemarks)}
                     color="success"
                     size="sm"
                     className="d-flex align-items-center text-white"

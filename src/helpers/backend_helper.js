@@ -417,13 +417,15 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
-export const postClinicalNote = (data) =>
+export const postClinicalNote = (data, config = {}) =>
   api.create(url.POST_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
-export const editClinicalNote = (data) =>
+export const editClinicalNote = (data, config = {}) =>
   api.put(url.EDIT_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
 export const postCounsellingNote = (data) =>
   api.create(url.POST_COUNSELLING_NOTE, data, {
@@ -1156,7 +1158,7 @@ export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json",
+      // "Content-Type": "application/json",
     },
     responseType: params.exportExcel ? "blob" : "json",
   });
@@ -2818,5 +2820,37 @@ export const getTicketsDashboardData = ({ month, issueType }) => {
       month,
       issueType,
     },
+  });
+};
+
+export const getRaisedIssues = (params = {}) => {
+  return axios.get(url.GET_RAISED_TICKETS, {
+    params,
+  });
+}
+
+// Recordings
+// Call recordings
+export const getCallRecordings = (params = {}) => {
+  return axios.get(url.GET_RECORDINGS, {
+    params,
+  });
+};
+export const getRecordingById = (id) => {
+  return axios.get(`${url.GET_RECORDING_BY_ID}/${id}`);
+}
+
+export const generateOverviewRecording = (id, recordingUrl) => {
+  return axios.post(url.GENERATE_OVERVIEW_RECORDING, { id, recordingUrl });
+}
+
+export const bulkGenerateOverviewRecording = (ids) => {
+  return axios.post(url.BULK_GENERATE_OVERVIEW_RECORDING, ids);
+}
+export const uploadXlsx = (data) => {
+  return api.create(url.UPLOAD_XLSX_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
   });
 };

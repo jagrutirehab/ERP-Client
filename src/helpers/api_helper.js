@@ -71,18 +71,29 @@ axios.interceptors.response.use(
     }
     return response.data ? response.data : response;
   },
-  function (error) {
+  async function (error) {
+    let errorData = error.response?.data;
+    
+    if (errorData instanceof Blob && errorData.type === "application/json") {
+      try {
+        const text = await errorData.text();
+        errorData = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parsing blob to json", e);
+      }
+    }
+
     console.error("❌ API Error:", {
       url: error.config?.url,
       status: error.response?.status,
-      data: error.response?.data,
-      logout: error?.response?.data?.logout,
+      data: errorData,
+      logout: errorData?.logout,
     });
-    if (error?.response?.data?.logout) {
+    if (errorData?.logout) {
       handleLogout();
     }
     return Promise.reject(
-      error?.response?.data || { message: "Something went wrong!" }
+      errorData || { message: "Something went wrong!" }
     );
   }
 );
@@ -112,14 +123,25 @@ if (microToken) {
 // ✅ Optional interceptor for authAxios (optional)
 authAxios.interceptors.response.use(
   (response) => (response.data ? response.data : response),
-  (error) => {
+  async (error) => {
+    let errorData = error.response?.data;
+    
+    if (errorData instanceof Blob && errorData.type === "application/json") {
+      try {
+        const text = await errorData.text();
+        errorData = JSON.parse(text);
+      } catch (e) {
+        console.error("Error parsing blob to json", e);
+      }
+    }
+
     console.error("❌ Auth API Error:", {
       url: error.config?.url,
       status: error.response?.status,
-      data: error.response?.data,
+      data: errorData,
     });
     return Promise.reject(
-      error?.response?.data || { message: "Auth service error!" }
+      errorData || { message: "Auth service error!" }
     );
   }
 );
@@ -144,16 +166,16 @@ class APIClient {
     return response;
   };
 
-  create = (url, data, headers) => {
-    return axios.post(url, data, headers);
+  create = (url, data, config) => {
+    return axios.post(url, data, config);
   };
 
-  update = (url, data, headers) => {
-    return axios.patch(url, data, headers);
+  update = (url, data, config) => {
+    return axios.patch(url, data, config);
   };
 
-  put = (url, data, headers) => {
-    return axios.put(url, data, headers);
+  put = (url, data, config) => {
+    return axios.put(url, data, config);
   };
 
   delete = (url, config) => {

@@ -173,15 +173,26 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Approved By</div>,
+      selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
+      wrap: true,
+    },
+    {
       name: <div>Finance Approved By</div>,
       selector: (row) => capitalizeWords(row.financeApprovedBy?.name || "-"),
       wrap: true,
       minWidth: "120px",
     },
     {
-      name: <div>Approved By</div>,
-      selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
+      name: <div>Approval Remarks</div>,
+      selector: (row) =>
+        row?.approvalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.approvalRemarks)} limit={30} />
+        ) : (
+          "-"
+        ),
       wrap: true,
+      minWidth: "150px",
     },
     {
       name: <div>Name</div>,
@@ -249,6 +260,12 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Invoice Date</div>,
+      selector: (row) => row?.invoiceDate ? format(new Date(row.invoiceDate), "d MMM yyyy") : "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
       name: <div>E-Net</div>,
       selector: (row) => (
         <div className="d-flex align-items-center gap-1">
@@ -283,10 +300,12 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Total Amount</div>,
-      cell: (row) => <span>{formatCurrency(row?.totalAmountWithGST)}</span>,
+      name: <div>Gross Amount (Excl. GST)</div>,
+      cell: (row) => (
+        <span>{formatCurrency(row?.totalAmountWithoutGST)}</span>
+      ),
       wrap: true,
-      minWidth: "120px",
+      minWidth: "150px",
     },
     {
       name: <div>GST Amount</div>,
@@ -294,6 +313,12 @@ const DetailedReport = ({
         <span>{formatCurrency(row?.GSTAmount)}</span>
       ),
       wrap: true,
+    },
+    {
+      name: <div>Total Amount(With GST)</div>,
+      cell: (row) => <span>{formatCurrency(row?.totalAmountWithGST)}</span>,
+      wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>TDS Rate</div>,
@@ -382,9 +407,9 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Finance Approval Status</div>,
+      name: <div>Approval Status</div>,
       selector: (row) => {
-        const status = row?.financeApprovalStatus;
+        const status = row?.approvalStatus;
         return (
           <Badge
             color={getBadgeColor(status)}
@@ -401,9 +426,9 @@ const DetailedReport = ({
       wrap: true,
     },
     {
-      name: <div>Approval Status</div>,
+      name: <div>Finance Approval Status</div>,
       selector: (row) => {
-        const status = row?.approvalStatus;
+        const status = row?.financeApprovalStatus;
         return (
           <Badge
             color={getBadgeColor(status)}

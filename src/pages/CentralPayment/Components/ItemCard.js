@@ -70,10 +70,10 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         }
     }
 
-    const handleUpdateApprovalStatus = async (paymentId, approvalStatus) => {
+    const handleUpdateApprovalStatus = async (paymentId, approvalStatus, approvalRemarks) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
-            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus })).unwrap();
+            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus, approvalRemarks })).unwrap();
             toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -237,11 +237,9 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                         Payable (TDS Deducted)
                                     </i>
                                 )}
-                                {(flag === "financeApproval" || flag === "approval") && (
-                                    <span className="mt-1 ">
-                                        <span className="fw-bold">TDS Rate:</span> {item?.TDSRate ?? 0}%
-                                    </span>
-                                )}
+                                <span className="mt-1 ">
+                                    <span className="fw-bold">TDS Rate:</span> {item?.TDSRate ?? 0}%
+                                </span>
                                 <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
                                     {item.initialPaymentStatus === "PENDING" ? "To Be Paid" : "Paid"}
                                 </span>

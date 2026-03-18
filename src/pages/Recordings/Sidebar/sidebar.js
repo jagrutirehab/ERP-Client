@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { ISSUES } from "../../../Components/constants/pages";
+import { RECORDINGS } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
-const IssuesSidebar = () => {
+const RecordingSidebar = () => {
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const accordionRefs = useRef({});
@@ -14,29 +14,39 @@ const IssuesSidebar = () => {
   };
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
+
   const { hasPermission } = usePermissions(token);
-  const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
-  const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
-  const hasRaiseTicketPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
-  // const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
-  const hasTechnicalIssuesPermission = hasPermission("ISSUES", "TECHNICAL_ISSUES", "READ");
+
+  const hasCallRecordingsPermission = hasPermission(
+    "RECORDINGS",
+    "CALL_RECORDINGS",
+    "READ"
+  );
+
+  // const hasFeedbackRecordingsPermission = hasPermission(
+  //   "RECORDINGS",
+  //   "FEEDBACK_RECORDINGS",
+  //   "READ"
+  // );
 
   const navigate = useNavigate();
 
+  const filteredRecordingOptions = RECORDINGS.filter((page) => {
+    if (page.id === "call-recordings") {
+      if (!hasCallRecordingsPermission) return false;
+      return true;
+    }
 
-  const filteredIssuesOptions = ISSUES.filter((page) => {
-    if (page.id === "raise-ticket") return hasRaiseTicketPermission;
-    if (page.id === "my-issues") return hasMyIssuesPermission;
-    if (page.id === "tech-issues") return hasTechnicalIssuesPermission;
-    if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
-    if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
-    if(page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
+    // if (page.id === "feedback-recordings") {
+    //   if (!hasFeedbackRecordingsPermission) return false;
+    //   return true;
+    // }
 
-    return false;
+    return true;
   });
 
   useEffect(() => {
-    filteredIssuesOptions.forEach((page) => {
+    filteredRecordingOptions.forEach((page) => {
       if (
         page.isAccordion &&
         page.children?.some((child) =>
@@ -75,15 +85,15 @@ const IssuesSidebar = () => {
       `}
       </style>
 
-      <div className="chat-leftsidebar" style={{ minWidth: "300px" }}>
+      <div className="chat-leftsidebar">
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-          <h5 className="mb-0">Issues</h5>
+          <h5 className="mb-0">Recordings</h5>
         </div>
 
         <PerfectScrollbar className="chat-room-list">
           <ul className="list-unstyled chat-list chat-user-list users-list ps-4 pe-3 pt-2">
-            {filteredIssuesOptions.map((page) => {
+            {filteredRecordingOptions.map((page) => {
               const hasChildren = page.children && page.children.length > 0;
 
               if (!accordionRefs.current[page.id]) {
@@ -94,7 +104,6 @@ const IssuesSidebar = () => {
 
               return (
                 <li key={page.id} className="mb-1">
-
                   {hasChildren ? (
                     <>
                       {/* Parent */}
@@ -123,8 +132,9 @@ const IssuesSidebar = () => {
                       {/* Children */}
                       <div
                         ref={contentRef}
-                        className={`accordion-wrap ${openSection === page.id ? "open" : ""
-                          }`}
+                        className={`accordion-wrap ${
+                          openSection === page.id ? "open" : ""
+                        }`}
                         style={{
                           maxHeight:
                             openSection === page.id
@@ -154,8 +164,9 @@ const IssuesSidebar = () => {
                   ) : (
                     <div
                       onClick={() => navigate(page.link)}
-                      className={`d-flex align-items-center py-2 ${location.pathname.startsWith(page.link) ? "active" : ""
-                        }`}
+                      className={`d-flex align-items-center py-2 ${
+                        location.pathname.startsWith(page.link) ? "active" : ""
+                      }`}
                       style={{ paddingLeft: "0px", cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
@@ -172,4 +183,4 @@ const IssuesSidebar = () => {
   );
 };
 
-export default IssuesSidebar;
+export default RecordingSidebar;

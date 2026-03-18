@@ -338,8 +338,20 @@ export const permissionList = [
     subModules: [
       // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
       { name: "RAISE_TICKET", label: "Raise Ticket" },
-      { name: "ISSUES", label: "Issues" },
-      { name: "MY_ISSUES", label: "My Issues" },
+      // { name: "ISSUES", label: "Issues" },
+      { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
+      { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
+      { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
+      { name: "MY_ISSUES", label: "My Assigned Issues" },
+      { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" }
+    ],
+  },
+  {
+    key: "RECORDINGS",
+    label: "Recordings",
+    subModules: [
+      { name: "CALL_RECORDINGS", label: "Call Recordings" },
+      // { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
     ],
   },
 
