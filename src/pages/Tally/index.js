@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 const Tally = ({ centers, centerAccess }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("1");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState([new Date()]);
   // ... (rest of initializations)
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [sending, setSending] = useState(false);
@@ -191,12 +191,16 @@ const Tally = ({ centers, centerAccess }) => {
     setSending(true);
 
     addLog("🚀 Initiating Tally sync...", "info");
-    addLog(`📅 Date: ${format(selectedDate, "dd MMM yyyy")}`, "info");
+    const startDateStr = selectedDate[0] ? format(selectedDate[0], "dd MMM yyyy") : "";
+    const endDateStr = selectedDate[1] ? format(selectedDate[1], "dd MMM yyyy") : startDateStr;
+    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
     addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
 
     try {
       const response = await sendToTally({
-        date: selectedDate.toISOString(),
+        date: selectedDate[0]?.toISOString(),
+        startDate: selectedDate[0]?.toISOString(),
+        endDate: (selectedDate[1] || selectedDate[0])?.toISOString(),
         centerIds: selectedCentersIds,
         types: selectedTypes,
       });

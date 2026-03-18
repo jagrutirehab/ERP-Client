@@ -2,6 +2,7 @@ import React from "react";
 import { Row, Col, Button, Spinner, Input, Label, FormGroup } from "reactstrap";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
+import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDown";
 
@@ -34,8 +35,19 @@ const TallyHeader = ({
         >
           <Flatpickr
             value={selectedDate}
-            onChange={([date]) => setSelectedDate(date)}
+            onChange={(dates) => {
+              if (dates.length === 2) {
+                const diffTime = Math.abs(dates[1] - dates[0]);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays >= 10) {
+                  toast.error("Maximum allowed date range is 10 days.");
+                  return;
+                }
+              }
+              setSelectedDate(dates);
+            }}
             options={{
+              mode: "range",
               dateFormat: "d M, Y",
               disableMobile: true,
             }}
