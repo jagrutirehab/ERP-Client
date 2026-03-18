@@ -56,10 +56,10 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         setPreviewFile(null);
     };
 
-    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus) => {
+    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus, financeApprovalRemarks) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
-            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus })).unwrap();
+            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus, financeApprovalRemarks })).unwrap();
             toast.success(`Finance Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
