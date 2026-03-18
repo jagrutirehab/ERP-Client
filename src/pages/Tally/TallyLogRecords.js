@@ -187,7 +187,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
   return (
     <div className="mt-4">
       <Row className="mb-3 align-items-end g-2">
-        <Col md={6}>
+        <Col md={4}>
           <Label className="form-label fw-semibold">Date Range</Label>
           <Flatpickr
             className="form-control"
@@ -208,7 +208,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             }}
           />
         </Col>
-        <Col md={4}>
+        <Col md={3}>
           <Label className="form-label fw-semibold">Center</Label>
           <Input
             type="select"
@@ -221,6 +221,19 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
                 {c.title}
               </option>
             ))}
+          </Input>
+        </Col>
+        <Col md={3}>
+          <Label className="form-label fw-semibold">Status</Label>
+          <Input
+            type="select"
+            value={filters.status}
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="created">Created</option>
+            <option value="updated">Updated</option>
+            <option value="failed">Failed</option>
           </Input>
         </Col>
         <Col md={2} className="text-end">

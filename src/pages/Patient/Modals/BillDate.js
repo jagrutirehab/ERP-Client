@@ -145,7 +145,12 @@ const BillDate = ({
             <div className="d-flex justify-content-center align-items-center">
               <span>
                 <Flatpicker
-                  name="dateOfAdmission"
+                  name="date"
+                  disabled={
+                    (patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center.title === "Gurgaon") &&
+                    editBillData.bill === ADVANCE_PAYMENT
+                  }
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -169,14 +174,20 @@ const BillDate = ({
                     //   },
                     // ],
                   }}
-                  className="form-control shadow-none bg-light"
+                  // className="form-control shadow-none bg-light"
+                  className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
               <span className="ms-3 me-3">at</span>
               <span>
                 <Flatpicker
-                  name="dateOfAdmission"
+                  name="time"
+                  disabled={
+                    (patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center.title === "Gurgaon") &&
+                    editBillData.bill === ADVANCE_PAYMENT
+                  }
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -195,7 +206,8 @@ const BillDate = ({
                     disableMobile: true,
                     // defaultDate: moment().format('LT'),
                   }}
-                  className="form-control shadow-none bg-light"
+                  // className="form-control shadow-none bg-light"
+                  className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
