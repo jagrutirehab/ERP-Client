@@ -1158,7 +1158,7 @@ export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json",
+      // "Content-Type": "application/json",
     },
     responseType: params.exportExcel ? "blob" : "json",
   });

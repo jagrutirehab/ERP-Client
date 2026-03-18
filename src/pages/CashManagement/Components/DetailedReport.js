@@ -273,7 +273,7 @@ const DetailedReport = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error("Failed to download report");
+        toast.error(error.message || "Failed to download report");
       }
     } finally {
       setIsExcelGenerating(false);
