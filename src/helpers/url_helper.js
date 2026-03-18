@@ -565,3 +565,5 @@ export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
 export const GET_FEEDBACK_RECORDINGS = "/feedback/recordings";
 export const GET_FEEDBACK_RECORDING_BY_ID = "/feedback/recordings";
 export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview";
+export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
+export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
