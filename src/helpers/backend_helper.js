@@ -2854,3 +2854,28 @@ export const uploadXlsx = (data) => {
     }
   });
 };
+
+// Feedback recordings
+export const getFeedbackRecordings = (params = {}) => {
+  return axios.get(url.GET_FEEDBACK_RECORDINGS, {
+    params,
+  });
+};
+export const getFeedbackRecordingById = (id) => {
+  return axios.get(`${url.GET_FEEDBACK_RECORDING_BY_ID}/${id}`);
+}
+
+export const generateFeedbackOverviewRecording = (id, recordingUrl) => {
+  return axios.post(url.GENERATE_FEEDBACK_OVERVIEW_RECORDING, { id, recordingUrl });
+}
+export const bulkGenerateFeedbackOverviewRecording = (ids) => {
+  return axios.post(url.BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING, ids);
+}
+
+export const uploadFeedbackXlsx = (data) => {
+  return api.create(url.UPLOAD_FEEDBACK_XLSX_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};

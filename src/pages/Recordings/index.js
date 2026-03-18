@@ -5,6 +5,8 @@ import React from "react";
 import RecordingSidebar from "./Sidebar/sidebar";
 import CallRecordings from "./Pages/CallRecordings";
 import MoreDetails from "./Pages/MoreDetails";
+import FeedbackRecording from "./Pages/FeedbackRecording";
+import MoreDetailsFeedback from "./Pages/MoreDetailsFeedback";
 
 const RecordingIndex = () => {
     const navigate = useNavigate();
@@ -49,9 +51,10 @@ const RecordingIndex = () => {
                                         <RecordingSidebar />
 
                                         <Routes>
-                                            {/* <Route index element={<TechIssues />} /> */}
-                                            <Route path="call" element={<CallRecordings/>} />
+                                            <Route path="call" element={<CallRecordings />} />
+                                            <Route path="feedback" element={<FeedbackRecording />} />
                                             <Route path="more/:id" element={<MoreDetails />} />
+                                            <Route path="more-feedback/:id" element={<MoreDetailsFeedback />} /> 
                                         </Routes>
                                     </div>
                                 </Container>
