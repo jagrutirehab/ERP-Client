@@ -220,6 +220,7 @@ const DetailedReport = ({
               centers: selectedCentersIds,
               startDate: reportDate.start.toISOString(),
               endDate: reportDate.end.toISOString(),
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
           ).unwrap();
         } catch (error) {
@@ -253,6 +254,7 @@ const DetailedReport = ({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
         exportExcel: true,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
       const blob = new Blob([res.data], {
