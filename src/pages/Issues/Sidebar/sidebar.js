@@ -13,7 +13,8 @@ const IssuesSidebar = () => {
     setOpenSection(openSection === id ? "" : id);
   };
 
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
   const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
   const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
@@ -30,7 +31,7 @@ const IssuesSidebar = () => {
     if (page.id === "tech-issues") return hasTechnicalIssuesPermission;
     if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
     if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
-    if(page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
+    if (page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
 
     return false;
   });
