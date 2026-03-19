@@ -16,8 +16,8 @@ const Navdata = () => {
   const filteredDynamicPages = dynamicPages?.filter(
     (page) => page && page.id !== "hrms",
   );
- 
-  
+
+
 
   console.log("User Pages:", userPages);
   const sortPages = (routes) => {
@@ -65,6 +65,28 @@ const Navdata = () => {
     return routes;
   };
 
+  const staticPages = [
+    {
+      id: "issues",
+      label: "Issues",
+      link: "/issues",
+      icon: "bx bx-error-circle",
+    },
+    {
+      id: "recordings",
+      label: "Recordings",
+      link: "/recordings",
+      icon: "bx bx-microphone",
+    },
+  ];
+
+  const existingIds = filteredDynamicPages.map((p) => p.id);
+
+  const safeStaticPages = staticPages.filter(
+    (p) => !existingIds.includes(p.id)
+  );
+
+
   const menuItems = [
     {
       label: "Menu",
@@ -77,8 +99,9 @@ const Navdata = () => {
       link: "/centers",
     },
     ...sortPages(filteredDynamicPages),
-    pages.find((p) => p.id === "issues"),
-    pages.find((p) => p.id === "recordings"),
+    // pages.find((p) => p.id === "issues"),
+    // pages.find((p) => p.id === "recordings"),
+    ...safeStaticPages,
   ];
 
   console.log({ userPages, menuItems });

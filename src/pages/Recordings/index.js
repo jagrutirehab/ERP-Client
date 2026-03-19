@@ -54,7 +54,7 @@ const RecordingIndex = () => {
                                             <Route path="call" element={<CallRecordings />} />
                                             <Route path="feedback" element={<FeedbackRecording />} />
                                             <Route path="more/:id" element={<MoreDetails />} />
-                                            <Route path="more-feedback/:id" element={<MoreDetailsFeedback />} /> 
+                                            <Route path="more-feedback/:id" element={<MoreDetailsFeedback />} />
                                         </Routes>
                                     </div>
                                 </Container>
