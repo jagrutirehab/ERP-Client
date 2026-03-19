@@ -67,6 +67,7 @@ const allElements = [
   { element: Referral, label: "Referral" },
   { element: Tally, label: "Tally" },
   { element: Issues, label: "Issues" },
+  { element: Recordings, label: "Recordings" },
 ];
 
 const authProtectedRoutes = [
@@ -103,7 +104,7 @@ const authProtectedRoutes = [
     exact: true,
     component: () => <Navigate to="/dashboard" />,
   },
-];  
+];
 
 const publicRoutes = [
   { path: "/logout", component: Logout },
