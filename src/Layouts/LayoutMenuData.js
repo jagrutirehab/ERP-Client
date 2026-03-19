@@ -80,6 +80,13 @@ const Navdata = () => {
     },
   ];
 
+  const existingIds = filteredDynamicPages.map((p) => p.id);
+
+  const safeStaticPages = staticPages.filter(
+    (p) => !existingIds.includes(p.id)
+  );
+
+
   const menuItems = [
     {
       label: "Menu",
@@ -94,7 +101,7 @@ const Navdata = () => {
     ...sortPages(filteredDynamicPages),
     // pages.find((p) => p.id === "issues"),
     // pages.find((p) => p.id === "recordings"),
-    ...staticPages,
+    ...safeStaticPages,
   ];
 
   console.log({ userPages, menuItems });
