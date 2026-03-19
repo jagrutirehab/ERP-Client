@@ -17,16 +17,18 @@ import {
 import { History, Share } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
+import { toast } from "react-toastify";
+import Select from "react-select";
 import {
   addBankDeposit,
   getLastBankDeposits,
 } from "../../../store/features/cashManagement/cashSlice";
-import { toast } from "react-toastify";
 import FileUpload from "../Components/FileUpload";
 import ItemCard from "../Components/ItemCard";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { bankAccountOptions } from "../../../Components/constants/cash";
 
 const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
   const dispatch = useDispatch();
@@ -75,6 +77,9 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
         ];
         return value && supportedFormats.includes(value.type);
       }),
+    bankAccount: Yup.object()
+      .required("Bank Account is required")
+      .nullable(),
   });
 
   const formik = useFormik({
@@ -83,6 +88,7 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       amount: 0,
       comments: "",
       attachment: null,
+      bankAccount: null
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -91,6 +97,7 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
       formData.append("amount", Number(values.amount));
       formData.append("comments", values.comments);
       formData.append("attachment", values.attachment);
+      formData.append("bankAccount", values.bankAccount.value);
 
       try {
         await dispatch(addBankDeposit({ formData, centers: centerAccess })).unwrap();
@@ -174,7 +181,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                 <Form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="center" className="fw-medium">
-                      Center *
+                      Center{" "}
+                      <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="select"
@@ -207,7 +215,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
 
                   <FormGroup>
                     <Label for="amount" className="fw-medium">
-                      Amount *
+                      Amount{" "}
+                      <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="text"
@@ -232,7 +241,8 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
 
                   <FormGroup>
                     <Label for="comments" className="fw-medium">
-                      Comments *
+                      Comments{" "}
+                      <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="textarea"
@@ -257,7 +267,37 @@ const BankDeposits = ({ centers, centerAccess, deposits, loading }) => {
                   </FormGroup>
 
                   <FormGroup>
-                    <Label className="fw-medium">Attachment *</Label>
+                    <Label for="bankAccount">
+                      Bank Account{" "}
+                      <span className="text-danger">*</span>
+                    </Label>
+                    <Select
+                      id="bankAccount"
+                      name="bankAccount"
+                      options={bankAccountOptions}
+                      value={formik.values.bankAccount}
+                      onChange={(option) =>
+                        formik.setFieldValue("bankAccount", option)
+                      }
+                      onBlur={() =>
+                        formik.setFieldTouched("bankAccount", true)
+                      }
+                      classNamePrefix="react-select"
+                      placeholder="Select bank account"
+                      isClearable
+                    />
+                    {formik.touched.bankAccount &&
+                      formik.errors.bankAccount && (
+                        <div className="text-danger small mt-1">
+                          {formik.errors.bankAccount}
+                        </div>
+                      )}
+                  </FormGroup>
+
+                  <FormGroup>
+                    <Label className="fw-medium">Attachment{" "}
+                      <span className="text-danger">*</span>
+                    </Label>
                     <FileUpload
                       setAttachment={handleAttachmentChange}
                       attachment={attachment}
