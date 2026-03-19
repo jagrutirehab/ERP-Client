@@ -22,7 +22,7 @@ const ItemCard = ({ item, type }) => {
             </div>
             {item.summary && (
               <h6 className="mb-1 fw-bold text-dark">
-                {capitalizeWords(item.summary)}
+                {capitalizeWords(item.summary.replace(/_/g, " "))}
               </h6>
             )}
             {item.comments && (
