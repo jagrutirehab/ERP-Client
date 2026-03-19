@@ -13,7 +13,8 @@ const RecordingSidebar = () => {
     setOpenSection(openSection === id ? "" : id);
   };
 
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
 
@@ -132,9 +133,8 @@ const RecordingSidebar = () => {
                       {/* Children */}
                       <div
                         ref={contentRef}
-                        className={`accordion-wrap ${
-                          openSection === page.id ? "open" : ""
-                        }`}
+                        className={`accordion-wrap ${openSection === page.id ? "open" : ""
+                          }`}
                         style={{
                           maxHeight:
                             openSection === page.id
@@ -164,9 +164,8 @@ const RecordingSidebar = () => {
                   ) : (
                     <div
                       onClick={() => navigate(page.link)}
-                      className={`d-flex align-items-center py-2 ${
-                        location.pathname.startsWith(page.link) ? "active" : ""
-                      }`}
+                      className={`d-flex align-items-center py-2 ${location.pathname.startsWith(page.link) ? "active" : ""
+                        }`}
                       style={{ paddingLeft: "0px", cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
