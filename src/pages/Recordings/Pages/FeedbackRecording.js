@@ -49,9 +49,9 @@ const FeedbackRecording = () => {
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission, loading: isLoading } = usePermissions(token);
 
-  const hasReadPermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "READ");
-  const hasWritePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "WRITE");
-  const hasDeletePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "DELETE");
+  const hasReadPermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "READ");
+  const hasWritePermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "WRITE");
+  const hasDeletePermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "DELETE");
   const canAction = hasWritePermission || hasDeletePermission;
 
   // const fileInputRef = useRef(null);
@@ -204,6 +204,8 @@ const FeedbackRecording = () => {
       setUploading(false);
     }
   };
+
+  
 
   return (
     <>

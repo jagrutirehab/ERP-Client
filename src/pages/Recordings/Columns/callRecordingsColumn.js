@@ -20,37 +20,6 @@ export const callRecordingsColumns = (
       width: "200px",
     },
     {
-      name: <div className="text-center">Location</div>,
-      selector: (row) => row?.Location || "-",
-      width: "200px",
-    },
-    {
-      name: <div className="text-center">Agent</div>,
-      selector: (row) => row?.Agent || "-",
-      width: "160px",
-    },
-    {
-      name: <div className="text-center">Caller Number</div>,
-      selector: (row) => row?.Caller_No || "-",
-      width: "160px",
-    },
-    {
-      name: <div className="text-center">Call Date</div>,
-      selector: (row) => row?.Call_Date || "-",
-      width: "160px",
-    },
-    {
-      name: <div className="text-center">Status</div>,
-      selector: (row) => row?.Status || "-",
-      width: "160px",
-    },
-    {
-      name: <div className="text-center">Talk Time</div>,
-      selector: (row) => row?.Talk_Time || "-",
-      width: "160px",
-    },
-
-    {
       name: <div className="text-center">Overview Generated</div>,
       cell: (row) => {
         const response = row?.Files?.geminiResponse;
@@ -101,6 +70,36 @@ export const callRecordingsColumns = (
         </div>
       ),
       width: "200px",
+    },
+    {
+      name: <div className="text-center">Location</div>,
+      selector: (row) => row?.Location || "-",
+      width: "200px",
+    },
+    {
+      name: <div className="text-center">Agent</div>,
+      selector: (row) => row?.Agent || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Caller Number</div>,
+      selector: (row) => row?.Caller_No || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Call Date</div>,
+      selector: (row) => row?.Call_Date || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Status</div>,
+      selector: (row) => row?.Status || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Talk Time</div>,
+      selector: (row) => row?.Talk_Time || "-",
+      width: "160px",
     },
   ];
 
