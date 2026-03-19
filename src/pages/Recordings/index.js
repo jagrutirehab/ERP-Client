@@ -35,16 +35,6 @@ const RecordingIndex = () => {
         navigate("/unauthorized");
     }
 
-    // document.title = "recording Dashboard";
-
-    const type = "";
-    console.log("checkingUnedined",{
-        RecordingSidebar,
-        CallRecordings,
-        FeedbackRecording,
-        MoreDetails,
-        MoreDetailsFeedback,
-    });
 
     return (
         <React.Fragment>
