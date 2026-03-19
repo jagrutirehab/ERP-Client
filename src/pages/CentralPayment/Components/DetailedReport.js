@@ -177,6 +177,17 @@ const DetailedReport = ({
       selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
       wrap: true,
     },
+     {
+      name: <div>Approval Remarks</div>,
+      selector: (row) =>
+        row?.approvalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.approvalRemarks)} limit={30} />
+        ) : (
+          "-"
+        ),
+      wrap: true,
+      minWidth: "150px",
+    },
     {
       name: <div>Finance Approved By</div>,
       selector: (row) => capitalizeWords(row.financeApprovedBy?.name || "-"),
@@ -184,10 +195,10 @@ const DetailedReport = ({
       minWidth: "120px",
     },
     {
-      name: <div>Approval Remarks</div>,
+      name: <div>Finance Approval Remarks</div>,
       selector: (row) =>
-        row?.approvalRemarks ? (
-          <ExpandableText text={capitalizeWords(row.approvalRemarks)} limit={30} />
+        row?.financeApprovalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.financeApprovalRemarks)} limit={30} />
         ) : (
           "-"
         ),
