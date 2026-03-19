@@ -5,6 +5,7 @@ import { getCallRecordings, getFeedbackRecordingById, getFeedbackRecordings, get
 import { Card, CardBody, Row, Col, Spinner } from "reactstrap";
 import { normalizeGeminiResponse } from "../Helpers/normalizeGeminiResponse";
 import { normalizeDates } from "../Helpers/normalizeDates";
+import {  FeedbackResponseRenderer } from "../Helpers/FeedbackResponseNormalizer";
 
 const formatLabel = (text) => {
     return text
@@ -296,9 +297,9 @@ const MoreDetailsFeedback = () => {
                                             whiteSpace: "pre-wrap"
                                         }}
                                     >
-                                        {normalizeGeminiResponse(
-                                            data?.Files?.geminiResponse
-                                        )}
+                                        <FeedbackResponseRenderer
+  response={data?.Files?.geminiResponse}
+/>
                                     </div>
                                 </Section>
                             </Col>
