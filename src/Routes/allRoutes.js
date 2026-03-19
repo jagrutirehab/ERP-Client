@@ -67,8 +67,9 @@ const allElements = [
   { element: Referral, label: "Referral" },
   { element: Tally, label: "Tally" },
   { element: Issues, label: "Issues" },
+  { element: Recordings, label: "Recordings" },
 ];
-
+// console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
   { path: "/index", component: DashboardEcommerce },
@@ -103,7 +104,7 @@ const authProtectedRoutes = [
     exact: true,
     component: () => <Navigate to="/dashboard" />,
   },
-];  
+];
 
 const publicRoutes = [
   { path: "/logout", component: Logout },
@@ -111,5 +112,6 @@ const publicRoutes = [
   { path: "/forgot-password", component: ForgetPasswordPage },
   { path: "/meeting", component: MyMeetingUI },
 ];
+
 
 export { authProtectedRoutes, publicRoutes, allElements };
