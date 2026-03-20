@@ -130,6 +130,11 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
       selector: (row) => row?.Call_Date || "-",
       width: "130px",
     },
+      {
+      name: <div className="text-center font-bold">Talk Time</div>,
+      selector: (row) => row?.Talk_Time || "-",
+      width: "100px",
+    },
 
 
 
