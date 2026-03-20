@@ -578,8 +578,8 @@ const DuePayment = ({
         return {
           ...item,
           availablePrices: pricesForItem,
-          cost: matched && matched.price > 0 ? matched.price : item.cost,
-          // cost: matched ? matched.price : item.cost,
+          // cost: matched && matched.price > 0 ? matched.price : item.cost,
+          cost: matched ? matched.price : item.cost,
         };
       }),
     );
