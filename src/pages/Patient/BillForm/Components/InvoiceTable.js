@@ -188,7 +188,7 @@ const InvoiceTable = ({
               Quantity
             </Col>
             <Col className="font-semi-bold cost-head" md={2}>
-              Cost
+              Price
             </Col>
             <Col className="font-semi-bold cost-head" md={2}>
               Unit of Measurement
@@ -287,7 +287,7 @@ const InvoiceTable = ({
                         <Col xs={6}>
                           <div className="mb-2">
                             <Label size="sm" className="fw-bold text-muted">
-                              Cost
+                              Price
                             </Label>
                             <Input
                               bsSize="sm"
