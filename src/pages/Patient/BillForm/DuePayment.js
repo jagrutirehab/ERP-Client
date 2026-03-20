@@ -453,6 +453,7 @@ const DuePayment = ({
             unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
+            isZero: exactCost === 0, // new line
           },
         ];
       });
@@ -580,6 +581,7 @@ const DuePayment = ({
           availablePrices: pricesForItem,
           cost: matched && matched.price > 0 ? matched.price : item.cost,
           // cost: matched ? matched.price : item.cost,
+          isZero : matched.price > 0 ? false : true, // new line
         };
       }),
     );
