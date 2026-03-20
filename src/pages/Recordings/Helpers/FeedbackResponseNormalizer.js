@@ -46,20 +46,44 @@ export const FeedbackResponseRenderer = ({ response }) => {
       {formatSection("Communication Support", data.communication_support)}
 
       {/* Patient Outcomes */}
+      {/* Patient Outcomes */}
       {data?.patient_outcomes && (
         <div style={{ marginBottom: "16px" }}>
           <h6>Patient Outcomes</h6>
 
-          {data.patient_outcomes.status_vs_admission && (
-            <div>
-              <strong>Status:</strong>{" "}
-              {data.patient_outcomes.status_vs_admission.value}
-              <div style={{ marginLeft: "15px" }}>
-                <b>Quote/Reference:</b> "
-                {data.patient_outcomes.status_vs_admission.quote}"
-              </div>
-            </div>
-          )}
+          {Object.entries(data.patient_outcomes).map(([key, val], i) => {
+
+            // progress areas (nested object)
+            if (key === "progress_areas") {
+              return (
+                <div key={i} style={{ marginBottom: "6px" }}>
+                  <strong>• Progress Areas:</strong>
+                  {Object.entries(val || {}).map(([k, v]) => (
+                    <div key={k} style={{ marginLeft: "15px" }}>
+                      {k}: {v}
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            // normal object (value + quote)
+            if (typeof val === "object") {
+              return (
+                <div key={i} style={{ marginBottom: "6px" }}>
+                  <strong>• {key}:</strong> {val?.value}
+
+                  {val?.quote && val.quote !== "N/A" && (
+                    <div style={{ marginLeft: "15px" }}>
+                      <b>Quote/Reference:</b> "{val.quote}"
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return null;
+          })}
         </div>
       )}
 
@@ -84,6 +108,36 @@ export const FeedbackResponseRenderer = ({ response }) => {
 
           <strong>Coaching:</strong>
           <div>{data.audit_report.coaching_points}</div>
+        </div>
+      )}
+
+      {/* Discharge & Loyalty */}
+      {data?.discharge_loyalty && (
+        <div style={{ marginTop: "16px" }}>
+          <h6>Discharge & Loyalty</h6>
+
+          {Object.entries(data.discharge_loyalty).map(([key, val], i) => {
+
+            if (typeof val === "object") {
+              return (
+                <div key={i} style={{ marginBottom: "6px" }}>
+                  <strong>• {key}:</strong> {val?.value}
+
+                  {val?.quote && val.quote !== "N/A" && (
+                    <div style={{ marginLeft: "15px" }}>
+                      <b>Quote/Reference:</b> "{val.quote}"
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div key={i} style={{ marginBottom: "6px" }}>
+                <strong>• {key}:</strong> {val}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

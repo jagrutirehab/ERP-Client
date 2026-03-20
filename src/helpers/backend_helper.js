@@ -2883,3 +2883,7 @@ export const uploadFeedbackXlsx = (data) => {
     }
   });
 };
+
+export const getFeedbackRecordingOverview = (params = {}) => {
+  return axios.get(url.GET_FEEDBACK_RECORDING_OVERVIEW, { params })
+}
