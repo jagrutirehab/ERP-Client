@@ -42,6 +42,8 @@ const Index = () => {
   });
   const userAuthRoutes = [...authProtectedRoutes, ...userDynamicRoutes];
 
+  // console.log("Dynamic Routes:", userDynamicRoutes);
+
   return (
     <React.Fragment>
       <Alerts />

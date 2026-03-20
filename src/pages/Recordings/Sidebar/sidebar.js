@@ -13,7 +13,8 @@ const RecordingSidebar = () => {
     setOpenSection(openSection === id ? "" : id);
   };
 
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission } = usePermissions(token);
 
@@ -29,9 +30,15 @@ const RecordingSidebar = () => {
     "READ"
   );
 
+  // const hasCallRecordingsAIOverviewPermission = hasPermission(
+  //   "RECORDINGS",
+  //   "CALL_RECORDINGS_AI_OVERIVIEW",
+  //   "READ"
+  // );
+
   const navigate = useNavigate();
 
-  const filteredRecordingOptions = RECORDINGS.filter((page) => {
+  const filteredRecordingOptions = RECORDINGS?.filter((page) => {
     if (page.id === "call-recordings") {
       if (!hasCallRecordingsPermission) return false;
       return true;
@@ -42,14 +49,19 @@ const RecordingSidebar = () => {
       return true;
     }
 
+    // if (page.id === "call-recordings-ai-overview") {
+    //   if (!hasCallRecordingsAIOverviewPermission) return false;
+    //   return true;
+    // }
+
     return true;
   });
 
   useEffect(() => {
-    filteredRecordingOptions.forEach((page) => {
+    filteredRecordingOptions?.forEach((page) => {
       if (
-        page.isAccordion &&
-        page.children?.some((child) =>
+        page?.isAccordion &&
+        page?.children?.some((child) =>
           location.pathname.startsWith(child.link)
         )
       ) {
@@ -57,6 +69,8 @@ const RecordingSidebar = () => {
       }
     });
   }, [location.pathname]);
+
+  console.log("Filtered Options:", filteredRecordingOptions);
 
   return (
     <>
@@ -132,9 +146,8 @@ const RecordingSidebar = () => {
                       {/* Children */}
                       <div
                         ref={contentRef}
-                        className={`accordion-wrap ${
-                          openSection === page.id ? "open" : ""
-                        }`}
+                        className={`accordion-wrap ${openSection === page.id ? "open" : ""
+                          }`}
                         style={{
                           maxHeight:
                             openSection === page.id
@@ -164,9 +177,8 @@ const RecordingSidebar = () => {
                   ) : (
                     <div
                       onClick={() => navigate(page.link)}
-                      className={`d-flex align-items-center py-2 ${
-                        location.pathname.startsWith(page.link) ? "active" : ""
-                      }`}
+                      className={`d-flex align-items-center py-2 ${location.pathname.startsWith(page.link) ? "active" : ""
+                        }`}
                       style={{ paddingLeft: "0px", cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />

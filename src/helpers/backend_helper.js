@@ -2855,6 +2855,10 @@ export const uploadXlsx = (data) => {
   });
 };
 
+export const getCallRecordingOverview = (params = {}) => {
+  return axios.get(url.GET_CALL_RECORDING_OVERVIEW, { params })
+}
+
 // Feedback recordings
 export const getFeedbackRecordings = (params = {}) => {
   return axios.get(url.GET_FEEDBACK_RECORDINGS, {

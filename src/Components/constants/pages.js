@@ -1063,12 +1063,20 @@ export const RECORDINGS = [
     link: "/recordings/call",
     icon: "bx bx-phone"
   },
+  // {
+  //   id: "call-recordings-overview",
+  //   label: "Call Recordings Overview",
+  //   link: "/recordings/call/overview",
+  //   icon: "bx bx-analyse"
+  // },
   {
     id: "feedback-recordings",
     label: "Feedback Recordings",
     link: "/recordings/feedback",
     icon: "bx bx-comment-detail"
-  }
+  },
+
+
 ];
 
 export default pages;
