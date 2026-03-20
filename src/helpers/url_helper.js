@@ -542,6 +542,8 @@ export const UPLOAD_FILE = "/upload";
 
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
+export const POST_TALLY_UPDATE = "/tally/update";
+export const POST_TALLY_CANCEL = (sessionId) => `/tally/cancel/${sessionId}`;
 export const GET_TALLY_LOGS = "/tally/logs";
 
 // Issues
@@ -559,6 +561,7 @@ export const GET_RECORDING_BY_ID = "/ozonetel/get";
 export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
 export const BULK_GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-bulk-overview";
 export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
+export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews"
 
 
 // Feedback Recordings
@@ -567,3 +570,4 @@ export const GET_FEEDBACK_RECORDING_BY_ID = "/feedback/recordings";
 export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview";
 export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
 export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
+export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews"

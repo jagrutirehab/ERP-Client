@@ -24,33 +24,55 @@ const RecordingSidebar = () => {
     "READ"
   );
 
-  // const hasFeedbackRecordingsPermission = hasPermission(
-  //   "RECORDINGS",
-  //   "FEEDBACK_RECORDINGS",
-  //   "READ"
-  // );
+  const hasFeedbackRecordingsPermission = hasPermission(
+    "RECORDINGS",
+    "FEEDBACK_RECORDINGS",
+    "READ"
+  );
+
+  const hasCallRecordingsAIOverviewPermission = hasPermission(
+    "RECORDINGS",
+    "CALL_RECORDINGS_AI_OVERIVIEW",
+    "READ"
+  );
+
+  const hasFeedbackRecordingsAIOverviewPermission = hasPermission(
+    "RECORDINGS",
+    "FEEDBACK_RECORDINGS_AI_OVERIVIEW",
+    "READ"
+  );
 
   const navigate = useNavigate();
 
-  const filteredRecordingOptions = RECORDINGS.filter((page) => {
+  const filteredRecordingOptions = RECORDINGS?.filter((page) => {
     if (page.id === "call-recordings") {
       if (!hasCallRecordingsPermission) return false;
       return true;
     }
 
-    // if (page.id === "feedback-recordings") {
-    //   if (!hasFeedbackRecordingsPermission) return false;
-    //   return true;
-    // }
+    if (page.id === "feedback-recordings") {
+      if (!hasFeedbackRecordingsPermission) return false;
+      return true;
+    }
+
+    if (page.id === "call-recordings-overview") {
+      if (!hasCallRecordingsAIOverviewPermission) return false;
+      return true;
+    }
+
+    if (page.id === "feedback-recordings-overview") {
+      if (!hasFeedbackRecordingsAIOverviewPermission) return false;
+      return true;
+    }
 
     return true;
   });
 
   useEffect(() => {
-    filteredRecordingOptions.forEach((page) => {
+    filteredRecordingOptions?.forEach((page) => {
       if (
-        page.isAccordion &&
-        page.children?.some((child) =>
+        page?.isAccordion &&
+        page?.children?.some((child) =>
           location.pathname.startsWith(child.link)
         )
       ) {
@@ -58,6 +80,8 @@ const RecordingSidebar = () => {
       }
     });
   }, [location.pathname]);
+
+  console.log("Filtered Options:", filteredRecordingOptions);
 
   return (
     <>
