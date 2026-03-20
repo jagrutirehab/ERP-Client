@@ -213,6 +213,13 @@ const InvoiceTable = ({
                   ? parseInt(item.unit) * parseInt(item.cost)
                   : 0;
 
+              const selectedPrice =
+                (item.availablePrices || []).find(
+                  (p) =>
+                    String(p.unit).toLowerCase() ===
+                    String(item.unitOfMeasurement).toLowerCase()
+                )?.price ?? 0;
+
               // let finalTotal = totalValue;
 
               // if (discount) {
@@ -228,10 +235,10 @@ const InvoiceTable = ({
               const unitOptions =
                 item?.availablePrices?.length > 0
                   ? item?.availablePrices.map((u) => ({
-                      label: u?.unit,
-                      value: u.unit,
-                      price: u.price,
-                    }))
+                    label: u?.unit,
+                    value: u.unit,
+                    price: u.price,
+                  }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
               console.log("unitOptions", unitOptions);
@@ -307,6 +314,7 @@ const InvoiceTable = ({
                                   e.preventDefault();
                                 }
                               }}
+                              disabled={selectedPrice > 0}
                             />
                           </div>
                         </Col>
@@ -363,11 +371,11 @@ const InvoiceTable = ({
                                     item.discountType === "%"
                                       ? item.discount && item.unit && item.cost
                                         ? Math.round(
-                                            (Number(item.discount) /
-                                              (Number(item.unit) *
-                                                Number(item.cost))) *
-                                              100,
-                                          )
+                                          (Number(item.discount) /
+                                            (Number(item.unit) *
+                                              Number(item.cost))) *
+                                          100,
+                                        )
                                         : ""
                                       : item.discount || ""
                                   }
@@ -543,6 +551,7 @@ const InvoiceTable = ({
                             e.preventDefault();
                           }
                         }}
+                        disabled={selectedPrice > 0}
                       />
                       <div className="d-flex align-items-center">
                         <span className="text-muted">₹</span>
@@ -590,10 +599,10 @@ const InvoiceTable = ({
                             item.discountType === "%"
                               ? item.discount && item.unit && item.cost
                                 ? Math.round(
-                                    (Number(item.discount) /
-                                      (Number(item.unit) * Number(item.cost))) *
-                                      100,
-                                  )
+                                  (Number(item.discount) /
+                                    (Number(item.unit) * Number(item.cost))) *
+                                  100,
+                                )
                                 : ""
                               : item.discount || ""
                           }
