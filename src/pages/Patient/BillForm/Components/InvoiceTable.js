@@ -215,6 +215,9 @@ const InvoiceTable = ({
 
               // let finalTotal = totalValue;
 
+              console.log("item1", item);
+              
+
               // if (discount) {
               //   if (type === "₹") {
               //     finalTotal = totalValue - Number(discount);
@@ -307,7 +310,7 @@ const InvoiceTable = ({
                                   e.preventDefault();
                                 }
                               }}
-                              disabled={Number(item.cost) > 0}
+                              disabled={!item.isZero}
                             />
                           </div>
                         </Col>
@@ -544,7 +547,7 @@ const InvoiceTable = ({
                             e.preventDefault();
                           }
                         }}
-                        disabled={Number(item.cost) > 0}
+                        disabled={!item.isZero}
                       />
                       <div className="d-flex align-items-center">
                         <span className="text-muted">₹</span>

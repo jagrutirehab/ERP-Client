@@ -93,7 +93,7 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
       width: "140px",
     },
 
- {
+    {
       name: <div className="text-center font-bold">Recording Link</div>,
       cell: (row) => {
         const url = row?.Files?.recording_url;
@@ -130,7 +130,7 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
       selector: (row) => row?.Call_Date || "-",
       width: "130px",
     },
-      {
+    {
       name: <div className="text-center font-bold">Talk Time</div>,
       selector: (row) => row?.Talk_Time || "-",
       width: "100px",
@@ -202,9 +202,21 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
 
     { name: "Status", selector: (r) => getParsed(r)?.status || "-", width: "120px" },
     { name: "Improvement", selector: (r) => getParsed(r)?.improvement || "-", width: "140px" },
-    { name: "Behavior", selector: (r) => getParsed(r)?.behavior || "-", width: "120px" },
+    {
+      name: "Behavior",
+      selector: (r) => getParsed(r)?.behavior || "-",
+      wrap: true,
+      width: "200px",
+      grow: 2,
+    },
     { name: "Mood", selector: (r) => getParsed(r)?.mood || "-", width: "120px" },
-    { name: "Daily", selector: (r) => getParsed(r)?.daily || "-", width: "120px" },
+    {
+      name: "Daily",
+      selector: (r) => getParsed(r)?.daily || "-",
+      wrap: true,
+      width: "200px",
+      grow: 1,
+    },
     { name: "Sleep", selector: (r) => getParsed(r)?.sleep || "-", width: "120px" },
     { name: "Communication", selector: (r) => getParsed(r)?.communication || "-", width: "150px" },
 
