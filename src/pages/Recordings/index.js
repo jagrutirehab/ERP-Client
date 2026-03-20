@@ -8,6 +8,7 @@ import MoreDetails from "./Pages/MoreDetails";
 import FeedbackRecording from "./Pages/FeedbackRecording";
 import MoreDetailsFeedback from "./Pages/MoreDetailsFeedback";
 import Call from "./Pages/OverviewPages/Call";
+import Feedback from "./Pages/OverviewPages/Feedback";
 
 const RecordingIndex = () => {
     const navigate = useNavigate();
@@ -50,8 +51,9 @@ const RecordingIndex = () => {
 
                                         <Routes>
                                             <Route path="call" element={<CallRecordings />} />
-                                            <Route path="call/overview" element ={<Call/>}/>
+                                            <Route path="call/overview" element={<Call />} />
                                             <Route path="feedback" element={<FeedbackRecording />} />
+                                            <Route path="feedback/overview" element={<Feedback />} />
                                             <Route path="more/:id" element={<MoreDetails />} />
                                             <Route path="more-feedback/:id" element={<MoreDetailsFeedback />} />
                                         </Routes>
