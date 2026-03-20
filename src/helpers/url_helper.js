@@ -542,6 +542,8 @@ export const UPLOAD_FILE = "/upload";
 
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
+export const POST_TALLY_UPDATE = "/tally/update";
+export const POST_TALLY_CANCEL = (sessionId) => `/tally/cancel/${sessionId}`;
 export const GET_TALLY_LOGS = "/tally/logs";
 
 // Issues

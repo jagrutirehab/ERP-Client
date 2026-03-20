@@ -2,12 +2,13 @@ import React from "react";
 import { Row, Col, Button, Spinner, Input, Label, FormGroup } from "reactstrap";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
+import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDown";
 
 const VOUCHER_TYPES = [
-  { id: "INVOICE", label: "Invoice", enabled: true },
-  { id: "ADVANCE_PAYMENT", label: "Advance Payment", enabled: true },
+  { id: "INVOICE", label: "IPD/OPD Invoice", enabled: true },
+  { id: "ADVANCE_PAYMENT", label: "Advance Payment/Deposit", enabled: true },
   { id: "CENTRAL_PAYMENT", label: "Central Payment", enabled: true },
   { id: "CASH", label: "Cash", enabled: true },
 ];
@@ -22,7 +23,12 @@ const TallyHeader = ({
   onTypeToggle,
   sending,
   onSend,
+  onUpdate,
+  onCancel,
 }) => {
+  const isDisabled =
+    sending || selectedCentersIds.length === 0 || selectedTypes.length === 0;
+
   return (
     <Row className="mb-4 align-items-end">
       {/* Date Picker */}
@@ -34,8 +40,22 @@ const TallyHeader = ({
         >
           <Flatpickr
             value={selectedDate}
-            onChange={([date]) => setSelectedDate(date)}
+            onChange={(dates, dateStr, instance) => {
+              if (dates.length === 2) {
+                const diffTime = Math.abs(dates[1] - dates[0]);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays >= 3) {
+                  toast.error("Maximum allowed date range is 3 days.");
+                  // Reset the visual date picker to just the start date
+                  instance.setDate([dates[0]]);
+                  setSelectedDate([dates[0]]);
+                  return;
+                }
+              }
+              setSelectedDate(dates);
+            }}
             options={{
+              mode: "range",
               dateFormat: "d M, Y",
               disableMobile: true,
             }}
@@ -56,7 +76,7 @@ const TallyHeader = ({
       </Col>
 
       {/* Voucher Types */}
-      <Col md={4}>
+      <Col md={3}>
         <Label className="form-label fw-semibold">Voucher Types</Label>
         <div className="d-flex flex-wrap gap-3">
           {VOUCHER_TYPES.map((type) => (
@@ -64,6 +84,7 @@ const TallyHeader = ({
               <Input
                 type="checkbox"
                 id={`type-${type.id}`}
+                className="border-secondary"
                 checked={selectedTypes.includes(type.id)}
                 onChange={() => onTypeToggle(type.id)}
                 disabled={sending || !type.enabled}
@@ -83,28 +104,62 @@ const TallyHeader = ({
         </div>
       </Col>
 
-      {/* Send Button */}
-      <Col md={2} className="text-end">
+      {/* Action Buttons */}
+      <Col md={3} className="d-flex flex-column gap-2">
+        {/* Cancel — only visible while a sync is running */}
+        {sending && (
+          <Button
+            color="danger"
+            size="md"
+            onClick={onCancel}
+            className="w-100"
+            title="Abort the current sync. Already-processed entries are unaffected."
+          >
+            <i className="bx bx-stop-circle me-2"></i>
+            Cancel
+          </Button>
+        )}
+
+        {/* Send to Tally — CREATE new entries */}
         <Button
           color="primary"
-          size="lg"
+          size="md"
           onClick={onSend}
-          disabled={
-            sending ||
-            selectedCentersIds.length === 0 ||
-            selectedTypes.length === 0
-          }
+          disabled={isDisabled}
           className="w-100"
+          title="Create new entries in Tally (skips if already exists)"
         >
           {sending ? (
             <>
               <Spinner size="sm" className="me-2" />
-              Sending...
+              Processing...
             </>
           ) : (
             <>
               <i className="bx bx-send me-2"></i>
               Send to Tally
+            </>
+          )}
+        </Button>
+
+        {/* Update in Tally — SEARCH → DELETE → RE-INSERT */}
+        <Button
+          color="warning"
+          size="md"
+          onClick={onUpdate}
+          disabled={isDisabled}
+          className="w-100 text-white"
+          title="Update existing entries in Tally (search → delete → re-insert; skips if not found)"
+        >
+          {sending ? (
+            <>
+              <Spinner size="sm" className="me-2" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <i className="bx bx-refresh me-2"></i>
+              Update in Tally
             </>
           )}
         </Button>
@@ -123,6 +178,8 @@ TallyHeader.propTypes = {
   onTypeToggle: PropTypes.func,
   sending: PropTypes.bool,
   onSend: PropTypes.func,
+  onUpdate: PropTypes.func,
+  onCancel: PropTypes.func,
 };
 
 export default TallyHeader;
