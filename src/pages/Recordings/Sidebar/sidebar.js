@@ -30,11 +30,17 @@ const RecordingSidebar = () => {
     "READ"
   );
 
-  // const hasCallRecordingsAIOverviewPermission = hasPermission(
-  //   "RECORDINGS",
-  //   "CALL_RECORDINGS_AI_OVERIVIEW",
-  //   "READ"
-  // );
+  const hasCallRecordingsAIOverviewPermission = hasPermission(
+    "RECORDINGS",
+    "CALL_RECORDINGS_AI_OVERIVIEW",
+    "READ"
+  );
+
+  const hasFeedbackRecordingsAIOverviewPermission = hasPermission(
+    "RECORDINGS",
+    "FEEDBACK_RECORDINGS_AI_OVERIVIEW",
+    "READ"
+  );
 
   const navigate = useNavigate();
 
@@ -49,10 +55,15 @@ const RecordingSidebar = () => {
       return true;
     }
 
-    // if (page.id === "call-recordings-ai-overview") {
-    //   if (!hasCallRecordingsAIOverviewPermission) return false;
-    //   return true;
-    // }
+    if (page.id === "call-recordings-overview") {
+      if (!hasCallRecordingsAIOverviewPermission) return false;
+      return true;
+    }
+
+    if (page.id === "feedback-recordings-overview") {
+      if (!hasFeedbackRecordingsAIOverviewPermission) return false;
+      return true;
+    }
 
     return true;
   });
