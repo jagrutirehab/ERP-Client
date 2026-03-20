@@ -16,7 +16,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import { sendToTally } from "../../helpers/backend_helper";
+import { sendToTally, updateInTally, cancelTallySync } from "../../helpers/backend_helper";
 import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
@@ -27,13 +27,14 @@ import { useNavigate } from "react-router-dom";
 const Tally = ({ centers, centerAccess }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("1");
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState([new Date()]);
   // ... (rest of initializations)
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [sending, setSending] = useState(false);
   const [logs, setLogs] = useState([]);
   const [isDone, setIsDone] = useState(false);
   const eventSourceRef = useRef(null);
+  const currentSessionIdRef = useRef(null);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -133,6 +134,14 @@ const Tally = ({ centers, centerAccess }) => {
 
           if (data.type === "log") {
             addLog(data.message, data.level || "info");
+          } else if (data.type === "cancelled") {
+            addLog("", "divider");
+            addLog("🛑 Sync cancelled by user.", "warning");
+            addLog("", "divider");
+            setSending(false);
+            currentSessionIdRef.current = null;
+            eventSource.close();
+            eventSourceRef.current = null;
           } else if (data.type === "done") {
             addLog("", "divider");
             addLog(`🎯 Tally Sync Summary:`, "info");
@@ -148,11 +157,13 @@ const Tally = ({ centers, centerAccess }) => {
 
             setSending(false);
             setIsDone(true);
+            currentSessionIdRef.current = null;
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.type === "error") {
             addLog(`❌ ${data.message}`, "error");
             setSending(false);
+            currentSessionIdRef.current = null;
             eventSource.close();
             eventSourceRef.current = null;
           }
@@ -191,18 +202,23 @@ const Tally = ({ centers, centerAccess }) => {
     setSending(true);
 
     addLog("🚀 Initiating Tally sync...", "info");
-    addLog(`📅 Date: ${format(selectedDate, "dd MMM yyyy")}`, "info");
+    const startDateStr = selectedDate[0] ? format(selectedDate[0], "dd MMM yyyy") : "";
+    const endDateStr = selectedDate[1] ? format(selectedDate[1], "dd MMM yyyy") : startDateStr;
+    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
     addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
 
     try {
       const response = await sendToTally({
-        date: selectedDate.toISOString(),
+        date: selectedDate[0]?.toISOString(),
+        startDate: selectedDate[0]?.toISOString(),
+        endDate: (selectedDate[1] || selectedDate[0])?.toISOString(),
         centerIds: selectedCentersIds,
         types: selectedTypes,
       });
 
       if (response.success && response.sessionId) {
         addLog(`✅ Session started: ${response.sessionId}`, "success");
+        currentSessionIdRef.current = response.sessionId;
         connectSSE(response.sessionId);
       } else {
         addLog(
@@ -218,6 +234,78 @@ const Tally = ({ centers, centerAccess }) => {
       );
       setSending(false);
     }
+  };
+
+  const handleUpdate = async () => {
+    if (selectedCentersIds.length === 0) {
+      toast.error("Please select at least one center");
+      return;
+    }
+
+    if (selectedTypes.length === 0) {
+      toast.error("Please select at least one voucher type");
+      return;
+    }
+
+    // Reset state
+    setLogs([]);
+    setIsDone(false);
+    setSending(true);
+
+    addLog("🔄 Initiating Tally UPDATE (search → delete → re-insert)...", "info");
+    const startDateStr = selectedDate[0] ? format(selectedDate[0], "dd MMM yyyy") : "";
+    const endDateStr = selectedDate[1] ? format(selectedDate[1], "dd MMM yyyy") : startDateStr;
+    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
+    addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
+
+    try {
+      const response = await updateInTally({
+        date: selectedDate[0]?.toISOString(),
+        startDate: selectedDate[0]?.toISOString(),
+        endDate: (selectedDate[1] || selectedDate[0])?.toISOString(),
+        centerIds: selectedCentersIds,
+        types: selectedTypes,
+      });
+
+      if (response.success && response.sessionId) {
+        addLog(`✅ Update session started: ${response.sessionId}`, "success");
+        currentSessionIdRef.current = response.sessionId;
+        connectSSE(response.sessionId);
+      } else {
+        addLog(
+          `❌ Failed to start update: ${response.message || "Unknown error"}`,
+          "error",
+        );
+        setSending(false);
+      }
+    } catch (error) {
+      addLog(
+        `❌ Error: ${error.message || "Failed to connect to server"}`,
+        "error",
+      );
+      setSending(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    const sessionId = currentSessionIdRef.current;
+    if (!sessionId) return;
+
+    addLog("⏳ Sending cancellation request...", "warning");
+    try {
+      await cancelTallySync(sessionId);
+    } catch (err) {
+      // Server may have already finished — just close the SSE
+      addLog(`⚠️ Could not reach server to cancel: ${err.message}`, "warning");
+    }
+    // Close SSE regardless
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    currentSessionIdRef.current = null;
+    setSending(false);
+    addLog("🛑 Sync cancelled.", "warning");
   };
 
   return (
@@ -272,6 +360,8 @@ const Tally = ({ centers, centerAccess }) => {
                         onTypeToggle={handleTypeToggle}
                         sending={sending}
                         onSend={handleSend}
+                        onUpdate={handleUpdate}
+                        onCancel={handleCancel}
                       />
 
                       <LogConsole
