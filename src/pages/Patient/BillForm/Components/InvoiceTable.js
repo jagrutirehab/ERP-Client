@@ -215,9 +215,6 @@ const InvoiceTable = ({
 
               // let finalTotal = totalValue;
 
-              console.log("item1", item);
-              
-
               // if (discount) {
               //   if (type === "₹") {
               //     finalTotal = totalValue - Number(discount);
@@ -231,10 +228,10 @@ const InvoiceTable = ({
               const unitOptions =
                 item?.availablePrices?.length > 0
                   ? item?.availablePrices.map((u) => ({
-                    label: u?.unit,
-                    value: u.unit,
-                    price: u.price,
-                  }))
+                      label: u?.unit,
+                      value: u.unit,
+                      price: u.price,
+                    }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
               console.log("unitOptions", unitOptions);
@@ -310,7 +307,6 @@ const InvoiceTable = ({
                                   e.preventDefault();
                                 }
                               }}
-                              disabled={!item.isZero}
                             />
                           </div>
                         </Col>
@@ -367,11 +363,11 @@ const InvoiceTable = ({
                                     item.discountType === "%"
                                       ? item.discount && item.unit && item.cost
                                         ? Math.round(
-                                          (Number(item.discount) /
-                                            (Number(item.unit) *
-                                              Number(item.cost))) *
-                                          100,
-                                        )
+                                            (Number(item.discount) /
+                                              (Number(item.unit) *
+                                                Number(item.cost))) *
+                                              100,
+                                          )
                                         : ""
                                       : item.discount || ""
                                   }
@@ -547,7 +543,6 @@ const InvoiceTable = ({
                             e.preventDefault();
                           }
                         }}
-                        disabled={!item.isZero}
                       />
                       <div className="d-flex align-items-center">
                         <span className="text-muted">₹</span>
@@ -595,10 +590,10 @@ const InvoiceTable = ({
                             item.discountType === "%"
                               ? item.discount && item.unit && item.cost
                                 ? Math.round(
-                                  (Number(item.discount) /
-                                    (Number(item.unit) * Number(item.cost))) *
-                                  100,
-                                )
+                                    (Number(item.discount) /
+                                      (Number(item.unit) * Number(item.cost))) *
+                                      100,
+                                  )
                                 : ""
                               : item.discount || ""
                           }
