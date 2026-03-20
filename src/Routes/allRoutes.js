@@ -69,7 +69,7 @@ const allElements = [
   { element: Issues, label: "Issues" },
   { element: Recordings, label: "Recordings" },
 ];
-
+// console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
   { path: "/index", component: DashboardEcommerce },
@@ -112,5 +112,6 @@ const publicRoutes = [
   { path: "/forgot-password", component: ForgetPasswordPage },
   { path: "/meeting", component: MyMeetingUI },
 ];
+
 
 export { authProtectedRoutes, publicRoutes, allElements };

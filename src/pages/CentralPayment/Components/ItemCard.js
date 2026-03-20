@@ -56,10 +56,10 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
         setPreviewFile(null);
     };
 
-    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus) => {
+    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus, financeApprovalRemarks) => {
         setUpdating({ id: paymentId, type: approvalStatus });
         try {
-            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus })).unwrap();
+            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus, financeApprovalRemarks })).unwrap();
             toast.success(`Finance Approval ${approvalStatus.toLowerCase()} successfully!`);
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -259,19 +259,19 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                                             </span>
                                         </div>
                                     )}
-                                    {flag === "approval" && item?.financeApprovedBy && (
-                                        <div style={{ minWidth: 140 }}>
-                                            <i className="text-muted d-block">Finance Approved by:</i>
-                                            <span className="fw-semibold text-dark d-block">
-                                                {item.financeApprovedBy?.name?.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    )}
                                     {item?.approvedBy && (
                                         <div style={{ minWidth: 140 }}>
                                             <i className="text-muted d-block">Approved by:</i>
                                             <span className="fw-semibold text-dark d-block">
                                                 {item.approvedBy?.name?.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {(flag === "processPayment" || flag === "UTRConfirmation") && item?.financeApprovedBy && (
+                                        <div style={{ minWidth: 140 }}>
+                                            <i className="text-muted d-block">Finance Approved by:</i>
+                                            <span className="fw-semibold text-dark d-block">
+                                                {item.financeApprovedBy?.name?.toUpperCase()}
                                             </span>
                                         </div>
                                     )}

@@ -23,6 +23,7 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getDetailedCashReport } from "../../../helpers/backend_helper";
+import { summaryOptions } from "../../../Components/constants/cash";
 
 const DetailedReport = ({
   centers,
@@ -181,7 +182,6 @@ const DetailedReport = ({
     },
     {
       name: "Amount",
-
       cell: (row) => (
         <span>
           ₹
@@ -194,8 +194,18 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: "Bank Account",
+      selector: (row) => row.bankAccount,
+      wrap: true,
+      minWidth: "150px"
+    },
+    {
       name: "Summary",
-      selector: (row) => <ExpandableText text={capitalizeWords(row.summary)} />,
+      selector: (row) => {
+        if (!row.summary) return "-";
+        const option = summaryOptions.find(opt => opt.value === row.summary);
+        return option ? capitalizeWords(option.label) : capitalizeWords(row.summary);
+      },
       wrap: true,
     },
     {

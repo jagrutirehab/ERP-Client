@@ -77,6 +77,7 @@ const PaymentFormModal = ({
       tallyAccount: null,
       currentPaymentStatus: "PENDING",
       approvalRemarks: "",
+      financeApprovalRemarks: "",
     },
     validationSchema: paymentValidationSchema,
     onSubmit: (values) => {
@@ -112,6 +113,7 @@ const PaymentFormModal = ({
         tallyAccount: selectedOption,
         currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING",
         approvalRemarks: "",
+        financeApprovalRemarks: "",
       });
     }
   }, [paymentDetails, item?._id]);
@@ -321,6 +323,22 @@ const PaymentFormModal = ({
                           ? "Paid"
                           : "-"}
                     </p>
+                    {paymentDetails?.approvalRemarks && (
+                      <div className="mt-2">
+                        <strong>Approval Remarks:</strong>
+                        <div className="text-muted mt-1">
+                          <ExpandableText text={capitalizeWords(paymentDetails.approvalRemarks)} limit={150} />
+                        </div>
+                      </div>
+                    )}
+                    {paymentDetails?.financeApprovalRemarks && (
+                      <div className="mt-2">
+                        <strong>Finance Approval Remarks:</strong>
+                        <div className="text-muted mt-1">
+                          <ExpandableText text={capitalizeWords(paymentDetails.financeApprovalRemarks)} limit={150} />
+                        </div>
+                      </div>
+                    )}
                   </Col>
                 </Row>
 
@@ -499,18 +517,18 @@ const PaymentFormModal = ({
               </>
             )}
 
-            {hasCreatePermission && mode === "approval" && (
+            {hasCreatePermission && (mode === "approval" || mode === "financeApproval") && (
               <>
                 <Row className="mt-3">
                   <Col md={12}>
                     <FormGroup>
-                      <Label for="approvalRemarks">Remarks (Optional)</Label>
+                      <Label for={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}>Remarks (Optional)</Label>
                       <Input
                         type="textarea"
-                        id="approvalRemarks"
-                        name="approvalRemarks"
+                        id={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}
+                        name={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}
                         placeholder="Enter remarks"
-                        value={formik.values.approvalRemarks}
+                        value={mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         disabled={
@@ -524,23 +542,6 @@ const PaymentFormModal = ({
                   </Col>
                 </Row>
               </>
-            )}
-
-            {mode !== "approval" && paymentDetails?.approvalRemarks && (
-              <Row className="mt-3">
-                <Col md={12}>
-                  <FormGroup>
-                    <Label><strong>Approval Remarks</strong></Label>
-                    <Input
-                      type="textarea"
-                      value={paymentDetails.approvalRemarks}
-                      readOnly
-                      disabled
-                      rows={3}
-                    />
-                  </FormGroup>
-                </Col>
-              </Row>
             )}
           </ModalBody>
 
@@ -560,7 +561,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "REJECTED", formik.values.approvalRemarks)}
+                    onClick={() => onConfirm(item._id, "REJECTED", mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks)}
                     color="danger"
                     size="sm"
                     className="me-2 d-flex align-items-center text-white"
@@ -579,7 +580,7 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "APPROVED", formik.values.approvalRemarks)}
+                    onClick={() => onConfirm(item._id, "APPROVED", mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks)}
                     color="success"
                     size="sm"
                     className="d-flex align-items-center text-white"

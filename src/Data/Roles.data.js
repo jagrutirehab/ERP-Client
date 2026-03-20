@@ -351,7 +351,9 @@ export const permissionList = [
     label: "Recordings",
     subModules: [
       { name: "CALL_RECORDINGS", label: "Call Recordings" },
-      // { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
+      { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
+      { name: "CALL_RECORDINGS_AI_OVERIVIEW", label: "Call Recording Overview" },
+      { name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW", label: "Feedback Recording Overview" }
     ],
   },
 
