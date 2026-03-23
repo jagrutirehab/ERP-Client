@@ -174,7 +174,7 @@ const CallRecordings = () => {
 
 
 
-// 
+  // 
   const handleUploadFile = async (file) => {
 
     const formData = new FormData();
@@ -294,10 +294,18 @@ const CallRecordings = () => {
 
         </div>
 
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div
+          className={`d-flex mb-3 ${isMobile
+            ? "flex-column gap-2"
+            : "justify-content-between align-items-center"
+            }`}
+        >
 
           {/* LEFT SIDE FILTERS */}
-          <div className="d-flex gap-3">
+          <div
+            className={`d-flex gap-3 ${isMobile ? "flex-wrap" : ""
+              }`}
+          >
 
             <div>
               <input
@@ -332,7 +340,8 @@ const CallRecordings = () => {
           </div>
 
           {/* RIGHT SIDE BUTTONS */}
-          {canAction && <div className="d-flex gap-2">
+          {canAction && <div className={`d-flex gap-2 ${isMobile ? "flex-column w-100" : ""
+            }`}>
 
             <button
               className="btn btn-success"
