@@ -153,7 +153,7 @@ const Sidebar = () => {
   );
 
   const hasAssignRotationalShiftPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
-  const hasShiftRoasterPermission = hasPermission("HR", "SHIFT_ROASTER", "READ");
+  const hasShiftRoasterPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
 
   const hasApplyLeavePermission = hasPermission("HR", "APPLY_LEAVE", "READ");
   const hasLeaveHistoryPermission = hasPermission(

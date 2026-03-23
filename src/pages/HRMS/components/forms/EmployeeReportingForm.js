@@ -342,7 +342,7 @@ const EmployeeReportingForm = ({
         await editEmployeeReporting(initialData._id, { manager: values.manager });
       }
 
-      await setRotationalShifts(initialData._id, {
+      await setRotationalShifts(initialData.activeReportingId || initialData._id, {
         shifts: validShifts.map((s) => ({
           date: s.date,
           start: s.start,

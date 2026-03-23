@@ -289,8 +289,8 @@ export const permissionList = [
         name: "MANAGE_EMPLOYEE_REPORTINGS",
         label: "Manage Employee Reportings",
       },
-      { name: "SHIFT_roster", label: "Shift roster" },
-    { name: "ASSIGN_ROTATIONAL_SHIFT", label: "Assign Rotational Shift" },
+      { name: "SHIFT_ROSTER", label: "Shift roster" },
+      { name: "ASSIGN_ROTATIONAL_SHIFT", label: "Assign Rotational Shift" },
       // Leave
       { name: "APPLY_LEAVE", label: "Apply Leave" },
       { name: "LEAVE_HISTORY", label: "Leave History" },

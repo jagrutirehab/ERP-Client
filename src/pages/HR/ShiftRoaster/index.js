@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardBody, Spinner, Button, Input, InputGroup, InputGroupText } from "reactstrap";
-import { Search } from "lucide-react";
+import { Search, Pencil } from "lucide-react";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addDays, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -48,8 +48,8 @@ const ShiftRoaster = () => {
     hasPermission,
     loading: permissionLoader,
   } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "SHIFT_ROASTER", "READ");
-  const hasWritePermission = hasPermission("HR", "SHIFT_ROASTER", "WRITE");
+  const hasUserPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
+  const hasWritePermission = hasPermission("HR", "SHIFT_ROSTER", "WRITE");
 
   const centerOptions = [
     ...(centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
@@ -109,7 +109,7 @@ const ShiftRoaster = () => {
         if (!l.date) return;
         leaves[l.date.substring(0, 10)] = { type: "leave", leaveType: l.leaveType };
       });
-      return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves } };
+      return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves }, };
     });
   }, [rosterData]);
 

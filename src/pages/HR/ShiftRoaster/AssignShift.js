@@ -14,9 +14,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { setBulkRotationalShifts } from "../../../helpers/backend_helper";
+import { setRotationalShifts } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 
 const minutesToTime = (m) => {
@@ -75,15 +76,6 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
 
   const [roster, setRoster] = useState({});
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
-
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
-
-  const {
-    hasPermission,
-    loading: permissionLoader,
-  } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -419,7 +411,6 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
   );
 };
 
-// ─── main page ───────────────────────────────────────────────────────────────
 
 const AssignShift = () => {
   const dispatch = useDispatch();
@@ -430,8 +421,8 @@ const AssignShift = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, loading: permissionLoader } = usePermissions(token);
-  const hasWritePermission = hasPermission("HR", "SHIFT_ROASTER", "WRITE");
+  const { hasPermission, loading: permissionLoader, roles } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
 
   // each item: { id, data: { selectedEmployee, roster, leaves } }
   const [rows, setRows] = useState(() =>
@@ -483,53 +474,46 @@ const AssignShift = () => {
     setFailedRows([]);
     setFailedIds(new Set());
 
-    const payload = readyRows.map((row) => {
+    let successCount = 0;
+    const failed = [];
+
+    for (const row of readyRows) {
       const { selectedEmployee, roster } = row.data;
+      const reportingId = selectedEmployee.reportingId; // activeReportingId from search result
       const entries = Object.entries(roster || {}).sort(([a], [b]) => a.localeCompare(b));
-      const filledShifts = entries.filter(([, v]) => !v.weekOff && v.start != null && v.end != null);
-      const weekOffLeaves = entries.filter(([, v]) => v.weekOff).map(([date]) => ({ date, leaveType: "WEEK_OFFS" }));
-      return {
-        reportingId: selectedEmployee.reportingId,
-        _label: selectedEmployee.label, // local only, stripped before send
-        shifts: filledShifts.map(([date, { start, end }]) => ({ date, start, end })),
-        ...(weekOffLeaves.length ? { leaves: weekOffLeaves } : {}),
-      };
-    });
+      const shifts = entries
+        .filter(([, v]) => !v.weekOff && v.start != null && v.end != null)
+        .map(([date, { start, end }]) => ({ date, start, end }));
+      const leaves = entries
+        .filter(([, v]) => v.weekOff)
+        .map(([date]) => ({ date, leaveType: "WEEK_OFFS" }));
 
-    // strip local-only _label before sending
-    const body = payload.map(({ _label, ...rest }) => rest); // eslint-disable-line no-unused-vars
-
-    try {
-      const res = await setBulkRotationalShifts(body);
-      const data = res?.data || res;
-
-      if (data.success) {
-        toast.success(data.message || `All ${data.successCount} updated successfully.`);
-        setRows(Array.from({ length: 10 }, () => ({ id: newRowId(), data: {} })));
-      } else {
-        // 207 partial
-        toast.warn(data.message || `${data.successCount} succeeded, ${data.failCount} failed.`);
-        const failed = (data.results || [])
-          .filter((r) => !r.success)
-          .map((r) => ({
-            reportingId: r.reportingId,
-            label: payload.find((p) => p.reportingId === r.reportingId)?._label || r.reportingId,
-            message: r.message || "Unknown error",
-          }));
-        setFailedRows(failed);
-        setFailedIds(new Set(failed.map((f) => f.reportingId)));
-        setErrorOpen(true);
+      try {
+        await setRotationalShifts(reportingId, {
+          shifts,
+          ...(leaves.length ? { leaves } : {}),
+        });
+        successCount++;
+      } catch (err) {
+        if (!handleAuthError(err)) {
+          failed.push({ reportingId, label: selectedEmployee.label, message: err?.message || "Unknown error" });
+        }
       }
-    } catch (err) {
-      if (!handleAuthError(err)) toast.error(err?.message || "Bulk update failed.");
-    } finally {
-      setSubmitting(false);
+    }
+
+    setSubmitting(false);
+
+    if (failed.length) {
+      setFailedRows(failed);
+      setFailedIds(new Set(failed.map((f) => f.reportingId)));
+      setErrorOpen(true);
+      if (successCount > 0) toast.warn(`${successCount} updated, ${failed.length} failed.`);
+    } else {
+      toast.success(`${successCount} employee${successCount !== 1 ? "s" : ""} updated successfully.`);
+      setRows(Array.from({ length: 10 }, () => ({ id: newRowId(), data: {} })));
     }
   };
 
-  if (!permissionLoader && !hasWritePermission) {
-    navigate("/unauthorized");
-  }
 
   if (permissionLoader) {
     return (
@@ -537,6 +521,10 @@ const AssignShift = () => {
         <Spinner color="primary" />
       </div>
     );
+  }
+
+  if (!permissionLoader && !hasUserPermission) {
+    navigate("/unauthorized");
   }
 
   return (
@@ -582,16 +570,21 @@ const AssignShift = () => {
 
       {/* submit */}
       <div className="d-flex justify-content-end gap-2">
-        <Button color="secondary" outline onClick={() => navigate("/hr/reporting/shift-roster/list")}>
+        {/* <Button color="secondary" outline onClick={() => navigate("/hr/reporting/shift-roster/list")}>
           Cancel
-        </Button>
-        <Button
-          color="primary"
-          disabled={submitting}
-          onClick={handleSubmit}
-        >
-          {submitting ? <Spinner size="sm" /> : <><Save size={14} className="me-1" />Assign Shifts</>}
-        </Button>
+        </Button> */}
+        <CheckPermission
+          accessRolePermission={roles?.permissions}
+          permission={"create"}
+          subAccess={"ASSIGN_ROTATIONAL_SHIFT"}>
+          <Button
+            color="primary"
+            disabled={submitting}
+            onClick={handleSubmit}
+          >
+            {submitting ? <Spinner size="sm" /> : <><Save size={14} className="me-1" />Assign Shifts</>}
+          </Button>
+        </CheckPermission>
       </div>
 
       {/* error summary modal (partial failure) */}
@@ -620,7 +613,7 @@ const AssignShift = () => {
       </Modal>
 
       {/* confirm modal */}
-      <Modal isOpen={confirmOpen} toggle={() => setConfirmOpen(false)} centered size="sm">
+      <Modal isOpen={confirmOpen} toggle={() => setConfirmOpen(false)} centered size="md">
         <ModalHeader toggle={() => setConfirmOpen(false)}>Confirm Update</ModalHeader>
         <ModalBody style={{ fontSize: "13px" }}>
           This will update shifts for <strong>{readyRows.length} employee{readyRows.length !== 1 ? "s" : ""}</strong> ({totalShifts} shift{totalShifts !== 1 ? "s" : ""} total). Each existing record will be deactivated and replaced. Continue?
