@@ -18,21 +18,8 @@ import { setRotationalShifts, getRotationalShifts } from "../../../helpers/backe
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
-
-
-const minutesToTime = (m) => {
-  if (m == null) return "";
-  const h = Math.floor(m / 60) % 24;
-  const min = m % 60;
-  return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-};
-
-const minutesToDate = (m) => {
-  if (m == null) return null;
-  const d = new Date();
-  d.setHours(Math.floor(m / 60) % 24, m % 60, 0, 0);
-  return d;
-};
+import { minutesToTime, minutesToDate, timeToMinutes } from "../../../utils/time";
+import { DAY_LABELS, SHIFT_STYLES } from "../../../Components/constants/HRMS";
 
 const detectShiftName = (start, end) => {
   if (start == null || end == null) return null;
@@ -47,13 +34,6 @@ const detectShiftName = (start, end) => {
   return null;
 };
 
-const SHIFT_STYLES = {
-  NORMAL: { bg: "#e8f5e9", text: "#2e7d32", border: "#a5d6a7" },
-  MORNING: { bg: "#fffde7", text: "#e65100", border: "#ffe082" },
-  AFTERNOON: { bg: "#e3f2fd", text: "#1565c0", border: "#90caf9" },
-  NIGHT: { bg: "#f3e5f5", text: "#6a1b9a", border: "#ce93d8" },
-};
-
 const BASE_TIME_CONFIG = {
   enableTime: true,
   noCalendar: true,
@@ -62,11 +42,8 @@ const BASE_TIME_CONFIG = {
   minuteIncrement: 5,
 };
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 let rowIdCounter = 0;
 const newRowId = () => ++rowIdCounter;
-
 
 const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, onDataChange, onRemove, canRemove, prevRoster, hasFailed, initialData, isEditRow }) => {
   const [employeeCache, setEmployeeCache] = useState([]);
@@ -318,16 +295,28 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                     </div>
                   ) : (
                     <>
-                      {shiftName && (
-                        <div
-                          className="text-center rounded mb-2"
-                          style={{
-                            background: s.bg, color: s.text, border: `1px solid ${s.border}`,
-                            fontSize: "10px", fontWeight: 600, padding: "1px 4px", letterSpacing: "0.04em",
-                          }}
-                        >
-                          {shiftName}
-                        </div>
+                      {isFilled && (
+                        shiftName ? (
+                          <div
+                            className="text-center rounded mb-2"
+                            style={{
+                              background: s.bg, color: s.text, border: `1px solid ${s.border}`,
+                              fontSize: "10px", fontWeight: 600, padding: "1px 4px", letterSpacing: "0.04em",
+                            }}
+                          >
+                            {shiftName}
+                          </div>
+                        ) : (
+                          <div
+                            className="text-center rounded mb-2"
+                            style={{
+                              background: "#f8d7da", color: "#842029", border: "1px solid #f5c2c7",
+                              fontSize: "10px", fontWeight: 600, padding: "1px 4px", letterSpacing: "0.04em",
+                            }}
+                          >
+                            INVALID SHIFT
+                          </div>
+                        )
                       )}
 
                       <div className="mb-1">
@@ -388,14 +377,14 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                       >
                         <span className="fw-semibold">{format(parseISO(date), "dd MMM")}</span>
                         <span className="text-muted mx-1">·</span>
-                        <span>{minutesToTime(start)}–{minutesToTime(end)}</span>
+                        <span>{minutesToTime(start)} – {minutesToTime(end)}</span>
                         {name && <span className="ms-1" style={{ opacity: 0.8 }}>({name})</span>}
                         <button
                           className="btn btn-link p-0 ms-1"
                           style={{ color: st.text, opacity: 0.6, lineHeight: 1 }}
                           onClick={() => setRoster((prev) => { const n = { ...prev }; delete n[date]; return n; })}
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={13} className="cursor-pointer text-danger"  />
                         </button>
                       </div>
                     );
@@ -453,22 +442,13 @@ const AssignShift = () => {
 
   const [fetchingEdit, setFetchingEdit] = useState(isEdit);
 
-  // each item: { id, initialData?, data: { selectedEmployee, roster } }
   const [rows, setRows] = useState(() =>
     Array.from({ length: isEdit ? 1 : 10 }, () => ({ id: newRowId(), data: {} }))
   );
 
-  // fetch existing record when in edit mode
   useEffect(() => {
     if (!isEdit) return;
     setFetchingEdit(true);
-
-    const timeToMinutes = (t) => {
-      if (t == null) return null;
-      if (typeof t === "number") return t;
-      const [h, m] = String(t).split(":").map(Number);
-      return h * 60 + (m || 0);
-    };
 
     getRotationalShifts(editId)
       .then((res) => {
@@ -477,7 +457,7 @@ const AssignShift = () => {
         (r.rotationalShifts || []).forEach((s) => {
           if (s.date) roster[s.date.substring(0, 10)] = {
             start: timeToMinutes(s.start),
-            end:   timeToMinutes(s.end),
+            end: timeToMinutes(s.end),
             weekOff: false,
           };
         });
@@ -519,7 +499,6 @@ const AssignShift = () => {
   const updateRowData = (id, data) =>
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, data } : r)));
 
-  // ── submit ──
   const readyRows = rows.filter((r) => {
     const { selectedEmployee, roster } = r.data;
     if (!selectedEmployee?.reportingId) return false;
@@ -532,6 +511,17 @@ const AssignShift = () => {
       toast.error("Fill in at least one employee with shifts.");
       return;
     }
+
+    const invalidRows = readyRows.filter((r) => {
+      const shifts = Object.values(r.data.roster || {}).filter((v) => !v.weekOff && v.start != null && v.end != null);
+      return shifts.some((v) => !detectShiftName(v.start, v.end));
+    });
+    if (invalidRows.length) {
+      const names = invalidRows.map((r) => r.data.selectedEmployee?.label || "Unknown").join(", ");
+      toast.error(`Invalid shift timings for: ${names}. Each shift must match a valid shift type (NORMAL, MORNING, AFTERNOON, NIGHT).`);
+      return;
+    }
+
     setConfirmOpen(true);
   };
 
@@ -582,7 +572,11 @@ const AssignShift = () => {
       if (successCount > 0) toast.warn(`${successCount} updated, ${failed.length} failed.`);
     } else {
       toast.success(`${successCount} employee${successCount !== 1 ? "s" : ""} updated successfully.`);
-      setRows(Array.from({ length: 10 }, () => ({ id: newRowId(), data: {} })));
+      if (isEdit) {
+        navigate("/hr/reporting/shift-roster/list");
+      } else {
+        setRows(Array.from({ length: 10 }, () => ({ id: newRowId(), data: {} })));
+      }
     }
   };
 
@@ -601,7 +595,6 @@ const AssignShift = () => {
 
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
-      {/* header */}
       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
         <div>
           <h5 className="mb-0 fw-semibold">Assign Rotational Shift</h5>
@@ -611,6 +604,7 @@ const AssignShift = () => {
           ← Back to Roster
         </Button>
       </div>
+       <hr className="mb-2 border-secondary" />
 
       {/* employee rows */}
       {rows.map((row, i) => {

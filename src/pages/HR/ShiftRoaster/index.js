@@ -7,10 +7,10 @@ import { format, addDays, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Select from "react-select";
+import { startOfWeek } from "date-fns";
 import { getEmployeeReportings } from "../../../helpers/backend_helper";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import Header from "../../Report/Components/Header";
-import { startOfWeek } from "date-fns";
 import { DAY_LABELS, SHIFT_STYLES } from "../../../Components/constants/HRMS";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
@@ -20,7 +20,7 @@ const LIMIT = 10;
 const ShiftRoaster = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const { centerAccess, userCenters } = useSelector((s) => s.User);
+  const user = useSelector((s) => s.User);
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [searchInput, setSearchInput] = useState("");
@@ -49,17 +49,31 @@ const ShiftRoaster = () => {
     loading: permissionLoader,
   } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
-  const hasWritePermission = hasPermission("HR", "SHIFT_ROSTER", "WRITE");
+  const hasWritePermission = hasPermission("HR", "SHIFT_ROSTER", "WRITE") || hasPermission("HR", "SHIFT_ROSTER", "DELETE");
 
   const centerOptions = [
-    ...(centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
-    ...(centerAccess?.map((id) => {
-      const center = userCenters?.find((c) => c._id === id);
+    ...(user?.centerAccess?.length > 1
+      ? [{ value: "ALL", label: "All Centers" }]
+      : []),
+    ...(user?.centerAccess?.map((id) => {
+      const center = user?.userCenters?.find((c) => c._id === id);
       return { value: id, label: center?.title || "Unknown Center" };
     }) || []),
   ];
 
-  const activeCenters = selectedCenter === "ALL" ? centerAccess : [selectedCenter];
+  const selectedCenterOption = centerOptions.find(
+    (opt) => opt.value === selectedCenter
+  ) || centerOptions[0];
+
+  useEffect(() => {
+    if (
+      selectedCenter !== "ALL" &&
+      !user?.centerAccess?.includes(selectedCenter)
+    ) {
+      setSelectedCenter("ALL");
+      setPage(1);
+    }
+  }, [selectedCenter, user?.centerAccess]);
 
   const startDate = reportDate.start ? format(reportDate.start, "yyyy-MM-dd") : null;
   const endDate = reportDate.end ? format(reportDate.end, "yyyy-MM-dd") : null;
@@ -81,7 +95,10 @@ const ShiftRoaster = () => {
     if (!startDate || !endDate || !hasUserPermission) return;
     let cancelled = false;
     setRosterLoading(true);
-    getEmployeeReportings({ status: "ALL", shiftType: "ROTATIONAL", limit: LIMIT, page, startDate, endDate, tz, centers: activeCenters, ...(search ? { search } : {}) })
+    const centers = selectedCenter === "ALL"
+      ? user?.centerAccess
+      : !user?.centerAccess?.length ? [] : [selectedCenter];
+    getEmployeeReportings({ status: "ALL", shiftType: "ROTATIONAL", limit: LIMIT, page, startDate, endDate, tz, centers, ...(search ? { search } : {}) })
       .then((res) => {
         if (!cancelled) {
           setRosterData(res?.data || []);
@@ -91,12 +108,10 @@ const ShiftRoaster = () => {
       .catch(() => { })
       .finally(() => { if (!cancelled) setRosterLoading(false); });
     return () => { cancelled = true; };
-  }, [startDate, endDate, selectedCenter, page, search, hasUserPermission]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [startDate, endDate, selectedCenter, page, search, hasUserPermission, user?.centerAccess]);
 
-  // reset page when filters change
-  useEffect(() => { setPage(1); }, [startDate, endDate, selectedCenter, search]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setPage(1); }, [startDate, endDate, selectedCenter, search]);
 
-  // build shiftMap: per employee row with shifts + leaves keyed by yyyy-MM-dd
   const shiftMap = useMemo(() => {
     return rosterData.map((r) => {
       const shifts = {};
@@ -107,7 +122,7 @@ const ShiftRoaster = () => {
       const leaves = {};
       (r.leaves || []).forEach((l) => {
         if (!l.date) return;
-        leaves[l.date.substring(0, 10)] = { type: "leave", leaveType: l.leaveType };
+        leaves[l.date.substring(0, 10)] = { type: "leave", leaveType: l.leaveType === "WEEK_OFFS" ? "WEEK OFF" : l.leaveType };
       });
       return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves }, reportingId: r._id };
     });
@@ -127,30 +142,21 @@ const ShiftRoaster = () => {
 
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
-
-      {/* page header */}
-      <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-        <div>
-          <h5 className="mb-0 fw-semibold">Shift Roster</h5>
-          <p className="text-muted small mb-0">Rotational shift schedule by employee</p>
-        </div>
-        {/* {hasWritePermission && (
-          <Button color="primary" size="sm" onClick={() => navigate("/hr/reporting/shift-roster/assign")}>
-            <Plus size={14} className="me-1" />Assign Shift
-          </Button>
-        )} */}
-      </div>
+      <h5 className="text-primary text-center fw-bold mb-3" style={{ fontSize: "22px" }}>SHIFT ROSTER</h5>
 
       {/* filters */}
       <div className="d-flex align-items-center flex-wrap gap-3 mb-3">
         {centerOptions.length > 1 && (
-          <div style={{ minWidth: 180 }}>
+          <div style={{ width: "200px" }}>
             <Select
+              value={selectedCenterOption}
+              onChange={(o) => {
+                setSelectedCenter(o?.value);
+                setPage(1);
+              }}
               options={centerOptions}
-              value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
-              onChange={(o) => setSelectedCenter(o.value)}
-              menuPortalTarget={document.body}
-              styles={{ menuPortal: (b) => ({ ...b, zIndex: 9999 }), control: (b) => ({ ...b, fontSize: "13px" }) }}
+              placeholder="All Centers"
+              classNamePrefix="react-select"
             />
           </div>
         )}
@@ -277,7 +283,7 @@ const ShiftRoaster = () => {
                                       </div>
                                     )}
                                     <div style={{ fontSize: "10px", marginTop: 1 }}>
-                                      {cell.start}–{cell.end}
+                                      {cell.start} – {cell.end}
                                     </div>
                                   </div>
                                 )
