@@ -2613,6 +2613,47 @@ export const getEmployeeReportings = (params = {}) => {
   });
 };
 
+export const getEmployeeReportingById = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRotationalShifts = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeLeaves = (employeeId, params = {}) => {
+  return api.get(`/hrms/leaves/employee/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const setRotationalShifts = (id, data) => {
+  return api.put(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const setBulkRotationalShifts = (data) => {
+  return api.put(`${url.EMPLOYEE_REPORTING}/rotational-shifts/bulk`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // Incentives
 export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {

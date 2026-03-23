@@ -47,6 +47,8 @@ import FestiveLeaves from "../HRMS/Leaves/FestiveLeaves";
 import AttendanceMonthly from "../HRMS/Attendance/Monthly";
 import MyDashboard from "./MyDashboard";
 import FinanceDashboard from "./Finance";
+import ShiftRoaster from "./ShiftRoaster";
+import AssignShift from "./ShiftRoaster/AssignShift";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -190,6 +192,9 @@ const HR = () => {
                 <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
 
                 <Route path={`/finance`} element={<FinanceDashboard />} />
+                <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
+                <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />
+                <Route path={`/reporting/shift-roster/assign/:reportingId`} element={<AssignShift />} />
               </Routes>
             </div>
           </Container>

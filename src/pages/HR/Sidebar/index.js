@@ -140,7 +140,7 @@ const Sidebar = () => {
     "READ"
   );
 
-  // employee reportings permissions
+  // employee reportings & shift roster permissions
   const hasAssignManagerPermission = hasPermission(
     "HR",
     "ASSIGN_MANAGER",
@@ -151,6 +151,9 @@ const Sidebar = () => {
     "MANAGE_EMPLOYEE_REPORTINGS",
     "READ"
   );
+
+  const hasAssignRotationalShiftPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
+  const hasShiftRoasterPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
 
   const hasApplyLeavePermission = hasPermission("HR", "APPLY_LEAVE", "READ");
   const hasLeaveHistoryPermission = hasPermission(
@@ -348,7 +351,16 @@ const Sidebar = () => {
           !hasEmployeeReportingsPermission
         )
           return false;
-
+        if (
+          child.id === "shift-roster" &&
+          !hasShiftRoasterPermission
+        )
+          return false;
+        if (
+          child.id === "assign-rotational-shift" &&
+          !hasAssignRotationalShiftPermission
+        )
+          return false;
         return true;
       });
       return page.children.length > 0;
@@ -405,7 +417,7 @@ const Sidebar = () => {
     filteredHROptions.forEach((page) => {
       if (
         page.isAccordion &&
-        page.children.some((child) => location.pathname.startsWith(child.link))
+        page.children.some((child) => location.pathname === child.link || location.pathname.startsWith(child.link + "/"))
       ) {
         setOpenSection(page.id);
       }
@@ -532,7 +544,7 @@ const Sidebar = () => {
                           <li
                             key={child.id}
                             className={
-                              location.pathname.startsWith(child.link)
+                              location.pathname === child.link || location.pathname.startsWith(child.link + "/")
                                 ? "active"
                                 : ""
                             }

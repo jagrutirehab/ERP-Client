@@ -28,21 +28,21 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
 
       row._parsedGemini = {
 
-        // onboarding
+        
         reception: d?.onboarding_facilities?.reception_experience?.value,
         tour: d?.onboarding_facilities?.manager_provided_tour?.value,
         hygiene: d?.onboarding_facilities?.hygiene_satisfaction?.value,
         room: d?.onboarding_facilities?.room_satisfaction?.value,
         queries: d?.onboarding_facilities?.queries_resolved?.value,
 
-        // clinical
+       
         psych: d?.clinical_feedback?.psych_discussion_held?.value,
         psychRating: d?.clinical_feedback?.psych_experience_rating?.value,
         empathy: d?.clinical_feedback?.staff_empathy_professionalism?.value,
         treatment: d?.clinical_feedback?.treatment_plan_satisfaction?.value,
         family: d?.clinical_feedback?.family_involvement?.value,
 
-        // outcomes
+        
         status: d?.patient_outcomes?.status_vs_admission?.value,
         improvement: d?.patient_outcomes?.visible_improvement?.value,
         behavior: d?.patient_outcomes?.progress_areas?.behavior,
@@ -51,20 +51,20 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
         sleep: d?.patient_outcomes?.progress_areas?.sleep,
         communication: d?.patient_outcomes?.progress_areas?.communication,
 
-        // communication
+        
         updates: d?.communication_support?.regular_updates_received?.value,
         clarity: d?.communication_support?.updates_clear_helpful?.value,
         frequency: d?.communication_support?.call_frequency?.value,
         support: d?.communication_support?.family_support_adequacy?.value,
         concerns: d?.communication_support?.concerns_addressed_promptly?.value,
 
-        // discharge
+        
         belongings: d?.discharge_loyalty?.belongings_returned?.value,
         nps: d?.discharge_loyalty?.nps_score?.value,
         suggestion: d?.discharge_loyalty?.improvement_suggestions,
         notes: d?.discharge_loyalty?.discharge_experience_notes,
 
-        // audit (🔥 beech me use hoga)
+       
         strengths: d?.audit_report?.strengths || [],
         weaknesses: d?.audit_report?.weaknesses || [],
         coaching: d?.audit_report?.coaching_points || "",
@@ -186,22 +186,22 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
     },
 
 
-    { name: "Reception", selector: (r) => getParsed(r)?.reception || "-", width: "120px" },
-    { name: "Tour", selector: (r) => getParsed(r)?.tour || "-", width: "120px" },
-    { name: "Hygiene", selector: (r) => getParsed(r)?.hygiene || "-", width: "120px" },
-    { name: "Room", selector: (r) => getParsed(r)?.room || "-", width: "120px" },
-    { name: "Queries Resolved", selector: (r) => getParsed(r)?.queries || "-", width: "150px" },
+    { name: "Reception Experience", selector: (r) => getParsed(r)?.reception || "-",  width: "200px" },
+    { name: "Manager Provided Tour", selector: (r) => getParsed(r)?.tour || "-",  width: "200px" },
+    { name: "Hygiene Satisfaction", selector: (r) => getParsed(r)?.hygiene || "-", width: "200px" },
+    { name: "Room Satisfaction", selector: (r) => getParsed(r)?.room || "-", width: "200px" },
+    { name: "Queries Resolved", selector: (r) => getParsed(r)?.queries || "-", width: "200px" },
 
 
-    { name: "Psych", selector: (r) => getParsed(r)?.psych || "-", width: "120px" },
-    { name: "Psych Rating", selector: (r) => getParsed(r)?.psychRating || "-", width: "140px" },
-    { name: "Empathy", selector: (r) => getParsed(r)?.empathy || "-", width: "120px" },
-    { name: "Treatment", selector: (r) => getParsed(r)?.treatment || "-", width: "130px" },
-    { name: "Family", selector: (r) => getParsed(r)?.family || "-", width: "120px" },
+    { name: "Psych Discussion", selector: (r) => getParsed(r)?.psych || "-", width: "200px" },
+    { name: "Psych Experience Rating", selector: (r) => getParsed(r)?.psychRating || "-", width: "200px" },
+    { name: "Staff Empathy Professionalism", selector: (r) => getParsed(r)?.empathy || "-", width: "250px" },
+    { name: "Treatment Plan Satisfaction", selector: (r) => getParsed(r)?.treatment || "-", width: "200px" },
+    { name: "Family Involvement", selector: (r) => getParsed(r)?.family || "-", width: "200px" },
 
 
-    { name: "Status", selector: (r) => getParsed(r)?.status || "-", width: "120px" },
-    { name: "Improvement", selector: (r) => getParsed(r)?.improvement || "-", width: "140px" },
+    { name: "Status vs Addmission", selector: (r) => getParsed(r)?.status || "-", width: "200px" },
+    { name: "Visible Improvement", selector: (r) => getParsed(r)?.improvement || "-", width: "200px" },
     {
       name: "Behavior",
       selector: (r) => getParsed(r)?.behavior || "-",
@@ -211,36 +211,36 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
     },
     { name: "Mood", selector: (r) => getParsed(r)?.mood || "-", width: "120px" },
     {
-      name: "Daily",
+      name: "Daily Functioning",
       selector: (r) => getParsed(r)?.daily || "-",
       wrap: true,
       width: "200px",
       grow: 1,
     },
-    { name: "Sleep", selector: (r) => getParsed(r)?.sleep || "-", width: "120px" },
-    { name: "Communication", selector: (r) => getParsed(r)?.communication || "-", width: "150px" },
+    { name: "Sleep", selector: (r) => getParsed(r)?.sleep || "-", width: "200px" },
+    { name: "Communication", selector: (r) => getParsed(r)?.communication || "-", width: "200px" },
 
 
-    { name: "Updates", selector: (r) => getParsed(r)?.updates || "-", width: "120px" },
-    { name: "Clarity", selector: (r) => getParsed(r)?.clarity || "-", width: "120px" },
-    { name: "Frequency", selector: (r) => getParsed(r)?.frequency || "-", width: "120px" },
-    { name: "Support", selector: (r) => getParsed(r)?.support || "-", width: "120px" },
-    { name: "Concerns", selector: (r) => getParsed(r)?.concerns || "-", width: "130px" },
+    { name: "Regular Updates Recieved", selector: (r) => getParsed(r)?.updates || "-", width: "200px" },
+    { name: "Updates Clarity Helpful", selector: (r) => getParsed(r)?.clarity || "-", width: "200px" },
+    { name: "Call Frequency", selector: (r) => getParsed(r)?.frequency || "-", width: "200px" },
+    { name: "Family Support Adequacy", selector: (r) => getParsed(r)?.support || "-", width: "200px" },
+    { name: "Concerns Addressed Promptly", selector: (r) => getParsed(r)?.concerns || "-", width: "250px" },
 
 
-    { name: "Belongings", selector: (r) => getParsed(r)?.belongings || "-", width: "120px" },
-    { name: "NPS", selector: (r) => getParsed(r)?.nps || "-", width: "100px" },
+    { name: "Belongings Returned", selector: (r) => getParsed(r)?.belongings || "-", width: "200px" },
+    { name: "NPS score", selector: (r) => getParsed(r)?.nps || "-", width: "200px" },
 
     {
-      name: "Suggestions",
+      name: "Improvement Suggestions",
       cell: (r) => {
         const content = getParsed(r)?.suggestion || "-";
 
         return (
           <div
             style={{
-              whiteSpace: "pre-wrap",   // multiline allow
-              wordBreak: "break-word",  // long text break
+              whiteSpace: "pre-wrap", 
+              wordBreak: "break-word",
               padding: "12px 0px",
             }}
           >
@@ -252,7 +252,7 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
     },
 
     {
-      name: "Notes",
+      name: "Discharge Exp. Notes",
       cell: (r) => {
         const content = getParsed(r)?.notes || "-";
 
