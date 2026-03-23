@@ -5,11 +5,14 @@ import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import { CallRecordingsOverviewColumns } from '../../Columns/CallOverview';
 import Select from "react-select";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const Call = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [overviews, setOverviews] = useState([]);
   const [callLoading, setCallLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -69,6 +72,130 @@ const Call = () => {
 
   console.log("pagination", pagination);
 
+  const scoreLabels = {
+    C1: "Pro greeting (Org/Name)",
+    C2: "Calm/Empathetic tone",
+    C3: "No interruptions/Active listening",
+    C4: "Relevant probing questions",
+    C5: "No repetitive questions",
+    C6: "Accurate service info (IPD/OPD/Psych/Elder)",
+    C7: "Tailored response to needs",
+    C8: "Correct location/charges info",
+    C9: "No price/discount talk before understanding issue",
+    C10: "Explored room/budget before discount",
+    C11: "Pitched OPD only if IPD unaffordable/unsuitable",
+    C12: "No treatment guarantees",
+    C13: "Asked visit timeline",
+    C14: "Offered visit/CM escalation",
+    C15: "Asked for more queries",
+    C16: "Positive close + Next steps",
+    C17: "Not rushed",
+    C18: "Overall Experience",
+  };
+
+  const getSafeParsedData = (rawData) => {
+    if (!rawData) return null;
+
+    try {
+      if (typeof rawData === "object") return rawData;
+
+      const cleaned = rawData
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const formatExportData = (data) => {
+    return data.map((row, index) => {
+      const parsed = getSafeParsedData(row?.Files?.geminiResponse);
+
+      return {
+        Index: index + 1,
+        UCID: row?.UCID || "-",
+        Agent: row?.Agent || "-",
+        "Call Date": row?.Call_Date || "-",
+        "Talk Time": row?.Talk_Time || "-",
+
+        Strengths: Array.isArray(parsed?.strengths)
+          ? parsed.strengths.join(" | ")
+          : parsed?.strengths || "-",
+
+        Weaknesses: Array.isArray(parsed?.weaknesses)
+          ? parsed.weaknesses.join(" | ")
+          : parsed?.weaknesses || "-",
+
+        Coaching: parsed?.coaching || "-",
+
+        // 🔥 Custom labeled columns
+        ...Object.fromEntries(
+          Object.keys(scoreLabels).map((key) => [
+            `${key} - ${scoreLabels[key]}`, // 👈 THIS IS MAGIC
+            parsed?.scores?.[key] ?? "-"
+          ])
+        ),
+      };
+    });
+  };
+
+  const handleExportExcel = async () => {
+    setExportLoading(true);
+    try {
+
+      let allData = [];
+      let currentPage = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await getCallRecordingOverview({
+          fromDate,
+          toDate,
+          page: currentPage,
+          limit: 500, // backend safe limit
+          search: debouncedSearch,
+          talkTime: talkTimeFilter
+        });
+
+        const data = response?.data || [];
+
+        allData = [...allData, ...data];
+
+        if (data.length < 500) {
+          hasMore = false;
+        } else {
+          currentPage++;
+        }
+      }
+
+      const formattedData = formatExportData(allData);
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Call Overview");
+
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array",
+      });
+
+      const blob = new Blob([excelBuffer], {
+        type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      saveAs(blob, "call-overview.xlsx");
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   return (
     <>
@@ -147,7 +274,7 @@ const Call = () => {
           </div>
 
 
-          <div className="d-flex align-items-end">
+          <div className="d-flex align-items-end ">
             <button
               className="btn btn-primary px-4"
               style={{ height: "38px" }}
@@ -157,8 +284,6 @@ const Call = () => {
               {callLoading ? <Spinner size="sm" /> : "Filter"}
             </button>
           </div>
-
-
         </div>
 
         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -193,10 +318,23 @@ const Call = () => {
 
         </div>
 
-        <div className="d-flex justify-content-end p-2">
-          <Label className="mb-0 text-dark">
+        <div className="d-flex justify-content-between align-items-center p-2">
+
+          {/* LEFT SIDE */}
+          <Label className="mb-0 text-dark fw-semibold">
             Total Recordings: {pagination?.totalRecords}
           </Label>
+
+          {/* RIGHT SIDE */}
+          <button
+            className="btn btn-success d-flex align-items-center gap-2"
+            onClick={handleExportExcel}
+            disabled={callLoading}
+          >
+            {exportLoading && <Spinner size="sm" />}
+            {exportLoading ? "Exporting..." : "Export Excel"}
+          </button>
+
         </div>
 
         <DataTableComponent

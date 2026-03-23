@@ -5,11 +5,14 @@ import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import Select from "react-select";
 import { FeedbackRecordingsOverviewColumns } from '../../Columns/FeedbackOverview';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const Feedback = () => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [overviews, setOverviews] = useState([]);
     const [callLoading, setCallLoading] = useState(false);
+    const [exportLoading, setExportLoading] = useState(false);
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 10,
@@ -67,7 +70,166 @@ const Feedback = () => {
         { value: "over_15", label: "Over 15 min" }
     ];
 
-    console.log("pagination", pagination);
+    const getSafeParsedData = (rawData) => {
+        if (!rawData) return null;
+
+        try {
+            if (typeof rawData === "object") return rawData;
+
+            const cleaned = rawData
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
+
+            return JSON.parse(cleaned);
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const getParsed = (row) => {
+        const d = getSafeParsedData(row?.Files?.geminiResponse);
+
+        return {
+            reception: d?.onboarding_facilities?.reception_experience?.value,
+            tour: d?.onboarding_facilities?.manager_provided_tour?.value,
+            hygiene: d?.onboarding_facilities?.hygiene_satisfaction?.value,
+            room: d?.onboarding_facilities?.room_satisfaction?.value,
+            queries: d?.onboarding_facilities?.queries_resolved?.value,
+
+            psych: d?.clinical_feedback?.psych_discussion_held?.value,
+            psychRating: d?.clinical_feedback?.psych_experience_rating?.value,
+            empathy: d?.clinical_feedback?.staff_empathy_professionalism?.value,
+            treatment: d?.clinical_feedback?.treatment_plan_satisfaction?.value,
+            family: d?.clinical_feedback?.family_involvement?.value,
+
+            status: d?.patient_outcomes?.status_vs_admission?.value,
+            improvement: d?.patient_outcomes?.visible_improvement?.value,
+            behavior: d?.patient_outcomes?.progress_areas?.behavior,
+            mood: d?.patient_outcomes?.progress_areas?.mood,
+            daily: d?.patient_outcomes?.progress_areas?.daily_functioning,
+            sleep: d?.patient_outcomes?.progress_areas?.sleep,
+            communication: d?.patient_outcomes?.progress_areas?.communication,
+
+            updates: d?.communication_support?.regular_updates_received?.value,
+            clarity: d?.communication_support?.updates_clear_helpful?.value,
+            frequency: d?.communication_support?.call_frequency?.value,
+            support: d?.communication_support?.family_support_adequacy?.value,
+            concerns: d?.communication_support?.concerns_addressed_promptly?.value,
+
+            belongings: d?.discharge_loyalty?.belongings_returned?.value,
+            nps: d?.discharge_loyalty?.nps_score?.value,
+            suggestion: d?.discharge_loyalty?.improvement_suggestions,
+            notes: d?.discharge_loyalty?.discharge_experience_notes,
+
+            strengths: d?.audit_report?.strengths || [],
+            weaknesses: d?.audit_report?.weaknesses || [],
+            coaching: d?.audit_report?.coaching_points || "",
+        };
+    };
+
+    const formatFeedbackExportData = (data) => {
+        return data.map((row, index) => {
+            const d = getParsed(row);
+
+            return {
+                Index: index + 1,
+                UCID: row?.UCID || "-",
+                Agent: row?.Agent || "-",
+                "Call Date": row?.Call_Date || "-",
+                "Talk Time": row?.Talk_Time || "-",
+
+                Strengths: d?.strengths?.join(" | ") || "-",
+                Weaknesses: d?.weaknesses?.join(" | ") || "-",
+                Coaching: d?.coaching || "-",
+
+                "Reception Experience": d?.reception || "-",
+                "Manager Provided Tour": d?.tour || "-",
+                "Hygiene Satisfaction": d?.hygiene || "-",
+                "Room Satisfaction": d?.room || "-",
+                "Queries Resolved": d?.queries || "-",
+
+                "Psych Discussion": d?.psych || "-",
+                "Psych Experience Rating": d?.psychRating || "-",
+                "Staff Empathy": d?.empathy || "-",
+                "Treatment Plan Satisfaction": d?.treatment || "-",
+                "Family Involvement": d?.family || "-",
+
+                "Status vs Admission": d?.status || "-",
+                "Visible Improvement": d?.improvement || "-",
+                Behavior: d?.behavior || "-",
+                Mood: d?.mood || "-",
+                "Daily Functioning": d?.daily || "-",
+                Sleep: d?.sleep || "-",
+                Communication: d?.communication || "-",
+
+                "Regular Updates Received": d?.updates || "-",
+                "Updates Clarity Helpful": d?.clarity || "-",
+                "Call Frequency": d?.frequency || "-",
+                "Family Support Adequacy": d?.support || "-",
+                "Concerns Addressed Promptly": d?.concerns || "-",
+
+                "Belongings Returned": d?.belongings || "-",
+                "NPS Score": d?.nps || "-",
+                "Improvement Suggestions": d?.suggestion || "-",
+                "Discharge Exp Notes": d?.notes || "-",
+            };
+        });
+    };
+
+    const handleExportFeedbackExcel = async () => {
+        try {
+            setExportLoading(true);
+
+            let allData = [];
+            let currentPage = 1;
+            let hasMore = true;
+
+            while (hasMore) {
+                const response = await getFeedbackRecordingOverview({
+                    fromDate,
+                    toDate,
+                    page: currentPage,
+                    limit: 500,
+                    search: debouncedSearch,
+                    talkTime: talkTimeFilter
+                });
+
+                const data = response?.data || [];
+                allData = [...allData, ...data];
+
+                if (data.length < 500) {
+                    hasMore = false;
+                } else {
+                    currentPage++;
+                }
+            }
+
+            const formatted = formatFeedbackExportData(allData);
+
+            const worksheet = XLSX.utils.json_to_sheet(formatted);
+            const workbook = XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Feedback Overview");
+
+            const buffer = XLSX.write(workbook, {
+                bookType: "xlsx",
+                type: "array",
+            });
+
+            const blob = new Blob([buffer], {
+                type:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            saveAs(blob, "feedback-overview.xlsx");
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setExportLoading(false);
+        }
+    };
 
 
     return (
@@ -193,10 +355,23 @@ const Feedback = () => {
 
                 </div>
 
-                <div className="d-flex justify-content-end p-2">
-                    <Label className="mb-0 text-dark">
+                <div className="d-flex justify-content-between align-items-center p-2">
+
+                    {/* LEFT SIDE */}
+                    <Label className="mb-0 text-dark fw-semibold">
                         Total Recordings: {pagination?.totalRecords}
                     </Label>
+
+                    {/* RIGHT SIDE */}
+                    <button
+                        className="btn btn-success d-flex align-items-center gap-2"
+                        onClick={handleExportFeedbackExcel}
+                        disabled={callLoading || exportLoading}
+                    >
+                        {exportLoading && <Spinner size="sm" />}
+                        {exportLoading ? "Exporting..." : "Export Excel"}
+                    </button>
+
                 </div>
 
                 <DataTableComponent
