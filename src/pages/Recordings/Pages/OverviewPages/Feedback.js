@@ -138,6 +138,7 @@ const Feedback = () => {
                 Agent: row?.Agent || "-",
                 "Call Date": row?.Call_Date || "-",
                 "Talk Time": row?.Talk_Time || "-",
+                "Recording URL": row?.Files?.recording_url || row?.Files?.Recording_URL || "-",
 
                 Strengths: d?.strengths?.join(" | ") || "-",
                 Weaknesses: d?.weaknesses?.join(" | ") || "-",
@@ -151,7 +152,7 @@ const Feedback = () => {
 
                 "Psych Discussion": d?.psych || "-",
                 "Psych Experience Rating": d?.psychRating || "-",
-                "Staff Empathy": d?.empathy || "-",
+                "Staff Empathy Professionalism": d?.empathy || "-",
                 "Treatment Plan Satisfaction": d?.treatment || "-",
                 "Family Involvement": d?.family || "-",
 
