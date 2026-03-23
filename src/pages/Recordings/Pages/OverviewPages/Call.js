@@ -120,6 +120,7 @@ const Call = () => {
         Agent: row?.Agent || "-",
         "Call Date": row?.Call_Date || "-",
         "Talk Time": row?.Talk_Time || "-",
+        "Recording URL": row?.Files?.recording_url || row?.Files?.Recording_URL || "-",
 
         Strengths: Array.isArray(parsed?.strengths)
           ? parsed.strengths.join(" | ")

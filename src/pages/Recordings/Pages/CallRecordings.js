@@ -13,6 +13,7 @@ import { all } from 'axios';
 import UploadXlsxModal from '../Components/UploadXlsxModal';
 import { useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
+import { FaFilter } from 'react-icons/fa';
 
 const CallRecordings = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -214,8 +215,8 @@ const CallRecordings = () => {
         </div>
 
         {/* Filters */}
-        <div className="d-flex gap-3 mb-3">
-          <div>
+        <div className={`d-flex gap-3 mb-3 ${isMobile ? "flex-wrap" : ""}`}>
+          <div style={{ width: isMobile ? "35%" : "auto" }}>
             <label>From Date</label>
             <div style={{ position: "relative" }}>
               <input
@@ -247,7 +248,7 @@ const CallRecordings = () => {
             </div>
           </div>
 
-          <div>
+          <div style={{ width: isMobile ? "35%" : "auto" }}>
             <label>To Date</label>
             <div style={{ position: "relative" }}>
               <input
@@ -280,14 +281,20 @@ const CallRecordings = () => {
           </div>
 
 
-          <div className="d-flex align-items-end">
+          <div className="d-flex align-items-end" style={{ width: isMobile ? "20%" : "auto" }}>
             <button
               className="btn btn-primary px-4"
               style={{ height: "38px" }}
               onClick={loadRecordings}
               disabled={loading}
             >
-              {loading ? <Spinner size="sm" /> : "Filter"}
+              {loading ? (
+                <Spinner size="sm" />
+              ) : isMobile ? (
+                <FaFilter />
+              ) : (
+                "Filter"
+              )}
             </button>
           </div>
 
