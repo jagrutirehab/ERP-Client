@@ -315,6 +315,7 @@ const InvoiceTable = ({
                                 }
                               }}
                               disabled={selectedPrice > 0}
+                              // 
                             />
                           </div>
                         </Col>
