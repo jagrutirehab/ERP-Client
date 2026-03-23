@@ -2613,6 +2613,22 @@ export const getEmployeeReportings = (params = {}) => {
   });
 };
 
+export const getEmployeeReportingById = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRotationalShifts = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getEmployeeLeaves = (employeeId, params = {}) => {
   return api.get(`/hrms/leaves/employee/${employeeId}`, {
     params,

@@ -194,6 +194,7 @@ const HR = () => {
                 <Route path={`/finance`} element={<FinanceDashboard />} />
                 <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
                 <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />
+                <Route path={`/reporting/shift-roster/assign/:reportingId`} element={<AssignShift />} />
               </Routes>
             </div>
           </Container>

@@ -11,10 +11,10 @@ import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, parseISO } f
 import { debounce } from "lodash";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { setRotationalShifts } from "../../../helpers/backend_helper";
+import { setRotationalShifts, getRotationalShifts } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -68,14 +68,21 @@ let rowIdCounter = 0;
 const newRowId = () => ++rowIdCounter;
 
 
-const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, onDataChange, onRemove, canRemove, prevRoster, hasFailed }) => {
+const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, onDataChange, onRemove, canRemove, prevRoster, hasFailed, initialData, isEditRow }) => {
   const [employeeCache, setEmployeeCache] = useState([]);
   const [empSearch, setEmpSearch] = useState("");
   const [searching, setSearching] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(() => initialData?.selectedEmployee || null);
 
-  const [roster, setRoster] = useState({});
-  const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [roster, setRoster] = useState(() => initialData?.roster || {});
+  const [weekStart, setWeekStart] = useState(() => {
+    // if prefilled, start week from the earliest filled date
+    if (initialData?.roster) {
+      const dates = Object.keys(initialData.roster).sort();
+      if (dates.length) return startOfWeek(new Date(dates[0]), { weekStartsOn: 1 });
+    }
+    return startOfWeek(new Date(), { weekStartsOn: 1 });
+  });
 
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -192,23 +199,40 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
           )}
         </div>
 
-        {/* employee select */}
+        {/* employee */}
         <div className="mb-3" style={{ maxWidth: 360 }}>
           <Label className="form-label small fw-semibold">Employee</Label>
-          <Select
-            options={empOptions}
-            value={selectedEmployee}
-            onChange={setSelectedEmployee}
-            onInputChange={setEmpSearch}
-            isLoading={searching}
-            placeholder="Search by name or eCode..."
-            isClearable
-            menuPortalTarget={document.body}
-            styles={{
-              menuPortal: (b) => ({ ...b, zIndex: 9999 }),
-              control: (b) => ({ ...b, fontSize: "13px" }),
-            }}
-          />
+          {isEditRow ? (
+            <div className="px-2 py-2 rounded" style={{ background: "#f8f9fa", border: "1px solid #dee2e6" }}>
+              {(() => {
+                const label = selectedEmployee?.label || "";
+                const match = label.match(/^(.*)\s+\(([^)]+)\)$/);
+                const name  = match ? match[1] : label;
+                const eCode = match ? match[2] : "";
+                return (
+                  <>
+                    <div className="fw-semibold" style={{ fontSize: "13px" }}>{name || "—"}</div>
+                    {eCode && <div className="text-muted" style={{ fontSize: "11px" }}>{eCode}</div>}
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <Select
+              options={empOptions}
+              value={selectedEmployee}
+              onChange={setSelectedEmployee}
+              onInputChange={setEmpSearch}
+              isLoading={searching}
+              placeholder="Search by name or eCode..."
+              isClearable
+              menuPortalTarget={document.body}
+              styles={{
+                menuPortal: (b) => ({ ...b, zIndex: 9999 }),
+                control: (b) => ({ ...b, fontSize: "13px" }),
+              }}
+            />
+          )}
         </div>
 
         {/* week nav */}
@@ -415,8 +439,11 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
 const AssignShift = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { reportingId: editId } = useParams(); // present only on edit route
   const handleAuthError = useAuthError();
   const { centerAccess } = useSelector((s) => s.User);
+
+  const isEdit = Boolean(editId);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
@@ -424,10 +451,55 @@ const AssignShift = () => {
   const { hasPermission, loading: permissionLoader, roles } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
 
-  // each item: { id, data: { selectedEmployee, roster, leaves } }
+  const [fetchingEdit, setFetchingEdit] = useState(isEdit);
+
+  // each item: { id, initialData?, data: { selectedEmployee, roster } }
   const [rows, setRows] = useState(() =>
-    Array.from({ length: 10 }, () => ({ id: newRowId(), data: {} }))
+    Array.from({ length: isEdit ? 1 : 10 }, () => ({ id: newRowId(), data: {} }))
   );
+
+  // fetch existing record when in edit mode
+  useEffect(() => {
+    if (!isEdit) return;
+    setFetchingEdit(true);
+
+    const timeToMinutes = (t) => {
+      if (t == null) return null;
+      if (typeof t === "number") return t;
+      const [h, m] = String(t).split(":").map(Number);
+      return h * 60 + (m || 0);
+    };
+
+    getRotationalShifts(editId)
+      .then((res) => {
+        const r = res?.data || res;
+        const roster = {};
+        (r.rotationalShifts || []).forEach((s) => {
+          if (s.date) roster[s.date.substring(0, 10)] = {
+            start: timeToMinutes(s.start),
+            end:   timeToMinutes(s.end),
+            weekOff: false,
+          };
+        });
+        (r.leaves || []).forEach((l) => {
+          if (l.date) roster[l.date.substring(0, 10)] = { start: null, end: null, weekOff: true };
+        });
+        const initialData = {
+          selectedEmployee: {
+            value: r.employee?._id,
+            label: `${r.employee?.name || ""} (${r.employee?.eCode || ""})`,
+            reportingId: r._id || editId,
+          },
+          roster,
+        };
+        setRows([{ id: newRowId(), initialData, data: {} }]);
+      })
+      .catch((err) => {
+        if (!handleAuthError(err)) toast.error("Failed to load employee shifts.");
+        navigate("/hr/reporting/shift-roster/list");
+      })
+      .finally(() => setFetchingEdit(false));
+  }, [editId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -479,7 +551,7 @@ const AssignShift = () => {
 
     for (const row of readyRows) {
       const { selectedEmployee, roster } = row.data;
-      const reportingId = selectedEmployee.reportingId; // activeReportingId from search result
+      const reportingId = selectedEmployee.reportingId;
       const entries = Object.entries(roster || {}).sort(([a], [b]) => a.localeCompare(b));
       const shifts = entries
         .filter(([, v]) => !v.weekOff && v.start != null && v.end != null)
@@ -515,7 +587,7 @@ const AssignShift = () => {
   };
 
 
-  if (permissionLoader) {
+  if (permissionLoader || fetchingEdit) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
         <Spinner color="primary" />
@@ -548,6 +620,7 @@ const AssignShift = () => {
           <EmployeeShiftRow
             key={row.id}
             rowIndex={i}
+            initialData={row.initialData || null}
             prevRoster={i > 0 ? (rows[i - 1].data.roster || {}) : null}
             hasFailed={hasFailed}
             dispatch={dispatch}
@@ -556,19 +629,20 @@ const AssignShift = () => {
             onDataChange={(data) => updateRowData(row.id, data)}
             onRemove={() => removeRow(row.id)}
             canRemove={rows.length > 1}
+            isEditRow={isEdit}
           />
         );
       })}
 
-      {/* add row */}
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <Button color="outline-secondary" size="sm" onClick={() => addRows(5)}>
-          <Plus size={14} className="me-1" />Add 5 More Rows
-        </Button>
-        <span className="text-muted small">{rows.length} row{rows.length !== 1 ? "s" : ""} total</span>
-      </div>
+      {!isEdit && (
+        <div className="d-flex align-items-center gap-2 mb-3">
+          <Button color="outline-secondary" size="sm" onClick={() => addRows(5)}>
+            <Plus size={14} className="me-1" />Add 5 More Rows
+          </Button>
+          <span className="text-muted small">{rows.length} row{rows.length !== 1 ? "s" : ""} total</span>
+        </div>
+      )}
 
-      {/* submit */}
       <div className="d-flex justify-content-end gap-2">
         {/* <Button color="secondary" outline onClick={() => navigate("/hr/reporting/shift-roster/list")}>
           Cancel
@@ -587,10 +661,10 @@ const AssignShift = () => {
         </CheckPermission>
       </div>
 
-      {/* error summary modal (partial failure) */}
+      {/* error summary modal */}
       <Modal isOpen={errorOpen} toggle={() => setErrorOpen(false)} centered size="md">
         <ModalHeader toggle={() => setErrorOpen(false)} style={{ background: "#fff3cd", borderBottom: "1px solid #ffc107" }}>
-          ⚠ Partial Failure — {failedRows.length} employee{failedRows.length !== 1 ? "s" : ""} not updated
+          Partial Failure — {failedRows.length} employee{failedRows.length !== 1 ? "s" : ""} not updated
         </ModalHeader>
         <ModalBody style={{ fontSize: "13px" }}>
           <p className="text-muted mb-2">The following entries failed. Fix the highlighted rows and resubmit.</p>
@@ -612,7 +686,6 @@ const AssignShift = () => {
         </ModalFooter>
       </Modal>
 
-      {/* confirm modal */}
       <Modal isOpen={confirmOpen} toggle={() => setConfirmOpen(false)} centered size="md">
         <ModalHeader toggle={() => setConfirmOpen(false)}>Confirm Update</ModalHeader>
         <ModalBody style={{ fontSize: "13px" }}>

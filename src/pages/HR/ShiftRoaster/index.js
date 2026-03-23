@@ -109,7 +109,7 @@ const ShiftRoaster = () => {
         if (!l.date) return;
         leaves[l.date.substring(0, 10)] = { type: "leave", leaveType: l.leaveType };
       });
-      return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves }, };
+      return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves }, reportingId: r._id };
     });
   }, [rosterData]);
 
@@ -220,11 +220,25 @@ const ShiftRoaster = () => {
                           position: "sticky", left: 0, background: "#fff", zIndex: 1,
                           padding: "8px 12px", borderRight: "1px solid #dee2e6", verticalAlign: "middle",
                         }}>
-                          <div className="fw-semibold" style={{ fontSize: "12px" }}>{entry.employee?.name}</div>
-                          <div className="text-muted" style={{ fontSize: "11px" }}>{entry.employee?.eCode}</div>
-                          {entry.center?.title && (
-                            <div style={{ fontSize: "10px", color: "#adb5bd", marginTop: 1 }}>{entry.center.title}</div>
-                          )}
+                          <div className="d-flex align-items-start justify-content-between gap-1">
+                            <div>
+                              <div className="fw-semibold" style={{ fontSize: "12px" }}>{entry.employee?.name}</div>
+                              <div className="text-muted" style={{ fontSize: "11px" }}>{entry.employee?.eCode}</div>
+                              {entry.center?.title && (
+                                <div style={{ fontSize: "10px", color: "#adb5bd", marginTop: 1 }}>{entry.center.title}</div>
+                              )}
+                            </div>
+                            {hasWritePermission && (
+                              <button
+                                className="btn btn-link p-0 text-primary"
+                                title="Edit shifts"
+                                style={{ lineHeight: 1, flexShrink: 0 }}
+                                onClick={() => navigate(`/hr/reporting/shift-roster/assign/${entry.reportingId}`)}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                            )}
+                          </div>
                         </td>
 
                         {/* day cells */}
