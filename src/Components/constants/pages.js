@@ -797,7 +797,7 @@ export const HR = [
   },
   {
     id: "employee-reporting",
-    label: "Employee Reporting",
+    label: "Employee Reporting & Roaster",
     link: "/hr/attendance",
     icon: "bx bx-git-branch",
     isAccordion: true,
@@ -813,6 +813,18 @@ export const HR = [
         label: "Manage",
         link: "/hr/reporting/manage",
         icon: "bx bx-list-check",
+      },
+       {
+        id: "assign-rotational-shift",
+        label: "Assign Shift",
+        link: "/hr/reporting/shift-roster/assign",
+        icon: "bx bx-calendar-plus",
+      },
+      {
+        id: "shift-roster",
+        label: "Shift Roster",
+        link: "/hr/reporting/shift-roster/list",
+        icon: "bx bx-calendar",
       },
     ],
   },

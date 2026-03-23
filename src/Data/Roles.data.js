@@ -283,12 +283,14 @@ export const permissionList = [
       // Regularization
       { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
       { name: "GET_REGULARIZATIONS_REQUESTS", label: "Regularizations Requests" },
-      // Employee Reporting
+      // Employee Reporting & shift roster
       { name: "ASSIGN_MANAGER", label: "Assign Manager" },
       {
         name: "MANAGE_EMPLOYEE_REPORTINGS",
         label: "Manage Employee Reportings",
       },
+      { name: "SHIFT_roster", label: "Shift roster" },
+    { name: "ASSIGN_ROTATIONAL_SHIFT", label: "Assign Rotational Shift" },
       // Leave
       { name: "APPLY_LEAVE", label: "Apply Leave" },
       { name: "LEAVE_HISTORY", label: "Leave History" },

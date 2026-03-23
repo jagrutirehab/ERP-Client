@@ -49,4 +49,14 @@ export const shiftTimeOptions = [
     { value: "SECOND_HALF", label: "Second Half" },
 ];
 
+export const SHIFT_STYLES = {
+  NORMAL: { bg: "#e8f5e9", text: "#2e7d32", border: "#a5d6a7" },
+  MORNING: { bg: "#fffde7", text: "#e65100", border: "#ffe082" },
+  AFTERNOON: { bg: "#e3f2fd", text: "#1565c0", border: "#90caf9" },
+  NIGHT: { bg: "#f3e5f5", text: "#6a1b9a", border: "#ce93d8" },
+};
+
+export const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+
 
