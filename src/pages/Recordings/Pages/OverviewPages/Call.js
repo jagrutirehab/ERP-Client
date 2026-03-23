@@ -7,6 +7,7 @@ import { CallRecordingsOverviewColumns } from '../../Columns/CallOverview';
 import Select from "react-select";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { FaFilter } from 'react-icons/fa';
 
 const Call = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -209,8 +210,8 @@ const Call = () => {
         </div>
 
 
-        <div className="d-flex gap-3 mb-3">
-          <div>
+        <div className={`d-flex gap-3 mb-3 ${isMobile ? "flex-wrap" : ""}`}>
+          <div style={{ width: isMobile ? "35%" : "auto" }}>
             <label>From Date</label>
             <div style={{ position: "relative" }}>
               <input
@@ -242,7 +243,7 @@ const Call = () => {
             </div>
           </div>
 
-          <div>
+          <div style={{ width: isMobile ? "35%" : "auto" }}>
             <label>To Date</label>
             <div style={{ position: "relative" }}>
               <input
@@ -275,14 +276,20 @@ const Call = () => {
           </div>
 
 
-          <div className="d-flex align-items-end ">
+          <div className="d-flex align-items-end" style={{ width: isMobile ? "20%" : "auto" }}>
             <button
               className="btn btn-primary px-4"
               style={{ height: "38px" }}
               onClick={loadCallRecordingOverviews}
               disabled={callLoading}
             >
-              {callLoading ? <Spinner size="sm" /> : "Filter"}
+              {callLoading ? (
+                <Spinner size="sm" />
+              ) : isMobile ? (
+                <FaFilter />
+              ) : (
+                "Filter"
+              )}
             </button>
           </div>
         </div>
