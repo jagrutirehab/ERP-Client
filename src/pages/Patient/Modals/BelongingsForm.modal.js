@@ -245,13 +245,33 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
         setIsDirty(true);
     };
 
+    const normalizeQuantity = (val) => {
+        if (val === "" || val === null || val === undefined) return "";
+        const quantity = Number(val);
+        return Number.isNaN(quantity) ? "" : quantity;
+    };
+
+    const getQuantityError = (val) => {
+        if (val === "" || val === null || val === undefined) return "Quantity is required";
+        if (Number(val) <= 0) return "Quantity must be greater than 0";
+        return "";
+    };
+
     const updateQuantity = (idx, val) => {
         setSelectedItems((prev) =>
             prev.map((item, i) =>
-                i === idx ? { ...item, quantity: Math.max(1, Number(val) || 1) } : item
+                i === idx ? { ...item, quantity: normalizeQuantity(val) } : item
             )
         );
         setIsDirty(true);
+    };
+
+    const finalizeQuantity = (idx) => {
+        setSelectedItems((prev) =>
+            prev.map((item, i) =>
+                i === idx ? { ...item, quantity: item.quantity === "" ? "" : normalizeQuantity(item.quantity) } : item
+            )
+        );
     };
 
     const updateRemarks = (idx, val) => {
@@ -347,13 +367,18 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
 
     const handleSubmit = async () => {
         if (selectedItems.length === 0) return;
+        const invalidItem = selectedItems.find((item) => getQuantityError(item.quantity));
+        if (invalidItem) {
+            toast.error("Please enter a valid quantity greater than 0 for all belongings");
+            return;
+        }
         setSubmitting(true);
         try {
             const items = selectedItems.map((item) => ({
                 ...(item.isCustom || !item._id
                     ? { otherItemName: item.name }
                     : { belongingItem: item._id }),
-                quantity: item.quantity || 1,
+                quantity: Number(item.quantity),
                 attachments: item.image
                     ? (item.originalAttachments?.length > 0 &&
                         (item.originalAttachments[0]?.url === item.image || item.originalAttachments[0] === item.image)
@@ -784,12 +809,19 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                     <td>
                                                         <Input
                                                             type="number"
-                                                            min={1}
+                                                            min={0}
                                                             value={item.quantity}
                                                             onChange={(e) => updateQuantity(idx, e.target.value)}
+                                                            onBlur={() => finalizeQuantity(idx)}
                                                             bsSize="sm"
+                                                            invalid={!!getQuantityError(item.quantity)}
                                                             style={{ width: 55 }}
                                                         />
+                                                        {getQuantityError(item.quantity) && (
+                                                            <div className="text-danger small mt-1">
+                                                                {getQuantityError(item.quantity)}
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <Input
