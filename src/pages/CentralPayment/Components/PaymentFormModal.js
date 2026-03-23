@@ -264,7 +264,7 @@ const PaymentFormModal = ({
                   <Col md={6}>
                     {paymentDetails?.description && (
                       <p className="mb-0">
-                        <strong>Description:</strong>{" "}
+                        <strong>Bank Statement Description:</strong>{" "}
                         <ExpandableText
                           text={paymentDetails.description || "-"}
                         />

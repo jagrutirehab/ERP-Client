@@ -248,7 +248,7 @@ const DetailedReport = ({
       minWidth: "160px"
     },
     {
-      name: <div>Description</div>,
+      name: <div>Bank Statement Description</div>,
       selector: (row) =>
         row.description ? (
           <ExpandableText text={row.description?.toUpperCase()} limit={20} />
