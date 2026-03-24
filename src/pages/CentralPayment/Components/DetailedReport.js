@@ -66,6 +66,10 @@ const DetailedReport = ({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
+  const [updatedAtDate, setUpdatedAtDate] = useState({
+    start: startOfDay(new Date()),
+    end: endOfDay(new Date()),
+  });
   const [selectedApprovalStatus, setSelectedApprovalStatus] = useState("");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [page, setPage] = useState(1);
@@ -161,6 +165,13 @@ const DetailedReport = ({
       maxWidth: "150px",
     },
     {
+      name: <div>Last Updated</div>,
+      selector: (row) => format(new Date(row?.updatedAt), "d MMM yyyy hh:mm a"),
+      wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
+    },
+    {
       name: <div>Center</div>,
       selector: (row) =>
         capitalizeWords(row.center?.title || row.center || "-"),
@@ -177,7 +188,7 @@ const DetailedReport = ({
       selector: (row) => capitalizeWords(row.approvedBy?.name || "-"),
       wrap: true,
     },
-     {
+    {
       name: <div>Approval Remarks</div>,
       selector: (row) =>
         row?.approvalRemarks ? (
@@ -608,9 +619,13 @@ const DetailedReport = ({
           approvalStatus: selectedApprovalStatus,
           currentPaymentStatus: selectedPaymentStatus,
           centers: selectedCentersIds,
-          ...(dateFilterEnabled && {
+          ...(dateFilterEnabled && reportDate.start && reportDate.end && {
             startDate: reportDate.start.toISOString(),
             endDate: reportDate.end.toISOString(),
+          }),
+          ...(dateFilterEnabled && updatedAtDate.start && updatedAtDate.end && {
+            updatedAtStartDate: updatedAtDate.start.toISOString(),
+            updatedAtEndDate: updatedAtDate.end.toISOString(),
           }),
           tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
           ...(search !== "" && { search: parseInt(debouncedSearch) }),
@@ -634,6 +649,7 @@ const DetailedReport = ({
     selectedApprovalStatus,
     selectedPaymentStatus,
     reportDate,
+    updatedAtDate,
     dispatch,
     activeTab,
     ,
@@ -652,9 +668,13 @@ const DetailedReport = ({
         currentPaymentStatus: selectedPaymentStatus,
         centers: selectedCentersIds,
         tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ...(dateFilterEnabled && {
+        ...(dateFilterEnabled && reportDate.start && reportDate.end && {
           startDate: reportDate.start.toISOString(),
           endDate: reportDate.end.toISOString(),
+        }),
+        ...(dateFilterEnabled && updatedAtDate.start && updatedAtDate.end && {
+          updatedAtStartDate: updatedAtDate.start.toISOString(),
+          updatedAtEndDate: updatedAtDate.end.toISOString(),
         }),
         ...(search !== "" && { search: parseInt(debouncedSearch) }),
       });
@@ -723,124 +743,165 @@ const DetailedReport = ({
   const handleDateChange = (newDate) => {
     setPage(1);
     setReportDate(newDate);
+    setUpdatedAtDate(newDate);
   };
+  const handleUpdatedDateChange = (newDate) => {
+    setPage(1);
+    setUpdatedAtDate(newDate);
+  };
+
+  const filterLabelClassName = "text-muted small mb-2 fw-medium ps-1 d-block";
+
   return (
     <TabPane tabId="detail" style={{ padding: 0 }}>
       <div className="mt-3">
-        <div className="d-flex flex-wrap align-items-center gap-2">
-          <div style={{ minWidth: "100px", maxWidth: "120px" }}>
-            <Input
-              type="select"
-              value={limit}
-              onChange={(e) =>
-                handleFilterChange("limit", Number(e.target.value))
-              }
-            >
-              {[10, 20, 30, 40, 50].map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </Input>
-          </div>
-          <div style={{ minWidth: "150px", maxWidth: "200px" }}>
-            <Input
-              type="select"
-              value={selectedApprovalStatus}
-              onChange={(e) =>
-                handleFilterChange("approvalStatus", e.target.value)
-              }
-            >
-              <option value="">All Approval Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-            </Input>
-          </div>
-          <div style={{ minWidth: "150px", maxWidth: "250px" }}>
-            <Input
-              type="select"
-              value={selectedPaymentStatus}
-              onChange={(e) =>
-                handleFilterChange("paymentStatus", e.target.value)
-              }
-            >
-              <option value="">All Current Payment Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="REJECTED">Rejected</option>
-            </Input>
-          </div>
-          <div style={{ minWidth: "150px" }}>
-            <Header
-              reportDate={reportDate}
-              setReportDate={handleDateChange}
-              disabled={!dateFilterEnabled}
-            />
-          </div>
-          <div style={{ minWidth: "200px", maxWidth: "250px" }}>
-            <CenterDropdown
-              options={centerOptions}
-              value={selectedCentersIds}
-              onChange={(ids) => {
-                setPage(1);
-                setSelectedCentersIds(ids);
-                setSelectedCenters(
-                  centerOptions.filter((c) => ids.includes(c._id))
-                );
-              }}
-            />
-          </div>
-          <div
-            className="d-flex align-items-center gap-2 flex-grow-1"
-            style={{ minWidth: "250px" }}
-          >
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => {
-                const value = e.target.value.trim();
-                setSearch(value);
-                if (value === "") {
-                  setDebouncedSearch("");
-                  setDateFilterEnabled(true);
-                } else {
-                  setDateFilterEnabled(false);
+        <div className="d-flex flex-column gap-3">
+          <Row className="g-3 align-items-end">
+            <Col xs="12" sm="6" lg="2">
+              <Input
+                type="select"
+                value={limit}
+                onChange={(e) =>
+                  handleFilterChange("limit", Number(e.target.value))
                 }
-              }}
-              className="form-control"
-              placeholder="Search by ID..."
-              style={{ flexGrow: 1 }}
-            />
-
-            {search.trim() !== "" && (
-              <Button
-                color="primary"
-                size="sm"
-                className="white-space-nowrap text-white py-2"
-                style={{ whiteSpace: "nowrap" }}
-                onClick={() => setDateFilterEnabled(!dateFilterEnabled)}
               >
-                {dateFilterEnabled
-                  ? "Disable Date Filter"
-                  : "Enable Date Filter"}
-              </Button>
-            )}
-          </div>
-          <div className="mb-2">
-            <Button
-              className="d-flex align-items-center gap-1"
-              onClick={handleExportXLSX}
-              disabled={isExcelGenerating || selectedCentersIds.length === 0}
-            >
-              {isExcelGenerating ? (
-                <Spinner size="sm" />
-              ) : (
-                <i className="ri-file-excel-2-line" />
-              )}
-              Export Excel
-            </Button>
-          </div>
+                {[10, 20, 30, 40, 50].map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </Input>
+            </Col>
+
+            <Col xs="12" sm="6" lg="3">
+              <Input
+                type="select"
+                value={selectedApprovalStatus}
+                onChange={(e) =>
+                  handleFilterChange("approvalStatus", e.target.value)
+                }
+              >
+                <option value="">All Approval Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </Input>
+            </Col>
+
+            <Col xs="12" sm="6" lg="3">
+              <Input
+                type="select"
+                value={selectedPaymentStatus}
+                onChange={(e) =>
+                  handleFilterChange("paymentStatus", e.target.value)
+                }
+              >
+                <option value="">All Current Payment Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REJECTED">Rejected</option>
+              </Input>
+            </Col>
+
+            <Col xs="12" sm="6" lg="4">
+              <div className="w-100">
+                <CenterDropdown
+                  options={centerOptions}
+                  value={selectedCentersIds}
+                  onChange={(ids) => {
+                    setPage(1);
+                    setSelectedCentersIds(ids);
+                    setSelectedCenters(
+                      centerOptions.filter((c) => ids.includes(c._id))
+                    );
+                  }}
+                  className="w-100"
+                />
+              </div>
+            </Col>
+          </Row>
+
+          <Row className="g-3 align-items-start">
+            <Col xs="12" xl="4">
+              <div className="d-flex flex-column h-100">
+                <span className={filterLabelClassName}>Date</span>
+                <div className="w-100">
+                  <Header
+                    reportDate={reportDate}
+                    setReportDate={handleDateChange}
+                    disabled={!dateFilterEnabled}
+                  />
+                </div>
+              </div>
+            </Col>
+
+            <Col xs="12" xl="4">
+              <div className="d-flex flex-column h-100">
+                <span className={filterLabelClassName}>Last Updated</span>
+                <div className="w-100">
+                  <Header
+                    reportDate={updatedAtDate}
+                    setReportDate={handleUpdatedDateChange}
+                    disabled={!dateFilterEnabled}
+                  />
+                </div>
+              </div>
+            </Col>
+
+            <Col xs="12" xl="4">
+              <div className="d-flex flex-column h-100">
+                <span className={`${filterLabelClassName} invisible`}>
+                  Search
+                </span>
+                <div className="d-flex flex-column flex-md-row gap-2">
+                  <Input
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                      const value = e.target.value.trim();
+                      setSearch(value);
+                      if (value === "") {
+                        setDebouncedSearch("");
+                        setDateFilterEnabled(true);
+                      } else {
+                        setDateFilterEnabled(false);
+                      }
+                    }}
+                    className="form-control"
+                    placeholder="Search by ID..."
+                  />
+
+                  {search.trim() !== "" && (
+                    <Button
+                      color="primary"
+                      className="text-white"
+                      style={{ whiteSpace: "nowrap" }}
+                      onClick={() => setDateFilterEnabled(!dateFilterEnabled)}
+                    >
+                      {dateFilterEnabled
+                        ? "Disable Date Filter"
+                        : "Enable Date Filter"}
+                    </Button>
+                    )}
+                </div>
+
+                <div className="d-flex justify-content-start justify-content-xl-end pt-3 pb-2 mt-auto">
+                  <Button
+                    className="d-flex align-items-center justify-content-center gap-2 px-4 py-2"
+                    onClick={handleExportXLSX}
+                    disabled={isExcelGenerating || selectedCentersIds.length === 0}
+                  >
+                    {isExcelGenerating ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <i className="ri-file-excel-2-line" />
+                    )}
+                    Export Excel
+                  </Button>
+                </div>
+              </div>
+            </Col>
+          </Row>
         </div>
       </div>
       <Card>
