@@ -417,13 +417,15 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
-export const postClinicalNote = (data) =>
+export const postClinicalNote = (data, config = {}) =>
   api.create(url.POST_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
-export const editClinicalNote = (data) =>
+export const editClinicalNote = (data, config = {}) =>
   api.put(url.EDIT_CLINICAL_NOTE, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    ...config,
+    headers: { ...config.headers, "Content-Type": "multipart/form-data" },
   });
 export const postCounsellingNote = (data) =>
   api.create(url.POST_COUNSELLING_NOTE, data, {
@@ -1156,7 +1158,7 @@ export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
-      "Content-Type": "application/json",
+      // "Content-Type": "application/json",
     },
     responseType: params.exportExcel ? "blob" : "json",
   });
@@ -1810,6 +1812,19 @@ export const getEmployees = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const exportEmployeesXLSX = (params = {}) => {
+  return api.get(url.EMPLOYEE, {
+    params: { ...params, isExcel: true },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
@@ -2598,6 +2613,47 @@ export const getEmployeeReportings = (params = {}) => {
   });
 };
 
+export const getEmployeeReportingById = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRotationalShifts = (id) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeLeaves = (employeeId, params = {}) => {
+  return api.get(`/hrms/leaves/employee/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const setRotationalShifts = (id, data) => {
+  return api.put(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const setBulkRotationalShifts = (data) => {
+  return api.put(`${url.EMPLOYEE_REPORTING}/rotational-shifts/bulk`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // Incentives
 export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {
@@ -2810,3 +2866,68 @@ export const getTicketsDashboardData = ({ month, issueType }) => {
     },
   });
 };
+
+export const getRaisedIssues = (params = {}) => {
+  return axios.get(url.GET_RAISED_TICKETS, {
+    params,
+  });
+}
+
+// Recordings
+// Call recordings
+export const getCallRecordings = (params = {}) => {
+  return axios.get(url.GET_RECORDINGS, {
+    params,
+  });
+};
+export const getRecordingById = (id) => {
+  return axios.get(`${url.GET_RECORDING_BY_ID}/${id}`);
+}
+
+export const generateOverviewRecording = (id, recordingUrl) => {
+  return axios.post(url.GENERATE_OVERVIEW_RECORDING, { id, recordingUrl });
+}
+
+export const bulkGenerateOverviewRecording = (ids) => {
+  return axios.post(url.BULK_GENERATE_OVERVIEW_RECORDING, ids);
+}
+export const uploadXlsx = (data) => {
+  return api.create(url.UPLOAD_XLSX_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};
+
+export const getCallRecordingOverview = (params = {}) => {
+  return axios.get(url.GET_CALL_RECORDING_OVERVIEW, { params })
+}
+
+// Feedback recordings
+export const getFeedbackRecordings = (params = {}) => {
+  return axios.get(url.GET_FEEDBACK_RECORDINGS, {
+    params,
+  });
+};
+export const getFeedbackRecordingById = (id) => {
+  return axios.get(`${url.GET_FEEDBACK_RECORDING_BY_ID}/${id}`);
+}
+
+export const generateFeedbackOverviewRecording = (id, recordingUrl) => {
+  return axios.post(url.GENERATE_FEEDBACK_OVERVIEW_RECORDING, { id, recordingUrl });
+}
+export const bulkGenerateFeedbackOverviewRecording = (ids) => {
+  return axios.post(url.BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING, ids);
+}
+
+export const uploadFeedbackXlsx = (data) => {
+  return api.create(url.UPLOAD_FEEDBACK_XLSX_FILE, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+};
+
+export const getFeedbackRecordingOverview = (params = {}) => {
+  return axios.get(url.GET_FEEDBACK_RECORDING_OVERVIEW, { params })
+}

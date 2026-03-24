@@ -32,6 +32,7 @@ const ManageEmployeeReportings = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
+
     const [sortBy, setSortBy] = useState("ACTIVE");
 
     const microUser = localStorage.getItem("micrologin");
@@ -224,6 +225,7 @@ const ManageEmployeeReportings = () => {
                     pagination={pagination}
                 />
             </CardBody>
+
 
             <EditEmployeeReportingModal
                 isOpen={modalOpen}

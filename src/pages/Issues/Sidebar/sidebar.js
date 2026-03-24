@@ -13,41 +13,27 @@ const IssuesSidebar = () => {
     setOpenSection(openSection === id ? "" : id);
   };
 
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
   const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
   const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
   const hasRaiseTicketPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
   // const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
+  const hasTechnicalIssuesPermission = hasPermission("ISSUES", "TECHNICAL_ISSUES", "READ");
 
   const navigate = useNavigate();
 
 
   const filteredIssuesOptions = ISSUES.filter((page) => {
+    if (page.id === "raise-ticket") return hasRaiseTicketPermission;
+    if (page.id === "my-issues") return hasMyIssuesPermission;
+    if (page.id === "tech-issues") return hasTechnicalIssuesPermission;
+    if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
+    if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
+    if (page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
 
-    if (page.id === "issues-type") {
-      if (!hasIssuesPermission) return false;
-      return true;
-    }
-
-    if (page.id === "my-issues") {
-      if (!hasMyIssuesPermission) return false;
-      return true;
-    }
-
-    if (page.id === "raise-ticket") {
-      if (!hasRaiseTicketPermission) return false;
-      return true;
-    }
-
-    // if (page.id === "tickets-dashboard") {
-    //   if (!hasTicketDashboardPermission) return false;
-    //   return true;
-    // }
-
-
-
-    return true;
+    return false;
   });
 
   useEffect(() => {
@@ -90,7 +76,7 @@ const IssuesSidebar = () => {
       `}
       </style>
 
-      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
+      <div className="chat-leftsidebar" style={{ minWidth: "300px" }}>
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
           <h5 className="mb-0">Issues</h5>

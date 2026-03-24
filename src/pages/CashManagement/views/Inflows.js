@@ -6,17 +6,19 @@ import { addInflow, getLastInflows } from "../../../store/features/cashManagemen
 import React, { useEffect, useState } from "react";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
+import Select from "react-select";
 import ItemCard from "../Components/ItemCard";
 import { History, Receipt, Share } from "lucide-react";
 import { Button, Card, CardBody, CardHeader, Col, Form, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import FileUpload from "../Components/FileUpload";
+import { summaryOptions } from "../../../Components/constants/cash";
 
 const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
-    summary: Yup.string()
+    summary: Yup.object()
         .required("Summary is required")
-        .min(2, "Summary must be at least 2 characters"),
+        .nullable(),
     amount: Yup.number()
         .required("Amount is required")
         .positive("Amount must be positive")
@@ -66,7 +68,7 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
     const formik = useFormik({
         initialValues: {
             center: "",
-            summary: "",
+            summary: null,
             amount: 0,
             comments: "",
             attachment: null,
@@ -76,7 +78,7 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
             const formData = new FormData();
             formData.append("center", values.center);
             formData.append("amount", Number(values.amount));
-            formData.append("summary", values.summary);
+            formData.append("summary", values.summary.value);
             if (values.comments) {
                 formData.append("comments", values.comments);
             }
@@ -163,7 +165,7 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
                                 <Form onSubmit={handleSubmit}>
                                     <FormGroup>
                                         <Label for="center" className="fw-medium">
-                                            Center *
+                                            Center <span className="text-danger">*</span>
                                         </Label>
                                         <Input
                                             type="select"
@@ -195,31 +197,28 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
                                     </FormGroup>
                                     <FormGroup>
                                         <Label for="summary" className="fw-medium">
-                                            Summary *
+                                            Summary <span className="text-danger">*</span>
                                         </Label>
-                                        <Input
-                                            type="text"
+                                        <Select
                                             id="summary"
                                             name="summary"
+                                            options={summaryOptions}
                                             value={formik.values.summary}
-                                            onChange={formik.handleChange}
-                                            onBlur={formik.handleBlur}
-                                            placeholder="e.g., Office Supplies, Client Meeting, Equipment Purchase"
-                                            className={`form-control ${formik.touched.summary && formik.errors.summary
-                                                ? "is-invalid"
-                                                : ""
-                                                }`}
+                                            onChange={(option) => formik.setFieldValue("summary", option)}
+                                            onBlur={() => formik.setFieldTouched("summary", true)}
+                                            classNamePrefix="react-select"
+                                            placeholder="Select summary"
+                                            isClearable
                                         />
                                         {formik.touched.summary && formik.errors.summary && (
-                                            <div className="invalid-feedback d-block">
-                                                <i className="fas fa-exclamation-circle me-1"></i>
+                                            <div className="text-danger small mt-1">
                                                 {formik.errors.summary}
                                             </div>
                                         )}
                                     </FormGroup>
                                     <FormGroup>
                                         <Label for="amount" className="fw-medium">
-                                            Amount *
+                                            Amount <span className="text-danger">*</span>
                                         </Label>
                                         <Input
                                             type="text"
@@ -270,7 +269,7 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
 
                                     <FormGroup>
                                         <Label className="fw-medium">
-                                            Attachment (Receipt/Invoice) *
+                                            Attachment (Receipt/Invoice) <span className="text-danger">*</span>
                                         </Label>
                                         <FileUpload
                                             setAttachment={handleAttachmentChange}

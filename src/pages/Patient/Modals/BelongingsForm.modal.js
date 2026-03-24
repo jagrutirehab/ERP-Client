@@ -17,16 +17,17 @@ import {
 } from "reactstrap";
 import { connect } from "react-redux";
 import { pdf, PDFDownloadLink } from "@react-pdf/renderer";
+import debounce from "lodash.debounce";
+import { toast } from "react-toastify";
+import { format } from "date-fns";
+import Select from "react-select";
 import CustomModal from "../../../Components/Common/Modal";
 import { searchBelongings, uploadFile, createPatientBelonging, updatePatientBelonging, getPatientBelongingById } from "../../../helpers/backend_helper";
-import debounce from "lodash.debounce";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import BelongingsPDF from "../../../Components/Print/Belongings";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
-import { format } from "date-fns";
 
 const riskBadgeColor = (risk) => {
     switch (risk?.toLowerCase()) {
@@ -57,6 +58,8 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
     const [customRisk, setCustomRisk] = useState("TBD");
     const [customAllowed, setCustomAllowed] = useState("To be assessed");
     const [showOtherForm, setShowOtherForm] = useState(false);
+
+    const [handedOverTo, setHandedOverTo] = useState("");
 
     const [fetchingDetail, setFetchingDetail] = useState(false);
 
@@ -140,9 +143,11 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                     : itm.attachments?.[0]?.name || null,
                                 originalAttachments: itm.attachments || [],
                                 isCustom: !itm.belongingItem?._id,
+                                handedOverTo: itm.handedOverTo || "",
                             }));
                             setSelectedItems(mappedItems);
                             setSavedBelongingId(_id);
+                            setHandedOverTo(res.data.handedOverTo || "");
                             setIsDirty(true);
                             if (printMode) {
                                 setShowPDF(true);
@@ -162,6 +167,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
             } else {
                 setSelectedItems([]);
                 setSavedBelongingId(null);
+                setHandedOverTo("");
                 setIsDirty(false);
                 setShowPDF(false);
             }
@@ -197,7 +203,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
             }
             setSelectedItems((prev) => [
                 ...prev,
-                { ...item, quantity: 1, remarks: "", image: null },
+                { ...item, quantity: 1, remarks: "", image: null, handedOverTo: "" },
             ]);
             setIsDirty(true);
             setSearch("");
@@ -223,6 +229,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                 remarks: "",
                 isCustom: true,
                 image: null,
+                handedOverTo: "",
             },
         ]);
         setIsDirty(true);
@@ -238,18 +245,45 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
         setIsDirty(true);
     };
 
+    const normalizeQuantity = (val) => {
+        if (val === "" || val === null || val === undefined) return "";
+        const quantity = Number(val);
+        return Number.isNaN(quantity) ? "" : quantity;
+    };
+
+    const getQuantityError = (val) => {
+        if (val === "" || val === null || val === undefined) return "Quantity is required";
+        if (Number(val) <= 0) return "Quantity must be greater than 0";
+        return "";
+    };
+
     const updateQuantity = (idx, val) => {
         setSelectedItems((prev) =>
             prev.map((item, i) =>
-                i === idx ? { ...item, quantity: Math.max(1, Number(val) || 1) } : item
+                i === idx ? { ...item, quantity: normalizeQuantity(val) } : item
             )
         );
         setIsDirty(true);
     };
 
+    const finalizeQuantity = (idx) => {
+        setSelectedItems((prev) =>
+            prev.map((item, i) =>
+                i === idx ? { ...item, quantity: item.quantity === "" ? "" : normalizeQuantity(item.quantity) } : item
+            )
+        );
+    };
+
     const updateRemarks = (idx, val) => {
         setSelectedItems((prev) =>
             prev.map((item, i) => (i === idx ? { ...item, remarks: val } : item))
+        );
+        setIsDirty(true);
+    };
+
+    const updateHandedOverTo = (idx, val) => {
+        setSelectedItems((prev) =>
+            prev.map((item, i) => (i === idx ? { ...item, handedOverTo: val } : item))
         );
         setIsDirty(true);
     };
@@ -333,13 +367,18 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
 
     const handleSubmit = async () => {
         if (selectedItems.length === 0) return;
+        const invalidItem = selectedItems.find((item) => getQuantityError(item.quantity));
+        if (invalidItem) {
+            toast.error("Please enter a valid quantity greater than 0 for all belongings");
+            return;
+        }
         setSubmitting(true);
         try {
             const items = selectedItems.map((item) => ({
                 ...(item.isCustom || !item._id
                     ? { otherItemName: item.name }
                     : { belongingItem: item._id }),
-                quantity: item.quantity || 1,
+                quantity: Number(item.quantity),
                 attachments: item.image
                     ? (item.originalAttachments?.length > 0 &&
                         (item.originalAttachments[0]?.url === item.image || item.originalAttachments[0] === item.image)
@@ -347,6 +386,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                         : [{ url: item.image, name: item.imageName || "attachment" }])
                     : [],
                 remarks: item.remarks || "",
+                handedOverTo: item.handedOverTo || "",
             }));
 
             const payload = {
@@ -387,7 +427,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
             setPdfError(false);
             try {
                 const blob = await pdf(
-                    <BelongingsPDF items={selectedItems} patient={patient} date={date} center={center} />
+                    <BelongingsPDF items={selectedItems} patient={patient} date={date} center={center} handedOverTo={handedOverTo} />
                 ).toBlob();
                 if (cancelled) return;
                 // Revoke previous URL
@@ -430,6 +470,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             patient={patient}
                             date={date}
                             center={center}
+                            handedOverTo={handedOverTo}
                         />
                     }
                     fileName={`Belongings_${patient?.name || "patient"}.pdf`}
@@ -739,6 +780,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                 <th style={{ width: 85 }}>Allowed With Patient</th>
                                                 <th style={{ width: 65 }}>Qty</th>
                                                 <th style={{ width: 140 }}>Remarks</th>
+                                                <th style={{ width: 250 }}>HandOver Status</th>
                                                 <th style={{ width: 90 }}>Attachment</th>
                                                 <th style={{ width: 40 }}></th>
                                             </tr>
@@ -767,12 +809,19 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                     <td>
                                                         <Input
                                                             type="number"
-                                                            min={1}
+                                                            min={0}
                                                             value={item.quantity}
                                                             onChange={(e) => updateQuantity(idx, e.target.value)}
+                                                            onBlur={() => finalizeQuantity(idx)}
                                                             bsSize="sm"
+                                                            invalid={!!getQuantityError(item.quantity)}
                                                             style={{ width: 55 }}
                                                         />
+                                                        {getQuantityError(item.quantity) && (
+                                                            <div className="text-danger small mt-1">
+                                                                {getQuantityError(item.quantity)}
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td>
                                                         <Input
@@ -782,6 +831,25 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                             bsSize="sm"
                                                             placeholder="..."
                                                             style={{ textTransform: "capitalize" }}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Select
+                                                            value={item.handedOverTo ? { value: item.handedOverTo, label: "Handed Over To Patient's Relative / Guardian / NOK" } : null}
+                                                            onChange={(opt) => updateHandedOverTo(idx, opt ? opt.value : "")}
+                                                            options={[
+                                                                { value: "Patient's Relative/Guardian/NOK", label: "Handed Over To Patient's Relative / Guardian / NOK" },
+                                                            ]}
+                                                            isClearable
+                                                            placeholder="-- Select --"
+                                                            menuPortalTarget={document.body}
+                                                            styles={{
+                                                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                                control: (base) => ({ ...base, minHeight: 31, fontSize: 13 }),
+                                                                singleValue: (base) => ({ ...base, fontSize: 13, whiteSpace: "normal", overflow: "visible", textOverflow: "unset" }),
+                                                                option: (base) => ({ ...base, fontSize: 13 }),
+                                                                valueContainer: (base) => ({ ...base, flexWrap: "wrap" }),
+                                                            }}
                                                         />
                                                     </td>
                                                     <td className="text-center">

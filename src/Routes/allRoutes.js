@@ -40,6 +40,7 @@ const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
 const Tally = React.lazy(() => import("../pages/Tally"));
 const Issues = React.lazy(() => import("../pages/Issues"));
+const Recordings = React.lazy(() => import("../pages/Recordings"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -66,8 +67,9 @@ const allElements = [
   { element: Referral, label: "Referral" },
   { element: Tally, label: "Tally" },
   { element: Issues, label: "Issues" },
+  { element: Recordings, label: "Recordings" },
 ];
-
+// console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
   { path: "/index", component: DashboardEcommerce },
@@ -90,6 +92,7 @@ const authProtectedRoutes = [
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
   { path: "/issues/*", component: Issues },
+  { path: "/recordings/*", component: Recordings },
   { path: "/mi-reporting", component: MiReporting },
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
@@ -109,5 +112,6 @@ const publicRoutes = [
   { path: "/forgot-password", component: ForgetPasswordPage },
   { path: "/meeting", component: MyMeetingUI },
 ];
+
 
 export { authProtectedRoutes, publicRoutes, allElements };

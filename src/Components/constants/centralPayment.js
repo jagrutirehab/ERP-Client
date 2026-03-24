@@ -18,6 +18,7 @@ export const categoryOptions = [
   { value: "COURIER", label: "COURIER" },
   { value: "DIAPERS", label: "DIAPERS" },
   { value: "ECG", label: "ECG" },
+  { value: "ENKASH_BALANCE", label: "ENKASH BALANCE" },
   { value: "ELECTRICAL_ITEM", label: "ELECTRICAL ITEM" },
   { value: "ELECTRICITY_BILL", label: "ELECTRICITY BILL" },
   { value: "FNF", label: "FNF" },
@@ -37,6 +38,7 @@ export const categoryOptions = [
   { value: "MEDICINES", label: "MEDICINES" },
   { value: "NON_MEDICAL_EQUIPMENT", label: "NON MEDICAL EQUIPMENT" },
   { value: "OXYGEN_CYLINDER", label: "OXYGEN CYLINDER" },
+  { value: "OMNI_CARD", label: "OMNI CARD" },
   { value: "PATIENT_REFUND", label: "PATIENT REFUND" },
   { value: "PEST_CONTROL", label: "PEST CONTROL" },
   { value: "PRINTING", label: "PRINTING" },
@@ -60,28 +62,28 @@ export const categoryOptions = [
 
 export const tallyBankAccounts = [
   {
-    value: "HDFC Bank Ltd. A/c No. 50200062589316 (Taloja)",
-    label: "HDFC Bank Ltd. A/c No. 50200062589316 (Taloja)"
+    value: "HDFC Bank Ltd. A/c No. 50200062589316",
+    label: "HDFC Bank Ltd. A/c No. 50200062589316"
   },
   {
-    value: "HDFC Bank Ltd. A/c No. 50200075783148 (Pune)",
-    label: "HDFC Bank Ltd. A/c No. 50200075783148 (Pune)"
+    value: "HDFC Bank Ltd. A/c No. 50200075783148",
+    label: "HDFC Bank Ltd. A/c No. 50200075783148"
   },
   {
-    value: "HDFC Bank Ltd. A/c No. 50200075819168 (Gurgaon)",
-    label: "HDFC Bank Ltd. A/c No. 50200075819168 (Gurgaon)"
+    value: "HDFC Bank Ltd. A/c No. 50200075819168",
+    label: "HDFC Bank Ltd. A/c No. 50200075819168"
   },
   {
-    value: "HDFC Bank Ltd. A/c No. 50200075878457 (Noida)",
-    label: "HDFC Bank Ltd. A/c No. 50200075878457 (Noida)"
+    value: "HDFC Bank Ltd. A/c No. 50200075878457",
+    label: "HDFC Bank Ltd. A/c No. 50200075878457"
   },
   {
-    value: "HDFC Bank Ltd. A/c No. 50200084303252 (Che, Ahm)",
-    label: "HDFC Bank Ltd. A/c No. 50200084303252 (Che, Ahm)"
+    value: "HDFC Bank Ltd. A/c No. 50200084303252",
+    label: "HDFC Bank Ltd. A/c No. 50200084303252"
   },
   {
-    value: "HDFC Bank Ltd. A/c No. 50200084304087 (Malad)",
-    label: "HDFC Bank Ltd. A/c No. 50200084304087 (Malad)"
+    value: "HDFC Bank Ltd. A/c No. 50200084304087",
+    label: "HDFC Bank Ltd. A/c No. 50200084304087"
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200095551698",
@@ -116,8 +118,8 @@ export const tallyBankAccounts = [
     label: "HDFC Bank - 50100046293125 A/c"
   },
   {
-    value: "HDFC Bank - 50200054518072 - DELHI A/c",
-    label: "HDFC Bank - 50200054518072 - DELHI A/c"
+    value: "HDFC Bank - 50200054518072",
+    label: "HDFC Bank - 50200054518072"
   },
   {
     value: "HDFC Bank - 50200005112131",

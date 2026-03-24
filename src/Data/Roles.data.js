@@ -84,8 +84,8 @@ export const permissionList = [
     label: "Central Payment",
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
-      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
       { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
@@ -278,16 +278,19 @@ export const permissionList = [
       // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
+      { name: "MY_ATTENDANCE_REGULARIZATION", label: "My Attendance Regularization" },
 
       // Regularization
       { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
       { name: "GET_REGULARIZATIONS_REQUESTS", label: "Regularizations Requests" },
-      // Employee Reporting
+      // Employee Reporting & shift roster
       { name: "ASSIGN_MANAGER", label: "Assign Manager" },
       {
         name: "MANAGE_EMPLOYEE_REPORTINGS",
         label: "Manage Employee Reportings",
       },
+      { name: "SHIFT_ROSTER", label: "Shift roster" },
+      { name: "ASSIGN_ROTATIONAL_SHIFT", label: "Assign Rotational Shift" },
       // Leave
       { name: "APPLY_LEAVE", label: "Apply Leave" },
       { name: "LEAVE_HISTORY", label: "Leave History" },
@@ -337,8 +340,22 @@ export const permissionList = [
     subModules: [
       // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
       { name: "RAISE_TICKET", label: "Raise Ticket" },
-      { name: "ISSUES", label: "Issues" },
-      { name: "MY_ISSUES", label: "My Issues" },
+      // { name: "ISSUES", label: "Issues" },
+      { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
+      { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
+      { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
+      { name: "MY_ISSUES", label: "My Assigned Issues" },
+      { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" }
+    ],
+  },
+  {
+    key: "RECORDINGS",
+    label: "Recordings",
+    subModules: [
+      { name: "CALL_RECORDINGS", label: "Call Recordings" },
+      { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
+      { name: "CALL_RECORDINGS_AI_OVERIVIEW", label: "Call Recording Overview" },
+      { name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW", label: "Feedback Recording Overview" }
     ],
   },
 

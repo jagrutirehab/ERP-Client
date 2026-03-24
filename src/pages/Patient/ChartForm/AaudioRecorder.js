@@ -1,4 +1,3 @@
-// /* eslint-disable react-hooks/exhaustive-deps */
 // import React, { useEffect, useState, useRef } from "react";
 // import { Button, Alert } from "reactstrap";
 
@@ -39,7 +38,11 @@
 
 //         // create File when stopped
 //         mediaRecorderRef.current.onstop = () => {
-//           buildAndSendFile();
+//           const file = buildAndSendFile();
+
+//           if (onReady && file) {
+//             onReady(file, null);
+//           }
 //         };
 
 //         audioContextRef.current = new (window.AudioContext ||
@@ -158,23 +161,23 @@
 //     draw();
 //   };
 
-
 //   const handleStart = () => {
 //     if (mediaRecorderRef.current) {
 //       audioChunksRef.current = [];
-//       mediaRecorderRef.current.start();
+//       mediaRecorderRef.current.start(1000);
 //       setIsRecording(true);
 //     }
 
-//     // const MAX_DURATION = 30 * 60 * 1000;
+//     const MAX_DURATION = 30 * 60 * 1000;
+//     // const MAX_DURATION = 20000;
 
-//     // setTimeout(() => {
-//     //   if (mediaRecorderRef.current?.state === "recording") {
-//     //     console.log("30-minute limit reached. Stopping recording automatically.");
-//     //     mediaRecorderRef.current.stop();
-//     //     setIsRecording(false);
-//     //   }
-//     // }, MAX_DURATION);
+//     setTimeout(() => {
+//       if (mediaRecorderRef.current?.state === "recording") {
+//         mediaRecorderRef.current.requestData();
+//         mediaRecorderRef.current.stop();
+//         setIsRecording(false);
+//       }
+//     }, MAX_DURATION);
 
 //   };
 
@@ -206,17 +209,20 @@
 //       if (!mediaRecorderRef.current) return resolve(null);
 
 //       if (mediaRecorderRef.current.state !== "inactive") {
+
+//         mediaRecorderRef.current.requestData(); // VERY IMPORTANT
+
 //         mediaRecorderRef.current.onstop = () => {
 //           const file = buildAndSendFile();
 //           resolve(file);
 //         };
+
 //         mediaRecorderRef.current.stop();
 //       } else {
 //         resolve(null);
 //       }
 //     });
 //   };
-
 //   // expose it to parent
 //   useEffect(() => {
 //     if (onReady) {
@@ -271,9 +277,7 @@
 
 // export default AudioRecorder;
 
-
-
-/* eslint-disable react-hooks/exhaustive-deps */
+// /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Alert } from "reactstrap";
 
@@ -306,7 +310,23 @@ const AudioRecorder = ({ onReady }) => {
           },
         });
 
-        mediaRecorderRef.current = new MediaRecorder(stream);
+        let mimeType = "";
+
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (
+          MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")
+        ) {
+          mimeType = "audio/mp4;codecs=mp4a.40.2";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        }
+
+        mediaRecorderRef.current = mimeType
+          ? new MediaRecorder(stream, { mimeType })
+          : new MediaRecorder(stream);
 
         mediaRecorderRef.current.ondataavailable = (event) => {
           if (event.data.size > 0) audioChunksRef.current.push(event.data);
@@ -321,8 +341,14 @@ const AudioRecorder = ({ onReady }) => {
           }
         };
 
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        audioContextRef.current = new (
+          window.AudioContext || window.webkitAudioContext
+        )();
+
+        if (audioContextRef.current.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+
         const source = audioContextRef.current.createMediaStreamSource(stream);
 
         const highpass = audioContextRef.current.createBiquadFilter();
@@ -332,20 +358,20 @@ const AudioRecorder = ({ onReady }) => {
         const compressor = audioContextRef.current.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(
           -50,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.knee.setValueAtTime(40, audioContextRef.current.currentTime);
         compressor.ratio.setValueAtTime(
           12,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.attack.setValueAtTime(
           0,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
         compressor.release.setValueAtTime(
           0.25,
-          audioContextRef.current.currentTime
+          audioContextRef.current.currentTime,
         );
 
         const gainNode = audioContextRef.current.createGain();
@@ -400,9 +426,26 @@ const AudioRecorder = ({ onReady }) => {
   const buildAndSendFile = () => {
     if (audioChunksRef.current.length === 0) return null;
 
-    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-    const file = new File([audioBlob], "recording.webm", {
-      type: "audio/webm",
+    let mimeType = "";
+
+    if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+      mimeType = "audio/webm;codecs=opus";
+    } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+      mimeType = "audio/webm";
+    } else if (MediaRecorder.isTypeSupported("audio/mp4;codecs=mp4a.40.2")) {
+      mimeType = "audio/mp4;codecs=mp4a.40.2";
+    } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+      mimeType = "audio/mp4";
+    } else {
+      mimeType = "audio/mp4";
+    }
+
+    const extension = mimeType.includes("webm") ? "webm" : "m4a";
+
+    const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
+    const file = new File([audioBlob], `recording.${extension}`, {
+      type: mimeType,
     });
 
     const url = URL.createObjectURL(audioBlob);
@@ -437,16 +480,15 @@ const AudioRecorder = ({ onReady }) => {
     draw();
   };
 
-
   const handleStart = () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
-      mediaRecorderRef.current.start(1000);
+      mediaRecorderRef.current.start();
       setIsRecording(true);
     }
 
-    const MAX_DURATION = 30 * 60 * 1000;
-    // const MAX_DURATION = 20000;
+    const MAX_DURATION = 120 * 60 * 1000;
+    // const MAX_DURATION = 10000;
 
     setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
@@ -455,7 +497,6 @@ const AudioRecorder = ({ onReady }) => {
         setIsRecording(false);
       }
     }, MAX_DURATION);
-
   };
 
   const handlePause = () => {
@@ -486,7 +527,6 @@ const AudioRecorder = ({ onReady }) => {
       if (!mediaRecorderRef.current) return resolve(null);
 
       if (mediaRecorderRef.current.state !== "inactive") {
-
         mediaRecorderRef.current.requestData(); // VERY IMPORTANT
 
         mediaRecorderRef.current.onstop = () => {
@@ -517,7 +557,7 @@ const AudioRecorder = ({ onReady }) => {
           onClick={handlePause}
           disabled={!isRecording || !!error}
         >
-          Pause & Preview
+          Pause
         </Button>
         <Button
           color="success"
@@ -543,7 +583,7 @@ const AudioRecorder = ({ onReady }) => {
       {previewUrl && !isRecording && (
         <audio
           controls
-          autoPlay
+          // autoPlay
           src={previewUrl}
           style={{ marginTop: "10px" }}
         />

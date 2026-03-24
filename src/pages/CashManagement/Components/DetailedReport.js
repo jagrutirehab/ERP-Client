@@ -23,6 +23,7 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getDetailedCashReport } from "../../../helpers/backend_helper";
+import { summaryOptions } from "../../../Components/constants/cash";
 
 const DetailedReport = ({
   centers,
@@ -85,6 +86,11 @@ const DetailedReport = ({
 
   const columns = [
     {
+      name: "ID",
+      selector: (row) => row.id,
+      wrap: true,
+    },
+    {
       name: "Date",
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
@@ -97,7 +103,7 @@ const DetailedReport = ({
     },
     {
       name: "Name",
-      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.id || "-"})` : "-",
+      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.patientId || row?.internId || "-"})` : "-",
       wrap: true,
     },
     {
@@ -176,7 +182,6 @@ const DetailedReport = ({
     },
     {
       name: "Amount",
-
       cell: (row) => (
         <span>
           ₹
@@ -189,8 +194,18 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: "Bank Account",
+      selector: (row) => row.bankAccount,
+      wrap: true,
+      minWidth: "150px"
+    },
+    {
       name: "Summary",
-      selector: (row) => <ExpandableText text={capitalizeWords(row.summary)} />,
+      selector: (row) => {
+        if (!row.summary) return "-";
+        const option = summaryOptions.find(opt => opt.value === row.summary);
+        return option ? capitalizeWords(option.label) : capitalizeWords(row.summary);
+      },
       wrap: true,
     },
     {
@@ -215,6 +230,7 @@ const DetailedReport = ({
               centers: selectedCentersIds,
               startDate: reportDate.start.toISOString(),
               endDate: reportDate.end.toISOString(),
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
           ).unwrap();
         } catch (error) {
@@ -248,6 +264,7 @@ const DetailedReport = ({
         startDate: reportDate.start.toISOString(),
         endDate: reportDate.end.toISOString(),
         exportExcel: true,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
 
       const blob = new Blob([res.data], {
@@ -266,7 +283,7 @@ const DetailedReport = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error("Failed to download report");
+        toast.error(error.message || "Failed to download report");
       }
     } finally {
       setIsExcelGenerating(false);

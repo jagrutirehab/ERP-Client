@@ -17,8 +17,10 @@ import {
 import { Share, History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
+import Select from "react-select";
 import FileUpload from "../Components/FileUpload";
 import ItemCard from "../Components/ItemCard";
+import { summaryOptions } from "../../../Components/constants/cash";
 import {
   addSpending,
   getLastSpendings,
@@ -53,9 +55,9 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
-    summary: Yup.string()
+    summary: Yup.object()
       .required("Summary is required")
-      .min(2, "Summary must be at least 2 characters"),
+      .nullable(),
     amount: Yup.number()
       .required("Amount is required")
       .positive("Amount must be positive")
@@ -82,7 +84,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
   const formik = useFormik({
     initialValues: {
       center: "",
-      summary: "",
+      summary: null,
       amount: 0,
       comments: "",
       attachment: null,
@@ -92,7 +94,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       const formData = new FormData();
       formData.append("center", values.center);
       formData.append("amount", Number(values.amount));
-      formData.append("summary", values.summary);
+      formData.append("summary", values.summary.value);
       if (values.comments) {
         formData.append("comments", values.comments);
       }
@@ -177,7 +179,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                 <Form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="center" className="fw-medium">
-                      Center *
+                      Center <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="select"
@@ -209,31 +211,28 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                   </FormGroup>
                   <FormGroup>
                     <Label for="summary" className="fw-medium">
-                      Summary *
+                      Summary <span className="text-danger">*</span>
                     </Label>
-                    <Input
-                      type="text"
+                    <Select
                       id="summary"
                       name="summary"
+                      options={summaryOptions}
                       value={formik.values.summary}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="e.g., Office Supplies, Client Meeting, Equipment Purchase"
-                      className={`form-control ${formik.touched.summary && formik.errors.summary
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                      onChange={(option) => formik.setFieldValue("summary", option)}
+                      onBlur={() => formik.setFieldTouched("summary", true)}
+                      classNamePrefix="react-select"
+                      placeholder="Select summary"
+                      isClearable
                     />
                     {formik.touched.summary && formik.errors.summary && (
-                      <div className="invalid-feedback d-block">
-                        <i className="fas fa-exclamation-circle me-1"></i>
+                      <div className="text-danger small mt-1">
                         {formik.errors.summary}
                       </div>
                     )}
                   </FormGroup>
                   <FormGroup>
                     <Label for="amount" className="fw-medium">
-                      Amount *
+                      Amount <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="text"
@@ -284,7 +283,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
                   <FormGroup>
                     <Label className="fw-medium">
-                      Attachment (Receipt/Invoice) *
+                      Attachment (Receipt/Invoice) <span className="text-danger">*</span>
                     </Label>
                     <FileUpload
                       setAttachment={handleAttachmentChange}

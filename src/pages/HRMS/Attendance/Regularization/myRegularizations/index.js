@@ -24,7 +24,7 @@ const MyRegularizations = () => {
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "HR",
-    "GET_REGULARIZATIONS_REQUESTS",
+    "MY_REGULARIZATIONS",
     "READ",
   );
 

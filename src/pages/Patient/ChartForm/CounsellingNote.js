@@ -568,6 +568,9 @@ const CounsellingNote = ({
   const [audioFile, setAudioFile] = useState(null);
   const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
+  const [uploadedAudio, setUploadedAudio] = useState(null);
+  const [isRecording, setIsRecording] = useState("recording")
+
 
   const editCounsellingNote = editChartData?.counsellingNote;
 
@@ -710,17 +713,16 @@ const CounsellingNote = ({
       const allFiles = [...files];
 
       if (!editCounsellingNote) {
-
-        // if auto-stop already happened
-        if (audioFile) {
+        if (uploadedAudio) {
+          allFiles.push(uploadedAudio);
+        }
+        else if (audioFile) {
           allFiles.push(audioFile);
-
-        } else if (audioFinalizeRef.current) {
-          // recording still running
+        }
+        else if (audioFinalizeRef.current) {
           const finalAudio = await audioFinalizeRef.current();
           if (finalAudio) allFiles.push(finalAudio);
         }
-
       }
 
       onSubmitClinicalForm(
@@ -846,7 +848,7 @@ const CounsellingNote = ({
             </Col>
           )
         )}
-        {showAudioRecorder && (
+        {isRecording === "recording" && showAudioRecorder && (
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
             <AudioRecorder
@@ -857,6 +859,28 @@ const CounsellingNote = ({
             />
           </Col>
         )}
+
+        <Col xs={12} className="mt-3">
+          <h5>Upload Audio File</h5>
+          <Input
+            type="file"
+            accept="audio/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) {
+                setUploadedAudio(file);
+                setAudioFile(null);
+                setIsRecording("uploaded")
+              }
+            }}
+          />
+          {uploadedAudio && (
+            <p className="text-success">
+              Uploaded: {uploadedAudio.name}
+            </p>
+          )}
+        </Col>
+
         <Col xs={12} className="mt-3 mb-4">
           {counsellingFiles}
         </Col>

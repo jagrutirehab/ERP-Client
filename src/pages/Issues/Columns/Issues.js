@@ -17,7 +17,8 @@ export const Issues = (
   editedApprovalBy,
   setEditedApprovalBy,
   approvers,
-  setEditRowId
+  setEditRowId,
+  canEdit
 ) => [
     {
       name: <div className="text-center">Author</div>,
@@ -230,7 +231,7 @@ export const Issues = (
       width: "180px",
     },
 
-    ...(status === "new"
+    ...(status === "new" && canEdit
       ? [{
         name: <div className="text-center">Assign</div>,
         width: "140px",
@@ -245,7 +246,7 @@ export const Issues = (
       }]
       : []),
 
-    ...(status === "resolved"
+    ...(status === "resolved" && canEdit
       ? [
         {
           name: <div className="text-center">Approval</div>,

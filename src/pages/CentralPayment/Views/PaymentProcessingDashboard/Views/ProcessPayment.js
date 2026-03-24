@@ -12,6 +12,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import ConfirmationModal from "../../../../../Components/Common/ConfirmationModal";
 import Select from "react-select";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
 
 const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
 
@@ -86,10 +87,10 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                 page,
                 limit,
                 centers: centers,
-                financeApprovalStatus: "APPROVED",
                 approvalStatus: "APPROVED",
-                currentPaymentStatus: "PENDING",
+                financeApprovalStatus: "APPROVED",
                 processStatus: "PENDING",
+                currentPaymentStatus: "PENDING",
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -248,7 +249,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                 <Container fluid>
 
                     <div className="mb-3">
-                        <Row className="align-items-center g-2">
+                        <Row className="align-items-center g-2 justify-content-between">
 
                             <Col lg="2" md="4" sm="12">
                                 <Select
@@ -270,6 +271,10 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                     sm="12"
                                     className="d-flex flex-column flex-md-row justify-content-md-end align-items-stretch gap-2"
                                 >
+                                    <div className="d-flex align-items-center me-3">
+                                        <span className="text-muted me-1">Total Balance:</span>
+                                        <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
+                                    </div>
                                     <Button
                                         onClick={handleCopyAllEnets}
                                         color="primary"
@@ -297,6 +302,12 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
                                         )}
                                         Copy Selected E-Nets ({selectedItems.length})
                                     </Button>
+                                </Col>
+                            )}
+                            {!approvals?.data?.length && (
+                                <Col xs="auto" className="d-flex align-items-center">
+                                    <span className="text-muted me-1">Total Balance:</span>
+                                    <span className="fw-bold">{formatCurrency(approvals?.totalFinalAmount)}</span>
                                 </Col>
                             )}
                         </Row>

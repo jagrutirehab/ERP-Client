@@ -306,9 +306,11 @@ export const updateVitalSign = createAsyncThunk(
 
 export const addClinicalNote = createAsyncThunk(
   "postClinicalNote",
-  async (data, { rejectWithValue, dispatch }) => {
+  async (args, { rejectWithValue, dispatch }) => {
     try {
-      const response = await postClinicalNote(data);
+      const data = args?.data || args;
+      const config = args?.config || {};
+      const response = await postClinicalNote(data, config);
       dispatch(
         setAlert({
           type: "success",
@@ -404,9 +406,11 @@ export const removeClinicalNoteFile = createAsyncThunk(
 
 export const updateClinicalNote = createAsyncThunk(
   "editClinicalNote",
-  async (data, { rejectWithValue, dispatch }) => {
+  async (args, { rejectWithValue, dispatch }) => {
     try {
-      const response = await editClinicalNote(data);
+      const data = args?.data || args;
+      const config = args?.config || {};
+      const response = await editClinicalNote(data, config);
       dispatch(
         setAlert({
           type: "success",

@@ -31,6 +31,10 @@ const MyIssues = () => {
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
+  const hasWritePermission = hasPermission("ISSUES", "MY_ISSUES", "WRITE");
+  const hasDeletePermission = hasPermission("ISSUES", "MY_ISSUES", "DELETE");
+
+  const canChangeStatus = hasWritePermission || hasDeletePermission;
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -179,7 +183,7 @@ const MyIssues = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">MY TICKETS</h1>
+          <h1 className="display-6 fw-bold text-primary">MY ASSIGNED TICKETS</h1>
         </div>
 
         {/* Filters */}
@@ -227,7 +231,8 @@ const MyIssues = () => {
             handleViewImages,
             status,
             handleAction,
-            type
+            type,
+            canChangeStatus
           )}
           data={issues}
           loading={loading}

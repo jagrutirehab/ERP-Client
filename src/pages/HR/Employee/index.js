@@ -10,7 +10,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { deleteEmployee, getDepartments, getEmployeeDetailsById } from "../../../helpers/backend_helper";
+import { deleteEmployee, exportEmployeesXLSX, getDepartments, getEmployeeDetailsById } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -47,6 +47,7 @@ const Employee = () => {
   const [selectedDesignation, setSelectedDesignation] = useState(null);
   const [selectedEmploymentType, setSelectedEmploymentType] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
   const { designations, designationLoading } = useSelector((state) => state.HR);
 
@@ -223,6 +224,46 @@ const Employee = () => {
     }
   };
 
+  const handleExportXLSX = async () => {
+    setIsExcelGenerating(true);
+    try {
+      const centers =
+        selectedCenter === "ALL"
+          ? user?.centerAccess
+          : !user?.centerAccess.length
+            ? []
+            : [selectedCenter];
+
+      const response = await exportEmployeesXLSX({
+        centers,
+        view: "MASTER",
+        ...(debouncedSearch.trim() !== "" && { search: debouncedSearch }),
+        ...(selectedDepartment && { department: selectedDepartment.value }),
+        ...(selectedDesignation && { designation: selectedDesignation.value }),
+        ...(selectedEmploymentType && { employmentType: selectedEmploymentType.value }),
+        ...(selectedStatus && { status: selectedStatus.value }),
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Master_Employee_List_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Something went wrong while generating xlsx file");
+      }
+    } finally {
+      setIsExcelGenerating(false);
+    }
+  };
+
   const columns = [
     {
       name: <div>ECode</div>,
@@ -382,6 +423,12 @@ const Employee = () => {
     {
       name: <div>IFSC Code</div>,
       selector: (row) => row?.bankDetails?.IFSCCode || "-",
+      wrap: true,
+      minWidth: "150px",
+    },
+     {
+      name: <div>Account Holder's Name</div>,
+      selector: (row) => row?.bankDetails?.accountName || "-",
       wrap: true,
       minWidth: "150px",
     },
@@ -727,6 +774,15 @@ const Employee = () => {
               subAccess={"MASTER_EMPLOYEE"}
               permission={"delete"}
             >
+              <Button
+                color="primary"
+                className="d-flex align-items-center gap-1 text-white"
+                onClick={handleExportXLSX}
+                disabled={isExcelGenerating || loading}
+              >
+                {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                Export Excel
+              </Button>
               <Button
                 color={"primary"}
                 className="d-flex align-items-center gap-2 text-white"

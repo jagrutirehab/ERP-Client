@@ -63,7 +63,7 @@ const Dashboard = () => {
   return (
     <>
       <CardBody
-        className="p-3 bg-white"
+        className="px-3 py-5 bg-white"
         style={{
           width: isMobile ? "100%" : "78%",
           maxHeight: "100vh",

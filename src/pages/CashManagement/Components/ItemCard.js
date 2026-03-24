@@ -22,7 +22,7 @@ const ItemCard = ({ item, type }) => {
             </div>
             {item.summary && (
               <h6 className="mb-1 fw-bold text-dark">
-                {capitalizeWords(item.summary)}
+                {capitalizeWords(item.summary.replace(/_/g, " "))}
               </h6>
             )}
             {item.comments && (
@@ -48,6 +48,7 @@ const ItemCard = ({ item, type }) => {
             )}
           </Col>
           <Col md={4} className="text-end">
+            <div className="text-muted fw-semibold small mb-1">{item.id}</div>
             <div className="d-flex align-items-center justify-content-end">
               <span
                 className={`h5 mb-0 fw-bold ${(type === "BASEBALANCE" || type === "INFLOW") ? "text-success" : "text-danger"
