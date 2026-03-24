@@ -91,7 +91,7 @@ const Wrapper = ({
             <h5 className="display-6 fs-14 text-start d-flex align-items-center gap-2">
               {chartName === "Mental Examination" ? "Clinical Note" : chartName}
 
-              {geminiResponseIsVerified && (
+              {geminiResponseGeneratedBy && (
                 <span
                   className="rounded-circle d-inline-flex align-items-center justify-content-center bg-success text-white"
                   style={{

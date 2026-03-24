@@ -21,10 +21,11 @@ import { connect, useDispatch } from "react-redux";
 import {
   addDischargeSummary,
   createEditChart,
+  fetchCharts,
   updateDischargeSummary,
 } from "../../../store/actions";
 import { toast } from "react-toastify";
-import { getAIDischargeSummary } from "../../../helpers/backend_helper";
+import { getAIDischargeSummary, getCharts } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
 
 const DischargeSummary = ({
@@ -180,11 +181,18 @@ const DischargeSummary = ({
             ...extraFields,
           })
         );
+
       }
+
       // closeForm();
       localStorage.removeItem("ai_discharge_summary");
     },
+
   });
+
+  console.log("patient?.addmission._id", patient?.addmission._id);
+
+
 
   useEffect(() => {
     if (!editSummary) {
@@ -306,7 +314,7 @@ const DischargeSummary = ({
   }, [dischargeAdvise]);
 
 
-  console.log("patientonthefly", patient);
+  // console.log("patientonthefly", patient);
 
 
   const getGeminiSummary = async () => {
