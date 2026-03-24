@@ -571,3 +571,6 @@ export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview
 export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
 export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
 export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews"
+
+// generate AI Summary
+export const GET_AI_SUMMARY = "/chart/generateSummary"

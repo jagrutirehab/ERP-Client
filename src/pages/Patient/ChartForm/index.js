@@ -32,6 +32,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
   const toggleForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    localStorage.removeItem("ai_discharge_summary");
   };
 
   const isPrescription = chart.chart === PRESCRIPTION;
