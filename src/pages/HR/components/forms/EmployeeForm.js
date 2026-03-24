@@ -1532,7 +1532,7 @@ const EmployeeForm = ({
           {mode !== "NEW_JOINING" && (
             <Col md={12}>
               <Label htmlFor="users">Link With Associated Users</Label>
-              <div className="d-flex gap-2">
+              <div className="d-flex flex-column flex-md-row gap-2 align-items-stretch">
                 <div className="flex-grow-1">
                   <AsyncSelect
                     inputId="users"
@@ -1546,14 +1546,16 @@ const EmployeeForm = ({
                     }
                   />
                 </div>
-                <Button
-                  color="primary"
-                  className="text-white"
-                  onClick={handleLinkUsers}
-                  disabled={linking}
-                >
-                  {linking ? <Spinner size="sm" /> : "Link"}
-                </Button>
+                <div className="d-flex align-items-stretch">
+                  <Button
+                    color="primary"
+                    className="text-white w-100 w-md-auto"
+                    onClick={handleLinkUsers}
+                    disabled={linking}
+                  >
+                    {linking ? <Spinner size="sm" /> : "Link"}
+                  </Button>
+                </div>
               </div>
             </Col>
           )}

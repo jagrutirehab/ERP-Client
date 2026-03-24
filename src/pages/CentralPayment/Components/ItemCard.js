@@ -249,8 +249,8 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
                     {(flag === "financeApproval" || flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
                         <>
                             <div className="my-3 border-1 border-top border-dashed"></div>
-                            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
-                                <div className="d-flex flex-column flex-sm-row gap-4 flex-shrink-0">
+                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                                <div className="d-flex flex-wrap gap-3 gap-md-4 flex-grow-1">
                                     {item?.author && (
                                         <div style={{ minWidth: 120 }}>
                                             <i className="text-muted d-block">Initiator:</i>
