@@ -2930,3 +2930,9 @@ export const uploadFeedbackXlsx = (data) => {
 export const getFeedbackRecordingOverview = (params = {}) => {
   return axios.get(url.GET_FEEDBACK_RECORDING_OVERVIEW, { params })
 }
+
+// get AI Discharge Summary 
+
+export const getAIDischargeSummary = (params = {}) => {
+  return axios.get(url.GET_AI_SUMMARY, { params });
+}

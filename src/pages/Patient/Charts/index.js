@@ -81,6 +81,11 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     );
   };
 
+  console.log("CHARTING", charts);
+
+
+
+
   return (
     <React.Fragment>
       <div className="timeline-2">
@@ -97,6 +102,8 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 // disableEdit={addmission?.dischargeDate ? true : false}
                 disableDelete={addmission?.dischargeDate ? true : false}
                 itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
+                geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
+                geminiResponseIsVerified={chart.geminiResponseIsVerified}
               >
                 {chart.chart === PRESCRIPTION && (
                   <Prescription data={chart?.prescription} />

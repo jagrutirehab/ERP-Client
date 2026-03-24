@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Form, Row, Col, Label } from "reactstrap";
+import { Button, Form, Row, Col, Label, Spinner } from "reactstrap";
 import PropTypes from "prop-types";
 import _ from "lodash";
 
@@ -21,8 +21,12 @@ import { connect, useDispatch } from "react-redux";
 import {
   addDischargeSummary,
   createEditChart,
+  fetchCharts,
   updateDischargeSummary,
 } from "../../../store/actions";
+import { toast } from "react-toastify";
+import { getAIDischargeSummary, getCharts } from "../../../helpers/backend_helper";
+import { FaCheck } from "react-icons/fa";
 
 const DischargeSummary = ({
   author,
@@ -36,6 +40,9 @@ const DischargeSummary = ({
 
   // const [treatment, setTreatment] = useState([]);
   const [dischargeAdvise, setDischargeAdvise] = useState([]);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [geminiResponse, setGeminiResponse] = useState([]);
+  const [isVerified, setIsVerified] = useState(false);
 
   const editSummary = editChartData?.dischargeSummary;
 
@@ -145,6 +152,15 @@ const DischargeSummary = ({
     },
     validationSchema: Yup.object({}),
     onSubmit: (values) => {
+
+      const extraFields =
+        geminiResponse && Object.keys(geminiResponse).length > 0
+          ? {
+            geminiResponseGeneratedBy: author?._id,
+            geminiResponseIsVerified: isVerified,
+          }
+          : {};
+
       if (editSummary) {
         dispatch(
           updateDischargeSummary({
@@ -153,6 +169,7 @@ const DischargeSummary = ({
             // treatment,
             medicine: dischargeAdvise,
             ...values,
+            ...extraFields,
           })
         );
       } else {
@@ -161,12 +178,21 @@ const DischargeSummary = ({
             ...values,
             // treatment,
             medicine: dischargeAdvise,
+            ...extraFields,
           })
         );
+
       }
+
       // closeForm();
+      localStorage.removeItem("ai_discharge_summary");
     },
+
   });
+
+  console.log("patient?.addmission._id", patient?.addmission._id);
+
+
 
   useEffect(() => {
     if (!editSummary) {
@@ -176,6 +202,7 @@ const DischargeSummary = ({
   }, [dispatch, editSummary]);
 
   const closeForm = () => {
+    localStorage.removeItem("ai_discharge_summary");
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     validation.resetForm();
   };
@@ -239,6 +266,8 @@ const DischargeSummary = ({
     }
   };
 
+
+
   // const renderTreatment = useMemo(() => {
   //   return (
   //     <Medicine
@@ -284,6 +313,204 @@ const DischargeSummary = ({
     );
   }, [dischargeAdvise]);
 
+
+  // console.log("patientonthefly", patient);
+
+
+  const getGeminiSummary = async () => {
+    setGenerateLoading(true);
+    try {
+      const response = await getAIDischargeSummary({
+        patient: patient?._id,
+        addmission: patient?.addmission?._id,
+      });
+
+      console.log("response", response);
+
+      const data = response?.data;
+      setGeminiResponse(data)
+      localStorage.setItem("ai_discharge_summary", JSON.stringify(data));
+
+      const clean = (val) =>
+        val === "Not documented in records" ? "" : val;
+
+      validation.setValues({
+        ...validation.values,
+
+        diagnosis: clean(data.diagnosis),
+        presentingSymptoms: clean(data.presentingSymptoms),
+
+        mseAddmission: {
+          appearance: clean(data.mseAddmission?.appearance),
+          ecc: clean(data.mseAddmission?.ecc),
+          speech: clean(data.mseAddmission?.speech),
+          mood: clean(data.mseAddmission?.mood),
+          affect: clean(data.mseAddmission?.affect),
+          thoughts: clean(data.mseAddmission?.thoughts),
+          perception: clean(data.mseAddmission?.perception),
+          memory: clean(data.mseAddmission?.memory),
+          abstractThinking: clean(data.mseAddmission?.abstractThinking),
+          socialJudgment: clean(data.mseAddmission?.socialJudgment),
+          insight: clean(data.mseAddmission?.insight),
+        },
+
+        pastHistory: clean(data.pastHistory),
+        medicalHistory: clean(data.medicalHistory),
+        familyHistory: clean(data.familyHistory),
+
+        personalHistory: {
+          smoking: clean(data.personalHistory?.smoking),
+          chewingTobacco: clean(data.personalHistory?.chewingTobacco),
+          alcohol: clean(data.personalHistory?.alcohol),
+        },
+
+        physicalExamination: {
+          temprature: clean(data.physicalExamination?.temprature),
+          pulse: clean(data.physicalExamination?.pulse),
+          bp: clean(data.physicalExamination?.bp),
+          cvs: clean(data.physicalExamination?.cvs),
+          rs: clean(data.physicalExamination?.rs),
+          abdomen: clean(data.physicalExamination?.abdomen),
+          cns: clean(data.physicalExamination?.cns),
+          others: clean(data.physicalExamination?.others),
+        },
+
+        investigation: clean(data.investigation),
+        discussion: clean(data.discussion),
+        refernces: clean(data.refernces),
+        modifiedTreatment: clean(data.modifiedTreatment),
+        deportAdministered: clean(data.deportAdministered),
+        patientStatus: clean(data.patientStatus),
+
+        treatment: clean(data.treatment),
+
+        mseDischarge: {
+          appearance: clean(data.mseDischarge?.appearance),
+          ecc: clean(data.mseDischarge?.ecc),
+          speech: clean(data.mseDischarge?.speech),
+          mood: clean(data.mseDischarge?.mood),
+          affect: clean(data.mseDischarge?.affect),
+          thoughts: clean(data.mseDischarge?.thoughts),
+          perception: clean(data.mseDischarge?.perception),
+          memory: clean(data.mseDischarge?.memory),
+          abstractThinking: clean(data.mseDischarge?.abstractThinking),
+          socialJudgment: clean(data.mseDischarge?.socialJudgment),
+          insight: clean(data.mseDischarge?.insight),
+        },
+
+        followUp: clean(data.followUp),
+        note: clean(data.note),
+        consultantName: clean(data.consultantName),
+        consultantPsychologist: clean(data.consultantPsychologist),
+        summaryPreparedBy: clean(data.summaryPreparedBy),
+        dischargeType: clean(data.dischargeType),
+        dischargeRoutine: clean(data.dischargeRoutine),
+        dischargeDate:
+          data.dischargeDate &&
+            data.dischargeDate !== "Not documented in records"
+            ? data.dischargeDate
+            : "",
+      });
+
+      toast.success(response?.message || "AI Summary Generated");
+
+    } catch (error) {
+      toast.error("Failed to Generate the summary, please try again");
+    } finally {
+      setGenerateLoading(false)
+    }
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ai_discharge_summary");
+
+    if (saved && !editSummary) {
+      const data = JSON.parse(saved);
+
+      const clean = (val) =>
+        val === "Not documented in records" ? "" : val;
+
+      validation.setValues({
+        ...validation.values,
+
+        diagnosis: clean(data.diagnosis),
+        presentingSymptoms: clean(data.presentingSymptoms),
+
+        mseAddmission: {
+          appearance: clean(data.mseAddmission?.appearance),
+          ecc: clean(data.mseAddmission?.ecc),
+          speech: clean(data.mseAddmission?.speech),
+          mood: clean(data.mseAddmission?.mood),
+          affect: clean(data.mseAddmission?.affect),
+          thoughts: clean(data.mseAddmission?.thoughts),
+          perception: clean(data.mseAddmission?.perception),
+          memory: clean(data.mseAddmission?.memory),
+          abstractThinking: clean(data.mseAddmission?.abstractThinking),
+          socialJudgment: clean(data.mseAddmission?.socialJudgment),
+          insight: clean(data.mseAddmission?.insight),
+        },
+
+        pastHistory: clean(data.pastHistory),
+        medicalHistory: clean(data.medicalHistory),
+        familyHistory: clean(data.familyHistory),
+
+        personalHistory: {
+          smoking: clean(data.personalHistory?.smoking),
+          chewingTobacco: clean(data.personalHistory?.chewingTobacco),
+          alcohol: clean(data.personalHistory?.alcohol),
+        },
+
+        physicalExamination: {
+          temprature: clean(data.physicalExamination?.temprature),
+          pulse: clean(data.physicalExamination?.pulse),
+          bp: clean(data.physicalExamination?.bp),
+          cvs: clean(data.physicalExamination?.cvs),
+          rs: clean(data.physicalExamination?.rs),
+          abdomen: clean(data.physicalExamination?.abdomen),
+          cns: clean(data.physicalExamination?.cns),
+          others: clean(data.physicalExamination?.others),
+        },
+
+        investigation: clean(data.investigation),
+        discussion: clean(data.discussion),
+        refernces: clean(data.refernces),
+        modifiedTreatment: clean(data.modifiedTreatment),
+        deportAdministered: clean(data.deportAdministered),
+        patientStatus: clean(data.patientStatus),
+        treatment: clean(data.treatment),
+
+        mseDischarge: {
+          appearance: clean(data.mseDischarge?.appearance),
+          ecc: clean(data.mseDischarge?.ecc),
+          speech: clean(data.mseDischarge?.speech),
+          mood: clean(data.mseDischarge?.mood),
+          affect: clean(data.mseDischarge?.affect),
+          thoughts: clean(data.mseDischarge?.thoughts),
+          perception: clean(data.mseDischarge?.perception),
+          memory: clean(data.mseDischarge?.memory),
+          abstractThinking: clean(data.mseDischarge?.abstractThinking),
+          socialJudgment: clean(data.mseDischarge?.socialJudgment),
+          insight: clean(data.mseDischarge?.insight),
+        },
+
+        followUp: clean(data.followUp),
+        note: clean(data.note),
+        consultantName: clean(data.consultantName),
+        consultantPsychologist: clean(data.consultantPsychologist),
+        summaryPreparedBy: clean(data.summaryPreparedBy),
+        dischargeType: clean(data.dischargeType),
+        dischargeRoutine: clean(data.dischargeRoutine),
+        dischargeDate:
+          data.dischargeDate &&
+            data.dischargeDate !== "Not documented in records"
+            ? data.dischargeDate
+            : "",
+      });
+    }
+  }, []);
+
+
+
   return (
     <React.Fragment>
       <div>
@@ -297,6 +524,53 @@ const DischargeSummary = ({
           className="needs-validation"
           action="#"
         >
+          {!editSummary && <div className="d-flex align-items-center justify-content-between">
+            <Button type="button" onClick={getGeminiSummary} disabled={generateLoading}>
+              {generateLoading ? (
+                <span className="d-flex align-items-center">
+                  <Spinner size="sm" className="me-2" />
+                  Generating...
+                </span>
+              ) : (
+                "Generate AI-Summary"
+              )}
+            </Button>
+            {geminiResponse && Object.keys(geminiResponse).length > 0 && (
+
+              <div className="d-flex align-items-center gap-2">
+                <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                  Verify Response
+                </span>
+
+                <div
+                  onClick={() => setIsVerified(!isVerified)}
+                  style={{
+                    width: "50px",
+                    height: "25px",
+                    borderRadius: "20px",
+                    backgroundColor: isVerified ? "#28a745" : "#ccc",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "3px",
+                    cursor: "pointer",
+                    transition: "0.3s",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      backgroundColor: "#fff",
+                      transform: isVerified ? "translateX(25px)" : "translateX(0px)",
+                      transition: "0.3s",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>}
+
           <Row className="mt-3">
             {(dischargeSummaryFields.slice(0, 10) || []).map((item, idx) => {
               return (
