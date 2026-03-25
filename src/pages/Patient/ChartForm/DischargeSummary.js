@@ -27,6 +27,7 @@ import {
 import { toast } from "react-toastify";
 import { getAIDischargeSummary, getCharts, validateAISummary } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
+import ValidateConfirmationModal from "./Components/ValidateConfirmationModal";
 
 const DischargeSummary = ({
   author,
@@ -45,6 +46,9 @@ const DischargeSummary = ({
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEditVerified, setIsEditVerified] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [validateType, setValidateType] = useState(null);
+
 
   const editSummary = editChartData?.dischargeSummary;
 
@@ -558,10 +562,9 @@ const DischargeSummary = ({
     }
   }
 
-  console.log("IS Verified", isVerified);
-  console.log("editSummary", editSummary);
-  const shouldShowValidateButton =
-    editChartData && editChartData.geminiResponseIsVerified === false;
+
+
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
 
 
 
@@ -654,12 +657,8 @@ const DischargeSummary = ({
                     <Button
                       disabled={loading}
                       onClick={() => {
-                        setLoading(true);
-
-                        setTimeout(() => {
-                          setIsVerified((prev) => !prev);
-                          setLoading(false);
-                        }, 1000);
+                        setValidateType("new");
+                        toggleModal();
                       }}
                     >
                       {loading ? (
@@ -678,7 +677,12 @@ const DischargeSummary = ({
                     </Button>
                   )
                 ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
-                  <Button onClick={handleValidateResponse}>
+                  <Button
+                    onClick={() => {
+                      setValidateType("edit");
+                      toggleModal();
+                    }}
+                  >
                     {loading ? <span><Spinner size="sm" />Validating...</span> : "Validate"}
                   </Button>
                 ) : null
@@ -698,6 +702,26 @@ const DischargeSummary = ({
             </div>
           </div>
         </Form>
+        <ValidateConfirmationModal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          loading={loading}
+          isVerified={isVerified}
+          onConfirm={async () => {
+            if (validateType === "edit") {
+              await handleValidateResponse();
+            } else if (validateType === "new") {
+              setLoading(true);
+
+              setTimeout(() => {
+                setIsVerified((prev) => !prev);
+                setLoading(false);
+              }, 1000);
+            }
+
+            toggleModal();
+          }}
+        />
       </div>
     </React.Fragment>
   );
