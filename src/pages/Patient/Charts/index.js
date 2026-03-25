@@ -103,7 +103,8 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 disableDelete={addmission?.dischargeDate ? true : false}
                 itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                 geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
-                geminiResponseIsVerified={chart.geminiResponseIsVerified}
+                geminiResponseIsVerified={chart?.geminiResponseIsVerified}
+                validatorId={chart?.validatorId}
               >
                 {chart.chart === PRESCRIPTION && (
                   <Prescription data={chart?.prescription} />

@@ -575,3 +575,4 @@ export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews
 
 // generate AI Summary
 export const GET_AI_SUMMARY = "/chart/generateSummary"
+export const VALIDATE_SUMMARY = "/chart/validate/response"
