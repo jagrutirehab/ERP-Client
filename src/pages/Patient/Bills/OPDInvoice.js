@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import InvoiceList from "../Tables/InvoiceList";
 import { Col, Label, Row } from "reactstrap";
-import { CARD, CHEQUE, UPI } from "../../../Components/constants/patient";
+import { CARD, CASH, CHEQUE, UPI } from "../../../Components/constants/patient";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 const OPDInvoice = ({ data, bill }) => {
@@ -30,29 +30,36 @@ const OPDInvoice = ({ data, bill }) => {
               <span className="fs-xs-10 fs-md-12">{data?.payable}</span>
             </Col>
             <Col xs={12}>
-              <div className="d-flex align-items-center gap-3">
-                <h6 className="display-6 fs-14 mb-0">Payment Mode--</h6>
-                <div className="fs-13">
-                  <span className="fw-bold">{data.paymentMode?.type} </span>
+              {data?.paymentModes.map((paymentMode, i) => (
+                <div key={i} className="d-flex align-items-center gap-3">
+                  <h6 className="display-6 fs-14 mb-0">Payment Mode--</h6>
+                  <div className="fs-13">
+                    <span className="fw-bold">{paymentMode?.type}</span>
 
-                  <RenderWhen isTrue={data.paymentMode?.type !== CASH}>
-                    <span>{data.paymentMode?.bankAccount}</span>
-                  </RenderWhen>
+                    <RenderWhen isTrue={paymentMode?.type !== CASH}>
+                      {" - "}
+                      <span>Bank Account: {paymentMode?.bankAccount}</span>
+                    </RenderWhen>
 
-                  <RenderWhen isTrue={data.paymentMode?.type === CARD}>
-                    <span>{data.paymentMode?.cardNumber}</span>
-                  </RenderWhen>
+                    <RenderWhen isTrue={paymentMode?.type === CARD}>
+                      {" - "}
+                      <span>{paymentMode?.cardNumber}</span>
+                    </RenderWhen>
 
-                  <RenderWhen isTrue={data.paymentMode?.type === CHEQUE}>
-                    <span>{data.paymentMode?.bankName}</span>
-                    <span>{data.paymentMode?.chequeNumber}</span>
-                  </RenderWhen>
+                    <RenderWhen isTrue={paymentMode?.type === CHEQUE}>
+                      {" - "}
+                      <span>{paymentMode?.bankName}</span>
+                      {" - "}
+                      <span>{paymentMode?.chequeNumber}</span>
+                    </RenderWhen>
 
-                  <RenderWhen isTrue={data.paymentMode?.type === UPI}>
-                    <span>{data.paymentMode?.transactionId}</span>
-                  </RenderWhen>
+                    <RenderWhen isTrue={paymentMode?.type === UPI}>
+                      {" - "}
+                      <span>{paymentMode?.transactionId}</span>
+                    </RenderWhen>
+                  </div>
                 </div>
-              </div>
+              ))}
             </Col>
           </Row>
         </div>
