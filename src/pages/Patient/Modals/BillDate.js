@@ -207,6 +207,7 @@ const BillDate = ({
                     disableMobile: true,
                     // defaultDate: moment().format('LT'),
                   }}
+                  // className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
                   className="form-control shadow-none bg-white"
                   id="dateOfAdmission"
                 />
