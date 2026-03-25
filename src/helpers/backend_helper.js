@@ -2937,3 +2937,7 @@ export const getFeedbackRecordingOverview = (params = {}) => {
 export const getAIDischargeSummary = (params = {}) => {
   return axios.get(url.GET_AI_SUMMARY, { params });
 }
+
+export const validateAISummary = (summary) => {
+  return axios.patch(url.VALIDATE_SUMMARY, summary)
+}

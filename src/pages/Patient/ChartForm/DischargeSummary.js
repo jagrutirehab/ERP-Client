@@ -25,7 +25,7 @@ import {
   updateDischargeSummary,
 } from "../../../store/actions";
 import { toast } from "react-toastify";
-import { getAIDischargeSummary, getCharts } from "../../../helpers/backend_helper";
+import { getAIDischargeSummary, getCharts, validateAISummary } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
 
 const DischargeSummary = ({
@@ -43,6 +43,8 @@ const DischargeSummary = ({
   const [generateLoading, setGenerateLoading] = useState(false);
   const [geminiResponse, setGeminiResponse] = useState([]);
   const [isVerified, setIsVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isEditVerified, setIsEditVerified] = useState(false);
 
   const editSummary = editChartData?.dischargeSummary;
 
@@ -158,6 +160,7 @@ const DischargeSummary = ({
           ? {
             geminiResponseGeneratedBy: author?._id,
             geminiResponseIsVerified: isVerified,
+            // validatorId: author?._id
           }
           : {};
 
@@ -509,6 +512,28 @@ const DischargeSummary = ({
     }
   }, []);
 
+  const handleValidateResponse = async () => {
+    setLoading(true)
+    try {
+      const response = await validateAISummary({ summary: editSummary?._id });
+      console.log("ValidateResponse", response);
+      setIsEditVerified(true);
+      toast.success(response?.message || "Successfully Validated.")
+
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message || "Failed to Validate Response")
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+
+  console.log("IS Verified", isVerified);
+  console.log("editSummary", editSummary);
+  const shouldShowValidateButton =
+    editChartData && editChartData.geminiResponseIsVerified === false;
+
 
 
   return (
@@ -535,40 +560,6 @@ const DischargeSummary = ({
                 "Generate AI-Summary"
               )}
             </Button>
-            {geminiResponse && Object.keys(geminiResponse).length > 0 && (
-
-              <div className="d-flex align-items-center gap-2">
-                <span style={{ fontSize: "14px", fontWeight: "500" }}>
-                  Verify Response
-                </span>
-
-                <div
-                  onClick={() => setIsVerified(!isVerified)}
-                  style={{
-                    width: "50px",
-                    height: "25px",
-                    borderRadius: "20px",
-                    backgroundColor: isVerified ? "#28a745" : "#ccc",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "3px",
-                    cursor: "pointer",
-                    transition: "0.3s",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
-                      backgroundColor: "#fff",
-                      transform: isVerified ? "translateX(25px)" : "translateX(0px)",
-                      transition: "0.3s",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>}
 
           <Row className="mt-3">
@@ -626,6 +617,43 @@ const DischargeSummary = ({
           </Row>
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
+              {/* geminiResponse && Object.keys(geminiResponse).length > 0 &&  */}
+              {
+                !editChartData ? (
+                  geminiResponse &&
+                  Object.keys(geminiResponse).length > 0 && (
+                    <Button
+                      disabled={loading}
+                      onClick={() => {
+                        setLoading(true);
+
+                        setTimeout(() => {
+                          setIsVerified((prev) => !prev);
+                          setLoading(false);
+                        }, 1000);
+                      }}
+                    >
+                      {loading ? (
+                        <span className="d-flex align-items-center">
+                          <Spinner size="sm" className="me-2" />
+                          Validating...
+                        </span>
+                      ) : isVerified ? (
+                        <span className="d-flex align-items-center">
+                          <FaCheck className="me-2 text-success" />
+                          Validated
+                        </span>
+                      ) : (
+                        "Validate"
+                      )}
+                    </Button>
+                  )
+                ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+                  <Button onClick={handleValidateResponse}>
+                    {loading ? <span><Spinner size="sm" />Validating...</span> : "Validate"}
+                  </Button>
+                ) : null
+              }
               <Button
                 onClick={closeForm}
                 size="sm"
