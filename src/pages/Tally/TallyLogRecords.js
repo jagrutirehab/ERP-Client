@@ -109,6 +109,28 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       ),
     },
     {
+      name: "Bill Updated At",
+      selector: (row) => row.billUpdatedAt,
+      sortable: false,
+      width: "180px",
+      cell: (row) => (
+        <div className="py-2">
+          {row.billUpdatedAt ? (
+            <>
+              <div className="font-size-13">
+                {format(new Date(row.billUpdatedAt), "dd MMM yyyy")}
+              </div>
+              <small className="text-muted">
+                {format(new Date(row.billUpdatedAt), "hh:mm a")}
+              </small>
+            </>
+          ) : (
+            <span className="text-muted">-</span>
+          )}
+        </div>
+      ),
+    },
+    {
       name: "Center",
       selector: (row) => row.center?.title || "N/A",
       sortable: false,

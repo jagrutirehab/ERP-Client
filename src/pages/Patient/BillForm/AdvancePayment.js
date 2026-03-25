@@ -86,8 +86,8 @@ const AdvancePayment = ({
       paymentAgainstBillNo: editData
         ? editData.paymentAgainstBillNo
         : paymentAgainstBillNo
-        ? paymentAgainstBillNo
-        : "",
+          ? paymentAgainstBillNo
+          : "",
       remarks: editData ? editData.remarks : "",
       date: billDate,
       type,
@@ -105,13 +105,13 @@ const AdvancePayment = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         ).unwrap();
         dispatch(
           setBillingStatus({
             patientId: patient._id,
             billingStatus: response.billingStatus,
-          })
+          }),
         );
       } else {
         const response = await dispatch(
@@ -119,13 +119,13 @@ const AdvancePayment = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         ).unwrap();
         dispatch(
           setBillingStatus({
             patientId: patient._id,
             billingStatus: response.billingStatus,
-          })
+          }),
         );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
@@ -147,7 +147,7 @@ const AdvancePayment = ({
           centerIds: [patient.center._id],
           page: 1,
           limit: 1000,
-        })
+        }),
         // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
       );
     }
