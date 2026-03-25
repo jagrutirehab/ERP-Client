@@ -93,6 +93,11 @@ const BillDate = ({
 
   const isPaymentCenter = paymentCenters.includes(PatientCenter);
 
+  const isGurgaonAdvancePayment =
+    (patient?.center?._id === "694e565ed6e6dd32a39c9815" ||
+      patient?.center?.title === "Gurgaon") &&
+    editBillData?.bill === ADVANCE_PAYMENT;
+
   useEffect(() => {
     if (isOpen) dispatch(setBillDate(new Date().toISOString()));
   }, [dispatch, isOpen]);
@@ -146,11 +151,6 @@ const BillDate = ({
               <span>
                 <Flatpicker
                   name="date"
-                  disabled={
-                    (patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                      patient.center.title === "Gurgaon") &&
-                    editBillData.bill === ADVANCE_PAYMENT
-                  }
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -168,14 +168,20 @@ const BillDate = ({
                       : new Date(
                           new Date().setMonth(new Date().getMonth() + 1),
                         ),
-                    // enable: [
-                    //   function (date) {
-                    //     return date.getDate() === new Date().getDate();
-                    //   },
-                    // ],
+                    ...(isGurgaonAdvancePayment && {
+                      enable: [
+                        function (date) {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const yesterday = new Date(today);
+                          yesterday.setDate(yesterday.getDate() - 1);
+                          return date >= yesterday;
+                        },
+                      ],
+                    }),
                   }}
-                  // className="form-control shadow-none bg-light"
-                  className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
+                  className="form-control shadow-none bg-white"
+                  // className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -183,11 +189,6 @@ const BillDate = ({
               <span>
                 <Flatpicker
                   name="time"
-                  disabled={
-                    (patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                      patient.center.title === "Gurgaon") &&
-                    editBillData.bill === ADVANCE_PAYMENT
-                  }
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -206,8 +207,7 @@ const BillDate = ({
                     disableMobile: true,
                     // defaultDate: moment().format('LT'),
                   }}
-                  // className="form-control shadow-none bg-light"
-                  className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
+                  className="form-control shadow-none bg-white"
                   id="dateOfAdmission"
                 />
               </span>
