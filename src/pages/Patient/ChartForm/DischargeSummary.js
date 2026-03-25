@@ -48,6 +48,8 @@ const DischargeSummary = ({
 
   const editSummary = editChartData?.dischargeSummary;
 
+
+
   useEffect(() => {
     if (editSummary) {
       setDischargeAdvise(_.cloneDeep(editSummary.medicine));
@@ -334,8 +336,29 @@ const DischargeSummary = ({
       setGeminiResponse(data)
       localStorage.setItem("ai_discharge_summary", JSON.stringify(data));
 
-      const clean = (val) =>
-        val === "Not documented in records" ? "" : val;
+      const clean = (val) => {
+        if (!val) return "";
+
+        if (typeof val === "string") {
+          const normalized = val.trim().toLowerCase();
+
+          const invalidValues = [
+            "not documented in records",
+            "not documented",
+            "na",
+            "n/a",
+            "null",
+            "undefined",
+            "-"
+          ];
+
+          if (invalidValues.includes(normalized)) return "";
+
+          return val.trim();
+        }
+
+        return val;
+      };
 
       validation.setValues({
         ...validation.values,
@@ -518,6 +541,12 @@ const DischargeSummary = ({
       const response = await validateAISummary({ summary: editSummary?._id });
       console.log("ValidateResponse", response);
       setIsEditVerified(true);
+      dispatch({
+        type: "editDischargeSummary/fulfilled",
+        payload: {
+          payload: response.payload,
+        },
+      });
       toast.success(response?.message || "Successfully Validated.")
 
     } catch (error) {
