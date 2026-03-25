@@ -21,6 +21,7 @@ import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
 import TallyLogRecords from "./TallyLogRecords";
+import TallyPendingUpdates from "./TallyPendingUpdates";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 
@@ -343,6 +344,17 @@ const Tally = ({ centers, centerAccess }) => {
                         </NavLink>
                       </NavItem>
                     )}
+                    {hasTallyLogsPermission && (
+                      <NavItem>
+                        <NavLink
+                          className={classnames({ active: activeTab === "3" })}
+                          onClick={() => toggleTab("3")}
+                          style={{ cursor: "pointer" }}
+                        >
+                          Pending Updates
+                        </NavLink>
+                      </NavItem>
+                    )}
                   </Nav>
                 </div>
               </CardHeader>
@@ -374,6 +386,14 @@ const Tally = ({ centers, centerAccess }) => {
                   {hasTallyLogsPermission && (
                     <TabPane tabId="2">
                       <TallyLogRecords
+                        centerOptions={centerOptions}
+                        initialCenters={selectedCentersIds}
+                      />
+                    </TabPane>
+                  )}
+                  {hasTallyLogsPermission && (
+                    <TabPane tabId="3">
+                      <TallyPendingUpdates
                         centerOptions={centerOptions}
                         initialCenters={selectedCentersIds}
                       />

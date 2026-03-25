@@ -545,6 +545,7 @@ export const POST_TALLY_SEND = "/tally/send";
 export const POST_TALLY_UPDATE = "/tally/update";
 export const POST_TALLY_CANCEL = (sessionId) => `/tally/cancel/${sessionId}`;
 export const GET_TALLY_LOGS = "/tally/logs";
+export const GET_TALLY_PENDING_UPDATES = "/tally/logs/pending-updates";
 
 // Issues
 export const GET_ISSUES = "/issues/get"
