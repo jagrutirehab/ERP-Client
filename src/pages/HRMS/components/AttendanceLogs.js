@@ -22,7 +22,7 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
   const handleAuthError = useAuthError();
   const [reportDate, setReportDate] = useState(getTableRange());
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(31);
   const [viewMode, setViewMode] = useState("table");
   const [regularizeModalOpen, setRegularizeModalOpen] = useState(false);
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
@@ -167,6 +167,7 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
           setLimit={setLimit}
           loading={loading}
           pagination={pagination}
+          paginationRowsPerPageOptions={[10, 15, 20, 25, 31]}
         />
       ) : (
         <AttendanceCalendar

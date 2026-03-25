@@ -2654,6 +2654,26 @@ export const setBulkRotationalShifts = (data) => {
   });
 };
 
+export const downloadRotationalShiftTemplate = (params = {}) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/rotational-shifts/template`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
+export const uploadRotationalShiftSheet = (data) => {
+  return api.create(`${url.EMPLOYEE_REPORTING}/rotational-shifts/upload`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+    responseType: "blob",
+  });
+};
+
 // Incentives
 export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {

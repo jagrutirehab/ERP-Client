@@ -1,34 +1,68 @@
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardBody, Spinner, Button, Input, InputGroup, InputGroupText } from "reactstrap";
-import { Search, Pencil } from "lucide-react";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, CardBody, Spinner, Button, Input, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import { Pencil, ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
 import { format, addDays, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Select from "react-select";
 import { startOfWeek } from "date-fns";
-import { getEmployeeReportings } from "../../../helpers/backend_helper";
+import { toast } from "react-toastify";
+import { getEmployeeReportings, downloadRotationalShiftTemplate, uploadRotationalShiftSheet } from "../../../helpers/backend_helper";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import Header from "../../Report/Components/Header";
 import { DAY_LABELS, SHIFT_STYLES } from "../../../Components/constants/HRMS";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import RotationalShiftBulkModal from "../components/RotationalShiftBulkModal";
+import { toTimeZoneDateKey } from "../../../utils/date";
 
-const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const ROSTER_TZ = "Asia/Kolkata";
 const LIMIT = 10;
+
+const getDownloadFilename = (headers, fallbackName) => {
+  const disposition = headers?.["content-disposition"];
+  if (!disposition) return fallbackName;
+
+  const utfMatch = disposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+  if (utfMatch?.[1]) return decodeURIComponent(utfMatch[1]);
+
+  const asciiMatch = disposition.match(/filename="?([^"]+)"?/i);
+  return asciiMatch?.[1] || fallbackName;
+};
+
+const downloadBlobFile = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
 
 const ShiftRoaster = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const user = useSelector((s) => s.User);
+  const handleAuthError = useAuthError();
 
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [selectedCenter, setSelectedCenter] = useState(() => (
+    user?.centerAccess?.length === 1 ? user.centerAccess[0] : "ALL"
+  ));
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [rosterData, setRosterData] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalDocs: 0, totalPages: 1 });
   const [page, setPage] = useState(1);
   const [rosterLoading, setRosterLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isTemplateDownloading, setIsTemplateDownloading] = useState(false);
+  const [isUploadingSheet, setIsUploadingSheet] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [errorReportBlob, setErrorReportBlob] = useState(null);
 
   // debounce search input → search
   useEffect(() => {
@@ -70,13 +104,26 @@ const ShiftRoaster = () => {
       selectedCenter !== "ALL" &&
       !user?.centerAccess?.includes(selectedCenter)
     ) {
-      setSelectedCenter("ALL");
+      setSelectedCenter(user?.centerAccess?.length === 1 ? user.centerAccess[0] : "ALL");
       setPage(1);
+    }
+  }, [selectedCenter, user?.centerAccess]);
+
+  useEffect(() => {
+    if (selectedCenter === "ALL" && user?.centerAccess?.length === 1) {
+      setSelectedCenter(user.centerAccess[0]);
     }
   }, [selectedCenter, user?.centerAccess]);
 
   const startDate = reportDate.start ? format(reportDate.start, "yyyy-MM-dd") : null;
   const endDate = reportDate.end ? format(reportDate.end, "yyyy-MM-dd") : null;
+  const actionCenterOptions = useMemo(
+    () => (user?.centerAccess?.map((id) => {
+      const center = user?.userCenters?.find((c) => c._id === id);
+      return { value: id, label: center?.title || "Unknown Center" };
+    }) || []),
+    [user?.centerAccess, user?.userCenters]
+  );
 
   // build date columns from the selected range
   const dateColumns = useMemo(() => {
@@ -98,7 +145,7 @@ const ShiftRoaster = () => {
     const centers = selectedCenter === "ALL"
       ? user?.centerAccess
       : !user?.centerAccess?.length ? [] : [selectedCenter];
-    getEmployeeReportings({ status: "ALL", shiftType: "ROTATIONAL", limit: LIMIT, page, startDate, endDate, tz, centers, ...(search ? { search } : {}) })
+    getEmployeeReportings({ status: "ALL", shiftType: "ROTATIONAL", limit: LIMIT, page, startDate, endDate, tz: ROSTER_TZ, centers, ...(search ? { search } : {}) })
       .then((res) => {
         if (!cancelled) {
           setRosterData(res?.data || []);
@@ -108,7 +155,7 @@ const ShiftRoaster = () => {
       .catch(() => { })
       .finally(() => { if (!cancelled) setRosterLoading(false); });
     return () => { cancelled = true; };
-  }, [startDate, endDate, selectedCenter, page, search, hasUserPermission, user?.centerAccess]);
+  }, [startDate, endDate, selectedCenter, page, search, hasUserPermission, user?.centerAccess, refreshKey]);
 
   useEffect(() => { setPage(1); }, [startDate, endDate, selectedCenter, search]);
 
@@ -117,12 +164,16 @@ const ShiftRoaster = () => {
       const shifts = {};
       (r.rotationalShifts || []).forEach((s) => {
         if (!s.date) return;
-        shifts[s.date.substring(0, 10)] = { type: "shift", start: s.start, end: s.end, shift: s.shift };
+        const key = toTimeZoneDateKey(s.date, ROSTER_TZ);
+        if (!key) return;
+        shifts[key] = { type: "shift", start: s.start, end: s.end, shift: s.shift };
       });
       const leaves = {};
       (r.leaves || []).forEach((l) => {
         if (!l.date) return;
-        leaves[l.date.substring(0, 10)] = { type: "leave", leaveType: l.leaveType === "WEEK_OFFS" ? "WEEK OFF" : l.leaveType };
+        const key = toTimeZoneDateKey(l.date, ROSTER_TZ);
+        if (!key) return;
+        leaves[key] = { type: "leave", leaveType: l.leaveType === "WEEK_OFFS" ? "WEEK OFF" : l.leaveType };
       });
       return { employee: r.employee, center: r.center, days: { ...shifts, ...leaves }, reportingId: r._id };
     });
@@ -140,10 +191,109 @@ const ShiftRoaster = () => {
     );
   }
 
+  const triggerRosterRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
+
+  const getDefaultActionCenter = () => {
+    if (selectedCenter && selectedCenter !== "ALL") return selectedCenter;
+    if (actionCenterOptions.length === 1) return actionCenterOptions[0].value;
+    return null;
+  };
+
+  const getDefaultActionDateRange = () => ({
+    start: reportDate.start || null,
+    end: reportDate.end || null,
+  });
+
+  const handleDownloadTemplate = async ({ center, startDate: selectedStartDate, endDate: selectedEndDate }) => {
+    setIsTemplateDownloading(true);
+    try {
+      const res = await downloadRotationalShiftTemplate({
+        center,
+        startDate: selectedStartDate,
+        endDate: selectedEndDate,
+        tz: ROSTER_TZ,
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const fallbackName = `rotational_shift_template_${selectedStartDate}_to_${selectedEndDate}.xlsx`;
+
+      downloadBlobFile(blob, getDownloadFilename(res.headers, fallbackName));
+      setIsTemplateModalOpen(false);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to download rotational shift template.");
+      }
+    } finally {
+      setIsTemplateDownloading(false);
+    }
+  };
+
+  const handleUploadFile = async ({ file }) => {
+    setIsUploadingSheet(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("attachment", file);
+
+      const res = await uploadRotationalShiftSheet(formData);
+      const contentType = (res?.data?.type || res?.headers?.["content-type"] || "").toLowerCase();
+
+      if (contentType.includes("json")) {
+        const text = await res.data.text();
+        const json = JSON.parse(text);
+
+        toast.success(json?.message || "Rotational shifts uploaded successfully.");
+        triggerRosterRefresh();
+        setIsUploadModalOpen(false);
+        return;
+      }
+
+      const fallbackName = "rotational_shifts_errors.xlsx";
+      setErrorReportBlob({
+        blob: res.data,
+        filename: getDownloadFilename(res.headers, fallbackName)
+      });
+      triggerRosterRefresh();
+      setIsUploadModalOpen(false);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to upload rotational shift sheet.");
+      }
+    } finally {
+      setIsUploadingSheet(false);
+    }
+  };
+
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <h5 className="text-primary text-center fw-bold mb-3" style={{ fontSize: "22px" }}>SHIFT ROSTER</h5>
 
+      <div className="d-flex justify-content-end align-items-end gap-2 flex-wrap mb-2">
+        {hasWritePermission && (
+          <>
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={() => setIsTemplateModalOpen(true)}
+              disabled={isTemplateDownloading}
+            >
+              {isTemplateDownloading ? <Spinner size="sm" /> : <><Download size={14} className="me-1" />Download Template</>}
+            </Button>
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={() => setIsUploadModalOpen(true)}
+              disabled={isUploadingSheet}
+            >
+              {isUploadingSheet ? <Spinner size="sm" /> : <><Upload size={14} className="me-1" />Upload XLSX</>}
+            </Button>
+          </>
+        )}
+      </div>
       {/* filters */}
       <div className="d-flex align-items-center flex-wrap gap-3 mb-3">
         {centerOptions.length > 1 && (
@@ -173,7 +323,6 @@ const ShiftRoaster = () => {
           <Header reportDate={reportDate} setReportDate={setReportDate} />
         </div>
       </div>
-
       {/* calendar grid */}
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">
@@ -329,7 +478,62 @@ const ShiftRoaster = () => {
         </CardBody>
       </Card>
 
-    </CardBody>
+      <RotationalShiftBulkModal
+        isOpen={isTemplateModalOpen}
+        toggle={() => !isTemplateDownloading && setIsTemplateModalOpen(false)}
+        mode="download"
+        loading={isTemplateDownloading}
+        centerOptions={actionCenterOptions}
+        defaultCenter={getDefaultActionCenter()}
+        defaultDateRange={getDefaultActionDateRange()}
+        onConfirm={handleDownloadTemplate}
+      />
+
+      <RotationalShiftBulkModal
+        isOpen={isUploadModalOpen}
+        toggle={() => !isUploadingSheet && setIsUploadModalOpen(false)}
+        mode="upload"
+        loading={isUploadingSheet}
+        centerOptions={actionCenterOptions}
+        defaultCenter={getDefaultActionCenter()}
+        defaultDateRange={getDefaultActionDateRange()}
+        onConfirm={handleUploadFile}
+      />
+
+      <Modal isOpen={!!errorReportBlob} toggle={() => setErrorReportBlob(null)} centered>
+        <ModalHeader toggle={() => setErrorReportBlob(null)}>
+          <span className="text-danger fw-semibold">Upload Completed with Errors</span>
+        </ModalHeader>
+        <ModalBody>
+          <div className="d-flex flex-column align-items-center justify-content-center py-4 text-center">
+            <div className="mb-3 text-warning">
+              {/* <i className="ri-error-warning-line" style={{ fontSize: "48px" }}></i> */}
+            </div>
+            <h5 className="mb-2">Some entries failed</h5>
+            <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+              The rotational shifts were partially uploaded, but some rows had errors and were skipped.
+              Please download the error report to see the specific issues, fix them, and re-upload.
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="light" onClick={() => setErrorReportBlob(null)}>
+            Close
+          </Button>
+          <Button
+            color="primary"
+            onClick={() => {
+              downloadBlobFile(errorReportBlob.blob, errorReportBlob.filename);
+              setErrorReportBlob(null);
+            }}
+          >
+            <Download size={14} className="me-1" />
+            Download Excel Report
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+    </CardBody >
   );
 };
 
