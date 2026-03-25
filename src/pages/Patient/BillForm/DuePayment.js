@@ -45,8 +45,6 @@ const DuePayment = ({
   //   center,
   // });
 
-  console.log("type type type", type);
-
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
@@ -77,13 +75,14 @@ const DuePayment = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
+  const ptCenter = center ? center : patient?.center?._id;
 
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
       author: author?._id,
       patient: patient?._id,
-      center: center ? center : patient?.center?._id,
+      center: ptCenter,
       addmission: admission || patient?.addmission?._id,
       invoiceList: invoiceList,
       totalCost: totalCost,
@@ -180,17 +179,18 @@ const DuePayment = ({
   });
 
   useEffect(() => {
-    if (center) {
+    console.log({ ptCenter });
+    if (ptCenter) {
       dispatch(
         fetchPaymentAccounts({
-          centerIds: [center],
+          centerIds: [ptCenter],
           page: 1,
           limit: 1000,
         }),
         // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
       );
     }
-  }, [dispatch, patient.center._id]);
+  }, [dispatch, ptCenter, editBillData]);
 
   useEffect(() => {
     if (!editBillData) {
