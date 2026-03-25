@@ -35,6 +35,10 @@ const OPDInvoice = ({ data, bill }) => {
                 <div className="fs-13">
                   <span className="fw-bold">{data.paymentMode?.type} </span>
 
+                  <RenderWhen isTrue={data.paymentMode?.type !== CASH}>
+                    <span>{data.paymentMode?.bankAccount}</span>
+                  </RenderWhen>
+
                   <RenderWhen isTrue={data.paymentMode?.type === CARD}>
                     <span>{data.paymentMode?.cardNumber}</span>
                   </RenderWhen>
