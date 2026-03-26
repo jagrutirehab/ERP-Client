@@ -16,7 +16,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import { sendToTally, updateInTally, cancelTallySync } from "../../helpers/backend_helper";
+import { sendToTally, cancelTallySync } from "../../helpers/backend_helper";
 import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
@@ -186,7 +186,7 @@ const Tally = ({ centers, centerAccess }) => {
     [addLog],
   );
 
-  const handleSend = async () => {
+  const handleSync = async () => {
     if (selectedCentersIds.length === 0) {
       toast.error("Please select at least one center");
       return;
@@ -224,57 +224,6 @@ const Tally = ({ centers, centerAccess }) => {
       } else {
         addLog(
           `❌ Failed to start sync: ${response.message || "Unknown error"}`,
-          "error",
-        );
-        setSending(false);
-      }
-    } catch (error) {
-      addLog(
-        `❌ Error: ${error.message || "Failed to connect to server"}`,
-        "error",
-      );
-      setSending(false);
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (selectedCentersIds.length === 0) {
-      toast.error("Please select at least one center");
-      return;
-    }
-
-    if (selectedTypes.length === 0) {
-      toast.error("Please select at least one voucher type");
-      return;
-    }
-
-    // Reset state
-    setLogs([]);
-    setIsDone(false);
-    setSending(true);
-
-    addLog("🔄 Initiating Tally UPDATE (search → delete → re-insert)...", "info");
-    const startDateStr = selectedDate[0] ? format(selectedDate[0], "dd MMM yyyy") : "";
-    const endDateStr = selectedDate[1] ? format(selectedDate[1], "dd MMM yyyy") : startDateStr;
-    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
-    addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
-
-    try {
-      const response = await updateInTally({
-        date: selectedDate[0]?.toISOString(),
-        startDate: selectedDate[0]?.toISOString(),
-        endDate: (selectedDate[1] || selectedDate[0])?.toISOString(),
-        centerIds: selectedCentersIds,
-        types: selectedTypes,
-      });
-
-      if (response.success && response.sessionId) {
-        addLog(`✅ Update session started: ${response.sessionId}`, "success");
-        currentSessionIdRef.current = response.sessionId;
-        connectSSE(response.sessionId);
-      } else {
-        addLog(
-          `❌ Failed to start update: ${response.message || "Unknown error"}`,
           "error",
         );
         setSending(false);
@@ -371,8 +320,7 @@ const Tally = ({ centers, centerAccess }) => {
                         selectedTypes={selectedTypes}
                         onTypeToggle={handleTypeToggle}
                         sending={sending}
-                        onSend={handleSend}
-                        onUpdate={handleUpdate}
+                        onSync={handleSync}
                         onCancel={handleCancel}
                       />
 
