@@ -281,7 +281,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                       </div>
                       <div className="text-muted" style={{ fontSize: "11px" }}>{format(day, "dd MMM")}</div>
                     </div>
-                    {(isFilled || isWeekOff) && (
+                    {(isFilled || (isWeekOff && initialData?.roster?.[format(day, "yyyy-MM-dd")]?.weekOff !== true)) && (
                       <button className="btn btn-link p-0 text-danger" onClick={() => clearCell(day)} title="Clear">
                         <Trash2 size={13} />
                       </button>
@@ -407,13 +407,15 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                     >
                       <Moon size={10} />
                       <span className="fw-semibold ms-1">{format(parseDateOnly(date), "dd MMM")}</span>
-                      <button
-                        className="btn btn-link p-0 ms-1 text-danger"
-                        style={{ lineHeight: 1 }}
-                        onClick={() => setRoster((prev) => { const n = { ...prev }; delete n[date]; return n; })}
-                      >
-                        <Trash2 size={11} />
-                      </button>
+                      {initialData?.roster?.[date]?.weekOff !== true && (
+                        <button
+                          className="btn btn-link p-0 ms-1 text-danger"
+                          style={{ lineHeight: 1 }}
+                          onClick={() => setRoster((prev) => { const n = { ...prev }; delete n[date]; return n; })}
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
