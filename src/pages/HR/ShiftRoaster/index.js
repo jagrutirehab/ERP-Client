@@ -289,7 +289,7 @@ const ShiftRoaster = () => {
               onClick={() => setIsUploadModalOpen(true)}
               disabled={isUploadingSheet}
             >
-              {isUploadingSheet ? <Spinner size="sm" /> : <><Upload size={14} className="me-1" />Upload XLSX</>}
+              {isUploadingSheet ? <Spinner size="sm" /> : <><Upload size={14} className="me-1" />Upload Excel</>}
             </Button>
           </>
         )}

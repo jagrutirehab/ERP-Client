@@ -186,7 +186,7 @@ const Wrapper = ({
                     </DropdownToggle>
                   )}
                   <DropdownMenu>
-                    <RenderWhen isTrue={showPrint}>
+                    <RenderWhen isTrue={showPrint && geminiResponseIsVerified !== false}>
                       <DropdownItem
                         onClick={() => printItem(item, patient)}
                         href="#"
