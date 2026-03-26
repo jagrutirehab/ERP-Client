@@ -16,7 +16,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
-import { sendToTally, cancelTallySync } from "../../helpers/backend_helper";
+import { sendToTally, cancelTallySync, getActiveTallySession } from "../../helpers/backend_helper";
 import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
@@ -92,14 +92,8 @@ const Tally = ({ centers, centerAccess }) => {
     }
   }, [centerOptions]);
 
-  // Cleanup SSE on unmount
-  useEffect(() => {
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-    };
-  }, []);
+  // Ref to hold reconnect function (breaks circular dependency with connectSSE)
+  const checkAndReconnectRef = useRef(null);
 
   const handleTypeToggle = (typeId) => {
     setSelectedTypes((prev) => {
@@ -174,17 +168,59 @@ const Tally = ({ centers, centerAccess }) => {
       };
 
       eventSource.onerror = () => {
-        addLog(
-          "⚠️ Connection lost. Sync may still be running on server.",
-          "warning",
-        );
-        setSending(false);
         eventSource.close();
         eventSourceRef.current = null;
+        addLog(
+          "⚠️ Connection lost. Attempting to reconnect...",
+          "warning",
+        );
+        // Auto-retry after 3 seconds via ref
+        setTimeout(() => {
+          if (checkAndReconnectRef.current) checkAndReconnectRef.current();
+        }, 3000);
       };
     },
     [addLog],
   );
+
+  // Reconnect logic — check backend for active session and re-attach SSE
+  const checkAndReconnect = useCallback(async () => {
+    if (eventSourceRef.current) return;
+    try {
+      const response = await getActiveTallySession();
+      if (response?.sessionId) {
+        currentSessionIdRef.current = response.sessionId;
+        setSending(true);
+        setIsDone(false);
+        addLog("📡 Reconnecting to running sync session...", "info");
+        connectSSE(response.sessionId);
+      }
+    } catch {
+      // Server unreachable or no active session
+    }
+  }, [addLog, connectSSE]);
+
+  // Keep ref in sync so connectSSE.onerror can call it without circular deps
+  checkAndReconnectRef.current = checkAndReconnect;
+
+  // On mount + tab visibility: check for active session
+  useEffect(() => {
+    checkAndReconnect();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        checkAndReconnect();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, [checkAndReconnect]);
 
   const handleSync = async () => {
     if (selectedCentersIds.length === 0) {
