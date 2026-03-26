@@ -109,6 +109,28 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       ),
     },
     {
+      name: "Bill Updated At",
+      selector: (row) => row.billUpdatedAt,
+      sortable: false,
+      width: "180px",
+      cell: (row) => (
+        <div className="py-2">
+          {row.billUpdatedAt ? (
+            <>
+              <div className="font-size-13">
+                {format(new Date(row.billUpdatedAt), "dd MMM yyyy")}
+              </div>
+              <small className="text-muted">
+                {format(new Date(row.billUpdatedAt), "hh:mm a")}
+              </small>
+            </>
+          ) : (
+            <span className="text-muted">-</span>
+          )}
+        </div>
+      ),
+    },
+    {
       name: "Center",
       selector: (row) => row.center?.title || "N/A",
       sortable: false,
@@ -119,6 +141,14 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       selector: (row) => row.invoiceNo,
       sortable: false,
       style: { fontWeight: "500" },
+      cell: (row) => (
+        <div>
+          <div>{row.invoiceNo}</div>
+          {row.opdInvoiceNo && (
+            <div className="font-size-11 text-muted">OPD: {row.opdInvoiceNo}</div>
+          )}
+        </div>
+      ),
     },
     {
       name: "Patient UID",
@@ -150,6 +180,22 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
           {row.status.toUpperCase()}
         </Badge>
       ),
+    },
+    {
+      name: "Error Message",
+      selector: (row) => row.errorMessage || "-",
+      sortable: false,
+      wrap: true,
+      minWidth: "180px",
+      cell: (row) => (
+        row.errorMessage ? (
+          <div className="text-danger font-size-11" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {row.errorMessage}
+          </div>
+        ) : (
+          <span className="text-muted">-</span>
+        )
+      )
     },
     {
       name: "Actions",

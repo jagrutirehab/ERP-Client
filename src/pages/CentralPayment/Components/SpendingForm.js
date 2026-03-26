@@ -555,7 +555,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             </FormGroup>
             <FormGroup>
                 <Label for="description" className="fw-medium">
-                    Description <span className="text-danger">*</span>
+                    Bank Statement Description <span className="text-danger">*</span>
                     <span className="ms-1 text-muted fs-12">
                         (Max 20 characters, no special characters)
                     </span>

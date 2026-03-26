@@ -3,6 +3,7 @@ import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { Pencil } from "lucide-react";
 import { format } from "date-fns";
 import Highlighter from "react-highlight-words";
+import { parseDateOnly, toTimeZoneDateKey } from "../../../../../utils/date";
 
 export const employeeReportingsColumns = ({
     onEdit,
@@ -92,12 +93,12 @@ export const employeeReportingsColumns = ({
             cell: row => {
                 if (row?.shiftType === "ROTATIONAL") {
                     const dates = (row.rotationalShifts || [])
-                        .map(s => s.date)
+                        .map(s => toTimeZoneDateKey(s.date))
                         .filter(Boolean)
                         .sort();
                     if (!dates.length) return "-";
-                    const from = format(new Date(dates[0]), "dd MMM yy");
-                    const to   = format(new Date(dates[dates.length - 1]), "dd MMM yy");
+                    const from = format(parseDateOnly(dates[0]), "dd MMM yy");
+                    const to   = format(parseDateOnly(dates[dates.length - 1]), "dd MMM yy");
                     return <span style={{ fontSize: "11px" }}>{from} → {to}</span>;
                 }
                 return row?.timing ? `${row.timing.start} - ${row.timing.end}` : "-";

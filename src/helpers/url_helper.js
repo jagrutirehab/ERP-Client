@@ -542,9 +542,9 @@ export const UPLOAD_FILE = "/upload";
 
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
-export const POST_TALLY_UPDATE = "/tally/update";
 export const POST_TALLY_CANCEL = (sessionId) => `/tally/cancel/${sessionId}`;
 export const GET_TALLY_LOGS = "/tally/logs";
+export const GET_TALLY_PENDING_UPDATES = "/tally/logs/pending-updates";
 
 // Issues
 export const GET_ISSUES = "/issues/get"
@@ -571,3 +571,7 @@ export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview
 export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
 export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
 export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews"
+
+// generate AI Summary
+export const GET_AI_SUMMARY = "/chart/generateSummary"
+export const VALIDATE_SUMMARY = "/chart/validate/response"

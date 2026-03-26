@@ -69,9 +69,9 @@ export const getCalendarRange = () => ({
     end: endOfMonth(new Date()),
 });
 
-export const getTableRange = () => ({
-    start: startOfDay(subDays(new Date(), 14)),
-    end: endOfDay(new Date()),
+export const getTableRange = (start, end) => ({
+    start: start ? startOfDay(new Date(start)) : startOfMonth(new Date()),
+    end: end ? endOfDay(new Date(end)) : endOfDay(new Date()),
 });
 
 export const normalizeDateForInput = (value) => {

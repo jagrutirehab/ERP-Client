@@ -2654,6 +2654,26 @@ export const setBulkRotationalShifts = (data) => {
   });
 };
 
+export const downloadRotationalShiftTemplate = (params = {}) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/rotational-shifts/template`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
+export const uploadRotationalShiftSheet = (data) => {
+  return api.create(`${url.EMPLOYEE_REPORTING}/rotational-shifts/upload`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+    responseType: "blob",
+  });
+};
+
 // Incentives
 export const postIncentives = (data) => {
   return api.create(url.INCENTIVES, data, {
@@ -2826,9 +2846,9 @@ export const submitAssessment = (id, payload) => {
 };
 // TALLY
 export const sendToTally = (data) => api.create(url.POST_TALLY_SEND, data);
-export const updateInTally = (data) => api.create(url.POST_TALLY_UPDATE, data);
 export const cancelTallySync = (sessionId) => api.create(url.POST_TALLY_CANCEL(sessionId), {});
 export const getTallyLogs = (params) => api.get(url.GET_TALLY_LOGS, { params });
+export const getTallyPendingUpdates = (params) => api.get(url.GET_TALLY_PENDING_UPDATES, { params });
 
 // Issues
 
@@ -2929,4 +2949,14 @@ export const uploadFeedbackXlsx = (data) => {
 
 export const getFeedbackRecordingOverview = (params = {}) => {
   return axios.get(url.GET_FEEDBACK_RECORDING_OVERVIEW, { params })
+}
+
+// get AI Discharge Summary 
+
+export const getAIDischargeSummary = (params = {}) => {
+  return axios.get(url.GET_AI_SUMMARY, { params });
+}
+
+export const validateAISummary = (summary) => {
+  return axios.patch(url.VALIDATE_SUMMARY, summary)
 }
