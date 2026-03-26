@@ -59,9 +59,9 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
     // if prefilled, start week from the earliest filled date
     if (initialData?.roster) {
       const dates = Object.keys(initialData.roster).sort();
-      if (dates.length) return startOfWeek(parseDateOnly(dates[0]), { weekStartsOn: 1 });
+      if (dates.length) return startOfWeek(parseDateOnly(dates[0]), { weekStartsOn: 0 });
     }
-    return startOfWeek(new Date(), { weekStartsOn: 1 });
+    return startOfWeek(new Date(), { weekStartsOn: 0 });
   });
 
   const weekDays = useMemo(
@@ -153,7 +153,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
   );
 
   const weekLabel = `${format(weekStart, "dd MMM")} – ${format(addDays(weekStart, 6), "dd MMM yyyy")}`;
-  const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
 
   return (
     <Card className="shadow-sm mb-3" style={{ border: hasFailed ? "1.5px solid #f5c2c7" : "none", background: hasFailed ? "#fff8f8" : undefined }}>
@@ -277,7 +277,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div>
                       <div className="fw-semibold" style={{ fontSize: "12px", color: todayFlag ? "#1565c0" : "#495057" }}>
-                        {DAY_LABELS[i]}
+                        {DAY_LABELS[day.getDay()]}
                       </div>
                       <div className="text-muted" style={{ fontSize: "11px" }}>{format(day, "dd MMM")}</div>
                     </div>
