@@ -2846,7 +2846,6 @@ export const submitAssessment = (id, payload) => {
 };
 // TALLY
 export const sendToTally = (data) => api.create(url.POST_TALLY_SEND, data);
-export const updateInTally = (data) => api.create(url.POST_TALLY_UPDATE, data);
 export const cancelTallySync = (sessionId) => api.create(url.POST_TALLY_CANCEL(sessionId), {});
 export const getTallyLogs = (params) => api.get(url.GET_TALLY_LOGS, { params });
 export const getTallyPendingUpdates = (params) => api.get(url.GET_TALLY_PENDING_UPDATES, { params });

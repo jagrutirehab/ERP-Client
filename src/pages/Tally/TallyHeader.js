@@ -22,8 +22,7 @@ const TallyHeader = ({
   selectedTypes,
   onTypeToggle,
   sending,
-  onSend,
-  onUpdate,
+  onSync,
   onCancel,
 }) => {
   const isDisabled =
@@ -120,14 +119,14 @@ const TallyHeader = ({
           </Button>
         )}
 
-        {/* Send to Tally — CREATE new entries */}
+        {/* Sync to Tally — upsert (insert or delete → re-insert) */}
         <Button
           color="primary"
           size="md"
-          onClick={onSend}
+          onClick={onSync}
           disabled={isDisabled}
           className="w-100"
-          title="Create new entries in Tally (skips if already exists)"
+          title="Sync entries to Tally (creates new or updates existing)"
         >
           {sending ? (
             <>
@@ -136,30 +135,8 @@ const TallyHeader = ({
             </>
           ) : (
             <>
-              <i className="bx bx-send me-2"></i>
-              Send to Tally
-            </>
-          )}
-        </Button>
-
-        {/* Update in Tally — SEARCH → DELETE → RE-INSERT */}
-        <Button
-          color="warning"
-          size="md"
-          onClick={onUpdate}
-          disabled={isDisabled}
-          className="w-100 text-white"
-          title="Update existing entries in Tally (search → delete → re-insert; skips if not found)"
-        >
-          {sending ? (
-            <>
-              <Spinner size="sm" className="me-2" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <i className="bx bx-refresh me-2"></i>
-              Update in Tally
+              <i className="bx bx-sync me-2"></i>
+              Sync to Tally
             </>
           )}
         </Button>
@@ -169,7 +146,7 @@ const TallyHeader = ({
 };
 
 TallyHeader.propTypes = {
-  selectedDate: PropTypes.instanceOf(Date),
+  selectedDate: PropTypes.array,
   setSelectedDate: PropTypes.func,
   centerOptions: PropTypes.array,
   selectedCentersIds: PropTypes.array,
@@ -177,8 +154,7 @@ TallyHeader.propTypes = {
   selectedTypes: PropTypes.array,
   onTypeToggle: PropTypes.func,
   sending: PropTypes.bool,
-  onSend: PropTypes.func,
-  onUpdate: PropTypes.func,
+  onSync: PropTypes.func,
   onCancel: PropTypes.func,
 };
 
