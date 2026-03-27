@@ -298,6 +298,7 @@ export const permissionList = [
       { name: "MY_LEAVES", label: "My Leaves" },
       { name: "BALANCE_LEAVES", label: "Balance Leaves" },
       { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
+      { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
       // Policy
       { name: "POLICIES", label: "Policies" },
       // Incentives

@@ -2425,6 +2425,34 @@ export const retrieveActionOnLeave = (action, docId, data) => {
   });
 };
 
+export const cancellationRequest = (data) => {
+  return axios.post(url.CANCELLATION_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const getCancellationsRequests = (params = {}) => {
+  return axios.get(url.GET_CANCELLATION_REQUEST, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const actionOnCancellationRequest = ({ cancellationId, status }) => {
+  return axios.patch(
+    `${url.ACTION_ON_CANCELLATION_REQUEST}/${cancellationId}/${status}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
