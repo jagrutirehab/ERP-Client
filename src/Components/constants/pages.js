@@ -871,6 +871,13 @@ export const HR = [
         link: "/hr/leaves/festive/leaves",
         icon: "bx bx-party",
       },
+      {
+        
+        id: "cancellations-requests",
+        label: "Cancellations Requests",
+        link: "/hr/leaves/get/cancellations",
+        icon: "bx bx-party",
+      }
     ],
   },
   {

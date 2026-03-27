@@ -49,6 +49,7 @@ import MyDashboard from "./MyDashboard";
 import FinanceDashboard from "./Finance";
 import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
+import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -183,6 +184,7 @@ const HR = () => {
                   element={<IndividualLeavesOfEmp />}
                 />
                 <Route path={`/leaves/festive/leaves`} element={<FestiveLeaves />} />
+                <Route path={`/leaves/get/cancellations`} element={<CancellationRequestsPage />} />
 
                 <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
