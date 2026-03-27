@@ -530,6 +530,7 @@ export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
 export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
 export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
 export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"
+export const GET_ALL_EMPLOYEE_LEAVE_BALANCE = "/hrms/leaves/balance/all-employees";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";

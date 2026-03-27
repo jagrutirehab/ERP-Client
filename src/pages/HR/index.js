@@ -50,6 +50,7 @@ import FinanceDashboard from "./Finance";
 import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
 import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
+import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -194,9 +195,12 @@ const HR = () => {
                 <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
 
                 <Route path={`/finance`} element={<FinanceDashboard />} />
+
                 <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
                 <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />
                 <Route path={`/reporting/shift-roster/assign/:reportingId`} element={<AssignShift />} />
+
+                <Route path={`/leave-balance/dashboard`} element={<EmployeeLeaveBalanceDashboard />} />
               </Routes>
             </div>
           </Container>

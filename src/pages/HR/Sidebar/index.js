@@ -202,6 +202,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasLeaveBalanceDashboardPermission = hasPermission(
+    "HR",
+    "LEAVE_BALANCE_DASHBOARD",
+    "READ"
+  );
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -411,6 +417,15 @@ const Sidebar = () => {
     if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     if (page.id === "finance" && !hasFinancePermission) return false;
+
+    if (page.id === "hr-dashboard") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "leave-balance-dashboard" && !hasLeaveBalanceDashboardPermission)
+          return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
     return true;
   });

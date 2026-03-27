@@ -572,6 +572,20 @@ export const HR = [
     link: "/hr/my-pending-approvals",
   },
   {
+    id: "hr-dashboard",
+    label: "HR",
+    icon: "bx bx-home",
+    isAccordion: true,
+    children: [
+      {
+        id: "leave-balance-dashboard",
+        label: "Leave Balance",
+        link: "/hr/leave-balance/dashboard",
+        icon: "bx bx-layer"
+      },
+    ],
+  },
+  {
     id: "master-employee",
     label: "Master Employee",
     link: "/hr/employee",
@@ -814,7 +828,7 @@ export const HR = [
         link: "/hr/reporting/manage",
         icon: "bx bx-list-check",
       },
-       {
+      {
         id: "assign-rotational-shift",
         label: "Assign Shift",
         link: "/hr/reporting/shift-roster/assign",
@@ -1094,7 +1108,7 @@ export const RECORDINGS = [
     link: "/recordings/feedback",
     icon: "bx bx-comment-detail"
   },
-    {
+  {
     id: "feedback-recordings-overview",
     label: "Feedback Recordings Overview",
     link: "/recordings/feedback/overview",

@@ -2666,6 +2666,15 @@ export const getEmployeeLeaves = (employeeId, params = {}) => {
   });
 };
 
+export const getAllEmployeeLeaveBalance = (params = {}) => {
+  return api.get(url.GET_ALL_EMPLOYEE_LEAVE_BALANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const setRotationalShifts = (id, data) => {
   return api.put(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, data, {
     headers: {

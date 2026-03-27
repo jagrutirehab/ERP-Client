@@ -125,7 +125,7 @@ const RotationalShiftBulkModal = ({
   return (
     <Modal isOpen={isOpen} toggle={!loading ? toggle : undefined} size="xl" >
       <ModalHeader toggle={!loading ? toggle : undefined}>
-        {isUploadMode ? "Upload Rotational Shift XLSX" : "Download Rotational Shift Template"}
+        {isUploadMode ? "Upload Rotational Shift Excel" : "Download Rotational Shift Template"}
       </ModalHeader>
 
       <ModalBody>
@@ -179,7 +179,7 @@ const RotationalShiftBulkModal = ({
           {isUploadMode && (
             <>
               <div>
-                <Label className="form-label fw-semibold">Select XLSX File</Label>
+                <Label className="form-label fw-semibold">Select Excel File</Label>
                 <Input
                   type="file"
                   accept=".xlsx,.xls"
