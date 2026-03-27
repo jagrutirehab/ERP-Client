@@ -36,10 +36,20 @@ export const leaveBalanceColumns = ({ searchText }) => [
         minWidth: "120px",
     },
     {
-        name: <div>Status</div>,
-        selector: row => capitalizeWords(row?.status || "-"),
+        name: <div>Current Status</div>,
+        selector: (row) =>
+            row?.status === "ACTIVE"
+                ? "Active"
+                : row?.status === "FNF_CLOSED"
+                    ? "FNF Closed"
+                    : "Resigned",
         wrap: true,
-        minWidth: "100px",
+    },
+    {
+        name: <div>Policy & Year</div>,
+        selector: row => row?.policyName ? `${row?.policyName || "-"} (${row?.year || "-"})` : "-",
+        wrap: true,
+        minWidth: "150px",
     },
     {
         name: <div>Earned Leave</div>,
@@ -84,27 +94,6 @@ export const leaveBalanceColumns = ({ searchText }) => [
         minWidth: "130px",
     },
     {
-        name: <div>Unpaid Leave</div>,
-        selector: row => row?.leaveData?.unpaidLeaves?.balance || 0,
-        cell: row => {
-            const ul = row?.leaveData?.unpaidLeaves;
-            return (
-                <div className="py-2" style={{ width: "100%" }}>
-                    <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", paddingBottom: "2px", marginBottom: "2px" }}>
-                        <b style={{ width: "80px" }}>Spent:</b> <span>{ul?.spent || 0}</span>
-                    </div>
-                    <div style={{ display: "flex", borderBottom: "1px solid #f0f0f0", paddingBottom: "2px", marginBottom: "2px" }}>
-                        <b style={{ width: "80px" }}>Balance:</b> <span>{ul?.balance || 0}</span>
-                    </div>
-                    <div style={{ display: "flex" }}>
-                        <b style={{ width: "80px" }}>Total:</b> <span>{ul?.total || 0}</span>
-                    </div>
-                </div>
-            );
-        },
-        minWidth: "130px",
-    },
-    {
         name: <div>Week Offs</div>,
         selector: row => row?.leaveData?.weekOffs?.spent || 0,
         cell: row => {
@@ -121,5 +110,10 @@ export const leaveBalanceColumns = ({ searchText }) => [
             );
         },
         minWidth: "120px",
+    },
+    {
+        name: <div>Unpaid Leave(Spent)</div>,
+        selector: row => row?.leaveData?.unpaidLeaves?.spent || 0,
+        center: true
     },
 ];

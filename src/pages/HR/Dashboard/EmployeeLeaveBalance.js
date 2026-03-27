@@ -19,6 +19,7 @@ const EmployeeLeaveBalanceDashboard = () => {
     const [limit, setLimit] = useState(10);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [year, setYear] = useState(new Date().getFullYear());
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -57,6 +58,11 @@ const EmployeeLeaveBalanceDashboard = () => {
         }) || []),
     ];
 
+    const yearOptions = Array.from({ length: 6 }, (_, i) => {
+        const y = 2025 + i;
+        return { value: y, label: y.toString() };
+    });
+
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||
         centerOptions[0];
@@ -94,6 +100,7 @@ const EmployeeLeaveBalanceDashboard = () => {
                     page,
                     limit,
                     centers,
+                    year,
                     ...(search.trim() !== "" && { search: debouncedSearch }),
                 }),
             ).unwrap();
@@ -108,7 +115,7 @@ const EmployeeLeaveBalanceDashboard = () => {
         if (hasUserPermission) {
             loadEmployeeLeaveBalance();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
+    }, [page, limit, selectedCenter, debouncedSearch, year, user?.centerAccess]);
 
 
     if (!permissionLoader && !hasUserPermission) {
@@ -118,7 +125,7 @@ const EmployeeLeaveBalanceDashboard = () => {
     return (
         <CardBody
             className="p-3 bg-white"
-            style={isMobile ? { width: "100%" } : { width: "95%" }}
+            style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
             <div className="text-center text-md-left mb-3">
                 <h4 className="fw-bold text-primary">LEAVE BALANCE DASHBOARD</h4>
@@ -129,7 +136,6 @@ const EmployeeLeaveBalanceDashboard = () => {
                 <div className="d-none d-md-flex justify-content-between align-items-center">
 
                     <div className="d-flex gap-3 align-items-center">
-
                         <div style={{ width: "200px" }}>
                             <Select
                                 value={selectedCenterOption}
@@ -139,6 +145,19 @@ const EmployeeLeaveBalanceDashboard = () => {
                                 }}
                                 options={centerOptions}
                                 placeholder="All Centers"
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+
+                        <div style={{ width: "120px" }}>
+                            <Select
+                                value={yearOptions.find(opt => opt.value === year)}
+                                onChange={(option) => {
+                                    setYear(option?.value);
+                                    setPage(1);
+                                }}
+                                options={yearOptions}
+                                placeholder="Year"
                                 classNamePrefix="react-select"
                             />
                         </div>
@@ -168,6 +187,19 @@ const EmployeeLeaveBalanceDashboard = () => {
                             }}
                             options={centerOptions}
                             placeholder="All Centers"
+                            classNamePrefix="react-select"
+                        />
+                    </div>
+
+                    <div style={{ width: "100%" }}>
+                        <Select
+                            value={yearOptions.find(opt => opt.value === year)}
+                            onChange={(option) => {
+                                setYear(option?.value);
+                                setPage(1);
+                            }}
+                            options={yearOptions}
+                            placeholder="Year"
                             classNamePrefix="react-select"
                         />
                     </div>

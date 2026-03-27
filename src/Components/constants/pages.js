@@ -581,6 +581,7 @@ export const HR = [
         id: "leave-balance-dashboard",
         label: "Leave Balance",
         link: "/hr/leave-balance/dashboard",
+        icon: "bx bx-layer"
       },
     ],
   },
