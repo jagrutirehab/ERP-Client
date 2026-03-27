@@ -583,6 +583,12 @@ export const HR = [
         link: "/hr/leave-balance/dashboard",
         icon: "bx bx-layer"
       },
+      {
+        id: "regularization-dashboard",
+        label: "Regularizations",
+        link: "/hr/regularization/dashboard",
+        icon: "bx bx-reset",
+      },
     ],
   },
   {
@@ -886,7 +892,7 @@ export const HR = [
         icon: "bx bx-party",
       },
       {
-        
+
         id: "cancellations-requests",
         label: "Cancellations Requests",
         link: "/hr/leaves/get/cancellations",

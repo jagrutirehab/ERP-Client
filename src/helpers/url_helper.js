@@ -536,6 +536,8 @@ export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
+export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
+export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =

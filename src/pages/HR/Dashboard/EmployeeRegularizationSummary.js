@@ -5,21 +5,26 @@ import { CardBody, Input } from "reactstrap";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { fetchAllEmployeeLeaveBalance } from "../../../store/features/HR/hrSlice";
+import { fetchAllEmployeeRegularizations } from "../../../store/features/HR/hrSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { leaveBalanceColumns } from "../components/columns/LeaveBalanceColumns";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
+import Flatpickr from "react-flatpickr";
+import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
+import "flatpickr/dist/themes/material_blue.css";
+import "flatpickr/dist/plugins/monthSelect/style.css";
+import { getMonthRange } from "../../../utils/time";
+import { Calendar } from "lucide-react";
+import { regularizationSummaryColumns } from "../components/columns/RegularizationSummaryColumns";
 
-
-const EmployeeLeaveBalanceDashboard = () => {
+const EmployeeRegularizationSummaryDashboard = () => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [year, setYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(new Date());
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -36,8 +41,12 @@ const EmployeeLeaveBalanceDashboard = () => {
         hasPermission,
         loading: permissionLoader,
     } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "LEAVE_BALANCE_DASHBOARD", "READ");
-    const columns = leaveBalanceColumns({ searchText: debouncedSearch });
+    const hasUserPermission = hasPermission("HR", "REGULARIZATION_DASHBOARD", "READ");
+    const columns = regularizationSummaryColumns({
+        searchText: debouncedSearch,
+        navigate,
+        selectedMonth
+    });
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -57,11 +66,6 @@ const EmployeeLeaveBalanceDashboard = () => {
             };
         }) || []),
     ];
-
-    const yearOptions = Array.from({ length: 6 }, (_, i) => {
-        const y = 2025 + i;
-        return { value: y, label: y.toString() };
-    });
 
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||
@@ -86,7 +90,7 @@ const EmployeeLeaveBalanceDashboard = () => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    const loadEmployeeLeaveBalance = async () => {
+    const loadAllEmployeeRegularizations = async () => {
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -94,14 +98,16 @@ const EmployeeLeaveBalanceDashboard = () => {
                     : !user?.centerAccess.length
                         ? []
                         : [selectedCenter];
-
+            const { startDate, endDate } = getMonthRange(selectedMonth);
             await dispatch(
-                fetchAllEmployeeLeaveBalance({
+                fetchAllEmployeeRegularizations({
                     page,
                     limit,
                     centers,
-                    year,
+                    startDate,
+                    endDate,
                     ...(search.trim() !== "" && { search: debouncedSearch }),
+                    tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 }),
             ).unwrap();
         } catch (error) {
@@ -113,9 +119,9 @@ const EmployeeLeaveBalanceDashboard = () => {
 
     useEffect(() => {
         if (hasUserPermission) {
-            loadEmployeeLeaveBalance();
+            loadAllEmployeeRegularizations();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, year, user?.centerAccess]);
+    }, [page, limit, selectedCenter, debouncedSearch, selectedMonth, user?.centerAccess]);
 
 
     if (!permissionLoader && !hasUserPermission) {
@@ -128,7 +134,7 @@ const EmployeeLeaveBalanceDashboard = () => {
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
             <div className="text-center text-md-left mb-3">
-                <h4 className="fw-bold text-primary">LEAVE BALANCE DASHBOARD</h4>
+                <h4 className="fw-bold text-primary">REGULARIZATION DASHBOARD</h4>
             </div>
 
             <div className="mb-3">
@@ -159,21 +165,33 @@ const EmployeeLeaveBalanceDashboard = () => {
                             />
                         </div>
 
-                        <div style={{ width: "120px" }}>
-                            <Select
-                                value={yearOptions.find(opt => opt.value === year)}
-                                onChange={(option) => {
-                                    setYear(option?.value);
-                                    setPage(1);
+                        <div className="position-relative month-picker">
+                            <Calendar
+                                size={14}
+                                className="position-absolute calendar-icon"
+                            />
+
+                            <Flatpickr
+                                value={selectedMonth}
+                                disabled={loading}
+                                options={{
+                                    plugins: [
+                                        monthSelectPlugin({
+                                            shorthand: false,
+                                            dateFormat: "Y-m",
+                                            altFormat: "F Y",
+                                        }),
+                                    ],
+                                    altInput: true,
+                                    disableMobile: true
                                 }}
-                                options={yearOptions}
-                                placeholder="Year"
-                                classNamePrefix="react-select"
+                                onChange={([date]) => setSelectedMonth(date)}
+                                className="form-control form-control-sm"
                             />
                         </div>
                     </div>
 
-                    <RefreshButton loading={loading} onRefresh={loadEmployeeLeaveBalance} />
+                    <RefreshButton loading={loading} onRefresh={loadAllEmployeeRegularizations} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -192,6 +210,33 @@ const EmployeeLeaveBalanceDashboard = () => {
                     </div>
 
                     <div style={{ width: "100%" }}>
+                        <div className="position-relative month-picker">
+                            <Calendar
+                                size={14}
+                                className="position-absolute calendar-icon"
+                            />
+
+                            <Flatpickr
+                                value={selectedMonth}
+                                disabled={loading}
+                                options={{
+                                    plugins: [
+                                        monthSelectPlugin({
+                                            shorthand: false,
+                                            dateFormat: "Y-m",
+                                            altFormat: "F Y",
+                                        }),
+                                    ],
+                                    altInput: true,
+                                    disableMobile: true
+                                }}
+                                onChange={([date]) => setSelectedMonth(date)}
+                                className="form-control form-control-sm"
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ width: "100%" }}>
                         <Input
                             type="text"
                             className="form-control"
@@ -200,21 +245,8 @@ const EmployeeLeaveBalanceDashboard = () => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-
-                    <div style={{ width: "100%" }}>
-                        <Select
-                            value={yearOptions.find(opt => opt.value === year)}
-                            onChange={(option) => {
-                                setYear(option?.value);
-                                setPage(1);
-                            }}
-                            options={yearOptions}
-                            placeholder="Year"
-                            classNamePrefix="react-select"
-                        />
-                    </div>
                     <div className="d-flex justify-content-end">
-                        <RefreshButton loading={loading} onRefresh={loadEmployeeLeaveBalance} />
+                        <RefreshButton loading={loading} onRefresh={loadAllEmployeeRegularizations} />
                     </div>
                 </div>
             </div>
@@ -234,4 +266,4 @@ const EmployeeLeaveBalanceDashboard = () => {
     )
 }
 
-export default EmployeeLeaveBalanceDashboard;
+export default EmployeeRegularizationSummaryDashboard;

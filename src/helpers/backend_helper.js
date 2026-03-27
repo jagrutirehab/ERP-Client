@@ -2359,6 +2359,24 @@ export const updateRegularizationStatus = (id, status) => {
   );
 };
 
+export const getAllEmployeeRegularizations = (params = {}) => {
+  return axios.get(url.GET_ALL_EMPLOYEE_REGULARIZATIONS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRegularizationsByEmployee = ({ employeeId, ...params }) => {
+  return axios.get(`${url.GET_REGULARIZATIONS_BY_EMPLOYEE}/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {

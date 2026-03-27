@@ -46,7 +46,7 @@ export const leaveBalanceColumns = ({ searchText }) => [
         wrap: true,
     },
     {
-        name: <div>Policy & Year</div>,
+        name: <div>Policy (Year)</div>,
         selector: row => row?.policyName ? `${row?.policyName || "-"} (${row?.year || "-"})` : "-",
         wrap: true,
         minWidth: "150px",
