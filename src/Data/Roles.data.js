@@ -307,6 +307,9 @@ export const permissionList = [
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
       { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
+      // HR DASHBOARD
+      { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],
   },

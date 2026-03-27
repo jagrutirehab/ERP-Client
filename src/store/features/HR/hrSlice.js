@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getFinance, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
+import { getAdvanceSalaries, getAllEmployeeLeaveBalance, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getFinance, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getTPMs, payrollAction, payrollBulkAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
 
 const initialState = {
     data: [],
@@ -157,6 +157,15 @@ export const fetchApprovalInbox = createAsyncThunk("hr/getApprovalInbox", async 
 export const fetchFinance = createAsyncThunk("hr/getFinance", async (data, { rejectWithValue }) => {
     try {
         const response = await getFinance(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
+export const fetchAllEmployeeLeaveBalance = createAsyncThunk("hr/getAllEmployeeLeaveBalance", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getAllEmployeeLeaveBalance(data);
         return response;
     } catch (error) {
         return rejectWithValue(error);
@@ -361,6 +370,19 @@ export const hrSlice = createSlice({
                 state.pagination = payload.pagination;
             })
             .addCase(fetchFinance.rejected, (state) => {
+                state.loading = false
+            });
+
+        builder
+            .addCase(fetchAllEmployeeLeaveBalance.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(fetchAllEmployeeLeaveBalance.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data;
+                state.pagination = payload.pagination;
+            })
+            .addCase(fetchAllEmployeeLeaveBalance.rejected, (state) => {
                 state.loading = false
             });
     }
