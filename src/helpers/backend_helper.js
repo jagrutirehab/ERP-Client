@@ -2830,6 +2830,15 @@ export const getActiveTallySession = () => api.get(url.GET_TALLY_ACTIVE_SESSION)
 export const cancelTallySync = (sessionId) => api.create(url.POST_TALLY_CANCEL(sessionId), {});
 export const getTallyLogs = (params) => api.get(url.GET_TALLY_LOGS, { params });
 export const getTallyPendingUpdates = (params) => api.get(url.GET_TALLY_PENDING_UPDATES, { params });
+export const exportTallyLogsCsv = (params) => {
+  const queryString = Object.entries(params)
+    .filter(([, v]) => v != null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
+  return axios.get(`${url.GET_TALLY_LOGS_EXPORT_CSV}?${queryString}`, {
+    responseType: "blob",
+  });
+};
 
 // Issues
 
