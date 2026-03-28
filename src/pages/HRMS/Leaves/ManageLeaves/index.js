@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   actionOnLeaves,
+  directCancellation,
   getLeavesRequest,
 } from "../../../../helpers/backend_helper";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
@@ -13,10 +14,12 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useSelector } from "react-redux";
+import CancelLeaveModal from "./Modal/CancelLeaveModal";
 
 const ManageLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [cancellationLoading, setCancellationLoading] = useState(null);
   const handleAuthError = useAuthError();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,6 +40,8 @@ const ManageLeaves = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelData, setCancelData] = useState(null);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
@@ -103,9 +108,13 @@ const ManageLeaves = () => {
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(queryLeaveId !== "" && { leaveId: queryLeaveId })
       });
-      // console.log("res", res);
+      console.log("res", res);
       setRequestsData(res?.data || []);
-      setPagination(res?.pagination || null);
+      // setPagination(res?.pagination || null);
+      setPagination({
+        ...res?.pagination,
+        totalDocs: res?.pagination?.totalRecords,
+      });
     } catch (error) {
       console.log("API Error:", error);
       if (!handleAuthError(error)) {
@@ -151,7 +160,7 @@ const ManageLeaves = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // console.log("data", data)
+  console.log("requestsData", requestsData)
 
   const leaves = useMemo(() => {
     if (!Array.isArray(requestsData)) return [];
@@ -165,6 +174,10 @@ const ManageLeaves = () => {
       approvalAuthority: item.approvalAuthority,
       createdAt: item.createdAt,
       eCode: item.eCode,
+      cancellationRequested : item?.leaves?.cancellationRequested,
+      cancellationStatus : item?.leaves?.cancellationStatus,
+      reason : item?.leaves?.cancellationReason,
+      cancellationAction : item?.leaves?.cancellationAction
     }));
   }, [requestsData]);
 
@@ -208,6 +221,48 @@ const ManageLeaves = () => {
     { value: 11, label: "Dec" },
   ];
 
+  console.log("leaves", leaves);
+  const handleCancellation = (docId, leaveId, manager_id, employeeId) => {
+    setCancelData({ docId, leaveId, manager_id, employeeId });
+    setShowCancelModal(true);
+  };
+
+  const confirmCancellation = async (reason) => {
+    if (!cancelData) return;
+    console.log("cancelData", cancelData);
+
+
+    try {
+      setCancellationLoading(cancelData.leaveId);
+
+      const payload = {
+        docId: cancelData?.docId,
+        leaveId: cancelData?.leaveId,
+        // manager_id: cancelData?.manager_id,
+        employeeId: cancelData?.employeeId,
+        reason
+      };
+
+      // console.log("Payload", payload);
+
+      const response = await directCancellation(payload);
+
+      toast.success(response?.message || "Leave cancelled successfully");
+
+      setShowCancelModal(false);
+      setCancelData(null);
+      fetchLeaves();
+    } catch (error) {
+      console.log("Cancel Error:", error);
+      toast.error("Failed to cancel leave");
+    } finally {
+      setCancellationLoading(null);
+    }
+  };
+
+  console.log("leaves", leaves);
+  
+
   return (
     <CardBody
       className="p-3 bg-white"
@@ -218,7 +273,7 @@ const ManageLeaves = () => {
       </div>
 
       <Nav tabs className="mb-3">
-        {["pending", "approved", "rejected", "retrieved"].map((tab) => (
+        {["pending", "approved", "rejected", "retrieved", "cancelled"].map((tab) => (
           <NavItem key={tab}>
             <NavLink
               className={classnames({ active: activeTab === tab })}
@@ -300,6 +355,8 @@ const ManageLeaves = () => {
           hasWrite,
           hasDelete,
           activeTab,
+          handleCancellation,
+          cancellationLoading
         )}
         data={leaves}
         pagination={pagination}
@@ -308,6 +365,13 @@ const ManageLeaves = () => {
         limit={limit}
         setLimit={setLimit}
         loading={loading}
+      />
+
+      <CancelLeaveModal
+        show={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancellation}
+        loading={cancellationLoading === cancelData?.leaveId}
       />
     </CardBody>
   );

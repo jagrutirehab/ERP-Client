@@ -298,6 +298,7 @@ export const permissionList = [
       { name: "MY_LEAVES", label: "My Leaves" },
       { name: "BALANCE_LEAVES", label: "Balance Leaves" },
       { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
+      { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
       // Policy
       { name: "POLICIES", label: "Policies" },
       // Incentives
@@ -307,6 +308,10 @@ export const permissionList = [
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
       { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
+      // HR DASHBOARD
+      { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
+      // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],
   },

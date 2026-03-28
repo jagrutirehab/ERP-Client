@@ -87,8 +87,8 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
       style: { fontWeight: "600" },
     },
     {
-      name: "Patient / Vendor",
-      selector: (row) => row.patientId || "N/A",
+      name: "Party / Identifier",
+      selector: (row) => row.partyIdentifier || "N/A",
       sortable: false,
     },
     {
@@ -111,7 +111,7 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
       cell: (row) =>
         row.sourceDate
           ? format(new Date(row.sourceDate), "dd MMM yyyy")
-          : row.billDate || "N/A",
+          : row.entryDate || "N/A",
     },
     {
       name: "Center",

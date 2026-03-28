@@ -14,9 +14,13 @@ import {
 import classnames from "classnames";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { format } from "date-fns";
+import { endOfDay, format, startOfDay } from "date-fns";
 import { toast } from "react-toastify";
-import { sendToTally, cancelTallySync, getActiveTallySession } from "../../helpers/backend_helper";
+import {
+  sendToTally,
+  cancelTallySync,
+  getActiveTallySession,
+} from "../../helpers/backend_helper";
 import { api } from "../../config";
 import TallyHeader from "./TallyHeader";
 import LogConsole from "./LogConsole";
@@ -109,27 +113,138 @@ const Tally = ({ centers, centerAccess }) => {
     setLogs((prev) => [...prev, { timestamp, message, type }]);
   }, []);
 
+  // const connectSSE = useCallback(
+  //   (sessionId) => {
+  //     if (eventSourceRef.current) {
+  //       eventSourceRef.current.close();
+  //     }
+
+  //     const baseUrl = api.API_URL || "";
+  //     const sseUrl = `${baseUrl}/tally/send/stream?sessionId=${sessionId}`;
+
+  //     addLog(`📡 Connecting to live stream...`, "info");
+
+  //     const eventSource = new EventSource(sseUrl, { withCredentials: true });
+  //     eventSourceRef.current = eventSource;
+
+  //     eventSource.onmessage = (event) => {
+  //       try {
+  //         const data = JSON.parse(event.data);
+
+  //         if (data.type === "log") {
+  //           addLog(data.message, data.level || "info");
+  //         } else if (data.type === "cancelled") {
+  //           addLog("", "divider");
+  //           addLog("🛑 Sync cancelled by user.", "warning");
+  //           addLog("", "divider");
+  //           setSending(false);
+  //           currentSessionIdRef.current = null;
+  //           eventSource.close();
+  //           eventSourceRef.current = null;
+  //         } else if (data.type === "done") {
+  //           addLog("", "divider");
+  //           addLog(`🎯 Tally Sync Summary:`, "info");
+  //           addLog(`   Total: ${data.summary?.total || 0}`, "info");
+  //           addLog(`   ✅ Success: ${data.summary?.success || 0}`, "success");
+  //           addLog(
+  //             `   ❌ Failed: ${data.summary?.failed || 0}`,
+  //             data.summary?.failed > 0 ? "error" : "info",
+  //           );
+  //           addLog(`   ⏱️  Duration: ${data.summary?.duration || 0}ms`, "info");
+  //           addLog("", "divider");
+  //           addLog("✅ Sync completed!", "success");
+
+  //           setSending(false);
+  //           setIsDone(true);
+  //           currentSessionIdRef.current = null;
+  //           eventSource.close();
+  //           eventSourceRef.current = null;
+  //         } else if (data.type === "error") {
+  //           addLog(`❌ ${data.message}`, "error");
+  //           setSending(false);
+  //           currentSessionIdRef.current = null;
+  //           eventSource.close();
+  //           eventSourceRef.current = null;
+  //         }
+  //       } catch (e) {
+  //         addLog(event.data, "info");
+  //       }
+  //     };
+
+  //     eventSource.onerror = () => {
+  //       eventSource.close();
+  //       eventSourceRef.current = null;
+  //       addLog("⚠️ Connection lost. Attempting to reconnect...", "warning");
+  //       // Auto-retry after 3 seconds via ref
+  //       setTimeout(() => {
+  //         if (checkAndReconnectRef.current) checkAndReconnectRef.current();
+  //       }, 3000);
+  //     };
+  //   },
+  //   [addLog],
+  // );
   const connectSSE = useCallback(
     (sessionId) => {
       if (eventSourceRef.current) {
+        console.log(
+          "🔌 [SSE] Closing existing connection before starting a new one.",
+        );
         eventSourceRef.current.close();
       }
 
       const baseUrl = api.API_URL || "";
       const sseUrl = `${baseUrl}/tally/send/stream?sessionId=${sessionId}`;
 
+      console.log(`🟢 [SSE] Initiating connection to: ${sseUrl}`);
       addLog(`📡 Connecting to live stream...`, "info");
 
       const eventSource = new EventSource(sseUrl, { withCredentials: true });
       eventSourceRef.current = eventSource;
 
+      // 🟢 THE WATCHDOG TIMER
+      let watchdog;
+      const resetWatchdog = (triggerSource) => {
+        clearTimeout(watchdog);
+        // Uncomment the line below if you want to see exactly when the timer resets,
+        // but it might get noisy with fast logs!
+        // console.log(`⏱️ [Watchdog] Reset triggered by: ${triggerSource}. Waiting 60s...`);
+
+        watchdog = setTimeout(() => {
+          console.warn(
+            "💀 [Watchdog] TRIGGERED! 60 seconds passed with ZERO data from backend. Forcing reconnect.",
+          );
+          addLog("⚠️ Stream stalled. Forcing reconnect...", "warning");
+          eventSource.close();
+          eventSourceRef.current = null;
+          if (checkAndReconnectRef.current) checkAndReconnectRef.current();
+        }, 60000); // 60 seconds limit
+      };
+
+      // Start the timer as soon as we connect
+      resetWatchdog("initialization");
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
 
+          // 🟢 INTERCEPT PING: Catch the heartbeat, reset timer, keep UI clean.
+          if (data.type === "ping") {
+            console.log(
+              "💓 [SSE] Heartbeat ping received from backend. Socket is healthy.",
+            );
+            resetWatchdog("ping");
+            return;
+          }
+
+          // Reset timer for any normal log as well
+          resetWatchdog("data");
+
           if (data.type === "log") {
+            // Optional: console.log(`📩 [SSE] Log received:`, data.message);
             addLog(data.message, data.level || "info");
           } else if (data.type === "cancelled") {
+            console.log("🛑 [SSE] Sync cancelled by user.");
+            clearTimeout(watchdog);
             addLog("", "divider");
             addLog("🛑 Sync cancelled by user.", "warning");
             addLog("", "divider");
@@ -138,6 +253,8 @@ const Tally = ({ centers, centerAccess }) => {
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.type === "done") {
+            console.log("🎯 [SSE] Sync completed successfully!");
+            clearTimeout(watchdog);
             addLog("", "divider");
             addLog(`🎯 Tally Sync Summary:`, "info");
             addLog(`   Total: ${data.summary?.total || 0}`, "info");
@@ -156,6 +273,8 @@ const Tally = ({ centers, centerAccess }) => {
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.type === "error") {
+            console.error("❌ [SSE] Backend sent an error:", data.message);
+            clearTimeout(watchdog);
             addLog(`❌ ${data.message}`, "error");
             setSending(false);
             currentSessionIdRef.current = null;
@@ -163,19 +282,23 @@ const Tally = ({ centers, centerAccess }) => {
             eventSourceRef.current = null;
           }
         } catch (e) {
+          console.error("⚠️ [SSE] Failed to parse event data:", event.data);
           addLog(event.data, "info");
         }
       };
 
-      eventSource.onerror = () => {
+      eventSource.onerror = (errorEvent) => {
+        console.error(
+          "🔴 [SSE] Browser fired onerror event. Connection dropped.",
+          errorEvent,
+        );
+        clearTimeout(watchdog);
         eventSource.close();
         eventSourceRef.current = null;
-        addLog(
-          "⚠️ Connection lost. Attempting to reconnect...",
-          "warning",
-        );
-        // Auto-retry after 3 seconds via ref
+        addLog("⚠️ Connection lost. Attempting to reconnect...", "warning");
+
         setTimeout(() => {
+          console.log("🔄 [SSE] Attempting to reconnect now...");
           if (checkAndReconnectRef.current) checkAndReconnectRef.current();
         }, 3000);
       };
@@ -233,22 +356,26 @@ const Tally = ({ centers, centerAccess }) => {
       return;
     }
 
+    const syncDate = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate;
+    if (!syncDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
     // Reset state
     setLogs([]);
     setIsDone(false);
     setSending(true);
 
     addLog("🚀 Initiating Tally sync...", "info");
-    const startDateStr = selectedDate[0] ? format(selectedDate[0], "dd MMM yyyy") : "";
-    const endDateStr = selectedDate[1] ? format(selectedDate[1], "dd MMM yyyy") : startDateStr;
-    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
+    addLog(`📅 Date: ${format(syncDate, "dd MMM yyyy")}`, "info");
     addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
 
     try {
       const response = await sendToTally({
-        date: selectedDate[0]?.toISOString(),
-        startDate: selectedDate[0]?.toISOString(),
-        endDate: (selectedDate[1] || selectedDate[0])?.toISOString(),
+        date: startOfDay(syncDate),
+        startDate: startOfDay(syncDate),
+        endDate: endOfDay(syncDate),
         centerIds: selectedCentersIds,
         types: selectedTypes,
       });
