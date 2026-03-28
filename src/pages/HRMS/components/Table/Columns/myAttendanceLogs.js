@@ -5,10 +5,19 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
-const isFutureDate = (date) => {
-  if (!date) return false;
-  return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-};
+  const isFutureDate = (date) => {
+    if (!date) return false;
+    return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
+  };
+
+  const canShowRegularizeButton = (row) => {
+    const regularizationStatus = row?.regularizations?.regularization_id?.status;
+    return (
+      (!row?.regularizations?.regularization_id ||
+        regularizationStatus === "REJECTED") &&
+      !isFutureDate(row?.date)
+    );
+  };
 
 export const myAttendanceLogsColumns = ({
   hasUserAllViewPermission,
