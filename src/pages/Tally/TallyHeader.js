@@ -2,7 +2,6 @@ import React from "react";
 import { Row, Col, Button, Spinner, Input, Label, FormGroup } from "reactstrap";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDown";
 
@@ -39,22 +38,12 @@ const TallyHeader = ({
         >
           <Flatpickr
             value={selectedDate}
-            onChange={(dates, dateStr, instance) => {
-              if (dates.length === 2) {
-                const diffTime = Math.abs(dates[1] - dates[0]);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays >= 3) {
-                  toast.error("Maximum allowed date range is 3 days.");
-                  // Reset the visual date picker to just the start date
-                  instance.setDate([dates[0]]);
-                  setSelectedDate([dates[0]]);
-                  return;
-                }
+            onChange={(dates) => {
+              if (dates[0]) {
+                setSelectedDate(dates[0]);
               }
-              setSelectedDate(dates);
             }}
             options={{
-              mode: "range",
               dateFormat: "d M, Y",
               disableMobile: true,
             }}
@@ -146,7 +135,7 @@ const TallyHeader = ({
 };
 
 TallyHeader.propTypes = {
-  selectedDate: PropTypes.array,
+  selectedDate: PropTypes.instanceOf(Date),
   setSelectedDate: PropTypes.func,
   centerOptions: PropTypes.array,
   selectedCentersIds: PropTypes.array,
