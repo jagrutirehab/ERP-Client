@@ -43,8 +43,6 @@ const Tally = ({ centers, centerAccess }) => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  console.log({ selectedDate });
-
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
   const hasTallyPermission = hasPermission("TALLY", null, "READ");
   const hasTallyCreatePermission = hasPermission(
@@ -358,8 +356,9 @@ const Tally = ({ centers, centerAccess }) => {
       return;
     }
 
-    if (selectedDate?.length < 2) {
-      toast.error("Please select a date range");
+    const syncDate = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate;
+    if (!syncDate) {
+      toast.error("Please select a date");
       return;
     }
 
@@ -369,20 +368,14 @@ const Tally = ({ centers, centerAccess }) => {
     setSending(true);
 
     addLog("🚀 Initiating Tally sync...", "info");
-    const startDateStr = selectedDate[0]
-      ? format(selectedDate[0], "dd MMM yyyy")
-      : "";
-    const endDateStr = selectedDate[1]
-      ? format(selectedDate[1], "dd MMM yyyy")
-      : startDateStr;
-    addLog(`📅 Date: ${startDateStr} to ${endDateStr}`, "info");
+    addLog(`📅 Date: ${format(syncDate, "dd MMM yyyy")}`, "info");
     addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
 
     try {
       const response = await sendToTally({
-        date: startOfDay(selectedDate[0]),
-        startDate: startOfDay(selectedDate[0]),
-        endDate: endOfDay(selectedDate[1]),
+        date: startOfDay(syncDate),
+        startDate: startOfDay(syncDate),
+        endDate: endOfDay(syncDate),
         centerIds: selectedCentersIds,
         types: selectedTypes,
       });
