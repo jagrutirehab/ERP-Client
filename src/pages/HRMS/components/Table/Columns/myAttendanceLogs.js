@@ -116,7 +116,7 @@ export const myAttendanceLogsColumns = ({
           cell: (row) =>
             !loading && (
               <div className="d-flex gap-1 justify-content-center">
-                {!row?.regularizations?.regularization_id && !isFutureDate(row?.date) && (
+                {canShowRegularizeButton(row) && (
                   <Button
                     size="sm"
                     color="primary"
