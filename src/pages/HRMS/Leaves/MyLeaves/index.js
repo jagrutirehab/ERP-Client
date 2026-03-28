@@ -84,7 +84,7 @@ const MyLeaves = () => {
     fetchLeaves();
   }, [activeTab, selectedYear, selectedMonth, page, limit]);
 
-  // console.log("data", data);
+  console.log("inLeavse", data);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -107,6 +107,8 @@ const MyLeaves = () => {
           center: d?.center,
           approvalAuthority: d?.approvalAuthority,
           regularizedDates: l?.regularizedDates,
+          cancellationAction : l?.cancellationAction,
+          cancellationReason : l?.cancellationReason
         })) || [],
     )
     : [];
@@ -117,7 +119,7 @@ const MyLeaves = () => {
     (_, i) => 2015 + i,
   );
 
-  // console.log("leaves", leaves);
+  console.log("leaves", leaves);
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
@@ -171,7 +173,7 @@ const MyLeaves = () => {
     setIsCancelModalOpen(true);
   };
 
-  const handleRaiseCancellation = async () => {
+  const handleRaiseCancellation = async (reason) => {
     if (!selectedLeave) return;
     setRequestLoader(true)
     try {
@@ -180,7 +182,8 @@ const MyLeaves = () => {
       const payload = {
         leaveId: selectedLeave?.leave?._id,
         docId: selectedLeave?._id,
-        manager_id: selectedLeave?.approvalAuthority?._id
+        manager_id: selectedLeave?.approvalAuthority?._id,
+        reason
       }
       const response = await cancellationRequest(payload);
       console.log("Response", response);
@@ -205,7 +208,7 @@ const MyLeaves = () => {
     }
   };
 
-  console.log("activeTab", activeTab)
+  console.log("data", data)
 
 
   return (

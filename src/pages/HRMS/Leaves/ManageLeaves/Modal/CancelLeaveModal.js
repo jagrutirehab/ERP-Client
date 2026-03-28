@@ -1,4 +1,68 @@
-import React from "react";
+// import React, { useState } from "react";
+// import {
+//   Modal,
+//   ModalHeader,
+//   ModalBody,
+//   ModalFooter,
+//   Button,
+//   Spinner,
+//   Input,
+// } from "reactstrap";
+
+// const CancelLeaveModal = ({ show, onClose, onConfirm, loading }) => {
+//   const [reason, setReason] = useState("");
+  
+//   return (
+//     <Modal isOpen={show} toggle={onClose} centered>
+
+//       <ModalHeader toggle={!loading ? onClose : undefined}>
+//         Confirm Cancellation
+//       </ModalHeader>
+
+//       <ModalBody className="text-center">
+//        <h5>Are you sure you want to cancel this leave?</h5>
+
+//        <Input
+//           type="textarea"
+//           placeholder="Enter reason..."
+//           className="mt-3"
+//           value={reason}
+//           onChange={(e) => setReason(e.target.value)}
+//           disabled={loading}
+//         />
+//       </ModalBody>
+
+//       <ModalFooter className="justify-content-end">
+//         <Button
+//           color="secondary"
+//           onClick={onClose}
+//           disabled={loading}
+//         >
+//           No
+//         </Button>
+
+//         <Button
+//           color="danger"
+//           onClick={() => onConfirm(reason)}
+//           disabled={loading}
+//         >
+//           {loading ? (
+//             <>
+//               <Spinner size="sm" className="me-2" />
+//             </>
+//           ) : (
+//             "Yes, Cancel"
+//           )}
+//         </Button>
+//       </ModalFooter>
+
+//     </Modal>
+//   );
+// };
+
+// export default CancelLeaveModal;
+
+import React, { useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -6,9 +70,13 @@ import {
   ModalFooter,
   Button,
   Spinner,
+  Input,
 } from "reactstrap";
 
 const CancelLeaveModal = ({ show, onClose, onConfirm, loading }) => {
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+
   return (
     <Modal isOpen={show} toggle={onClose} centered>
 
@@ -17,10 +85,25 @@ const CancelLeaveModal = ({ show, onClose, onConfirm, loading }) => {
       </ModalHeader>
 
       <ModalBody className="text-center">
-        Are you sure you want to cancel this leave?
+        <h5>Are you sure you want to cancel this leave?</h5>
+
+        <Input
+          type="textarea"
+          placeholder="Enter reason..."
+          className="mt-3"
+          value={reason}
+          invalid={!!error}
+          onChange={(e) => {
+            setReason(e.target.value);
+            if (error) setError("");
+          }}
+          disabled={loading}
+        />
+
+        {error && <div className="text-danger mt-1">{error}</div>}
       </ModalBody>
 
-      <ModalFooter className="justify-content-center">
+      <ModalFooter className="justify-content-end">
         <Button
           color="secondary"
           onClick={onClose}
@@ -31,7 +114,13 @@ const CancelLeaveModal = ({ show, onClose, onConfirm, loading }) => {
 
         <Button
           color="danger"
-          onClick={onConfirm}
+          onClick={() => {
+            if (!reason.trim()) {
+              setError("Reason is required");
+              return;
+            }
+            onConfirm(reason);
+          }}
           disabled={loading}
         >
           {loading ? (

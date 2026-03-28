@@ -265,4 +265,19 @@ export const MyLeavesColumn = (
         },
       ]
       : []),
+
+    ...(activeTab === "cancelled" ? [
+        {
+        name: <Center>Cancellation Reason</Center>,
+        cell: (row) => <Center>{row?.leave?.cancellationReason || "-"}</Center>,
+        width: "180px",
+      },
+
+      {
+        name: <Center>Manager Name</Center>,
+        cell: (row) => <Center>{row?.leave?.cancellationAction || "-"}</Center>,
+        width: "180px",
+      },
+      
+    ] : [])
   ];

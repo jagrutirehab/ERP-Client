@@ -70,6 +70,20 @@ export const CancellationsRequestsColumn = (
       ),
       width: "120px",
     },
+    {
+      name: <Center>Reason</Center>,
+      cell: (row) => (
+        <Center
+          style={{
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+          }}
+        >
+          {row?.reason || "-"}
+        </Center>
+      ),
+      width: "220px",
+    },
 
     {
       name: <Center>Status</Center>,
@@ -122,62 +136,39 @@ export const CancellationsRequestsColumn = (
       width: "160px",
     },
 
-    // {
-    //   name: "Action",
-    //   cell: (row) =>
-    //     row?.status?.toLowerCase() === "pending" ? (
-    //       <div className="d-flex gap-2 justify-content-center">
-    //         <button
-    //           className="btn btn-sm btn-success"
-    //           disabled={loadingId === row._id}
-    //           onClick={() => handleAction(row, "approved")}
-    //         >
-    //           {loadingId === row._id ? <Spinner size="sm" /> : "Approve"}
-    //         </button>
+    ...(activeTab === "pending" ? [
+      {
+        name: "Action",
+        cell: (row) =>
+          (!hasWrite && !hasDelete) ? (
+            <span className="text-muted">—</span>
+          ) : row?.status?.toLowerCase() === "pending" ? (
+            <div className="d-flex gap-2 justify-content-center">
 
-    //         <button
-    //           className="btn btn-sm btn-danger"
-    //           disabled={loadingId === row._id}
-    //           onClick={() => handleAction(row, "rejected")}
-    //         >
-    //           {loadingId === row._id ? <Spinner size="sm" /> : "Reject"}
-    //         </button>
-    //       </div>
-    //     ) : (
-    //       <span className="text-muted">—</span>
-    //     ),
-    //   width: "200px",
-    // },
-    {
-      name: "Action",
-      cell: (row) =>
-        (!hasWrite && !hasDelete) ? (
-          <span className="text-muted">—</span>
-        ) : row?.status?.toLowerCase() === "pending" ? (
-          <div className="d-flex gap-2 justify-content-center">
+              <button
+                className="btn btn-sm btn-success"
+                disabled={loadingId === row._id}
+                onClick={() => handleAction(row, "approved")}
+              >
+                {loadingId === row._id ? <Spinner size="sm" /> : "Approve"}
+              </button>
 
-            <button
-              className="btn btn-sm btn-success"
-              disabled={loadingId === row._id}
-              onClick={() => handleAction(row, "approved")}
-            >
-              {loadingId === row._id ? <Spinner size="sm" /> : "Approve"}
-            </button>
+              <button
+                className="btn btn-sm btn-danger"
+                disabled={loadingId === row._id}
+                onClick={() => handleAction(row, "rejected")}
+              >
+                {loadingId === row._id ? <Spinner size="sm" /> : "Reject"}
+              </button>
 
-            <button
-              className="btn btn-sm btn-danger"
-              disabled={loadingId === row._id}
-              onClick={() => handleAction(row, "rejected")}
-            >
-              {loadingId === row._id ? <Spinner size="sm" /> : "Reject"}
-            </button>
+            </div>
+          ) : (
+            <span className="text-muted">—</span>
+          ),
+        width: "200px",
+      },
+    ] : []),
 
-          </div>
-        ) : (
-          <span className="text-muted">—</span>
-        ),
-      width: "200px",
-    },
 
     ...(activeTab !== "pending" ? [
       {
@@ -195,5 +186,11 @@ export const CancellationsRequestsColumn = (
         ),
         width: "160px",
       },
+      {
+        name: <Center>Action By</Center>,
+        cell: (row) => <Center>{row?.action_by?.name || "-"}</Center>,
+        width: "140px",
+      },
+
     ] : [])
   ];
