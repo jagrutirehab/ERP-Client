@@ -14,8 +14,8 @@ import {
 } from "reactstrap";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import { format } from "date-fns";
-import { getTallyLogs } from "../../helpers/backend_helper";
+import { endOfDay, format, startOfDay } from "date-fns";
+import { getTallyLogs, exportTallyLogsCsv } from "../../helpers/backend_helper";
 
 const TallyLogRecords = ({ centerOptions, initialCenters }) => {
   const [logs, setLogs] = useState([]);
@@ -33,6 +33,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
     status: "all",
   });
 
+  const [exporting, setExporting] = useState(false);
   const [selectedXml, setSelectedXml] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -43,8 +44,8 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
         const params = {
           page: page,
           limit: size,
-          startDate: filters.startDate.toISOString(),
-          endDate: filters.endDate.toISOString(),
+          startDate: startOfDay(filters.startDate),
+          endDate: endOfDay(filters.endDate),
           centerId: filters.centerId,
           status: filters.status,
           search: filters.search,
@@ -91,6 +92,41 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
     setIsModalOpen(true);
   };
 
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const params = {
+        startDate: startOfDay(filters.startDate),
+        endDate: endOfDay(filters.endDate),
+        centerId: filters.centerId,
+        status: filters.status,
+        search: filters.search,
+      };
+      const response = await exportTallyLogsCsv(params);
+      const blob = new Blob([response.data || response], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tally-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export CSV:", error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  function parseYYYYMMDD(dateStr) {
+    const y = +dateStr.slice(0, 4);
+    const m = +dateStr.slice(4, 6) - 1; // JS months are 0-based
+    const d = +dateStr.slice(6, 8);
+
+    return new Date(Date.UTC(y, m, d));
+  }
+
   const columns = [
     {
       name: "Date & Time",
@@ -109,19 +145,19 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       ),
     },
     {
-      name: "Bill Updated At",
-      selector: (row) => row.billUpdatedAt,
+      name: "Source Updated At",
+      selector: (row) => row.sourceUpdatedAt,
       sortable: false,
       width: "180px",
       cell: (row) => (
         <div className="py-2">
-          {row.billUpdatedAt ? (
+          {row.sourceUpdatedAt ? (
             <>
               <div className="font-size-13">
-                {format(new Date(row.billUpdatedAt), "dd MMM yyyy")}
+                {format(new Date(row.sourceUpdatedAt), "dd MMM yyyy")}
               </div>
               <small className="text-muted">
-                {format(new Date(row.billUpdatedAt), "hh:mm a")}
+                {format(new Date(row.sourceUpdatedAt), "hh:mm a")}
               </small>
             </>
           ) : (
@@ -129,6 +165,15 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
           )}
         </div>
       ),
+    },
+    {
+      name: "Voucher Date",
+      selector: (row) =>
+        row.syncData?.date
+          ? format(parseYYYYMMDD(row.syncData?.date), "dd MMM yyyy")
+          : "N/A",
+      sortable: false,
+      wrap: true,
     },
     {
       name: "Center",
@@ -145,14 +190,16 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
         <div>
           <div>{row.invoiceNo}</div>
           {row.opdInvoiceNo && (
-            <div className="font-size-11 text-muted">OPD: {row.opdInvoiceNo}</div>
+            <div className="font-size-11 text-muted">
+              OPD: {row.opdInvoiceNo}
+            </div>
           )}
         </div>
       ),
     },
     {
-      name: "Patient UID",
-      selector: (row) => row.patientId || "N/A",
+      name: "Party / Identifier",
+      selector: (row) => row.partyIdentifier || "N/A",
       sortable: false,
     },
     {
@@ -187,15 +234,17 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       sortable: false,
       wrap: true,
       minWidth: "180px",
-      cell: (row) => (
+      cell: (row) =>
         row.errorMessage ? (
-          <div className="text-danger font-size-11" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          <div
+            className="text-danger font-size-11"
+            style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+          >
             {row.errorMessage}
           </div>
         ) : (
           <span className="text-muted">-</span>
-        )
-      )
+        ),
     },
     {
       name: "Actions",
@@ -282,7 +331,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             <option value="failed">Failed</option>
           </Input>
         </Col>
-        <Col md={2} className="text-end">
+        <Col md={1} className="text-end">
           <Button
             color="light"
             onClick={() => fetchLogs(currentPage, perPage)}
@@ -295,6 +344,22 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
               <i className="bx bx-refresh me-1"></i>
             )}
             Refresh
+          </Button>
+        </Col>
+        <Col md={1} className="text-end">
+          <Button
+            color="success"
+            outline
+            onClick={handleExportCsv}
+            disabled={exporting}
+            className="w-100"
+          >
+            {exporting ? (
+              <Spinner size="sm" />
+            ) : (
+              <i className="bx bx-download me-1"></i>
+            )}
+            CSV
           </Button>
         </Col>
       </Row>
