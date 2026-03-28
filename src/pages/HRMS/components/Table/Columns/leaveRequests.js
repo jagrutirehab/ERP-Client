@@ -210,6 +210,43 @@ export const leaveRequestsColumns = (
             ),
           width: "200px",
         },
+        {
+          name: <Center>Cancellation Status</Center>,
+          cell: (row) => {
+            const status = row?.cancellationStatus;
+
+            const getColor = (status) => {
+              switch (status) {
+                case "approved":
+                  return "success";
+                case "rejected":
+                  return "danger";
+                case "pending":
+                  return "warning";
+                default:
+                  return "secondary";
+              }
+            };
+
+            return (
+              <Center>
+                {status ? (
+                  <Badge pill color={getColor(status)}>
+                    {status?.charAt(0)?.toUpperCase() + status?.slice(1)}
+                  </Badge>
+                ) : (
+                  "-"
+                )}
+              </Center>
+            );
+          },
+          width: "200px",
+        },
+        {
+          name: <Center>Cancellation Action By</Center>,
+          cell: (row) => <Center>{row?.cancellationAction || "-"}</Center>,
+          width: "220px",
+        },
       ]
       : []),
 
@@ -251,6 +288,12 @@ export const leaveRequestsColumns = (
         {
           name: <Center>Cancellation Reason</Center>,
           cell: (row) => <Center>{row?.reason || "-"}</Center>,
+          width: "220px",
+        },
+
+        {
+          name: <Center>Cancellation Action By</Center>,
+          cell: (row) => <Center>{row?.cancellationAction || "-"}</Center>,
           width: "220px",
         },
       ]

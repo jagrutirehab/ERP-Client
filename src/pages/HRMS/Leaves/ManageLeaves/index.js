@@ -176,7 +176,8 @@ const ManageLeaves = () => {
       eCode: item.eCode,
       cancellationRequested : item?.leaves?.cancellationRequested,
       cancellationStatus : item?.leaves?.cancellationStatus,
-      reason : item?.leaves?.cancellationReason
+      reason : item?.leaves?.cancellationReason,
+      cancellationAction : item?.leaves?.cancellationAction
     }));
   }, [requestsData]);
 
