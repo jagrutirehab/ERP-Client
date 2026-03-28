@@ -356,7 +356,9 @@ const Tally = ({ centers, centerAccess }) => {
       return;
     }
 
-    const syncDate = Array.isArray(selectedDate) ? selectedDate[0] : selectedDate;
+    const syncDate = Array.isArray(selectedDate)
+      ? selectedDate[0]
+      : selectedDate;
     if (!syncDate) {
       toast.error("Please select a date");
       return;
@@ -374,14 +376,21 @@ const Tally = ({ centers, centerAccess }) => {
     try {
       const response = await sendToTally({
         date: startOfDay(syncDate),
-        startDate: startOfDay(syncDate),
-        endDate: endOfDay(syncDate),
+        startDate: startOfDay(syncDate).toISOString(),
+        endDate: endOfDay(syncDate).toISOString(),
         centerIds: selectedCentersIds,
         types: selectedTypes,
       });
 
       if (response.success && response.sessionId) {
-        addLog(`✅ Session started: ${response.sessionId}`, "success");
+        if (response.alreadyRunning) {
+          addLog(
+            `⚡ A sync is already running — joining existing session...`,
+            "warning",
+          );
+        } else {
+          addLog(`✅ Session started: ${response.sessionId}`, "success");
+        }
         currentSessionIdRef.current = response.sessionId;
         connectSSE(response.sessionId);
       } else {
