@@ -170,51 +170,51 @@ export const leaveRequestsColumns = (
       ]
       : []),
 
-  
-    ...(activeTab === "approved"
-  ? [
-      {
-        name: "Action",
-        cell: (row) =>
-          !isLoading && (hasWrite || hasDelete) ? (
-            
-            row.cancellationRequested ? (
-              <span className="badge bg-info">
-                Requested
-              </span>
-            ) : cancellationLoading === row._id ? (
-              
-              <button className="btn btn-sm btn-secondary" disabled>
-                <Spinner size="sm" />
-              </button>
-            ) : (
-              
-              <div className="d-flex gap-1 justify-content-center">
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() =>
-                    handleCancellation(
-                      row.parentDocId,
-                      row._id,
-                      row.approvalAuthority,
-                      row.employeeId._id
-                    )
-                  }
-                >
-                  Cancel
-                </button>
-              </div>
-            )
-          ) : (
-            <span className="text-muted">—</span>
-          ),
-        width: "200px",
-      },
-    ]
-  : []),
 
-      
-    ...(activeTab === "approved" || activeTab === "cancelled"
+    ...(activeTab === "approved"
+      ? [
+        {
+          name: "Action",
+          cell: (row) =>
+            !isLoading && (hasWrite || hasDelete) ? (
+
+              row.cancellationRequested ? (
+                <span className="badge bg-info">
+                  Requested
+                </span>
+              ) : cancellationLoading === row._id ? (
+
+                <button className="btn btn-sm btn-secondary" disabled>
+                  <Spinner size="sm" />
+                </button>
+              ) : (
+
+                <div className="d-flex gap-1 justify-content-center">
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() =>
+                      handleCancellation(
+                        row.parentDocId,
+                        row._id,
+                        row.approvalAuthority,
+                        row.employeeId._id
+                      )
+                    }
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )
+            ) : (
+              <span className="text-muted">—</span>
+            ),
+          width: "200px",
+        },
+      ]
+      : []),
+
+
+    ...(activeTab === "cancelled"
       ? [
         {
           name: <Center>Cancellation Status</Center>,
@@ -247,6 +247,11 @@ export const leaveRequestsColumns = (
             );
           },
           width: "200px",
+        },
+        {
+          name: <Center>Cancellation Reason</Center>,
+          cell: (row) => <Center>{row?.reason || "-"}</Center>,
+          width: "220px",
         },
       ]
       : []),

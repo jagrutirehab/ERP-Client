@@ -528,6 +528,7 @@ export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
 export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
 export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
 export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
+export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation"
 export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
 export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"
 export const GET_ALL_EMPLOYEE_LEAVE_BALANCE = "/hrms/leaves/balance/all-employees";

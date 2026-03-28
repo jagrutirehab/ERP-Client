@@ -2451,6 +2451,14 @@ export const cancellationRequest = (data) => {
   });
 }
 
+export const directCancellation = (data) => {
+  return axios.patch(url.DIRECT_CANCELLATIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
 export const getCancellationsRequests = (params = {}) => {
   return axios.get(url.GET_CANCELLATION_REQUEST, {
     params,

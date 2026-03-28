@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   actionOnLeaves,
-  cancellationRequest,
+  directCancellation,
   getLeavesRequest,
 } from "../../../../helpers/backend_helper";
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
@@ -160,7 +160,7 @@ const ManageLeaves = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // console.log("requestsData", requestsData)
+  console.log("requestsData", requestsData)
 
   const leaves = useMemo(() => {
     if (!Array.isArray(requestsData)) return [];
@@ -175,7 +175,8 @@ const ManageLeaves = () => {
       createdAt: item.createdAt,
       eCode: item.eCode,
       cancellationRequested : item?.leaves?.cancellationRequested,
-      cancellationStatus : item?.leaves?.cancellationStatus
+      cancellationStatus : item?.leaves?.cancellationStatus,
+      reason : item?.leaves?.cancellationReason
     }));
   }, [requestsData]);
 
@@ -225,7 +226,7 @@ const ManageLeaves = () => {
     setShowCancelModal(true);
   };
 
-  const confirmCancellation = async () => {
+  const confirmCancellation = async (reason) => {
     if (!cancelData) return;
     console.log("cancelData", cancelData);
 
@@ -236,13 +237,14 @@ const ManageLeaves = () => {
       const payload = {
         docId: cancelData?.docId,
         leaveId: cancelData?.leaveId,
-        manager_id: cancelData?.manager_id,
+        // manager_id: cancelData?.manager_id,
         employeeId: cancelData?.employeeId,
+        reason
       };
 
       // console.log("Payload", payload);
 
-      const response = await cancellationRequest(payload);
+      const response = await directCancellation(payload);
 
       toast.success(response?.message || "Leave cancelled successfully");
 
@@ -257,6 +259,8 @@ const ManageLeaves = () => {
     }
   };
 
+  console.log("leaves", leaves);
+  
 
   return (
     <CardBody
