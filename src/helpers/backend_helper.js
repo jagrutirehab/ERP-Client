@@ -2359,6 +2359,24 @@ export const updateRegularizationStatus = (id, status) => {
   );
 };
 
+export const getAllEmployeeRegularizations = (params = {}) => {
+  return axios.get(url.GET_ALL_EMPLOYEE_REGULARIZATIONS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRegularizationsByEmployee = ({ employeeId, ...params }) => {
+  return axios.get(`${url.GET_REGULARIZATIONS_BY_EMPLOYEE}/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {
@@ -2425,6 +2443,42 @@ export const retrieveActionOnLeave = (action, docId, data) => {
   });
 };
 
+export const cancellationRequest = (data) => {
+  return axios.post(url.CANCELLATION_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const directCancellation = (data) => {
+  return axios.patch(url.DIRECT_CANCELLATIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const getCancellationsRequests = (params = {}) => {
+  return axios.get(url.GET_CANCELLATION_REQUEST, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const actionOnCancellationRequest = ({ cancellationId, status }) => {
+  return axios.patch(
+    `${url.ACTION_ON_CANCELLATION_REQUEST}/${cancellationId}/${status}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
@@ -2631,6 +2685,15 @@ export const getRotationalShifts = (id) => {
 
 export const getEmployeeLeaves = (employeeId, params = {}) => {
   return api.get(`/hrms/leaves/employee/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getAllEmployeeLeaveBalance = (params = {}) => {
+  return api.get(url.GET_ALL_EMPLOYEE_LEAVE_BALANCE, {
     params,
     headers: {
       "X-No-Cookie-Token": "true",
@@ -2850,6 +2913,15 @@ export const getActiveTallySession = () => api.get(url.GET_TALLY_ACTIVE_SESSION)
 export const cancelTallySync = (sessionId) => api.create(url.POST_TALLY_CANCEL(sessionId), {});
 export const getTallyLogs = (params) => api.get(url.GET_TALLY_LOGS, { params });
 export const getTallyPendingUpdates = (params) => api.get(url.GET_TALLY_PENDING_UPDATES, { params });
+export const exportTallyLogsCsv = (params) => {
+  const queryString = Object.entries(params)
+    .filter(([, v]) => v != null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("&");
+  return axios.get(`${url.GET_TALLY_LOGS_EXPORT_CSV}?${queryString}`, {
+    responseType: "blob",
+  });
+};
 
 // Issues
 

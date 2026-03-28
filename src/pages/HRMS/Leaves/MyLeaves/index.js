@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  cancellationRequest,
   getMyLeavesHistory,
   retrieveActionOnLeave,
 } from "../../../../helpers/backend_helper";
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import CancellationRequest from "./Modal/CancellationRequest";
 
 const MyLeaves = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -27,6 +29,10 @@ const MyLeaves = () => {
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({});
 
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState(null);
+
+  const [requestLoader, setRequestLoader] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,10 +62,16 @@ const MyLeaves = () => {
           limit,
         });
 
+        console.log("resres", res);
+
         setData(res?.data || []);
         // setActiveTab(res?.status);
         // setPage(1);
-        setPagination(res?.pagination || {});
+        // setPagination(res?.pagination || {});
+        setPagination({
+          ...res?.pagination,
+          totalDocs: res?.pagination?.totalRecords,
+        });
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(error.message || "Failed to fetch leaves");
@@ -72,7 +84,7 @@ const MyLeaves = () => {
     fetchLeaves();
   }, [activeTab, selectedYear, selectedMonth, page, limit]);
 
-  // console.log("data", data);
+  console.log("inLeavse", data);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -84,19 +96,21 @@ const MyLeaves = () => {
 
   const leaves = Array.isArray(data)
     ? data.flatMap(
-        (d) =>
-          d.leaves?.map((l) => ({
-            ...l,
-            parentDocId: d?._id,
-            employeeId: d?.employeeId,
-            docCreatedAt: d?.createdAt,
-            year: d?.year,
-            eCode: d?.eCode,
-            center: d?.center,
-            approvalAuthority: d?.approvalAuthority,
-            regularizedDates: l?.regularizedDates,
-          })) || [],
-      )
+      (d) =>
+        d.leaves?.map((l) => ({
+          ...l,
+          parentDocId: d?._id,
+          employeeId: d?.employeeId,
+          docCreatedAt: d?.createdAt,
+          year: d?.year,
+          eCode: d?.eCode,
+          center: d?.center,
+          approvalAuthority: d?.approvalAuthority,
+          regularizedDates: l?.regularizedDates,
+          cancellationAction : l?.cancellationAction,
+          cancellationReason : l?.cancellationReason
+        })) || [],
+    )
     : [];
 
   const currentYear = new Date().getFullYear();
@@ -105,7 +119,7 @@ const MyLeaves = () => {
     (_, i) => 2015 + i,
   );
 
-  // console.log("leaves", leaves);
+  console.log("leaves", leaves);
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
@@ -118,11 +132,11 @@ const MyLeaves = () => {
       const updated = (Array.isArray(data) ? data : []).map((d) =>
         d._id === docId
           ? {
-              ...d,
-              leaves: (d.leaves || []).map((l) =>
-                l._id === leaveId ? { ...l, status } : l,
-              ),
-            }
+            ...d,
+            leaves: (d.leaves || []).map((l) =>
+              l._id === leaveId ? { ...l, status } : l,
+            ),
+          }
           : d,
       );
 
@@ -143,10 +157,59 @@ const MyLeaves = () => {
   // };
 
   const sortedLeaves = useMemo(() => {
-  return [...leaves].sort(
-    (a, b) => new Date(b.fromDate) - new Date(a.fromDate)
-  );
-}, [leaves]);
+    return [...leaves].sort(
+      (a, b) => new Date(b.fromDate) - new Date(a.fromDate)
+    );
+  }, [leaves]);
+
+  const leafPagination = {
+    totalRecords: sortedLeaves.length,
+    currentPage: page,
+    totalPages: Math.ceil(sortedLeaves.length / limit),
+    limit,
+  };
+  const openCancelModal = (row) => {
+    setSelectedLeave(row);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleRaiseCancellation = async (reason) => {
+    if (!selectedLeave) return;
+    setRequestLoader(true)
+    try {
+      console.log("Cancel request for:", selectedLeave);
+
+      const payload = {
+        leaveId: selectedLeave?.leave?._id,
+        docId: selectedLeave?._id,
+        manager_id: selectedLeave?.approvalAuthority?._id,
+        reason
+      }
+      const response = await cancellationRequest(payload);
+      console.log("Response", response);
+      toast.success(response.message || "Cancellation Request Raised Successfully !");
+
+      const res = await getMyLeavesHistory({
+        status: activeTab,
+        year: selectedYear,
+        month: selectedMonth,
+        page,
+        limit,
+      });
+      setData(res?.data || []);
+      setPagination(res?.pagination || {});
+
+      setIsCancelModalOpen(false);
+      setSelectedLeave(null);
+    } catch (err) {
+      toast.error("Failed to cancel");
+    } finally {
+      setRequestLoader(false);
+    }
+  };
+
+  console.log("data", data)
+
 
   return (
     <CardBody
@@ -158,7 +221,7 @@ const MyLeaves = () => {
       </div>
 
       <Nav tabs className="mb-3">
-        {["pending", "approved", "rejected", "retrieved"].map((tab) => (
+        {["pending", "approved", "rejected", "retrieved", "cancelled"].map((tab) => (
           <NavItem key={tab}>
             <NavLink
               className={classnames({ active: activeTab === tab })}
@@ -232,17 +295,28 @@ const MyLeaves = () => {
           hasWrite,
           hasDelete,
           isLoading,
+          openCancelModal,
+          activeTab
         )}
-        data={sortedLeaves}
+        data={data}
         loading={loading}
         pagination={pagination}
         page={page}
         setPage={setPage}
         limit={limit}
         setLimit={setLimit}
-        // paginationData={pagination}
+      // paginationData={pagination}
+      />
+
+      <CancellationRequest
+        isOpen={isCancelModalOpen}
+        toggle={() => setIsCancelModalOpen(!isCancelModalOpen)}
+        onConfirm={handleRaiseCancellation}
+        loading={requestLoader}
       />
     </CardBody>
+
+
   );
 };
 

@@ -71,7 +71,7 @@ const ShiftRoaster = () => {
   }, [searchInput]);
 
   const [reportDate, setReportDate] = useState(() => {
-    const ws = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const ws = startOfWeek(new Date(), { weekStartsOn: 0 });
     return { start: ws, end: addDays(ws, 6) };
   });
 

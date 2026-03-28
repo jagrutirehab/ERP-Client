@@ -527,11 +527,18 @@ export const POST_FESTIVE_LEAVES_LIST = "/hrms/post/festive-leaves/list";
 export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
 export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
 export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
+export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
+export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation"
+export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
+export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"
+export const GET_ALL_EMPLOYEE_LEAVE_BALANCE = "/hrms/leaves/balance/all-employees";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
+export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
+export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
@@ -546,6 +553,7 @@ export const GET_TALLY_ACTIVE_SESSION = "/tally/send/active";
 export const POST_TALLY_CANCEL = (sessionId) => `/tally/cancel/${sessionId}`;
 export const GET_TALLY_LOGS = "/tally/logs";
 export const GET_TALLY_PENDING_UPDATES = "/tally/logs/pending-updates";
+export const GET_TALLY_LOGS_EXPORT_CSV = "/tally/logs/export-csv";
 
 // Issues
 export const GET_ISSUES = "/issues/get"

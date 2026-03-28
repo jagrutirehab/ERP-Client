@@ -1,5 +1,6 @@
 import { Badge } from "reactstrap";
 import moment from "moment";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
@@ -58,8 +59,8 @@ export const MyRegularizationsColumn = () => [
   },
 
   {
-    name: <Center>Manager Name</Center>,
-    cell: (row) => <Center>{row?.manager_id?.name}</Center>,
+    name: <Center>Manager</Center>,
+    cell: (row) => <Center>{`${row?.manager_id?.name} (${row?.manager_id?.eCode})`}</Center>,
     width: "150px",
   },
 
@@ -78,45 +79,8 @@ export const MyRegularizationsColumn = () => [
 
   {
     name: <Center>Status</Center>,
-    cell: (row) => {
-      const status = row?.status?.toLowerCase();
-
-      if (status === "regularized")
-        return (
-          <Center>
-            <Badge pill color="success">
-              Regularized
-            </Badge>
-          </Center>
-        );
-
-      if (status === "pending")
-        return (
-          <Center>
-            <Badge pill color="warning">
-              Pending
-            </Badge>
-          </Center>
-        );
-
-      if (status === "rejected")
-        return (
-          <Center>
-            <Badge pill color="danger">
-              Rejected
-            </Badge>
-          </Center>
-        );
-
-      return (
-        <Center>
-          <Badge pill color="secondary">
-            Unknown
-          </Badge>
-        </Center>
-      );
-    },
-    width: "150px",
+    cell: (row) => renderStatusBadge(row?.status),
+    center: true
   },
 
   {

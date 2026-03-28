@@ -170,6 +170,7 @@ const Sidebar = () => {
   const hasPolicyPermission = hasPermission("HR", "POLICIES", "READ");
   const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
   const hasFestiveLeavesPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
+  const hasCancellationsRequestsPerm = hasPermission("HR", "CANCELATIONS_REQUESTS", "READ")
   const hasMainDashboardPermission = hasPermission("HR", "MAIN_DASHBOARD", "READ");
 
   const hasIncentivesAddRequestPermission = hasPermission(
@@ -198,6 +199,12 @@ const Sidebar = () => {
   const hasFinancePermission = hasPermission(
     "HR",
     "FINANCE",
+    "READ"
+  );
+
+  const hasLeaveBalanceDashboardPermission = hasPermission(
+    "HR",
+    "LEAVE_BALANCE_DASHBOARD",
     "READ"
   );
 
@@ -377,6 +384,8 @@ const Sidebar = () => {
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
         if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
+        
+        if (child.id === "cancellations-requests" && !hasCancellationsRequestsPerm) return false;
         return true;
       });
       return page.children.length > 0;
@@ -408,6 +417,15 @@ const Sidebar = () => {
     if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     if (page.id === "finance" && !hasFinancePermission) return false;
+
+    if (page.id === "hr-dashboard") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "leave-balance-dashboard" && !hasLeaveBalanceDashboardPermission)
+          return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
     return true;
   });

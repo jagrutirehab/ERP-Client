@@ -49,6 +49,10 @@ import MyDashboard from "./MyDashboard";
 import FinanceDashboard from "./Finance";
 import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
+import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
+import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
+import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
+import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -183,6 +187,7 @@ const HR = () => {
                   element={<IndividualLeavesOfEmp />}
                 />
                 <Route path={`/leaves/festive/leaves`} element={<FestiveLeaves />} />
+                <Route path={`/leaves/get/cancellations`} element={<CancellationRequestsPage />} />
 
                 <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
@@ -192,9 +197,14 @@ const HR = () => {
                 <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
 
                 <Route path={`/finance`} element={<FinanceDashboard />} />
+
                 <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
                 <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />
                 <Route path={`/reporting/shift-roster/assign/:reportingId`} element={<AssignShift />} />
+
+                <Route path={`/leave-balance/dashboard`} element={<EmployeeLeaveBalanceDashboard />} />
+                <Route path={`/regularization/dashboard`} element={<EmployeeRegularizationSummaryDashboard />} />
+                <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
               </Routes>
             </div>
           </Container>

@@ -13,11 +13,10 @@ import {
     ModalHeader,
     ModalBody,
 } from "reactstrap";
-import { RotateCw } from "lucide-react";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { gettodayMyAttendanceStatus, postEmployeeCheckIn, updateEmployeeCheckOut } from "../../../../../helpers/backend_helper";
 import { toast } from "react-toastify";
-import { getMonthRange, minutesTo12HourTime, minutesToTime, nowToMinutes } from "../../../../../utils/time";
+import { getMonthRange, minutesToTime, nowToMinutes } from "../../../../../utils/time";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useDispatch, useSelector } from "react-redux";
