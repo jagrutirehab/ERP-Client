@@ -335,6 +335,7 @@ const pages = [
     link: "/tally",
     icon: "bx bx-transfer",
   },
+  
 ];
 
 

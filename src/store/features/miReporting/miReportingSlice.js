@@ -246,10 +246,10 @@ export const fetchRefundAmountMOM = createAsyncThunk(
   "miReporting/fetchRefundAmountMOM",
   async (data , { rejectWithValue }) => {
     try {
-      console.log(data?.centerAccess)
       const response = await getRefundAmountMOM(data);
       return response;
     } catch (error) {
+       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Refund amount mom"
       );

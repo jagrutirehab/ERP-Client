@@ -16,8 +16,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  LineChart,
-  Line,
 } from "recharts";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
@@ -38,23 +36,23 @@ const RefundAmountMOM = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const navigate = useNavigate();
 
-  const { hasPermission } = usePermissions(token);
+  const { roles,loading: permissionLoader, hasPermission } = usePermissions(token);
   const hasReadPermission = hasPermission(
     "MIS_REPORTS",
-    "REFUND_AMOUNT",
-    "READ",
+    "MIS_REPORTS_PERMISSION",
+    "READ"
   );
 
-
   useEffect(() => {
-    // if (!hasReadPermission) {
-    //   navigate("/unauthorized");
-    //   return;
-    // }
-    dispatch(fetchRefundAmountMOM({ centerAccess }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, centerAccess,hasReadPermission]);
 
+    
+    if (!loading &&!hasReadPermission ) {
+      navigate("/unauthorized");
+      return;
+    }
+    console.log("In use effect")
+    dispatch(fetchRefundAmountMOM({ centerAccess }));
+  }, [dispatch, centerAccess]);
   // Extract unique months and sort them descending
     const months = React.useMemo(() => {
     if (!refundAmountMOM || refundAmountMOM.length === 0) return [];

@@ -209,7 +209,7 @@ export const permissionList = [
     key: "MIS_REPORTS",
     label: "MIS Reports",
     subModules: [
-      { name: "REFUND_AMOUNT", label: "View Refund Amount" },
+      { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
       
     ],
   },
