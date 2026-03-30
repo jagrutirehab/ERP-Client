@@ -45,7 +45,7 @@ const TicketForm = ({
             if (!form.responsibleReviewer) return false;
             if (!form.reviewTakenFrom) return false;
         }
-        if (!form.files || form.files.length === 0) return false;
+        // if (!form.files || form.files.length === 0) return false;
 
         return true;
     };
@@ -197,7 +197,7 @@ const TicketForm = ({
 
                 {/* FILE UPLOAD */}
                 <Col md={12}>
-                    <Label className="fw-semibold">Upload Files<span className="text-danger">*</span></Label>
+                    <Label className="fw-semibold">Upload Files</Label>
                     <Input
                         type="file"
                         innerRef={fileInputRef}

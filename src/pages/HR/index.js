@@ -53,6 +53,7 @@ import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
 import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
+import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -205,6 +206,8 @@ const HR = () => {
                 <Route path={`/leave-balance/dashboard`} element={<EmployeeLeaveBalanceDashboard />} />
                 <Route path={`/regularization/dashboard`} element={<EmployeeRegularizationSummaryDashboard />} />
                 <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
+                
+                 <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
               </Routes>
             </div>
           </Container>

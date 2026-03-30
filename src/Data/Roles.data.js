@@ -311,6 +311,7 @@ export const permissionList = [
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
+      { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],

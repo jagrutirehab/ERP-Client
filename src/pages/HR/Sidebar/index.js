@@ -208,6 +208,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasAllLeaveHistoryPerm = hasPermission(
+    "HR",
+    "ALL_LEAVE_HISTORY",
+    "READ"
+  )
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -384,7 +390,7 @@ const Sidebar = () => {
         if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
         if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
         if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
-        
+
         if (child.id === "cancellations-requests" && !hasCancellationsRequestsPerm) return false;
         return true;
       });
@@ -422,6 +428,10 @@ const Sidebar = () => {
       page.children = page.children.filter((child) => {
         if (child.id === "leave-balance-dashboard" && !hasLeaveBalanceDashboardPermission)
           return false;
+        if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm)
+          return false;
+
+
         return true;
       });
       return page.children.length > 0;
