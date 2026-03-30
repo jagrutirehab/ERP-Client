@@ -1762,6 +1762,32 @@ export const getOwnerLeadStatus = (params) => {
   return api.get(url.GET_OWNER_LEAD_STATUS, { params });
 };
 
+
+export const getRefundAmountMOM = (data) => {
+
+  return api.get(url.GET_REFUND_AMOUNT_MOM, {
+    params: {
+      centerIds: data?.centerAccess,
+      
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 // HR
 export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {

@@ -13,9 +13,11 @@ import {
   getOwnerVisitedDate as fetchOwnerVisited,
   getCityLeadStatus,
   getOwnerLeadStatus,
+  getRefundAmountMOM,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
+  data: [],
   contacts: [],
   pagination: {
     total: 0,
@@ -35,6 +37,7 @@ const initialState = {
   ownerVisitedDate: [],
   cityLeadStatus: [],
   ownerLeadStatus: [],
+  refundAmountMOM:[],
   loading: false,
   error: null,
 };
@@ -236,6 +239,24 @@ export const fetchOwnerLeadStatus = createAsyncThunk(
   }
 );
 
+
+
+
+export const fetchRefundAmountMOM = createAsyncThunk(
+  "miReporting/fetchRefundAmountMOM",
+  async (data , { rejectWithValue }) => {
+    try {
+      console.log(data?.centerAccess)
+      const response = await getRefundAmountMOM(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -422,6 +443,21 @@ const miReportingSlice = createSlice({
         state.ownerLeadStatus = action.payload.payload || [];
       })
       .addCase(fetchOwnerLeadStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      //Refund Amount MOM
+      .addCase(fetchRefundAmountMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRefundAmountMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.refundAmountMOM = action.payload.payload || [];
+      })
+      .addCase(fetchRefundAmountMOM.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -21,6 +21,7 @@ import CityVisitedDate from "./VisitedDate/CityVisitedDate";
 import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
 import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
+import RefundAmountMOM from "./RefundAmountMOM";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -160,6 +161,11 @@ const MiReporting = () => {
                     element={<OwnerLeadStatus />}
                   />
                 )}
+                
+                <Route
+                    path="/refund-amount"
+                    element={<RefundAmountMOM />}
+                  />
               </Routes>
             </div>
           </Container>

@@ -11,6 +11,8 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 const Sidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(true);
+  const [isMISOpen, setIsMISOpen] = useState(true);
+  const toggleMISCollapse = () => setIsMISOpen(!isMISOpen);
 
   const toggleDataSidebar = () => {
     var windowSize = document.documentElement.clientWidth;
@@ -179,6 +181,16 @@ const Sidebar = () => {
       : null,
   ];
 
+
+
+  const MISReports = [
+    {
+      id: "refund-amount",
+      label: "Refund Amount",
+      link: "/mi-reporting/refund-amount",
+      icon: "bx bx-money",
+    }
+  ];
   return (
     <div>
       <div className="chat-leftsidebar">
@@ -247,6 +259,48 @@ const Sidebar = () => {
               </ul>
             </Collapse>
           </div>
+          <div className="ps-4 pe-3 pt-2">
+            <div className="d-flex align-items-start">
+              <div className="d-flex justify-content-between w-100 mb-2">
+                <div
+                  onClick={toggleMISCollapse}
+                  className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
+                  style={{ cursor: "pointer" }}
+                >
+                  <h5 className="pb-0 mb-0">MIS Reports</h5>
+                  <i
+                    className={`mdi mdi-chevron-${isMISOpen ? "up" : "down"} fs-4`}
+                  ></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Collapse isOpen={isMISOpen}>
+            <ul className="list-unstyled chat-list chat-user-list users-list">
+              {(MISReports || []).map((page, idx) => (
+                <li
+                  key={idx}
+                  className={location.pathname === page.link ? "active" : ""}
+                >
+                  <Link to={page.link}>
+                    <div className="d-flex align-items-center">
+                      <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                        <div className="avatar-xxs">
+                          <i className={`${page.icon} fs-4`}></i>
+                        </div>
+                      </div>
+                      <div className="flex-grow-1 overflow-hidden">
+                        <p className="text-truncate font-semi-bold fs-15 mb-0">
+                          {page.label}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Collapse>
         </PerfectScrollbar>
       </div>
     </div>
