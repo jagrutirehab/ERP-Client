@@ -47,10 +47,10 @@ const RefundAmountMOM = () => {
 
 
   useEffect(() => {
-    if (!hasReadPermission) {
-      navigate("/unauthorized");
-      return;
-    }
+    // if (!hasReadPermission) {
+    //   navigate("/unauthorized");
+    //   return;
+    // }
     dispatch(fetchRefundAmountMOM({ centerAccess }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, centerAccess,hasReadPermission]);
