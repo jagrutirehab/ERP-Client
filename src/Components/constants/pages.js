@@ -589,6 +589,12 @@ export const HR = [
         link: "/hr/regularization/dashboard",
         icon: "bx bx-reset",
       },
+      {
+        id: "all-leave-history",
+        label: "All Leave History",
+        link: "/hr/all/leave/history",
+        icon: "bx bx-list-ul",
+      },
     ],
   },
   {

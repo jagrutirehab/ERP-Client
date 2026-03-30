@@ -540,6 +540,10 @@ export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
 export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
 
+// FOR HR
+export const GET_LEAVES = "/hrms/leave/get/leaves"
+export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
+
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
   "/patient/capacity-assessment-submit-file";
