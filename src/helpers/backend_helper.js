@@ -2479,6 +2479,28 @@ export const actionOnCancellationRequest = ({ cancellationId, status }) => {
     }
   );
 };
+
+export const getAllLeaves = (params = {}) => {
+  return axios.get(url.GET_LEAVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const changeLeaveStatusByHR = (data) => {
+  return axios.patch(
+    url.APPROVE_LEAVE,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
