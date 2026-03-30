@@ -93,7 +93,7 @@ export const allLeavesColumn = (activeTab, handleAction, approveLoaderId, handle
             wrap: true,
             minWidth: "200px",
         },
-        ...(activeTab !== "pending" ? [
+        ...(activeTab !== "pending"  && activeTab !== "retrieved" ? [
             {
                 name: <div>Leave Action</div>,
                 selector: row => row?.leaveActionBy || row?.approvalAuthority || "-",
