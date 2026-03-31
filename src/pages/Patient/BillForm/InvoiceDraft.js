@@ -208,6 +208,12 @@ const InvoiceDraft = ({
           discount: item?.discount || 0,
           discountType: item?.discountType || "₹",
           fromDraft: true,
+          fromDate: item.fromDate
+            ? new Date(item.fromDate).toISOString().split("T")[0]
+            : "",
+          toDate: item.toDate
+            ? new Date(item.toDate).toISOString().split("T")[0]
+            : "",
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -289,6 +295,12 @@ const InvoiceDraft = ({
             availablePrices: centerMatch?.prices || [],
             // discount: 0,
             // discountType: "₹",
+            fromDate: item.fromDate
+              ? new Date(item.fromDate).toISOString().split("T")[0]
+              : "",
+            toDate: item.toDate
+              ? new Date(item.toDate).toISOString().split("T")[0]
+              : "",
           },
         ];
       });

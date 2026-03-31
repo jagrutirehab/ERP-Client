@@ -253,6 +253,12 @@ const DuePayment = ({
                   unit: item.unit || 1,
                   unitOfMeasurement: item.unitOfMeasurement || "",
                   availablePrices: [],
+                  fromDate: item.fromDate
+                    ? new Date(item.fromDate).toISOString().split("T")[0]
+                    : "",
+                  toDate: item.toDate
+                    ? new Date(item.toDate).toISOString().split("T")[0]
+                    : "",
                 })),
               );
             }
@@ -381,6 +387,12 @@ const DuePayment = ({
           isEditMode: true,
           discount: item?.discount || 0,
           discountType: item?.discountType || "₹",
+          fromDate: item.fromDate
+            ? new Date(item.fromDate).toISOString().split("T")[0]
+            : "",
+          toDate: item.toDate
+            ? new Date(item.toDate).toISOString().split("T")[0]
+            : "",
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -438,8 +450,30 @@ const DuePayment = ({
         item?.center?.find((c) => c?.prices?.length)?.prices?.[0]?.unit ||
         undefined;
       //
+
+
+
+
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
+
+        const lastRoomCharge = prevArray
+          ?.slice()
+          ?.reverse()
+          ?.find(
+            (item) =>
+              item.category?.toLowerCase() === "room charges" &&
+              item.fromDate &&
+              item.toDate
+          );
+
+        const categoryName =
+          typeof item.category === "object"
+            ? item.category.name
+            : item.category;
+
+        const isRoom = categoryName?.toLowerCase() === "room charges";
+
         return [
           ...prevArray,
           {
@@ -453,6 +487,8 @@ const DuePayment = ({
             unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
+            fromDate: isRoom ? lastRoomCharge?.fromDate || "" : "",
+            toDate: isRoom ? lastRoomCharge?.toDate || "" : "",
           },
         ];
       });

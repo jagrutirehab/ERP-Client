@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   sn: { width: "8%", textAlign: "center" },
-  desc: { width: "40%" },
+  desc: { width: "30%" },
   qty: { width: "10%", textAlign: "center" },
   uom: { width: "10%", textAlign: "center" },
-  rate: { width: "15%", textAlign: "center" },
-  amt: { width: "17%", textAlign: "right" },
+  rate: { width: "13%", textAlign: "center" },
+  amt: { width: "14%", textAlign: "right" },
   categoryTitle: {
     fontFamily: "Roboto",
     fontWeight: "bold",
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginTop: 4,
   },
+  duration: { width: "20%", textAlign: "center" },
 });
 
 const transformInvoiceList = (invoiceList = []) => {
@@ -164,6 +165,10 @@ const Table = ({ bill }) => {
   //   },
   // ];
 
+  const hasDuration = (bill?.invoice?.invoiceList || []).some(
+    (item) => item.fromDate && item.toDate
+  );
+
   const renderRows = () => {
     const rows = [];
     let grandTotal = 0;
@@ -191,6 +196,16 @@ const Table = ({ bill }) => {
               <Text style={[styles.cell, styles.uom]}>
                 {item.unitOfMeasurement?.toUpperCase() || ""}
               </Text>
+              {hasDuration && (
+                <Text style={[styles.cell, styles.duration]}>
+                  {item.fromDate && item.toDate
+                    ? `${new Date(item.fromDate).toLocaleDateString("en-GB")} → ${new Date(
+                      item.toDate
+                    ).toLocaleDateString("en-GB")}`
+                    : "-"}
+                </Text>
+              )}
+
               <Text style={[styles.cell, styles.rate]}>
                 {addComma(item.cost || 0)}
               </Text>
@@ -205,6 +220,7 @@ const Table = ({ bill }) => {
                 {item.comments || ""}
               </Text>
             </View>
+
           </View>,
         );
       });
@@ -244,6 +260,9 @@ const Table = ({ bill }) => {
         <Text style={[styles.cell, styles.desc]}>Description</Text>
         <Text style={[styles.cell, styles.qty]}>Qty</Text>
         <Text style={[styles.cell, styles.uom]}>UOM</Text>
+        {hasDuration && (
+          <Text style={[styles.cell, styles.duration]}>Duration</Text>
+        )}
         <Text style={[styles.cell, styles.rate]}>Rate</Text>
         <Text style={[styles.cell, styles.amt]}>Amount</Text>
         <Text style={[styles.cell, styles.amt]}>Discount</Text>
