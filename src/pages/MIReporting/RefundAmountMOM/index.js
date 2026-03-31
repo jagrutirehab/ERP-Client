@@ -312,65 +312,144 @@ const prepareCsvData = () => {
                       display: "block",
                     }}
                   >
-                    <Table
-                      className="table table-bordered table-hover mb-0 align-middle"
-                      style={{ minWidth: "max-content" }}
+                    <div className="table-responsive rounded-4 shadow-sm border bg-white overflow-scroll">
+  <Table
+    className="mb-0"
+    style={{
+      minWidth: "max-content",
+      borderCollapse: "collapse",
+      fontSize: "0.88rem",
+    }}
+  >
+    <thead
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+        background: "#f3f6fb",
+      }}
+    >
+      <tr>
+        <th
+          className="text-center fw-bold px-2 py-2"
+          style={{
+            minWidth: 120,
+            border: "1px solid #cfd8e3",
+            background: "green",
+            color: "white",
+          }}
+        >
+          Center
+        </th>
+
+        {months.map((month) => (
+          <th
+            key={month}
+            className="text-center fw-bold px-2 py-2"
+            style={{
+              minWidth: 80,
+              border: "1px solid #cfd8e3",
+              background: "green",
+              color: "white",
+            }}
+          >
+            {formatMonth(month)}
+          </th>
+        ))}
+      </tr>
+    </thead>
+
+    <tbody>
+      {filteredData && filteredData.length > 0 ? (
+        <>
+          {filteredData.map((item, idx) => (
+            <tr key={idx}>
+              <td
+                className="text-center fw-semibold text-dark px-2 py-1"
+                style={{
+                  border: "1px solid #d6dde8",
+                  background: "#fff",
+                  whiteSpace: "nowrap",
+                  fontWeight:"bold"
+                }}
+                >
+                {item.center}
+              </td>
+
+              {months.map((month) => {
+                const value = item.stats?.[month] ?? 0;
+
+                return (
+                  <td
+                    key={month}
+                    className="text-center px-2 py-1"
+                    style={{
+                      border: "1px solid #d6dde8",
+                      background: "#fff",
+                    }}
+                  >
+                    <span
+                      className="fw-semibold"
+                      style={{
+                        color: value > 0 ? "#1e293b" : "#94a3b8",
+                        fontSize: "0.84rem",
+                      }}
                     >
-                      <thead className="table-light">
-                        <tr>
-                          <th className="text-center">#</th>
-                          <th className="text-center">Center</th>
-                          {months.map((month) => (
-                            <th key={month} className="text-center">
-                              {formatMonth(month)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                          {filteredData && filteredData.length > 0 ? (
-                            <>
-                              {filteredData.map((item, idx) => (
-                                <tr key={idx}>
-                                  <td className="text-center">{idx + 1}</td>
-                                  <td className="text-center">{item.center}</td>
-                                  {months.map((month) => {
-                                    const value = item.stats?.[month] ?? 0;
+                      {value}
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
 
-                                    return (
-                                      <td key={month} className="text-center">
-                                        <strong>{value}</strong>
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              ))}
-                              {selectedCenter==="ALL"?<tr className="table-primary fw-bold">
-                                <td className="text-center">-</td>
-                                <td className="text-center">Total</td>
-                                {months.map((month) => (
-                                  <td key={month} className="text-center">
-                                    <strong>{totals[month] ?? 0}</strong>
-                                  </td>
-                                ))}
-                              </tr>:<></>}
-                              
-                            </>
-                          ): (
-                          <tr>
-                            <td
-                              colSpan={months.length + 2}
-                              className="text-center text-muted"
-                            >
-                              No data available
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </Table>
+          {selectedCenter === "ALL" && (
+            <tr>
+              <td
+                className="text-center fw-bold px-2 py-2"
+                style={{
+                  border: "1px solid #9bbcf3",
+                  background: "#dbeafe",
+                  color: "black",
+                }}
+              >
+                Total
+              </td>
 
+              {months.map((month) => (
+                <td
+                  key={month}
+                  className="text-center fw-bold px-2 py-2"
+                  style={{
+                    border: "1px solid #9bbcf3",
+                    background: "#dbeafe",
+                    color: "#1d4ed8",
+                  }}
+                >
+                  {totals[month] ?? 0}
+                </td>
+              ))}
+            </tr>
+          )}
+        </>
+      ) : (
+        <tr>
+          <td
+            colSpan={months.length + 1}
+            className="text-center text-muted py-4"
+            style={{
+              border: "1px solid #d6dde8",
+            }}
+          >
+            No data available
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </Table>
+</div>
 
-                    <Row className="mb-4">
+                    <Row className="mb-4 mt-4">
                                   <Col lg={6} className="mb-4 mb-lg-0">
                                     <Card>
                                       <CardBody>
