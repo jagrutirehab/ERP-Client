@@ -19,6 +19,7 @@ const InvoiceTable = ({
   center,
   isEdit,
   type,
+  validation
 }) => {
   const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
@@ -490,24 +491,54 @@ const InvoiceTable = ({
                               <Input
                                 bsSize="sm"
                                 type="date"
-                                style={{ flex: 1 }}
+                                style={{ width: "120px", padding: "2px 4px" }}
                                 value={item.fromDate || ""}
-                                onChange={(e) =>
-                                  handleDateChange(idx, "fromDate", e.target.value)
+                                onChange={(e) => {
+                                  handleDateChange(idx, "fromDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.fromDate &&
+                                  validation.errors.invoiceList?.[idx]?.fromDate
                                 }
                               />
+
+                              {validation.touched.invoiceList?.[idx]?.fromDate &&
+                                validation.errors.invoiceList?.[idx]?.fromDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].fromDate}
+                                  </div>
+                                )}
 
                               <span className="small">→</span>
 
                               <Input
                                 bsSize="sm"
                                 type="date"
-                                style={{ flex: 1 }}
+                                style={{ width: "120px", padding: "2px 4px" }}
                                 value={item.toDate || ""}
-                                onChange={(e) =>
-                                  handleDateChange(idx, "toDate", e.target.value)
+                                onChange={(e) => {
+                                  handleDateChange(idx, "toDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.toDate &&
+                                  validation.errors.invoiceList?.[idx]?.toDate
                                 }
                               />
+
+                              {validation.touched.invoiceList?.[idx]?.toDate &&
+                                validation.errors.invoiceList?.[idx]?.toDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].toDate}
+                                  </div>
+                                )}
                             </div>
                           </div>
                         )}
@@ -764,27 +795,61 @@ const InvoiceTable = ({
 
 
                     {item.category?.toLowerCase() === "room charges" && (
-                      <Col xs={3} md={3} className="d-flex gap-1 align-items-start">
-                        
-                        <Input
-                          bsSize="sm"
-                          type="date"
-                          style={{ width: "120px", padding: "2px 4px" }}
-                          value={item.fromDate || ""}
-                          onChange={(e) =>
-                            handleDateChange(idx, "fromDate", e.target.value)
-                          }
-                        />
-                        <span style={{ fontSize: "15px" }}>to</span>
-                        <Input
-                          bsSize="sm"
-                          type="date"
-                          style={{ width: "120px", padding: "2px 4px" }}
-                          value={item.toDate || ""}
-                          onChange={(e) =>
-                            handleDateChange(idx, "toDate", e.target.value)
-                          }
-                        />
+                      <Col xs={3} md={3}>
+
+                        {/* Row for inputs */}
+                        <div className="d-flex gap-1 align-items-center">
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.fromDate || ""}
+                            onChange={(e) => {
+                              handleDateChange(idx, "fromDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.fromDate &&
+                              validation.errors.invoiceList?.[idx]?.fromDate
+                            }
+                          />
+
+                          <span style={{ fontSize: "15px" }}>to</span>
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.toDate || ""}
+                            onChange={(e) => {
+                              handleDateChange(idx, "toDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.toDate &&
+                              validation.errors.invoiceList?.[idx]?.toDate
+                            }
+                          />
+
+                        </div>
+
+                        {(validation?.touched?.invoiceList?.[idx]?.fromDate &&
+                          validation?.errors?.invoiceList?.[idx]?.fromDate) ||
+                          (validation?.touched?.invoiceList?.[idx]?.toDate &&
+                            validation?.errors?.invoiceList?.[idx]?.toDate) ? (
+                          <div className="text-danger mt-1" style={{ fontSize: "12px" }}>
+                            {validation?.errors?.invoiceList?.[idx]?.fromDate ||
+                              validation?.errors?.invoiceList?.[idx]?.toDate}
+                          </div>
+                        ) : null}
+
                       </Col>
                     )}
 
