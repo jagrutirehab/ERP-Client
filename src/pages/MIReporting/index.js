@@ -96,6 +96,12 @@ const MiReporting = () => {
     "READ"
   );
 
+  const hasMISPermission = hasPermission(
+    "MIS_REPORTS",
+    "MIS_REPORTS_PERMISSION",
+    "READ"
+  );
+
   return (
     <React.Fragment>
       <div className="page-content overflow-hidden">
@@ -162,10 +168,10 @@ const MiReporting = () => {
                   />
                 )}
                 
-                <Route
+                {hasMISPermission&&<Route
                     path="/refund-amount"
                     element={<RefundAmountMOM />}
-                  />
+                  />}
               </Routes>
             </div>
           </Container>

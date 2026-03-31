@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
-import { fetchCenterLeadsMoM, fetchRefundAmountMOM } from "../../../store/features/miReporting/miReportingSlice";
+import { fetchRefundAmountMOM } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 import {
   PieChart,
@@ -17,8 +17,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { useNavigate } from "react-router-dom";
 
 const RefundAmountMOM = () => {
   const dispatch = useDispatch();
@@ -32,25 +30,13 @@ const RefundAmountMOM = () => {
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
-  const navigate = useNavigate();
 
-  const { roles,loading: permissionLoader, hasPermission } = usePermissions(token);
-  const hasReadPermission = hasPermission(
-    "MIS_REPORTS",
-    "MIS_REPORTS_PERMISSION",
-    "READ"
-  );
-
+  
   useEffect(() => {
 
     
-    if (!loading &&!hasReadPermission ) {
-      navigate("/unauthorized");
-      return;
-    }
-    console.log("In use effect")
+   
+
     dispatch(fetchRefundAmountMOM({ centerAccess }));
   }, [dispatch, centerAccess]);
   // Extract unique months and sort them descending
