@@ -115,6 +115,33 @@ const DuePayment = ({
         ),
       }),
       bill: Yup.string().required("Bill type required!"),
+      invoiceList: Yup.array().of(
+        Yup.object().shape({
+          fromDate: Yup.date()
+            .nullable()
+            .test(
+              "fromDate-check",
+              "From Date cannot be greater than To Date",
+              function (value) {
+                const { toDate } = this.parent;
+                if (!value || !toDate) return true;
+                return new Date(value) <= new Date(toDate);
+              }
+            ),
+
+          toDate: Yup.date()
+            .nullable()
+            .test(
+              "toDate-check",
+              "To Date must be greater than or equal to From Date",
+              function (value) {
+                const { fromDate } = this.parent;
+                if (!value || !fromDate) return true;
+                return new Date(value) >= new Date(fromDate);
+              }
+            ),
+        })
+      ),
 
       // ...(type === "IPD" && {
       //   fromDate: Yup.date().required("From date is required"),
@@ -457,23 +484,6 @@ const DuePayment = ({
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
 
-        const lastRoomCharge = prevArray
-          ?.slice()
-          ?.reverse()
-          ?.find(
-            (item) =>
-              item.category?.toLowerCase() === "room charges" &&
-              item.fromDate &&
-              item.toDate
-          );
-
-        const categoryName =
-          typeof item.category === "object"
-            ? item.category.name
-            : item.category;
-
-        const isRoom = categoryName?.toLowerCase() === "room charges";
-
         return [
           ...prevArray,
           {
@@ -487,8 +497,8 @@ const DuePayment = ({
             unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
-            fromDate: isRoom ? lastRoomCharge?.fromDate || "" : "",
-            toDate: isRoom ? lastRoomCharge?.toDate || "" : "",
+            fromDate: "",
+            toDate: "",
           },
         ];
       });
@@ -660,6 +670,7 @@ const DuePayment = ({
             onUOMChange={handleUOMChange}
             {...rest}
             center={patient?.center}
+            validation={validation} 
           />
           {/* {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>

@@ -198,9 +198,9 @@ const Table = ({ bill }) => {
               </Text>
               {hasDuration && (
                 <Text style={[styles.cell, styles.duration]}>
-                  {item.fromDate && item.toDate
-                    ? `${new Date(item.fromDate).toLocaleDateString("en-GB")} → ${new Date(
-                      item.toDate
+                  {item?.fromDate && item?.toDate
+                    ? `${new Date(item.fromDate).toLocaleDateString("en-GB")} - ${new Date(
+                      item?.toDate
                     ).toLocaleDateString("en-GB")}`
                     : "-"}
                 </Text>
