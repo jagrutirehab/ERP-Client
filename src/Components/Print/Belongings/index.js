@@ -174,10 +174,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
+  signatureGuideBox: {
+    width: "100%",
+    height: 54,
+    border: "0.8px solid #b8b8b8",
+    borderBottom: "none",
+    marginBottom: 0,
+  },
   signatureLine: {
     width: "100%",
     borderBottom: "1.5px solid #000",
-    height: 50,
+    height: 8,
     marginBottom: 5,
   },
   signatureLabel: {
@@ -428,10 +435,12 @@ const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
         {/* Signatures */}
         <View style={styles.signatureSection} wrap={false}>
           <View style={styles.signatureBox}>
+            <View style={styles.signatureGuideBox} />
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Patient / Attendant</Text>
           </View>
           <View style={styles.signatureBox}>
+            <View style={styles.signatureGuideBox} />
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Authorized Signatory</Text>
           </View>
@@ -445,3 +454,4 @@ const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
 };
 
 export default BelongingsPDF;
+
