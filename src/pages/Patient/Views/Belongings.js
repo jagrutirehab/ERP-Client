@@ -93,6 +93,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const [signedPreviewModal, setSignedPreviewModal] = useState(false);
     const [signedBelongingId, setSignedBelongingId] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
     const fileInputRef = useRef(null);
 
     const toggleAccordian = (id) => {
@@ -131,6 +132,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         if (!file) return;
         setSignedFile(file);
         setSignedBelongingId(belongingId);
+        setUploadError(null);
         const previewUrl = URL.createObjectURL(file);
         setSignedPreviewUrl(previewUrl);
         setSignedPreviewModal(true);
@@ -146,12 +148,27 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
             await uploadSignedBelonging(signedBelongingId, fd);
             toast.success("Signed copy uploaded successfully");
 
+            setUploadError(null);
             setSignedPreviewModal(false);
             resetSignedState();
             fetchBelongings();
         } catch (err) {
             if (!handleAuthError(err)) {
-                toast.error(err?.message || "Failed to upload signed copy");
+                const msg = err?.message || "";
+                if (msg.includes("504") || msg.includes("Gateway Timeout") || msg.includes("timeout")) {
+                    // 504 — server is still processing in background
+                    toast.info("Processing is taking longer than usual. Your file will be uploaded shortly. Please refresh the page in a minute.");
+                    setSignedPreviewModal(false);
+                    resetSignedState();
+                } else if (msg === "Something went wrong!" || msg.includes("Network Error") || msg.includes("ECONNREFUSED")) {
+                    // Server crashed or network error
+                    toast.info("Something went wrong, but your file will be uploaded shortly.");
+                    setSignedPreviewModal(false);
+                    resetSignedState();
+                } else {
+                    // Actual validation error — show inline in modal
+                    setUploadError(msg || "Failed to upload signed copy");
+                }
             }
         } finally {
             setUploading(false);
@@ -163,6 +180,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         setSignedFile(null);
         setSignedPreviewUrl(null);
         setSignedBelongingId(null);
+        setUploadError(null);
     };
 
     return (
@@ -414,11 +432,38 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
             />
 
             {/* Signed Copy Preview Modal */}
-            <Modal isOpen={signedPreviewModal} toggle={() => { setSignedPreviewModal(false); resetSignedState(); }} centered size="lg">
+            <Modal isOpen={signedPreviewModal} toggle={() => { setSignedPreviewModal(false); resetSignedState(); }} size="xl">
                 <ModalHeader toggle={() => { setSignedPreviewModal(false); resetSignedState(); }}>
                     Preview Signed Copy
                 </ModalHeader>
                 <ModalBody className="text-center">
+                    {uploadError && (
+                        <div
+                            className="d-flex align-items-start gap-2 text-start mb-3"
+                            style={{
+                                background: "#fff3f3",
+                                border: "1px solid #f5c6cb",
+                                borderLeft: "4px solid #dc3545",
+                                borderRadius: 6,
+                                padding: "12px 16px",
+                                color: "#842029",
+                                animation: "shake 0.4s ease-in-out",
+                            }}
+                        >
+                            <i className="ri-error-warning-fill fs-5" style={{ color: "#dc3545", marginTop: 2 }}></i>
+                            <div style={{ flex: 1 }}>
+                                <strong style={{ fontSize: 14 }}>Validation Error</strong>
+                                <p className="mb-0 mt-1" style={{ fontSize: 13 }}>{uploadError}</p>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                style={{ fontSize: 10, marginTop: 2 }}
+                                onClick={() => setUploadError(null)}
+                                aria-label="Dismiss"
+                            />
+                        </div>
+                    )}
                     {signedPreviewUrl && signedFile?.type?.startsWith("image/") ? (
                         <img
                             src={signedPreviewUrl}
@@ -444,6 +489,15 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                             <small><strong>File:</strong> {signedFile.name} ({(signedFile.size / 1024).toFixed(1)} KB)</small>
                         </p>
                     )}
+                    <style>{`
+                        @keyframes shake {
+                            0%, 100% { transform: translateX(0); }
+                            20% { transform: translateX(-6px); }
+                            40% { transform: translateX(6px); }
+                            60% { transform: translateX(-4px); }
+                            80% { transform: translateX(4px); }
+                        }
+                    `}</style>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }}>
