@@ -93,8 +93,8 @@ const InvoiceTable = ({
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
       );
-
-      if (matchingPriceObj && !isEdit) {
+//  && !isEdit
+      if (matchingPriceObj) {
         const newPrice = Number(matchingPriceObj.price);
         item.cost = newPrice;
 
@@ -143,7 +143,7 @@ const InvoiceTable = ({
   };
 
   // console.log("getUnitOptions", getUnitOptions());
-  console.log("invoiceList", invoiceList);
+  // console.log("invoiceList", invoiceList);
 
   const handleDateChange = (idx, field, value) => {
     const newInvoiceList = [...invoiceList];
@@ -252,7 +252,7 @@ const InvoiceTable = ({
                   }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
-              console.log("unitOptions", unitOptions);
+              // console.log("unitOptions", unitOptions);
 
               return (
                 <React.Fragment key={item.id + item.slot}>
