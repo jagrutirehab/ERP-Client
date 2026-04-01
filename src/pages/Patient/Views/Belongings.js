@@ -155,13 +155,8 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         } catch (err) {
             if (!handleAuthError(err)) {
                 const msg = err?.message || "";
-                if (msg.includes("504") || msg.includes("Gateway Timeout") || msg.includes("timeout")) {
-                    // 504 — server is still processing in background
-                    toast.info("Processing is taking longer than usual. Your file will be uploaded shortly. Please refresh the page in a minute.");
-                    setSignedPreviewModal(false);
-                    resetSignedState();
-                } else if (msg === "Something went wrong!" || msg.includes("Network Error") || msg.includes("ECONNREFUSED")) {
-                    // Server crashed or network error
+                if (!msg || msg === "Something went wrong!" || msg.includes("Network Error") || msg.includes("ECONNREFUSED")) {
+                    // 504 / server crash / network error — no meaningful message from backend
                     toast.info("Something went wrong, but your file will be uploaded shortly.");
                     setSignedPreviewModal(false);
                     resetSignedState();
