@@ -107,6 +107,7 @@ export const GET_ICD_CODES = "/patient/get/icd";
 // BELONGINGS
 export const SEARCH_BELONGINGS = "/patient/belongings/search";
 export const PATIENT_BELONGING = "/patient/belongings";
+export const COMPRESS_PATIENT_BELONGING = "/patient/belongings/compress";
 
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";

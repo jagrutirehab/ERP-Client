@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import BelongingsDate from "../Modals/BelongingsDate";
 import BelongingsFormModal from "../Modals/BelongingsForm.modal";
-import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging } from "../../../helpers/backend_helper";
+import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging, compressPatientBelongingFile, getPatientBelongingById } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PreviewFile from "../../../Components/Common/PreviewFile";
@@ -93,8 +93,16 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const [signedPreviewModal, setSignedPreviewModal] = useState(false);
     const [signedBelongingId, setSignedBelongingId] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [validating, setValidating] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const fileInputRef = useRef(null);
+    const pollingIntervalRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        };
+    }, []);
 
     const toggleAccordian = (id) => {
         if (open === id) {
@@ -141,22 +149,70 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const handleSignedUpload = async () => {
         if (!signedFile || !signedBelongingId) return;
         setUploading(true);
+        setUploadError(null);
         try {
-            const fd = new FormData();
-            fd.append("signedFile", signedFile);
+            // Upload raw file directly — backend handles compression internally
+            const formData = new FormData();
+            formData.append("signedFile", signedFile);
 
-            await uploadSignedBelonging(signedBelongingId, fd);
-            toast.success("Signed copy uploaded successfully");
+            // --- Compress step removed (backend handles it now) ---
+            // const compressFd = new FormData();
+            // compressFd.append("signedFile", signedFile);
+            // const response = await compressPatientBelongingFile(compressFd);
+            // const blobType = response.data.type || "application/pdf"; 
+            // const extension = blobType.includes("image") ? ".jpg" : ".pdf";
+            // const compressedFile = new File([response.data], `compressed_signed_file${extension}`, {
+            //     type: blobType
+            // });
+            // const uploadFd = new FormData();
+            // uploadFd.append("signedFile", compressedFile);
+            // await uploadSignedBelonging(signedBelongingId, uploadFd);
 
-            setUploadError(null);
-            setSignedPreviewModal(false);
-            resetSignedState();
-            fetchBelongings();
+            await uploadSignedBelonging(signedBelongingId, formData);
+            
+            // Backend returns 200 immediately. Validation runs in background.
+            setUploading(false);
+            setValidating(true);
+            
+            pollingIntervalRef.current = setInterval(async () => {
+                try {
+                    const res = await getPatientBelongingById(signedBelongingId);
+                    const status = res?.data?.validationStatus;
+                    
+                    if (status === "completed") {
+                        clearInterval(pollingIntervalRef.current);
+                        toast.success("Signed copy uploaded and validated successfully!");
+                        setValidating(false);
+                        setSignedPreviewModal(false);
+                        resetSignedState();
+                        fetchBelongings();
+                    } else if (status === "failed") {
+                        clearInterval(pollingIntervalRef.current);
+                        setValidating(false);
+                        setUploadError(res?.data?.validationError || "Validation failed.");
+                    }
+                } catch (pollErr) {
+                    clearInterval(pollingIntervalRef.current);
+                    setValidating(false);
+                    setUploadError("Error checking validation status.");
+                }
+            }, 2500);
+
+            // Safety: stop polling after 2 minutes
+            setTimeout(() => {
+                if (pollingIntervalRef.current) {
+                    clearInterval(pollingIntervalRef.current);
+                    setValidating(false);
+                    setUploadError("Validation is taking too long. Please refresh the page.");
+                }
+            }, 120000);
+
         } catch (err) {
+            setUploading(false); // In case of error before polling starts
             if (!handleAuthError(err)) {
                 const msg = err?.message || "";
                 if (!msg || msg === "Something went wrong!" || msg.includes("Network Error") || msg.includes("ECONNREFUSED")) {
-                    // 504 / server crash / network error — no meaningful message from backend
+                    // server crash / network error — no meaningful message from backend
                     toast.info("Something went wrong, but your file will be uploaded shortly.");
                     setSignedPreviewModal(false);
                     resetSignedState();
@@ -165,17 +221,18 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                     setUploadError(msg || "Failed to upload signed copy");
                 }
             }
-        } finally {
-            setUploading(false);
         }
     };
 
     const resetSignedState = () => {
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
         if (signedPreviewUrl) URL.revokeObjectURL(signedPreviewUrl);
         setSignedFile(null);
         setSignedPreviewUrl(null);
         setSignedBelongingId(null);
         setUploadError(null);
+        setUploading(false);
+        setValidating(false);
     };
 
     return (
@@ -495,12 +552,14 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                     `}</style>
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }}>
+                    <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }} disabled={validating}>
                         Cancel
                     </Button>
-                    <Button color="success" className="text-white" disabled={uploading} onClick={handleSignedUpload}>
+                    <Button color="success" className="text-white" disabled={uploading || validating} onClick={handleSignedUpload}>
                         {uploading ? (
-                            <><Spinner size="sm" className="me-1" /> Uploading...</>
+                            <><Spinner size="sm" className="me-1" /> Compressing & Uploading...</>
+                        ) : validating ? (
+                            <><Spinner size="sm" className="me-1" /> Validating Signatures...</>
                         ) : (
                             <><i className="ri-upload-2-line me-1"></i> Upload</>
                         )}

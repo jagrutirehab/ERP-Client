@@ -1029,6 +1029,16 @@ export const searchBelongings = (search) => {
   });
 };
 
+export const compressPatientBelongingFile = (formData) => {
+  return api.create(url.COMPRESS_PATIENT_BELONGING, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
 export const createPatientBelonging = (data) => {
   return api.create(url.PATIENT_BELONGING, data, {
     headers: {
