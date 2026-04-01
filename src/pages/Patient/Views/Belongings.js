@@ -169,16 +169,16 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
             // await uploadSignedBelonging(signedBelongingId, uploadFd);
 
             await uploadSignedBelonging(signedBelongingId, formData);
-            
+
             // Backend returns 200 immediately. Validation runs in background.
             setUploading(false);
             setValidating(true);
-            
+
             pollingIntervalRef.current = setInterval(async () => {
                 try {
                     const res = await getPatientBelongingById(signedBelongingId);
                     const status = res?.data?.validationStatus;
-                    
+
                     if (status === "completed") {
                         clearInterval(pollingIntervalRef.current);
                         toast.success("Signed copy uploaded and validated successfully!");
@@ -340,12 +340,32 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                             {(() => {
                                                                 const signedFiles = belonging.signedFiles || (belonging.signedFileUrl ? [belonging.signedFileUrl] : []);
                                                                 const isSigned = signedFiles.length > 0;
+                                                                const valStatus = belonging.validationStatus;
+                                                                const valError = belonging.validationError;
                                                                 return (
                                                                     <>
                                                                         {isSigned && (
                                                                             <Badge color="success" className="ms-2" pill>
                                                                                 <i className="ri-check-line me-1"></i>Signed {signedFiles.length > 1 ? `(${signedFiles.length})` : ""}
                                                                             </Badge>
+                                                                        )}
+                                                                        {valStatus === "pending" && (
+                                                                            <Badge color="warning" className="ms-2" pill style={{ color: "#856404" }}>
+                                                                                <Spinner size="sm" style={{ width: 10, height: 10, borderWidth: 2, marginRight: 4 }} />
+                                                                                Validating...
+                                                                            </Badge>
+                                                                        )}
+                                                                        {valStatus === "failed" && (
+                                                                            <>
+                                                                                <Badge color="danger" className="ms-2" pill>
+                                                                                    <i className="ri-close-line me-1"></i>Validation Failed
+                                                                                </Badge>
+                                                                                {valError && (
+                                                                                    <small className="d-block text-danger mt-2" style={{ fontSize: 11 }}>
+                                                                                        <i className="ri-error-warning-line me-1"></i>{valError}
+                                                                                    </small>
+                                                                                )}
+                                                                            </>
                                                                         )}
                                                                     </>
                                                                 );

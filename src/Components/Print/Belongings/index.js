@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   signatureGuideBox: {
     width: "100%",
     height: 54,
-    border: "0.8px solid #b8b8b8",
+    border: "1.5px solid #000",
     borderBottom: "none",
     marginBottom: 0,
   },
@@ -352,57 +352,57 @@ const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
           {[...items]
             .sort((a, b) => (a.category || "").localeCompare(b.category || ""))
             .map((item, idx) => (
-            <View
-              key={idx}
-              style={[
-                styles.tableRow,
-                item.allowedWithPatient?.toLowerCase() === "no"
-                  ? styles.tableRowNotAllowed
-                  : idx % 2 !== 0 ? styles.tableRowAlt : {},
-              ]}
-              wrap={false}
-            >
-              <View style={styles.cellSl}>
-                <Text style={styles.cellText}>{idx + 1}</Text>
+              <View
+                key={idx}
+                style={[
+                  styles.tableRow,
+                  item.allowedWithPatient?.toLowerCase() === "no"
+                    ? styles.tableRowNotAllowed
+                    : idx % 2 !== 0 ? styles.tableRowAlt : {},
+                ]}
+                wrap={false}
+              >
+                <View style={styles.cellSl}>
+                  <Text style={styles.cellText}>{idx + 1}</Text>
+                </View>
+                <View style={styles.cellCategory}>
+                  <Text style={styles.cellTextCaps}>{capitalizeWords(item.category || "-")}</Text>
+                </View>
+                <View style={styles.cellItem}>
+                  <Text style={styles.cellTextCaps}>
+                    {item.name || item.customName || "-"}
+                  </Text>
+                </View>
+                <View style={styles.cellRisk}>
+                  <Text
+                    style={
+                      item.associatedRisk?.toLowerCase() === "high"
+                        ? styles.riskHigh
+                        : styles.cellText
+                    }
+                  >
+                    {capitalizeWords(item.associatedRisk || "-")}
+                  </Text>
+                </View>
+                <View style={styles.cellAllowed}>
+                  <Text style={styles.cellText}>
+                    {capitalizeWords(item.allowedWithPatient || "-")}
+                  </Text>
+                </View>
+                <View style={styles.cellQty}>
+                  <Text style={styles.cellText}>{item.quantity || 1}</Text>
+                </View>
+                <View style={styles.cellRemarks}>
+                  <Text style={styles.cellTextCaps}>{capitalizeWords(item.remarks || "-")}</Text>
+                </View>
+                <View style={styles.cellHandedOver}>
+                  <Text style={{ fontSize: 7, textTransform: "capitalize" }}>{item.handedOverTo ? `Handed Over to ${item.handedOverTo}` : "-"}</Text>
+                </View>
+                <View style={styles.cellAttachment}>
+                  <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 15)}</Text>
+                </View>
               </View>
-              <View style={styles.cellCategory}>
-                <Text style={styles.cellTextCaps}>{capitalizeWords(item.category || "-")}</Text>
-              </View>
-              <View style={styles.cellItem}>
-                <Text style={styles.cellTextCaps}>
-                  {item.name || item.customName || "-"}
-                </Text>
-              </View>
-              <View style={styles.cellRisk}>
-                <Text
-                  style={
-                    item.associatedRisk?.toLowerCase() === "high"
-                      ? styles.riskHigh
-                      : styles.cellText
-                  }
-                >
-                  {capitalizeWords(item.associatedRisk || "-")}
-                </Text>
-              </View>
-              <View style={styles.cellAllowed}>
-                <Text style={styles.cellText}>
-                  {capitalizeWords(item.allowedWithPatient || "-")}
-                </Text>
-              </View>
-              <View style={styles.cellQty}>
-                <Text style={styles.cellText}>{item.quantity || 1}</Text>
-              </View>
-              <View style={styles.cellRemarks}>
-                <Text style={styles.cellTextCaps}>{capitalizeWords(item.remarks || "-")}</Text>
-              </View>
-              <View style={styles.cellHandedOver}>
-                <Text style={{ fontSize: 7, textTransform: "capitalize" }}>{item.handedOverTo ? `Handed Over to ${item.handedOverTo}` : "-"}</Text>
-              </View>
-              <View style={styles.cellAttachment}>
-                <Text style={{ fontSize: 7 }}>{breakLongText(item.imageName, 15)}</Text>
-              </View>
-            </View>
-          ))}
+            ))}
 
           {/* Summary */}
           <View style={styles.summaryRow}>
