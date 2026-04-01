@@ -372,6 +372,7 @@ const Tally = ({ centers, centerAccess }) => {
     addLog("🚀 Initiating Tally sync...", "info");
     addLog(`📅 Date: ${format(syncDate, "dd MMM yyyy")}`, "info");
     addLog(`📋 Types: ${selectedTypes.join(", ")}`, "info");
+    addLog("🔌 Checking connection to Tally server...", "info");
 
     try {
       const response = await sendToTally({
@@ -383,6 +384,7 @@ const Tally = ({ centers, centerAccess }) => {
       });
 
       if (response.success && response.sessionId) {
+        addLog("✅ Tally server is reachable! Starting session...", "success");
         if (response.alreadyRunning) {
           addLog(
             `⚡ A sync is already running — joining existing session...`,

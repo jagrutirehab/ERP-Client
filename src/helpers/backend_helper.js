@@ -710,6 +710,13 @@ export const getReport = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const getReportUpdated = (data) =>
+  api.get(url.GET_REPORT_UPDATED, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getDBLogs = (data) =>
   api.get(url.GET_DB_LOGS, {
     params: data,

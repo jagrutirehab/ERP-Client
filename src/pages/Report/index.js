@@ -16,6 +16,7 @@ import {
   CENTER_BEDS_ANALYTICS,
   MI_REPORTING,
   ADMISSION_FORMS,
+  REPORT_UPDATED,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
 import ReportAnalytics from "./Components/Report";
@@ -37,6 +38,7 @@ import RenderWhen from "../../Components/Common/RenderWhen";
 const NAV_ITEMS = [
   { key: DASHBOARD, label: "Dashboard" },
   { key: REPORT, label: "Report" },
+  { key: REPORT_UPDATED, label: "Report Updated" },
   { key: FINANACE, label: "Finance" },
   { key: ADMISSION_FORMS, label: "Admission" },
   { key: PATIENT_ANALYTICS, label: "Patient Analytics" },
@@ -90,6 +92,7 @@ const Report = ({}) => {
           <div>
             {view === DASHBOARD && <Dashboard view={view} />}
             {view === REPORT && <ReportAnalytics view={view} />}
+            {view === REPORT_UPDATED && <ReportAnalytics view={view} />}
             {view === FINANACE && <Finance view={view} />}
             {view === ADMISSION_FORMS && <AdmissionForms view={view} />}
             {view === PATIENT_ANALYTICS && <Patient view={view} />}

@@ -253,6 +253,7 @@ export const DELETE_CONDITION = "/condition";
 
 //REPORT
 export const GET_REPORT = "/report";
+export const GET_REPORT_UPDATED = "/report/updated";
 export const GET_DB_LOGS = "/report/db-logs";
 export const GET_FINANCE_ANALYTICS = "/report/finance";
 export const GET_FINANCE_ANALYTICS_CSV = "/report/finance-csv";
