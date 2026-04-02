@@ -352,6 +352,12 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                         {valStatus === "pending" && (
                                                                             <Badge color="warning" className="ms-2" pill style={{ color: "#856404" }}>
                                                                                 <Spinner size="sm" style={{ width: 10, height: 10, borderWidth: 2, marginRight: 4 }} />
+                                                                                Pending...
+                                                                            </Badge>
+                                                                        )}
+                                                                        {valStatus === "validating" && (
+                                                                            <Badge color="warning" className="ms-2" pill style={{ color: "#856404" }}>
+                                                                                <Spinner size="sm" style={{ width: 10, height: 10, borderWidth: 2, marginRight: 4 }} />
                                                                                 Validating...
                                                                             </Badge>
                                                                         )}
