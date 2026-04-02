@@ -185,7 +185,7 @@ const LeaveApplications = () => {
                   <option value="WEEK_OFFS">Week Off</option>
                   <option value="FESTIVE_LEAVE">Festive Leave</option>
                   <option value="LEAVE_WTIHOUT_PAYS">Unpaid Leave</option>
-                  <option value="COMP_OFF_REQUEST">Comp-Off Request</option>
+                  <option value="COMP_OFF_REQUEST">Comp-Off Addition Request</option>
                   <option value="COMP_OFF">Comp-Off Apply</option>
                 </select>
               </div>
