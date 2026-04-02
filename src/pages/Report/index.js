@@ -38,7 +38,7 @@ import RenderWhen from "../../Components/Common/RenderWhen";
 const NAV_ITEMS = [
   { key: DASHBOARD, label: "Dashboard" },
   { key: REPORT, label: "Report" },
-  { key: REPORT_UPDATED, label: "Report Updated" },
+  { key: REPORT_UPDATED, label: "Report (Updated Date)" },
   { key: FINANACE, label: "Finance" },
   { key: ADMISSION_FORMS, label: "Admission" },
   { key: PATIENT_ANALYTICS, label: "Patient Analytics" },
