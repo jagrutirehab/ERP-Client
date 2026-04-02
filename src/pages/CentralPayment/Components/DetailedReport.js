@@ -259,6 +259,15 @@ const DetailedReport = ({
       minWidth: "160px"
     },
     {
+      name: <div>Patient</div>,
+      selector: (row) =>
+        row?.patient
+          ? `${row.patient.name} (${row.patient.id?.prefix || ""}${row.patient.id?.value || ""})`
+          : "-",
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Bank Statement Description</div>,
       selector: (row) =>
         row.description ? (
