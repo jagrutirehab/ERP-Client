@@ -47,6 +47,10 @@ export const renderStatusBadge = (stage) => {
       text: "Festive Leave",
       color: "info",
     },
+    COMP_OFF: {
+      text: "Comp-Off Leave",
+      color: "info",
+    },
     PENDING: {
       text: "Pending",
       color: "warning",

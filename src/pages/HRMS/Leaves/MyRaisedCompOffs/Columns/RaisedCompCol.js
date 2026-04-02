@@ -111,5 +111,11 @@ export const RaisedCompCol = (
                 cell: (row) => <Center>{row?.approveBy || "-"}</Center>,
                 width: "140px",
             },
-        ] : [])
+        ] : []),
+         {
+            name: <Center>Reason</Center>,
+            cell: (row) => <Center>{row?.reason || "-"}</Center>,
+            wrap: true,
+            minWidth: "220px",
+        },
     ];
