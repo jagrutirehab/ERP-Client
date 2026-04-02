@@ -103,6 +103,12 @@ export const AllCompOffsCol = (
             ),
             width: "120px",
         },
+        {
+            name: <Center>Reason</Center>,
+            cell: (row) => <Center>{row?.reason || "-"}</Center>,
+            wrap: true,
+            minWidth: "220px",
+        },
 
         ...(activeTab === "pending" ? [
             {
@@ -119,7 +125,7 @@ export const AllCompOffsCol = (
                                 onClick={() => handleAction(row, "approved")}
                             >
                                 {loadingId === row._id ? <Spinner size="sm" /> : "Approve"}
-                                
+
                             </button>
 
                             <button
@@ -128,7 +134,7 @@ export const AllCompOffsCol = (
                                 onClick={() => handleAction(row, "rejected")}
                             >
                                 {loadingId === row._id ? <Spinner size="sm" /> : "Reject"}
-                                
+
                             </button>
 
                         </div>
@@ -138,7 +144,7 @@ export const AllCompOffsCol = (
                 width: "200px",
             },
         ] : []),
-         ...(activeTab !== "pending" ? [
+        ...(activeTab !== "pending" ? [
             {
                 name: <Center>Action On</Center>,
                 cell: (row) => <Center>{formatDate(row?.actionOn)}</Center>,

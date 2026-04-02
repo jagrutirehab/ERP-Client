@@ -90,7 +90,8 @@ const LeaveApplications = () => {
       const compOffPayload = {
         from: fromDate.toISOString(),
         to: toDate.toISOString(),
-        manager: approvalAuthority
+        manager: approvalAuthority,
+        reason: leaveReason
       }
 
       let res;

@@ -103,7 +103,12 @@ export const CompOffRequestsColumn = (
             ),
             width: "120px",
         },
-
+        {
+            name: <Center>Reason</Center>,
+            cell: (row) => <Center>{row?.reason || "-"}</Center>,
+            wrap: true,
+            minWidth: "220px",
+        },
         ...(activeTab === "pending" ? [
             {
                 name: "Action",
@@ -149,5 +154,6 @@ export const CompOffRequestsColumn = (
                 cell: (row) => <Center>{row?.approveBy || "-"}</Center>,
                 width: "140px",
             },
-        ] : [])
+        ] : []),
+
     ];
