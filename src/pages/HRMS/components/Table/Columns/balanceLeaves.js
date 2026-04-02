@@ -19,4 +19,8 @@ export const balanceLeavesColumn = () => [
     name: "Unpaid",
     cell: (row) => row.unpaidLeaves ?? "-",
   },
+    {
+    name: "Comp-Off's",
+    cell: (row) => row.compOff ?? "-",
+  },
 ];

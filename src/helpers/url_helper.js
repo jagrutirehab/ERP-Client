@@ -548,10 +548,15 @@ export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
 export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
+export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
+export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
+export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
 
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves"
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
+export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs"
+export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs"
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =

@@ -210,7 +210,7 @@ export const permissionList = [
     label: "MIS Reports",
     subModules: [
       { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
-      
+
     ],
   },
   {
@@ -304,9 +304,12 @@ export const permissionList = [
       { name: "LEAVE_HISTORY", label: "Leave History" },
       { name: "MANAGE_LEAVES", label: "Manage Leaves" },
       { name: "MY_LEAVES", label: "My Leaves" },
+      {name : "RAISED_COMP_OFFS", label : "Raised Comp-Off's"},
       { name: "BALANCE_LEAVES", label: "Balance Leaves" },
       { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
       { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
+      { name: "COMP_OFF_REQUESTS", label: "Comp-Off Requests" },
+      { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
       // Policy
       { name: "POLICIES", label: "Policies" },
       // Incentives

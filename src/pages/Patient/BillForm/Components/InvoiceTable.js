@@ -93,7 +93,7 @@ const InvoiceTable = ({
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
       );
-//  && !isEdit
+      //  && !isEdit
       if (matchingPriceObj) {
         const newPrice = Number(matchingPriceObj.price);
         item.cost = newPrice;
