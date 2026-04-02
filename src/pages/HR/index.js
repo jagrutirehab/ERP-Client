@@ -54,6 +54,9 @@ import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
+import CompOffRequests from "../HRMS/Leaves/CompOffsRequests/CompOffRequests";
+import AllCompOffs from "./Dashboard/AllCompOffs";
+import RaisedCompOffsRequest from "../HRMS/Leaves/MyRaisedCompOffs/RaisedCompOffsRequest";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -190,6 +193,9 @@ const HR = () => {
                 <Route path={`/leaves/festive/leaves`} element={<FestiveLeaves />} />
                 <Route path={`/leaves/get/cancellations`} element={<CancellationRequestsPage />} />
 
+                <Route path={`/leaves/get/comp-offs`} element={<CompOffRequests />} />
+                <Route path={`/leaves/my/compOffs`} element={<RaisedCompOffsRequest />} />
+
                 <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
                 <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
 
@@ -206,8 +212,11 @@ const HR = () => {
                 <Route path={`/leave-balance/dashboard`} element={<EmployeeLeaveBalanceDashboard />} />
                 <Route path={`/regularization/dashboard`} element={<EmployeeRegularizationSummaryDashboard />} />
                 <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
+
+                <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
+                <Route path={`/all/compOffs`} element={<AllCompOffs />} />
+
                 
-                 <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
               </Routes>
             </div>
           </Container>

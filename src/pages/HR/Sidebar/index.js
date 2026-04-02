@@ -171,6 +171,9 @@ const Sidebar = () => {
   const hasBalancePermission = hasPermission("HR", "BALANCE_LEAVES", "READ");
   const hasFestiveLeavesPermission = hasPermission("HR", "FESTIVE_LEAVES", "READ");
   const hasCancellationsRequestsPerm = hasPermission("HR", "CANCELATIONS_REQUESTS", "READ")
+  const hasCompOffRequestsPerm = hasPermission("HR", "COMP_OFF_REQUESTS", "READ")
+  const hasRaisedCompOffPerm = hasPermission("HR", "RAISED_COMP_OFFS", "READ");
+  const hasCompOffHistoryPerm = hasPermission("HR", "COMP_OFF_HISTORY", "READ")
   const hasMainDashboardPermission = hasPermission("HR", "MAIN_DASHBOARD", "READ");
 
   const hasIncentivesAddRequestPermission = hasPermission(
@@ -397,7 +400,13 @@ const Sidebar = () => {
         if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
 
         if (child.id === "cancellations-requests" && !hasCancellationsRequestsPerm) return false;
+        if (child.id === "comp-off-requests" && !hasCompOffRequestsPerm) return false;
+
+        if (child.id === "my-comp-off" && !hasRaisedCompOffPerm) return false;
+
+
         return true;
+
       });
       return page.children.length > 0;
     }
@@ -437,6 +446,7 @@ const Sidebar = () => {
           return false;
         if (child.id === "regularization-dashboard" && !hasRegularizationDashboardPermission)
           return false;
+        if (child.id === "comp-off-history" && !hasCompOffHistoryPerm) return false;
         return true;
       });
       return page.children.length > 0;
