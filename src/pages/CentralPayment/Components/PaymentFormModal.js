@@ -302,6 +302,14 @@ const PaymentFormModal = ({
                         {formatCurrency(paymentDetails?.monthlyDeductionAmount)}
                       </p>
                     )}
+                    {paymentDetails?.category === "PATIENT_REFUND" && (
+                      <p className="mb-0">
+                        <strong>Patient:</strong>{" "}
+                        {paymentDetails?.patient
+                          ? `${paymentDetails.patient?.name} (${paymentDetails.patient?.id?.prefix}${paymentDetails.patient?.id?.value})`
+                          : "-"}
+                      </p>
+                    )}
                     <p className="mb-0">
                       <strong>Gross Amount (Excl. GST):</strong>{" "}
                       {formatCurrency(paymentDetails?.totalAmountWithoutGST)}

@@ -3,22 +3,29 @@ import * as Yup from "yup";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { useFormik } from "formik";
 import { addInflow, getLastInflows } from "../../../store/features/cashManagement/cashSlice";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import AsyncSelect from "react-select/async";
 import ItemCard from "../Components/ItemCard";
 import { History, Receipt, Share } from "lucide-react";
 import { Button, Card, CardBody, CardHeader, Col, Form, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import FileUpload from "../Components/FileUpload";
 import { summaryOptions } from "../../../Components/constants/cash";
+import { getSearchPatients } from "../../../helpers/backend_helper";
 
 const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
     summary: Yup.object()
         .required("Summary is required")
         .nullable(),
+    patientId: Yup.mixed().when("summary", {
+        is: (val) => val?.value === "PATIENT_REFUND",
+        then: (schema) => schema.required("Please select a patient"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
     amount: Yup.number()
         .required("Amount is required")
         .positive("Amount must be positive")
@@ -46,6 +53,8 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
 
+    const patientSearchTimerRef = useRef(null);
+
     const [attachment, setAttachment] = useState(null);
     const [attachmentTouched, setAttachmentTouched] = useState(false);
     const microUser = localStorage.getItem("micrologin");
@@ -65,10 +74,12 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
             title: c.title,
         }));
 
+
     const formik = useFormik({
         initialValues: {
             center: "",
             summary: null,
+            patientId: null,
             amount: 0,
             comments: "",
             attachment: null,
@@ -79,6 +90,9 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
             formData.append("center", values.center);
             formData.append("amount", Number(values.amount));
             formData.append("summary", values.summary.value);
+            if (values.summary?.value === "PATIENT_REFUND" && values.patientId?.value) {
+                formData.append("patientId", values.patientId.value);
+            }
             if (values.comments) {
                 formData.append("comments", values.comments);
             }
@@ -98,6 +112,36 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
             setAttachment(null);
         },
     });
+
+    const loadPatients = async (inputValue) => {
+        if (!inputValue) return [];
+        try {
+            const res = await getSearchPatients({
+                name: inputValue,
+                centerAccess: formik.values.center ? [formik.values.center] : [],
+            });
+            return (res?.payload || []).map((p) => ({
+                value: p._id,
+                label: `${p.name} (${p.id?.prefix || ""}${p.id?.value || ""})`,
+            }));
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to search patients");
+            }
+            return [];
+        }
+    };
+
+    const debouncedLoadPatients = useCallback(
+        (inputValue, callback) => {
+            if (patientSearchTimerRef.current) clearTimeout(patientSearchTimerRef.current);
+            patientSearchTimerRef.current = setTimeout(() => {
+                loadPatients(inputValue).then(callback);
+            }, 300);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [formik.values.center]
+    );
 
     useEffect(() => {
         formik.setFieldValue("attachment", attachment);
@@ -204,7 +248,13 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
                                             name="summary"
                                             options={summaryOptions}
                                             value={formik.values.summary}
-                                            onChange={(option) => formik.setFieldValue("summary", option)}
+                                            onChange={(option) => {
+                                                formik.setFieldValue("summary", option);
+                                                if (option?.value !== "PATIENT_REFUND") {
+                                                    formik.setFieldValue("patientId", null);
+                                                    formik.setFieldTouched("patientId", false, false);
+                                                }
+                                            }}
                                             onBlur={() => formik.setFieldTouched("summary", true)}
                                             classNamePrefix="react-select"
                                             placeholder="Select summary"
@@ -216,6 +266,37 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
                                             </div>
                                         )}
                                     </FormGroup>
+                                    {formik.values.summary?.value === "PATIENT_REFUND" && (
+                                        <FormGroup>
+                                            <Label className="fw-medium">
+                                                Select Patient <span className="text-danger">*</span>
+                                            </Label>
+                                            <AsyncSelect
+                                                key={formik.values.center}
+                                                cacheOptions={false}
+                                                defaultOptions={false}
+                                                loadOptions={debouncedLoadPatients}
+                                                placeholder="Search by name or patient UID"
+                                                value={formik.values.patientId}
+                                                onChange={(option) => formik.setFieldValue("patientId", option)}
+                                                onBlur={() => formik.setFieldTouched("patientId", true)}
+                                                classNamePrefix="react-select"
+                                                className={
+                                                    formik.touched.patientId && formik.errors.patientId
+                                                        ? "react-select is-invalid"
+                                                        : "react-select"
+                                                }
+                                                noOptionsMessage={({ inputValue }) =>
+                                                    inputValue ? "No patient found" : "Search by name or patient UID"
+                                                }
+                                            />
+                                            {formik.touched.patientId && formik.errors.patientId && (
+                                                <div className="invalid-feedback d-block">
+                                                    {formik.errors.patientId}
+                                                </div>
+                                            )}
+                                        </FormGroup>
+                                    )}
                                     <FormGroup>
                                         <Label for="amount" className="fw-medium">
                                             Amount <span className="text-danger">*</span>

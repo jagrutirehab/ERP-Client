@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { connect, useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import * as Yup from "yup";
@@ -21,6 +21,7 @@ import Select from "react-select";
 import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
 import { formatCurrency } from '../../../utils/formatCurrency';
+import { getSearchPatients } from '../../../helpers/backend_helper';
 
 // const clearableFields = [
 //     // "invoiceNo",
@@ -32,6 +33,9 @@ import { formatCurrency } from '../../../utils/formatCurrency';
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
+
+    const patientSearchTimerRef = useRef(null);
+    const employeeSearchTimerRef = useRef(null);
 
     const centerOptions = centers
         ?.filter((c) => centerAccess.includes(c._id))
@@ -59,6 +63,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         employeeId: Yup.mixed().when("category", {
             is: "SALARY_ADVANCE",
             then: schema => schema.required("Please select an employee"),
+            otherwise: schema => schema.notRequired(),
+        }),
+        patientId: Yup.mixed().when("category", {
+            is: "PATIENT_REFUND",
+            then: schema => schema.required("Please select a patient"),
             otherwise: schema => schema.notRequired(),
         }),
         monthlyDeductionAmount: Yup.string().when("category", {
@@ -159,6 +168,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     label: `${paymentData.employee.name} (${paymentData.employee.eCode})`,
                 }
                 : null,
+            patientId: paymentData?.patient
+                ? {
+                    value: paymentData.patient._id,
+                    label: `${paymentData.patient.name} (${paymentData.patient.id?.prefix || ""}${paymentData.patient.id?.value || ""})`,
+                }
+                : null,
             monthlyDeductionAmount: paymentData?.monthlyDeductionAmount ?? 0,
             date: paymentData?.date ? format(new Date(paymentData.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
             description: paymentData?.description || "",
@@ -223,7 +238,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 }
 
                 if (key === "totalAmountWithGST") {
-                    return; 
+                    return;
                 }
 
                 if (key === "GSTAmount") {
@@ -233,6 +248,13 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
                 if (key === "employeeId") {
                     if (val?.value) formData.append("employeeId", val.value);
+                    return;
+                }
+
+                if (key === "patientId") {
+                    if (values.category === "PATIENT_REFUND" && val?.value) {
+                        formData.append("patientId", val.value);
+                    }
                     return;
                 }
 
@@ -335,6 +357,47 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             return [];
         }
     };
+
+    const loadPatients = async (inputValue) => {
+        if (!inputValue) return [];
+        try {
+            const res = await getSearchPatients({
+                name: inputValue,
+                centerAccess: form.values.center ? [form.values.center] : [],
+            });
+            return (res?.payload || []).map(p => ({
+                value: p._id,
+                label: `${p.name} (${p.id?.prefix || ""}${p.id?.value || ""})`,
+            }));
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to search patients");
+            }
+            return [];
+        }
+    };
+
+    const debouncedLoadPatients = useCallback(
+        (inputValue, callback) => {
+            if (patientSearchTimerRef.current) clearTimeout(patientSearchTimerRef.current);
+            patientSearchTimerRef.current = setTimeout(() => {
+                loadPatients(inputValue).then(callback);
+            }, 300);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [form.values.center]
+    );
+
+    const debouncedLoadEmployees = useCallback(
+        (inputValue, callback) => {
+            if (employeeSearchTimerRef.current) clearTimeout(employeeSearchTimerRef.current);
+            employeeSearchTimerRef.current = setTimeout(() => {
+                loadEmployees(inputValue).then(callback);
+            }, 300);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [form.values.center]
+    );
 
 
     return (
@@ -449,6 +512,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                             form.setFieldValue("monthlyDeductionAmount", "");
                             form.setFieldTouched("monthlyDeductionAmount", false, false);
                         }
+
+                        if (value !== "PATIENT_REFUND") {
+                            form.setFieldValue("patientId", null);
+                            form.setFieldTouched("patientId", false, false);
+                        }
                         form.validateForm();
                     }}
                     onBlur={() => form.setFieldTouched("category", true)}
@@ -476,7 +544,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                         key={form.values.center}
                         cacheOptions={false}
                         defaultOptions={false}
-                        loadOptions={loadEmployees}
+                        loadOptions={debouncedLoadEmployees}
                         placeholder="Search by name or ECode"
                         value={form.values.employeeId}
                         onChange={(option) => {
@@ -499,6 +567,42 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     {form.touched.employeeId && form.errors.employeeId && (
                         <div className="invalid-feedback d-block">
                             {form.errors.employeeId}
+                        </div>
+                    )}
+                </FormGroup>
+            )}
+
+            {form.values.category === "PATIENT_REFUND" && (
+                <FormGroup className="mb-3">
+                    <Label className="fw-medium">
+                        Select Patient <span className="text-danger">*</span>
+                    </Label>
+                    <AsyncSelect
+                        key={form.values.center}
+                        cacheOptions={false}
+                        defaultOptions={false}
+                        loadOptions={debouncedLoadPatients}
+                        placeholder="Search by name or patient UID"
+                        value={form.values.patientId}
+                        onChange={(option) => {
+                            form.setFieldValue("patientId", option);
+                        }}
+                        onBlur={() => form.setFieldTouched("patientId", true)}
+                        classNamePrefix="react-select"
+                        className={
+                            form.touched.patientId && form.errors.patientId
+                                ? "react-select is-invalid"
+                                : "react-select"
+                        }
+                        noOptionsMessage={({ inputValue }) =>
+                            inputValue
+                                ? "No patient found"
+                                : "Search by name or patient UID"
+                        }
+                    />
+                    {form.touched.patientId && form.errors.patientId && (
+                        <div className="invalid-feedback d-block">
+                            {form.errors.patientId}
                         </div>
                     )}
                 </FormGroup>
