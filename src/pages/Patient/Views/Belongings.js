@@ -367,6 +367,18 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                                                 )}
                                                                             </>
                                                                         )}
+                                                                        {valStatus === "requires_review" && (
+                                                                            <>
+                                                                                <Badge color="warning" className="ms-2" pill style={{ color: "#6d4c00" }}>
+                                                                                    <i className="ri-eye-line me-1"></i>Requires Review
+                                                                                </Badge>
+                                                                                {valError && (
+                                                                                    <small className="d-block mt-2" style={{ fontSize: 11, color: "#6d4c00" }}>
+                                                                                        <i className="ri-eye-line me-1"></i>{valError}
+                                                                                    </small>
+                                                                                )}
+                                                                            </>
+                                                                        )}
                                                                     </>
                                                                 );
                                                             })()}
