@@ -919,7 +919,7 @@ export const HR = [
       },
       {
         id: "comp-off-requests",
-        label: "Comp-Off Requests",
+        label: "Comp-Off Addition Requests",
         link: "/hr/leaves/get/comp-offs",
         icon: "bx bx-calendar-check"
       }

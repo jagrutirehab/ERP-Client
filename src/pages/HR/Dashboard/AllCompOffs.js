@@ -163,7 +163,7 @@ const AllCompOffs = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">COMP-OFF REQUESTS</h1>
+          <h1 className="display-6 fw-bold text-primary">COMP-OFF ADDITON REQUESTS</h1>
         </div>
 
         <div className="d-flex align-items-end gap-3 mb-3 flex-wrap">

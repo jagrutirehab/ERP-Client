@@ -304,12 +304,12 @@ export const permissionList = [
       { name: "LEAVE_HISTORY", label: "Leave History" },
       { name: "MANAGE_LEAVES", label: "Manage Leaves" },
       { name: "MY_LEAVES", label: "My Leaves" },
-      {name : "RAISED_COMP_OFFS", label : "Raised Comp-Off's"},
+      { name: "RAISED_COMP_OFFS", label: "Raised Comp-Off's" },
       { name: "BALANCE_LEAVES", label: "Balance Leaves" },
       { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
       { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
-      { name: "COMP_OFF_REQUESTS", label: "Comp-Off Requests" },
-      { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
+      { name: "COMP_OFF_REQUESTS", label: "Comp-Off Addition Requests" },
+
       // Policy
       { name: "POLICIES", label: "Policies" },
       // Incentives
@@ -323,6 +323,7 @@ export const permissionList = [
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
+      { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],
