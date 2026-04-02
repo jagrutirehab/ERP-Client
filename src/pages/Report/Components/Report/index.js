@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 import { Container } from "reactstrap";
 import { endOfDay, startOfDay } from "date-fns";
 import { connect, useDispatch } from "react-redux";
-import { fetchReport } from "../../../../store/actions";
+import { fetchReport, fetchReportUpdated } from "../../../../store/actions";
+import { REPORT_UPDATED } from "../../../../Components/constants/report";
 
 //components
 import Header from "../Header";
@@ -14,7 +15,7 @@ import AdvanceFilter from "./AdvanceFilter";
 import Table from "./Table";
 import { ADDMISSION_DATE, ALL_TRANSACTIONS, DUE_AMOUNT } from "./data";
 
-const Report = ({ data, centerAccess, loading }) => {
+const Report = ({ data, centerAccess, loading, view }) => {
   const dispatch = useDispatch();
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
@@ -43,17 +44,20 @@ const Report = ({ data, centerAccess, loading }) => {
   const handleViewReport = () => {
     const startDate = startOfDay(reportDate.start);
     const endDate = endOfDay(reportDate.end);
-    dispatch(
-      fetchReport({
-        startDate,
-        endDate,
-        patient: patient?._id || "",
-        billType,
-        patientsReferrel: patientsReferrel.trim(),
-        sortPatientStatus,
-        centerAccess,
-      }),
-    );
+    const payload = {
+      startDate,
+      endDate,
+      patient: patient?._id || "",
+      billType,
+      patientsReferrel: patientsReferrel.trim(),
+      sortPatientStatus,
+      centerAccess,
+    };
+    if (view === REPORT_UPDATED) {
+      dispatch(fetchReportUpdated(payload));
+    } else {
+      dispatch(fetchReport(payload));
+    }
   };
 
   useEffect(() => {

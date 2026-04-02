@@ -18,9 +18,17 @@ import { getTallyPendingUpdates } from "../../helpers/backend_helper";
 const VOUCHER_TYPE_CONFIG = {
   INVOICE: { label: "Invoice", color: "primary", icon: "bx-receipt" },
   REFUND: { label: "Refund", color: "warning", icon: "bx-undo" },
-  ADVANCE_PAYMENT: { label: "Advance Payment", color: "info", icon: "bx-wallet" },
+  ADVANCE_PAYMENT: {
+    label: "Advance Payment",
+    color: "info",
+    icon: "bx-wallet",
+  },
   DEPOSIT: { label: "Deposit", color: "success", icon: "bx-money" },
-  CENTRAL_PAYMENT: { label: "Central Payment", color: "danger", icon: "bx-building" },
+  CENTRAL_PAYMENT: {
+    label: "Central Payment",
+    color: "danger",
+    icon: "bx-building",
+  },
   CASH: { label: "Cash", color: "secondary", icon: "bx-coin" },
 };
 
@@ -130,6 +138,22 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
           </div>
           <small className="text-muted">
             {format(new Date(row.lastSyncedAt), "hh:mm a")}
+          </small>
+        </div>
+      ),
+    },
+    {
+      name: "Last updated at",
+      selector: (row) => row.previousUpdatedAt,
+      sortable: false,
+      width: "160px",
+      cell: (row) => (
+        <div>
+          <div className="font-size-12">
+            {format(new Date(row.previousUpdatedAt), "dd MMM yyyy")}
+          </div>
+          <small className="text-muted">
+            {format(new Date(row.previousUpdatedAt), "hh:mm a")}
           </small>
         </div>
       ),
@@ -280,9 +304,7 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
                 <i
                   className={`bx ${config.icon} me-2 text-${config.color}`}
                 ></i>
-                <span className="fw-semibold font-size-14">
-                  {config.label}
-                </span>
+                <span className="fw-semibold font-size-14">{config.label}</span>
                 <Badge color={config.color} className="ms-2">
                   {group.count}
                 </Badge>
@@ -304,7 +326,7 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
                 />
               </div>
               {/* Date hint */}
-              {hint.dates && (
+              {/* {hint.dates && (
                 <div
                   className="px-3 py-2 font-size-12"
                   style={{
@@ -318,7 +340,7 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
                   <strong>Run Update for:</strong> {hint.dates}
                   {hint.centers ? ` (${hint.centers})` : ""}
                 </div>
-              )}
+              )} */}
             </Collapse>
           </div>
         );

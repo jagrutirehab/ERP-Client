@@ -6,6 +6,7 @@ import {
   getOPDAnalytics,
   getPatientAnalytics,
   getReport,
+  getReportUpdated,
   getCenterBedsAnalytics as getCenterBedsAnalyticsApi,
   getAdmissionForms,
 } from "../../../helpers/backend_helper";
@@ -34,6 +35,19 @@ export const fetchReport = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getReport(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchReportUpdated = createAsyncThunk(
+  "getReportUpdated",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getReportUpdated(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -147,6 +161,18 @@ const reportSlice = createSlice({
         state.data = payload.payload;
       })
       .addCase(fetchReport.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchReportUpdated.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchReportUpdated.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.payload;
+      })
+      .addCase(fetchReportUpdated.rejected, (state) => {
         state.loading = false;
       });
 

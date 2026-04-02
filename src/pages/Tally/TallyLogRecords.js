@@ -50,6 +50,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       initialCenters && initialCenters.length > 0 ? initialCenters[0] : "all",
     search: "",
     status: "all",
+    voucherType: "all",
   });
 
   const [dateModeDropdownOpen, setDateModeDropdownOpen] = useState(false);
@@ -69,6 +70,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       centerId: filters.centerId,
       status: filters.status,
       search: filters.search,
+      voucherType: filters.voucherType,
       dateMode: filters.dateMode,
       // Always send both ranges; backend uses only the one matching dateMode
       startDate: startOfDay(filters.startDate),
@@ -334,7 +336,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
     <div className="mt-4">
       <Row className="mb-3 align-items-end g-2">
         {/* ── Date filter: Flatpickr + dropdown mode button (split input-group) ─ */}
-        <Col md={5}>
+        <Col md={4}>
           <Label className="form-label fw-semibold">Date Range</Label>
 
           {/*
@@ -398,7 +400,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
         </Col>
 
         {/* ── Center ───────────────────────────────────────────────────── */}
-        <Col md={3}>
+        <Col md={2}>
           <Label className="form-label fw-semibold">Center</Label>
           <Input
             type="select"
@@ -426,6 +428,24 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             <option value="created">Created</option>
             <option value="updated">Updated</option>
             <option value="failed">Failed</option>
+          </Input>
+        </Col>
+
+        {/* ── Voucher Type ─────────────────────────────────────────────── */}
+        <Col md={2}>
+          <Label className="form-label fw-semibold">Voucher Type</Label>
+          <Input
+            type="select"
+            value={filters.voucherType}
+            onChange={(e) => handleFilterChange("voucherType", e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="INVOICE">Invoice</option>
+            <option value="REFUND">Refund</option>
+            <option value="ADVANCE_PAYMENT">Advance Payment</option>
+            <option value="DEPOSIT">Deposit</option>
+            <option value="CENTRAL_PAYMENT">Central Payment</option>
+            <option value="CASH">Cash</option>
           </Input>
         </Col>
 
