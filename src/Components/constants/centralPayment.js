@@ -11,7 +11,7 @@ export const categoryOptions = [
   { value: "BARBER_CHARGES", label: "BARBER CHARGES" },
   { value: "BEDS", label: "BEDS" },
   { value: "BMW_BILL", label: "BMW BILL" },
-  { value: "CHECK", label: "CHECK" },
+  // { value: "CHECK", label: "CHECK" },
   { value: "CHICKEN_MUTTON", label: "CHICKEN / MUTTON" },
   { value: "CIVIL_WORK", label: "CIVIL WORK" },
   { value: "CONSULTANT_FEES", label: "CONSULTANT FEES" },

@@ -84,6 +84,33 @@ const InvoiceDraft = ({
     },
     validationSchema: Yup.object({
       bill: Yup.string().required("Bill type required!"),
+      invoiceList: Yup.array().of(
+        Yup.object().shape({
+          fromDate: Yup.date()
+            .nullable()
+            .test(
+              "fromDate-check",
+              "From Date cannot be greater than To Date",
+              function (value) {
+                const { toDate } = this.parent;
+                if (!value || !toDate) return true;
+                return new Date(value) <= new Date(toDate);
+              }
+            ),
+
+          toDate: Yup.date()
+            .nullable()
+            .test(
+              "toDate-check",
+              "To Date must be greater than or equal to From Date",
+              function (value) {
+                const { fromDate } = this.parent;
+                if (!value || !fromDate) return true;
+                return new Date(value) >= new Date(fromDate);
+              }
+            ),
+        })
+      ),
       // fromDate: Yup.date().required("From date is required"),
 
       // toDate: Yup.date()
@@ -208,6 +235,12 @@ const InvoiceDraft = ({
           discount: item?.discount || 0,
           discountType: item?.discountType || "₹",
           fromDraft: true,
+          fromDate: item.fromDate
+            ? new Date(item.fromDate).toISOString().split("T")[0]
+            : "",
+          toDate: item.toDate
+            ? new Date(item.toDate).toISOString().split("T")[0]
+            : "",
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -289,6 +322,12 @@ const InvoiceDraft = ({
             availablePrices: centerMatch?.prices || [],
             // discount: 0,
             // discountType: "₹",
+            fromDate: item.fromDate
+              ? new Date(item.fromDate).toISOString().split("T")[0]
+              : "",
+            toDate: item.toDate
+              ? new Date(item.toDate).toISOString().split("T")[0]
+              : "",
           },
         ];
       });
@@ -330,6 +369,7 @@ const InvoiceDraft = ({
             setInvoiceList={setInvoiceList}
             {...rest}
             type={"draft"}
+            validation={validation}
           />
           {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>

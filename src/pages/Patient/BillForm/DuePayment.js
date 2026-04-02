@@ -115,6 +115,33 @@ const DuePayment = ({
         ),
       }),
       bill: Yup.string().required("Bill type required!"),
+      invoiceList: Yup.array().of(
+        Yup.object().shape({
+          fromDate: Yup.date()
+            .nullable()
+            .test(
+              "fromDate-check",
+              "From Date cannot be greater than To Date",
+              function (value) {
+                const { toDate } = this.parent;
+                if (!value || !toDate) return true;
+                return new Date(value) <= new Date(toDate);
+              }
+            ),
+
+          toDate: Yup.date()
+            .nullable()
+            .test(
+              "toDate-check",
+              "To Date must be greater than or equal to From Date",
+              function (value) {
+                const { fromDate } = this.parent;
+                if (!value || !fromDate) return true;
+                return new Date(value) >= new Date(fromDate);
+              }
+            ),
+        })
+      ),
 
       // ...(type === "IPD" && {
       //   fromDate: Yup.date().required("From date is required"),
@@ -253,6 +280,12 @@ const DuePayment = ({
                   unit: item.unit || 1,
                   unitOfMeasurement: item.unitOfMeasurement || "",
                   availablePrices: [],
+                  fromDate: item.fromDate
+                    ? new Date(item.fromDate).toISOString().split("T")[0]
+                    : "",
+                  toDate: item.toDate
+                    ? new Date(item.toDate).toISOString().split("T")[0]
+                    : "",
                 })),
               );
             }
@@ -381,6 +414,12 @@ const DuePayment = ({
           isEditMode: true,
           discount: item?.discount || 0,
           discountType: item?.discountType || "₹",
+          fromDate: item.fromDate
+            ? new Date(item.fromDate).toISOString().split("T")[0]
+            : "",
+          toDate: item.toDate
+            ? new Date(item.toDate).toISOString().split("T")[0]
+            : "",
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -438,8 +477,13 @@ const DuePayment = ({
         item?.center?.find((c) => c?.prices?.length)?.prices?.[0]?.unit ||
         undefined;
       //
+
+
+
+
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
+
         return [
           ...prevArray,
           {
@@ -453,6 +497,8 @@ const DuePayment = ({
             unitOfMeasurement: dynamicUOM,
             comments: "",
             availablePrices: centerMatch?.prices || [],
+            fromDate: "",
+            toDate: "",
           },
         ];
       });
@@ -624,6 +670,7 @@ const DuePayment = ({
             onUOMChange={handleUOMChange}
             {...rest}
             center={patient?.center}
+            validation={validation} 
           />
           {/* {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>

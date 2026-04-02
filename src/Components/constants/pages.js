@@ -335,7 +335,7 @@ const pages = [
     link: "/tally",
     icon: "bx bx-transfer",
   },
-  
+
 ];
 
 
@@ -595,6 +595,12 @@ export const HR = [
         label: "All Leave History",
         link: "/hr/all/leave/history",
         icon: "bx bx-list-ul",
+      },
+      {
+        id: "comp-off-history",
+        label: "Comp Off History",
+        link: "/hr/all/compOffs",
+        icon: "bx bx-history",
       },
     ],
   },
@@ -887,6 +893,12 @@ export const HR = [
         icon: "bx bx-calendar",
       },
       {
+        id: "my-comp-off",
+        label: "Raised Comp-Off's",
+        link: "/hr/leaves/my/compOffs",
+        icon: "bx bx-send",
+      },
+      {
         id: "my-balance-leaves",
         label: "Balance Leaves",
         link: "/hr/leaves/my/balance/leaves",
@@ -903,7 +915,13 @@ export const HR = [
         id: "cancellations-requests",
         label: "Cancellations Requests",
         link: "/hr/leaves/get/cancellations",
-        icon: "bx bx-party",
+        icon: "bx bx-x-circle",
+      },
+      {
+        id: "comp-off-requests",
+        label: "Comp-Off Addition Requests",
+        link: "/hr/leaves/get/comp-offs",
+        icon: "bx bx-calendar-check"
       }
     ],
   },

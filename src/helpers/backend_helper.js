@@ -1029,6 +1029,16 @@ export const searchBelongings = (search) => {
   });
 };
 
+export const compressPatientBelongingFile = (formData) => {
+  return api.create(url.COMPRESS_PATIENT_BELONGING, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
 export const createPatientBelonging = (data) => {
   return api.create(url.PATIENT_BELONGING, data, {
     headers: {
@@ -1768,7 +1778,7 @@ export const getRefundAmountMOM = (data) => {
   return api.get(url.GET_REFUND_AMOUNT_MOM, {
     params: {
       centerIds: data?.centerAccess,
-      
+
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -2607,6 +2617,55 @@ export const updateFestiveLeave = ({
       },
     },
   );
+
+// COMP OFF
+
+export const getCompOffRequests = (params = {}) => {
+  return axios.get(url.GET_COMP_REQUESTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+
+export const getAllCompOff = (params = {}) => {
+  return axios.get(url.GET_ALL_COMP_OFFS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getMyCompOff = (params = {}) => {
+  return axios.get(url.GET_MY_COMP_OFFS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const postCompOffRequest = (data) => {
+  return api.create(url.POST_COMP_OFF_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// For manager
+export const actionOnCompOffRequests = (data) => {
+  return axios.patch(url.ACTION_ON_COMP_REQUESTS,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    })
+}
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {

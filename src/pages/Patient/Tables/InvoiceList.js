@@ -5,11 +5,16 @@ import DataTable from "react-data-table-component";
 import { v4 as uuid } from "uuid";
 
 const InvoiceList = ({ list }) => {
-  console.log("list o man", list);
+  // console.log("list o man", list);
+  const hasDateColumn = list?.some(
+    (item) => item.fromDate && item.toDate
+  );
   const columns = [
     {
       name: "Treatment",
       selector: (row) => row.slot,
+      wrap: true,
+      grow: 2,
     },
     {
       name: "Quantity",
@@ -24,17 +29,31 @@ const InvoiceList = ({ list }) => {
       selector: (row) => row.discount ?? 0,
     },
     {
-      name: "Unit of Measurement",
+      name: "Unit",
       selector: (row) => row.unitOfMeasurement,
       style: {
         textTransform: "capitalize",
       },
     },
+    ...(hasDateColumn
+      ? [
+        {
+          name: "Duration",
+          cell: (row) =>
+            row.fromDate && row.toDate
+              ? `${new Date(row.fromDate).toLocaleDateString()} - ${new Date(
+                row.toDate
+              ).toLocaleDateString()}`
+              : "-",
+        },
+      ]
+      : []),
     {
       name: "Net Total",
       selector: (row) =>
         (row.unit ?? 0) * (row.cost ?? 0) - (row.discount ?? 0),
     },
+
   ];
 
   return (

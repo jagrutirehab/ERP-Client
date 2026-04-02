@@ -19,6 +19,7 @@ const InvoiceTable = ({
   center,
   isEdit,
   type,
+  validation
 }) => {
   const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
@@ -92,8 +93,8 @@ const InvoiceTable = ({
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
       );
-
-      if (matchingPriceObj && !isEdit) {
+      //  && !isEdit
+      if (matchingPriceObj) {
         const newPrice = Number(matchingPriceObj.price);
         item.cost = newPrice;
 
@@ -112,6 +113,10 @@ const InvoiceTable = ({
       item.category = value;
       item.unitOfMeasurement =
         unitOptions.length === 1 ? unitOptions[0].value : "";
+      if (value !== "room charges") {
+        item.fromDate = "";
+        item.toDate = "";
+      }
     } else if (prop === "unit") {
       item.unit = value;
       item.discount = "";
@@ -138,7 +143,13 @@ const InvoiceTable = ({
   };
 
   // console.log("getUnitOptions", getUnitOptions());
-  console.log("invoiceList", invoiceList);
+  // console.log("invoiceList", invoiceList);
+
+  const handleDateChange = (idx, field, value) => {
+    const newInvoiceList = [...invoiceList];
+    newInvoiceList[idx][field] = value;
+    setInvoiceList(newInvoiceList);
+  };
 
   // useEffect(() => {
   //   if (isEdit) return;
@@ -187,16 +198,16 @@ const InvoiceTable = ({
             <Col className="font-semi-bold unit-head" md={1}>
               Quantity
             </Col>
-            <Col className="font-semi-bold cost-head" md={2}>
+            <Col className="font-semi-bold cost-head" md={1}>
               Price
             </Col>
-            <Col className="font-semi-bold cost-head" md={2}>
-              Unit of Measurement
+            <Col className="font-semi-bold cost-head" md={1}>
+              Unit
             </Col>
             <Col className="font-semi-bold cost-head" md={2}>
               Discount
             </Col>
-            <Col className="font-semi-bold total-head" md={2}>
+            <Col className="font-semi-bold total-head" md={1}>
               Net Total
             </Col>
             {/* <Col className="font-semi-bold total-head" md={2}>
@@ -241,7 +252,7 @@ const InvoiceTable = ({
                   }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
-              console.log("unitOptions", unitOptions);
+              // console.log("unitOptions", unitOptions);
 
               return (
                 <React.Fragment key={item.id + item.slot}>
@@ -469,6 +480,69 @@ const InvoiceTable = ({
                           </div>
                         </div>
                       </Col> */}
+
+                        {item.category?.toLowerCase() === "room charges" && (
+                          <div className="mb-3">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Stay Duration
+                            </Label>
+
+                            <div className="d-flex align-items-center gap-1">
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.fromDate || ""}
+                                onChange={(e) => {
+                                  handleDateChange(idx, "fromDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.fromDate &&
+                                  validation.errors.invoiceList?.[idx]?.fromDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]?.fromDate &&
+                                validation.errors.invoiceList?.[idx]?.fromDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].fromDate}
+                                  </div>
+                                )}
+
+                              <span className="small">→</span>
+
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.toDate || ""}
+                                onChange={(e) => {
+                                  handleDateChange(idx, "toDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.toDate &&
+                                  validation.errors.invoiceList?.[idx]?.toDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]?.toDate &&
+                                validation.errors.invoiceList?.[idx]?.toDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].toDate}
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        )}
+
                         <Col xs={2} md={2}>
                           <p className="total-cost text-success font-size-14 text-center">
                             {/* {item.afterDiscount?.toFixed(2) ||
@@ -493,6 +567,8 @@ const InvoiceTable = ({
                           </p>
                         </Col>
                       </Row>
+
+
 
                       <div className="mb-2">
                         <Label size="sm" className="fw-bold text-muted">
@@ -538,7 +614,7 @@ const InvoiceTable = ({
                         }}
                       />
                     </Col>
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       <Input
                         bsSize="sm"
                         style={{ height: "9px" }}
@@ -561,7 +637,7 @@ const InvoiceTable = ({
                         </p>
                       </div>
                     </Col>
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       {unitOptions.length === 1 ? (
                         <div
                           className="d-flex align-items-center"
@@ -693,7 +769,7 @@ const InvoiceTable = ({
                     </p>
                   </Col> */}
 
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       <p className="total-cost text-success font-size-14 text-left">
                         {/* {item.afterDiscount?.toFixed(2) ||
                           (item.unit && item.cost
@@ -716,6 +792,66 @@ const InvoiceTable = ({
                         })()}
                       </p>
                     </Col>
+
+
+                    {item.category?.toLowerCase() === "room charges" && (
+                      <Col xs={3} md={3}>
+
+                        {/* Row for inputs */}
+                        <div className="d-flex gap-1 align-items-center">
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.fromDate || ""}
+                            onChange={(e) => {
+                              handleDateChange(idx, "fromDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.fromDate &&
+                              validation.errors.invoiceList?.[idx]?.fromDate
+                            }
+                          />
+
+                          <span style={{ fontSize: "15px" }}>to</span>
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.toDate || ""}
+                            onChange={(e) => {
+                              handleDateChange(idx, "toDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.toDate &&
+                              validation.errors.invoiceList?.[idx]?.toDate
+                            }
+                          />
+
+                        </div>
+
+                        {(validation?.touched?.invoiceList?.[idx]?.fromDate &&
+                          validation?.errors?.invoiceList?.[idx]?.fromDate) ||
+                          (validation?.touched?.invoiceList?.[idx]?.toDate &&
+                            validation?.errors?.invoiceList?.[idx]?.toDate) ? (
+                          <div className="text-danger mt-1" style={{ fontSize: "12px" }}>
+                            {validation?.errors?.invoiceList?.[idx]?.fromDate ||
+                              validation?.errors?.invoiceList?.[idx]?.toDate}
+                          </div>
+                        ) : null}
+
+                      </Col>
+                    )}
 
                     <Col xs={1}>
                       <Button

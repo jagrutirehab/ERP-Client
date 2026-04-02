@@ -4,6 +4,7 @@ import "flatpickr/dist/themes/material_green.css";
 
 import {
   getMyManager,
+  postCompOffRequest,
   postLeaveRequest,
 } from "../../../../helpers/backend_helper";
 import ButtonLoader from "../../../../Components/Common/ButtonLoader";
@@ -67,6 +68,8 @@ const LeaveApplications = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+
+
     if (!fromDate || !toDate || !leaveReason) {
       toast.error("All fields are required");
       return;
@@ -84,8 +87,21 @@ const LeaveApplications = () => {
         shiftTime,
         leaveReason,
       };
+      const compOffPayload = {
+        from: fromDate.toISOString(),
+        to: toDate.toISOString(),
+        manager: approvalAuthority
+      }
 
-      const res = await postLeaveRequest(payload, token);
+      let res;
+      if (leaveType === "COMP_OFF_REQUEST") {
+        res = await postCompOffRequest(compOffPayload, token);
+        console.log("res", res);
+
+      } else {
+        res = await postLeaveRequest(payload, token);
+      }
+
       toast.success(res?.message);
 
       setFromDate(null);
@@ -98,6 +114,16 @@ const LeaveApplications = () => {
       setLoading(false);
     }
   };
+
+  // const handleCompOffRequest = () => {
+  //   try {
+  //     console.log("CLicked");
+
+  //   } catch (error) {
+  //     console.log(error);
+
+  //   }
+  // }
 
   return (
     <CardBody
@@ -149,12 +175,18 @@ const LeaveApplications = () => {
                 <select
                   className="form-select"
                   value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
+                  // onChange={(e) => setLeaveType(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setLeaveType(value);
+                  }}
                 >
                   <option value="EARNED_LEAVE">Earned Leave</option>
                   <option value="WEEK_OFFS">Week Off</option>
                   <option value="FESTIVE_LEAVE">Festive Leave</option>
                   <option value="LEAVE_WTIHOUT_PAYS">Unpaid Leave</option>
+                  <option value="COMP_OFF_REQUEST">Comp-Off Addition Request</option>
+                  <option value="COMP_OFF">Comp-Off Apply</option>
                 </select>
               </div>
 
@@ -183,11 +215,11 @@ const LeaveApplications = () => {
                   {(!fromDate ||
                     !toDate ||
                     fromDate.toDateString() === toDate.toDateString()) && (
-                    <>
-                      <option value="FIRST_HALF">First Half</option>
-                      <option value="SECOND_HALF">Second Half</option>
-                    </>
-                  )}
+                      <>
+                        <option value="FIRST_HALF">First Half</option>
+                        <option value="SECOND_HALF">Second Half</option>
+                      </>
+                    )}
                 </select>
               </div>
 

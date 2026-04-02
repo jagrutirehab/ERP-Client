@@ -81,6 +81,12 @@ const Sidebar = () => {
     "HUBSPOT_OWNER_LEAD_STATUS",
     "READ"
   );
+  const hasMISPermission = hasPermission(
+    "MIS_REPORTS",
+    "MIS_REPORTS_PERMISSION",
+    "READ"
+  );
+  
 
   const HubspotReporting = [
     hasHubspotCenterLeadsPermission
@@ -259,7 +265,7 @@ const Sidebar = () => {
               </ul>
             </Collapse>
           </div>
-          <div className="ps-4 pe-3 pt-2">
+          {hasMISPermission&&<><div className="ps-4 pe-3 pt-2">
             <div className="d-flex align-items-start">
               <div className="d-flex justify-content-between w-100 mb-2">
                 <div
@@ -300,7 +306,7 @@ const Sidebar = () => {
                 </li>
               ))}
             </ul>
-          </Collapse>
+          </Collapse></>}
         </PerfectScrollbar>
       </div>
     </div>
