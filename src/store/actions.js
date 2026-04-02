@@ -292,6 +292,7 @@ export {
 //Report
 export {
   fetchReport,
+  fetchReportUpdated,
   fetchPatientAnalytics,
   fetchLeadAnalytics,
   fetchOPDAnalytics,

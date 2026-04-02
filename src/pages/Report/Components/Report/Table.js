@@ -71,6 +71,12 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       maxWidth: "130px",
       minWidth: "130px",
     },
+    {
+      name: "Updated At",
+      selector: (row) => row.updatedAt ? format(new Date(row.updatedAt), "dd MMM yyyy") : "",
+      maxWidth: "130px",
+      minWidth: "130px",
+    },
     billType !== DUE_AMOUNT &&
       billType !== OPD_BILL &&
       billType !== INTERN &&

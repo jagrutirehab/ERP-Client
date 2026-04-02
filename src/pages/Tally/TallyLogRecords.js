@@ -11,11 +11,20 @@ import {
   ModalHeader,
   ModalBody,
   Spinner,
+  Dropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
 } from "reactstrap";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 import { endOfDay, format, startOfDay } from "date-fns";
 import { getTallyLogs, exportTallyLogsCsv } from "../../helpers/backend_helper";
+
+const DATE_MODES = [
+  { value: "createdAt", label: "Sync Date" },
+  { value: "sourceUpdatedAt", label: "Record Updated Date" },
+];
 
 const TallyLogRecords = ({ centerOptions, initialCenters }) => {
   const [logs, setLogs] = useState([]);
@@ -24,32 +33,61 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
   const [perPage, setPerPage] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const defaultSevenDaysAgo = new Date(
+    new Date().setDate(new Date().getDate() - 7),
+  );
+
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+    // Created date range (used when dateMode === "createdAt")
+    startDate: defaultSevenDaysAgo,
     endDate: new Date(),
+    // Source-updated date range (used when dateMode === "sourceUpdatedAt")
+    sourceStartDate: defaultSevenDaysAgo,
+    sourceEndDate: new Date(),
+    // Which date field drives the query
+    dateMode: "createdAt",
     centerId:
       initialCenters && initialCenters.length > 0 ? initialCenters[0] : "all",
     search: "",
     status: "all",
+    voucherType: "all",
   });
 
+  const [dateModeDropdownOpen, setDateModeDropdownOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedXml, setSelectedXml] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // ── Active date range (derived from dateMode) ─────────────────────────────
+  const activeDateRange =
+    filters.dateMode === "sourceUpdatedAt"
+      ? { start: filters.sourceStartDate, end: filters.sourceEndDate }
+      : { start: filters.startDate, end: filters.endDate };
+
+  // ── Build shared query params ─────────────────────────────────────────────
+  const buildParams = useCallback(
+    (extra = {}) => ({
+      centerId: filters.centerId,
+      status: filters.status,
+      search: filters.search,
+      voucherType: filters.voucherType,
+      dateMode: filters.dateMode,
+      // Always send both ranges; backend uses only the one matching dateMode
+      startDate: startOfDay(filters.startDate),
+      endDate: endOfDay(filters.endDate),
+      sourceStartDate: startOfDay(filters.sourceStartDate),
+      sourceEndDate: endOfDay(filters.sourceEndDate),
+      ...extra,
+    }),
+    [filters],
+  );
+
+  // ── Fetch logs ────────────────────────────────────────────────────────────
   const fetchLogs = useCallback(
     async (page, size) => {
       setLoading(true);
       try {
-        const params = {
-          page: page,
-          limit: size,
-          startDate: startOfDay(filters.startDate),
-          endDate: endOfDay(filters.endDate),
-          centerId: filters.centerId,
-          status: filters.status,
-          search: filters.search,
-        };
+        const params = buildParams({ page, limit: size });
         const response = await getTallyLogs(params);
         if (response.success) {
           setLogs(response.data);
@@ -61,16 +99,14 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
         setLoading(false);
       }
     },
-    [filters],
+    [buildParams],
   );
 
   useEffect(() => {
     fetchLogs(currentPage, perPage);
   }, [fetchLogs, currentPage, perPage]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page) => setCurrentPage(page);
 
   const handlePerRowsChange = async (newPerPage, page) => {
     setPerPage(newPerPage);
@@ -79,6 +115,31 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
 
   const handleFilterChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
+  };
+
+  // ── Date range change (writes into the correct date fields for active mode) ──
+  const handleDateRangeChange = ([start, end]) => {
+    if (!start || !end) return;
+    if (filters.dateMode === "sourceUpdatedAt") {
+      setFilters((prev) => ({
+        ...prev,
+        sourceStartDate: start,
+        sourceEndDate: end,
+      }));
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        startDate: start,
+        endDate: end,
+      }));
+    }
+    setCurrentPage(1);
+  };
+
+  // ── Date mode change ──────────────────────────────────────────────────────
+  const handleDateModeChange = (mode) => {
+    setFilters((prev) => ({ ...prev, dateMode: mode }));
     setCurrentPage(1);
   };
 
@@ -92,16 +153,11 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
     setIsModalOpen(true);
   };
 
+  // ── CSV Export ────────────────────────────────────────────────────────────
   const handleExportCsv = async () => {
     setExporting(true);
     try {
-      const params = {
-        startDate: startOfDay(filters.startDate),
-        endDate: endOfDay(filters.endDate),
-        centerId: filters.centerId,
-        status: filters.status,
-        search: filters.search,
-      };
+      const params = buildParams();
       const response = await exportTallyLogsCsv(params);
       const blob = new Blob([response.data || response], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
@@ -121,9 +177,8 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
 
   function parseYYYYMMDD(dateStr) {
     const y = +dateStr.slice(0, 4);
-    const m = +dateStr.slice(4, 6) - 1; // JS months are 0-based
+    const m = +dateStr.slice(4, 6) - 1;
     const d = +dateStr.slice(6, 8);
-
     return new Date(Date.UTC(y, m, d));
   }
 
@@ -273,37 +328,79 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
       },
     },
     cells: {
-      style: {
-        fontSize: "13px",
-      },
+      style: { fontSize: "13px" },
     },
   };
 
   return (
     <div className="mt-4">
       <Row className="mb-3 align-items-end g-2">
+        {/* ── Date filter: Flatpickr + dropdown mode button (split input-group) ─ */}
         <Col md={4}>
           <Label className="form-label fw-semibold">Date Range</Label>
-          <Flatpickr
-            className="form-control"
-            options={{
-              mode: "range",
-              dateFormat: "d M, Y",
-              defaultDate: [filters.startDate, filters.endDate],
-            }}
-            onChange={([start, end]) => {
-              if (start && end) {
-                setFilters((prev) => ({
-                  ...prev,
-                  startDate: start,
-                  endDate: end,
-                }));
-                setCurrentPage(1);
-              }
-            }}
-          />
+
+          {/*
+            Bootstrap input-group split-button pattern:
+            [ 📅  date range picker input  |  Created Date ▾ ]
+            The Flatpickr fills the left slot; a Dropdown caret button
+            occupies the right slot letting the user pick the filter mode.
+          */}
+          <div className="input-group">
+            {/* Flatpickr fills the left portion of the group */}
+            <Flatpickr
+              key={filters.dateMode}
+              className="form-control"
+              options={{
+                mode: "range",
+                dateFormat: "d M, Y",
+                defaultDate: [activeDateRange.start, activeDateRange.end],
+              }}
+              onChange={handleDateRangeChange}
+            />
+
+            {/* Dropdown split-button on the right */}
+            <Dropdown
+              isOpen={dateModeDropdownOpen}
+              toggle={() => setDateModeDropdownOpen((o) => !o)}
+            >
+              <DropdownToggle
+                caret
+                color={
+                  filters.dateMode === "sourceUpdatedAt" ? "info" : "secondary"
+                }
+                className="input-group-text border-start-0"
+                style={{ borderRadius: "0 4px 4px 0", whiteSpace: "nowrap" }}
+              >
+                <i className="bx bx-calendar-event me-1"></i>
+                {DATE_MODES.find((m) => m.value === filters.dateMode)?.label}
+              </DropdownToggle>
+              <DropdownMenu end>
+                {DATE_MODES.map((mode) => (
+                  <DropdownItem
+                    key={mode.value}
+                    active={filters.dateMode === mode.value}
+                    onClick={() => handleDateModeChange(mode.value)}
+                  >
+                    <i
+                      className={`bx ${
+                        mode.value === "sourceUpdatedAt"
+                          ? "bx-history"
+                          : "bx-calendar-plus"
+                      } me-2`}
+                    ></i>
+                    {mode.label}
+                    {filters.dateMode === mode.value && (
+                      <i className="bx bx-check ms-2 text-success"></i>
+                    )}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
         </Col>
-        <Col md={3}>
+
+        {/* ── Center ───────────────────────────────────────────────────── */}
+        <Col md={2}>
           <Label className="form-label fw-semibold">Center</Label>
           <Input
             type="select"
@@ -318,7 +415,9 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             ))}
           </Input>
         </Col>
-        <Col md={3}>
+
+        {/* ── Status ───────────────────────────────────────────────────── */}
+        <Col md={2}>
           <Label className="form-label fw-semibold">Status</Label>
           <Input
             type="select"
@@ -331,6 +430,26 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             <option value="failed">Failed</option>
           </Input>
         </Col>
+
+        {/* ── Voucher Type ─────────────────────────────────────────────── */}
+        <Col md={2}>
+          <Label className="form-label fw-semibold">Voucher Type</Label>
+          <Input
+            type="select"
+            value={filters.voucherType}
+            onChange={(e) => handleFilterChange("voucherType", e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="INVOICE">Invoice</option>
+            <option value="REFUND">Refund</option>
+            <option value="ADVANCE_PAYMENT">Advance Payment</option>
+            <option value="DEPOSIT">Deposit</option>
+            <option value="CENTRAL_PAYMENT">Central Payment</option>
+            <option value="CASH">Cash</option>
+          </Input>
+        </Col>
+
+        {/* ── Actions ──────────────────────────────────────────────────── */}
         <Col md={1} className="text-end">
           <Button
             color="light"
