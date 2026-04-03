@@ -23,6 +23,7 @@ import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
+import ClinicalNotesDOD from "./ClinicalNotesDOD";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -178,6 +179,11 @@ const MiReporting = () => {
                     path="/round-notes"
                     element={<RoundNotesDOD />}
                   />}
+
+                  <Route
+                    path="/clinical-notes"
+                    element={<ClinicalNotesDOD />}
+                  />
               </Routes>
             </div>
           </Container>

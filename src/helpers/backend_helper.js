@@ -1786,10 +1786,7 @@ export const getRefundAmountMOM = (data) => {
     params: {
       centerIds: data?.centerAccess,
 
-    },
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
+    }
   });
 };
 
@@ -1799,12 +1796,21 @@ export const getRoundNotesDOD = (data) => {
     params: {
       centerIds: data?.centerAccess,
       
-    },
-    paramsSerializer: (params) => {
-      return qs.stringify(params, { arrayFormat: "repeat" });
-    },
+    }
+  
   });
 };
+
+export const getClinicalNotesDOD = (data) => {
+
+  return api.get(url.GET_CLINICAL_NOTES_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
+
 
 
 

@@ -15,6 +15,7 @@ import {
   getOwnerLeadStatus,
   getRefundAmountMOM,
   getRoundNotesDOD,
+  getClinicalNotesDOD,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -276,6 +277,21 @@ export const fetchRoundNotesDOD = createAsyncThunk(
 );
 
 
+export const fetchClinicalNotesDOD = createAsyncThunk(
+  "miReporting/fetchClinicalNotesDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getClinicalNotesDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -492,7 +508,23 @@ const miReportingSlice = createSlice({
       .addCase(fetchRoundNotesDOD.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchClinicalNotesDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchClinicalNotesDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.clinicalNotesDOD = action.payload.payload || [];
+      })
+      .addCase(fetchClinicalNotesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
+
+
+
+      
   },
 });
 

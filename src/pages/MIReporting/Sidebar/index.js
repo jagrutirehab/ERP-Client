@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import "react-perfect-scrollbar/dist/css/styles.css";
 import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
@@ -13,7 +13,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMISOpen, setIsMISOpen] = useState(true);
   const toggleMISCollapse = () => setIsMISOpen(!isMISOpen);
-
+  
   const toggleDataSidebar = () => {
     var windowSize = document.documentElement.clientWidth;
     const dataList = document.querySelector(".chat-message-list");
@@ -24,7 +24,8 @@ const Sidebar = () => {
       } else dataList.classList.add("show-chat-message-list");
     }
   };
-
+  const sidebarRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
   const toggleCollapse = () => setIsOpen(!isOpen);
 
   const microUser = localStorage.getItem("micrologin");
@@ -201,11 +202,28 @@ const Sidebar = () => {
       label: "Round Notes",
       link: "/mi-reporting/round-notes",
       icon: "bx bx-money",
+    },
+    {
+      id: "clinical-notes",
+      label: "Clinical Notes",
+      link: "/mi-reporting/clinical-notes",
+      icon: "bx bx-money",
     }
   ];
   return (
     <div>
-      <div className="chat-leftsidebar">
+      <div
+        ref={sidebarRef}
+        className="chat-leftsidebar"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          width: isHovered ? "260px" : "70px",
+          minWidth: isHovered ? "260px" : "70px",
+          transition: "width 0.25s ease, min-width 0.25s ease",
+          overflow: "hidden",
+        }}
+      >
         <div className="ps-4 pe-3 pt-4 mb-">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">
@@ -214,7 +232,7 @@ const Sidebar = () => {
                 className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
                 style={{ cursor: "pointer" }}
               >
-                <h5 className="pb-0 mb-0">Hubspot Reporting</h5>
+                {isHovered && <h5 className="pb-0 mb-0">Hubspot Reporting</h5>}
                 <i
                   className={`mdi mdi-chevron-${isOpen ? "up" : "down"} fs-4`}
                 ></i>
@@ -252,18 +270,27 @@ const Sidebar = () => {
                       }
                     >
                       <Link to={page.link}>
-                        <div className="d-flex align-items-center">
-                          <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                        <div
+                        className={`d-flex align-items-center ${
+                          isHovered ? "" : "justify-content-center"
+                        }`}
+                      >
+                          <div
+                                className="flex-shrink-0 chat-user-img online align-self-center ms-0"
+                                style={{ marginRight: isHovered ? "0.5rem" : "0" }}
+                              >
                             <div className="avatar-xxs">
                               <i className={`${page.icon} fs-4`}></i>
                             </div>
                             <span className="user-status"></span>
                           </div>
-                          <div className="flex-grow-1 overflow-hidden">
-                            <p className="text-truncate font-semi-bold fs-15 mb-0">
-                              {page.label || ""}
-                            </p>
-                          </div>
+                         {isHovered && (
+                            <div className="flex-grow-1 overflow-hidden">
+                              <p className="text-truncate font-semi-bold fs-15 mb-0">
+                                {page.label || ""}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </Link>
                     </li>
@@ -279,7 +306,7 @@ const Sidebar = () => {
                   className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
                   style={{ cursor: "pointer" }}
                 >
-                  <h5 className="pb-0 mb-0">MIS Reports</h5>
+                  {isHovered && <h5 className="pb-0 mb-0">MIS Reports</h5>}
                   <i
                     className={`mdi mdi-chevron-${isMISOpen ? "up" : "down"} fs-4`}
                   ></i>
@@ -296,8 +323,15 @@ const Sidebar = () => {
                   className={location.pathname === page.link ? "active" : ""}
                 >
                   <Link to={page.link}>
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                    <div
+                      className={`d-flex align-items-center ${
+                        isHovered ? "" : "justify-content-center"
+                      }`}
+>
+                      <div
+                          className="flex-shrink-0 chat-user-img online align-self-center ms-0"
+                          style={{ marginRight: isHovered ? "0.5rem" : "0" }}
+                        >
                         <div className="avatar-xxs">
                           <i className={`${page.icon} fs-4`}></i>
                         </div>
