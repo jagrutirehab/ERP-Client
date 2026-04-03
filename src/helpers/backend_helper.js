@@ -1793,6 +1793,21 @@ export const getRefundAmountMOM = (data) => {
   });
 };
 
+export const getRoundNotesDOD = (data) => {
+
+  return api.get(url.GET_ROUND_NOTES_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+      
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+
+
 
 
 
