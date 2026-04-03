@@ -124,6 +124,11 @@ const DuePayment = ({
         Yup.object().shape({
           fromDate: Yup.date()
             .nullable()
+            .when("category", {
+              is: (val) => val?.toLowerCase() === "room charges",
+              then: (schema) =>
+                schema.required("From Date is required"),
+            })
             .test(
               "fromDate-check",
               "From Date cannot be greater than To Date",
@@ -136,6 +141,11 @@ const DuePayment = ({
 
           toDate: Yup.date()
             .nullable()
+            .when("category", {
+              is: (val) => val?.toLowerCase() === "room charges",
+              then: (schema) =>
+                schema.required("To Date is required"),
+            })
             .test(
               "toDate-check",
               "To Date must be greater than or equal to From Date",

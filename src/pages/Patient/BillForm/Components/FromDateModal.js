@@ -22,9 +22,9 @@ const FromDateModal = ({
                 />
 
                 <div style={styles.buttonContainer}>
-                    {/* <button onClick={onClose} style={styles.cancelBtn}>
-            Cancel
-          </button> */}
+                    <button onClick={onClose} style={styles.cancelBtn}>
+                        Cancel
+                    </button>
 
                     <button
                         onClick={onSubmit}
