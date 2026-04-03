@@ -188,6 +188,13 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
       else if (billType === INTERN)
         resultantHeaders = [
           { label: "Patient/Intern", key: "name" },
@@ -238,6 +245,13 @@ const Menu = ({
       else if (billType === ALL_TRANSACTIONS)
         resultantHeaders = [
           ...allTransactionHeadersAddmissionDischargeDate,
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
