@@ -59,6 +59,9 @@ const Menu = ({
       },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
+      updatedAt: row.updatedAt
+        ? format(new Date(row.updatedAt), "dd MMM yyyy")
+        : "",
       uid: row.patient?.id
         ? `${row.patient.id.prefix}${row.patient.id.value}`
         : "",
@@ -89,8 +92,8 @@ const Menu = ({
           row.intern && row.receipt
             ? row.receipt.totalAmount || 0
             : row.advancePayment?.totalAmount ||
-            row.receiptInvoice?.payable ||
-            0,
+              row.receiptInvoice?.payable ||
+              0,
       },
       paymentModes: (row.intern
         ? row.receipt?.paymentModes
@@ -103,20 +106,24 @@ const Menu = ({
             return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
           }
           if (item.paymentMode === CARD || item.type === CARD) {
-            return `${prefix}${item.paymentMode || item.type} ${item.cardNumber || ""
-              } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.cardNumber || ""
+            } ₹${item.amount}`;
           }
           if (item.paymentMode === UPI || item.type === UPI) {
-            return `${prefix}${item.paymentMode || item.type} ${item.transactionId || ""
-              }`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.transactionId || ""
+            }`;
           }
           if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
-              } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
           }
           if (item.paymentMode === BANK || item.type === BANK) {
-            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
-              } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ₹${item.amount}`;
           }
           return "";
         })
@@ -162,9 +169,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -186,6 +193,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -219,9 +227,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -239,6 +247,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -251,9 +260,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -305,6 +314,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -316,9 +326,9 @@ const Menu = ({
         ...dueAmountHeaders,
         sortPatientStatus === DISCHARGE_PATIENT
           ? {
-            label: "Date of Discharge",
-            key: "dateOfDischarge",
-          }
+              label: "Date of Discharge",
+              key: "dateOfDischarge",
+            }
           : null,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
@@ -361,6 +371,7 @@ const Menu = ({
         { label: "Patient/Intern", key: "name" },
         { label: "Center", key: "center.title" },
         { label: "Date", key: "date" },
+        { label: "Updated At", key: "updatedAt" },
         // { label: "UID", key: "uid" },
         // { label: "Invoice No", key: "invoiceNumber" },
         // { label: "Invoiced Amount", key: "invoice.payable" },
@@ -435,14 +446,16 @@ const Menu = ({
                   <CSVLink
                     // data={(documents() || [])}
                     data={(() => {
-                      console.log(documents());
+                      console.log({ documents: documents() });
+
                       return documents() || [];
                     })()}
                     title="CSV Download"
                     filename={"reports.csv"}
                     // headers={headers()}
                     headers={(() => {
-                      console.log(headers());
+                      console.log({ headers: headers() });
+
                       return headers();
                     })()}
                     className="btn btn-info px-2 ms-3"

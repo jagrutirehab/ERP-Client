@@ -441,9 +441,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
           >
             <option value="all">All</option>
             <option value="INVOICE">Invoice</option>
-            <option value="REFUND">Refund</option>
             <option value="ADVANCE_PAYMENT">Advance Payment</option>
-            <option value="DEPOSIT">Deposit</option>
             <option value="CENTRAL_PAYMENT">Central Payment</option>
             <option value="CASH">Cash</option>
           </Input>
