@@ -22,6 +22,7 @@ import {
   getProceduresByid,
 } from "../../../helpers/backend_helper";
 import InvoiceDateRange from "./Components/InvoiceDateRange";
+import FromDateModal from "./Components/FromDateModal";
 
 const DuePayment = ({
   author,
@@ -75,6 +76,10 @@ const DuePayment = ({
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(null)
+
   const ptCenter = center ? center : patient?.center?._id;
 
   const validation = useFormik({
@@ -119,6 +124,11 @@ const DuePayment = ({
         Yup.object().shape({
           fromDate: Yup.date()
             .nullable()
+            .when("category", {
+              is: (val) => val?.toLowerCase() === "room charges",
+              then: (schema) =>
+                schema.required("From Date is required"),
+            })
             .test(
               "fromDate-check",
               "From Date cannot be greater than To Date",
@@ -131,6 +141,11 @@ const DuePayment = ({
 
           toDate: Yup.date()
             .nullable()
+            .when("category", {
+              is: (val) => val?.toLowerCase() === "room charges",
+              then: (schema) =>
+                schema.required("To Date is required"),
+            })
             .test(
               "toDate-check",
               "To Date must be greater than or equal to From Date",
@@ -286,6 +301,7 @@ const DuePayment = ({
                   toDate: item.toDate
                     ? new Date(item.toDate).toISOString().split("T")[0]
                     : "",
+                  isNew: false
                 })),
               );
             }
@@ -420,6 +436,7 @@ const DuePayment = ({
           toDate: item.toDate
             ? new Date(item.toDate).toISOString().split("T")[0]
             : "",
+          isNew: false
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -499,6 +516,7 @@ const DuePayment = ({
             availablePrices: centerMatch?.prices || [],
             fromDate: "",
             toDate: "",
+            isNew: true
           },
         ];
       });
@@ -670,7 +688,9 @@ const DuePayment = ({
             onUOMChange={handleUOMChange}
             {...rest}
             center={patient?.center}
-            validation={validation} 
+            validation={validation}
+            setShowModal={setShowModal}
+            setSelectedIndex={setSelectedIndex}
           />
           {/* {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>
@@ -708,6 +728,25 @@ const DuePayment = ({
             {...rest}
             enteredRefundAmount={validation.values.refund}
             bill={invoiceType}
+          />
+
+          <FromDateModal
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            fromDate={fromDate}
+            setFromDate={setFromDate}
+            onSubmit={() => {
+              if (selectedIndex !== null) {
+                setInvoiceList((prev) => {
+                  const updated = [...prev];
+                  updated[selectedIndex].fromDate = fromDate;
+                  return updated;
+                });
+              }
+
+              setShowModal(false);
+              setFromDate("");
+            }}
           />
         </Form>
       </div>

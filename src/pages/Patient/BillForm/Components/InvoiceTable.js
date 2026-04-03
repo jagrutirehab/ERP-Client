@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
 import { clearFilters } from "../../../../store/features/report/dbLogSlice";
+import FromDateModal from "./FromDateModal";
 
 const isRowEmpty = (item) => {
   return (
@@ -19,7 +20,9 @@ const InvoiceTable = ({
   center,
   isEdit,
   type,
-  validation
+  validation,
+  setShowModal,
+  setSelectedIndex
 }) => {
   const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
@@ -187,6 +190,72 @@ const InvoiceTable = ({
   //   }
   // }, [invoiceList, isEdit]);
 
+  useEffect(() => {
+    if (!invoiceList || invoiceList.length === 0) return;
+
+    const index = invoiceList.findIndex(
+      (item) =>
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.isNew === true &&
+        !item?.fromDate
+    );
+
+    if (index !== -1) {
+      setSelectedIndex(index);
+      setShowModal(true);
+    }
+  }, [invoiceList]);
+
+  const calculateToDate = (fromDate, unit, quantity) => {
+    if (!fromDate || !unit || !quantity) return "";
+
+    const start = new Date(fromDate);
+    let result = new Date(start);
+
+    if (unit.toLowerCase() === "days") {
+      result.setDate(start.getDate() + Number(quantity) - 1);
+    }
+
+    else if (unit.toLowerCase() === "month") {
+      result.setMonth(start.getMonth() + Number(quantity));
+      result.setDate(result.getDate() - 1);
+    }
+
+    return result.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    let hasChange = false;
+
+    const updatedList = invoiceList.map((item) => {
+      if (
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.fromDate &&
+        item?.unit &&
+        item?.unitOfMeasurement
+      ) {
+        const newToDate = calculateToDate(
+          item.fromDate,
+          item.unitOfMeasurement,
+          item.unit
+        );
+
+        if (item.toDate !== newToDate) {
+          hasChange = true;
+          return {
+            ...item,
+            toDate: newToDate,
+          };
+        }
+      }
+      return item;
+    });
+
+    if (hasChange) {
+      setInvoiceList(updatedList);
+    }
+  }, [invoiceList]);
+
   return (
     <React.Fragment>
       <div className="w-100">
@@ -219,6 +288,8 @@ const InvoiceTable = ({
           {(invoiceList || [])
             .filter((item) => !isRowEmpty(item))
             .map((item, idx) => {
+              console.log("itemo", item);
+              
               const totalValue =
                 item.unit && item.cost
                   ? parseInt(item.unit) * parseInt(item.cost)
@@ -493,6 +564,7 @@ const InvoiceTable = ({
                                 type="date"
                                 style={{ width: "120px", padding: "2px 4px" }}
                                 value={item.fromDate || ""}
+                                disabled={isEdit}
                                 onChange={(e) => {
                                   handleDateChange(idx, "fromDate", e.target.value);
                                   validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
@@ -520,6 +592,7 @@ const InvoiceTable = ({
                                 type="date"
                                 style={{ width: "120px", padding: "2px 4px" }}
                                 value={item.toDate || ""}
+                                disabled
                                 onChange={(e) => {
                                   handleDateChange(idx, "toDate", e.target.value);
                                   validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
@@ -805,6 +878,7 @@ const InvoiceTable = ({
                             type="date"
                             style={{ width: "120px", padding: "2px 4px" }}
                             value={item.fromDate || ""}
+                            disabled={isEdit && item.isNew === false}
                             onChange={(e) => {
                               handleDateChange(idx, "fromDate", e.target.value);
                               validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
@@ -825,6 +899,7 @@ const InvoiceTable = ({
                             type="date"
                             style={{ width: "120px", padding: "2px 4px" }}
                             value={item.toDate || ""}
+                            disabled
                             onChange={(e) => {
                               handleDateChange(idx, "toDate", e.target.value);
                               validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
@@ -879,6 +954,7 @@ const InvoiceTable = ({
             })}
         </div>
       </div>
+
     </React.Fragment>
   );
 };

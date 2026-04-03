@@ -14,6 +14,7 @@ import {
   getCityLeadStatus,
   getOwnerLeadStatus,
   getRefundAmountMOM,
+  getRoundNotesDOD,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -38,6 +39,7 @@ const initialState = {
   cityLeadStatus: [],
   ownerLeadStatus: [],
   refundAmountMOM:[],
+  fetchRoundNotesDOD:[],
   loading: false,
   error: null,
 };
@@ -257,6 +259,23 @@ export const fetchRefundAmountMOM = createAsyncThunk(
   }
 );
 
+
+export const fetchRoundNotesDOD = createAsyncThunk(
+  "miReporting/fetchRoundNotesDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getRoundNotesDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -458,6 +477,19 @@ const miReportingSlice = createSlice({
         state.refundAmountMOM = action.payload.payload || [];
       })
       .addCase(fetchRefundAmountMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchRoundNotesDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRoundNotesDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.roundNotesDOD = action.payload.payload || [];
+      })
+      .addCase(fetchRoundNotesDOD.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

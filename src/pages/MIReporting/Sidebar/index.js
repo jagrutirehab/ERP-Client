@@ -195,6 +195,12 @@ const Sidebar = () => {
       label: "Refund Amount",
       link: "/mi-reporting/refund-amount",
       icon: "bx bx-money",
+    },
+    {
+      id: "round-notes",
+      label: "Round Notes",
+      link: "/mi-reporting/round-notes",
+      icon: "bx bx-money",
     }
   ];
   return (
