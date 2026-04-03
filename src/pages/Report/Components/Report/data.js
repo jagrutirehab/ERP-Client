@@ -23,6 +23,7 @@ export const calendar = ["Daily", "Monthly", "Pre Doctor", "Pre Procedure"];
 
 export const allTransactionHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -37,6 +38,7 @@ export const allTransactionHeaders = [
 
 export const allTransactionHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -74,6 +76,7 @@ export const dueAmountHeaders = [
 
 export const advancePaymentHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -87,6 +90,7 @@ export const advancePaymentHeaders = [
 
 export const advancePaymentHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -101,6 +105,7 @@ export const advancePaymentHeadersAddmissionDischargeDate = [
 
 export const payableAmountHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -112,6 +117,7 @@ export const payableAmountHeaders = [
 
 export const payableAmountHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
@@ -125,6 +131,7 @@ export const payableAmountHeadersAddmissionDischargeDate = [
 
 export const opdBillHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },

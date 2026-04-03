@@ -163,18 +163,76 @@
     },
     ];
 
-    const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#8884D8",
-    "#82CA9D",
-    "#A4DE6C",
-    "#D0ED57",
-    "#FFC658",
+    const prepareDodCsvData = () => {
+    const csvRows = [];
+
+    Object.entries(dod_data || {}).forEach(([roundTakenBy, centers]) => {
+        const role = centers?.role || "-";
+
+        Object.entries(centers || {})
+        .filter(([centerName]) => {
+            if (centerName === "role") return false;
+            if (selectedCenter === "ALL") return true;
+            return centerName === selectedCenter || centerName === "Total";
+        })
+        .forEach(([centerName, row]) => {
+            const currentMonthTotal = currentMonthDates.reduce(
+            (sum, date) => sum + (row?.[date] ?? 0),
+            0
+            );
+
+            const last30DaysTotal = dates.reduce((sum, date) => {
+            const today = new Date();
+            const rowDate = new Date(date);
+
+            const diffInDays =
+                (new Date(today.setHours(0, 0, 0, 0)) -
+                new Date(rowDate.setHours(0, 0, 0, 0))) /
+                (1000 * 60 * 60 * 24);
+
+            return diffInDays >= 0 && diffInDays < 30
+                ? sum + (row?.[date] ?? 0)
+                : sum;
+            }, 0);
+
+            const csvRow = {
+            "Round Taken By": roundTakenBy,
+            "Centre Name": centerName,
+            Role: role,
+            "Total Rounds(LAST 30 DAYS)": last30DaysTotal,
+            "Total(Current Month)": currentMonthTotal,
+            };
+
+            dates.forEach((date) => {
+            csvRow[date] = row?.[date] ?? 0;
+            });
+
+            csvRows.push(csvRow);
+        });
+    });
+
+    setCsvData(csvRows);
+
+    setTimeout(() => {
+        csvRef.current.link.click();
+    }, 100);
+    };
+
+    const dodCsvHeaders = [
+    { label: "Round Taken By", key: "Round Taken By" },
+    { label: "Centre Name", key: "Centre Name" },
+    { label: "Role", key: "Role" },
+    {
+        label: "Total Rounds(LAST 30 DAYS)",
+        key: "Total Rounds(LAST 30 DAYS)",
+    },
+    { label: "Total(Current Month)", key: "Total(Current Month)" },
+    ...dates.map((date) => ({
+        label: date,
+        key: date,
+    })),
     ];
-    
+
 
     // Add total row
     const totalRow = {
@@ -194,7 +252,15 @@
         });
 
     return (
-        <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
+        <div
+        className="w-100 mt-4 mt-sm-0"
+        style={{
+            flex: 1,
+            width: "100%",
+            maxWidth: "100%",
+            minWidth: 0,
+        }}
+        >
         <div className="row">
             <div className="col-12">
             <div className="p-3">
@@ -208,7 +274,7 @@
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                             <h6 className="text-truncate mb-0 fs-18">
-                            Refund Amount - Month on Month
+                            Round Notes DOD
                             </h6>
                         </div>
                         </div>
@@ -216,7 +282,7 @@
                     </div>
                 </div>
                 
-                {/* <div className="col-sm-6 col-4">
+                <div className="col-sm-6 col-4">
                     <div className="d-flex justify-content-end">
                     <Button
                         color="info"
@@ -239,7 +305,7 @@
                         ref={csvRef}
                     />
                     </div>
-                </div> */}
+                </div>
                 </div>
             </div>
 
@@ -454,7 +520,7 @@
 
 
                     <div
-                        className="table-responsive"
+                        className="table-responsive mt-4"
                         style={{
                         overflowX: "auto",
                         WebkitOverflowScrolling: "touch",
