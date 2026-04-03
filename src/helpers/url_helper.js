@@ -437,6 +437,7 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 //MIS Reports
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
+export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
 
 
 

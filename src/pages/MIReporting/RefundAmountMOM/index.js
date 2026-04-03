@@ -222,7 +222,15 @@ const prepareCsvData = () => {
 };
 
   return (
-    <div className="w-100 chat-main-container-width mt-4 mt-sm-0">
+      <div
+        className="w-100 mt-4 mt-sm-0"
+        style={{
+          flex: 1,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+        }}
+      >
       <div className="row">
         <div className="col-12">
           <div className="p-3">
