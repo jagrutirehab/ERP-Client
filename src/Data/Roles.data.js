@@ -151,6 +151,7 @@ export const permissionList = [
       { name: "DASHBOARD", label: "Dashboard" },
       { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
+      { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
       { name: "AUDIT", label: "Audit" },
     ],

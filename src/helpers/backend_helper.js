@@ -1007,6 +1007,29 @@ export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   );
 };
 
+export const getNurseGivenMedicines = (params = {}) => {
+  return api.get(url.GET_NURSE_GIVEN_MEDICINES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const getNurseGivenMedicineDetails = (params = {}) => {
+  return api.get(url.GET_NURSE_GIVEN_MEDICINE_DETAILS, {
+    params,
+    headers:{
+      "X-No-Cookie-Token": "true",
+    }
+  });
+};
+
 // emergency
 export const assignPatientType = ({ patientId, patientType }) => {
   return api.update(
