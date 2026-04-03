@@ -22,6 +22,7 @@ import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
 import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
+import RoundNotesDOD from "./RoundNotesDOD";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -171,6 +172,11 @@ const MiReporting = () => {
                 {hasMISPermission&&<Route
                     path="/refund-amount"
                     element={<RefundAmountMOM />}
+                  />}
+
+                   {hasMISPermission&&<Route
+                    path="/round-notes"
+                    element={<RoundNotesDOD />}
                   />}
               </Routes>
             </div>
