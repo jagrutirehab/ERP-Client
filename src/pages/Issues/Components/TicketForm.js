@@ -52,8 +52,8 @@ const TicketForm = ({
 
     const issueTypeOptions = [
         { value: "TECH", label: "TECH" },
-        { value: "PURCHASE", label: "PURCHASE" },
-        { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
+        // { value: "PURCHASE", label: "PURCHASE" },
+        // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
     ];
 
     return (
@@ -70,6 +70,7 @@ const TicketForm = ({
                         options={issueTypeOptions}
                         value={issueTypeOptions.find(opt => opt.value === issueType)}
                         onChange={(selected) => setIssueType(selected.value)}
+                        isDisabled={true}
                     />
                 </Col>
                 {/* CENTER */}
