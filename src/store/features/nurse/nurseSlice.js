@@ -210,7 +210,7 @@ export const markTomorrowActivityMedicines = createAsyncThunk(
       return response;
     } catch (error) {
       console.log(error);
-      return rejectWithValue("Failed to mark medicine activity");
+      return rejectWithValue(error);
     }
   }
 );
