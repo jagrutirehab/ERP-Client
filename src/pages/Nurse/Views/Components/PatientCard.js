@@ -71,18 +71,14 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           patientId: patient._id,
         })
       ).unwrap();
-      setIsSubmitting(false);
       toast.success("Medicines marked successfully!");
     } catch (error) {
-      console.error(error);
       toast.error(error.message || "Failed to mark medicines. Please try again.");
+    } finally{
+      setIsSubmitting(false);
     }
   };
 
-  // const vitals =
-  //   Array.isArray(patient.vitals) && patient.vitals.length > 0
-  //     ? patient.vitals[0]
-  //     : null;
   return (
     <>
       <Card

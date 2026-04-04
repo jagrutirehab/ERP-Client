@@ -74,6 +74,10 @@ const NurseGivenMedicine = () => {
         ),
     ];
 
+    const selectedCenterOption =
+        centerOptions.find((opt) => opt.value === selectedCenter) ||
+        centerOptions[0];
+
     useEffect(() => {
         if (
             selectedCenter !== "ALL" &&
@@ -93,14 +97,6 @@ const NurseGivenMedicine = () => {
         return () => clearTimeout(handler);
     }, [search]);
 
-    useEffect(() => {
-        if (user?.centerAccess?.length <= 1) {
-            setSelectedCenter(user?.centerAccess?.[0] || "");
-        }
-    }, [user]);
-
-    const selectedCenterOption =
-        centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
 
     const handleDateChange = (newDate) => {
         setReportDate(newDate);
@@ -108,10 +104,13 @@ const NurseGivenMedicine = () => {
     };
 
     const centers =
-        selectedCenter === "ALL" ? user?.centerAccess : [selectedCenter];
+        selectedCenter === "ALL"
+            ? user?.centerAccess
+            : !user?.centerAccess.length
+                ? []
+                : [selectedCenter];
 
     const fetchGivenMedicines = async () => {
-        if (!centers?.length) return;
 
         try {
             await dispatch(
@@ -133,10 +132,10 @@ const NurseGivenMedicine = () => {
 
 
     useEffect(() => {
-        if (hasUserPermission) {
+        if (!loading && hasUserPermission) {
             fetchGivenMedicines();
         }
-    }, [dispatch, currentPage, limit, debouncedSearch, selectedCenter, user?.centerAccess, reportDate]);
+    }, [dispatch, currentPage, limit, debouncedSearch, selectedCenter, user?.centerAccess, reportDate, hasUserPermission, loading]);
 
     const handleOpenDetails = async (row) => {
         const rowKey = `${row?.patientId}-${row?.prescriptionId}-${row?.date}`;
