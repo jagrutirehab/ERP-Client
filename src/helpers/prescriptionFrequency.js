@@ -1,5 +1,6 @@
 export const PRESET_MEDICINE_FREQUENCIES = [
-  { value: 1, label: "Everyday" },
+  { value: 1, label: "Daily" },
+  { value: 2, label: "Alternate days" },
   { value: 15, label: "Every 15 days" },
   { value: 30, label: "Every 30 days" },
 ];
@@ -33,7 +34,11 @@ export const getMedicineFrequencyLabel = (frequency) => {
   const normalizedFrequency = normalizeMedicineFrequency(frequency);
 
   if (normalizedFrequency === 1) {
-    return "Everyday";
+    return "Daily";
+  }
+
+  if (normalizedFrequency === 2) {
+    return "Alternate days";
   }
 
   return `Every ${normalizedFrequency} days`;

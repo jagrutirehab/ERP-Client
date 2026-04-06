@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import { Col, Input, Row } from "reactstrap";
 import {
@@ -67,18 +67,16 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
         [prop]: value,
       };
     } else if (prop === "frequency") {
-      // Keep empty string so the custom input stays visible while typing
-      drugsTable[index][prop] =
-        value === "" ? "" : Math.max(1, Math.floor(Number(value) || 1));
+      drugsTable[index].frequencyPreset = "custom";
+      drugsTable[index][prop] = value;
     } else if (prop === "frequencyPreset") {
-      // Store the preset choice explicitly so custom mode is sticky
       drugsTable[index].frequencyPreset = value;
       if (value === "custom") {
         const currentFrequency = normalizeMedicineFrequency(
           drugsTable[index].frequency
         );
         drugsTable[index].frequency =
-          currentFrequency === 1 || currentFrequency === 15 || currentFrequency === 30
+          currentFrequency === 1 || currentFrequency === 2 || currentFrequency === 15 || currentFrequency === 30
             ? ""
             : currentFrequency;
       } else {
@@ -463,7 +461,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         value={medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine.frequency)}
                         type="select"
                       >
-                        <option value="1">Everyday</option>
+                        <option value="1">Daily</option>
+                        <option value="2">Alternate days</option>
                         <option value="15">Every 15 days</option>
                         <option value="30">Every 30 days</option>
                         <option value="custom">Custom days</option>
@@ -473,7 +472,6 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                           <Input
                             name="frequency"
                             type="number"
-                            min="1"
                             placeholder="Days"
                             onChange={handleChange}
                             value={medicine.frequency ?? ""}
