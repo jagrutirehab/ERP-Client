@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Row } from "reactstrap";
 import Wrapper from "../Components/Wrapper";
@@ -17,6 +17,8 @@ import {
 //redux
 import {
   createEditChart,
+  fetchCharts,
+  fetchChartsAddmissions,
   removeChart,
   togglePrint,
 } from "../../../store/actions";
@@ -32,15 +34,63 @@ import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
+import { io } from "socket.io-client";
+import { getCharts } from "../../../helpers/backend_helper";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
 
+
+
   const dispatch = useDispatch();
+  const [, forceUpdate] = useState(0);
 
   const [chart, setChart] = useState({
     chart: null,
     isOpen: false,
   });
+
+
+  const socketRef = useRef(null);
+
+  const addmissionRef = useRef(addmission);
+
+  useEffect(() => {
+    addmissionRef.current = addmission;
+  }, [addmission]);
+
+  console.log("Admission ID:", addmissionRef.current._id);
+  useEffect(() => {
+    console.log("🚀 useEffect triggered");
+
+    socketRef.current = io("http://localhost:8080", {
+      path: "/socket/search",
+      withCredentials: true,
+      transports: ["websocket"],
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("✅ Socket connected:", socketRef.current.id);
+    });
+
+    socketRef.current.on("connect_error", (err) => {
+      console.log("❌ Socket error:", err.message);
+    });
+
+    socketRef.current.on("audioProcessingDone", (data) => {
+      console.log("🔥 Processing Done:", data);
+
+      setTimeout(() => {
+        dispatch(fetchChartsAddmissions([addmissionRef.current._id]));
+        dispatch(fetchCharts(addmissionRef.current._id));
+        // getCharts(addmissionRef.current._id)
+      }, 2000);
+    });
+
+    return () => {
+      socketRef.current?.off("audioProcessingDone");
+      socketRef.current?.disconnect();
+    };
+  }, []);
 
   const editChart = (chart) => {
     toggleDateModal();
