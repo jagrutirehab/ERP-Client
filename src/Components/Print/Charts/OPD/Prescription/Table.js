@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { getMedicineFrequencyLabel } from "../../../../../helpers/prescriptionFrequency";
 
 import Montserrat from "../../../../../assets/fonts/Montserrat-ExtraBold.ttf";
 import RobotoHeavy from "../../../../../assets/fonts/Roboto-Black.ttf";
@@ -217,12 +218,10 @@ const PrescriptionTable = ({ medicines }) => {
                   <Text
                     style={{
                       ...styles.fontMd,
-
                       // ...styles.fontSizeMd,
                     }}
                   >
-                    {item.instruction && `${item.instruction} - `}
-                    {item.intake} {" - "} {item.duration} {item.unit}
+                    {item.intake}{" - "}{getMedicineFrequencyLabel(item.frequency)}{" - "}{item.duration} {item.unit}
                   </Text>
                 </View>
 

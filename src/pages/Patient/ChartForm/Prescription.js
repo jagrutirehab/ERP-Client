@@ -62,6 +62,7 @@ import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { getICDCodes } from "../../../helpers/backend_helper.js";
+import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequency";
 
 const Prescription = ({
   drugs,
@@ -261,9 +262,13 @@ const Prescription = ({
 
     const fixed = meds.map((med) => {
       const m = med.medicine;
+      const normalizedMedicine = {
+        ...med,
+        frequency: normalizeMedicineFrequency(med.frequency),
+      };
 
       // if  _id ,then skip
-      if (m?._id) return med;
+      if (m?._id) return normalizedMedicine;
 
       // try to get _id using name + strength + unit
       const match = drugs.find(
@@ -276,7 +281,7 @@ const Prescription = ({
 
       if (match) {
         return {
-          ...med,
+          ...normalizedMedicine,
           medicine: {
             ...m,
             _id: match._id,
@@ -288,7 +293,7 @@ const Prescription = ({
         };
       }
 
-      return med;
+      return normalizedMedicine;
     });
 
     setMedicines(fixed);
@@ -363,6 +368,7 @@ const Prescription = ({
         intake: "After food",
         duration: "30",
         unit: "Day (s)",
+        frequency: 1,
       };
       console.log(medicine);
 

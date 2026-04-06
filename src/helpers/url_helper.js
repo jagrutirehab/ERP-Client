@@ -328,6 +328,9 @@ export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark";
 export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
   "/nurse/next-day-medicines";
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
+export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
+export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
+
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -438,6 +441,7 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
 export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
+export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
 
 
 

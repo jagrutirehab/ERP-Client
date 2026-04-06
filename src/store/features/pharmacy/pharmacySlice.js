@@ -1,8 +1,18 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { deleteAuditById, getAuditsByStatus, getDetailedPrescription, getMedineApprovalsByStatus, getPendingPatientApprovals, updateMedicineApprovalStatus } from "../../../helpers/backend_helper";
+import {
+    deleteAuditById,
+    getAuditsByStatus,
+    getDetailedPrescription,
+    getMedineApprovalsByStatus,
+    getNurseGivenMedicines as getNurseGivenMedicinesApi,
+    getPendingPatientApprovals,
+    updateMedicineApprovalStatus
+} from "../../../helpers/backend_helper";
 
 const initialState = {
     loading: false,
+    data: [],
+    pagination: {},
     medicineApprovals: [],
     pendingPatients: [],
     detailedPrescription: {},
@@ -10,7 +20,7 @@ const initialState = {
     auditHistory: {
         data: [],
         pagination: {}
-    }
+    },
 };
 
 export const getMedicineApprovals = createAsyncThunk("pharmacy/getMedineApprovalsByStatus", async (data, { rejectWithValue }) => {
@@ -72,8 +82,14 @@ export const deleteAudit = createAsyncThunk("pharmacy/deleteAuditById", async ({
     }
 });
 
-
-
+export const getNurseGivenMedicines = createAsyncThunk("pharmacy/getNurseGivenMedicines", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getNurseGivenMedicinesApi(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
 
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
@@ -165,7 +181,19 @@ export const pharmacySlice = createSlice({
             })
             .addCase(deleteAudit.rejected, (state) => {
                 state.loading = false;
+            });
+
+        builder
+            .addCase(getNurseGivenMedicines.pending, (state) => {
+                state.loading = true;
             })
+            .addCase(getNurseGivenMedicines.fulfilled, (state, { payload }) => {
+                state.data = payload;
+                state.loading = false;
+            })
+            .addCase(getNurseGivenMedicines.rejected, (state) => {
+                state.loading = false;
+            });
     }
 });
 

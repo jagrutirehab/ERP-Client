@@ -24,6 +24,7 @@ import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
 import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import VitalSignsDOD from "./VitalSignsDOD";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -180,10 +181,15 @@ const MiReporting = () => {
                     element={<RoundNotesDOD />}
                   />}
 
-                  <Route
+                  {hasMISPermission&&<Route
                     path="/clinical-notes"
                     element={<ClinicalNotesDOD />}
-                  />
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/vital-signs"
+                    element={<VitalSignsDOD />}
+                  />}
               </Routes>
             </div>
           </Container>

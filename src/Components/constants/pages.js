@@ -381,6 +381,12 @@ export const Pharmacy = [
     icon: "bx bx-building-house",
   },
   {
+    id: "nurseGivenMedicines",
+    label: "Nurse Given Medicine",
+    link: "/pharmacy/nurse-given-med",
+    icon: "bx bx-building-house",
+  },
+  {
     id: "medicineaApproval",
     label: "Medicine Approval",
     link: "/pharmacy/approval",

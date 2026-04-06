@@ -16,6 +16,7 @@ import {
   getRefundAmountMOM,
   getRoundNotesDOD,
   getClinicalNotesDOD,
+  getVitalSignsDOD,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -41,6 +42,7 @@ const initialState = {
   ownerLeadStatus: [],
   refundAmountMOM:[],
   fetchRoundNotesDOD:[],
+  fetchVitalSignsDOD:[],
   loading: false,
   error: null,
 };
@@ -292,6 +294,23 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
   }
 );
 
+
+
+export const fetchVitalSignsDOD = createAsyncThunk(
+  "miReporting/fetchVitalSignsDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getVitalSignsDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -518,6 +537,18 @@ const miReportingSlice = createSlice({
         state.clinicalNotesDOD = action.payload.payload || [];
       })
       .addCase(fetchClinicalNotesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchVitalSignsDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchVitalSignsDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.vitalSignsDOD = action.payload.payload || [];
+      })
+      .addCase(fetchVitalSignsDOD.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

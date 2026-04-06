@@ -208,6 +208,12 @@ const Sidebar = () => {
       label: "Clinical Notes",
       link: "/mi-reporting/clinical-notes",
       icon: "bx bx-money",
+    },
+    {
+      id: "vital-signs",
+      label: "Vital Signs",
+      link: "/mi-reporting/vital-signs",
+      icon: "bx bx-money",
     }
   ];
   return (
