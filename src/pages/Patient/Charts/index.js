@@ -36,6 +36,7 @@ import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
+import { api } from "../../../config";
 
 const Charts = ({ addmission, charts, toggleDateModal }) => {
 
@@ -62,7 +63,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
   useEffect(() => {
     console.log("🚀 useEffect triggered");
 
-    socketRef.current = io("http://localhost:8080", {
+    const SOCKET_BASE_URL = api.API_URL.replace("/api/v1", "");
+
+    socketRef.current = io(SOCKET_BASE_URL, {
       path: "/socket/search",
       withCredentials: true,
       transports: ["websocket"],
