@@ -2,13 +2,13 @@
     import { useDispatch, useSelector } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import { fetchClinicalNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
+    import { fetchClinicalNotesDOD, fetchVitalSignsDOD } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
 
 
-    const ClinicalNotesDOD = () => {
+    const VitalSignsDOD = () => {
     const dispatch = useDispatch();
-    const { clinicalNotesDOD, loading, error } = useSelector(
+    const { vitalSignsDOD, loading, error } = useSelector(
         (state) => state.MIReporting
     );
     const centerAccess = useSelector((state) => state.User?.centerAccess || []);
@@ -19,17 +19,17 @@
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    console.log(clinicalNotesDOD)
+    console.log(vitalSignsDOD)
     
     useEffect(() => {
 
-        dispatch(fetchClinicalNotesDOD({ centerAccess }));
+        dispatch(fetchVitalSignsDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
-    // console.log(clinicalNotesDOD)
+    // console.log(vitalSignsDOD)
     // Extract unique months and sort them descending
 
    
-    const data = clinicalNotesDOD?.data || [];
+    const data = vitalSignsDOD?.data || [];
 
 
 
@@ -51,7 +51,6 @@
             "Center Name",
             "Psychologist Name",
             "Patient UID",
-            "Assigned Patients",
             "Total(Current Month)",
             ...dates.map((date) =>
             new Date(date)
@@ -75,7 +74,6 @@
             patient?.center_name ?? "",
             patient?.psychologist_name ?? "",
             `UID${patient?.patient_id ?? ""}`,
-            patient?.patient_count ?? 0,
             patient?.current_month_total ?? 0,
             ...dates.map((date) => patient?.dod_data?.[date] ?? 0),
             ];
@@ -96,6 +94,14 @@
         label: center,
     })),
     ];
+
+    const dailyTotals = dates.reduce((acc, date) => {
+    acc[date] = filteredData.reduce(
+        (sum, patient) => sum + (patient?.dod_data?.[date] ?? 0),
+        0
+    );
+    return acc;
+}, {});
 
  
     return (
@@ -121,7 +127,7 @@
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                             <h6 className="text-truncate mb-0 fs-18">
-                            Clinical Notes DOD
+                            Vital Signs DOD
                             </h6>
                         </div>
                         </div>
@@ -137,8 +143,8 @@
                         disabled={
                         csvLoading ||
                         loading ||
-                        !clinicalNotesDOD ||
-                        clinicalNotesDOD.length === 0
+                        !vitalSignsDOD ||
+                        vitalSignsDOD.length === 0
                         }
                         className="w-auto"
                     >
@@ -146,7 +152,7 @@
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename="clinical-notes-dod.csv"
+                        filename="vital-signs-dod.csv"
                         headers={csvHeaders}
                         className="d-none"
                         ref={csvRef}
@@ -208,6 +214,52 @@
                                     background: "#f3f6fb",
                                 }}
                                 >
+                                    <tr>
+                                        <th
+                                            colSpan={3}
+                                            className="text-center fw-bold px-2 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#14532d",
+                                                color: "white",
+                                                position: "sticky",
+                                                left: 0,
+                                                zIndex: 20,
+                                            }}
+                                        >
+                                        </th>
+                                        <th
+                                            colSpan={2}
+                                            className="text-center fw-bold px-2 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#14532d",
+                                                color: "white",
+                                                position: "sticky",
+                                                left: 0,
+                                                zIndex: 20,
+                                            }}
+                                        >
+                                            Total (Single Day)
+                                        </th>
+                                        
+
+                                        {dates.map((date) => (
+                                            <th
+                                                key={`total-${date}`}
+                                                className="text-center fw-bold px-2 py-2"
+                                                style={{
+                                                    minWidth: 95,
+                                                    border: "1px solid #cfd8e3",
+                                                    background: "#14532d",
+                                                    color: "white",
+                                                    whiteSpace: "nowrap",
+                                                }}
+                                            >
+                                                {dailyTotals[date]}
+                                            </th>
+                                        ))}
+                                    </tr>
                                 <tr>
                                     <th
                                         className="text-center fw-bold px-2 py-2"
@@ -271,21 +323,7 @@
                                         >
                                         Pateint UID
                                         </th>
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 360,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Assigned Patients
-                                        </th>
+                                        
                                         <th
                                         className="text-center fw-bold px-2 py-2"
                                         style={{
@@ -384,22 +422,9 @@
                                                 zIndex: 10,
                                             }}
                                             >
-                                            {"UID"+patient?.patient_id}
+                                            {patient?.patient_id}
                                             </td>
-                                            <td
-                                            className="text-center fw-semibold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 360,
-                                                zIndex: 10,
-                                            }}
-                                            >
-                                            {patient?.patient_count}
-                                            </td>
+                                            
                                             <td
                                             className="text-center fw-semibold px-2 py-2"
                                             style={{
@@ -452,4 +477,4 @@
     );
     };
 
-    export default ClinicalNotesDOD;
+    export default VitalSignsDOD;

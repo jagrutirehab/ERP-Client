@@ -1834,6 +1834,16 @@ export const getClinicalNotesDOD = (data) => {
 };
 
 
+export const getVitalSignsDOD = (data) => {
+
+  return api.get(url.GET_VITAL_SIGNS_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
+
 
 
 
