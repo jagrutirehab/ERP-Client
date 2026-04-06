@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Col, Input, Row } from "reactstrap";
 import {
@@ -21,6 +21,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Menu } from "lucide-react";
+import {
+  getMedicineFrequencyLabel,
+  getMedicineFrequencyPreset,
+  normalizeMedicineFrequency,
+} from "../../../helpers/prescriptionFrequency";
 
 
 const SortableMedicine = ({ index, children }) => {
@@ -61,6 +66,24 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
         ...drugsTable[index].dosageAndFrequency,
         [prop]: value,
       };
+    } else if (prop === "frequency") {
+      // Keep empty string so the custom input stays visible while typing
+      drugsTable[index][prop] =
+        value === "" ? "" : Math.max(1, Math.floor(Number(value) || 1));
+    } else if (prop === "frequencyPreset") {
+      // Store the preset choice explicitly so custom mode is sticky
+      drugsTable[index].frequencyPreset = value;
+      if (value === "custom") {
+        const currentFrequency = normalizeMedicineFrequency(
+          drugsTable[index].frequency
+        );
+        drugsTable[index].frequency =
+          currentFrequency === 1 || currentFrequency === 15 || currentFrequency === 30
+            ? ""
+            : currentFrequency;
+      } else {
+        drugsTable[index].frequency = normalizeMedicineFrequency(value);
+      }
     } else {
       drugsTable[index][prop] = value;
     }
@@ -75,6 +98,15 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
 
   const bulkEditMedDuration = (duration) => {
     const meds = [...medicines]?.map((med) => ({ ...med, duration }));
+    setMedicines(meds);
+  };
+
+  const bulkEditFrequency = (frequency) => {
+    const normalizedFrequency = normalizeMedicineFrequency(frequency);
+    const meds = [...medicines]?.map((med) => ({
+      ...med,
+      frequency: normalizedFrequency,
+    }));
     setMedicines(meds);
   };
 
@@ -104,11 +136,14 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
           <Col xs={3} className="border-bottom">
             <h6 className="display-6 fs-14">Dosage & Frequency</h6>
           </Col>
-          <Col xs={3} className="border-bottom">
+          <Col xs={2} className="border-bottom">
             <h6 className="display-6 fs-14">Intake</h6>
           </Col>
-          <Col xs={3} className="border-bottom">
+          <Col xs={2} className="border-bottom">
             <h6 className="display-6 fs-14">Duration</h6>
+          </Col>
+          <Col xs={2} className="border-bottom">
+            <h6 className="display-6 fs-14">Frequency</h6>
           </Col>
           <Col xs={1} className="border-bottom"></Col>
 
@@ -299,6 +334,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <div className="d-flex flex-column align-items-center">
                         <div className="fw-bold mb-1">Mor</div>
                         <Input
+                          type="number"
+                          min="0"
                           bsSize="sm"
                           id={idx}
                           name="morning"
@@ -313,6 +350,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <div className="d-flex flex-column align-items-center">
                         <div className="fw-bold mb-1">Aft</div>
                         <Input
+                          type="number"
+                          min="0"
                           bsSize="sm"
                           id={idx}
                           name="evening"
@@ -327,6 +366,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <div className="d-flex flex-column align-items-center">
                         <div className="fw-bold mb-1">Eve</div>
                         <Input
+                          type="number"
+                          min="0"
                           bsSize="sm"
                           id={idx}
                           name="night"
@@ -339,7 +380,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       <span className="ms-3">Tablets</span>
                     </div>
                   </Col>
-                  <Col xs={3} className="">
+                  <Col xs={2} className="">
                     <div>
                       <Input
                         // id={idx}
@@ -366,7 +407,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       />
                     </div>
                   </Col>
-                  <Col xs={3} className="">
+                  <Col xs={2} className="">
                     <div className="d-flex flex-nowrap">
                       <div className="position-relative">
                         <Input
@@ -409,6 +450,58 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <option>Month (s)</option>
                         <option>Year (s)</option>
                       </Input>
+                    </div>
+                  </Col>
+                  <Col xs={2} className="">
+                    <div>
+                      <Input
+                        name="frequencyPreset"
+                        className="bg-white"
+                        bsSize={"sm"}
+                        id={idx}
+                        onChange={handleChange}
+                        value={medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine.frequency)}
+                        type="select"
+                      >
+                        <option value="1">Everyday</option>
+                        <option value="15">Every 15 days</option>
+                        <option value="30">Every 30 days</option>
+                        <option value="custom">Custom days</option>
+                      </Input>
+                      {(medicine.frequencyPreset === "custom" || (!medicine.frequencyPreset && getMedicineFrequencyPreset(medicine.frequency) === "custom")) && (
+                        <div className="position-relative mt-2">
+                          <Input
+                            name="frequency"
+                            type="number"
+                            min="1"
+                            placeholder="Days"
+                            onChange={handleChange}
+                            value={medicine.frequency ?? ""}
+                            bsSize={"sm"}
+                            id={idx}
+                          />
+                          <span
+                            onClick={() => bulkEditFrequency(medicine.frequency)}
+                            style={{ top: "-5px", right: "-7px" }}
+                            className="btn btn-sm btn-success bg-white btn-outline p-0 position-absolute"
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 18 18"
+                            >
+                              <path
+                                fill="#14c56b"
+                                d="M2.855 10.908l-.67 1.407L.038 17.26a.535.535 0 0 0 0 .368.917.917 0 0 0 .154.184.917.917 0 0 0 .184.155.562.562 0 0 0 .188.033.48.48 0 0 0 .18-.033l4.945-2.143 1.41-.672 8.527-8.528-4.244-4.243zM4.862 14l-1.515.657L4 13.144l.512-1.064 1.414 1.414zM16.708 5.54L12.466 1.3l.707-.707A2 2 0 0 1 16 .59L17.415 2a2 2 0 0 1 0 2.83zM7.74.893l-.63-.63a.886.886 0 0 0-1.26 0l-4.578 4.59-.3.62-.96 2.2a.29.29 0 0 0 0 .16.705.705 0 0 0 .07.09.705.705 0 0 0 .09.07c.02 0 .05.01.08.01a.22.22 0 0 0 .08-.01l2.2-.96.62-.3 4.588-4.58a.887.887 0 0 0 0-1.26zM17.735 10.89l-.63-.63a.886.886 0 0 0-1.26 0l-4.578 4.59-.3.62-.96 2.2a.29.29 0 0 0 0 .16.46.46 0 0 0 .16.16c.02 0 .05.01.08.01a.22.22 0 0 0 .08-.01l2.2-.96.62-.3 4.59-4.58a.887.887 0 0 0-.002-1.26z"
+                              />
+                            </svg>
+                          </span>
+                        </div>
+                      )}
+                      <div className="text-muted mt-1" style={{ fontSize: "12px" }}>
+                        {getMedicineFrequencyLabel(medicine.frequency)}
+                      </div>
                     </div>
                   </Col>
                   <Col xs={1}>

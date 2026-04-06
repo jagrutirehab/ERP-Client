@@ -105,6 +105,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
+import { getMedicineFrequencyLabel } from "../../../helpers/prescriptionFrequency";
 
 const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) => {
   const columns = [
@@ -174,7 +175,10 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
     },
     {
       name: "Duration",
-      selector: (row, idx) => `${row?.duration} ${row?.unit}`,
+      selector: (row, idx) =>
+        `${row?.duration} ${row?.unit} - ${getMedicineFrequencyLabel(
+          row?.frequency
+        )}`,
       wrap: true,
     },
     {
