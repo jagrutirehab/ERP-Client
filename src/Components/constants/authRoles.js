@@ -20,6 +20,10 @@ const authRoles = [
     value: "MSW",
   },
   {
+    name: "PSW",
+    value: "PSW",
+  },
+  {
     name: "RMO",
     value: "RMO",
   },
