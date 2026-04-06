@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import FileCard from "../../../Components/Common/FileCard";
 import { Col, Row } from "reactstrap";
@@ -47,7 +47,6 @@ const CounsellingNote = ({ data }) => {
     }
   };
 
-  console.log("data", data);
 
 
   return (
@@ -140,7 +139,14 @@ const CounsellingNote = ({ data }) => {
                 <source src={audio.url} type={audio.type} />
               </audio>
 
-              {cleaned && (
+              {audio?.isProcessing && (
+                <div className="mt-3 text-center">
+                  <div className="spinner-border text-primary" role="status" />
+                  <p className="mt-2 text-muted">Processing audio...</p>
+                </div>
+              )}
+
+              {!audio.isProcessing && cleaned && (
                 <div className="mt-3">
 
                   {/* Label */}
