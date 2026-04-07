@@ -1099,18 +1099,18 @@ export const ISSUES = [
     link: "/issues/tech",
     icon: "bx bx-chip",
   },
-  {
-    id: "purchase-issues",
-    label: "Purchase",
-    link: "/issues/purchase",
-    icon: "bx bx-category",
-  },
-  {
-    id: "review-submissions",
-    label: "Review Submissions",
-    link: "/issues/review-submissions",
-    icon: "bx bx-check-shield",
-  },
+  // {
+  //   id: "purchase-issues",
+  //   label: "Purchase",
+  //   link: "/issues/purchase",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "review-submissions",
+  //   label: "Review Submissions",
+  //   link: "/issues/review-submissions",
+  //   icon: "bx bx-check-shield",
+  // },
   {
     id: "my-issues",
     label: "My Assigned Tickets",
