@@ -122,6 +122,11 @@ const DuePayment = ({
       bill: Yup.string().required("Bill type required!"),
       invoiceList: Yup.array().of(
         Yup.object().shape({
+          discountReason: Yup.string().when("discount", {
+            is: (val) => Number(val) > 0,
+            then: (schema) => schema.required("Discount reason is required"),
+            otherwise: (schema) => schema.nullable(),
+          }),
           fromDate: Yup.date()
             .nullable()
             .when("category", {
@@ -301,7 +306,8 @@ const DuePayment = ({
                   toDate: item.toDate
                     ? new Date(item.toDate).toISOString().split("T")[0]
                     : "",
-                  isNew: false
+                  isNew: false,
+                  discountReason : item.discountReason || ""
                 })),
               );
             }
@@ -436,7 +442,8 @@ const DuePayment = ({
           toDate: item.toDate
             ? new Date(item.toDate).toISOString().split("T")[0]
             : "",
-          isNew: false
+          isNew: false,
+          discountReason : item.discountReason || ""
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -516,7 +523,8 @@ const DuePayment = ({
             availablePrices: centerMatch?.prices || [],
             fromDate: "",
             toDate: "",
-            isNew: true
+            isNew: true,
+            discountReason : "",
           },
         ];
       });

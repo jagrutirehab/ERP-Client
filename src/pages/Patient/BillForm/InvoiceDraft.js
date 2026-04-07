@@ -86,6 +86,11 @@ const InvoiceDraft = ({
       bill: Yup.string().required("Bill type required!"),
       invoiceList: Yup.array().of(
         Yup.object().shape({
+          discountReason: Yup.string().when("discount", {
+            is: (val) => Number(val) > 0,
+            then: (schema) => schema.required("Discount reason is required"),
+            otherwise: (schema) => schema.nullable(),
+          }),
           fromDate: Yup.date()
             .nullable()
             .test(
@@ -241,6 +246,7 @@ const InvoiceDraft = ({
           toDate: item.toDate
             ? new Date(item.toDate).toISOString().split("T")[0]
             : "",
+          discountReason: item.discountReason ?? ""
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -328,6 +334,7 @@ const InvoiceDraft = ({
             toDate: item.toDate
               ? new Date(item.toDate).toISOString().split("T")[0]
               : "",
+            discountReason: item.discountReason ?? ""
           },
         ];
       });
