@@ -141,8 +141,9 @@ const CounsellingNote = ({ data }) => {
 
               {audio?.isProcessing && (
                 <div className="mt-3 text-center">
-                  <div className="spinner-border text-primary" role="status" />
-                  <p className="mt-2 text-muted">Processing audio...</p>
+                  <p className="text-warning fw-semibold">
+                    Audio processing is in progress. It can take up to 7–8 minutes.
+                  </p>
                 </div>
               )}
 
