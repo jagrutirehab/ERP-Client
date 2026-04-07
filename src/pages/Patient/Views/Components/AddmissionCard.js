@@ -34,7 +34,7 @@ const AddmissionCard = ({ data, children }) => {
               </div>
             )}
             <div className="d-flex align-items-center">
-              <span>Addmission Date:</span>
+              <span>Admission Date:</span>
               <h6 className="display-6 fs-6 mb-0 ms-2">
                 {data?.addmissionDate && !isNaN(new Date(data.addmissionDate))
                   ? formatDate(data.addmissionDate)
