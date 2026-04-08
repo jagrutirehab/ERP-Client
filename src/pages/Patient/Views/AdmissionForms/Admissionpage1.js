@@ -332,7 +332,6 @@ const Admissionpage1 = ({ register, admissions, patient, details, chartData }) =
         "We are aware of the available facilities and also of non-availability of certain facilities in this Hospital.",
         "We hereby authorize the medical and paramedical staff of this hospital to admit and provide assessment, evaluation, investigations and medical treatment including administration of drugs during the course of the patient’s hospitalization.",
         "In consideration of this line of treatment, agreed by us, we release our doctor, his associates and assistants, the hospital, its personnel and any other person participating in patient’s care from any responsibility whatsoever from any resulting illness, ill effects of reactions that patient may get and undertake not to raise any claim or take any legal action for damage in any court against doctor in charge of this case or other staff member of the hospital. We are signing this letter of our free will, without any coercion and obligation. The above statements have been explained to us in our mother tongue.",
-        "If discharge is taken within 25 days of admission, then daily charges will be applicable."
       ].map((point, i) => (
         <div key={i} style={consentPara}>
           {i + 1}) {point}
