@@ -21,6 +21,12 @@ export const Issues = (
   canEdit
 ) => [
     {
+      name: <div className="text-center">Issue-Id</div>,
+      selector: (row) => row?.issueNumber || "-",
+      // center: true,
+      width: "160px",
+    },
+    {
       name: <div className="text-center">Author</div>,
       selector: (row) => row?.author?.name || "-",
       // center: true,
