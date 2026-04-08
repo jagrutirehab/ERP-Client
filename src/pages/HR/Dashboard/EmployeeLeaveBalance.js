@@ -122,6 +122,9 @@ const EmployeeLeaveBalanceDashboard = () => {
         navigate("/unathorized");
     }
 
+    console.log("data", data);
+    
+
     return (
         <CardBody
             className="p-3 bg-white"

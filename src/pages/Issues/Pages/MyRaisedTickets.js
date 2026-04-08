@@ -209,6 +209,7 @@ const MyRaisedTickets = () => {
                         value={issueTypeOptions.find((o) => o.value === type)}
                         onChange={(selected) => setType(selected.value)}
                         styles={{ container: (base) => ({ ...base, width: 200 }) }}
+                        isDisabled={true}
                     />
 
                     {/* Status */}

@@ -9,6 +9,9 @@ const InvoiceList = ({ list }) => {
   const hasDateColumn = list?.some(
     (item) => item.fromDate && item.toDate
   );
+  const hasDiscountReason = list?.some(
+    (item) => Number(item.discount) > 0
+  );
   const columns = [
     {
       name: "Treatment",
@@ -28,13 +31,30 @@ const InvoiceList = ({ list }) => {
       name: "Item Discount",
       selector: (row) => row.discount ?? 0,
     },
-    {
-      name: "Unit",
-      selector: (row) => row.unitOfMeasurement,
-      style: {
-        textTransform: "capitalize",
+...(hasDiscountReason
+  ? [
+      {
+        name: "Reason",
+        minWidth: "200px",
+        cell: (row) => (
+          <div
+            style={{
+              maxHeight: "50px",
+              overflowY: "auto",
+              fontSize: "12px",
+              scrollbarWidth: "thin",
+            }}
+            className="scroll-hide-lite"
+          >
+            {row.discount > 0
+              ? row.discountReason || "-"
+              : "-"}
+          </div>
+        ),
+        wrap: true,
       },
-    },
+    ]
+  : []),
     ...(hasDateColumn
       ? [
         {

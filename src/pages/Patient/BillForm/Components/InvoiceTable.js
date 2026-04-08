@@ -289,7 +289,7 @@ const InvoiceTable = ({
             .filter((item) => !isRowEmpty(item))
             .map((item, idx) => {
               console.log("itemo", item);
-              
+
               const totalValue =
                 item.unit && item.cost
                   ? parseInt(item.unit) * parseInt(item.cost)
@@ -360,13 +360,18 @@ const InvoiceTable = ({
                               name="unit"
                               value={item.unit || ""}
                               onChange={(e) => {
+                                const val = e.target.value;
                                 const value = Number(e.target.value);
+                                if (!/^[1-9]\d*$|^$/.test(val)) return;
                                 if (value >= 0 || e.target.value === "") {
                                   getValues(e);
                                 }
                               }}
                               onKeyDown={(e) => {
                                 if (e.which === 38 || e.which === 40) {
+                                  e.preventDefault();
+                                }
+                                if (e.key === "." || e.key === "e" || e.key === "-") {
                                   e.preventDefault();
                                 }
                               }}
@@ -641,7 +646,47 @@ const InvoiceTable = ({
                         </Col>
                       </Row>
 
+                      {Number(item.discount) > 0 && (
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">
+                            Discount Reason
+                          </Label>
 
+                          <Input
+                            id={idx}
+                            type="textarea"
+                            name={`invoiceList[${idx}].discountReason`}
+                            rows="2"
+                            placeholder="Discount Reason"
+                            value={
+                              validation.values.invoiceList?.[idx]?.discountReason || ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+
+                              const newList = [...invoiceList];
+                              newList[idx].discountReason = value;
+                              setInvoiceList(newList);
+
+                              validation.handleChange(e);
+                            }}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              (validation.touched.invoiceList?.[idx]?.discountReason ||
+                                validation.submitCount > 0) &&
+                              validation.errors.invoiceList?.[idx]?.discountReason
+                            }
+                          />
+
+                          {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                            validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]?.discountReason && (
+                              <div className="text-danger" style={{ fontSize: "12px" }}>
+                                {validation.errors.invoiceList[idx].discountReason}
+                              </div>
+                            )}
+                        </div>
+                      )}
 
                       <div className="mb-2">
                         <Label size="sm" className="fw-bold text-muted">
@@ -676,12 +721,17 @@ const InvoiceTable = ({
                         value={item.unit || ""}
                         onChange={(e) => {
                           const value = Number(e.target.value);
+                          const val = e.target.value;
+                          if (!/^[1-9]\d*$|^$/.test(val)) return;
                           if (value >= 0 || e.target.value === "") {
                             getValues(e);
                           }
                         }}
                         onKeyDown={(e) => {
                           if (e.which === 38 || e.which === 40) {
+                            e.preventDefault();
+                          }
+                          if (e.key === "." || e.key === "e" || e.key === "-") {
                             e.preventDefault();
                           }
                         }}
@@ -937,6 +987,45 @@ const InvoiceTable = ({
                         <i className="ri-close-circle-line font-size-20"></i>
                       </Button>
                     </Col>
+
+                    {Number(item.discount) > 0 && (
+                      <Col xs={12} className="mb-2">
+                        <Input
+                          id={idx}
+                          type="textarea"
+                          name={`invoiceList[${idx}].discountReason`}
+                          rows="2"
+                          placeholder="Discount Reason"
+                          value={
+                            validation.values.invoiceList?.[idx]?.discountReason || ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            const newList = [...invoiceList];
+                            newList[idx].discountReason = value;
+                            setInvoiceList(newList);
+
+                            validation.handleChange(e);
+                          }}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            (validation.touched.invoiceList?.[idx]?.discountReason ||
+                              validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]?.discountReason
+                          }
+                        />
+
+                        {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                          validation.submitCount > 0) &&
+                          validation.errors.invoiceList?.[idx]?.discountReason && (
+                            <div className="text-danger" style={{ fontSize: "12px" }}>
+                              {validation.errors.invoiceList[idx].discountReason}
+                            </div>
+                          )}
+                      </Col>
+                    )}
+
                     <Col xs={12}>
                       <Input
                         id={idx}

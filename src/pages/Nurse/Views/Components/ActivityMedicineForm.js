@@ -484,9 +484,8 @@ const ActivityMedicineForm = ({
                             </small>
                           </div>
                           <div
-                            className={`${
-                              med.marked ? "text-success" : "text-danger"
-                            }`}
+                            className={`${med.marked ? "text-success" : "text-danger"
+                              }`}
                           >
                             {med.marked ? (
                               <CheckCircle size={20} />
@@ -545,8 +544,7 @@ const ActivityMedicineForm = ({
         toggleModal();
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to mark medicines. Please try again.");
+      toast.error(error.message || "Failed to mark medicines. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -707,20 +705,20 @@ const ActivityMedicineForm = ({
                                       >
                                         {values.medicines[medicineIndex]
                                           ?.status === "completed" && (
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="white"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <path d="M20 6L9 17l-5-5" />
-                                          </svg>
-                                        )}
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="16"
+                                              height="16"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="white"
+                                              strokeWidth="3"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <path d="M20 6L9 17l-5-5" />
+                                            </svg>
+                                          )}
                                       </div>
                                     )}
                                   </div>
@@ -741,40 +739,40 @@ const ActivityMedicineForm = ({
                 {!Object.values(medicineBoxFillingActivities?.medicines).every(
                   (slotMeds) => slotMeds.length === 0
                 ) && (
-                  <div className="d-flex justify-content-end mt-3 gap-2">
-                    <Button
-                      color="info"
-                      size="sm"
-                      onClick={() => handleSelectAll(values, setFieldValue)}
-                    >
-                      {values.medicines.every((m) => m.status === "completed")
-                        ? "Unselect All"
-                        : "Select All"}
-                    </Button>
+                    <div className="d-flex justify-content-end mt-3 gap-2">
+                      <Button
+                        color="info"
+                        size="sm"
+                        onClick={() => handleSelectAll(values, setFieldValue)}
+                      >
+                        {values.medicines.every((m) => m.status === "completed")
+                          ? "Unselect All"
+                          : "Select All"}
+                      </Button>
 
-                    <Button
-                      color="primary"
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={
-                        submissionSuccess ||
-                        isSubmitting ||
-                        !values.medicines.some((m) => m.status === "completed")
-                      }
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Spinner size="sm" className="me-2" />
-                          Submitting...
-                        </>
-                      ) : submissionSuccess ? (
-                        "Submitted"
-                      ) : (
-                        "Submit"
-                      )}
-                    </Button>
-                  </div>
-                )}
+                      <Button
+                        color="primary"
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={
+                          submissionSuccess ||
+                          isSubmitting ||
+                          !values.medicines.some((m) => m.status === "completed")
+                        }
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Spinner size="sm" className="me-2" />
+                            Submitting...
+                          </>
+                        ) : submissionSuccess ? (
+                          "Submitted"
+                        ) : (
+                          "Submit"
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
                 <Modal isOpen={modalOpen} toggle={toggleModal}>
                   <ModalHeader toggle={toggleModal}>
