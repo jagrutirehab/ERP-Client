@@ -10,6 +10,11 @@ export const downloadInventoryTemplate = async (type = "TEMPLATE") => {
         const headers = [
             "Code",
             "Medicine Name",
+            "Brand Name",
+            "Generic Name",
+            "Form",
+            "Base Unit",
+            "Purchase Unit",
             "Strength",
             "Unit",
             "Stock",

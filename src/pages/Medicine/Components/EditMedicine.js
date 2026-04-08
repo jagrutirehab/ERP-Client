@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Col, Button, Input, FormFeedback, Form, Row } from "reactstrap";
+import Select from "react-select";
 import PropTypes from "prop-types";
 
 //redux
@@ -12,9 +13,17 @@ import { useFormik } from "formik";
 import {
   medicineTypes,
   medicineUnits,
+  medicineForms,
+  baseUnits,
+  purchaseUnits,
+  medicineCategories,
+  storageTypes,
+  scheduleTypes,
+  normalizeLabel,
 } from "../../../Components/constants/medicine";
 import { duplicateMedicineValidator } from "../../../store/features/medicine/medicineSlice";
 import { toast } from "react-toastify";
+import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 
 function useDebounce(callback, delay) {
   const timer = useRef(null);
@@ -57,6 +66,14 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
     initialValues: {
       id: data?._id || "",
       name: data?.name || "",
+      brandName: data?.brandName || "",
+      genericName: data?.genericName || "",
+      form: data?.form || "",
+      baseUnit: data?.baseUnit || "",
+      purchaseUnit: data?.purchaseUnit || "",
+      category: data?.category || "",
+      storageType: data?.storageType || "",
+      scheduleType: data?.scheduleType || "",
       type: data?.type || "",
       strength: data?.strength || "",
       unit: data?.unit || "",
@@ -64,6 +81,9 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
       composition: data?.composition || "",
       quantity: data?.quantity || "",
       unitPrice: data?.unitPrice || "",
+      purchaseQuantity: data?.conversion?.purchaseQuantity ?? "",
+      baseQuantity: data?.conversion?.baseQuantity ?? "",
+      isControlledDrug: data?.isControlledDrug || false,
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Please Enter Medicine Name"),
@@ -74,7 +94,14 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
         return;
       }
 
-      dispatch(updMedicine(values));
+      const { purchaseQuantity, baseQuantity, ...rest } = values;
+      dispatch(updMedicine({
+        ...rest,
+        conversion: {
+          purchaseQuantity: Number(purchaseQuantity) || 0,
+          baseQuantity: Number(baseQuantity) || 0,
+        },
+      }));
       setUpdateMedicine({
         isForm: false,
         formIndex: undefined,
@@ -83,6 +110,21 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
       validation.resetForm();
     },
   });
+
+  const selectField = (label, name, options, placeholder) => (
+    <Col md={4} className="mb-3">
+      <label className="fs-12 text-muted mb-1">{label}</label>
+      <Select
+        name={name}
+        placeholder={placeholder}
+        options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+        onChange={(selected) => validation.setFieldValue(name, selected ? selected.value : "")}
+        onBlur={() => validation.setFieldTouched(name, true)}
+        value={validation.values[name] ? { value: validation.values[name], label: normalizeLabel(validation.values[name]) } : null}
+        classNamePrefix="react-select"
+      />
+    </Col>
+  );
 
   return (
     <React.Fragment>
@@ -95,8 +137,10 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
         className="needs-validation"
         action="#"
       >
-        <Row className="align-items-center">
-          <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
+        <Row>
+          {/* Row 1 */}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Name*</label>
             <Input
               onChange={(e) => {
                 validation.handleChange(e);
@@ -107,146 +151,137 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
               name="name"
               onBlur={validation.handleBlur}
               value={validation.values.name || ""}
-              bsSize={"sm"}
+              bsSize="sm"
+              placeholder="Name"
             />
-            {validation.touched.name && validation.errors.name ? (
-              <FormFeedback type="invalid" className="d-block">
-                {validation.errors.name}
-              </FormFeedback>
-            ) : null}
+            {validation.touched.name && validation.errors.name && (
+              <FormFeedback type="invalid" className="d-block">{validation.errors.name}</FormFeedback>
+            )}
+          </Col>
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Brand Name</label>
+            <Input onChange={validation.handleChange} name="brandName" onBlur={validation.handleBlur} value={validation.values.brandName || ""} bsSize="sm" placeholder="Brand Name" />
+          </Col>
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Generic Name</label>
+            <Input onChange={validation.handleChange} name="genericName" onBlur={validation.handleBlur} value={validation.values.genericName || ""} bsSize="sm" placeholder="Generic Name" />
           </Col>
 
-          <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
-            <Input
-              className="bg-white"
-              onChange={validation.handleChange}
-              name="type"
-              type="select"
-              onBlur={validation.handleBlur}
-              value={validation.values.type || ""}
-              bsSize={"sm"}
-            >
-              <option value="" selected disabled hidden>
-                Choose Type
-              </option>
-              {(medicineTypes || []).map((item, idx) => (
-                <option key={idx + item} value={item} className="text-cap">
-                  {item}
-                </option>
-              ))}
-            </Input>
+          {/* Row 2 */}
+          {selectField("Form", "form", medicineForms, "Choose Form")}
+          {selectField("Base Unit", "baseUnit", baseUnits, "Choose B. Unit")}
+          {selectField("Purchase Unit", "purchaseUnit", purchaseUnits, "Choose P. Unit")}
+
+          {/* Conversion  */}
+          <Col md={12} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Conversion</label>
+            <div className="d-flex align-items-center gap-2">
+              <Input
+                onChange={validation.handleChange}
+                name="baseQuantity"
+                onBlur={validation.handleBlur}
+                value={validation.values.baseQuantity ?? ""}
+                bsSize="sm"
+                placeholder="Qty"
+                type="number"
+                style={{ width: "80px", flexShrink: 0 }}
+              />
+              <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                {normalizeUnderscores(validation.values.baseUnit) || "BASE UNIT"}
+              </span>
+              <span className="fw-bold text-muted">=</span>
+              <Input
+                onChange={validation.handleChange}
+                name="purchaseQuantity"
+                onBlur={validation.handleBlur}
+                value={validation.values.purchaseQuantity ?? ""}
+                bsSize="sm"
+                placeholder="Qty"
+                type="number"
+                style={{ width: "80px", flexShrink: 0 }}
+              />
+              <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                {normalizeUnderscores(validation.values.purchaseUnit) || "PURCHASE UNIT"}
+              </span>
+            </div>
           </Col>
 
-          <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
+          {/* Row 3 */}
+          {selectField("Category", "category", medicineCategories, "Choose Category")}
+          {selectField("Storage Type", "storageType", storageTypes, "Choose Type")}
+          {selectField("Schedule Type", "scheduleType", scheduleTypes, "Choose Schedule Type")}
+
+          {/* Row 4 */}
+          {selectField("Type*", "type", medicineTypes, "Choose Type")}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Strength</label>
             <Input
               onChange={(e) => {
                 validation.handleChange(e);
-                debouncedCheck(
-                  validation.values.name,
-                  e.target.value,
-                  validation.values.id
-                );
+                debouncedCheck(validation.values.name, e.target.value, validation.values.id);
               }}
               name="strength"
               onBlur={validation.handleBlur}
               value={validation.values.strength || ""}
-              bsSize={"sm"}
+              bsSize="sm"
+              placeholder="Strength"
               invalid={!!dupError}
             />
-            {dupError && (
-              <FormFeedback className="d-block">{dupError}</FormFeedback>
-            )}
+            {dupError && <FormFeedback className="d-block">{dupError}</FormFeedback>}
           </Col>
-          <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
-            <Input
-              className="bg-white"
-              onChange={validation.handleChange}
-              name="unit"
-              type="select"
-              onBlur={validation.handleBlur}
-              value={validation.values.unit || ""}
-              bsSize={"sm"}
-            >
-              <option value="" selected disabled hidden>
-                Choose Unit
-              </option>
-              {(medicineUnits || []).map((item, idx) => (
-                <option key={idx + item}>{item}</option>
-              ))}
-            </Input>
+          {selectField("Unit", "unit", medicineUnits, "Choose Unit")}
+
+          {/* Row 5 */}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Instruction</label>
+            <Input onChange={validation.handleChange} name="instruction" onBlur={validation.handleBlur} value={validation.values.instruction || ""} type="textarea" rows="2" bsSize="sm" placeholder="Instruction" />
           </Col>
-          <Col className="mb-3 pb-2 border-bottom" xs={4} md={3}>
-            <Input
-              onChange={validation.handleChange}
-              name="instruction"
-              onBlur={validation.handleBlur}
-              value={validation.values.instruction || ""}
-              type="textarea"
-              rows="1"
-              bsSize={"sm"}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Composition</label>
+            <Input onChange={validation.handleChange} name="composition" onBlur={validation.handleBlur} value={validation.values.composition || ""} type="textarea" rows="2" bsSize="sm" placeholder="Composition" />
+          </Col>
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Quantity</label>
+            <Input onChange={validation.handleChange} name="quantity" onBlur={validation.handleBlur} value={validation.values.quantity || ""} bsSize="sm" placeholder="Quantity" type="number" />
+          </Col>
+
+          {/* Row 6 */}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Unit Price</label>
+            <Input onChange={validation.handleChange} name="unitPrice" onBlur={validation.handleBlur} value={validation.values.unitPrice || ""} bsSize="sm" placeholder="Unit Price" type="number" />
+          </Col>
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Controlled Drug</label>
+            <Select
+              name="isControlledDrug"
+              placeholder="Controlled Drug?"
+              options={[
+                { value: true, label: "Yes" },
+                { value: false, label: "No" },
+              ]}
+              onChange={(selected) => validation.setFieldValue("isControlledDrug", selected ? selected.value : false)}
+              onBlur={() => validation.setFieldTouched("isControlledDrug", true)}
+              value={
+                validation.values.isControlledDrug
+                  ? { value: true, label: "Yes" }
+                  : { value: false, label: "No" }
+              }
+              classNamePrefix="react-select"
             />
           </Col>
-          <Col className="mb-3 pb-2 border-bottom" xs={4} md={3}>
-            <Input
-              onChange={validation.handleChange}
-              name="composition"
-              onBlur={validation.handleBlur}
-              value={validation.values.composition || ""}
-              type="textarea"
-              rows="1"
-              bsSize={"sm"}
-            />
-          </Col>
-          <Col className="mb-3 pb-2 border-bottom" xs={4} md={3}>
-            <Input
-              onChange={validation.handleChange}
-              name="quantity"
-              onBlur={validation.handleBlur}
-              value={validation.values.quantity || ""}
-              type="textarea"
-              rows="1"
-              bsSize={"sm"}
-            />
-          </Col>
-          <Col className="mb-3 pb-2 border-bottom" xs={4} md={3}>
-            <Input
-              onChange={validation.handleChange}
-              name="unitPrice"
-              onBlur={validation.handleBlur}
-              value={validation.values.unitPrice || ""}
-              type="textarea"
-              rows="1"
-              bsSize={"sm"}
-            />
-          </Col>
-          <Col
-            className="mb-3 pb-2 border-bottom align-items-end d-flex"
-            xs={4}
-            md={1}
-          >
+          {/* Actions */}
+          <Col md={12} className="d-flex justify-content-end gap-2 mt-2">
             <Button
               type="button"
-              onClick={() => {
-                    setUpdateMedicine({
-                  isForm: false,
-                  formIndex: undefined,
-                  formData: undefined,
-                });
-              }}
-              className="me-3"
               size="sm"
               color="danger"
               outline
+              onClick={() => setUpdateMedicine({ isForm: false, formIndex: undefined, formData: undefined })}
             >
-              <i className="ri-close-circle-line fs-5"></i>
+              Cancel
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              color="success"
-              disabled={!!dupError} 
-            >
-              <i className="ri-check-line fs-5"></i>
+            <Button type="submit" size="sm" color="success" disabled={!!dupError}>
+              Save Changes
             </Button>
           </Col>
         </Row>

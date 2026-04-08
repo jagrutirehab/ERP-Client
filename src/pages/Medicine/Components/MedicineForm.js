@@ -9,12 +9,20 @@ import { useFormik } from "formik";
 
 //redux
 import { useDispatch } from "react-redux";
-import { addMedicine } from "../../../store/actions";
+import { addMedicine, fetchMedicines } from "../../../store/actions";
 import {
   medicineTypes,
   medicineUnits,
+  medicineForms,
+  baseUnits,
+  purchaseUnits,
+  medicineCategories,
+  storageTypes,
+  scheduleTypes,
+  normalizeLabel,
 } from "../../../Components/constants/medicine";
 import { duplicateMedicineValidator } from "../../../store/features/medicine/medicineSlice";
+import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 
 function useDebounce(callback, delay) {
   const timer = useRef(null);
@@ -27,7 +35,7 @@ function useDebounce(callback, delay) {
   return debouncedFn;
 }
 
-const MedicinesForm = ({ toggle }) => {
+const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem = "" }) => {
   const dispatch = useDispatch();
   const [medicines, setMedicines] = useState([]);
   const [errors, setErrors] = useState({});
@@ -74,6 +82,14 @@ const MedicinesForm = ({ toggle }) => {
   const addMedicines = () => {
     const newMed = {
       name: "",
+      brandName: "",
+      genericName: "",
+      form: "",
+      baseUnit: "",
+      purchaseUnit: "",
+      category: "",
+      storageType: "",
+      scheduleType: "",
       type: "",
       strength: "",
       unit: "",
@@ -81,6 +97,9 @@ const MedicinesForm = ({ toggle }) => {
       composition: "",
       quantity: "",
       unitPrice: "",
+      purchaseQuantity: "",
+      baseQuantity: "",
+      isControlledDrug: false,
     };
     setMedicines([...medicines, newMed]);
   };
@@ -118,10 +137,18 @@ const MedicinesForm = ({ toggle }) => {
         alert("Fix duplicate strengths before submitting");
         return;
       }
-      dispatch(addMedicine(medicines));
+      const payload = medicines.map(({ purchaseQuantity, baseQuantity, ...rest }) => ({
+        ...rest,
+        conversion: {
+          purchaseQuantity: Number(purchaseQuantity) || 0,
+          baseQuantity: Number(baseQuantity) || 0,
+        },
+      }));
+      dispatch(addMedicine(payload));
       setMedicines([]);
       toggle();
       validation.resetForm();
+      dispatch(fetchMedicines({ page: currentPage, limit: itemsPerPage, search: searchItem }));
     },
   });
 
@@ -146,253 +173,179 @@ const MedicinesForm = ({ toggle }) => {
       className="needs-validation"
     >
       <Row className="ps-3 pe-3">
-        <Col className="mb-3 pb-2 border-bottom" xs={2} md={2}>
-          Name<span className="text-danger">*</span>
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-          Type<span className="text-danger">*</span>
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-          Strength
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={2} md={1}>
-          Unit
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
-          Instruction
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={4} md={2}>
-          Composition
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
-          Quantity
-        </Col>
-        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}>
-          Unit price
-        </Col>
 
-        <Col className="mb-3 pb-2 border-bottom" xs={4} md={1}></Col>
+
         {(medicines || []).map((medicine, idx) => (
           <React.Fragment key={idx}>
-            <Col xs={2} md={2}>
-              <div className="mb-3 w-5">
-                <Input
-                  required
-                  bsSize="sm"
-                  id={idx}
-                  onChange={handleChange}
-                  name="name"
-                  value={medicine.name}
-                  type="text"
-                  className="form-control"
-                />
-              </div>
-            </Col>
-
-            <Col xs={3} md={2}>
-              <div className="mb-3 w-5">
-                {/* <div class="form-group">
-                      <input
-                        list="type-options"
-                        className="form-control form-control-sm"
-                        id={idx}
-                        onChange={handleChange}
-                        name="type"
-                        value={medicine.type}
-                        placeholder="select an type"
-                      />
-                      <datalist id="type-options">
-                        {(medicineTypes || []).map((item, idx) => (
-                          <option
-                            key={idx + item}
-                            value={item}
-                            className="text-cap"
-                          ></option>
-                        ))}
-                      </datalist>
-                    </div> */}
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  onChange={handleChange}
-                  name="type"
-                  value={medicine.type}
-                  type="select"
-                  className="form-control"
-                >
-                  <option value="" selected disabled hidden>
-                    Choose Type
-                  </option>
-                  {(medicineTypes || []).map((item, idx) => (
-                    <option key={idx + item} value={item} className="text-cap">
-                      {item}
-                    </option>
-                  ))}
-                </Input>
-              </div>
-            </Col>
-
-            <Col xs={2} md={1}>
-              <div className="mb-3">
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  onChange={handleChange}
-                  name="strength"
-                  value={medicine.strength}
-                  type="text"
-                  invalid={!!errors[idx]}
-                />
-                {/* {errors[idx] && <FormFeedback>{errors[idx]}</FormFeedback>} */}
-              </div>
-            </Col>
-            <Col xs={3} md={2}>
-              <div className="mb-3">
-                {/* <Select
-                      options={options}
-                      placeholder="Type or select an option"
-                      isClearable
-                      value={options.find(
-                        (option) => option.value === medicine.unit
-                      )}
-                      onChange={(selected) => {
-                        handleChange({
-                          target: {
-                            name: "unit",
-                            value: selected ? selected.value : "",
-                          },
-                        });
-                      }}
-                    /> */}
-                <div class="form-group">
-                  {/* <input
-                        list="unit-options"
-                        className="form-control form-control-sm"
-                        id={idx}
-                        onChange={(e) => {
-                          handleChange(e);
-                          if (e.target.value === "") {
-                            // Blur and refocus to re-trigger datalist suggestions
-                            e.target.blur();
-                            setTimeout(() => e.target.focus(), 0);
-                          }
-                        }}
-                        name="unit"
-                        value={medicine.unit}
-                        placeholder="Type or select an option"
-                      /> */}
-                  <Input
-                    bsSize="sm"
-                    id={idx}
-                    onChange={handleChange}
-                    name="unit"
-                    value={medicine.unit}
-                    type="select"
-                    className="form-control"
-                  >
-                    <option value="" selected disabled hidden>
-                      Choose Unit
-                    </option>
-                    {(medicineUnits || []).map((item, idx) => (
-                      <option key={idx + item}>{item}</option>
-                    ))}
-                  </Input>
-                  <datalist id="unit-options">
-                    {(medicineUnits || []).map((item, idx) => (
-                      <option
-                        key={idx + item}
-                        value={item}
-                        className="text-cap"
-                      ></option>
-                    ))}
-                  </datalist>
-                </div>
-                {/* <Input
-                      bsSize="sm"
-                      id={idx}
-                      onChange={handleChange}
-                      name="unit"
-                      value={medicine.unit}
-                      type="select"
-                      className="form-control"
-                    >
-                      <option value="" selected disabled hidden>
-                        Choose Unit
-                      </option>
-                      {(medicineUnits || []).map((item, idx) => (
-                        <option key={idx + item}>{item}</option>
-                      ))}
-                    </Input> */}
-              </div>
-            </Col>
-            <Col xs={3} md={2}>
-              <div className="mb-3">
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  onChange={handleChange}
-                  name="instruction"
-                  value={medicine.instruction}
-                  type="textarea"
-                  rows="1"
-                  className="form-control"
-                />
-              </div>
-            </Col>
-            <Col xs={3} md={2}>
-              <div className="mb-3">
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  required
-                  onChange={handleChange}
-                  name="composition"
-                  value={medicine.composition}
-                  type="textarea"
-                  rows="1"
-                  className="form-control"
-                />
-              </div>
-            </Col>
-            <Col xs={3} md={1}>
-              <div className="mb-3">
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  required
-                  onChange={handleChange}
-                  name="quantity"
-                  value={medicine.quantity}
-                  type="number"
-                  rows="1"
-                  className="form-control"
-                />
-              </div>
-            </Col>
-            <Col xs={3} md={1}>
-              <div className="mb-3">
-                <Input
-                  bsSize="sm"
-                  id={idx}
-                  required
-                  onChange={handleChange}
-                  name="unitPrice"
-                  value={medicine.unitPrice}
-                  type="number"
-                  rows="1"
-                  className="form-control"
-                />
-              </div>
-            </Col>
-            <Col xs={1} md={1}>
-              <Button
-                size="sm"
-                onClick={() => removeMedicine(idx)}
-                color="danger"
-              >
+            <Col xs={12} className="d-flex justify-content-between align-items-center mb-2">
+              <span className="fw-semibold">Medicine #{idx + 1}</span>
+              <Button size="sm" onClick={() => removeMedicine(idx)} color="danger">
                 <i className="ri-delete-bin-6-line fs-14 text-white"></i>
               </Button>
             </Col>
+
+            {/* Row 1 */}
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Name*</label>
+              <Input required bsSize="sm" id={idx} onChange={handleChange} name="name" value={medicine.name} type="text" placeholder="Medicine Name" />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Brand Name</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="brandName" value={medicine.brandName} type="text" placeholder="Brand Name" />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Generic Name</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="genericName" value={medicine.genericName} type="text" placeholder="Generic Name" />
+            </Col>
+
+            {/* Row 2 */}
+            {[
+              { label: "Form", name: "form", options: medicineForms, placeholder: "Choose Form" },
+              { label: "Base Unit", name: "baseUnit", options: baseUnits, placeholder: "Choose B. Unit" },
+              { label: "Purchase Unit", name: "purchaseUnit", options: purchaseUnits, placeholder: "Choose P. Unit" },
+            ].map(({ label, name, options, placeholder }) => (
+              <Col key={name} md={4} className="mb-3">
+                <label className="fs-12 text-muted mb-1">{label}</label>
+                <Select
+                  name={name}
+                  placeholder={placeholder}
+                  options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+                  onChange={(selected) => handleChange({ target: { name, value: selected ? selected.value : "", id: idx.toString() } })}
+                  value={medicine[name] ? { value: medicine[name], label: normalizeLabel(medicine[name]) } : null}
+                  classNamePrefix="react-select"
+                />
+              </Col>
+            ))}
+
+            {/* Conversion  */}
+            <Col md={12} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Conversion</label>
+              <div className="d-flex align-items-center gap-2">
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="baseQuantity"
+                  value={medicine.baseQuantity}
+                  type="number"
+                  placeholder="Qty"
+                  style={{ width: "80px", flexShrink: 0 }}
+                />
+                <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                  {normalizeUnderscores(medicine.baseUnit) || "BASE UNIT"}
+                </span>
+                <span className="fw-bold text-muted">=</span>
+                <Input
+                  bsSize="sm"
+                  id={idx}
+                  onChange={handleChange}
+                  name="purchaseQuantity"
+                  value={medicine.purchaseQuantity}
+                  type="number"
+                  placeholder="Qty"
+                  style={{ width: "80px", flexShrink: 0 }}
+                />
+                <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                  {normalizeUnderscores(medicine.purchaseUnit) || "PURCHASE UNIT"}
+                </span>
+              </div>
+            </Col>
+
+            {/* Row 3 */}
+            {[
+              { label: "Category", name: "category", options: medicineCategories, placeholder: "Choose Category" },
+              { label: "Storage Type", name: "storageType", options: storageTypes, placeholder: "Choose Storage Type" },
+              { label: "Schedule Type", name: "scheduleType", options: scheduleTypes, placeholder: "Choose Schedule Type" },
+            ].map(({ label, name, options, placeholder }) => (
+              <Col key={name} md={4} className="mb-3">
+                <label className="fs-12 text-muted mb-1">{label}</label>
+                <Select
+                  name={name}
+                  placeholder={placeholder}
+                  options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+                  onChange={(selected) => handleChange({ target: { name, value: selected ? selected.value : "", id: idx.toString() } })}
+                  value={medicine[name] ? { value: medicine[name], label: normalizeLabel(medicine[name]) } : null}
+                  classNamePrefix="react-select"
+                />
+              </Col>
+            ))}
+
+            {/* Row 4 */}
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Type*</label>
+              <Select
+                name="type"
+                placeholder="Choose Type"
+                options={(medicineTypes || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+                onChange={(selected) => handleChange({ target: { name: "type", value: selected ? selected.value : "", id: idx.toString() } })}
+                value={medicine.type ? { value: medicine.type, label: normalizeLabel(medicine.type) } : null}
+                classNamePrefix="react-select"
+              />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Strength</label>
+              <Input
+                bsSize="sm"
+                id={idx}
+                onChange={handleChange}
+                name="strength"
+                value={medicine.strength}
+                type="text"
+                placeholder="Strength"
+                invalid={!!errors[idx]}
+              />
+              {errors[idx] && <FormFeedback className="d-block">{errors[idx]}</FormFeedback>}
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Unit</label>
+              <Select
+                name="unit"
+                placeholder="Choose Unit"
+                options={(medicineUnits || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+                onChange={(selected) => handleChange({ target: { name: "unit", value: selected ? selected.value : "", id: idx.toString() } })}
+                value={medicine.unit ? { value: medicine.unit, label: medicine.unit } : null}
+                classNamePrefix="react-select"
+              />
+            </Col>
+
+            {/* Row 5 */}
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Instruction</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="instruction" value={medicine.instruction} type="textarea" placeholder="Instruction" rows="2" />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Composition</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="composition" value={medicine.composition} type="textarea" placeholder="Composition" rows="2" />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Quantity</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="quantity" value={medicine.quantity} type="number" placeholder="Quantity" />
+            </Col>
+
+            {/* Row 6 */}
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Unit Price</label>
+              <Input bsSize="sm" id={idx} onChange={handleChange} name="unitPrice" value={medicine.unitPrice} type="number" placeholder="Unit Price" />
+            </Col>
+            <Col md={4} className="mb-3">
+              <label className="fs-12 text-muted mb-1">Controlled Drug</label>
+              <Select
+                name="isControlledDrug"
+                placeholder="Controlled Drug?"
+                options={[
+                  { value: true, label: "Yes" },
+                  { value: false, label: "No" },
+                ]}
+                onChange={(selected) => handleChange({ target: { name: "isControlledDrug", value: selected ? selected.value : false, id: idx.toString() } })}
+                value={
+                  medicine.isControlledDrug
+                    ? { value: true, label: "Yes" }
+                    : { value: false, label: "No" }
+                }
+                classNamePrefix="react-select"
+              />
+            </Col>
+            <Col xs={12}><hr className="mt-2 text-muted" /></Col>
           </React.Fragment>
         ))}
 

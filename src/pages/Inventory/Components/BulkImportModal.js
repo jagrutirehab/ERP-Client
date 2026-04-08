@@ -13,6 +13,11 @@ import { downloadFailedMedicines } from "../../../helpers/backend_helper";
 const dbFields = [
   "code",
   "medicineName",
+  "brandName",
+  "genericName",
+  "form",
+  "baseUnit",
+  "purchaseUnit",
   "unitType",
   "Strength",
   "stock",
@@ -42,6 +47,11 @@ const isNumericField = (field) =>
 const headerToDbMap = {
   Code: "code",
   "Medicine Name": "medicineName",
+  "Brand Name": "brandName",
+  "Generic Name": "genericName",
+  Form: "form",
+  "Base Unit": "baseUnit",
+  "Purchase Unit": "purchaseUnit",
   Strength: "Strength",
   Unit: "unitType",
   Stock: "stock",
