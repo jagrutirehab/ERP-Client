@@ -21,8 +21,15 @@ export const medicineTypes = [
   INJ,
   SPRAY,
   PATCH,
+];
+
+export const medicineTypes2 = [
   "TABLET",
+  "CAPSULE",
   "SOFTGEL",
+  "SYRUP",
+  "SUSPENSION",
+  "SOLUTION",
   "DROPS",
   "INJECTION",
   "VIAL",
@@ -33,7 +40,7 @@ export const medicineTypes = [
   "INHALER",
   "NASAL SPRAY",
   "TRANSDERMAL PATCH"
-];
+]
 
 export const medicineUnits = [GM, MCG, MG];
 
@@ -46,9 +53,6 @@ export const medicineForms = [
 ];
 
 export const baseUnits = [
-  "TUBE",
-  "BOTTLE",
-  "INHALER_UNIT",
   "BOX",
   "NOS",
   "ML",
@@ -74,10 +78,8 @@ export const purchaseUnits = [
 export const medicineCategories = [
   "REGULAR",
   "CONTROLLED",
-  "NARCOTIC",
-  "PSYCHOTROPIC",
   "OTC",
-  "PRESCRIPTION"
+  "CRITICAL"
 ];
 
 export const storageTypes = [
