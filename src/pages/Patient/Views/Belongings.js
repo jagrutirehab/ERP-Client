@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import BelongingsDate from "../Modals/BelongingsDate";
 import BelongingsFormModal from "../Modals/BelongingsForm.modal";
-import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging } from "../../../helpers/backend_helper";
+import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging, compressPatientBelongingFile, getPatientBelongingById } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PreviewFile from "../../../Components/Common/PreviewFile";
@@ -93,7 +93,16 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const [signedPreviewModal, setSignedPreviewModal] = useState(false);
     const [signedBelongingId, setSignedBelongingId] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [validating, setValidating] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
     const fileInputRef = useRef(null);
+    const pollingIntervalRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+        };
+    }, []);
 
     const toggleAccordian = (id) => {
         if (open === id) {
@@ -131,6 +140,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         if (!file) return;
         setSignedFile(file);
         setSignedBelongingId(belongingId);
+        setUploadError(null);
         const previewUrl = URL.createObjectURL(file);
         setSignedPreviewUrl(previewUrl);
         setSignedPreviewModal(true);
@@ -139,30 +149,90 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
     const handleSignedUpload = async () => {
         if (!signedFile || !signedBelongingId) return;
         setUploading(true);
+        setUploadError(null);
         try {
-            const fd = new FormData();
-            fd.append("signedFile", signedFile);
+            // Upload raw file directly — backend handles compression internally
+            const formData = new FormData();
+            formData.append("signedFile", signedFile);
 
-            await uploadSignedBelonging(signedBelongingId, fd);
-            toast.success("Signed copy uploaded successfully");
+            // --- Compress step removed (backend handles it now) ---
+            // const compressFd = new FormData();
+            // compressFd.append("signedFile", signedFile);
+            // const response = await compressPatientBelongingFile(compressFd);
+            // const blobType = response.data.type || "application/pdf"; 
+            // const extension = blobType.includes("image") ? ".jpg" : ".pdf";
+            // const compressedFile = new File([response.data], `compressed_signed_file${extension}`, {
+            //     type: blobType
+            // });
+            // const uploadFd = new FormData();
+            // uploadFd.append("signedFile", compressedFile);
+            // await uploadSignedBelonging(signedBelongingId, uploadFd);
 
-            setSignedPreviewModal(false);
-            resetSignedState();
-            fetchBelongings();
-        } catch (err) {
-            if (!handleAuthError(err)) {
-                toast.error(err?.message || "Failed to upload signed copy");
-            }
-        } finally {
+            await uploadSignedBelonging(signedBelongingId, formData);
+
+            // Backend returns 200 immediately. Validation runs in background.
             setUploading(false);
+            setValidating(true);
+
+            pollingIntervalRef.current = setInterval(async () => {
+                try {
+                    const res = await getPatientBelongingById(signedBelongingId);
+                    const status = res?.data?.validationStatus;
+
+                    if (status === "completed") {
+                        clearInterval(pollingIntervalRef.current);
+                        toast.success("Signed copy uploaded and validated successfully!");
+                        setValidating(false);
+                        setSignedPreviewModal(false);
+                        resetSignedState();
+                        fetchBelongings();
+                    } else if (status === "failed") {
+                        clearInterval(pollingIntervalRef.current);
+                        setValidating(false);
+                        setUploadError(res?.data?.validationError || "Validation failed.");
+                    }
+                } catch (pollErr) {
+                    clearInterval(pollingIntervalRef.current);
+                    setValidating(false);
+                    setUploadError("Error checking validation status.");
+                }
+            }, 2500);
+
+            // Safety: stop polling after 2 minutes
+            setTimeout(() => {
+                if (pollingIntervalRef.current) {
+                    clearInterval(pollingIntervalRef.current);
+                    setValidating(false);
+                    setUploadError("Validation is taking too long. Please refresh the page.");
+                }
+            }, 120000);
+
+        } catch (err) {
+            setUploading(false); // In case of error before polling starts
+            if (!handleAuthError(err)) {
+                const msg = err?.message || "";
+                if (!msg || msg === "Something went wrong!" || msg.includes("Network Error") || msg.includes("ECONNREFUSED")) {
+                    // server crash / network error — no meaningful message from backend
+                    toast.info("Something went wrong, but your file will be uploaded shortly.");
+                    setSignedPreviewModal(false);
+                    resetSignedState();
+                } else {
+                    // Actual validation error — show inline in modal
+                    setUploadError(msg || "Failed to upload signed copy");
+                }
+            }
         }
     };
 
     const resetSignedState = () => {
+        if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
         if (signedPreviewUrl) URL.revokeObjectURL(signedPreviewUrl);
         setSignedFile(null);
         setSignedPreviewUrl(null);
         setSignedBelongingId(null);
+        setUploadError(null);
+        setUploading(false);
+        setValidating(false);
     };
 
     return (
@@ -270,12 +340,50 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                                                             {(() => {
                                                                 const signedFiles = belonging.signedFiles || (belonging.signedFileUrl ? [belonging.signedFileUrl] : []);
                                                                 const isSigned = signedFiles.length > 0;
+                                                                const valStatus = belonging.validationStatus;
+                                                                const valError = belonging.validationError;
                                                                 return (
                                                                     <>
                                                                         {isSigned && (
                                                                             <Badge color="success" className="ms-2" pill>
                                                                                 <i className="ri-check-line me-1"></i>Signed {signedFiles.length > 1 ? `(${signedFiles.length})` : ""}
                                                                             </Badge>
+                                                                        )}
+                                                                        {valStatus === "pending" && (
+                                                                            <Badge color="warning" className="ms-2" pill style={{ color: "#856404" }}>
+                                                                                <Spinner size="sm" style={{ width: 10, height: 10, borderWidth: 2, marginRight: 4 }} />
+                                                                                Pending...
+                                                                            </Badge>
+                                                                        )}
+                                                                        {valStatus === "validating" && (
+                                                                            <Badge color="warning" className="ms-2" pill style={{ color: "#856404" }}>
+                                                                                <Spinner size="sm" style={{ width: 10, height: 10, borderWidth: 2, marginRight: 4 }} />
+                                                                                Validating...
+                                                                            </Badge>
+                                                                        )}
+                                                                        {valStatus === "failed" && (
+                                                                            <>
+                                                                                <Badge color="danger" className="ms-2" pill>
+                                                                                    <i className="ri-close-line me-1"></i>Validation Failed
+                                                                                </Badge>
+                                                                                {valError && (
+                                                                                    <small className="d-block text-danger mt-2" style={{ fontSize: 11 }}>
+                                                                                        <i className="ri-error-warning-line me-1"></i>{valError}
+                                                                                    </small>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                        {valStatus === "requires_review" && (
+                                                                            <>
+                                                                                <Badge color="warning" className="ms-2" pill style={{ color: "#6d4c00" }}>
+                                                                                    <i className="ri-eye-line me-1"></i>Requires Review
+                                                                                </Badge>
+                                                                                {valError && (
+                                                                                    <small className="d-block mt-2" style={{ fontSize: 11, color: "#6d4c00" }}>
+                                                                                        <i className="ri-eye-line me-1"></i>{valError}
+                                                                                    </small>
+                                                                                )}
+                                                                            </>
                                                                         )}
                                                                     </>
                                                                 );
@@ -414,11 +522,38 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
             />
 
             {/* Signed Copy Preview Modal */}
-            <Modal isOpen={signedPreviewModal} toggle={() => { setSignedPreviewModal(false); resetSignedState(); }} centered size="lg">
+            <Modal isOpen={signedPreviewModal} toggle={() => { setSignedPreviewModal(false); resetSignedState(); }} size="xl">
                 <ModalHeader toggle={() => { setSignedPreviewModal(false); resetSignedState(); }}>
                     Preview Signed Copy
                 </ModalHeader>
                 <ModalBody className="text-center">
+                    {uploadError && (
+                        <div
+                            className="d-flex align-items-start gap-2 text-start mb-3"
+                            style={{
+                                background: "#fff3f3",
+                                border: "1px solid #f5c6cb",
+                                borderLeft: "4px solid #dc3545",
+                                borderRadius: 6,
+                                padding: "12px 16px",
+                                color: "#842029",
+                                animation: "shake 0.4s ease-in-out",
+                            }}
+                        >
+                            <i className="ri-error-warning-fill fs-5" style={{ color: "#dc3545", marginTop: 2 }}></i>
+                            <div style={{ flex: 1 }}>
+                                <strong style={{ fontSize: 14 }}>Validation Error</strong>
+                                <p className="mb-0 mt-1" style={{ fontSize: 13 }}>{uploadError}</p>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                style={{ fontSize: 10, marginTop: 2 }}
+                                onClick={() => setUploadError(null)}
+                                aria-label="Dismiss"
+                            />
+                        </div>
+                    )}
                     {signedPreviewUrl && signedFile?.type?.startsWith("image/") ? (
                         <img
                             src={signedPreviewUrl}
@@ -444,14 +579,25 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
                             <small><strong>File:</strong> {signedFile.name} ({(signedFile.size / 1024).toFixed(1)} KB)</small>
                         </p>
                     )}
+                    <style>{`
+                        @keyframes shake {
+                            0%, 100% { transform: translateX(0); }
+                            20% { transform: translateX(-6px); }
+                            40% { transform: translateX(6px); }
+                            60% { transform: translateX(-4px); }
+                            80% { transform: translateX(4px); }
+                        }
+                    `}</style>
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }}>
+                    <Button color="secondary" outline onClick={() => { setSignedPreviewModal(false); resetSignedState(); }} disabled={validating}>
                         Cancel
                     </Button>
-                    <Button color="success" className="text-white" disabled={uploading} onClick={handleSignedUpload}>
+                    <Button color="success" className="text-white" disabled={uploading || validating} onClick={handleSignedUpload}>
                         {uploading ? (
-                            <><Spinner size="sm" className="me-1" /> Uploading...</>
+                            <><Spinner size="sm" className="me-1" /> Compressing & Uploading...</>
+                        ) : validating ? (
+                            <><Spinner size="sm" className="me-1" /> Validating Signatures...</>
                         ) : (
                             <><i className="ri-upload-2-line me-1"></i> Upload</>
                         )}

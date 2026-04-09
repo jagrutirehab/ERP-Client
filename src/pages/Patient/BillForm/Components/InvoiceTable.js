@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
 import { clearFilters } from "../../../../store/features/report/dbLogSlice";
+import FromDateModal from "./FromDateModal";
 
 const isRowEmpty = (item) => {
   return (
@@ -19,6 +20,9 @@ const InvoiceTable = ({
   center,
   isEdit,
   type,
+  validation,
+  setShowModal,
+  setSelectedIndex
 }) => {
   const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
@@ -92,8 +96,8 @@ const InvoiceTable = ({
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
       );
-
-      if (matchingPriceObj && !isEdit) {
+      //  && !isEdit
+      if (matchingPriceObj) {
         const newPrice = Number(matchingPriceObj.price);
         item.cost = newPrice;
 
@@ -112,6 +116,10 @@ const InvoiceTable = ({
       item.category = value;
       item.unitOfMeasurement =
         unitOptions.length === 1 ? unitOptions[0].value : "";
+      if (value !== "room charges") {
+        item.fromDate = "";
+        item.toDate = "";
+      }
     } else if (prop === "unit") {
       item.unit = value;
       item.discount = "";
@@ -138,7 +146,13 @@ const InvoiceTable = ({
   };
 
   // console.log("getUnitOptions", getUnitOptions());
-  console.log("invoiceList", invoiceList);
+  // console.log("invoiceList", invoiceList);
+
+  const handleDateChange = (idx, field, value) => {
+    const newInvoiceList = [...invoiceList];
+    newInvoiceList[idx][field] = value;
+    setInvoiceList(newInvoiceList);
+  };
 
   // useEffect(() => {
   //   if (isEdit) return;
@@ -176,6 +190,72 @@ const InvoiceTable = ({
   //   }
   // }, [invoiceList, isEdit]);
 
+  useEffect(() => {
+    if (!invoiceList || invoiceList.length === 0) return;
+
+    const index = invoiceList.findIndex(
+      (item) =>
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.isNew === true &&
+        !item?.fromDate
+    );
+
+    if (index !== -1) {
+      setSelectedIndex(index);
+      setShowModal(true);
+    }
+  }, [invoiceList]);
+
+  const calculateToDate = (fromDate, unit, quantity) => {
+    if (!fromDate || !unit || !quantity) return "";
+
+    const start = new Date(fromDate);
+    let result = new Date(start);
+
+    if (unit.toLowerCase() === "days") {
+      result.setDate(start.getDate() + Number(quantity) - 1);
+    }
+
+    else if (unit.toLowerCase() === "month") {
+      result.setMonth(start.getMonth() + Number(quantity));
+      result.setDate(result.getDate() - 1);
+    }
+
+    return result.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    let hasChange = false;
+
+    const updatedList = invoiceList.map((item) => {
+      if (
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.fromDate &&
+        item?.unit &&
+        item?.unitOfMeasurement
+      ) {
+        const newToDate = calculateToDate(
+          item.fromDate,
+          item.unitOfMeasurement,
+          item.unit
+        );
+
+        if (item.toDate !== newToDate) {
+          hasChange = true;
+          return {
+            ...item,
+            toDate: newToDate,
+          };
+        }
+      }
+      return item;
+    });
+
+    if (hasChange) {
+      setInvoiceList(updatedList);
+    }
+  }, [invoiceList]);
+
   return (
     <React.Fragment>
       <div className="w-100">
@@ -187,16 +267,16 @@ const InvoiceTable = ({
             <Col className="font-semi-bold unit-head" md={1}>
               Quantity
             </Col>
-            <Col className="font-semi-bold cost-head" md={2}>
+            <Col className="font-semi-bold cost-head" md={1}>
               Price
             </Col>
-            <Col className="font-semi-bold cost-head" md={2}>
-              Unit of Measurement
+            <Col className="font-semi-bold cost-head" md={1}>
+              Unit
             </Col>
             <Col className="font-semi-bold cost-head" md={2}>
               Discount
             </Col>
-            <Col className="font-semi-bold total-head" md={2}>
+            <Col className="font-semi-bold total-head" md={1}>
               Net Total
             </Col>
             {/* <Col className="font-semi-bold total-head" md={2}>
@@ -208,6 +288,8 @@ const InvoiceTable = ({
           {(invoiceList || [])
             .filter((item) => !isRowEmpty(item))
             .map((item, idx) => {
+              console.log("itemo", item);
+
               const totalValue =
                 item.unit && item.cost
                   ? parseInt(item.unit) * parseInt(item.cost)
@@ -241,7 +323,7 @@ const InvoiceTable = ({
                   }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
-              console.log("unitOptions", unitOptions);
+              // console.log("unitOptions", unitOptions);
 
               return (
                 <React.Fragment key={item.id + item.slot}>
@@ -278,13 +360,18 @@ const InvoiceTable = ({
                               name="unit"
                               value={item.unit || ""}
                               onChange={(e) => {
+                                const val = e.target.value;
                                 const value = Number(e.target.value);
+                                if (!/^[1-9]\d*$|^$/.test(val)) return;
                                 if (value >= 0 || e.target.value === "") {
                                   getValues(e);
                                 }
                               }}
                               onKeyDown={(e) => {
                                 if (e.which === 38 || e.which === 40) {
+                                  e.preventDefault();
+                                }
+                                if (e.key === "." || e.key === "e" || e.key === "-") {
                                   e.preventDefault();
                                 }
                               }}
@@ -469,6 +556,71 @@ const InvoiceTable = ({
                           </div>
                         </div>
                       </Col> */}
+
+                        {item.category?.toLowerCase() === "room charges" && (
+                          <div className="mb-3">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Stay Duration
+                            </Label>
+
+                            <div className="d-flex align-items-center gap-1">
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.fromDate || ""}
+                                disabled={isEdit}
+                                onChange={(e) => {
+                                  handleDateChange(idx, "fromDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.fromDate &&
+                                  validation.errors.invoiceList?.[idx]?.fromDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]?.fromDate &&
+                                validation.errors.invoiceList?.[idx]?.fromDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].fromDate}
+                                  </div>
+                                )}
+
+                              <span className="small">→</span>
+
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.toDate || ""}
+                                disabled
+                                onChange={(e) => {
+                                  handleDateChange(idx, "toDate", e.target.value);
+                                  validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]?.toDate &&
+                                  validation.errors.invoiceList?.[idx]?.toDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]?.toDate &&
+                                validation.errors.invoiceList?.[idx]?.toDate && (
+                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                    {validation.errors.invoiceList[idx].toDate}
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        )}
+
                         <Col xs={2} md={2}>
                           <p className="total-cost text-success font-size-14 text-center">
                             {/* {item.afterDiscount?.toFixed(2) ||
@@ -493,6 +645,48 @@ const InvoiceTable = ({
                           </p>
                         </Col>
                       </Row>
+
+                      {Number(item.discount) > 0 && (
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">
+                            Discount Reason
+                          </Label>
+
+                          <Input
+                            id={idx}
+                            type="textarea"
+                            name={`invoiceList[${idx}].discountReason`}
+                            rows="2"
+                            placeholder="Discount Reason"
+                            value={
+                              validation.values.invoiceList?.[idx]?.discountReason || ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+
+                              const newList = [...invoiceList];
+                              newList[idx].discountReason = value;
+                              setInvoiceList(newList);
+
+                              validation.handleChange(e);
+                            }}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              (validation.touched.invoiceList?.[idx]?.discountReason ||
+                                validation.submitCount > 0) &&
+                              validation.errors.invoiceList?.[idx]?.discountReason
+                            }
+                          />
+
+                          {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                            validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]?.discountReason && (
+                              <div className="text-danger" style={{ fontSize: "12px" }}>
+                                {validation.errors.invoiceList[idx].discountReason}
+                              </div>
+                            )}
+                        </div>
+                      )}
 
                       <div className="mb-2">
                         <Label size="sm" className="fw-bold text-muted">
@@ -527,6 +721,8 @@ const InvoiceTable = ({
                         value={item.unit || ""}
                         onChange={(e) => {
                           const value = Number(e.target.value);
+                          const val = e.target.value;
+                          if (!/^[1-9]\d*$|^$/.test(val)) return;
                           if (value >= 0 || e.target.value === "") {
                             getValues(e);
                           }
@@ -535,10 +731,13 @@ const InvoiceTable = ({
                           if (e.which === 38 || e.which === 40) {
                             e.preventDefault();
                           }
+                          if (e.key === "." || e.key === "e" || e.key === "-") {
+                            e.preventDefault();
+                          }
                         }}
                       />
                     </Col>
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       <Input
                         bsSize="sm"
                         style={{ height: "9px" }}
@@ -561,7 +760,7 @@ const InvoiceTable = ({
                         </p>
                       </div>
                     </Col>
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       {unitOptions.length === 1 ? (
                         <div
                           className="d-flex align-items-center"
@@ -693,7 +892,7 @@ const InvoiceTable = ({
                     </p>
                   </Col> */}
 
-                    <Col xs={2} md={2}>
+                    <Col xs={2} md={1}>
                       <p className="total-cost text-success font-size-14 text-left">
                         {/* {item.afterDiscount?.toFixed(2) ||
                           (item.unit && item.cost
@@ -717,6 +916,68 @@ const InvoiceTable = ({
                       </p>
                     </Col>
 
+
+                    {item.category?.toLowerCase() === "room charges" && (
+                      <Col xs={3} md={3}>
+
+                        {/* Row for inputs */}
+                        <div className="d-flex gap-1 align-items-center">
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.fromDate || ""}
+                            disabled={isEdit && item.isNew === false}
+                            onChange={(e) => {
+                              handleDateChange(idx, "fromDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.fromDate &&
+                              validation.errors.invoiceList?.[idx]?.fromDate
+                            }
+                          />
+
+                          <span style={{ fontSize: "15px" }}>to</span>
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.toDate || ""}
+                            disabled
+                            onChange={(e) => {
+                              handleDateChange(idx, "toDate", e.target.value);
+                              validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.toDate &&
+                              validation.errors.invoiceList?.[idx]?.toDate
+                            }
+                          />
+
+                        </div>
+
+                        {(validation?.touched?.invoiceList?.[idx]?.fromDate &&
+                          validation?.errors?.invoiceList?.[idx]?.fromDate) ||
+                          (validation?.touched?.invoiceList?.[idx]?.toDate &&
+                            validation?.errors?.invoiceList?.[idx]?.toDate) ? (
+                          <div className="text-danger mt-1" style={{ fontSize: "12px" }}>
+                            {validation?.errors?.invoiceList?.[idx]?.fromDate ||
+                              validation?.errors?.invoiceList?.[idx]?.toDate}
+                          </div>
+                        ) : null}
+
+                      </Col>
+                    )}
+
                     <Col xs={1}>
                       <Button
                         onClick={() => deleteForm(idx)}
@@ -726,6 +987,45 @@ const InvoiceTable = ({
                         <i className="ri-close-circle-line font-size-20"></i>
                       </Button>
                     </Col>
+
+                    {Number(item.discount) > 0 && (
+                      <Col xs={12} className="mb-2">
+                        <Input
+                          id={idx}
+                          type="textarea"
+                          name={`invoiceList[${idx}].discountReason`}
+                          rows="2"
+                          placeholder="Discount Reason"
+                          value={
+                            validation.values.invoiceList?.[idx]?.discountReason || ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            const newList = [...invoiceList];
+                            newList[idx].discountReason = value;
+                            setInvoiceList(newList);
+
+                            validation.handleChange(e);
+                          }}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            (validation.touched.invoiceList?.[idx]?.discountReason ||
+                              validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]?.discountReason
+                          }
+                        />
+
+                        {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                          validation.submitCount > 0) &&
+                          validation.errors.invoiceList?.[idx]?.discountReason && (
+                            <div className="text-danger" style={{ fontSize: "12px" }}>
+                              {validation.errors.invoiceList[idx].discountReason}
+                            </div>
+                          )}
+                      </Col>
+                    )}
+
                     <Col xs={12}>
                       <Input
                         id={idx}
@@ -743,6 +1043,7 @@ const InvoiceTable = ({
             })}
         </div>
       </div>
+
     </React.Fragment>
   );
 };

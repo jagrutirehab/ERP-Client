@@ -39,7 +39,7 @@ const Invoice = ({ title = "Invoice", data, bill }) => {
               <Label className="fs-xs-11 fs-md-14">Items Discount--</Label>
               <span className="fs-xs-10 fs-md-12">{itemsDiscount || 0}</span>
             </Col>
-            <Col xs={6} md={2}>
+            <Col xs={6} md={3}>
               <Label className="fs-xs-11 fs-md-14">Additional Discount--</Label>
               <span className="fs-xs-10 fs-md-12">
                 {additionalDiscount || 0}

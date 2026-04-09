@@ -126,3 +126,10 @@ code {
   opacity: 1;
 }
 
+.scroll-hide-lite::-webkit-scrollbar {
+  width: 2px; /* very thin */
+}
+
+.scroll-hide-lite::-webkit-scrollbar-thumb {
+  background: transparent; /* almost hidden */
+}

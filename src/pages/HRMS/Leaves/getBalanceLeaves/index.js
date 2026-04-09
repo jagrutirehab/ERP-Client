@@ -30,6 +30,8 @@ const GetBalanceLeaves = () => {
       const res = await getBalance();
       const data = res?.data;
 
+      console.log("data", data);
+      
       if (!data) return;
 
       const rows = [

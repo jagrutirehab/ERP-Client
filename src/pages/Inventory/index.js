@@ -7,6 +7,7 @@ import InventoryDashboard from "./InventoryDashboard";
 import GivenMedicine from "./GivenMedicine";
 import MedicineApproval from "./MedicineApproval";
 import AuditDashboad from "./AuditDashboard";
+import NurseGivenMedicine from "./NurseGivenMedicine";
 
 const Pharmacy = () => {
   return (
@@ -20,6 +21,7 @@ const Pharmacy = () => {
                 <Route path={`/dashboard`} element={<InventoryDashboard />} />
                 <Route path={`/management`} element={<InventoryManagement />} />
                 <Route path={`/given-med`} element={<GivenMedicine />} />
+                <Route path={`/nurse-given-med`} element={<NurseGivenMedicine />} />
                 <Route path={`/approval`} element={<MedicineApproval />} />
                 <Route path={`/audit`} element={<AuditDashboad />} />
               </Routes>

@@ -45,15 +45,15 @@ const TicketForm = ({
             if (!form.responsibleReviewer) return false;
             if (!form.reviewTakenFrom) return false;
         }
-        if (!form.files || form.files.length === 0) return false;
+        // if (!form.files || form.files.length === 0) return false;
 
         return true;
     };
 
     const issueTypeOptions = [
         { value: "TECH", label: "TECH" },
-        { value: "PURCHASE", label: "PURCHASE" },
-        { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
+        // { value: "PURCHASE", label: "PURCHASE" },
+        // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
     ];
 
     return (
@@ -70,6 +70,7 @@ const TicketForm = ({
                         options={issueTypeOptions}
                         value={issueTypeOptions.find(opt => opt.value === issueType)}
                         onChange={(selected) => setIssueType(selected.value)}
+                        isDisabled={true}
                     />
                 </Col>
                 {/* CENTER */}
@@ -197,7 +198,7 @@ const TicketForm = ({
 
                 {/* FILE UPLOAD */}
                 <Col md={12}>
-                    <Label className="fw-semibold">Upload Files<span className="text-danger">*</span></Label>
+                    <Label className="fw-semibold">Upload Files</Label>
                     <Input
                         type="file"
                         innerRef={fileInputRef}

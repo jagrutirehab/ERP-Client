@@ -151,6 +151,7 @@ export const permissionList = [
       { name: "DASHBOARD", label: "Dashboard" },
       { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
+      { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
       { name: "AUDIT", label: "Audit" },
     ],
@@ -203,6 +204,14 @@ export const permissionList = [
       { name: "HUBSPOT_OWNER_VISITED_DATE", label: "Owner Visited Date" },
       { name: "HUBSPOT_CITY_LEAD_STATUS", label: "City Lead Status" },
       { name: "HUBSPOT_OWNER_LEAD_STATUS", label: "Owner Lead Status" },
+    ],
+  },
+  {
+    key: "MIS_REPORTS",
+    label: "MIS Reports",
+    subModules: [
+      { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
+
     ],
   },
   {
@@ -296,8 +305,12 @@ export const permissionList = [
       { name: "LEAVE_HISTORY", label: "Leave History" },
       { name: "MANAGE_LEAVES", label: "Manage Leaves" },
       { name: "MY_LEAVES", label: "My Leaves" },
+      { name: "RAISED_COMP_OFFS", label: "Raised Comp-Off's" },
       { name: "BALANCE_LEAVES", label: "Balance Leaves" },
       { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
+      { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
+      { name: "COMP_OFF_REQUESTS", label: "Comp-Off Addition Requests" },
+
       // Policy
       { name: "POLICIES", label: "Policies" },
       // Incentives
@@ -307,6 +320,12 @@ export const permissionList = [
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
       { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
+      // HR DASHBOARD
+      { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
+      { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
+      { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
+      // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],
   },
@@ -340,10 +359,9 @@ export const permissionList = [
     subModules: [
       // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
       { name: "RAISE_TICKET", label: "Raise Ticket" },
-      // { name: "ISSUES", label: "Issues" },
       { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
-      { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
-      { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
+      // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
+      // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
       { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" }
     ],

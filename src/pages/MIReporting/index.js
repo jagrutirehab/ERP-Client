@@ -21,6 +21,10 @@ import CityVisitedDate from "./VisitedDate/CityVisitedDate";
 import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
 import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
+import RefundAmountMOM from "./RefundAmountMOM";
+import RoundNotesDOD from "./RoundNotesDOD";
+import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import VitalSignsDOD from "./VitalSignsDOD";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -95,6 +99,12 @@ const MiReporting = () => {
     "READ"
   );
 
+  const hasMISPermission = hasPermission(
+    "MIS_REPORTS",
+    "MIS_REPORTS_PERMISSION",
+    "READ"
+  );
+
   return (
     <React.Fragment>
       <div className="page-content overflow-hidden">
@@ -160,6 +170,26 @@ const MiReporting = () => {
                     element={<OwnerLeadStatus />}
                   />
                 )}
+                
+                {hasMISPermission&&<Route
+                    path="/refund-amount"
+                    element={<RefundAmountMOM />}
+                  />}
+
+                   {hasMISPermission&&<Route
+                    path="/round-notes"
+                    element={<RoundNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/clinical-notes"
+                    element={<ClinicalNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/vital-signs"
+                    element={<VitalSignsDOD />}
+                  />}
               </Routes>
             </div>
           </Container>

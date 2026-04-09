@@ -107,6 +107,7 @@ export const GET_ICD_CODES = "/patient/get/icd";
 // BELONGINGS
 export const SEARCH_BELONGINGS = "/patient/belongings/search";
 export const PATIENT_BELONGING = "/patient/belongings";
+export const COMPRESS_PATIENT_BELONGING = "/patient/belongings/compress";
 
 //TIMELINE
 export const GET_PATIENT_TIMELINE = "/timeline/patient";
@@ -327,6 +328,9 @@ export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark";
 export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
   "/nurse/next-day-medicines";
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
+export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
+export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
+
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -433,6 +437,17 @@ export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";
 export const GET_CITY_LEAD_STATUS = "/mi-reporting/city-lead-status";
 export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 
+//MIS Reports
+export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
+export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
+export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
+export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
+
+
+
+
+
+
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
@@ -528,11 +543,27 @@ export const POST_FESTIVE_LEAVES_LIST = "/hrms/post/festive-leaves/list";
 export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
 export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
 export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
+export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
+export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation"
+export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
+export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"
+export const GET_ALL_EMPLOYEE_LEAVE_BALANCE = "/hrms/leaves/balance/all-employees";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
+export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
+export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
+export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
+export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
+export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
+
+// FOR HR
+export const GET_LEAVES = "/hrms/leave/get/leaves"
+export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
+export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs"
+export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs"
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
@@ -574,3 +605,7 @@ export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview
 export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
 export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
 export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews"
+
+// generate AI Summary
+export const GET_AI_SUMMARY = "/chart/generateSummary"
+export const VALIDATE_SUMMARY = "/chart/validate/response"

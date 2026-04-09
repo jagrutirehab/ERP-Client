@@ -256,8 +256,8 @@ const Admissionpage1 = ({ register, admissions, patient, details, chartData }) =
             value={
               admissions?.[0]?.addmissionDate
                 ? new Date(admissions[0].addmissionDate)
-                    .toISOString()
-                    .split("T")[0]
+                  .toISOString()
+                  .split("T")[0]
                 : ""
             }
             {...register("Basic_Admission_Form_dateAdmission")}

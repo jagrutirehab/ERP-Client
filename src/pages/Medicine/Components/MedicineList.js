@@ -1,14 +1,17 @@
-import React, { useState } from "react";
-import { Button, Row, Col, Table, Input } from "reactstrap";
+import React, { useMemo, useState } from "react";
+import { Button, Modal, ModalHeader, ModalBody } from "reactstrap";
 import PropTypes from "prop-types";
-import EditMedicine from "./EditMedicine";
+import DataTable from "react-data-table-component";
 import { connect } from "react-redux";
+import EditMedicine from "./EditMedicine";
+import { formatCurrency } from "../../../utils/formatCurrency";
+import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const MedicinesList = ({
   medicines,
   totalCount,
   setDeleteMedicine,
-  toggleDeleteModal,
   searchItem,
   currentPage,
   itemsPerPage,
@@ -21,130 +24,137 @@ const MedicinesList = ({
     formData: undefined,
   });
 
-  const toggleUpdateForm = (idx, data) =>
-    setUpdateMedicine({
-      isForm: true,
-      formIndex: idx,
-      formData: data,
-    });
+  const toggleUpdateForm = (row) =>
+    setUpdateMedicine({ isForm: true, formIndex: row._id, formData: row });
 
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const columns = useMemo(
+    () => [
+      { name: "ID", selector: (row) => row.id, minWidth: "130px", wrap: true },
+      {
+        name: "Name",
+        selector: (row) => row.name,
+        minWidth: "160px", wrap: true,
+        cell: (row) => (
+          <span className="fw-semibold text-primary text-capitalize">
+            {row.name}
+          </span>
+        ),
+      },
+      { name: "Brand Name", selector: (row) => row.brandName?.toUpperCase(), minWidth: "130px", wrap: true },
+      { name: "Generic Name", selector: (row) => row.genericName?.toUpperCase(), minWidth: "140px", wrap: true },
+      { name: "Form", selector: (row) => normalizeUnderscores(row.form), minWidth: "120px", wrap: true },
+      { name: "Type", selector: (row) => normalizeUnderscores(row.type), minWidth: "100px", wrap: true },
+      { name: "Strength", selector: (row) => row.strength, minWidth: "100px", wrap: true },
+      { name: "Unit", selector: (row) => row.unit, minWidth: "80px", wrap: true },
+      { name: "Base Unit(For Consumption)", selector: (row) => row.baseUnit, minWidth: "120px", wrap: true },
+      { name: "Purchase Unit(For Purchase)", selector: (row) => row.purchaseUnit, minWidth: "130px", wrap: true },
+      {
+        name: "Conversion",
+        minWidth: "180px", wrap: true,
+        cell: (row) =>
+          row.baseUnit && row.purchaseUnit && row.conversion?.baseQuantity && row.conversion?.purchaseQuantity
+            ? `${row.conversion.baseQuantity} ${normalizeUnderscores(row.baseUnit)} = ${row.conversion.purchaseQuantity} ${normalizeUnderscores(row.purchaseUnit)}`
+            : "-",
+      },
+      { name: "Category", selector: (row) => normalizeUnderscores(row.category), minWidth: "120px", wrap: true },
+      { name: "Storage Type", selector: (row) => normalizeUnderscores(row.storageType), minWidth: "130px", wrap: true },
+      { name: "Schedule Type", selector: (row) => normalizeUnderscores(row.scheduleType), minWidth: "130px", wrap: true },
+      { name: "Expiry", selector: (row) => row.expiry, minWidth: "100px", wrap: true },
+      { name: "Instruction", selector: (row) => capitalizeWords(row.instruction), minWidth: "130px", wrap: true },
+      { name: "Composition", selector: (row) => capitalizeWords(row.composition), minWidth: "130px", wrap: true },
+      { name: "Quantity", selector: (row) => row.quantity, minWidth: "100px", wrap: true },
+      { name: "Unit Price", selector: (row) => formatCurrency(row.unitPrice), minWidth: "110px", wrap: true },
+      {
+        name: "Controlled Drug",
+        selector: (row) => row.isControlledDrug,
+        minWidth: "140px",
+        cell: (row) => (row.isControlledDrug ? "Yes" : "No"),
+      },
+      {
+        name: "Actions",
+        minWidth: "120px",
+        cell: (row) => (
+          <>
+            <Button
+              size="sm"
+              color="info"
+              className="me-2"
+              onClick={() => toggleUpdateForm(row)}
+            >
+              <i className="ri-quill-pen-line"></i>
+            </Button>
+            <Button
+              size="sm"
+              color="danger"
+              outline
+              onClick={() => setDeleteMedicine({ isOpen: true, data: row._id })}
+            >
+              <i className="ri-close-circle-line"></i>
+            </Button>
+          </>
+        ),
+        ignoreRowClick: true,
+        allowOverflow: true,
+        button: true,
+      },
+    ],
+    []
+  );
+
+  const filteredData = useMemo(
+    () =>
+      (medicines || []).filter((item) =>
+        item.name.toLowerCase().includes((searchItem || "").toLowerCase())
+      ),
+    [medicines, searchItem]
+  );
+
+  const closeModal = () =>
+    setUpdateMedicine({ isForm: false, formIndex: undefined, formData: undefined });
 
   return (
     <div className="p-4 bg-light rounded shadow-sm">
-      <Row className="mb-3 align-items-center">
-        <Col xs="auto">
-          <Input
-            type="select"
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            style={{ width: "120px" }}
-          >
-            {[5, 10, 25, 50].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </Input>
-        </Col>
-        <Col className="text-end text-muted">
-          Page {currentPage} of {totalPages}
-        </Col>
-      </Row>
+      <DataTable
+        columns={columns}
+        data={filteredData}
+        pagination
+        paginationServer
+        paginationTotalRows={totalCount}
+        paginationPerPage={itemsPerPage}
+        paginationDefaultPage={currentPage}
+        onChangePage={onPageChange}
+        onChangeRowsPerPage={(newPerPage) => onItemsPerPageChange(newPerPage)}
+        paginationRowsPerPageOptions={[5, 10, 25, 50]}
+        highlightOnHover
+        striped
+        responsive
+        fixedHeader
+        fixedHeaderScrollHeight="60vh"
+        customStyles={{
+          table: {
+            style: {
+              minWidth: "1900px",
+              maxWidth: "none",
+            },
+          },
+          headRow: {
+            style: {
+              backgroundColor: "#cfe2ff",
+              fontWeight: "600",
+            },
+          },
+        }}
+      />
 
-      <Table bordered hover className="bg-white">
-        <thead className="table-primary text-center">
-          <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Strength</th>
-            <th>Unit</th>
-            <th>Expiry</th>
-            <th>Instruction</th>
-            <th>Composition</th>
-            <th>Quantity</th>
-            <th>Unit Price</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(medicines || [])
-            .filter((item) =>
-              item.name.toLowerCase().includes(searchItem.toLowerCase())
-            )
-            .map((item, idx) => (
-              <tr key={item._id}>
-                {updateMedicine.isForm && updateMedicine.formIndex === idx ? (
-                  <td colSpan="10">
-                    <EditMedicine
-                      updateMedicine={updateMedicine}
-                      setUpdateMedicine={setUpdateMedicine}
-                    />
-                  </td>
-                ) : (
-                  <>
-                    <td className="text-capitalize fw-semibold text-primary">
-                      {item.name}
-                    </td>
-                    <td>{item.type || ""}</td>
-                    <td>{item.strength || ""}</td>
-                    <td>{item.unit || ""}</td>
-                    <td>{item.expiry || ""}</td>
-                    <td>{item.instruction || ""}</td>
-                    <td>{item.composition || ""}</td>
-                    <td>{item.quantity || ""}</td>
-                    <td>{item.unitPrice || ""}</td>
-                    <td>
-                      <Button
-                        size="sm"
-                        color="info"
-                        className="me-2"
-                        onClick={() => toggleUpdateForm(idx, item)}
-                      >
-                        <i className="ri-quill-pen-line"></i>
-                      </Button>
-                      <Button
-                        size="sm"
-                        color="danger"
-                        outline
-                        onClick={() =>
-                          setDeleteMedicine({ isOpen: true, data: item._id })
-                        }
-                      >
-                        <i className="ri-close-circle-line"></i>
-                      </Button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-        </tbody>
-      </Table>
-
-      <Row className="mt-4 justify-content-between align-items-center">
-        <Col xs="auto">
-          <Button
-            color="secondary"
-            disabled={currentPage === 1}
-            onClick={() => onPageChange(currentPage - 1)}
-          >
-            ← Previous
-          </Button>
-        </Col>
-        <Col className="text-center text-muted">
-          Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}–
-          {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount}
-        </Col>
-        <Col xs="auto">
-          <Button
-            color="secondary"
-            disabled={currentPage === totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-          >
-            Next →
-          </Button>
-        </Col>
-      </Row>
+      <Modal isOpen={updateMedicine.isForm} toggle={closeModal} size="xl" centered>
+        <ModalHeader toggle={closeModal}>Edit Medicine</ModalHeader>
+        <ModalBody>
+          <EditMedicine
+            updateMedicine={updateMedicine}
+            setUpdateMedicine={setUpdateMedicine}
+          />
+        </ModalBody>
+      </Modal>
     </div>
   );
 };
@@ -153,7 +163,6 @@ MedicinesList.propTypes = {
   medicines: PropTypes.array.isRequired,
   totalCount: PropTypes.number.isRequired,
   setDeleteMedicine: PropTypes.func.isRequired,
-  toggleDeleteModal: PropTypes.func,
   searchItem: PropTypes.string,
   currentPage: PropTypes.number.isRequired,
   itemsPerPage: PropTypes.number.isRequired,

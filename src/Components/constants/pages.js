@@ -335,6 +335,7 @@ const pages = [
     link: "/tally",
     icon: "bx bx-transfer",
   },
+
 ];
 
 
@@ -377,6 +378,12 @@ export const Pharmacy = [
     id: "givenmedicines",
     label: "Medicine Given",
     link: "/pharmacy/given-med",
+    icon: "bx bx-building-house",
+  },
+  {
+    id: "nurseGivenMedicines",
+    label: "Nurse Given Medicine",
+    link: "/pharmacy/nurse-given-med",
     icon: "bx bx-building-house",
   },
   {
@@ -570,6 +577,38 @@ export const HR = [
     label: "My Pending Approvals",
     icon: "bx bx-grid-alt",
     link: "/hr/my-pending-approvals",
+  },
+  {
+    id: "hr-dashboard",
+    label: "HR",
+    icon: "bx bx-home",
+    isAccordion: true,
+    children: [
+      {
+        id: "leave-balance-dashboard",
+        label: "Leave Balance",
+        link: "/hr/leave-balance/dashboard",
+        icon: "bx bx-layer"
+      },
+      {
+        id: "regularization-dashboard",
+        label: "Regularizations",
+        link: "/hr/regularization/dashboard",
+        icon: "bx bx-reset",
+      },
+      {
+        id: "all-leave-history",
+        label: "All Leave History",
+        link: "/hr/all/leave/history",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "comp-off-history",
+        label: "Comp Off History",
+        link: "/hr/all/compOffs",
+        icon: "bx bx-history",
+      },
+    ],
   },
   {
     id: "master-employee",
@@ -814,7 +853,7 @@ export const HR = [
         link: "/hr/reporting/manage",
         icon: "bx bx-list-check",
       },
-       {
+      {
         id: "assign-rotational-shift",
         label: "Assign Shift",
         link: "/hr/reporting/shift-roster/assign",
@@ -860,6 +899,12 @@ export const HR = [
         icon: "bx bx-calendar",
       },
       {
+        id: "my-comp-off",
+        label: "Raised Comp-Off's",
+        link: "/hr/leaves/my/compOffs",
+        icon: "bx bx-send",
+      },
+      {
         id: "my-balance-leaves",
         label: "Balance Leaves",
         link: "/hr/leaves/my/balance/leaves",
@@ -871,6 +916,19 @@ export const HR = [
         link: "/hr/leaves/festive/leaves",
         icon: "bx bx-party",
       },
+      {
+
+        id: "cancellations-requests",
+        label: "Cancellations Requests",
+        link: "/hr/leaves/get/cancellations",
+        icon: "bx bx-x-circle",
+      },
+      {
+        id: "comp-off-requests",
+        label: "Comp-Off Addition Requests",
+        link: "/hr/leaves/get/comp-offs",
+        icon: "bx bx-calendar-check"
+      }
     ],
   },
   {
@@ -1041,18 +1099,18 @@ export const ISSUES = [
     link: "/issues/tech",
     icon: "bx bx-chip",
   },
-  {
-    id: "purchase-issues",
-    label: "Purchase",
-    link: "/issues/purchase",
-    icon: "bx bx-category",
-  },
-  {
-    id: "review-submissions",
-    label: "Review Submissions",
-    link: "/issues/review-submissions",
-    icon: "bx bx-check-shield",
-  },
+  // {
+  //   id: "purchase-issues",
+  //   label: "Purchase",
+  //   link: "/issues/purchase",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "review-submissions",
+  //   label: "Review Submissions",
+  //   link: "/issues/review-submissions",
+  //   icon: "bx bx-check-shield",
+  // },
   {
     id: "my-issues",
     label: "My Assigned Tickets",
@@ -1087,7 +1145,7 @@ export const RECORDINGS = [
     link: "/recordings/feedback",
     icon: "bx bx-comment-detail"
   },
-    {
+  {
     id: "feedback-recordings-overview",
     label: "Feedback Recordings Overview",
     link: "/recordings/feedback/overview",

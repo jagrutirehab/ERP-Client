@@ -259,6 +259,15 @@ const DetailedReport = ({
       minWidth: "160px"
     },
     {
+      name: <div>Patient</div>,
+      selector: (row) =>
+        row?.patient
+          ? `${row.patient.name} (${row.patient.id?.prefix || ""}${row.patient.id?.value || ""})`
+          : "-",
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Bank Statement Description</div>,
       selector: (row) =>
         row.description ? (
@@ -410,6 +419,19 @@ const DetailedReport = ({
       wrap: true,
       minWidth: "120px",
       maxWidth: "250px",
+    },
+    {
+      name: <div>Bank Transaction Date</div>,
+      cell: (row) => (
+        <span>
+          {row?.transactionDate
+            ? format(new Date(row.transactionDate), "d MMM yyyy hh:mm a")
+            : "-"}
+        </span>
+      ),
+      wrap: true,
+      minWidth: "120px",
+      maxWidth: "150px",
     },
     {
       name: <div>Initial Payment Status</div>,
@@ -652,7 +674,6 @@ const DetailedReport = ({
     updatedAtDate,
     dispatch,
     activeTab,
-    ,
     roles,
     debouncedSearch,
     dateFilterEnabled,
@@ -882,7 +903,7 @@ const DetailedReport = ({
                         ? "Disable Date Filter"
                         : "Enable Date Filter"}
                     </Button>
-                    )}
+                  )}
                 </div>
 
                 <div className="d-flex justify-content-start justify-content-xl-end pt-3 pb-2 mt-auto">

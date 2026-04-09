@@ -680,8 +680,12 @@ export const updateRelativeVisit = createAsyncThunk(
 export const addDischargeSummary = createAsyncThunk(
   "postDischargeSummary",
   async (data, { rejectWithValue, dispatch }) => {
+    console.log("datan", data);
+
     try {
       const response = await postDischargeSummary(data);
+      console.log("responseon", response);
+
       dispatch(
         setAlert({
           type: "success",
@@ -692,7 +696,7 @@ export const addDischargeSummary = createAsyncThunk(
       if (response.medicines?.length)
         localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
-
+      // dispatch(fetchCharts(response?.addmission));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {

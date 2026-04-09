@@ -71,18 +71,14 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           patientId: patient._id,
         })
       ).unwrap();
-      setIsSubmitting(false);
       toast.success("Medicines marked successfully!");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to mark medicines. Please try again.");
+      toast.error(error.message || "Failed to mark medicines. Please try again.");
+    } finally{
+      setIsSubmitting(false);
     }
   };
 
-  // const vitals =
-  //   Array.isArray(patient.vitals) && patient.vitals.length > 0
-  //     ? patient.vitals[0]
-  //     : null;
   return (
     <>
       <Card
@@ -334,8 +330,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
               <Badge
                 pill
                 className={`fw-bold ${patient.alertCount > 0 && patient?.flag !== "stable"
-                    ? `bg-${color} bg-opacity-25 text-${color}`
-                    : "bg-secondary bg-opacity-25 text-secondary"
+                  ? `bg-${color} bg-opacity-25 text-${color}`
+                  : "bg-secondary bg-opacity-25 text-secondary"
                   }`}
                 style={{ fontSize: "0.8rem", padding: "4px 8px" }}
               >

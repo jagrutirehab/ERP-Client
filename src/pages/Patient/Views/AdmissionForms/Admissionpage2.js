@@ -161,7 +161,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
           }}
         />{" "}
         and a non refundable admission fees of Rs. 1000/- at the time of
-        admission. Also, minimum 5 days of initial fees is compulsory.
+        admission. Also, minimum 5 days of initial fees is compulsory. If discharge is taken within 25 days of admission, then Daily Charges will be applicable.
       </div>
 
       <div style={consentPara}>

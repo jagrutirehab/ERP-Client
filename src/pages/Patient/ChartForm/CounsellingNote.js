@@ -860,26 +860,28 @@ const CounsellingNote = ({
           </Col>
         )}
 
-        <Col xs={12} className="mt-3">
-          <h5>Upload Audio File</h5>
-          <Input
-            type="file"
-            accept="audio/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                setUploadedAudio(file);
-                setAudioFile(null);
-                setIsRecording("uploaded")
-              }
-            }}
-          />
-          {uploadedAudio && (
-            <p className="text-success">
-              Uploaded: {uploadedAudio.name}
-            </p>
-          )}
-        </Col>
+        {!editCounsellingNote && (
+          <Col xs={12} className="mt-3">
+            <h5>Upload Audio File</h5>
+            <Input
+              type="file"
+              accept="audio/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setUploadedAudio(file);
+                  setAudioFile(null);
+                  setIsRecording("uploaded")
+                }
+              }}
+            />
+            {uploadedAudio && (
+              <p className="text-success">
+                Uploaded: {uploadedAudio.name}
+              </p>
+            )}
+          </Col>
+        )}
 
         <Col xs={12} className="mt-3 mb-4">
           {counsellingFiles}

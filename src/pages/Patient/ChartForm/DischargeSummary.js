@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Form, Row, Col, Label } from "reactstrap";
+import { Button, Form, Row, Col, Label, Spinner } from "reactstrap";
 import PropTypes from "prop-types";
 import _ from "lodash";
 
@@ -21,8 +21,13 @@ import { connect, useDispatch } from "react-redux";
 import {
   addDischargeSummary,
   createEditChart,
+  fetchCharts,
   updateDischargeSummary,
 } from "../../../store/actions";
+import { toast } from "react-toastify";
+import { getAIDischargeSummary, getCharts, validateAISummary } from "../../../helpers/backend_helper";
+import { FaCheck } from "react-icons/fa";
+import ValidateConfirmationModal from "./Components/ValidateConfirmationModal";
 
 const DischargeSummary = ({
   author,
@@ -36,8 +41,18 @@ const DischargeSummary = ({
 
   // const [treatment, setTreatment] = useState([]);
   const [dischargeAdvise, setDischargeAdvise] = useState([]);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [geminiResponse, setGeminiResponse] = useState([]);
+  const [isVerified, setIsVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isEditVerified, setIsEditVerified] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [validateType, setValidateType] = useState(null);
+
 
   const editSummary = editChartData?.dischargeSummary;
+
+
 
   useEffect(() => {
     if (editSummary) {
@@ -145,6 +160,16 @@ const DischargeSummary = ({
     },
     validationSchema: Yup.object({}),
     onSubmit: (values) => {
+
+      const extraFields =
+        geminiResponse && Object.keys(geminiResponse).length > 0
+          ? {
+            geminiResponseGeneratedBy: author?._id,
+            geminiResponseIsVerified: isVerified,
+            // validatorId: author?._id
+          }
+          : {};
+
       if (editSummary) {
         dispatch(
           updateDischargeSummary({
@@ -153,6 +178,7 @@ const DischargeSummary = ({
             // treatment,
             medicine: dischargeAdvise,
             ...values,
+            ...extraFields,
           })
         );
       } else {
@@ -161,12 +187,21 @@ const DischargeSummary = ({
             ...values,
             // treatment,
             medicine: dischargeAdvise,
+            ...extraFields,
           })
         );
+
       }
+
       // closeForm();
+      localStorage.removeItem("ai_discharge_summary");
     },
+
   });
+
+  console.log("patient?.addmission._id", patient?.addmission._id);
+
+
 
   useEffect(() => {
     if (!editSummary) {
@@ -176,6 +211,7 @@ const DischargeSummary = ({
   }, [dispatch, editSummary]);
 
   const closeForm = () => {
+    localStorage.removeItem("ai_discharge_summary");
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     validation.resetForm();
   };
@@ -239,6 +275,8 @@ const DischargeSummary = ({
     }
   };
 
+
+
   // const renderTreatment = useMemo(() => {
   //   return (
   //     <Medicine
@@ -284,6 +322,252 @@ const DischargeSummary = ({
     );
   }, [dischargeAdvise]);
 
+
+  // console.log("patientonthefly", patient);
+
+
+  const getGeminiSummary = async () => {
+    setGenerateLoading(true);
+    try {
+      const response = await getAIDischargeSummary({
+        patient: patient?._id,
+        addmission: patient?.addmission?._id,
+      });
+
+      console.log("response", response);
+
+      const data = response?.data;
+      setGeminiResponse(data)
+      localStorage.setItem("ai_discharge_summary", JSON.stringify(data));
+
+      const clean = (val) => {
+        if (!val) return "";
+
+        if (typeof val === "string") {
+          const normalized = val.trim().toLowerCase();
+
+          const invalidValues = [
+            "not documented in records",
+            "not documented",
+            "na",
+            "n/a",
+            "null",
+            "undefined",
+            "-"
+          ];
+
+          if (invalidValues.includes(normalized)) return "";
+
+          return val.trim();
+        }
+
+        return val;
+      };
+
+      validation.setValues({
+        ...validation.values,
+
+        diagnosis: clean(data.diagnosis),
+        presentingSymptoms: clean(data.presentingSymptoms),
+
+        mseAddmission: {
+          appearance: clean(data.mseAddmission?.appearance),
+          ecc: clean(data.mseAddmission?.ecc),
+          speech: clean(data.mseAddmission?.speech),
+          mood: clean(data.mseAddmission?.mood),
+          affect: clean(data.mseAddmission?.affect),
+          thoughts: clean(data.mseAddmission?.thoughts),
+          perception: clean(data.mseAddmission?.perception),
+          memory: clean(data.mseAddmission?.memory),
+          abstractThinking: clean(data.mseAddmission?.abstractThinking),
+          socialJudgment: clean(data.mseAddmission?.socialJudgment),
+          insight: clean(data.mseAddmission?.insight),
+        },
+
+        pastHistory: clean(data.pastHistory),
+        medicalHistory: clean(data.medicalHistory),
+        familyHistory: clean(data.familyHistory),
+
+        personalHistory: {
+          smoking: clean(data.personalHistory?.smoking),
+          chewingTobacco: clean(data.personalHistory?.chewingTobacco),
+          alcohol: clean(data.personalHistory?.alcohol),
+        },
+
+        physicalExamination: {
+          temprature: clean(data.physicalExamination?.temprature),
+          pulse: clean(data.physicalExamination?.pulse),
+          bp: clean(data.physicalExamination?.bp),
+          cvs: clean(data.physicalExamination?.cvs),
+          rs: clean(data.physicalExamination?.rs),
+          abdomen: clean(data.physicalExamination?.abdomen),
+          cns: clean(data.physicalExamination?.cns),
+          others: clean(data.physicalExamination?.others),
+        },
+
+        investigation: clean(data.investigation),
+        discussion: clean(data.discussion),
+        refernces: clean(data.refernces),
+        modifiedTreatment: clean(data.modifiedTreatment),
+        deportAdministered: clean(data.deportAdministered),
+        patientStatus: clean(data.patientStatus),
+
+        treatment: clean(data.treatment),
+
+        mseDischarge: {
+          appearance: clean(data.mseDischarge?.appearance),
+          ecc: clean(data.mseDischarge?.ecc),
+          speech: clean(data.mseDischarge?.speech),
+          mood: clean(data.mseDischarge?.mood),
+          affect: clean(data.mseDischarge?.affect),
+          thoughts: clean(data.mseDischarge?.thoughts),
+          perception: clean(data.mseDischarge?.perception),
+          memory: clean(data.mseDischarge?.memory),
+          abstractThinking: clean(data.mseDischarge?.abstractThinking),
+          socialJudgment: clean(data.mseDischarge?.socialJudgment),
+          insight: clean(data.mseDischarge?.insight),
+        },
+
+        followUp: clean(data.followUp),
+        note: clean(data.note),
+        consultantName: clean(data.consultantName),
+        consultantPsychologist: clean(data.consultantPsychologist),
+        summaryPreparedBy: clean(data.summaryPreparedBy),
+        dischargeType: clean(data.dischargeType),
+        dischargeRoutine: clean(data.dischargeRoutine),
+        dischargeDate:
+          data.dischargeDate &&
+            data.dischargeDate !== "Not documented in records"
+            ? data.dischargeDate
+            : "",
+      });
+
+      toast.success(response?.message || "AI Summary Generated");
+
+    } catch (error) {
+      toast.error("Failed to Generate the summary, please try again");
+    } finally {
+      setGenerateLoading(false)
+    }
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("ai_discharge_summary");
+
+    if (saved && !editSummary) {
+      const data = JSON.parse(saved);
+
+      const clean = (val) =>
+        val === "Not documented in records" ? "" : val;
+
+      validation.setValues({
+        ...validation.values,
+
+        diagnosis: clean(data.diagnosis),
+        presentingSymptoms: clean(data.presentingSymptoms),
+
+        mseAddmission: {
+          appearance: clean(data.mseAddmission?.appearance),
+          ecc: clean(data.mseAddmission?.ecc),
+          speech: clean(data.mseAddmission?.speech),
+          mood: clean(data.mseAddmission?.mood),
+          affect: clean(data.mseAddmission?.affect),
+          thoughts: clean(data.mseAddmission?.thoughts),
+          perception: clean(data.mseAddmission?.perception),
+          memory: clean(data.mseAddmission?.memory),
+          abstractThinking: clean(data.mseAddmission?.abstractThinking),
+          socialJudgment: clean(data.mseAddmission?.socialJudgment),
+          insight: clean(data.mseAddmission?.insight),
+        },
+
+        pastHistory: clean(data.pastHistory),
+        medicalHistory: clean(data.medicalHistory),
+        familyHistory: clean(data.familyHistory),
+
+        personalHistory: {
+          smoking: clean(data.personalHistory?.smoking),
+          chewingTobacco: clean(data.personalHistory?.chewingTobacco),
+          alcohol: clean(data.personalHistory?.alcohol),
+        },
+
+        physicalExamination: {
+          temprature: clean(data.physicalExamination?.temprature),
+          pulse: clean(data.physicalExamination?.pulse),
+          bp: clean(data.physicalExamination?.bp),
+          cvs: clean(data.physicalExamination?.cvs),
+          rs: clean(data.physicalExamination?.rs),
+          abdomen: clean(data.physicalExamination?.abdomen),
+          cns: clean(data.physicalExamination?.cns),
+          others: clean(data.physicalExamination?.others),
+        },
+
+        investigation: clean(data.investigation),
+        discussion: clean(data.discussion),
+        refernces: clean(data.refernces),
+        modifiedTreatment: clean(data.modifiedTreatment),
+        deportAdministered: clean(data.deportAdministered),
+        patientStatus: clean(data.patientStatus),
+        treatment: clean(data.treatment),
+
+        mseDischarge: {
+          appearance: clean(data.mseDischarge?.appearance),
+          ecc: clean(data.mseDischarge?.ecc),
+          speech: clean(data.mseDischarge?.speech),
+          mood: clean(data.mseDischarge?.mood),
+          affect: clean(data.mseDischarge?.affect),
+          thoughts: clean(data.mseDischarge?.thoughts),
+          perception: clean(data.mseDischarge?.perception),
+          memory: clean(data.mseDischarge?.memory),
+          abstractThinking: clean(data.mseDischarge?.abstractThinking),
+          socialJudgment: clean(data.mseDischarge?.socialJudgment),
+          insight: clean(data.mseDischarge?.insight),
+        },
+
+        followUp: clean(data.followUp),
+        note: clean(data.note),
+        consultantName: clean(data.consultantName),
+        consultantPsychologist: clean(data.consultantPsychologist),
+        summaryPreparedBy: clean(data.summaryPreparedBy),
+        dischargeType: clean(data.dischargeType),
+        dischargeRoutine: clean(data.dischargeRoutine),
+        dischargeDate:
+          data.dischargeDate &&
+            data.dischargeDate !== "Not documented in records"
+            ? data.dischargeDate
+            : "",
+      });
+    }
+  }, []);
+
+  const handleValidateResponse = async () => {
+    setLoading(true)
+    try {
+      const response = await validateAISummary({ summary: editSummary?._id });
+      console.log("ValidateResponse", response);
+      setIsEditVerified(true);
+      dispatch({
+        type: "editDischargeSummary/fulfilled",
+        payload: {
+          payload: response.payload,
+        },
+      });
+      toast.success(response?.message || "Successfully Validated.")
+
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message || "Failed to Validate Response")
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+
+
+
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
+
+
+
   return (
     <React.Fragment>
       <div>
@@ -297,6 +581,19 @@ const DischargeSummary = ({
           className="needs-validation"
           action="#"
         >
+          {!editSummary && <div className="d-flex align-items-center justify-content-between">
+            <Button type="button" onClick={getGeminiSummary} disabled={generateLoading}>
+              {generateLoading ? (
+                <span className="d-flex align-items-center">
+                  <Spinner size="sm" className="me-2" />
+                  Generating...
+                </span>
+              ) : (
+                "Generate AI-Summary"
+              )}
+            </Button>
+          </div>}
+
           <Row className="mt-3">
             {(dischargeSummaryFields.slice(0, 10) || []).map((item, idx) => {
               return (
@@ -352,6 +649,44 @@ const DischargeSummary = ({
           </Row>
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
+              {/* geminiResponse && Object.keys(geminiResponse).length > 0 &&  */}
+              {
+                !editChartData ? (
+                  geminiResponse &&
+                  Object.keys(geminiResponse).length > 0 && (
+                    <Button
+                      disabled={loading}
+                      onClick={() => {
+                        setValidateType("new");
+                        toggleModal();
+                      }}
+                    >
+                      {loading ? (
+                        <span className="d-flex align-items-center">
+                          <Spinner size="sm" className="me-2" />
+                          Validating...
+                        </span>
+                      ) : isVerified ? (
+                        <span className="d-flex align-items-center">
+                          <FaCheck className="me-2 text-success" />
+                          Validated
+                        </span>
+                      ) : (
+                        "Validate"
+                      )}
+                    </Button>
+                  )
+                ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+                  <Button
+                    onClick={() => {
+                      setValidateType("edit");
+                      toggleModal();
+                    }}
+                  >
+                    {loading ? <span><Spinner size="sm" />Validating...</span> : "Validate"}
+                  </Button>
+                ) : null
+              }
               <Button
                 onClick={closeForm}
                 size="sm"
@@ -367,6 +702,26 @@ const DischargeSummary = ({
             </div>
           </div>
         </Form>
+        <ValidateConfirmationModal
+          isOpen={isModalOpen}
+          toggle={toggleModal}
+          loading={loading}
+          isVerified={isVerified}
+          onConfirm={async () => {
+            if (validateType === "edit") {
+              await handleValidateResponse();
+            } else if (validateType === "new") {
+              setLoading(true);
+
+              setTimeout(() => {
+                setIsVerified((prev) => !prev);
+                setLoading(false);
+              }, 1000);
+            }
+
+            toggleModal();
+          }}
+        />
       </div>
     </React.Fragment>
   );

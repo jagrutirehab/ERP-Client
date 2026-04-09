@@ -87,9 +87,11 @@ const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, o
     const handleUTRConfirmation = async (formData) => {
         setUpdating({ id: item._id, type: formData.currentPaymentStatus });
         try {
+            console.log("Central payment transactionDate payload:", formData.transactionDate);
             await dispatch(updateCentralPaymentAction({
                 paymentId: item._id,
                 transactionId: formData.transactionId,
+                transactionDate: formData.transactionDate,
                 transactionBankDetails: formData.transactionBankDetails,
                 currentPaymentStatus: formData.currentPaymentStatus
             })).unwrap();

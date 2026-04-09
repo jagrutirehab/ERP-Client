@@ -1007,6 +1007,29 @@ export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   );
 };
 
+export const getNurseGivenMedicines = (params = {}) => {
+  return api.get(url.GET_NURSE_GIVEN_MEDICINES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const getNurseGivenMedicineDetails = (params = {}) => {
+  return api.get(url.GET_NURSE_GIVEN_MEDICINE_DETAILS, {
+    params,
+    headers:{
+      "X-No-Cookie-Token": "true",
+    }
+  });
+};
+
 // emergency
 export const assignPatientType = ({ patientId, patientType }) => {
   return api.update(
@@ -1033,6 +1056,16 @@ export const searchBelongings = (search) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
+  });
+};
+
+export const compressPatientBelongingFile = (formData) => {
+  return api.create(url.COMPRESS_PATIENT_BELONGING, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
   });
 };
 
@@ -1769,6 +1802,63 @@ export const getOwnerLeadStatus = (params) => {
   return api.get(url.GET_OWNER_LEAD_STATUS, { params });
 };
 
+
+export const getRefundAmountMOM = (data) => {
+
+  return api.get(url.GET_REFUND_AMOUNT_MOM, {
+    params: {
+      centerIds: data?.centerAccess,
+
+    }
+  });
+};
+
+export const getRoundNotesDOD = (data) => {
+
+  return api.get(url.GET_ROUND_NOTES_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+      
+    }
+  
+  });
+};
+
+export const getClinicalNotesDOD = (data) => {
+
+  return api.get(url.GET_CLINICAL_NOTES_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
+
+export const getVitalSignsDOD = (data) => {
+
+  return api.get(url.GET_VITAL_SIGNS_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // HR
 export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {
@@ -2366,6 +2456,24 @@ export const updateRegularizationStatus = (id, status) => {
   );
 };
 
+export const getAllEmployeeRegularizations = (params = {}) => {
+  return axios.get(url.GET_ALL_EMPLOYEE_REGULARIZATIONS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getRegularizationsByEmployee = ({ employeeId, ...params }) => {
+  return axios.get(`${url.GET_REGULARIZATIONS_BY_EMPLOYEE}/${employeeId}`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {
@@ -2430,6 +2538,64 @@ export const retrieveActionOnLeave = (action, docId, data) => {
       "X-No-Cookie-Token": "true",
     },
   });
+};
+
+export const cancellationRequest = (data) => {
+  return axios.post(url.CANCELLATION_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const directCancellation = (data) => {
+  return axios.patch(url.DIRECT_CANCELLATIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+export const getCancellationsRequests = (params = {}) => {
+  return axios.get(url.GET_CANCELLATION_REQUEST, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const actionOnCancellationRequest = ({ cancellationId, status }) => {
+  return axios.patch(
+    `${url.ACTION_ON_CANCELLATION_REQUEST}/${cancellationId}/${status}`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
+};
+
+export const getAllLeaves = (params = {}) => {
+  return axios.get(url.GET_LEAVES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const changeLeaveStatusByHR = (data) => {
+  return axios.patch(
+    url.APPROVE_LEAVE,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    }
+  );
 };
 
 export const gettodayMyAttendanceStatus = (params = {}) => {
@@ -2512,6 +2678,55 @@ export const updateFestiveLeave = ({
       },
     },
   );
+
+// COMP OFF
+
+export const getCompOffRequests = (params = {}) => {
+  return axios.get(url.GET_COMP_REQUESTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+
+export const getAllCompOff = (params = {}) => {
+  return axios.get(url.GET_ALL_COMP_OFFS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const getMyCompOff = (params = {}) => {
+  return axios.get(url.GET_MY_COMP_OFFS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+export const postCompOffRequest = (data) => {
+  return api.create(url.POST_COMP_OFF_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// For manager
+export const actionOnCompOffRequests = (data) => {
+  return axios.patch(url.ACTION_ON_COMP_REQUESTS,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    })
+}
 
 export const getAttendanceSummary = (params = {}) => {
   return api.get(url.ATTENDANCE_SUMMARY, {
@@ -2645,6 +2860,15 @@ export const getEmployeeLeaves = (employeeId, params = {}) => {
   });
 };
 
+export const getAllEmployeeLeaveBalance = (params = {}) => {
+  return api.get(url.GET_ALL_EMPLOYEE_LEAVE_BALANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const setRotationalShifts = (id, data) => {
   return api.put(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, data, {
     headers: {
@@ -2658,6 +2882,26 @@ export const setBulkRotationalShifts = (data) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
+  });
+};
+
+export const downloadRotationalShiftTemplate = (params = {}) => {
+  return api.get(`${url.EMPLOYEE_REPORTING}/rotational-shifts/template`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+  });
+};
+
+export const uploadRotationalShiftSheet = (data) => {
+  return api.create(`${url.EMPLOYEE_REPORTING}/rotational-shifts/upload`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+    responseType: "blob",
   });
 };
 
@@ -2946,4 +3190,14 @@ export const uploadFeedbackXlsx = (data) => {
 
 export const getFeedbackRecordingOverview = (params = {}) => {
   return axios.get(url.GET_FEEDBACK_RECORDING_OVERVIEW, { params })
+}
+
+// get AI Discharge Summary 
+
+export const getAIDischargeSummary = (params = {}) => {
+  return axios.get(url.GET_AI_SUMMARY, { params });
+}
+
+export const validateAISummary = (summary) => {
+  return axios.patch(url.VALIDATE_SUMMARY, summary)
 }

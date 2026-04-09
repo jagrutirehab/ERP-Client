@@ -8,6 +8,7 @@ import {
   getNextDayMedicineBoxFillingMedicines,
   getNotesByPatient,
   getNurseAssignedPatients,
+  getNurseGivenMedicines,
   getNursesListByPatientCenter,
   getPatientDetails,
   getPatientOverview,
@@ -27,6 +28,10 @@ const initialState = {
   medicines: {
     activities: [],
     nextDay: [],
+  },
+  givenMedicines: {
+    data: [],
+    pagination: {},
   },
   searchMode: false,
   patientIdsFromSearch: false,
@@ -205,7 +210,7 @@ export const markTomorrowActivityMedicines = createAsyncThunk(
       return response;
     } catch (error) {
       console.log(error);
-      return rejectWithValue("Failed to mark medicine activity");
+      return rejectWithValue(error);
     }
   }
 );
@@ -221,6 +226,19 @@ export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
       return rejectWithValue(
         "Failed to fetch next day medicine box filling medicine activities"
       );
+    }
+  }
+);
+
+export const getNurseGivenMedicinesList = createAsyncThunk(
+  "nurse/getNurseGivenMedicines",
+  async (params, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getNurseGivenMedicines(params);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch nurse given medicines");
     }
   }
 );
@@ -486,6 +504,20 @@ export const NurseSlice = createSlice({
         }
       )
       .addCase(getNextDayMedicineBoxFillingActivities.rejected, (state) => {
+        state.medicineLoading = false;
+      });
+    builder
+      .addCase(getNurseGivenMedicinesList.pending, (state) => {
+        state.medicineLoading = true;
+      })
+      .addCase(getNurseGivenMedicinesList.fulfilled, (state, { payload }) => {
+        state.givenMedicines = {
+          data: payload.data || [],
+          pagination: payload.pagination || {},
+        };
+        state.medicineLoading = false;
+      })
+      .addCase(getNurseGivenMedicinesList.rejected, (state) => {
         state.medicineLoading = false;
       });
     builder.addCase(markUnreadAlert.fulfilled, (state, { payload }) => {

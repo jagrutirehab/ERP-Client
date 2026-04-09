@@ -7,7 +7,7 @@ import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { ChevronLeft, ChevronRight, RotateCcw, Trash2, Copy, Save, Plus, X, Moon } from "lucide-react";
-import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isToday } from "date-fns";
 import { debounce } from "lodash";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,8 +18,11 @@ import { setRotationalShifts, getRotationalShifts } from "../../../helpers/backe
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { parseDateOnly, toTimeZoneDateKey } from "../../../utils/date";
 import { minutesToTime, minutesToDate, timeToMinutes } from "../../../utils/time";
 import { DAY_LABELS, SHIFT_STYLES } from "../../../Components/constants/HRMS";
+
+const ROSTER_TZ = "Asia/Kolkata";
 
 const detectShiftName = (start, end) => {
   if (start == null || end == null) return null;
@@ -56,9 +59,9 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
     // if prefilled, start week from the earliest filled date
     if (initialData?.roster) {
       const dates = Object.keys(initialData.roster).sort();
-      if (dates.length) return startOfWeek(new Date(dates[0]), { weekStartsOn: 1 });
+      if (dates.length) return startOfWeek(parseDateOnly(dates[0]), { weekStartsOn: 0 });
     }
-    return startOfWeek(new Date(), { weekStartsOn: 1 });
+    return startOfWeek(new Date(), { weekStartsOn: 0 });
   });
 
   const weekDays = useMemo(
@@ -150,7 +153,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
   );
 
   const weekLabel = `${format(weekStart, "dd MMM")} – ${format(addDays(weekStart, 6), "dd MMM yyyy")}`;
-  const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
 
   return (
     <Card className="shadow-sm mb-3" style={{ border: hasFailed ? "1.5px solid #f5c2c7" : "none", background: hasFailed ? "#fff8f8" : undefined }}>
@@ -274,11 +277,11 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div>
                       <div className="fw-semibold" style={{ fontSize: "12px", color: todayFlag ? "#1565c0" : "#495057" }}>
-                        {DAY_LABELS[i]}
+                        {DAY_LABELS[day.getDay()]}
                       </div>
                       <div className="text-muted" style={{ fontSize: "11px" }}>{format(day, "dd MMM")}</div>
                     </div>
-                    {(isFilled || isWeekOff) && (
+                    {(isFilled || (isWeekOff && initialData?.roster?.[format(day, "yyyy-MM-dd")]?.weekOff !== true)) && (
                       <button className="btn btn-link p-0 text-danger" onClick={() => clearCell(day)} title="Clear">
                         <Trash2 size={13} />
                       </button>
@@ -375,7 +378,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                         className="d-flex align-items-center gap-1 rounded px-2 py-1"
                         style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.text, fontSize: "11px" }}
                       >
-                        <span className="fw-semibold">{format(parseISO(date), "dd MMM")}</span>
+                        <span className="fw-semibold">{format(parseDateOnly(date), "dd MMM")}</span>
                         <span className="text-muted mx-1">·</span>
                         <span>{minutesToTime(start)} – {minutesToTime(end)}</span>
                         {name && <span className="ms-1" style={{ opacity: 0.8 }}>({name})</span>}
@@ -403,14 +406,16 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                       style={{ background: "#e9ecef", border: "1px solid #ced4da", color: "#495057", fontSize: "11px" }}
                     >
                       <Moon size={10} />
-                      <span className="fw-semibold ms-1">{format(parseISO(date), "dd MMM")}</span>
-                      <button
-                        className="btn btn-link p-0 ms-1 text-danger"
-                        style={{ lineHeight: 1 }}
-                        onClick={() => setRoster((prev) => { const n = { ...prev }; delete n[date]; return n; })}
-                      >
-                        <Trash2 size={11} />
-                      </button>
+                      <span className="fw-semibold ms-1">{format(parseDateOnly(date), "dd MMM")}</span>
+                      {initialData?.roster?.[date]?.weekOff !== true && (
+                        <button
+                          className="btn btn-link p-0 ms-1 text-danger"
+                          style={{ lineHeight: 1 }}
+                          onClick={() => setRoster((prev) => { const n = { ...prev }; delete n[date]; return n; })}
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -455,14 +460,16 @@ const AssignShift = () => {
         const r = res?.data || res;
         const roster = {};
         (r.rotationalShifts || []).forEach((s) => {
-          if (s.date) roster[s.date.substring(0, 10)] = {
+          const key = toTimeZoneDateKey(s.date, ROSTER_TZ);
+          if (key) roster[key] = {
             start: timeToMinutes(s.start),
             end: timeToMinutes(s.end),
             weekOff: false,
           };
         });
         (r.leaves || []).forEach((l) => {
-          if (l.date) roster[l.date.substring(0, 10)] = { start: null, end: null, weekOff: true };
+          const key = toTimeZoneDateKey(l.date, ROSTER_TZ);
+          if (key) roster[key] = { start: null, end: null, weekOff: true };
         });
         const initialData = {
           selectedEmployee: {

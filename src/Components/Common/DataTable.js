@@ -11,6 +11,8 @@ const DataTableComponent = ({
     page,
     setPage,
     loading,
+    paginationRowsPerPageOptions = [10, 15, 20, 25, 30],
+    
 }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -39,6 +41,7 @@ const DataTableComponent = ({
             {...(allowLimitChange
                 ? {
                     onChangeRowsPerPage: setLimit,
+                    paginationRowsPerPageOptions: paginationRowsPerPageOptions,
                 }
                 : {
                     paginationRowsPerPageOptions: [],

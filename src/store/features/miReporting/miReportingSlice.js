@@ -13,9 +13,14 @@ import {
   getOwnerVisitedDate as fetchOwnerVisited,
   getCityLeadStatus,
   getOwnerLeadStatus,
+  getRefundAmountMOM,
+  getRoundNotesDOD,
+  getClinicalNotesDOD,
+  getVitalSignsDOD,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
+  data: [],
   contacts: [],
   pagination: {
     total: 0,
@@ -35,6 +40,9 @@ const initialState = {
   ownerVisitedDate: [],
   cityLeadStatus: [],
   ownerLeadStatus: [],
+  refundAmountMOM:[],
+  fetchRoundNotesDOD:[],
+  fetchVitalSignsDOD:[],
   loading: false,
   error: null,
 };
@@ -236,6 +244,73 @@ export const fetchOwnerLeadStatus = createAsyncThunk(
   }
 );
 
+
+
+
+export const fetchRefundAmountMOM = createAsyncThunk(
+  "miReporting/fetchRefundAmountMOM",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getRefundAmountMOM(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
+
+export const fetchRoundNotesDOD = createAsyncThunk(
+  "miReporting/fetchRoundNotesDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getRoundNotesDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
+
+export const fetchClinicalNotesDOD = createAsyncThunk(
+  "miReporting/fetchClinicalNotesDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getClinicalNotesDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
+
+
+export const fetchVitalSignsDOD = createAsyncThunk(
+  "miReporting/fetchVitalSignsDOD",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getVitalSignsDOD(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
 const miReportingSlice = createSlice({
   name: "miReporting",
   initialState,
@@ -424,7 +499,63 @@ const miReportingSlice = createSlice({
       .addCase(fetchOwnerLeadStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+
+      //Refund Amount MOM
+      .addCase(fetchRefundAmountMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRefundAmountMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.refundAmountMOM = action.payload.payload || [];
+      })
+      .addCase(fetchRefundAmountMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchRoundNotesDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRoundNotesDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.roundNotesDOD = action.payload.payload || [];
+      })
+      .addCase(fetchRoundNotesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchClinicalNotesDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchClinicalNotesDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.clinicalNotesDOD = action.payload.payload || [];
+      })
+      .addCase(fetchClinicalNotesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchVitalSignsDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchVitalSignsDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.vitalSignsDOD = action.payload.payload || [];
+      })
+      .addCase(fetchVitalSignsDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
+
+
+
+      
   },
 });
 
