@@ -869,7 +869,30 @@ const CounsellingNote = ({
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  setUploadedAudio(file);
+                  console.log("file.type ", file.type);
+                  console.log("file", file);
+
+
+                  const ext = file.name.split(".").pop().toLowerCase().trim();;
+
+                  const allowedExt = ["mp3", "wav", "webm", "ogg", "aac", "mpeg", "m4a"];
+
+                  const isAudio =
+                    file.type.startsWith("audio/") ||
+                    (file.type === "video/webm" && ext === "webm");
+
+                  console.log({ isAudio, ext, allowed: allowedExt.includes(ext) });
+
+                  if (!isAudio || !allowedExt.includes(ext)) {
+                    alert("Only valid audio files allowed");
+                    e.target.value = null;
+                    return
+                  }
+
+                  const audioFile = new File([file], file.name, {
+                    type: file.type || `audio/${ext}`,
+                  });
+                  setUploadedAudio(audioFile);
                   setAudioFile(null);
                   setIsRecording("uploaded")
                 }
