@@ -335,7 +335,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
-                          step="0.1"
+                          step="0.01"
                           bsSize="sm"
                           id={idx}
                           name="morning"
@@ -352,7 +352,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
-                          step="0.1"
+                          step="0.01"
                           bsSize="sm"
                           id={idx}
                           name="evening"
@@ -369,7 +369,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
-                          step="0.1"
+                          step="0.01"
                           bsSize="sm"
                           id={idx}
                           name="night"
