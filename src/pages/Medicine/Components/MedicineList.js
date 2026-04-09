@@ -46,8 +46,8 @@ const MedicinesList = ({
       { name: "Type", selector: (row) => normalizeUnderscores(row.type), minWidth: "100px", wrap: true },
       { name: "Strength", selector: (row) => row.strength, minWidth: "100px", wrap: true },
       { name: "Unit", selector: (row) => row.unit, minWidth: "80px", wrap: true },
-      { name: "Base Unit(For Consumption)", selector: (row) => row.baseUnit, minWidth: "120px", wrap: true },
-      { name: "Purchase Unit(For Purchase)", selector: (row) => row.purchaseUnit, minWidth: "130px", wrap: true },
+      { name: <div>Base Unit(For Consumption)</div>, selector: (row) => row.baseUnit, minWidth: "120px", wrap: true },
+      { name: <div>Purchase Unit(For Purchase)</div>, selector: (row) => row.purchaseUnit, minWidth: "130px", wrap: true },
       {
         name: "Conversion",
         minWidth: "180px", wrap: true,
