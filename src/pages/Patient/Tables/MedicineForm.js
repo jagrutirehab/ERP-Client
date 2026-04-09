@@ -335,6 +335,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
+                          step="0.1"
                           bsSize="sm"
                           id={idx}
                           name="morning"
@@ -351,6 +352,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
+                          step="0.1"
                           bsSize="sm"
                           id={idx}
                           name="evening"
@@ -367,6 +369,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <Input
                           type="number"
                           min="0"
+                          step="0.1"
                           bsSize="sm"
                           id={idx}
                           name="night"
@@ -516,6 +519,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                           <Input
                             name="frequency"
                             type="number"
+                            min="0"
+                            step="0.1"
                             placeholder="Days"
                             onChange={handleChange}
                             value={medicine.frequency ?? ""}

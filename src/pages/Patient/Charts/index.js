@@ -59,7 +59,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     addmissionRef.current = addmission;
   }, [addmission]);
 
-  console.log("Admission ID:", addmissionRef.current._id);
+  // console.log("Admission ID:", addmissionRef.current._id);
   useEffect(() => {
     console.log("🚀 useEffect triggered");
 
