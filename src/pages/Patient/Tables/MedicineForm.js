@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Col, Input, Row } from "reactstrap";
-import Select from "react-select";
 import {
   medicineTypes,
   medicineUnits,
@@ -384,29 +383,19 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                   </Col>
                   <Col xs={2} className="">
                     <div>
-                      <Select
+                      <Input
+                        // id={idx}
                         name="intake"
-                        placeholder="Intake"
-                        options={[
-                          { value: "Before food", label: "Before food" },
-                          { value: "After food", label: "After food" },
-                        ]}
-                        onChange={(selected) => {
-                          handleChange({
-                            target: {
-                              name: "intake",
-                              value: selected ? selected.value : "",
-                              id: idx.toString(),
-                            },
-                          });
-                        }}
-                        value={
-                          medicine.intake
-                            ? { value: medicine.intake, label: medicine.intake }
-                            : null
-                        }
-                        classNamePrefix="react-select"
-                      />
+                        className="bg-white"
+                        bsSize={"sm"}
+                        id={idx}
+                        type="select"
+                        onChange={handleChange}
+                        value={medicine.intake}
+                      >
+                        <option value={"Before food"}>Before food</option>
+                        <option value={"After food"}>After food</option>
+                      </Input>
                       <Input
                         name="instructions"
                         bsSize={"sm"}
@@ -449,71 +438,38 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                           </svg>
                         </span>
                       </div>
-                      <Select
+                      <Input
                         name="unit"
-                        placeholder="Unit"
-                        options={[
-                          { value: "Day (s)", label: "Day (s)" },
-                          { value: "Month (s)", label: "Month (s)" },
-                          { value: "Year (s)", label: "Year (s)" },
-                        ]}
-                        onChange={(selected) => {
-                          handleChange({
-                            target: {
-                              name: "unit",
-                              value: selected ? selected.value : "",
-                              id: idx.toString(),
-                            },
-                          });
-                        }}
-                        value={
-                          medicine.unit
-                            ? { value: medicine.unit, label: medicine.unit }
-                            : { value: "Day (s)", label: "Day (s)" }
-                        }
-                        classNamePrefix="react-select"
-                        className="ms-3 flex-grow-1"
-                      />
+                        className="ms-3 bg-white"
+                        bsSize={"sm"}
+                        id={idx}
+                        onChange={handleChange}
+                        value={medicine.unit}
+                        type="select"
+                      >
+                        <option>Day (s)</option>
+                        <option>Month (s)</option>
+                        <option>Year (s)</option>
+                      </Input>
                     </div>
                   </Col>
                   <Col xs={2} className="">
                     <div>
-                      <Select
+                      <Input
                         name="frequencyPreset"
-                        placeholder="Frequency"
-                        options={[
-                          { value: "1", label: "Daily" },
-                          { value: "2", label: "Alternate days" },
-                          { value: "15", label: "Every 15 days" },
-                          { value: "30", label: "Every 30 days" },
-                          { value: "custom", label: "Custom days" },
-                        ]}
-                        onChange={(selected) => {
-                          handleChange({
-                            target: {
-                              name: "frequencyPreset",
-                              value: selected ? selected.value : "",
-                              id: idx.toString(),
-                            },
-                          });
-                        }}
-                        value={
-                          medicine.frequencyPreset || getMedicineFrequencyPreset(medicine.frequency)
-                            ? (() => {
-                              const val = medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine.frequency);
-                              const options = [
-                                { value: "1", label: "Daily" },
-                                { value: "2", label: "Alternate days" },
-                                { value: "15", label: "Every 15 days" },
-                                { value: "30", label: "Every 30 days" },
-                                { value: "custom", label: "Custom days" },
-                              ];
-                              return options.find(o => o.value === val.toString()) || null;
-                            })()
-                            : null
-                        }
-                        classNamePrefix="react-select"
-                      />
+                        className="bg-white"
+                        bsSize={"sm"}
+                        id={idx}
+                        onChange={handleChange}
+                        value={medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine.frequency)}
+                        type="select"
+                      >
+                        <option value="1">Daily</option>
+                        <option value="2">Alternate days</option>
+                        <option value="15">Every 15 days</option>
+                        <option value="30">Every 30 days</option>
+                        <option value="custom">Custom days</option>
+                      </Input>
                       {(medicine.frequencyPreset === "custom" || (!medicine.frequencyPreset && getMedicineFrequencyPreset(medicine.frequency) === "custom")) && (
                         <div className="position-relative mt-2">
                           <Input
