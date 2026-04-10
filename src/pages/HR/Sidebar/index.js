@@ -174,6 +174,7 @@ const Sidebar = () => {
   const hasCompOffRequestsPerm = hasPermission("HR", "COMP_OFF_REQUESTS", "READ")
   const hasRaisedCompOffPerm = hasPermission("HR", "RAISED_COMP_OFFS", "READ");
   const hasCompOffHistoryPerm = hasPermission("HR", "COMP_OFF_HISTORY", "READ")
+  const hasCancellationsHistory = hasPermission("HR", "CANCELLATIONS_HISTORY", "READ")
   const hasMainDashboardPermission = hasPermission("HR", "MAIN_DASHBOARD", "READ");
 
   const hasIncentivesAddRequestPermission = hasPermission(
@@ -447,6 +448,8 @@ const Sidebar = () => {
         if (child.id === "regularization-dashboard" && !hasRegularizationDashboardPermission)
           return false;
         if (child.id === "comp-off-history" && !hasCompOffHistoryPerm) return false;
+        if (child.id === "cancellations-history" && !hasCancellationsHistory) return false;
+
         return true;
       });
       return page.children.length > 0;

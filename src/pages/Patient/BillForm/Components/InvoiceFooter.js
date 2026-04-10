@@ -127,16 +127,14 @@ const InvoiceFooter = (props) => {
     }
   };
 
-  console.log("props", props);
-  console.log("itemDiscount", typeof itemDiscount);
+
 
   const safeWhole = Number(props.wholeDiscount?.value) || 0;
   const safeItemDiscount = Number(props.itemDiscount) || 0;
 
   const editDisplayValue = Math.max(0, safeWhole - safeItemDiscount);
 
-  console.log("Bill lala:", props.validation?.values?.bill);
-  console.log("isLatest lala:", isLatest);
+
 
   return (
     <React.Fragment>
