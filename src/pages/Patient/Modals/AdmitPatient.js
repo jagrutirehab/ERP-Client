@@ -360,6 +360,7 @@ const AdmitPatient = ({
         label: patient.nationality,
       });
     } else {
+      validation.setFieldValue("nationality", "Indian");
       setSelectedNationality({
         value: "Indian",
         label: "Indian",
