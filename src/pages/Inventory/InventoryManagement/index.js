@@ -502,6 +502,8 @@ const InventoryManagement = () => {
                     const sheet = workbook.addWorksheet("Pharmacy Inventory");
 
                     const headers = [
+                      "ID",
+                      "Medicine ID",
                       "Barcode",
                       "Code",
                       "Medicine Name",
@@ -514,6 +516,7 @@ const InventoryManagement = () => {
                       "Category",
                       "Storage Type",
                       "Schedule Type",
+                      "Type",
                       "Strength",
                       "Centre",
                       "Centre Wise Stock",
@@ -530,6 +533,7 @@ const InventoryManagement = () => {
                       "Manufacturer",
                       "Rack",
                       "Status",
+                      "Controlled Drug",
                     ];
                     sheet.addRow(headers);
 
@@ -545,6 +549,20 @@ const InventoryManagement = () => {
 
                     for (let i = 0; i < data.length; i++) {
                       const med = data[i];
+                      const medicineDetails = med?.medicineId || {};
+                      const baseUnit =
+                        medicineDetails?.baseUnit ?? med?.baseUnit ?? "-";
+                      const purchaseUnit =
+                        medicineDetails?.purchaseUnit ?? med?.purchaseUnit ?? "-";
+                      const conversion =
+                        medicineDetails?.conversion ?? med?.conversion ?? {};
+                      const conversionValue =
+                        baseUnit !== "-" &&
+                          purchaseUnit !== "-" &&
+                          conversion?.baseQuantity &&
+                          conversion?.purchaseQuantity
+                          ? `${conversion.baseQuantity} ${baseUnit} = ${conversion.purchaseQuantity} ${purchaseUnit}`
+                          : "-";
 
                       let barcodeDataURL = null;
                       if (med?.code) {
@@ -559,20 +577,21 @@ const InventoryManagement = () => {
                       }
 
                       const rowValues = [
+                        med?.id || "-",
+                        med?.medicineId?.id || "-",
                         "",
                         med?.code || "-",
                         med?.medicineName || "-",
-                        med?.medicineId?.brandName || "-",
-                        med?.medicineId?.genericName || "-",
-                        med?.medicineId?.form || "-",
-                        med?.medicineId?.baseUnit || "-",
-                        med?.medicineId?.purchaseUnit || "-",
-                        med?.medicineId?.baseUnit && med?.medicineId?.purchaseUnit && med?.medicineId?.conversion?.baseQuantity && med?.medicineId?.conversion?.purchaseQuantity
-                          ? `${med.medicineId.conversion.baseQuantity} ${med.medicineId.baseUnit} = ${med.medicineId.conversion.purchaseQuantity} ${med.medicineId.purchaseUnit}`
-                          : "-",
-                        med?.medicineId?.category || "-",
-                        med?.medicineId?.storageType || "-",
-                        med?.medicineId?.scheduleType || "-",
+                        medicineDetails?.brandName ?? med?.brandName ?? "-",
+                        medicineDetails?.genericName ?? med?.genericName ?? "-",
+                        medicineDetails?.form ?? med?.form ?? "-",
+                        baseUnit,
+                        purchaseUnit,
+                        conversionValue,
+                        medicineDetails?.category ?? med?.category ?? "-",
+                        medicineDetails?.storageType ?? med?.storageType ?? "-",
+                        medicineDetails?.scheduleType ?? med?.scheduleType ?? "-",
+                        medicineDetails?.type ?? "-",
                         med?.Strength || "-",
                         med?.centersMatched && med.centersMatched.length > 0
                           ? med.centersMatched.map((c) => c?.centerId?.title).join(", ")
@@ -599,6 +618,7 @@ const InventoryManagement = () => {
                         med?.manufacturer ?? "-",
                         med?.RackNum ?? "-",
                         med?.Status ?? "-",
+                        (medicineDetails?.isControlledDrug ?? med?.isControlledDrug) ? "Yes" : "No",
                       ];
 
                       sheet.addRow(rowValues);
@@ -610,7 +630,7 @@ const InventoryManagement = () => {
                         });
 
                         sheet.addImage(img, {
-                          tl: { col: 0, row: i + 1 },
+                          tl: { col: 2, row: i + 1 },
                           ext: { width: 150, height: 40 },
                         });
                       }
@@ -881,7 +901,7 @@ const InventoryManagement = () => {
                           <TableCell noWrap>{normalizeUnderscores(med?.storageType)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.scheduleType)}</TableCell>
                           <TableCell noWrap>
-                            {normalizeUnderscores(med?.type)}
+                            {normalizeUnderscores(med?.medicineDetails?.type)}
                           </TableCell>
                           <TableCell noWrap>
                             {display(med?.strength)}
@@ -1049,7 +1069,7 @@ const InventoryManagement = () => {
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.category)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.storageType)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.scheduleType)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.type)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.type)}</TableCell>
                           <TableCell noWrap>
                             {display(med?.Strength || med?.Strength)}
                           </TableCell>
@@ -1373,7 +1393,15 @@ const InventoryManagement = () => {
             <Givemedicine
               user={user}
               setModalOpengive={setModalOpengive}
-              fetchMedicines={fetchInventoryMedicines}
+              fetchMedicines={() =>
+                fetchInventoryMedicines({
+                  page: 1,
+                  limit: 10,
+                  q: debouncedSearch,
+                  fillter: qfilter,
+                  centers,
+                })
+              }
               onResetPagination={() => {
                 setCurrentPage(1);
                 setPageSize(10);

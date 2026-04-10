@@ -193,13 +193,7 @@ const Givemedicine = ({
         // Close modal and refetch data
         setModalOpengive(false);
         onResetPagination();
-        fetchMedicines({
-          page: 1, // Optionally reset to first page
-          limit: 10, // Match InventoryManagement's default pageSize
-          q: "",
-          fillter: "",
-          centers,
-        });
+        fetchMedicines?.();
       } else {
         toast.error(response.data.message || "Something went wrong");
       }
