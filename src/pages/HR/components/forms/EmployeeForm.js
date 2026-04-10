@@ -12,6 +12,8 @@ import PhoneInputWithCountrySelect, {
   isValidPhoneNumber,
 } from "react-phone-number-input";
 import PropTypes from "prop-types";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import {
   createDepartment,
@@ -958,14 +960,18 @@ const EmployeeForm = ({
             <Label htmlFor="joinningDate">
               Date of Joining <span className="text-danger">*</span>
             </Label>
-            <Input
+            <Flatpickr
+              className={`form-control ${touched.joinningDate && errors.joinningDate ? "is-invalid" : ""}`}
               id="joinningDate"
-              type="date"
               name="joinningDate"
               value={values.joinningDate}
-              onChange={handleChange}
-              invalid={touched.joinningDate && errors.joinningDate}
-              onBlur={() => setFieldTouched("joinningDate", true)}
+              onChange={([date]) => {
+                setFieldValue("joinningDate", date ? format(date, "yyyy-MM-dd") : "");
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
             />
             {errorText("joinningDate")}
           </Col>
@@ -973,12 +979,17 @@ const EmployeeForm = ({
           {/* EXIT DATE */}
           <Col md={6}>
             <Label htmlFor="exitDate">Last Working Day</Label>
-            <Input
+            <Flatpickr
+              className={`form-control ${touched.exitDate && errors.exitDate ? "is-invalid" : ""}`}
               id="exitDate"
-              type="date"
               name="exitDate"
               value={values.exitDate}
-              onChange={handleChange}
+              onChange={([date]) => {
+                setFieldValue("exitDate", date ? format(date, "yyyy-MM-dd") : "");
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+              }}
             />
           </Col>
 
@@ -1027,14 +1038,18 @@ const EmployeeForm = ({
             <Label htmlFor="dob">
               Date of Birth <span className="text-danger">*</span>
             </Label>
-            <Input
-              type="date"
-              name="dateOfBirth"
+            <Flatpickr
+              className={`form-control ${touched.dateOfBirth && errors.dateOfBirth ? "is-invalid" : ""}`}
               id="dob"
+              name="dateOfBirth"
               value={values.dateOfBirth}
-              onChange={handleChange}
-              invalid={touched.dateOfBirth && errors.dateOfBirth}
-              onBlur={() => setFieldTouched("dateOfBirth", true)}
+              onChange={([date]) => {
+                setFieldValue("dateOfBirth", date ? format(date, "yyyy-MM-dd") : "");
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
             />
             {errorText("dateOfBirth")}
           </Col>
