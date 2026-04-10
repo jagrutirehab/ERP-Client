@@ -360,7 +360,10 @@ const AdmitPatient = ({
         label: patient.nationality,
       });
     } else {
-      setSelectedNationality(null);
+      setSelectedNationality({
+        value: "Indian",
+        label: "Indian",
+      });
     }
   }, [patient, isOpen]);
 
