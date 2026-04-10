@@ -28,6 +28,7 @@ const Header = ({
   onViewReport,
   onExportCSV,
   loading,
+  totalAmount,
 }) => {
   const [mode, setMode] = useState("range");
 
@@ -51,8 +52,16 @@ const Header = ({
 
   return (
     <React.Fragment>
-      <Row className="justify-content-end">
-        <Col xs={12}>
+      <Row className="justify-content-end align-items-center">
+        <Col xs={12} xl={4}>
+          <div className="d-flex align-items-center">
+            <h6 className="display-6 fs-6">TOTAL CONVERTED AMOUNT (₹): </h6>
+            <h5 className="display-5 ms-2 fs-17 font-semi-bold">
+              {totalAmount || 0.0}
+            </h5>
+          </div>
+        </Col>
+        <Col xs={12} xl={8}>
           <div className="d-flex justify-content-md-end mt-4 mt-md-0 gap-2 flex-wrap align-items-center">
             {/* Center Filter */}
             <CenterDropdown
