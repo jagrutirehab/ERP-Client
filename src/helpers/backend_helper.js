@@ -783,6 +783,23 @@ export const exportAdmissionFormsCSV = (data) =>
     },
   });
 
+export const getAdvancePaymentDepositAnalytics = (data) =>
+  api.get(url.GET_ADVANCE_PAYMENT_DEPOSIT_ANALYTICS, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const exportAdvancePaymentDepositCSV = (data) =>
+  api.get(url.GET_ADVANCE_PAYMENT_DEPOSIT_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
 export const getDoctorAnalytics = (params = {}) => {
   return api.create(url.GET_DOCTOR_ANALYTICS, params, {
     headers: { "Content-Type": "application/json" },

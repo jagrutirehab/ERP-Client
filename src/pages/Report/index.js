@@ -17,8 +17,10 @@ import {
   MI_REPORTING,
   ADMISSION_FORMS,
   REPORT_UPDATED,
+  ADVANCE_PAYMENT_DEPOSIT,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
+import AdvancePaymentDeposit from "./Components/AdvancePaymentDeposit";
 import ReportAnalytics from "./Components/Report";
 import Finance from "./Components/Finance";
 import Patient from "./Components/Patient";
@@ -40,6 +42,7 @@ const NAV_ITEMS = [
   { key: REPORT, label: "Report" },
   { key: REPORT_UPDATED, label: "Report (Updated Date)" },
   { key: FINANACE, label: "Finance" },
+  { key: ADVANCE_PAYMENT_DEPOSIT, label: "Advance Payments (Deposit)" },
   { key: ADMISSION_FORMS, label: "Admission" },
   { key: PATIENT_ANALYTICS, label: "Patient Analytics" },
   { key: DOCTOR_ANALYTICS, label: "Doctor Analytics" },
@@ -94,6 +97,7 @@ const Report = ({}) => {
             {view === REPORT && <ReportAnalytics view={view} />}
             {view === REPORT_UPDATED && <ReportAnalytics view={view} />}
             {view === FINANACE && <Finance view={view} />}
+            {view === ADVANCE_PAYMENT_DEPOSIT && <AdvancePaymentDeposit view={view} />}
             {view === ADMISSION_FORMS && <AdmissionForms view={view} />}
             {view === PATIENT_ANALYTICS && <Patient view={view} />}
             {view === DOCTOR_ANALYTICS && <Doctor view={view} />}
