@@ -261,6 +261,15 @@ const InventoryManagement = () => {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // If no centers are selected, show empty results instead of querying all
+    if (!centers || centers.length === 0) {
+      setMedicines([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = {
@@ -359,9 +368,9 @@ const InventoryManagement = () => {
   };
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
-  useEffect(() => {
-    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
-  }, [dispatch, user?.centerAccess]);
+  // useEffect(() => {
+  //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+  // }, [dispatch, user?.centerAccess]);
 
 
   const handleViewChange = () => {
@@ -370,7 +379,7 @@ const InventoryManagement = () => {
       setSearchQuery("");
       setDebouncedSearch("");
       setQfilter("");
-      setSelectedCenter("");
+      setSelectedCenter("ALL");
       setCurrentPage(1);
 
       return newMode;

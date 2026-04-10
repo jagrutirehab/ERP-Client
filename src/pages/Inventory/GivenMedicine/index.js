@@ -182,9 +182,9 @@ const GivenMedicine = () => {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
-    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
-  }, [dispatch, user?.centerAccess]);
+  // useEffect(() => {
+  //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+  // }, [dispatch, user?.centerAccess]);
 
   const goToPage = (page) => {
     if (page === "..." || page === currentPage) return;
