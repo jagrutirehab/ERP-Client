@@ -32,36 +32,199 @@ import { toast } from "react-toastify";
 import { getICDCodes } from "../../../helpers/backend_helper";
 
 const NATIONALITIES = [
-  "Afghan", "Albanian", "Algerian", "American", "Andorran", "Angolan", "Antiguans",
-  "Argentinean", "Armenian", "Australian", "Austrian", "Azerbaijani", "Bahamian",
-  "Bahraini", "Bangladeshi", "Barbadian", "Barbudans", "Batswana", "Belarusian",
-  "Belgian", "Belizean", "Beninese", "Bhutanese", "Bolivian", "Bosnian", "Brazilian",
-  "British", "Bruneian", "Bulgarian", "Burkinabe", "Burmese", "Burundian", "Cambodian",
-  "Cameroonian", "Canadian", "Cape Verdean", "Central African", "Chadian", "Chilean",
-  "Chinese", "Colombian", "Comoran", "Congolese", "Costa Rican", "Croatian", "Cuban",
-  "Cypriot", "Czech", "Danish", "Djibouti", "Dominican", "Dutch", "East Timorese",
-  "Ecuadorean", "Egyptian", "Emirian", "Equatorial Guinean", "Eritrean", "Estonian",
-  "Ethiopian", "Fijian", "Filipino", "Finnish", "French", "Gabonese", "Gambian",
-  "Georgian", "German", "Ghanaian", "Greek", "Grenadian", "Guatemalan", "Guinea-Bissauan",
-  "Guinean", "Guyanese", "Haitian", "Herzegovinian", "Honduran", "Hungarian", "I-Kiribati",
-  "Icelander", "Indian", "Indonesian", "Iranian", "Iraqi", "Irish", "Israeli", "Italian",
-  "Ivorian", "Jamaican", "Japanese", "Jordanian", "Kazakhstani", "Kenyan", "Kittitian",
-  "Kuwaiti", "Kyrgyz", "Laotian", "Latvian", "Lebanese", "Liberian", "Libyan",
-  "Liechtensteiner", "Lithuanian", "Luxembourger", "Macedonian", "Malagasy", "Malawian",
-  "Malaysian", "Maldivian", "Malian", "Maltese", "Marshallese", "Mauritanian", "Mauritian",
-  "Mexican", "Micronesian", "Moldovan", "Monacan", "Mongolian", "Moroccan", "Mosotho",
-  "Motswana", "Mozambican", "Namibian", "Nauruan", "Nepalese", "New Zealander",
-  "Nicaraguan", "Nigerian", "Nigerien", "North Korean", "Northern Irish", "Norwegian",
-  "Omani", "Pakistani", "Palauan", "Panamanian", "Papua New Guinean", "Paraguayan",
-  "Peruvian", "Polish", "Portuguese", "Qatari", "Romanian", "Russian", "Rwandan",
-  "Saint Lucian", "Salvadoran", "Samoan", "San Marinese", "Sao Tomean", "Saudi",
-  "Scottish", "Senegalese", "Serbian", "Seychellois", "Sierra Leonean", "Singaporean",
-  "Slovakian", "Slovenian", "Solomon Islander", "Somali", "South African", "South Korean",
-  "Spanish", "Sri Lankan", "Sudanese", "Surinamer", "Swazi", "Swedish", "Swiss",
-  "Syrian", "Taiwanese", "Tajik", "Tanzanian", "Thai", "Togolese", "Tongan",
-  "Trinidadian or Tobagonian", "Tunisian", "Turkish", "Tuvaluan", "Ugandan", "Ukrainian",
-  "Uruguayan", "Uzbekistani", "Venezuelan", "Vietnamese", "Welsh", "Yemenite",
-  "Zambian", "Zimbabwean",
+  "Afghan",
+  "Albanian",
+  "Algerian",
+  "American",
+  "Andorran",
+  "Angolan",
+  "Antiguans",
+  "Argentinean",
+  "Armenian",
+  "Australian",
+  "Austrian",
+  "Azerbaijani",
+  "Bahamian",
+  "Bahraini",
+  "Bangladeshi",
+  "Barbadian",
+  "Barbudans",
+  "Batswana",
+  "Belarusian",
+  "Belgian",
+  "Belizean",
+  "Beninese",
+  "Bhutanese",
+  "Bolivian",
+  "Bosnian",
+  "Brazilian",
+  "British",
+  "Bruneian",
+  "Bulgarian",
+  "Burkinabe",
+  "Burmese",
+  "Burundian",
+  "Cambodian",
+  "Cameroonian",
+  "Canadian",
+  "Cape Verdean",
+  "Central African",
+  "Chadian",
+  "Chilean",
+  "Chinese",
+  "Colombian",
+  "Comoran",
+  "Congolese",
+  "Costa Rican",
+  "Croatian",
+  "Cuban",
+  "Cypriot",
+  "Czech",
+  "Danish",
+  "Djibouti",
+  "Dominican",
+  "Dutch",
+  "East Timorese",
+  "Ecuadorean",
+  "Egyptian",
+  "Emirian",
+  "Equatorial Guinean",
+  "Eritrean",
+  "Estonian",
+  "Ethiopian",
+  "Fijian",
+  "Filipino",
+  "Finnish",
+  "French",
+  "Gabonese",
+  "Gambian",
+  "Georgian",
+  "German",
+  "Ghanaian",
+  "Greek",
+  "Grenadian",
+  "Guatemalan",
+  "Guinea-Bissauan",
+  "Guinean",
+  "Guyanese",
+  "Haitian",
+  "Herzegovinian",
+  "Honduran",
+  "Hungarian",
+  "I-Kiribati",
+  "Icelander",
+  "Indian",
+  "Indonesian",
+  "Iranian",
+  "Iraqi",
+  "Irish",
+  "Israeli",
+  "Italian",
+  "Ivorian",
+  "Jamaican",
+  "Japanese",
+  "Jordanian",
+  "Kazakhstani",
+  "Kenyan",
+  "Kittitian",
+  "Kuwaiti",
+  "Kyrgyz",
+  "Laotian",
+  "Latvian",
+  "Lebanese",
+  "Liberian",
+  "Libyan",
+  "Liechtensteiner",
+  "Lithuanian",
+  "Luxembourger",
+  "Macedonian",
+  "Malagasy",
+  "Malawian",
+  "Malaysian",
+  "Maldivian",
+  "Malian",
+  "Maltese",
+  "Marshallese",
+  "Mauritanian",
+  "Mauritian",
+  "Mexican",
+  "Micronesian",
+  "Moldovan",
+  "Monacan",
+  "Mongolian",
+  "Moroccan",
+  "Mosotho",
+  "Motswana",
+  "Mozambican",
+  "Namibian",
+  "Nauruan",
+  "Nepalese",
+  "New Zealander",
+  "Nicaraguan",
+  "Nigerian",
+  "Nigerien",
+  "North Korean",
+  "Northern Irish",
+  "Norwegian",
+  "Omani",
+  "Pakistani",
+  "Palauan",
+  "Panamanian",
+  "Papua New Guinean",
+  "Paraguayan",
+  "Peruvian",
+  "Polish",
+  "Portuguese",
+  "Qatari",
+  "Romanian",
+  "Russian",
+  "Rwandan",
+  "Saint Lucian",
+  "Salvadoran",
+  "Samoan",
+  "San Marinese",
+  "Sao Tomean",
+  "Saudi",
+  "Scottish",
+  "Senegalese",
+  "Serbian",
+  "Seychellois",
+  "Sierra Leonean",
+  "Singaporean",
+  "Slovakian",
+  "Slovenian",
+  "Solomon Islander",
+  "Somali",
+  "South African",
+  "South Korean",
+  "Spanish",
+  "Sri Lankan",
+  "Sudanese",
+  "Surinamer",
+  "Swazi",
+  "Swedish",
+  "Swiss",
+  "Syrian",
+  "Taiwanese",
+  "Tajik",
+  "Tanzanian",
+  "Thai",
+  "Togolese",
+  "Tongan",
+  "Trinidadian or Tobagonian",
+  "Tunisian",
+  "Turkish",
+  "Tuvaluan",
+  "Ugandan",
+  "Ukrainian",
+  "Uruguayan",
+  "Uzbekistani",
+  "Venezuelan",
+  "Vietnamese",
+  "Welsh",
+  "Yemenite",
+  "Zambian",
+  "Zimbabwean",
 ].map((n) => ({ value: n, label: n }));
 
 const AdmitPatient = ({
@@ -192,7 +355,10 @@ const AdmitPatient = ({
   useEffect(() => {
     // Initialize selectedNationality from patient data
     if (patient?.nationality) {
-      setSelectedNationality({ value: patient.nationality, label: patient.nationality });
+      setSelectedNationality({
+        value: patient.nationality,
+        label: patient.nationality,
+      });
     } else {
       setSelectedNationality(null);
     }
@@ -338,7 +504,6 @@ const AdmitPatient = ({
     // },
   ];
 
-
   const loadIcds = async () => {
     try {
       const response = await getICDCodes();
@@ -349,14 +514,13 @@ const AdmitPatient = ({
       }));
 
       setIcdOptions(formatted);
-
     } catch (error) {
       console.log(error);
     }
   };
   useEffect(() => {
     loadIcds();
-  }, [])
+  }, []);
 
   const admissionFields = [
     {
@@ -379,31 +543,6 @@ const AdmitPatient = ({
       options: counsellors,
     },
   ];
-
-  const summaryTileStyle = {
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: "8px",
-    padding: "0.5rem 0.75rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-  };
-
-  const summaryLabelStyle = {
-    fontSize: "0.65rem",
-    fontWeight: 600,
-    color: "#94a3b8",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-  };
-
-  const summaryValueStyle = {
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    color: "#334155",
-    wordBreak: "break-word",
-  };
 
   const renderStep1 = () => (
     <>
@@ -459,11 +598,18 @@ const AdmitPatient = ({
                 }),
               }}
             />
-            {validation.touched.nationality && validation.errors.nationality && (
-              <div style={{ color: "#dc3545", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                {validation.errors.nationality}
-              </div>
-            )}
+            {validation.touched.nationality &&
+              validation.errors.nationality && (
+                <div
+                  style={{
+                    color: "#dc3545",
+                    fontSize: "0.875rem",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  {validation.errors.nationality}
+                </div>
+              )}
           </div>
         </Col>
         <Col xs={12}>
@@ -538,7 +684,7 @@ const AdmitPatient = ({
                   ...provided,
                   borderColor:
                     validation.touched.referredBy &&
-                      validation.errors.referredBy
+                    validation.errors.referredBy
                       ? "#dc3545"
                       : "#ced4da",
                   boxShadow: state.isFocused
@@ -550,7 +696,7 @@ const AdmitPatient = ({
                   "&:hover": {
                     borderColor:
                       validation.touched.referredBy &&
-                        validation.errors.referredBy
+                      validation.errors.referredBy
                         ? "#dc3545"
                         : "#86b7fe",
                   },
@@ -597,11 +743,12 @@ const AdmitPatient = ({
                       width: "100%",
                       height: "42px",
                       padding: "0.5rem 0.75rem",
-                      border: `1px solid ${validation.touched.referralPhoneNumber &&
+                      border: `1px solid ${
+                        validation.touched.referralPhoneNumber &&
                         validation.errors.referralPhoneNumber
-                        ? "#dc3545"
-                        : "#ced4da"
-                        }`,
+                          ? "#dc3545"
+                          : "#ced4da"
+                      }`,
                       borderRadius: "0.375rem",
                       fontSize: "1rem",
                     }}
@@ -664,7 +811,11 @@ const AdmitPatient = ({
                 validation.values[field].toString().trim() === "",
             );
 
-            if (step1Errors.length > 0 || emptyFields.length > 0 || nationalityMissing) {
+            if (
+              step1Errors.length > 0 ||
+              emptyFields.length > 0 ||
+              nationalityMissing
+            ) {
               return; // Don't proceed to next step
             }
 
@@ -681,185 +832,105 @@ const AdmitPatient = ({
     </>
   );
 
-  const renderStep2 = () => {
-    const { name, phoneNumber, email, dateOfBirth, gender, address, nationality } =
-      validation.values;
-
-    return (
-      <>
-        {/* ── Patient Summary Card ── */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%)",
-            border: "1px solid #c8e1f9",
-            borderRadius: "12px",
-            padding: "1rem 1.25rem",
-            marginBottom: "1.25rem",
-          }}
-        >
-          <div className="d-flex align-items-center gap-2 mb-3">
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+  const renderStep2 = () => (
+    <>
+      <Row>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="Ipdnum" className="form-label">
+              IPD file num.
+            </Label>
+            <Input
+              name="Ipdnum"
+              value={validation.values.Ipdnum || ""}
+              disabled
+              onChange={(e) => {
+                validation.handleChange(e);
               }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ fontSize: "0.7rem", color: "#6b7280", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Patient Summary
-              </div>
-              <div style={{ fontSize: "1rem", fontWeight: 700, color: "#1e3a5f", textTransform: "capitalize" }}>
-                {name || "—"}
-              </div>
-            </div>
+              className="form-control shadow-none bg-light"
+            />
+            {validation.touched.Ipdnum && validation.errors.Ipdnum ? (
+              <FormFeedback className="d-block" type="invalid">
+                {validation.errors.Ipdnum}
+              </FormFeedback>
+            ) : null}
           </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: "0.65rem",
-            }}
-          >
-            {/* Phone */}
-            <div style={summaryTileStyle}>
-              <span style={summaryLabelStyle}>📞 Phone</span>
-              <span style={summaryValueStyle}>{phoneNumber || "—"}</span>
-            </div>
-
-            {/* Gender */}
-            <div style={summaryTileStyle}>
-              <span style={summaryLabelStyle}>⚧ Gender</span>
-              <span style={summaryValueStyle}>{gender || "—"}</span>
-            </div>
-
-            {/* Date of Birth */}
-            <div style={summaryTileStyle}>
-              <span style={summaryLabelStyle}>🎂 Date of Birth</span>
-              <span style={summaryValueStyle}>{dateOfBirth || "—"}</span>
-            </div>
-
-            {/* Nationality — highlighted */}
-            <div
-              style={{
-                ...summaryTileStyle,
-                background: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
-                border: "1px solid #93c5fd",
-              }}
+        </Col>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label className="form-label">
+              Center <span className="text-danger">*</span>
+            </Label>
+            <Input
+              type="select"
+              name="center"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.center || ""}
+              disabled={data?.center}
+              invalid={
+                validation.touched.center && validation.errors.center
+                  ? true
+                  : false
+              }
             >
-              <span style={{ ...summaryLabelStyle, color: "#1d4ed8" }}>🌍 Nationality</span>
-              <span
-                style={{
-                  ...summaryValueStyle,
-                  color: "#1e3a5f",
-                  fontWeight: 700,
-                  textTransform: "capitalize",
-                }}
-              >
-                {nationality || <em style={{ color: "#94a3b8", fontWeight: 400 }}>Not specified</em>}
-              </span>
-            </div>
-
-            {/* Email */}
-            {email && (
-              <div style={{ ...summaryTileStyle, gridColumn: "span 2" }}>
-                <span style={summaryLabelStyle}>✉ Email</span>
-                <span style={summaryValueStyle}>{email}</span>
-              </div>
-            )}
-
-            {/* Address */}
-            {address && (
-              <div style={{ ...summaryTileStyle, gridColumn: "span 2" }}>
-                <span style={summaryLabelStyle}>📍 Address</span>
-                <span style={{ ...summaryValueStyle, textTransform: "capitalize" }}>{address}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* ── Admission Fields ── */}
-        <Row>
-          <Col xs={12} md={6}>
-            <div className="mb-3">
-              <Label htmlFor="Ipdnum" className="form-label">
-                IPD file num.
-              </Label>
-              <Input
-                name="Ipdnum"
-                value={validation.values.Ipdnum || ""}
-                disabled
-                onChange={(e) => {
-                  validation.handleChange(e);
-                }}
-                className="form-control shadow-none bg-light"
-              />
-              {validation.touched.Ipdnum && validation.errors.Ipdnum ? (
-                <FormFeedback className="d-block" type="invalid">
-                  {validation.errors.Ipdnum}
-                </FormFeedback>
-              ) : null}
-            </div>
-          </Col>
-          <Col xs={12} md={6}>
-            <div className="mb-3">
-              <Label className="form-label">
-                Center <span className="text-danger">*</span>
-              </Label>
-              <Input
-                type="select"
-                name="center"
-                onChange={validation.handleChange}
-                onBlur={validation.handleBlur}
-                value={validation.values.center || ""}
-                disabled={data?.center}
-                invalid={
-                  validation.touched.center && validation.errors.center
-                    ? true
-                    : false
-                }
-              >
-                <option value="" disabled hidden>
-                  Choose here
+              <option value="" disabled hidden>
+                Choose here
+              </option>
+              {(centers || []).map((option, idx) => (
+                <option key={idx} value={option._id}>
+                  {option.title}
                 </option>
-                {(centers || []).map((option, idx) => (
-                  <option key={idx} value={option._id}>
-                    {option.title}
-                  </option>
-                ))}
-              </Input>
-              {validation.touched.center && validation.errors.center ? (
-                <FormFeedback>{validation.errors.center}</FormFeedback>
-              ) : null}
-            </div>
-          </Col>
+              ))}
+            </Input>
+            {validation.touched.center && validation.errors.center ? (
+              <FormFeedback>{validation.errors.center}</FormFeedback>
+            ) : null}
+          </div>
+        </Col>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="addmissionDate" className="form-label">
+              Addmission Date
+            </Label>
+            <Flatpicker
+              name="addmissionDate"
+              value={validation.values.addmissionDate || ""}
+              onChange={([e]) => {
+                const now = new Date();
+                e.setHours(
+                  now.getHours(),
+                  now.getMinutes(),
+                  now.getSeconds(),
+                  now.getMilliseconds(),
+                );
+                const event = { target: { name: "addmissionDate", value: e } };
+                validation.handleChange(event);
+              }}
+              options={{
+                dateFormat: "d M, Y h:i K",
+                enableTime: true,
+                time_24hr: false,
+              }}
+              className="form-control shadow-none bg-light"
+            />
+            {validation.touched.addmissionDate &&
+            validation.errors.addmissionDate ? (
+              <FormFeedback className="d-block" type="invalid">
+                {validation.errors.addmissionDate}
+              </FormFeedback>
+            ) : null}
+          </div>
+        </Col>
+        {data?.dischargeDate && (
           <Col xs={12} md={6}>
             <div className="mb-3">
-              <Label htmlFor="addmissionDate" className="form-label">
-                Addmission Date
+              <Label htmlFor="dischargeDate" className="form-label">
+                Discharge Date
               </Label>
               <Flatpicker
-                name="addmissionDate"
-                value={validation.values.addmissionDate || ""}
+                name="dischargeDate"
+                value={validation.values.dischargeDate || ""}
                 onChange={([e]) => {
                   const now = new Date();
                   e.setHours(
@@ -868,148 +939,112 @@ const AdmitPatient = ({
                     now.getSeconds(),
                     now.getMilliseconds(),
                   );
-                  const event = { target: { name: "addmissionDate", value: e } };
+                  const event = { target: { name: "dischargeDate", value: e } };
                   validation.handleChange(event);
                 }}
                 options={{
-                  dateFormat: "d M, Y h:i K",
-                  enableTime: true,
-                  time_24hr: false,
+                  dateFormat: "d M, Y",
                 }}
                 className="form-control shadow-none bg-light"
               />
-              {validation.touched.addmissionDate &&
-                validation.errors.addmissionDate ? (
+              {validation.touched.dischargeDate &&
+              validation.errors.dischargeDate ? (
                 <FormFeedback className="d-block" type="invalid">
-                  {validation.errors.addmissionDate}
+                  {validation.errors.dischargeDate}
                 </FormFeedback>
               ) : null}
             </div>
           </Col>
-          {data?.dischargeDate && (
-            <Col xs={12} md={6}>
-              <div className="mb-3">
-                <Label htmlFor="dischargeDate" className="form-label">
-                  Discharge Date
-                </Label>
-                <Flatpicker
-                  name="dischargeDate"
-                  value={validation.values.dischargeDate || ""}
-                  onChange={([e]) => {
-                    const now = new Date();
-                    e.setHours(
-                      now.getHours(),
-                      now.getMinutes(),
-                      now.getSeconds(),
-                      now.getMilliseconds(),
-                    );
-                    const event = { target: { name: "dischargeDate", value: e } };
-                    validation.handleChange(event);
-                  }}
-                  options={{
-                    dateFormat: "d M, Y",
-                  }}
-                  className="form-control shadow-none bg-light"
-                />
-                {validation.touched.dischargeDate &&
-                  validation.errors.dischargeDate ? (
-                  <FormFeedback className="d-block" type="invalid">
-                    {validation.errors.dischargeDate}
-                  </FormFeedback>
-                ) : null}
-              </div>
-            </Col>
-          )}
+        )}
 
-          <FormField
-            fields={admissionFields}
-            validation={validation}
-            doctorLoading={doctorLoading}
-            handleChange={handleChange}
-          />
-        </Row>
-        <div className="d-flex justify-content-between mt-3">
-          <Button size="sm" color="secondary" onClick={() => setStep(1)}>
-            Back
-          </Button>
-          <Button
-            size="sm"
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
+        <FormField
+          fields={admissionFields}
+          validation={validation}
+          doctorLoading={doctorLoading}
+          handleChange={handleChange}
+        />
+      </Row>
+      <div className="d-flex justify-content-between mt-3">
+        <Button size="sm" color="secondary" onClick={() => setStep(1)}>
+          Back
+        </Button>
+        <Button
+          size="sm"
+          type="submit"
+          onClick={(e) => {
+            e.preventDefault();
 
-              // First validate step 1 fields
-              const step1Fields = [
-                ...patientFields.filter((f) => f.name !== "email"),
-                ...patientGuardianFields.filter(
-                  (f) => f.name !== "ipdFileNumber",
-                ),
-              ].map((f) => f.name);
+            // First validate step 1 fields
+            const step1Fields = [
+              ...patientFields.filter((f) => f.name !== "email"),
+              ...patientGuardianFields.filter(
+                (f) => f.name !== "ipdFileNumber",
+              ),
+            ].map((f) => f.name);
 
-              // Touch nationality (custom Select, tracked separately)
-              validation.setFieldTouched("nationality", true);
+            // Touch nationality (custom Select, tracked separately)
+            validation.setFieldTouched("nationality", true);
 
-              // Touch all step 1 fields
-              step1Fields.forEach((field) => {
-                validation.setFieldTouched(field, true);
-              });
+            // Touch all step 1 fields
+            step1Fields.forEach((field) => {
+              validation.setFieldTouched(field, true);
+            });
 
-              // Check step 1 validation
-              const step1Errors = step1Fields.filter(
-                (field) => validation.errors[field],
-              );
-              const step1EmptyFields = step1Fields.filter(
-                (field) =>
-                  !validation.values[field] ||
-                  validation.values[field].toString().trim() === "",
-              );
-              const nationalityMissing = !validation.values.nationality;
+            // Check step 1 validation
+            const step1Errors = step1Fields.filter(
+              (field) => validation.errors[field],
+            );
+            const step1EmptyFields = step1Fields.filter(
+              (field) =>
+                !validation.values[field] ||
+                validation.values[field].toString().trim() === "",
+            );
+            const nationalityMissing = !validation.values.nationality;
 
-              // Then validate step 2 fields
-              const step2Fields = [
-                "center",
-                "addmissionDate",
-                ...admissionFields
-                  .filter((f) => f.name !== "provisional_diagnosis")
-                  .map((f) => f.name),
-              ];
+            // Then validate step 2 fields
+            const step2Fields = [
+              "center",
+              "addmissionDate",
+              ...admissionFields
+                .filter((f) => f.name !== "provisional_diagnosis")
+                .map((f) => f.name),
+            ];
 
-              // Touch all step 2 fields
-              step2Fields.forEach((field) => {
-                validation.setFieldTouched(field, true);
-              });
+            // Touch all step 2 fields
+            step2Fields.forEach((field) => {
+              validation.setFieldTouched(field, true);
+            });
 
-              // Check step 2 validation
-              const step2Errors = step2Fields.filter(
-                (field) => validation.errors[field],
-              );
-              const step2EmptyFields = step2Fields.filter(
-                (field) =>
-                  !validation.values[field] ||
-                  validation.values[field].toString().trim() === "",
-              );
+            // Check step 2 validation
+            const step2Errors = step2Fields.filter(
+              (field) => validation.errors[field],
+            );
+            const step2EmptyFields = step2Fields.filter(
+              (field) =>
+                !validation.values[field] ||
+                validation.values[field].toString().trim() === "",
+            );
 
-              // If there are any errors or empty fields, don't submit
-              if (
-                step1Errors.length > 0 ||
-                step1EmptyFields.length > 0 ||
-                nationalityMissing ||
-                step2Errors.length > 0 ||
-                step2EmptyFields.length > 0
-              ) {
-                return;
-              }
+            // If there are any errors or empty fields, don't submit
+            if (
+              step1Errors.length > 0 ||
+              step1EmptyFields.length > 0 ||
+              nationalityMissing ||
+              step2Errors.length > 0 ||
+              step2EmptyFields.length > 0
+            ) {
+              return;
+            }
 
-              // If all validation passes, submit the form
-              validation.handleSubmit();
-            }}
-          >
-            Save
-          </Button>
-        </div>
-      </>
-    );
-  };
+            // If all validation passes, submit the form
+            validation.handleSubmit();
+          }}
+        >
+          Save
+        </Button>
+      </div>
+    </>
+  );
 
   return (
     <CustomModal
@@ -1063,7 +1098,11 @@ const AdmitPatient = ({
                   validation.values[field].toString().trim() === "",
               );
 
-              if (step1Errors.length > 0 || emptyFields.length > 0 || nationalityMissing) {
+              if (
+                step1Errors.length > 0 ||
+                emptyFields.length > 0 ||
+                nationalityMissing
+              ) {
                 return; // Don't proceed to step 2
               }
             }

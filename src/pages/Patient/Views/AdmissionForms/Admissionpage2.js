@@ -46,14 +46,14 @@ const Admissionpage2 = ({ register, patient, details }) => {
   useEffect(() => {
     if (details) {
       document.querySelector(
-        '[name="Basic_Admission_Form_semiPrivate"]'
+        '[name="Basic_Admission_Form_semiPrivate"]',
       ).value = details?.toPay || "";
       document.querySelector('[name="Basic_Admission_Form_private"]').value =
         details?.semiprivate || "";
       document.querySelector('[name="Basic_Admission_Form_roomtype"]').value =
         details?.roomtype || "";
       document.querySelector(
-        '[name="Basic_Admission_Form_advanceDeposit"]'
+        '[name="Basic_Admission_Form_advanceDeposit"]',
       ).value = details?.advDeposit || "";
     }
 
@@ -63,10 +63,10 @@ const Admissionpage2 = ({ register, patient, details }) => {
       document.querySelector('[name="Basic_Admission_Form_relation"]').value =
         patient?.guardianRelation || "";
       document.querySelector(
-        '[name="Basic_Admission_Form_witnessName"]'
+        '[name="Basic_Admission_Form_witnessName"]',
       ).value = patient?.guardianName || "";
       document.querySelector(
-        '[name="Basic_Admission_Form_relationWitness"]'
+        '[name="Basic_Admission_Form_relationWitness"]',
       ).value = patient?.guardianRelation || "";
     }
 
@@ -147,6 +147,7 @@ const Admissionpage2 = ({ register, patient, details }) => {
             fontWeight: "bold",
             textTransform: "uppercase",
             ...inputLine,
+            minWidth: "300px",
           }}
         />
         Room as residential charges, a refundable advance deposit of
@@ -161,7 +162,9 @@ const Admissionpage2 = ({ register, patient, details }) => {
           }}
         />{" "}
         and a non refundable admission fees of Rs. 1000/- at the time of
-        admission. Also, minimum 5 days of initial fees is compulsory. If discharge is taken within 25 days of admission, then Daily Charges will be applicable.
+        admission. Also, minimum 5 days of initial fees is compulsory. If
+        discharge is taken within 25 days of admission, then Daily Charges will
+        be applicable.
       </div>
 
       <div style={consentPara}>
