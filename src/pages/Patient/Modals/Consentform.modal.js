@@ -6,6 +6,8 @@ import "flatpickr/dist/themes/material_green.css";
 import { useDispatch, connect } from "react-redux";
 import { Button, Input, Label } from "reactstrap";
 import { setChartDate } from "../../../store/actions";
+import Select from "react-select";
+import { toast } from "react-toastify";
 
 const ConsentFormModal = ({
   isOpen,
@@ -16,6 +18,7 @@ const ConsentFormModal = ({
   details,
   setDetails,
   setOpenform,
+  invoiceProcedures,
 }) => {
   const dispatch = useDispatch();
 
@@ -46,6 +49,8 @@ const ConsentFormModal = ({
       dispatch(setChartDate(existing.toISOString()));
     }
   };
+
+  console.log({ invoiceProcedures });
 
   return (
     <CustomModal isOpen={isOpen} title="Admission" toggle={toggle}>
@@ -143,19 +148,44 @@ const ConsentFormModal = ({
           </div> */}
 
           <div className="mt-3">
-            <Label className="text-muted mb-1">Room Type</Label>
-            <Input
-              type="text"
-              value={details?.roomtype}
-              onChange={(e) =>
-                setDetails((prev) => ({ ...prev, roomtype: e.target.value }))
+            <Label className="text-muted mb-1">
+              Room Type <span className="text-danger">*</span>
+            </Label>
+            <Select
+              value={
+                details?.roomtype
+                  ? {
+                      label: details.roomtype.replace(/\b\w/g, (l) =>
+                        l.toUpperCase()
+                      ),
+                      value: details.roomtype,
+                    }
+                  : null
               }
-              placeholder="Normal / Delux / .... etc"
+              onChange={(opt) =>
+                setDetails((prev) => ({
+                  ...prev,
+                  roomtype: opt ? opt.value : "",
+                }))
+              }
+              options={
+                invoiceProcedures
+                  ?.filter(
+                    (proc) =>
+                      proc?.category?.name?.toLowerCase() === "room charges"
+                  )
+                  ?.map((proc) => ({
+                    label: proc.name.replace(/\b\w/g, (l) => l.toUpperCase()),
+                    value: proc.name,
+                  })) || []
+              }
+              placeholder="Select Room Type"
+              isClearable
             />
           </div>
           <div className="mt-3">
             <Label className="text-muted mb-1">
-              Price for selected Room Type (Monthly)
+              Price for selected Room Type (Monthly) <span className="text-danger">*</span>
             </Label>
             <Input
               type="number"
@@ -169,7 +199,7 @@ const ConsentFormModal = ({
 
           <div className="mt-3">
             <Label className="text-muted mb-1">
-              Price for selected Room Type (daily)
+              Price for selected Room Type (daily) <span className="text-danger">*</span>
             </Label>
             <Input
               type="number"
@@ -207,6 +237,10 @@ const ConsentFormModal = ({
               type="button"
               color="success"
               onClick={() => {
+                if (!details?.roomtype || !details?.toPay || !details?.semiprivate) {
+                  toast.error("Please provide Room Type and both prices.");
+                  return;
+                }
                 toggle();
                 setOpenform(true);
               }}
@@ -232,6 +266,7 @@ const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
   doctors: state.User?.doctor,
   psychologists: state.User?.counsellors,
+  invoiceProcedures: state.Setting.invoiceProcedures,
   admissions: state.Chart.data,
 });
 

@@ -267,6 +267,8 @@ export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
 export const GET_ADMISSION_FORMS = "/report/admission-forms";
 export const GET_ADMISSION_FORMS_CSV = "/report/admission-forms-csv";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_ANALYTICS = "/report/advance-payment-deposit";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_CSV = "/report/advance-payment-deposit-csv";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
