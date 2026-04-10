@@ -325,6 +325,7 @@ export const permissionList = [
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
       { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
+      { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
     ],

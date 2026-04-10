@@ -2565,6 +2565,17 @@ export const getCancellationsRequests = (params = {}) => {
   })
 }
 
+export const getCancellationsHistory= (params = {}) => {
+  return axios.get(url.GET_CANCELLATIONS_HISTORY, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+
+
 export const actionOnCancellationRequest = ({ cancellationId, status }) => {
   return axios.patch(
     `${url.ACTION_ON_CANCELLATION_REQUEST}/${cancellationId}/${status}`,
