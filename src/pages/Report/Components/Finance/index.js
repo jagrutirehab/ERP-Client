@@ -56,9 +56,6 @@ const Finance = ({ centers, centerAccess }) => {
       // &&
       // selectedCentersIds.length === 0
     ) {
-      console.log({ centerOptions });
-      console.log("update selected centers");
-
       setSelectedCentersIds(centerOptions.map((c) => c._id));
     }
   }, [centerOptions]);

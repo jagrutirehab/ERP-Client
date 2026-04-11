@@ -39,6 +39,8 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
     centerOptions?.map((c) => c._id) || [],
   );
 
+  console.log({ centerOptions, selectedCentersIds, centerAccess });
+
   useEffect(() => {
     setCenterOptions(
       centers
@@ -53,6 +55,8 @@ const AdvancePaymentDeposit = ({ centers, centerAccess }) => {
   useEffect(() => {
     if (centerOptions && centerOptions?.length > 0) {
       setSelectedCentersIds(centerOptions.map((c) => c._id));
+    } else {
+      setSelectedCentersIds([]);
     }
   }, [centerOptions]);
 
