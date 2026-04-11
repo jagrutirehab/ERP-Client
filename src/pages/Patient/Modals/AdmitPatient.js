@@ -31,6 +31,202 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getICDCodes } from "../../../helpers/backend_helper";
 
+const NATIONALITIES = [
+  "Afghan",
+  "Albanian",
+  "Algerian",
+  "American",
+  "Andorran",
+  "Angolan",
+  "Antiguans",
+  "Argentinean",
+  "Armenian",
+  "Australian",
+  "Austrian",
+  "Azerbaijani",
+  "Bahamian",
+  "Bahraini",
+  "Bangladeshi",
+  "Barbadian",
+  "Barbudans",
+  "Batswana",
+  "Belarusian",
+  "Belgian",
+  "Belizean",
+  "Beninese",
+  "Bhutanese",
+  "Bolivian",
+  "Bosnian",
+  "Brazilian",
+  "British",
+  "Bruneian",
+  "Bulgarian",
+  "Burkinabe",
+  "Burmese",
+  "Burundian",
+  "Cambodian",
+  "Cameroonian",
+  "Canadian",
+  "Cape Verdean",
+  "Central African",
+  "Chadian",
+  "Chilean",
+  "Chinese",
+  "Colombian",
+  "Comoran",
+  "Congolese",
+  "Costa Rican",
+  "Croatian",
+  "Cuban",
+  "Cypriot",
+  "Czech",
+  "Danish",
+  "Djibouti",
+  "Dominican",
+  "Dutch",
+  "East Timorese",
+  "Ecuadorean",
+  "Egyptian",
+  "Emirian",
+  "Equatorial Guinean",
+  "Eritrean",
+  "Estonian",
+  "Ethiopian",
+  "Fijian",
+  "Filipino",
+  "Finnish",
+  "French",
+  "Gabonese",
+  "Gambian",
+  "Georgian",
+  "German",
+  "Ghanaian",
+  "Greek",
+  "Grenadian",
+  "Guatemalan",
+  "Guinea-Bissauan",
+  "Guinean",
+  "Guyanese",
+  "Haitian",
+  "Herzegovinian",
+  "Honduran",
+  "Hungarian",
+  "I-Kiribati",
+  "Icelander",
+  "Indian",
+  "Indonesian",
+  "Iranian",
+  "Iraqi",
+  "Irish",
+  "Israeli",
+  "Italian",
+  "Ivorian",
+  "Jamaican",
+  "Japanese",
+  "Jordanian",
+  "Kazakhstani",
+  "Kenyan",
+  "Kittitian",
+  "Kuwaiti",
+  "Kyrgyz",
+  "Laotian",
+  "Latvian",
+  "Lebanese",
+  "Liberian",
+  "Libyan",
+  "Liechtensteiner",
+  "Lithuanian",
+  "Luxembourger",
+  "Macedonian",
+  "Malagasy",
+  "Malawian",
+  "Malaysian",
+  "Maldivian",
+  "Malian",
+  "Maltese",
+  "Marshallese",
+  "Mauritanian",
+  "Mauritian",
+  "Mexican",
+  "Micronesian",
+  "Moldovan",
+  "Monacan",
+  "Mongolian",
+  "Moroccan",
+  "Mosotho",
+  "Motswana",
+  "Mozambican",
+  "Namibian",
+  "Nauruan",
+  "Nepalese",
+  "New Zealander",
+  "Nicaraguan",
+  "Nigerian",
+  "Nigerien",
+  "North Korean",
+  "Northern Irish",
+  "Norwegian",
+  "Omani",
+  "Pakistani",
+  "Palauan",
+  "Panamanian",
+  "Papua New Guinean",
+  "Paraguayan",
+  "Peruvian",
+  "Polish",
+  "Portuguese",
+  "Qatari",
+  "Romanian",
+  "Russian",
+  "Rwandan",
+  "Saint Lucian",
+  "Salvadoran",
+  "Samoan",
+  "San Marinese",
+  "Sao Tomean",
+  "Saudi",
+  "Scottish",
+  "Senegalese",
+  "Serbian",
+  "Seychellois",
+  "Sierra Leonean",
+  "Singaporean",
+  "Slovakian",
+  "Slovenian",
+  "Solomon Islander",
+  "Somali",
+  "South African",
+  "South Korean",
+  "Spanish",
+  "Sri Lankan",
+  "Sudanese",
+  "Surinamer",
+  "Swazi",
+  "Swedish",
+  "Swiss",
+  "Syrian",
+  "Taiwanese",
+  "Tajik",
+  "Tanzanian",
+  "Thai",
+  "Togolese",
+  "Tongan",
+  "Trinidadian or Tobagonian",
+  "Tunisian",
+  "Turkish",
+  "Tuvaluan",
+  "Ugandan",
+  "Ukrainian",
+  "Uruguayan",
+  "Uzbekistani",
+  "Venezuelan",
+  "Vietnamese",
+  "Welsh",
+  "Yemenite",
+  "Zambian",
+  "Zimbabwean",
+].map((n) => ({ value: n, label: n }));
+
 const AdmitPatient = ({
   isOpen,
   data,
@@ -46,6 +242,7 @@ const AdmitPatient = ({
   const [step, setStep] = useState(1);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
+  const [selectedNationality, setSelectedNationality] = useState(null);
   const [icdOptions, setIcdOptions] = useState([]);
 
   const toggle = () =>
@@ -66,6 +263,7 @@ const AdmitPatient = ({
       dateOfBirth,
       gender: patient ? patient.gender : "",
       address: patient ? patient.address : "",
+      nationality: patient ? patient.nationality || "" : "",
       //guardian
       guardianName: patient ? patient.guardianName : "",
       guardianRelation: patient ? patient.guardianRelation : "",
@@ -106,7 +304,7 @@ const AdmitPatient = ({
       dateOfBirth: Yup.string().required("Please select Date of birth"),
       gender: Yup.string().required("Please select Gender"),
       address: Yup.string().required("Please select Address"),
-      //patient guardian
+      nationality: Yup.string().required("Please select Nationality"),
       guardianName: Yup.string().required("Please select Guardian Name"),
       guardianRelation: Yup.string().required(
         "Please select Guardian Relation",
@@ -153,6 +351,22 @@ const AdmitPatient = ({
   useEffect(() => {
     dispatch(fetchReferrals());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Initialize selectedNationality from patient data
+    if (patient?.nationality) {
+      setSelectedNationality({
+        value: patient.nationality,
+        label: patient.nationality,
+      });
+    } else {
+      validation.setFieldValue("nationality", "Indian");
+      setSelectedNationality({
+        value: "Indian",
+        label: "Indian",
+      });
+    }
+  }, [patient, isOpen]);
 
   useEffect(() => {
     // Initialize selectedReferral and isOtherReferral based on patient data
@@ -233,17 +447,6 @@ const AdmitPatient = ({
   }, [patient, step]);
 
   const patientFields = [
-    // {
-    //   label: "Aadhaar Card Number",
-    //   name: "aadhaarCardNumber",
-    //   type: "text",
-    // },
-    // {
-    //   label: "Aadhaar Card",
-    //   name: "aadhaarCard",
-    //   type: "file",
-    //   accept: "image/*",
-    // },
     {
       label: "Name",
       name: "name",
@@ -305,7 +508,6 @@ const AdmitPatient = ({
     // },
   ];
 
-
   const loadIcds = async () => {
     try {
       const response = await getICDCodes();
@@ -316,14 +518,13 @@ const AdmitPatient = ({
       }));
 
       setIcdOptions(formatted);
-
     } catch (error) {
       console.log(error);
     }
   };
   useEffect(() => {
     loadIcds();
-  }, [])
+  }, []);
 
   const admissionFields = [
     {
@@ -356,6 +557,65 @@ const AdmitPatient = ({
           doctorLoading={doctorLoading}
           handleChange={handleChange}
         />
+        {/* Nationality React Select */}
+        <Col xs={12} lg={4}>
+          <div className="mb-3">
+            <Label htmlFor="nationality" className="form-label">
+              Nationality <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="nationality"
+              value={selectedNationality}
+              onChange={(option) => {
+                setSelectedNationality(option);
+                validation.setFieldValue("nationality", option?.value || "");
+              }}
+              onBlur={() => validation.setFieldTouched("nationality", true)}
+              options={NATIONALITIES}
+              placeholder="Search nationality..."
+              isClearable
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  borderColor:
+                    validation.touched.nationality &&
+                    validation.errors.nationality
+                      ? "#dc3545"
+                      : "#ced4da",
+                  boxShadow: state.isFocused
+                    ? validation.touched.nationality &&
+                      validation.errors.nationality
+                      ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+                      : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
+                    : "none",
+                  "&:hover": {
+                    borderColor:
+                      validation.touched.nationality &&
+                      validation.errors.nationality
+                        ? "#dc3545"
+                        : "#86b7fe",
+                  },
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999,
+                }),
+              }}
+            />
+            {validation.touched.nationality &&
+              validation.errors.nationality && (
+                <div
+                  style={{
+                    color: "#dc3545",
+                    fontSize: "0.875rem",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  {validation.errors.nationality}
+                </div>
+              )}
+          </div>
+        </Col>
         <Col xs={12}>
           <div className="d-flex gap-3 align-items-center">
             <h6 className="display-6 fs-4">Guardian</h6>
@@ -428,7 +688,7 @@ const AdmitPatient = ({
                   ...provided,
                   borderColor:
                     validation.touched.referredBy &&
-                      validation.errors.referredBy
+                    validation.errors.referredBy
                       ? "#dc3545"
                       : "#ced4da",
                   boxShadow: state.isFocused
@@ -440,7 +700,7 @@ const AdmitPatient = ({
                   "&:hover": {
                     borderColor:
                       validation.touched.referredBy &&
-                        validation.errors.referredBy
+                      validation.errors.referredBy
                         ? "#dc3545"
                         : "#86b7fe",
                   },
@@ -487,11 +747,12 @@ const AdmitPatient = ({
                       width: "100%",
                       height: "42px",
                       padding: "0.5rem 0.75rem",
-                      border: `1px solid ${validation.touched.referralPhoneNumber &&
+                      border: `1px solid ${
+                        validation.touched.referralPhoneNumber &&
                         validation.errors.referralPhoneNumber
-                        ? "#dc3545"
-                        : "#ced4da"
-                        }`,
+                          ? "#dc3545"
+                          : "#ced4da"
+                      }`,
                       borderRadius: "0.375rem",
                       fontSize: "1rem",
                     }}
@@ -525,12 +786,14 @@ const AdmitPatient = ({
           onClick={() => {
             // Get all required fields from step 1 (excluding email)
             const step1Fields = [
-              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+              ...patientFields.filter((f) => f.name !== "email"),
               ...patientGuardianFields.filter(
                 (f) => f.name !== "ipdFileNumber",
               ),
-              // ...patientGuardianFields,
             ].map((f) => f.name);
+
+            // Also touch nationality (custom Select field)
+            validation.setFieldTouched("nationality", true);
 
             // Touch all fields to trigger validation
             step1Fields.forEach((field) => {
@@ -542,6 +805,9 @@ const AdmitPatient = ({
               (field) => validation.errors[field],
             );
 
+            // Check nationality error separately
+            const nationalityMissing = !validation.values.nationality;
+
             // Check if any required fields are empty (excluding email)
             const emptyFields = step1Fields.filter(
               (field) =>
@@ -549,7 +815,11 @@ const AdmitPatient = ({
                 validation.values[field].toString().trim() === "",
             );
 
-            if (step1Errors.length > 0 || emptyFields.length > 0) {
+            if (
+              step1Errors.length > 0 ||
+              emptyFields.length > 0 ||
+              nationalityMissing
+            ) {
               return; // Don't proceed to next step
             }
 
@@ -645,17 +915,11 @@ const AdmitPatient = ({
                 dateFormat: "d M, Y h:i K",
                 enableTime: true,
                 time_24hr: false,
-                // enable: [
-                //   (date) =>
-                //     patient?.addmission?.dischargeDate
-                //       ? date > new Date(patient?.addmission?.dischargeDate)
-                //       : true,
-                // ],
               }}
               className="form-control shadow-none bg-light"
             />
             {validation.touched.addmissionDate &&
-              validation.errors.addmissionDate ? (
+            validation.errors.addmissionDate ? (
               <FormFeedback className="d-block" type="invalid">
                 {validation.errors.addmissionDate}
               </FormFeedback>
@@ -684,17 +948,11 @@ const AdmitPatient = ({
                 }}
                 options={{
                   dateFormat: "d M, Y",
-                  // enable: [
-                  //   (date) =>
-                  //     patient?.addmission?.dischargeDate
-                  //       ? date > new Date(patient?.addmission?.dischargeDate)
-                  //       : true,
-                  // ],
                 }}
                 className="form-control shadow-none bg-light"
               />
               {validation.touched.dischargeDate &&
-                validation.errors.dischargeDate ? (
+              validation.errors.dischargeDate ? (
                 <FormFeedback className="d-block" type="invalid">
                   {validation.errors.dischargeDate}
                 </FormFeedback>
@@ -722,12 +980,14 @@ const AdmitPatient = ({
 
             // First validate step 1 fields
             const step1Fields = [
-              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+              ...patientFields.filter((f) => f.name !== "email"),
               ...patientGuardianFields.filter(
                 (f) => f.name !== "ipdFileNumber",
               ),
-              // ...patientGuardianFields,
             ].map((f) => f.name);
+
+            // Touch nationality (custom Select, tracked separately)
+            validation.setFieldTouched("nationality", true);
 
             // Touch all step 1 fields
             step1Fields.forEach((field) => {
@@ -743,12 +1003,12 @@ const AdmitPatient = ({
                 !validation.values[field] ||
                 validation.values[field].toString().trim() === "",
             );
+            const nationalityMissing = !validation.values.nationality;
 
             // Then validate step 2 fields
             const step2Fields = [
               "center",
               "addmissionDate",
-              // ...admissionFields.map((f) => f.name),
               ...admissionFields
                 .filter((f) => f.name !== "provisional_diagnosis")
                 .map((f) => f.name),
@@ -773,6 +1033,7 @@ const AdmitPatient = ({
             if (
               step1Errors.length > 0 ||
               step1EmptyFields.length > 0 ||
+              nationalityMissing ||
               step2Errors.length > 0 ||
               step2EmptyFields.length > 0
             ) {
@@ -813,12 +1074,14 @@ const AdmitPatient = ({
             if (step === 1) {
               // Get all required fields from step 1
               const step1Fields = [
-                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+                ...patientFields.filter((f) => f.name !== "email"),
                 ...patientGuardianFields.filter(
                   (f) => f.name !== "ipdFileNumber",
                 ),
-                // ...patientGuardianFields,
               ].map((f) => f.name);
+
+              // Touch nationality (custom Select, tracked separately)
+              validation.setFieldTouched("nationality", true);
 
               // Touch all fields to trigger validation
               step1Fields.forEach((field) => {
@@ -830,6 +1093,8 @@ const AdmitPatient = ({
                 (field) => validation.errors[field],
               );
 
+              const nationalityMissing = !validation.values.nationality;
+
               // Check if any required fields are empty
               const emptyFields = step1Fields.filter(
                 (field) =>
@@ -837,7 +1102,11 @@ const AdmitPatient = ({
                   validation.values[field].toString().trim() === "",
               );
 
-              if (step1Errors.length > 0 || emptyFields.length > 0) {
+              if (
+                step1Errors.length > 0 ||
+                emptyFields.length > 0 ||
+                nationalityMissing
+              ) {
                 return; // Don't proceed to step 2
               }
             }
@@ -849,11 +1118,10 @@ const AdmitPatient = ({
             (() => {
               // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
-                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+                ...patientFields.filter((f) => f.name !== "email"),
                 ...patientGuardianFields.filter(
                   (f) => f.name !== "ipdFileNumber",
                 ),
-                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               const hasErrors = step1Fields.some(
@@ -864,8 +1132,9 @@ const AdmitPatient = ({
                   !validation.values[field] ||
                   validation.values[field].toString().trim() === "",
               );
+              const nationalityMissing = !validation.values.nationality;
 
-              return hasErrors || hasEmptyFields;
+              return hasErrors || hasEmptyFields || nationalityMissing;
             })()
           }
         >

@@ -608,6 +608,13 @@ export const HR = [
         link: "/hr/all/compOffs",
         icon: "bx bx-history",
       },
+      {
+
+        id: "cancellations-history",
+        label: "Cancellations History",
+        link: "/hr/all/cancellations/req",
+        icon: "bx bx-layer",
+      }
     ],
   },
   {

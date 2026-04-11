@@ -22,4 +22,75 @@ export const medicineTypes = [
   SPRAY,
   PATCH,
 ];
+
+export const medicineTypes2 = [
+  "TABLET",
+  "CAPSULE",
+  "SOFTGEL",
+  "SYRUP",
+  "SUSPENSION",
+  "SOLUTION",
+  "DROPS",
+  "INJECTION",
+  "VIAL",
+  "AMPOULE",
+  "OINTMENT",
+  "GEL",
+  "LOTION",
+  "INHALER",
+  "NASAL SPRAY",
+  "TRANSDERMAL PATCH"
+]
+
 export const medicineUnits = [GM, MCG, MG];
+
+export const medicineForms = [
+  "SOLID_FORM",
+  "LIQUID_FORM",
+  "INJECTABLE",
+  "EXTERNAL_USE",
+  "SPECIAL_CASE"
+];
+
+export const baseUnits = [
+  "BOX",
+  "NOS",
+  "ML",
+  "VIAL",
+  "AMPOULE",
+  "GM",
+  "DOSE",
+  "SPRAY",
+  "PATCH"
+];
+
+export const normalizeLabel = (val) =>
+  val ? val.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "";
+
+export const purchaseUnits = [
+  "TUBE",
+  "BOTTLE",
+  "INHALER_UNIT",
+  "BOX",
+  "STRIP"
+];
+
+export const medicineCategories = [
+  "REGULAR",
+  "CONTROLLED",
+  "OTC",
+  "CRITICAL"
+];
+
+export const storageTypes = [
+  "ROOM",
+  "COLD"
+];
+
+export const scheduleTypes = [
+  "H",
+  "H1",
+  "X",
+  "OTC",
+];
+

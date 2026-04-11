@@ -57,6 +57,7 @@ import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
 import CompOffRequests from "../HRMS/Leaves/CompOffsRequests/CompOffRequests";
 import AllCompOffs from "./Dashboard/AllCompOffs";
 import RaisedCompOffsRequest from "../HRMS/Leaves/MyRaisedCompOffs/RaisedCompOffsRequest";
+import CancellationRequestsHr from "./Dashboard/CancellationRequestsHr";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -214,6 +215,8 @@ const HR = () => {
                 <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
 
                 <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
+                
+                <Route path={`/all/cancellations/req`} element={<CancellationRequestsHr />} />
                 <Route path={`/all/compOffs`} element={<AllCompOffs />} />
 
                 

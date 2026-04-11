@@ -1,5 +1,10 @@
 import { Badge, Spinner } from "reactstrap";
 
+const Center = ({ children }) => (
+    <div className="text-center w-100">{children}</div>
+);
+
+
 export const normalizeDate = (date) => {
     if (!date) return "-";
 
@@ -93,7 +98,7 @@ export const allLeavesColumn = (activeTab, handleAction, approveLoaderId, handle
             wrap: true,
             minWidth: "200px",
         },
-        ...(activeTab !== "pending"  && activeTab !== "retrieved" ? [
+        ...(activeTab !== "pending" && activeTab !== "retrieved" ? [
             {
                 name: <div>Leave Action</div>,
                 selector: row => row?.leaveActionBy || row?.approvalAuthority || "-",
@@ -154,12 +159,53 @@ export const allLeavesColumn = (activeTab, handleAction, approveLoaderId, handle
         ...(activeTab === "approved" && (hasWrite || hasDelete)
             ? [
                 {
+                    name: <Center>Cancellation Status</Center>,
+                    cell: (row) => {
+                        const status = row?.cancellationStatus;
+
+                        const getColor = (status) => {
+                            switch (status) {
+                                case "approved":
+                                    return "success";
+                                case "rejected":
+                                    return "danger";
+                                case "pending":
+                                    return "warning";
+                                default:
+                                    return "secondary";
+                            }
+                        };
+
+                        return (
+                            <Center>
+                                {status ? (
+                                    <Badge pill color={getColor(status)}>
+                                        {status?.charAt(0)?.toUpperCase() + status?.slice(1)}
+                                    </Badge>
+                                ) : (
+                                    "-"
+                                )}
+                            </Center>
+                        );
+                    },
+                    width: "200px",
+                },
+                {
+                    name: <Center>Cancellation Action By</Center>,
+                    cell: (row) => <Center>{row?.cancellationAction || "-"}</Center>,
+                    width: "220px",
+                },
+                {
                     name: <div>Action</div>,
                     cell: (row) => (
                         // !hasWrite && !hasDelete ? (
                         //     "-"
                         // ) :
-                        <div className="d-flex gap-2">
+                        row.cancellationRequested ? (
+                            <span className="badge bg-info">
+                                Requested
+                            </span>
+                        ) : <div className="d-flex gap-2">
                             <button
                                 className="btn btn-sm btn-danger"
                                 onClick={() => openCancelModal(row)}
@@ -170,6 +216,55 @@ export const allLeavesColumn = (activeTab, handleAction, approveLoaderId, handle
                     ),
                     minWidth: "220px",
                 },
+
             ]
-            : [])
+            : []),
+
+        ...(activeTab === "cancelled"
+            ? [
+                {
+                    name: <Center>Cancellation Status</Center>,
+                    cell: (row) => {
+                        const status = row?.cancellationStatus;
+
+                        const getColor = (status) => {
+                            switch (status) {
+                                case "approved":
+                                    return "success";
+                                case "rejected":
+                                    return "danger";
+                                case "pending":
+                                    return "warning";
+                                default:
+                                    return "secondary";
+                            }
+                        };
+
+                        return (
+                            <Center>
+                                {status ? (
+                                    <Badge pill color={getColor(status)}>
+                                        {status?.charAt(0)?.toUpperCase() + status?.slice(1)}
+                                    </Badge>
+                                ) : (
+                                    "-"
+                                )}
+                            </Center>
+                        );
+                    },
+                    width: "200px",
+                },
+                {
+                    name: <Center>Cancellation Reason</Center>,
+                    cell: (row) => <Center>{row?.reason || "-"}</Center>,
+                    width: "220px",
+                },
+
+                {
+                    name: <Center>Cancellation Action By</Center>,
+                    cell: (row) => <Center>{row?.cancellationAction || "-"}</Center>,
+                    width: "220px",
+                },
+            ]
+            : []),
     ]

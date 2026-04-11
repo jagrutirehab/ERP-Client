@@ -427,6 +427,7 @@ const TallyLogRecords = ({ centerOptions, initialCenters }) => {
             <option value="all">All</option>
             <option value="created">Created</option>
             <option value="updated">Updated</option>
+            <option value="deleted">Deleted</option>
             <option value="failed">Failed</option>
           </Input>
         </Col>

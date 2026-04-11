@@ -267,6 +267,8 @@ export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
 export const GET_ADMISSION_FORMS = "/report/admission-forms";
 export const GET_ADMISSION_FORMS_CSV = "/report/admission-forms-csv";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_ANALYTICS = "/report/advance-payment-deposit";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_CSV = "/report/advance-payment-deposit-csv";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
@@ -544,6 +546,7 @@ export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
 export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
 export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
 export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
+export const GET_CANCELLATIONS_HISTORY = "/hrms/leave/get/cancellations/hr"
 export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation"
 export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
 export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"

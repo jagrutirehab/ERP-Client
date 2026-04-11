@@ -23,11 +23,11 @@ export const addMedicine = createAsyncThunk(
   "postMedicine",
   async (data, { rejectWithValue, dispatch }) => {
     try {
-      const response = await postMedicine(data);
+      await postMedicine(data);
       dispatch(
         setAlert({ type: "success", message: "Medicine Saved Successfully" })
       );
-      return response;
+      return null;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
@@ -126,9 +126,8 @@ const medicineSlice = createSlice({
       .addCase(addMedicine.pending, (state) => {
         state.loading = true;
       })
-      .addCase(addMedicine.fulfilled, (state, { payload }) => {
+      .addCase(addMedicine.fulfilled, (state) => {
         state.loading = false;
-        state.data = payload.payload;
       })
       .addCase(addMedicine.rejected, (state) => {
         state.loading = false;

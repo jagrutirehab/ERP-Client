@@ -49,6 +49,9 @@ import { saveAs } from "file-saver";
 import Givemedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { downloadInventoryTemplate } from "../../../utils/downloadInventoryTemplate";
+import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import { formatCurrency } from "../../../utils/formatCurrency";
 import FailedMedicines from "../Components/FailedMedicines";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -258,6 +261,15 @@ const InventoryManagement = () => {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // If no centers are selected, show empty results instead of querying all
+    if (!centers || centers.length === 0) {
+      setMedicines([]);
+      setTotalItems(0);
+      setTotalPages(1);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = {
@@ -356,9 +368,9 @@ const InventoryManagement = () => {
   };
   const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
-  useEffect(() => {
-    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
-  }, [dispatch, user?.centerAccess]);
+  // useEffect(() => {
+  //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+  // }, [dispatch, user?.centerAccess]);
 
 
   const handleViewChange = () => {
@@ -367,7 +379,7 @@ const InventoryManagement = () => {
       setSearchQuery("");
       setDebouncedSearch("");
       setQfilter("");
-      setSelectedCenter("");
+      setSelectedCenter("ALL");
       setCurrentPage(1);
 
       return newMode;
@@ -499,9 +511,21 @@ const InventoryManagement = () => {
                     const sheet = workbook.addWorksheet("Pharmacy Inventory");
 
                     const headers = [
+                      "ID",
+                      "Medicine ID",
                       "Barcode",
                       "Code",
                       "Medicine Name",
+                      "Brand Name",
+                      "Generic Name",
+                      "Form",
+                      "Base Unit",
+                      "Purchase Unit",
+                      "Conversion",
+                      "Category",
+                      "Storage Type",
+                      "Schedule Type",
+                      "Type",
                       "Strength",
                       "Centre",
                       "Centre Wise Stock",
@@ -518,6 +542,7 @@ const InventoryManagement = () => {
                       "Manufacturer",
                       "Rack",
                       "Status",
+                      "Controlled Drug",
                     ];
                     sheet.addRow(headers);
 
@@ -533,6 +558,20 @@ const InventoryManagement = () => {
 
                     for (let i = 0; i < data.length; i++) {
                       const med = data[i];
+                      const medicineDetails = med?.medicineId || {};
+                      const baseUnit =
+                        medicineDetails?.baseUnit ?? med?.baseUnit ?? "-";
+                      const purchaseUnit =
+                        medicineDetails?.purchaseUnit ?? med?.purchaseUnit ?? "-";
+                      const conversion =
+                        medicineDetails?.conversion ?? med?.conversion ?? {};
+                      const conversionValue =
+                        baseUnit !== "-" &&
+                          purchaseUnit !== "-" &&
+                          conversion?.baseQuantity &&
+                          conversion?.purchaseQuantity
+                          ? `${conversion.baseQuantity} ${baseUnit} = ${conversion.purchaseQuantity} ${purchaseUnit}`
+                          : "-";
 
                       let barcodeDataURL = null;
                       if (med?.code) {
@@ -547,9 +586,21 @@ const InventoryManagement = () => {
                       }
 
                       const rowValues = [
+                        med?.id || "-",
+                        med?.medicineId?.id || "-",
                         "",
                         med?.code || "-",
                         med?.medicineName || "-",
+                        medicineDetails?.brandName ?? med?.brandName ?? "-",
+                        medicineDetails?.genericName ?? med?.genericName ?? "-",
+                        medicineDetails?.form ?? med?.form ?? "-",
+                        baseUnit,
+                        purchaseUnit,
+                        conversionValue,
+                        medicineDetails?.category ?? med?.category ?? "-",
+                        medicineDetails?.storageType ?? med?.storageType ?? "-",
+                        medicineDetails?.scheduleType ?? med?.scheduleType ?? "-",
+                        medicineDetails?.type ?? "-",
                         med?.Strength || "-",
                         med?.centersMatched && med.centersMatched.length > 0
                           ? med.centersMatched.map((c) => c?.centerId?.title).join(", ")
@@ -565,17 +616,18 @@ const InventoryManagement = () => {
                           : "-",
                         med?.unitType || med?.unit || "-",
                         med?.stock ?? "-",
-                        med?.costprice ?? "-",
+                        med?.costprice ?? formatCurrency(med?.costprice),
                         med?.value ?? "-",
-                        med?.mrp ?? "-",
-                        med?.purchasePrice ?? "-",
-                        med?.SalesPrice ?? "-",
+                        med?.mrp ?? formatCurrency(med?.mrp),
+                        med?.purchasePrice ?? formatCurrency(med?.purchasePrice),
+                        med?.SalesPrice ?? formatCurrency(med?.SalesPrice),
                         med?.Expiry ?? "-",
                         med?.Batch ?? "-",
                         med?.company ?? "-",
                         med?.manufacturer ?? "-",
                         med?.RackNum ?? "-",
                         med?.Status ?? "-",
+                        (medicineDetails?.isControlledDrug ?? med?.isControlledDrug) ? "Yes" : "No",
                       ];
 
                       sheet.addRow(rowValues);
@@ -587,7 +639,7 @@ const InventoryManagement = () => {
                         });
 
                         sheet.addImage(img, {
-                          tl: { col: 0, row: i + 1 },
+                          tl: { col: 2, row: i + 1 },
                           ext: { width: 150, height: 40 },
                         });
                       }
@@ -774,7 +826,17 @@ const InventoryManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead noWrap>ID</TableHead>
                       <TableHead noWrap>Name</TableHead>
+                      <TableHead noWrap>Brand Name</TableHead>
+                      <TableHead noWrap>Generic Name</TableHead>
+                      <TableHead noWrap>Form</TableHead>
+                      <TableHead noWrap>Base Unit</TableHead>
+                      <TableHead noWrap>Purchase Unit</TableHead>
+                      <TableHead noWrap>Conversion</TableHead>
+                      <TableHead noWrap>Category</TableHead>
+                      <TableHead noWrap>Storage Type</TableHead>
+                      <TableHead noWrap>Schedule Type</TableHead>
                       <TableHead noWrap>Type</TableHead>
                       <TableHead noWrap>Strength</TableHead>
                       <TableHead noWrap>Unit</TableHead>
@@ -783,6 +845,7 @@ const InventoryManagement = () => {
                       <TableHead noWrap>Composition</TableHead>
                       <TableHead noWrap>Quantity</TableHead>
                       <TableHead noWrap>Unit Price</TableHead>
+                      <TableHead noWrap>Controlled Drug</TableHead>
                     </TableRow>
                   </TableHeader>
                   {centralMedicineLoading ? (
@@ -826,14 +889,28 @@ const InventoryManagement = () => {
                     <TableBody>
                       {centralMedicines.map((med) => (
                         <TableRow key={med._id}>
+                          <TableCell noWrap>{display(med?.id)}</TableCell>
                           <TableCell
                             noWrap
                             className="font-weight-bold text-primary"
                           >
                             {display(med?.name)}
                           </TableCell>
+                          <TableCell noWrap>{med?.brandName?.toUpperCase() || "-"}</TableCell>
+                          <TableCell noWrap>{med?.genericName?.toUpperCase() || "-"}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.form)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.baseUnit)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.purchaseUnit)}</TableCell>
                           <TableCell noWrap>
-                            {display(med?.type)}
+                            {med?.baseUnit && med?.purchaseUnit && med?.conversion?.baseQuantity && med?.conversion?.purchaseQuantity
+                              ? `${med.conversion.baseQuantity} ${normalizeUnderscores(med.baseUnit)} = ${med.conversion.purchaseQuantity} ${normalizeUnderscores(med.purchaseUnit)}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.category)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.storageType)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.scheduleType)}</TableCell>
+                          <TableCell noWrap>
+                            {normalizeUnderscores(med?.medicineDetails?.type)}
                           </TableCell>
                           <TableCell noWrap>
                             {display(med?.strength)}
@@ -847,16 +924,19 @@ const InventoryManagement = () => {
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>
-                            {display(med?.instruction)}
+                            {capitalizeWords(med?.instruction)}
                           </TableCell>
                           <TableCell noWrap>
-                            {display(med?.composition)}
+                            {capitalizeWords(med?.composition)}
                           </TableCell>
                           <TableCell noWrap>
                             {display(med?.quantity)}
                           </TableCell>
                           <TableCell noWrap>
-                            {display(med?.unitPrice)}
+                            {formatCurrency(med?.unitPrice)}
+                          </TableCell>
+                          <TableCell noWrap>
+                            {med?.isControlledDrug ? "Yes" : "No"}
                           </TableCell>
 
                         </TableRow>
@@ -873,9 +953,21 @@ const InventoryManagement = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead noWrap>ID</TableHead>
+                      <TableHead noWrap>Medicine ID</TableHead>
                       <TableHead noWrap>Bar Code</TableHead>
                       <TableHead noWrap>Code</TableHead>
                       <TableHead noWrap>Medicine Name</TableHead>
+                      <TableHead noWrap>Brand Name</TableHead>
+                      <TableHead noWrap>Generic Name</TableHead>
+                      <TableHead noWrap>Form</TableHead>
+                      <TableHead noWrap>Base Unit</TableHead>
+                      <TableHead noWrap>Purchase Unit</TableHead>
+                      <TableHead noWrap>Conversion</TableHead>
+                      <TableHead noWrap>Category</TableHead>
+                      <TableHead noWrap>Storage Type</TableHead>
+                      <TableHead noWrap>Schedule Type</TableHead>
+                      <TableHead noWrap>Type</TableHead>
                       <TableHead noWrap>Strength</TableHead>
                       <TableHead noWrap>Centre / Available stock</TableHead>
                       <TableHead noWrap>Unit</TableHead>
@@ -891,6 +983,7 @@ const InventoryManagement = () => {
                       <TableHead noWrap>Manufacturer</TableHead>
                       <TableHead noWrap>Rack Number</TableHead>
                       <TableHead noWrap>Status</TableHead>
+                      <TableHead noWrap>Controlled Drug</TableHead>
                       {hasPermission(
                         "PHARMACY",
                         "PHARMACYMANAGEMENT",
@@ -944,6 +1037,8 @@ const InventoryManagement = () => {
                     <TableBody>
                       {medicines.map((med) => (
                         <TableRow key={med._id}>
+                          <TableCell noWrap>{display(med?.id)}</TableCell>
+                          <TableCell noWrap>{display(med?.medicineId?.id)}</TableCell>
                           <TableCell noWrap>
                             <div
                               style={{
@@ -970,6 +1065,20 @@ const InventoryManagement = () => {
                           >
                             {display(med?.medicineName)}
                           </TableCell>
+                          <TableCell noWrap>{med?.medicineId?.brandName?.toUpperCase() || "-"}</TableCell>
+                          <TableCell noWrap>{med?.medicineId?.genericName?.toUpperCase() || "-"}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.form)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.baseUnit)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.purchaseUnit)}</TableCell>
+                          <TableCell noWrap>
+                            {med?.medicineId?.baseUnit && med?.medicineId?.purchaseUnit && med?.medicineId?.conversion?.baseQuantity && med?.medicineId?.conversion?.purchaseQuantity
+                              ? `${med.medicineId.conversion.baseQuantity} ${normalizeUnderscores(med.medicineId.baseUnit)} = ${med.medicineId.conversion.purchaseQuantity} ${normalizeUnderscores(med.medicineId.purchaseUnit)}`
+                              : "-"}
+                          </TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.category)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.storageType)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.scheduleType)}</TableCell>
+                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.type)}</TableCell>
                           <TableCell noWrap>
                             {display(med?.Strength || med?.Strength)}
                           </TableCell>
@@ -1112,6 +1221,9 @@ const InventoryManagement = () => {
                           <TableCell noWrap>{display(med?.RackNum)}</TableCell>
                           <TableCell noWrap>
                             <StatusBadge status={med.Status} />
+                          </TableCell>
+                          <TableCell noWrap>
+                            {med?.medicineId?.isControlledDrug ? "Yes" : "No"}
                           </TableCell>
                           {hasPermission(
                             "PHARMACY",
@@ -1290,7 +1402,15 @@ const InventoryManagement = () => {
             <Givemedicine
               user={user}
               setModalOpengive={setModalOpengive}
-              fetchMedicines={fetchInventoryMedicines}
+              fetchMedicines={() =>
+                fetchInventoryMedicines({
+                  page: 1,
+                  limit: 10,
+                  q: debouncedSearch,
+                  fillter: qfilter,
+                  centers,
+                })
+              }
               onResetPagination={() => {
                 setCurrentPage(1);
                 setPageSize(10);

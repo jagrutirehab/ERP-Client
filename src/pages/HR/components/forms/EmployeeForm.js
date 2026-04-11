@@ -12,6 +12,8 @@ import PhoneInputWithCountrySelect, {
   isValidPhoneNumber,
 } from "react-phone-number-input";
 import PropTypes from "prop-types";
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import {
   createDepartment,
@@ -67,7 +69,7 @@ const validationSchema = (mode, isEdit) =>
           if (!value) return false;
           const today = format(new Date(), "yyyy-MM-dd");
           return value <= today;
-        }
+        },
       ),
     gender: Yup.string().required("Gender is required"),
     pfApplicable: Yup.boolean().required("Pf Applicable is required"),
@@ -101,8 +103,8 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-          .required("Status is required"),
+            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+            .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -113,7 +115,7 @@ const validationSchema = (mode, isEdit) =>
     biometricId: Yup.string().trim(),
     panOld: Yup.string()
       .nullable()
-      .test("pan-uploaded", "PAN file is required", value => !!value),
+      .test("pan-uploaded", "PAN file is required", (value) => !!value),
     adharOld: Yup.string().required("Aadhaar file is required"),
     offerLetterOld: Yup.string().required("Offer letter is required"),
     employeeGroups: Yup.string().notRequired(),
@@ -144,7 +146,7 @@ const validationSchema = (mode, isEdit) =>
           if (gross === undefined || gross === null) return true;
 
           return Number(gross) === breakupTotal;
-        }
+        },
       ),
     basicAmount: Yup.number().min(0).notRequired(),
     basicPercentage: Yup.number().min(0).max(100).notRequired(),
@@ -178,13 +180,11 @@ const getInitialValues = (initialData, mode) => ({
   payrollType: initialData?.payrollType || "",
   state: initialData?.state || "",
 
-  joinningDate: normalizeDateForInput(initialData?.joinningDate) || format(new Date(), "yyyy-MM-dd"),
+  joinningDate: normalizeDateForInput(initialData?.joinningDate) || "",
   exitDate: normalizeDateForInput(initialData?.exitDate) || "",
   dateOfBirth: normalizeDateForInput(initialData?.dateOfBirth) || "",
 
-  status:
-    initialData?.status ??
-    (mode === "NEW_JOINING" ? "NEW_JOINING" : ""),
+  status: initialData?.status ?? (mode === "NEW_JOINING" ? "NEW_JOINING" : ""),
 
   gender: initialData?.gender || "",
 
@@ -222,8 +222,7 @@ const getInitialValues = (initialData, mode) => ({
 
   minimumWages: initialData?.financeDetails?.minimumWages || 0,
   shortWages: initialData?.financeDetails?.shortWages || 0,
-  grossSalary:
-    initialData?.financeDetails?.grossSalary || 0,
+  grossSalary: initialData?.financeDetails?.grossSalary || 0,
 
   basicPercentage: initialData?.financeDetails?.basicPercentage || 0,
   basicAmount: initialData?.financeDetails?.basicAmount || 0,
@@ -255,9 +254,9 @@ const getInitialValues = (initialData, mode) => ({
 
   users: initialData?.users
     ? initialData.users.map((u) => ({
-      value: u._id,
-      label: `${u.name} (${u.email})`,
-    }))
+        value: u._id,
+        label: `${u.name} (${u.email})`,
+      }))
     : [],
 });
 
@@ -314,7 +313,9 @@ const EmployeeForm = ({
   useEffect(() => {
     const loadDesignations = async () => {
       try {
-        dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] })).unwrap();
+        dispatch(
+          fetchDesignations({ status: ["PENDING", "APPROVED"] }),
+        ).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error("Something went wrong while getting the designations");
@@ -430,20 +431,15 @@ const EmployeeForm = ({
         adharOld: true,
         offerLetterOld: true,
       },
-      false
+      false,
     );
   };
 
-  const handleFileUpload = async ({
-    file,
-    path,
-    urlField,
-    fileField,
-  }) => {
+  const handleFileUpload = async ({ file, path, urlField, fileField }) => {
     if (!file) return;
 
     try {
-      setUploading(prev => ({ ...prev, [fileField]: true }));
+      setUploading((prev) => ({ ...prev, [fileField]: true }));
 
       const fd = new FormData();
       fd.append("file", file);
@@ -455,9 +451,12 @@ const EmployeeForm = ({
 
       setFieldTouched(urlField, true, false);
 
-      setUploadedAt(prev => ({ ...prev, [urlField]: new Date().toISOString() }));
+      setUploadedAt((prev) => ({
+        ...prev,
+        [urlField]: new Date().toISOString(),
+      }));
 
-      form.setErrors(prev => ({
+      form.setErrors((prev) => ({
         ...prev,
         [urlField]: undefined,
       }));
@@ -468,7 +467,7 @@ const EmployeeForm = ({
         toast.error("File upload failed");
       }
     } finally {
-      setUploading(prev => ({ ...prev, [fileField]: false }));
+      setUploading((prev) => ({ ...prev, [fileField]: false }));
     }
   };
 
@@ -503,7 +502,6 @@ const EmployeeForm = ({
 
     return meta.action === "preview" ? "Preview" : "Download";
   };
-
 
   const errorText = (field) => {
     if (isEdit) {
@@ -571,7 +569,7 @@ const EmployeeForm = ({
           adharOld: true,
           offerLetterOld: true,
         },
-        false
+        false,
       );
     }
   }, [isEdit, setTouched]);
@@ -616,7 +614,7 @@ const EmployeeForm = ({
         id: initialData._id,
         updates: {
           users: values.users ? values.users.map((u) => u.value) : [],
-        }
+        },
       };
       await updateEmployeeByKey(payload);
       toast.success("Users linked successfully");
@@ -670,7 +668,7 @@ const EmployeeForm = ({
               (response?.data?.data || []).map((user) => ({
                 value: user._id,
                 label: `${user.name} (${user.email})`,
-              }))
+              })),
             );
           })
           .catch((error) => {
@@ -678,7 +676,7 @@ const EmployeeForm = ({
             resolve([]);
           });
       }, 500),
-    [token, centerAccess]
+    [token, centerAccess],
   );
 
   const loadUserOptions = (inputValue) => {
@@ -707,7 +705,7 @@ const EmployeeForm = ({
     values.LWFEmployee,
     values.TDSRate,
     values.insurance,
-    values.minimumWages
+    values.minimumWages,
   ]);
 
   const selectedEmploymentOption =
@@ -716,9 +714,9 @@ const EmployeeForm = ({
     ) ||
     (values.employmentType
       ? {
-        label: values.employmentType,
-        value: values.employmentType?.trim().toUpperCase(),
-      }
+          label: values.employmentType,
+          value: values.employmentType?.trim().toUpperCase(),
+        }
       : null);
 
   return (
@@ -886,8 +884,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                      (o) => o.value === values.transferredFrom,
-                    )
+                        (o) => o.value === values.transferredFrom,
+                      )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -906,8 +904,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                    (o) => o.value === values.currentLocation,
-                  )
+                      (o) => o.value === values.currentLocation,
+                    )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -958,14 +956,21 @@ const EmployeeForm = ({
             <Label htmlFor="joinningDate">
               Date of Joining <span className="text-danger">*</span>
             </Label>
-            <Input
+            <Flatpickr
+              className={`form-control ${touched.joinningDate && errors.joinningDate ? "is-invalid" : ""}`}
               id="joinningDate"
-              type="date"
               name="joinningDate"
               value={values.joinningDate}
-              onChange={handleChange}
-              invalid={touched.joinningDate && errors.joinningDate}
-              onBlur={() => setFieldTouched("joinningDate", true)}
+              onChange={([date]) => {
+                setFieldValue(
+                  "joinningDate",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
             />
             {errorText("joinningDate")}
           </Col>
@@ -973,12 +978,20 @@ const EmployeeForm = ({
           {/* EXIT DATE */}
           <Col md={6}>
             <Label htmlFor="exitDate">Last Working Day</Label>
-            <Input
+            <Flatpickr
+              className={`form-control ${touched.exitDate && errors.exitDate ? "is-invalid" : ""}`}
               id="exitDate"
-              type="date"
               name="exitDate"
               value={values.exitDate}
-              onChange={handleChange}
+              onChange={([date]) => {
+                setFieldValue(
+                  "exitDate",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+              }}
             />
           </Col>
 
@@ -1027,14 +1040,21 @@ const EmployeeForm = ({
             <Label htmlFor="dob">
               Date of Birth <span className="text-danger">*</span>
             </Label>
-            <Input
-              type="date"
-              name="dateOfBirth"
+            <Flatpickr
+              className={`form-control ${touched.dateOfBirth && errors.dateOfBirth ? "is-invalid" : ""}`}
               id="dob"
+              name="dateOfBirth"
               value={values.dateOfBirth}
-              onChange={handleChange}
-              invalid={touched.dateOfBirth && errors.dateOfBirth}
-              onBlur={() => setFieldTouched("dateOfBirth", true)}
+              onChange={([date]) => {
+                setFieldValue(
+                  "dateOfBirth",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
             />
             {errorText("dateOfBirth")}
           </Col>
@@ -1205,23 +1225,30 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleFilePreview({
-                      url: values.adharOld,
-                      originalName: "Aadhaar",
-                    }, "adharOld")
+                    handleFilePreview(
+                      {
+                        url: values.adharOld,
+                        originalName: "Aadhaar",
+                      },
+                      "adharOld",
+                    )
                   }
                   disabled={uploading.adharFile}
                 >
-                  {getFileActionLabel({
-                    url: values.adharOld,
-                    originalName: "Aadhaar",
-                  }, "adharOld")}
+                  {getFileActionLabel(
+                    {
+                      url: values.adharOld,
+                      originalName: "Aadhaar",
+                    },
+                    "adharOld",
+                  )}
                 </Button>
 
                 <Button
                   size="sm"
                   onClick={() => adharFileRef.current.click()}
-                  disabled={uploading.adharFile}>
+                  disabled={uploading.adharFile}
+                >
                   {uploading.adharFile ? (
                     <>
                       <Spinner size="sm" className="me-1" /> Uploading
@@ -1290,7 +1317,7 @@ const EmployeeForm = ({
                   file,
                   path: "EMPLOYEE_PAN",
                   urlField: "panOld",
-                  fileField: "panFile"
+                  fileField: "panFile",
                 });
               }}
             />
@@ -1301,17 +1328,23 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleFilePreview({
-                      url: values.panOld,
-                      originalName: "Pan",
-                    }, "panOld")
+                    handleFilePreview(
+                      {
+                        url: values.panOld,
+                        originalName: "Pan",
+                      },
+                      "panOld",
+                    )
                   }
                   disabled={uploading.panFile}
                 >
-                  {getFileActionLabel({
-                    url: values.panOld,
-                    originalName: "Pan",
-                  }, "panOld")}
+                  {getFileActionLabel(
+                    {
+                      url: values.panOld,
+                      originalName: "Pan",
+                    },
+                    "panOld",
+                  )}
                 </Button>
 
                 <Button
@@ -1380,17 +1413,23 @@ const EmployeeForm = ({
                   size="sm"
                   color="info"
                   onClick={() =>
-                    handleFilePreview({
-                      url: values.offerLetterOld,
-                      originalName: "Offerletter",
-                    }, "offerLetterOld")
+                    handleFilePreview(
+                      {
+                        url: values.offerLetterOld,
+                        originalName: "Offerletter",
+                      },
+                      "offerLetterOld",
+                    )
                   }
                   disabled={uploading.offerLetterFile}
                 >
-                  {getFileActionLabel({
-                    url: values.offerLetterOld,
-                    originalName: "Offerletter",
-                  }, "offerLetterOld")}
+                  {getFileActionLabel(
+                    {
+                      url: values.offerLetterOld,
+                      originalName: "Offerletter",
+                    },
+                    "offerLetterOld",
+                  )}
                 </Button>
 
                 <Button
@@ -1567,7 +1606,6 @@ const EmployeeForm = ({
         </Col>
 
         <Row className="g-3 mx-2">
-
           {/* EMPLOYEE GROUPS */}
           <Col md={6}>
             <Label htmlFor="employeeGroups">Employee Group</Label>
@@ -1590,9 +1628,8 @@ const EmployeeForm = ({
               inputId="account"
               options={accountOptions}
               value={
-                accountOptions.find(
-                  (opt) => opt.value === values.account,
-                ) || null
+                accountOptions.find((opt) => opt.value === values.account) ||
+                null
               }
               onChange={(opt) => setFieldValue("account", opt.value)}
             />
@@ -1633,7 +1670,6 @@ const EmployeeForm = ({
               value={values.grossSalary}
               onChange={handleChange}
               onBlur={() => setFieldTouched("grossSalary", true)}
-
             />
             {errorText("grossSalary")}
           </Col>
@@ -1699,9 +1735,9 @@ const EmployeeForm = ({
               type="number"
               value={values.SPLAllowance}
               onChange={(e) => {
-                setManual(prev => ({
+                setManual((prev) => ({
                   ...prev,
-                  SPLAllowance: true
+                  SPLAllowance: true,
                 }));
                 handleChange(e);
               }}
@@ -1719,7 +1755,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
 
           {/* STATUTORY BONUS */}
           <Col md={6}>
@@ -1932,29 +1967,29 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-              <Button
-                color="primary"
-                className="text-white"
-                onClick={form.handleSubmit}
-                disabled={
-                  isSubmitting || !isValid || (isEdit && !initialData?._id)
-                }
-              >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : initialData ? (
-                  "Update Employee"
-                ) : (
-                  "Save Employee"
-                )}
-              </Button>
-            )}
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={form.handleSubmit}
+              disabled={
+                isSubmitting || !isValid || (isEdit && !initialData?._id)
+              }
+            >
+              {isSubmitting ? (
+                <Spinner size="sm" />
+              ) : initialData ? (
+                "Update Employee"
+              ) : (
+                "Save Employee"
+              )}
+            </Button>
+          )}
 
           {/* <Button onClick={() => console.log(errors)}>
             test
           </Button> */}
         </div>
-      </div >
+      </div>
       <PreviewFile
         file={previewFile}
         isOpen={previewOpen}
