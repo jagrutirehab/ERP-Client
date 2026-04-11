@@ -12,7 +12,6 @@ import moment from "moment";
 import { Badge, Collapse } from "reactstrap";
 
 const ActivityCard = ({ medicines, status }) => {
-    console.log(status)
   const [expandedDates, setExpandedDates] = useState({});
 
   const toggleDate = (date) => {
@@ -31,9 +30,11 @@ const ActivityCard = ({ medicines, status }) => {
       day: "numeric",
     });
   };
-  return medicines?.activities?.length > 0 ? (
+  const activitiesData = medicines?.activities?.data || [];
+
+  return activitiesData.length > 0 ? (
     <div className="space-y-4">
-      {medicines.activities.map((dateGroup) => (
+      {activitiesData.map((dateGroup) => (
         <div key={dateGroup.date} className="border rounded-lg overflow-hidden">
           <div
             className="d-flex justify-content-between align-items-center p-3 bg-light cursor-pointer"

@@ -1006,10 +1006,14 @@ export const getCompletedActiveMedicines = ({ patientId, status }) => {
   );
 };
 
-export const getActivitiesByStatus = ({ patientId, status }) => {
+export const getActivitiesByStatus = ({ patientId, prescriptionId, status, page = 1, limit = 10 }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&prescriptionId=${prescriptionId}&status=${status}&page=${page}&limit=${limit}`,
   );
+};
+
+export const getPrescriptionHistory = (patientId) => {
+  return api.get(`${url.GET_PRESCRIPTION_HISTORY}?patientId=${patientId}`);
 };
 
 export const markTomorrowMedicines = (data) => {

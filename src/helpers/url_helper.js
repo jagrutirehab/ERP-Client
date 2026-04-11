@@ -332,6 +332,7 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
+export const GET_PRESCRIPTION_HISTORY="/nurse/prescription-history";
 
 
 // alerts
