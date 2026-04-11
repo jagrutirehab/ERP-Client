@@ -184,6 +184,8 @@ const Dashboard = () => {
     const toggleEarlyCheckoutModal = () =>
         setEarlyCheckoutModal((prev) => !prev);
 
+    const hasShift = attendanceStatus?.shift != null;
+
     const shiftProgress = attendanceStatus?.shift?.duration && attendanceStatus?.workedTillNow != null
         ? Math.min(
             100,
@@ -297,7 +299,7 @@ const Dashboard = () => {
                                     </div>
                                 </div>
 
-                                <div className="mb-3">
+                                {hasShift && <div className="mb-3">
                                     <div className="d-flex justify-content-between mb-1">
                                         <small className="text-muted">Progress</small>
                                         <small className="fw-semibold" style={{ minWidth: 30, display: "inline-block" }}>
@@ -319,7 +321,7 @@ const Dashboard = () => {
                                             />
                                         )}
                                     </div>
-                                </div>
+                                </div>}
 
                                 <CheckPermission
                                     accessRolePermission={roles?.permissions}
