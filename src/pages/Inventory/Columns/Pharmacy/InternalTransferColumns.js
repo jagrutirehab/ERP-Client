@@ -13,12 +13,19 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             name: <div>Req. Date</div>,
             selector: (row) => row.createdAt,
             cell: (row) => (
-                <span className="text-nowrap">
-                    {row.createdAt ? moment(row.createdAt).format("DD MMM YYYY, hh:mm A") : "—"}
-                </span>
+                <div className="d-flex flex-column text-muted py-2" style={{ fontSize: 13, gap: "2px" }}>
+                    {row.createdAt ? (
+                        <>
+                            <span className="fw-medium text-dark">{moment(row.createdAt).format("DD MMM YYYY")}</span>
+                            <span style={{ fontSize: 11 }}>{moment(row.createdAt).format("hh:mm A")}</span>
+                        </>
+                    ) : (
+                        "—"
+                    )}
+                </div>
             ),
-            minWidth: "100px",
-            wrap: true
+            wrap: true,
+            minWidth: "110px"
         },
         {
             name: <div>Requisition ID</div>,
@@ -30,7 +37,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             ),
             wrap: true,
             center: true,
-            minWidth: "80px"
         },
         {
             name: <div>Requesting Center</div>,
@@ -51,7 +57,8 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             minWidth: "250px",
             cell: (row) => {
                 const isPostApproval = !["PENDING", "REJECTED"].includes(row.status);
-                const isDispatched = ["DISPATCHED", "RECEIVED", "FULFILLED", "PARTIALLY_RECEIVED"].includes(row.status);
+                const isDispatched = ["DISPATCHED"].includes(row.status);
+                const isReceived = ["FULFILLED", "PARTIALLY_RECEIVED"].includes(row.status);
 
                 const allItems = row.items || [];
                 const itemsList = isPostApproval
@@ -72,11 +79,13 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                             const medName = m.medicineName || item.medicineName || "";
                             const strength = m.Strength || m.strength || item.strength || "";
                             const unit = m.unitType || m.unit || item.unit || "";
-                            const qty = isDispatched
-                                ? (item.dispatchedQty ?? item.approvedQty)
-                                : isPostApproval
-                                    ? item.approvedQty
-                                    : item.requestedQty;
+                            const qty = isReceived
+                                ? (item.receivedQty ?? item.dispatchedQty ?? item.approvedQty)
+                                : isDispatched
+                                    ? (item.dispatchedQty ?? item.approvedQty)
+                                    : isPostApproval
+                                        ? item.approvedQty
+                                        : item.requestedQty;
 
                             return (
                                 <React.Fragment key={i}>
@@ -130,13 +139,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             {
                 name: <div>{statusFilter === "REJECTED" ? "Remarks" : "Approval Remarks"}</div>,
                 cell: (row) => {
-                    const remarks = row.review?.remarks;
-                    if (!remarks) return <span className="text-muted">—</span>;
-                    return (
-                        <span style={{ fontSize: 12, color: "#6c757d" }}>
-                            {capitalizeWords(remarks)}
-                        </span>
-                    );
+                    return <ExpandableText text={capitalizeWords(row.review?.remarks) || "-"} />;
                 },
                 wrap: true,
                 minWidth: "140px",
@@ -146,12 +149,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                     name: <div>Dispatch Remarks</div>,
                     cell: (row) => {
                         const remarks = row.dispatch?.dispatchNote;
-                        if (!remarks) return <span className="text-muted">—</span>;
-                        return (
-                            <span style={{ fontSize: 12, color: "#6c757d" }}>
-                                {capitalizeWords(remarks)}
-                            </span>
-                        );
+                        return <ExpandableText text={capitalizeWords(remarks) || "-"} />;
                     },
                     wrap: true,
                     minWidth: "140px",
@@ -182,13 +180,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                 {
                     name: <div>Receive Remarks</div>,
                     cell: (row) => {
-                        const note = row.receive?.receiveNote;
-                        if (!note) return <span className="text-muted">—</span>;
-                        return (
-                            <span style={{ fontSize: 12, color: "#6c757d" }}>
-                                {capitalizeWords(note)}
-                            </span>
-                        );
+                        return <ExpandableText text={capitalizeWords(row.receive?.receiveNote) || "-"} />;
                     },
                     wrap: true,
                     minWidth: "140px",

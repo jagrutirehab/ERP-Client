@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     Card,
     CardBody,
     Row,
     Col,
     Input,
-    Badge,
     Nav,
     NavItem,
     NavLink,
@@ -31,7 +30,7 @@ import {
     dispatchInternalTransfer,
     grnInternalTransfer,
 } from "../../../../store/features/pharmacy/pharmacySlice";
-import DataTable from "react-data-table-component";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { getInternalTransferColumns } from "../../Columns/Pharmacy/InternalTransferColumns";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
@@ -69,7 +68,6 @@ const InternalTransfer = () => {
             loading,
             data: requisitions,
             totalCount,
-            totalPages,
         },
     } = useSelector((state) => state.Pharmacy);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
@@ -105,7 +103,7 @@ const InternalTransfer = () => {
     const toggleExpand = (reqId) => setExpandedRows(p => ({ ...p, [reqId]: !p[reqId] }));
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(10);
 
     const searchTimerRef = useRef(null);
 
@@ -119,29 +117,25 @@ const InternalTransfer = () => {
         "DELETE"
     );
 
+    const allUserCenterIds = (user?.centerAccess || []).join(",");
+
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
+            ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(
-            user?.centerAccess?.map((id) => {
-                const center = user?.userCenters?.find((c) => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center",
-                };
-            }) || []
-        ),
+        ...(user?.centerAccess?.map((id) => {
+            const center = user?.userCenters?.find((c) => c._id === id);
+            return { value: id, label: center?.title || "Unknown Center" };
+        }) || []),
     ];
 
     const selectedCenterOption =
-        centerOptions.find((option) => option.value === selectedCenter) ||
+        centerOptions.find((o) => o.value === selectedCenter) ||
         centerOptions[0] ||
         null;
+
+    const getCenterIds = () =>
+        selectedCenter !== "ALL" ? selectedCenter : allUserCenterIds;
 
     useEffect(() => {
         if (
@@ -151,7 +145,7 @@ const InternalTransfer = () => {
             setSelectedCenter("ALL");
             setCurrentPage(1);
         }
-    }, [selectedCenter, user?.centerAccess]);
+    }, [user?.centerAccess, selectedCenter]);
 
     useEffect(() => {
         if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -169,8 +163,7 @@ const InternalTransfer = () => {
                 limit: pageSize,
                 search: debouncedSearch || undefined,
                 status: statusFilter || undefined,
-                requestingCenter:
-                    selectedCenter !== "ALL" ? selectedCenter : undefined,
+                centerIds: getCenterIds() || undefined,
             })
         ).unwrap().catch((error) => {
             if (!handleAuthError(error)) {
@@ -186,8 +179,7 @@ const InternalTransfer = () => {
                 limit: pageSize,
                 search: debouncedSearch || undefined,
                 status: statusFilter || undefined,
-                requestingCenter:
-                    selectedCenter !== "ALL" ? selectedCenter : undefined,
+                centerIds: getCenterIds() || undefined,
             })
         )
             .unwrap()
@@ -197,7 +189,7 @@ const InternalTransfer = () => {
                 }
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, debouncedSearch, statusFilter, selectedCenter]);
+    }, [currentPage, debouncedSearch, statusFilter, selectedCenter, allUserCenterIds]);
 
     const openDetail = (row) => {
         setSelectedReq(null);
@@ -221,8 +213,7 @@ const InternalTransfer = () => {
         setDetailLoading(false);
     };
 
-    const canPrev = currentPage > 1;
-    const canNext = currentPage < totalPages;
+
 
     const handleEdit = (row) => {
         navigate(`/pharmacy/requisition/internal-transfer/edit/${row._id}`);
@@ -324,10 +315,14 @@ const InternalTransfer = () => {
 
     const handleGrnSubmit = async () => {
         if (grnItems.length === 0) return;
+        const totalReceived = grnItems.reduce((sum, i) => sum + Number(i.receivedQty || 0), 0);
+        if (totalReceived === 0) {
+            toast.warning("Cannot generate GRN: At least one item must have a received quantity greater than 0.");
+            return;
+        }
         try {
             await dispatch(grnInternalTransfer({
                 id: grnModal.row._id,
-                grnNumber,
                 receiveNote,
                 items: grnItems.map((i) => ({
                     itemId: i.itemId,
@@ -424,7 +419,7 @@ const InternalTransfer = () => {
             className="p-3 bg-white"
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
-            <div className="d-flex align-items-center justify-content-between mb-4">
+            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
                 <div>
                     <h5 className="mb-1 fw-semibold">Internal Transfer Requisitions</h5>
                     <p className="text-muted mb-0 fs-13">
@@ -434,10 +429,11 @@ const InternalTransfer = () => {
                 {hasWritePermission && (
                     <Button
                         color="primary"
-                        className="text-white d-flex align-items-center gap-1"
+                        className="text-white d-flex align-items-center gap-1 w-100 w-sm-auto justify-content-center"
                         onClick={() =>
                             navigate("/pharmacy/requisition/internal-transfer/add")
                         }
+                        style={{ maxWidth: "160px" }}
                     >
                         <i className="bx bx-plus fs-5" />
                         <span>Add Request</span>
@@ -493,7 +489,7 @@ const InternalTransfer = () => {
                                     setSelectedCenter(option?.value || "ALL");
                                     setCurrentPage(1);
                                 }}
-                                placeholder="All Centers"
+                                placeholder="All My Centers"
                             />
                         </Col>
                         <Col md={5} lg={4}>
@@ -504,23 +500,14 @@ const InternalTransfer = () => {
                                 />
                                 <Input
                                     type="text"
-                                    placeholder="Search by requisition ID or medicine..."
+                                    placeholder="Search by requisition ID or GRN ID"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     style={{ paddingLeft: 32 }}
                                 />
                             </div>
                         </Col>
-                        <Col className="ms-auto text-end">
-                            <small className="text-muted">
-                                {totalCount > 0
-                                    ? `Showing ${Math.min(
-                                        (currentPage - 1) * pageSize + 1,
-                                        totalCount
-                                    )}–${Math.min(currentPage * pageSize, totalCount)} of ${totalCount}`
-                                    : "No results"}
-                            </small>
-                        </Col>
+
                     </Row>
                 </CardBody>
             </Card>
@@ -528,51 +515,17 @@ const InternalTransfer = () => {
             {/* Table */}
             <Card className="shadow-sm border-0">
                 <CardBody className="p-0">
-                    <DataTable
+                    <DataTableComponent
                         columns={columns}
                         data={requisitions}
-                        progressPending={loading}
-                        progressComponent={
-                            <div className="py-5 text-center">
-                                <Spinner color="primary" />
-                                <p className="text-muted mt-2 mb-0">Loading...</p>
-                            </div>
-                        }
-                        noDataComponent={
-                            <div className="text-center py-5 text-muted">
-                                <i className="bx bx-transfer fs-1 d-block mb-2" />
-                                No requisitions found.
-                            </div>
-                        }
-                        highlightOnHover
-                        customStyles={{
-                            headRow: { style: { backgroundColor: "#f8f9fa", fontWeight: 600 } },
-                            cells: { style: { padding: "8px" } },
-                        }}
+                        loading={loading}
+                        pagination={{ totalDocs: totalCount }}
+                        limit={pageSize}
+                        setLimit={setPageSize}
+                        page={currentPage}
+                        setPage={setCurrentPage}
                     />
                 </CardBody>
-
-                {totalPages > 1 && (
-                    <div className="d-flex align-items-center justify-content-end gap-2 p-3 border-top">
-                        <button
-                            className="btn btn-sm btn-outline-secondary"
-                            disabled={!canPrev}
-                            onClick={() => setCurrentPage((p) => p - 1)}
-                        >
-                            <i className="bx bx-chevron-left" />
-                        </button>
-                        <span className="fs-13 text-muted">
-                            Page {currentPage} of {totalPages}
-                        </span>
-                        <button
-                            className="btn btn-sm btn-outline-secondary"
-                            disabled={!canNext}
-                            onClick={() => setCurrentPage((p) => p + 1)}
-                        >
-                            <i className="bx bx-chevron-right" />
-                        </button>
-                    </div>
-                )}
             </Card>
 
             {/* Detail Modal */}

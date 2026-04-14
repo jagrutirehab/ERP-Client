@@ -26,14 +26,12 @@ import {
     searchPharmacyInventory,
 } from "../../../../../store/features/pharmacy/pharmacySlice";
 
-/* ─── safe string extractor — handles populated mongoose refs ───────────────── */
 const str = (v) => {
     if (!v) return "";
     if (typeof v === "string") return v;
     return v.name || v.title || v.label || "";
 };
 
-/* ─── shared mini-styles ────────────────────────────────────────────────────── */
 const CARD_STYLE = { borderRadius: 12, border: "1px solid #eef0f7" };
 const HEADER_STYLE = {
     background: "var(--bs-light,#f8f9fa)",
@@ -74,11 +72,7 @@ const stockPill = (n) =>
                 ? pill("#fff3cd", "#856404")
                 : pill("#f8d7da", "#721c24");
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Props:
-     mode          "add" | "edit"
-     requisitionId string  (edit mode only — the _id to load and update)
-───────────────────────────────────────────────────────────────────────────── */
+
 const InternalTransferForm = ({ mode = "add", requisitionId }) => {
     const isEdit = mode === "edit";
 
@@ -98,8 +92,8 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
 
     const medicineSearchRef = useRef(null);
     const searchTimerRef = useRef(null);
+    const [medicineKey, setMedicineKey] = useState(0);
 
-    /* ── Center options ─────────────────────────────────────────────────────── */
     const requisingCenterOptions = (user?.centerAccess || []).map((cid) => {
         const center = (user?.userCenters || []).find((c) => c._id === cid);
         return { value: cid, label: center?.title || "Unknown Center" };
@@ -109,7 +103,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         label: c.title || "Unknown Center",
     }));
 
-    /* ── Load existing requisition (edit only) ──────────────────────────────── */
     useEffect(() => {
         if (!isEdit || !requisitionId) return;
 
@@ -164,14 +157,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                                 prev.map((item) => ({
                                     ...item,
                                     availableStock: stockMap[item.pharmacyId] ?? 0,
-                                    // clamp requestedQty to available stock
                                     requestedQty: stockMap[item.pharmacyId] !== undefined
                                         ? Math.min(item.requestedQty, Math.max(1, stockMap[item.pharmacyId]))
                                         : item.requestedQty,
                                 }))
                             );
                         })
-                        .catch(() => {}); // silently fail — UI still works with null stock
+                        .catch(() => { });
                 }
             })
             .catch((error) => {
@@ -181,10 +173,8 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 navigate("/pharmacy/requisition/internal-transfer");
             })
             .finally(() => setPageLoading(false));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [requisitionId]);
 
-    /* ── Medicine async search ──────────────────────────────────────────────── */
     const searchMedicines = async (inputValue) => {
         if (!inputValue || inputValue.length < 2) return [];
         if (!fulfillingCenter) {
@@ -216,17 +206,15 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 searchMedicines(inputValue).then(callback);
             }, 350);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [fulfillingCenter]
     );
 
-    /* ── Cart helpers ───────────────────────────────────────────────────────── */
     const handleMedicineSelect = (option) => {
         if (!option) return;
         const med = option.data;
         if (items.some((i) => i.pharmacyId === med._id)) {
             toast.warning(`${med.medicineName} is already in the list.`);
-            medicineSearchRef.current?.clearValue();
+            setMedicineKey((k) => k + 1);
             return;
         }
         const centerEntry = (med.centers || []).find(
@@ -248,7 +236,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 itemRemarks: "",
             },
         ]);
-        medicineSearchRef.current?.clearValue();
+        setMedicineKey((k) => k + 1);
     };
 
     const updateItem = (pharmacyId, field, value) =>
@@ -270,7 +258,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
             })
         );
 
-    /* ── Validation ─────────────────────────────────────────────────────────── */
     const isSameCenterSelected =
         requisingCenter && fulfillingCenter &&
         requisingCenter.value === fulfillingCenter.value;
@@ -279,9 +266,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
 
     const isSubmitDisabled =
         submitLoading || items.length === 0 ||
-        !requisingCenter || !fulfillingCenter || isSameCenterSelected;
+        !requisingCenter || !fulfillingCenter || isSameCenterSelected ||
+        items.some((i) => {
+            const hasStock = i.availableStock !== null && i.availableStock !== undefined;
+            return !i.requestedQty || i.requestedQty < 1 || (hasStock && i.requestedQty > i.availableStock);
+        });
 
-    /* ── Submit ─────────────────────────────────────────────────────────────── */
     const handleSubmit = async () => {
         if (isSubmitDisabled) return;
         const payload = {
@@ -310,7 +300,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         }
     };
 
-    /* ── Medicine option label ──────────────────────────────────────────────── */
     const formatMedicineOption = (option) => {
         const med = option.data;
         const centerEntry = (med.centers || []).find(
@@ -348,9 +337,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         );
     };
 
-    /* ─────────────────────────────────────────────────────────────────────────
-       RENDER
-    ───────────────────────────────────────────────────────────────────────── */
     if (pageLoading) {
         return (
             <CardBody
@@ -370,7 +356,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
             className="p-3 bg-white"
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
-            {/* ── Breadcrumb ───────────────────────────────────────────────────── */}
             <button
                 type="button"
                 className="btn btn-link p-0 text-muted mb-1"
@@ -400,7 +385,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                     </p>
                 </div>
 
-                {/* Step indicator — desktop only */}
                 <div className="d-none d-md-flex align-items-center gap-2">
                     {[
                         { n: 1, label: "Centers", done: !!centersSet },
@@ -432,7 +416,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 </div>
             </div>
 
-            {/* ── Step 1: Centers ─────────────────────────────────────────────── */}
             <Card className="mb-4" style={CARD_STYLE}>
                 <CardHeader className="py-3 px-4" style={HEADER_STYLE}>
                     <div className="d-flex align-items-center gap-2">
@@ -567,7 +550,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                         </Label>
                         <AsyncSelect
                             ref={medicineSearchRef}
-                            key={fulfillingCenter?.value || "no-center"}
+                            key={`${fulfillingCenter?.value || "no-center"}-${medicineKey}`}
                             classNamePrefix="react-select"
                             cacheOptions={false}
                             defaultOptions={false}
@@ -726,15 +709,20 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                                                             max={hasStock ? item.availableStock : undefined}
                                                             value={item.requestedQty}
                                                             onChange={(e) => {
-                                                                let val = parseInt(e.target.value, 10);
-                                                                if (isNaN(val) || val < 1) val = 1;
-                                                                if (hasStock && val > item.availableStock) val = item.availableStock;
+                                                                const raw = e.target.value;
+                                                                const val = raw === "" ? 0 : parseInt(raw, 10);
+                                                                if (isNaN(val)) return;
                                                                 updateItem(item.pharmacyId, "requestedQty", val);
                                                             }}
                                                             style={{
                                                                 width: 56, textAlign: "center",
                                                                 borderRadius: 6,
-                                                                border: "1px solid var(--bs-border-color,#dee2e6)",
+                                                                border: (hasStock && item.requestedQty > item.availableStock)
+                                                                    ? "1px solid #fa5252"
+                                                                    : "1px solid var(--bs-border-color,#dee2e6)",
+                                                                color: (hasStock && item.requestedQty > item.availableStock)
+                                                                    ? "#fa5252"
+                                                                    : "inherit",
                                                                 fontWeight: 700, fontSize: 13,
                                                                 padding: "4px 2px",
                                                             }}
@@ -786,22 +774,21 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 </CardBody>
             </Card>
 
-            {/* ── Footer bar ──────────────────────────────────────────────────── */}
             <div
-                className="d-flex align-items-center justify-content-between"
+                className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 gap-md-0"
                 style={{
                     background: "#fff", border: "1px solid #eef0f7",
                     borderRadius: 12, padding: "14px 20px",
                     boxShadow: "0 -2px 16px rgba(0,0,0,.06)",
                 }}
             >
-                <div style={{ fontSize: 13, color: "#6c757d" }}>
+                <div style={{ fontSize: 13, color: "#6c757d" }} className="text-center text-md-start">
                     {items.length > 0 ? (
                         <>
                             <strong className="text-primary">{items.length}</strong>
                             {" item"}{items.length > 1 ? "s" : ""} in cart
                             {centersSet && (
-                                <span className="ms-2 text-muted">
+                                <span className="ms-2 text-muted d-block d-md-inline mt-1 mt-md-0">
                                     · {fulfillingCenter.label} → {requisingCenter.label}
                                 </span>
                             )}
@@ -811,11 +798,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                     )}
                 </div>
 
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-2 justify-content-center justify-content-md-end">
                     <Button
                         color="secondary" outline size="sm"
                         onClick={() => navigate("/pharmacy/requisition/internal-transfer")}
                         disabled={submitLoading}
+                        className="flex-grow-1 flex-md-grow-0"
                     >
                         <i className="bx bx-x me-1" /> Cancel
                     </Button>
@@ -823,12 +811,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                         color="primary" size="sm"
                         onClick={handleSubmit}
                         disabled={isSubmitDisabled}
-                        className="text-white"
+                        className="text-white flex-grow-1 flex-md-grow-0"
                     >
                         {submitLoading ? (
                             <><Spinner size="sm" className="me-2" />{isEdit ? "Updating…" : "Submitting…"}</>
                         ) : (
-                            <><i className={`bx ${isEdit ? "bx-save" : "bx-send"} me-1`} />{isEdit ? "Update Requisition" : "Submit Requisition"}</>
+                            <><i className={`bx ${isEdit ? "bx-save" : "bx-send"} me-1`} />{isEdit ? "Update" : "Submit"}</>
                         )}
                     </Button>
                 </div>
