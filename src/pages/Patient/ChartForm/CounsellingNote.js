@@ -912,7 +912,7 @@ const CounsellingNote = ({
             <Input
               type="file"
               // accept="audio/*"
-              accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm"
+              // accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm"
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
