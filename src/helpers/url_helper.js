@@ -592,6 +592,8 @@ export const APPROVE_ISSUE = "/issues/approval"
 export const POST_ISSUE = "/issues/post"
 export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
 export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
+export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
+export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update/approved"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";

@@ -13,7 +13,7 @@ export const MyRaisedTicketsColumns = (
 
 ) => {
   return [
-     {
+    {
       name: <div className="text-center">Issue-Id</div>,
       selector: (row) => row?.issueNumber || "-",
       // center: true,
@@ -22,6 +22,11 @@ export const MyRaisedTicketsColumns = (
     {
       name: <div className="text-center">Author</div>,
       selector: (row) => row?.author?.name || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Contact</div>,
+      selector: (row) => row?.contact || "-",
       width: "160px",
     },
     {
@@ -148,7 +153,7 @@ export const MyRaisedTicketsColumns = (
       ] : []
 
     ),
-    ...(activeTab !== "new"
+    ...(activeTab !== "new" && activeTab !== "rejected"
       ? [
         {
           name: <div className="text-center">Assigned To</div>,
@@ -162,7 +167,7 @@ export const MyRaisedTicketsColumns = (
       ]
       : []),
 
-    ...(activeTab
+    ...(activeTab !== "new"
       ? [
         {
           name: <div className="text-center">Notes</div>,
@@ -209,17 +214,31 @@ export const MyRaisedTicketsColumns = (
       },
     },
 
+    ...(type === "HR" ? [
+      {
+        name: <div className="text-center">Manager's Approval</div>,
+        width: "180px",
+        cell: (row) => {
+          const status = row?.hrIssue?.status;
+
+          return (
+            <Badge color={getStatusColor(status)} pill>
+              {status?.replaceAll("_", " ") || "-"}
+            </Badge>
+          );
+        },
+      },
+    ] : []),
+
     {
       name: <div className="text-center">Raised on</div>,
       selector: (row) => normalizeDates(row?.createdAt) || "-",
       width: "180px",
     },
 
-
-
-    ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+    ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
       ? [
-        ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+        ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
           ? [
             {
               name: <div className="text-center">Approval</div>,
@@ -249,34 +268,6 @@ export const MyRaisedTicketsColumns = (
       ]
       : []
     ),
-    // ...(canChangeStatus && (activeTab !== "resolved" || activeTab === "")
-    //   ? [
-    //     {
-    //       name: <div className="text-center">Action</div>,
-    //       width: "200px",
-    //       cell: (row) => {
-
-    //         // prevent button only for resolved rows
-    //         if (row?.status === "resolved") return "-";
-
-    //         return (
-    //           <Button
-    //             size="sm"
-    //             color="primary"
-    //             onClick={() =>
-    //               handleAction({
-    //                 issue: row,
-    //                 nextStatus: row?.status
-    //               })
-    //             }
-    //           >
-    //             Change Status
-    //           </Button>
-    //         );
-    //       },
-    //     },
-    //   ]
-    //   : [])
   ]
 
 }

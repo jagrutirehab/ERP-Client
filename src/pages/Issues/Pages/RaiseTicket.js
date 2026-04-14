@@ -13,11 +13,15 @@ const initialFormState = {
   requestedFrom: null,
   center: "",
   description: "",
+  contact: "",
   itemName: "",
   itemQty: "",
   comment: "",
   responsibleReviewer: null,
   reviewTakenFrom: null,
+  requestType: null,
+  hrDescription: "",
+  manager: "",
   files: [],
 };
 const RaiseTicket = () => {
@@ -138,6 +142,7 @@ const RaiseTicket = () => {
       formData.append("requestedFrom", form.requestedFrom?.value);
       formData.append("center", form.center);
       formData.append("issueType", issueType);
+      formData.append("contact", form.contact);
 
       if (issueType === "TECH") {
         formData.append("description", form.description);
@@ -158,6 +163,12 @@ const RaiseTicket = () => {
           "reviewTakenFrom",
           form.reviewTakenFrom?.value
         );
+      }
+
+      if (issueType === "HR") {
+        formData.append("requestType", form.requestType?.value);
+        formData.append("description", form.hrDescription);
+        formData.append("manager", form.manager);
       }
 
       if (form.files && form.files.length) {

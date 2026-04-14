@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CardBody, Modal, ModalBody, ModalHeader, Nav, NavItem, NavLink } from "reactstrap";
+import { CardBody, Label, Modal, ModalBody, ModalHeader, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { Issues } from "../Columns/Issues";
 import DataTableComponent from "../../../Components/Common/DataTable";
@@ -39,6 +39,7 @@ const IssuesPage = ({ type }) => {
     const [approvalModal, setApprovalModal] = useState(false);
     const [approvalIssue, setApprovalIssue] = useState(null);
     const [approvalStatus, setApprovalStatus] = useState("");
+    const [managerApproval, setManagerApproval] = useState("");
     const [editRowId, setEditRowId] = useState(null);
     const [editedApproval, setEditedApproval] = useState("");
     const [editedApprovalBy, setEditedApprovalBy] = useState("");
@@ -46,13 +47,13 @@ const IssuesPage = ({ type }) => {
 
     const { hasPermission } = usePermissions(token);
 
-    const hasWritePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "WRITE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "WRITE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
-    const hasDeletePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
+    const hasWritePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "WRITE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "WRITE") : type === "HR" ? hasPermission("ISSUES", "HR_ISSUES", "WRITE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE")
+    const hasDeletePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE") : type === "HR" ? hasPermission("ISSUES", "HR_ISSUES", "WRITE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
 
     const canEdit = hasWritePermission || hasDeletePermission;
 
     console.log("Can Edit", canEdit);
-    
+
 
     const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
@@ -81,6 +82,9 @@ const IssuesPage = ({ type }) => {
                 limit,
                 ...(activeTab === "resolved" && approvalStatus
                     ? { approvalStatus }
+                    : {}),
+                ...(type === "HR" && managerApproval
+                    ? { managerApproval }
                     : {})
             });
 
@@ -98,7 +102,7 @@ const IssuesPage = ({ type }) => {
     useEffect(() => {
         if (!user?.centerAccess) return;
         loadIssues();
-    }, [selectedCenter, user?.centerAccess, activeTab, page, limit, approvalStatus, type]);
+    }, [selectedCenter, user?.centerAccess, activeTab, page, limit, approvalStatus, type, managerApproval]);
 
     const handleViewDescription = (desc) => {
         setDescription(desc);
@@ -181,6 +185,11 @@ const IssuesPage = ({ type }) => {
         { value: "approved", label: "Approved" },
         { value: "not_approved", label: "Not Approved" },
     ];
+    const managerApprovalOpt = [
+        { value: "", label: "All" },
+        { value: "approved", label: "Approved" },
+        { value: "rejected", label: "Rejected" },
+    ];
 
     // const handleEdit = (row) => {
     //     setEditRowId(row._id);
@@ -231,6 +240,13 @@ const IssuesPage = ({ type }) => {
             toast.error(error?.message || "Update Failed");
         }
     };
+
+    const status = ["new", "assigned", "in_progress", "on_hold", "pending_user", "pending_release", "resolved"]
+
+    if (type === "HR") {
+        status.push("rejected")
+    }
+
     return (
         <>
             <CardBody
@@ -242,7 +258,7 @@ const IssuesPage = ({ type }) => {
                 </div>
 
                 <Nav tabs className="mb-3">
-                    {["new", "assigned", "in_progress", "on_hold", "pending_user", "pending_release", "resolved"].map((tab) => (
+                    {status?.map((tab) => (
                         <NavItem key={tab}>
                             <NavLink
                                 className={classnames({ active: activeTab === tab })}
@@ -255,23 +271,42 @@ const IssuesPage = ({ type }) => {
                     ))}
                 </Nav>
 
+
                 <div className="mb-3 d-flex gap-2">
-                    <Select
-                        options={centerOptions || []}
-                        value={centerOptions?.find((c) => c.value === selectedCenter) || null}
-                        onChange={(selected) => setSelectedCenter(selected?.value || "")}
-                        isDisabled={!centerOptions?.length}
-                        placeholder={centerOptions?.length ? "Select Center" : "No Center Selected"}
-                        styles={{ container: (base) => ({ ...base, width: 200 }) }}
-                    />
-                    {activeTab === "resolved" && (
+                    <div>
+                        {/* <Label>Center Select</Label> */}
                         <Select
-                            options={approvalOptions}
-                            value={approvalOptions.find((o) => o.value === approvalStatus) || null}
-                            onChange={(selected) => setApprovalStatus(selected?.value || "")}
+                            options={centerOptions || []}
+                            value={centerOptions?.find((c) => c.value === selectedCenter) || null}
+                            onChange={(selected) => setSelectedCenter(selected?.value || "")}
+                            isDisabled={!centerOptions?.length}
+                            placeholder={centerOptions?.length ? "Select Center" : "No Center Selected"}
                             styles={{ container: (base) => ({ ...base, width: 200 }) }}
                         />
+                    </div>
+                    {activeTab === "resolved" && type !== "HR" && (
+                        <div>
+                            {/* <Label>Issue Approval</Label> */}
+                            <Select
+                                options={approvalOptions}
+                                value={approvalOptions.find((o) => o.value === approvalStatus) || null}
+                                onChange={(selected) => setApprovalStatus(selected?.value || "")}
+                                styles={{ container: (base) => ({ ...base, width: 200 }) }}
+                            />
+                        </div>
                     )}
+                    {/* {type === "HR" && activeTab !== "new" && (
+                        <div>
+                            <Label>Manager's Approval</Label>
+                            <Select
+                                options={managerApprovalOpt}
+                                value={managerApprovalOpt.find((o) => o.value === managerApproval) || null}
+                                onChange={(selected) => setManagerApproval(selected?.value || "")}
+                                styles={{ container: (base) => ({ ...base, width: 200 }) }}
+                            />
+                        </div>
+                    )} */}
+
                 </div>
 
 

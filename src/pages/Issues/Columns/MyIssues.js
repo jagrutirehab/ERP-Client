@@ -13,7 +13,7 @@ export const MyIssuesCol = (
 
 ) => {
   return [
-     {
+    {
       name: <div className="text-center">Issue-Id</div>,
       selector: (row) => row?.issueNumber || "-",
       // center: true,
@@ -22,6 +22,11 @@ export const MyIssuesCol = (
     {
       name: <div className="text-center">Author</div>,
       selector: (row) => row?.author?.name || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Contact</div>,
+      selector: (row) => row?.contact || "-",
       width: "160px",
     },
     {
@@ -217,9 +222,9 @@ export const MyIssuesCol = (
 
 
 
-    ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+    ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
       ? [
-        ...(activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved"
+        ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
           ? [
             {
               name: <div className="text-center">Approval</div>,
@@ -249,6 +254,9 @@ export const MyIssuesCol = (
       ]
       : []
     ),
+
+
+
     ...(canChangeStatus && (activeTab !== "resolved" || activeTab === "")
       ? [
         {

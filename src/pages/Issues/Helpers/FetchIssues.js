@@ -1,4 +1,4 @@
-import { getIssues, getMyIssues } from "../../../helpers/backend_helper";
+import { getHRIssuesRequests, getIssues, getMyIssues } from "../../../helpers/backend_helper";
 
 export const fetchIssues = async (type, params = {}) => {
     const response = await getIssues({
@@ -14,5 +14,10 @@ export const getMyTickets = async (type, params = {}) => {
         issueType: type,
         ...params,
     })
+    return response;
+}
+
+export const getHRRequests = async (params = {}) => {
+    const response = await getHRIssuesRequests(params);
     return response;
 }

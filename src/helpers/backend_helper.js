@@ -1045,7 +1045,7 @@ export const getNurseGivenMedicines = (params = {}) => {
 export const getNurseGivenMedicineDetails = (params = {}) => {
   return api.get(url.GET_NURSE_GIVEN_MEDICINE_DETAILS, {
     params,
-    headers:{
+    headers: {
       "X-No-Cookie-Token": "true",
     }
   });
@@ -1839,9 +1839,9 @@ export const getRoundNotesDOD = (data) => {
   return api.get(url.GET_ROUND_NOTES_DOD, {
     params: {
       centerIds: data?.centerAccess,
-      
+
     }
-  
+
   });
 };
 
@@ -2586,7 +2586,7 @@ export const getCancellationsRequests = (params = {}) => {
   })
 }
 
-export const getCancellationsHistory= (params = {}) => {
+export const getCancellationsHistory = (params = {}) => {
   return axios.get(url.GET_CANCELLATIONS_HISTORY, {
     params,
     headers: {
@@ -3163,6 +3163,17 @@ export const getRaisedIssues = (params = {}) => {
   return axios.get(url.GET_RAISED_TICKETS, {
     params,
   });
+}
+
+export const getHRIssuesRequests = (params = {}) => {
+  return axios.get(url.GET_HR_ISSUES_REQUESTS, {
+    params
+  });
+}
+export const updateHRIssueRequest = (data) => {
+  return axios.patch(url.UPDATE_HR_ISSUE_REQUEST, 
+    data
+  )
 }
 
 // Recordings

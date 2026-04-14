@@ -257,6 +257,17 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     return pdf;
   };
 
+  const formatDateTimeLocal = (date) => {
+    if (!date) return "";
+
+    const d = new Date(date);
+    const pad = (n) => (n < 10 ? "0" + n : n);
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+      d.getDate()
+    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const handlePrint = async () => {
     setIsGenerating(true);
     try {
@@ -279,6 +290,9 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   console.log("Patient", patient);
   useEffect(() => {
     if (patient?.name) {
+      const age = patient?.age || "";
+      const sex = patient?.gender || "";
+      const admission = patient?.addmission?.addmissionDate || ""
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
@@ -287,6 +301,8 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
           patient?.id?.prefix && patient?.id?.value
             ? `${patient.id.prefix}${patient.id.value}`
             : "",
+        ageSex: age && sex ? `${age} / ${sex}` : "",
+        assessmentDateTime: formatDateTimeLocal(admission)
       }));
     }
   }, [patient, loggedInUserName]);
@@ -371,6 +387,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="text"
                       plainText
                       name="ageSex"
+                      value={formData?.ageSex}
                       onChange={handleChange}
                       className="p-0 ps-2"
                     />
@@ -395,6 +412,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="datetime-local"
                       name="assessmentDateTime"
                       onChange={handleChange}
+                      value={formData?.assessmentDateTime}
                       className="border-0 p-0"
                     />
                   </td>
@@ -735,8 +753,8 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                         plainText
                         className="px-2"
                         placeholder="Name"
-                        // You might need to adjust your state logic to handle signature objects
-                        // For now, these will act as visual placeholders
+                      // You might need to adjust your state logic to handle signature objects
+                      // For now, these will act as visual placeholders
                       />
                     </td>
                     <td>

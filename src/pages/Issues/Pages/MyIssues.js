@@ -15,7 +15,8 @@ import ApprovalModal from "../Components/ApprovalModal";
 import Select from "react-select";
 import { useSelector } from "react-redux";
 
-const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
+// const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
+const issueTypes = ["TECH", "HR"];
 
 const statuses = [
   "assigned",
@@ -205,7 +206,7 @@ const MyIssues = () => {
             value={issueTypeOptions.find((o) => o.value === type)}
             onChange={(selected) => setType(selected.value)}
             styles={{ container: (base) => ({ ...base, width: 200 }) }}
-            isDisabled={true}
+            // isDisabled={true}
           />
 
           {/* Status */}
