@@ -58,6 +58,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     vulnerableAdult: false,
     managementPlan: "",
     signatures: [],
+    consultantName: "",
   });
   const capacityFormRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -67,7 +68,10 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   const dispatch = useDispatch();
 
   const loggedIn = JSON.parse(localStorage.getItem("authUser"));
+  console.log("loggedIn", loggedIn);
+
   const loggedInUserName = loggedIn?.data.name;
+  const loggedInUserDesignation = loggedIn?.data?.role
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -287,22 +291,29 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     }
   };
 
-  console.log("Patient", patient);
+  console.log("patient", patient);
+
+
   useEffect(() => {
     if (patient?.name) {
       const age = patient?.age || "";
       const sex = patient?.gender || "";
       const admission = patient?.addmission?.addmissionDate || ""
+      const consultant = patient?.psychologistData?.name || "";
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
-        assessedBy: loggedInUserName || "",
+        assessedBy: `${loggedInUserName} - ${loggedInUserDesignation}` || "",
         uhidIpdNo:
           patient?.id?.prefix && patient?.id?.value
             ? `${patient.id.prefix}${patient.id.value}`
             : "",
         ageSex: age && sex ? `${age} / ${sex}` : "",
-        assessmentDateTime: formatDateTimeLocal(admission)
+        assessmentDateTime: formatDateTimeLocal(admission),
+        nominatedRepresentativeInformed: patient?.guardianName ? "Yes" : "",
+        representativeName: patient?.guardianName || "",
+        relationship: patient?.guardianRelation || "",
+        consultantName: consultant || "",
       }));
     }
   }, [patient, loggedInUserName]);
@@ -628,6 +639,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="nominatedRepresentativeInformed"
+                      value={formData?.nominatedRepresentativeInformed}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -640,6 +652,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="representativeName"
+                      value={formData?.representativeName}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -652,6 +665,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="relationship"
+                      value={formData?.relationship}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -748,14 +762,31 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       {row.role}
                     </td>
                     <td>
-                      <Input
+                      {/* <Input
                         type="text"
                         plainText
                         className="px-2"
                         placeholder="Name"
+                        // value={formData?.consultantName || ""}
                       // You might need to adjust your state logic to handle signature objects
                       // For now, these will act as visual placeholders
-                      />
+                      /> */}
+                      {index === 0 ? (
+                        <Input
+                          type="text"
+                          className="px-2"
+                          name="consultantName"
+                          value={formData?.consultantName || ""}
+                          onChange={handleChange}
+                        />
+                      ) : (
+                        <Input
+                          type="text"
+                          plainText
+                          className="px-2"
+                          placeholder="Name"
+                        />
+                      )}
                     </td>
                     <td>
                       <Input
@@ -766,7 +797,20 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       />
                     </td>
                     <td>
-                      <Input type="date" plainText className="px-2" />
+                      {/* <Input type="date" plainText className="px-2" /> */}
+                      {index === 0 ? (
+                        <Input
+                          type="datetime-local"
+                          className="px-2"
+                          value={formatDateTimeLocal(new Date())}
+                        />
+                      ) : (
+                        <Input
+                          type="date"
+                          plainText
+                          className="px-2"
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}
