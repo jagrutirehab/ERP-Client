@@ -293,6 +293,32 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
 
   console.log("patient", patient);
 
+  const formatDeepObject = (obj, parentKey = "") => {
+    if (!obj) return "";
+
+    return Object.entries(obj)
+      .flatMap(([key, value]) => {
+        const newKey = parentKey ? `${parentKey}.${key}` : key;
+
+        if (value === "" || value === null || value === undefined) return [];
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) return [];
+          return `${newKey}: ${value.join(", ")}`;
+        }
+
+        if (typeof value === "object") {
+          return formatDeepObject(value, newKey);
+        }
+
+        return `${newKey}: ${value}`;
+      })
+      .join(", ");
+  };
+
+  const me = patient?.detailAdmission?.mentalExaminationV2;
+
+
 
   useEffect(() => {
     if (patient?.name) {
@@ -300,6 +326,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       const sex = patient?.gender || "";
       const admission = patient?.addmission?.addmissionDate || ""
       const consultant = patient?.psychologistData?.name || "";
+      const me = patient?.detailAdmission?.mentalExaminationV2;
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
@@ -314,6 +341,23 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
         representativeName: patient?.guardianName || "",
         relationship: patient?.guardianRelation || "",
         consultantName: consultant || "",
+        primaryDiagnosis: patient?.detailAdmission?.doctorSignature?.diagnosis
+          ?.map((d) => d?.code)
+          ?.join(", "),
+        mentalStatusSummary: `
+Appearance & Behavior: ${formatDeepObject(me?.appearanceAndBehavior)}
+Speech: ${formatDeepObject(me?.speech)}
+Mood: ${formatDeepObject(me?.mood)}
+Affect: ${formatDeepObject(me?.affectV2)}
+Thought: ${formatDeepObject(me?.thought)}
+Cognition: ${formatDeepObject(me?.cognition)}
+Insight: ${formatDeepObject(me?.insight)}
+Judgment: ${me?.judgment || ""}
+Perception: ${me?.perception || ""}
+Remarks: ${me?.remarks || ""}
+`,
+        managementPlan: patient?.detailAdmission?.doctorSignature?.managmentPlan
+
       }));
     }
   }, [patient, loggedInUserName]);
@@ -511,6 +555,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="primaryDiagnosis"
+                      value={formData?.primaryDiagnosis}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -523,6 +568,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="mentalStatusSummary"
+                      value={formData?.mentalStatusSummary}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -731,6 +777,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
               type="textarea"
               rows="4"
               name="managementPlan"
+              value={formData?.managementPlan}
               onChange={handleChange}
               style={{ border: "1px solid #000", borderRadius: 0 }}
             />
