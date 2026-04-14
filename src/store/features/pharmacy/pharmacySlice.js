@@ -6,7 +6,15 @@ import {
     getMedineApprovalsByStatus,
     getNurseGivenMedicines as getNurseGivenMedicinesApi,
     getPendingPatientApprovals,
-    updateMedicineApprovalStatus
+    updateMedicineApprovalStatus,
+    getInternalTransferRequisitions,
+    createInternalTransferRequisition,
+    searchPharmacyMedicines,
+    getInternalTransferRequisitionById,
+    updateInternalTransferRequisition,
+    reviewInternalTransferRequisition,
+    dispatchInternalTransferRequisition,
+    grnInternalTransferRequisition,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -21,6 +29,13 @@ const initialState = {
         data: [],
         pagination: {}
     },
+    internalTransfer: {
+        loading: false,
+        data: [],
+        totalCount: 0,
+        totalPages: 1,
+    },
+    submitLoading: false,
 };
 
 export const getMedicineApprovals = createAsyncThunk("pharmacy/getMedineApprovalsByStatus", async (data, { rejectWithValue }) => {
@@ -82,6 +97,102 @@ export const deleteAudit = createAsyncThunk("pharmacy/deleteAuditById", async ({
     }
 });
 
+export const fetchInternalTransferRequisitions = createAsyncThunk(
+    "pharmacy/fetchInternalTransferRequisitions",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getInternalTransferRequisitions(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const submitInternalTransferRequisition = createAsyncThunk(
+    "pharmacy/submitInternalTransferRequisition",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await createInternalTransferRequisition(data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const reviewInternalTransfer = createAsyncThunk(
+    "pharmacy/reviewInternalTransfer",
+    async ({ id, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await reviewInternalTransferRequisition(id, data);
+            return { id, data: response?.data || response };
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const grnInternalTransfer = createAsyncThunk(
+    "pharmacy/grnInternalTransfer",
+    async ({ id, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await grnInternalTransferRequisition(id, data);
+            return { id, data: response?.data || response };
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const dispatchInternalTransfer = createAsyncThunk(
+    "pharmacy/dispatchInternalTransfer",
+    async ({ id, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await dispatchInternalTransferRequisition(id, data);
+            return { id, data: response?.data || response };
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchInternalTransferById = createAsyncThunk(
+    "pharmacy/fetchInternalTransferById",
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await getInternalTransferRequisitionById(id);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const editInternalTransferRequisition = createAsyncThunk(
+    "pharmacy/editInternalTransferRequisition",
+    async ({ id, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await updateInternalTransferRequisition(id, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const searchPharmacyInventory = createAsyncThunk(
+    "pharmacy/searchPharmacyInventory",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await searchPharmacyMedicines(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
 export const getNurseGivenMedicines = createAsyncThunk("pharmacy/getNurseGivenMedicines", async (data, { rejectWithValue }) => {
     try {
         const response = await getNurseGivenMedicinesApi(data);
@@ -100,7 +211,10 @@ export const pharmacySlice = createSlice({
         },
         clearAuditHistory: (state) => {
             state.auditHistory = initialState.auditHistory
-        }
+        },
+        clearInternalTransfer: (state) => {
+            state.internalTransfer = initialState.internalTransfer
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -194,9 +308,90 @@ export const pharmacySlice = createSlice({
             .addCase(getNurseGivenMedicines.rejected, (state) => {
                 state.loading = false;
             });
+
+        builder
+            .addCase(fetchInternalTransferRequisitions.pending, (state) => {
+                state.internalTransfer.loading = true;
+            })
+            .addCase(fetchInternalTransferRequisitions.fulfilled, (state, { payload }) => {
+                state.internalTransfer.loading = false;
+                state.internalTransfer.data = payload.data || payload || [];
+                state.internalTransfer.totalCount = payload.totalCount || payload.total || 0;
+                state.internalTransfer.totalPages =
+                    payload.totalPages ||
+                    payload.pages ||
+                    Math.max(1, Math.ceil((payload.total || 0) / (payload.limit || 10)));
+            })
+            .addCase(fetchInternalTransferRequisitions.rejected, (state) => {
+                state.internalTransfer.loading = false;
+            });
+
+        builder
+            .addCase(submitInternalTransferRequisition.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(submitInternalTransferRequisition.fulfilled, (state) => {
+                state.submitLoading = false;
+            })
+            .addCase(submitInternalTransferRequisition.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
+            .addCase(editInternalTransferRequisition.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(editInternalTransferRequisition.fulfilled, (state) => {
+                state.submitLoading = false;
+            })
+            .addCase(editInternalTransferRequisition.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
+            .addCase(grnInternalTransfer.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(grnInternalTransfer.fulfilled, (state, { payload }) => {
+                state.submitLoading = false;
+                state.internalTransfer.data = state.internalTransfer.data.map((req) =>
+                    req._id === payload.id ? { ...req, status: payload.data?.status ?? req.status } : req
+                );
+            })
+            .addCase(grnInternalTransfer.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
+            .addCase(dispatchInternalTransfer.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(dispatchInternalTransfer.fulfilled, (state, { payload }) => {
+                state.submitLoading = false;
+                state.internalTransfer.data = state.internalTransfer.data.map((req) =>
+                    req._id === payload.id ? { ...req, status: payload.data?.status ?? req.status } : req
+                );
+            })
+            .addCase(dispatchInternalTransfer.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
+            .addCase(reviewInternalTransfer.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(reviewInternalTransfer.fulfilled, (state, { payload }) => {
+                state.submitLoading = false;
+                state.internalTransfer.data = state.internalTransfer.data.map((req) =>
+                    req._id === payload.id ? { ...req, status: payload.data?.status ?? req.status } : req
+                );
+            })
+            .addCase(reviewInternalTransfer.rejected, (state) => {
+                state.submitLoading = false;
+            });
     }
 });
 
-export const { clearMedicineApprovals, clearAuditHistory } = pharmacySlice.actions;
+export const { clearMedicineApprovals, clearAuditHistory, clearInternalTransfer } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;

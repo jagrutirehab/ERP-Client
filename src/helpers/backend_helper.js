@@ -1745,6 +1745,81 @@ export const downloadAuditFailedMedicines = (id) => {
   });
 };
 
+// PHARMACY REQUISITION - INTERNAL TRANSFER
+export const getInternalTransferRequisitions = (params = {}) => {
+  return api.get(url.PHARMACY_INTERNAL_TRANSFER, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
+export const createInternalTransferRequisition = (data) => {
+  return api.create(url.PHARMACY_INTERNAL_TRANSFER, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const searchPharmacyMedicines = (params = {}) => {
+  return api.get(url.PHARMACY_MEDICINE_SEARCH, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const reviewInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/review`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getInternalTransferRequisitionById = (id) => {
+  return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const dispatchInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/dispatch`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const grnInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/grn`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updateInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const generateGRNNumber = () => {
+  return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/generate-grn`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // MI REPORTING
 export const getMIHubSpotContacts = (params = {}) => {
   return api.get(url.GET_MI_HUBSPOT_CONTACTS, {

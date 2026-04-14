@@ -154,6 +154,7 @@ export const permissionList = [
       { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
       { name: "AUDIT", label: "Audit" },
+      { name: "REQUISITION_INTERNAL_TRANSFER", label: "Requisition: Internal Transfer" },
     ],
   },
   {

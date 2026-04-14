@@ -425,6 +425,10 @@ export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
 export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 
+// PHARMACY REQUISITION - INTERNAL TRANSFER
+export const PHARMACY_INTERNAL_TRANSFER = "/pharmacy/requisition/internal-transfer";
+export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
+
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";

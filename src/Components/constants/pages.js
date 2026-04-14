@@ -398,6 +398,20 @@ export const Pharmacy = [
     link: "/pharmacy/audit",
     icon: "bx bx-fingerprint",
   },
+  {
+    id: "requisition",
+    label: "Requisition",
+    icon: "bx bx-fingerprint",
+    isAccordion: true,
+    children: [
+      {
+        id: "internal-transfer",
+        label: "Internal Transfer",
+        link: "/pharmacy/requisition/internal-transfer",
+        icon: "bx bx-transfer",
+      },
+    ]
+  },
 ];
 
 export const MIReporting = [
