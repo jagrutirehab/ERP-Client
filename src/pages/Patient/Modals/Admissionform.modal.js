@@ -137,6 +137,7 @@ const AdmissionFormModal = ({
                 Independent Admission
               </option>
               <option value="SUPPORTIVE_ADMISSION">Supportive Admission</option>
+              <option value="EMERGENCY_ADMISSION">Emergency Admission</option>
             </Input>
           </div>
 
