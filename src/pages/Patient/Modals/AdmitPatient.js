@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import { Button, Col, Form, FormFeedback, Input, Label, Row, Spinner } from "reactstrap";
 import Select from "react-select";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
@@ -23,6 +23,7 @@ import {
 import {
   ADMIT_PATIENT,
   EDIT_ADMISSION,
+  NATIONALITIES,
 } from "../../../Components/constants/patient";
 import FormField from "../../../Components/Common/FormField";
 import Divider from "../../../Components/Common/Divider";
@@ -30,202 +31,6 @@ import { format } from "date-fns";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { getICDCodes } from "../../../helpers/backend_helper";
-
-const NATIONALITIES = [
-  "Afghan",
-  "Albanian",
-  "Algerian",
-  "American",
-  "Andorran",
-  "Angolan",
-  "Antiguans",
-  "Argentinean",
-  "Armenian",
-  "Australian",
-  "Austrian",
-  "Azerbaijani",
-  "Bahamian",
-  "Bahraini",
-  "Bangladeshi",
-  "Barbadian",
-  "Barbudans",
-  "Batswana",
-  "Belarusian",
-  "Belgian",
-  "Belizean",
-  "Beninese",
-  "Bhutanese",
-  "Bolivian",
-  "Bosnian",
-  "Brazilian",
-  "British",
-  "Bruneian",
-  "Bulgarian",
-  "Burkinabe",
-  "Burmese",
-  "Burundian",
-  "Cambodian",
-  "Cameroonian",
-  "Canadian",
-  "Cape Verdean",
-  "Central African",
-  "Chadian",
-  "Chilean",
-  "Chinese",
-  "Colombian",
-  "Comoran",
-  "Congolese",
-  "Costa Rican",
-  "Croatian",
-  "Cuban",
-  "Cypriot",
-  "Czech",
-  "Danish",
-  "Djibouti",
-  "Dominican",
-  "Dutch",
-  "East Timorese",
-  "Ecuadorean",
-  "Egyptian",
-  "Emirian",
-  "Equatorial Guinean",
-  "Eritrean",
-  "Estonian",
-  "Ethiopian",
-  "Fijian",
-  "Filipino",
-  "Finnish",
-  "French",
-  "Gabonese",
-  "Gambian",
-  "Georgian",
-  "German",
-  "Ghanaian",
-  "Greek",
-  "Grenadian",
-  "Guatemalan",
-  "Guinea-Bissauan",
-  "Guinean",
-  "Guyanese",
-  "Haitian",
-  "Herzegovinian",
-  "Honduran",
-  "Hungarian",
-  "I-Kiribati",
-  "Icelander",
-  "Indian",
-  "Indonesian",
-  "Iranian",
-  "Iraqi",
-  "Irish",
-  "Israeli",
-  "Italian",
-  "Ivorian",
-  "Jamaican",
-  "Japanese",
-  "Jordanian",
-  "Kazakhstani",
-  "Kenyan",
-  "Kittitian",
-  "Kuwaiti",
-  "Kyrgyz",
-  "Laotian",
-  "Latvian",
-  "Lebanese",
-  "Liberian",
-  "Libyan",
-  "Liechtensteiner",
-  "Lithuanian",
-  "Luxembourger",
-  "Macedonian",
-  "Malagasy",
-  "Malawian",
-  "Malaysian",
-  "Maldivian",
-  "Malian",
-  "Maltese",
-  "Marshallese",
-  "Mauritanian",
-  "Mauritian",
-  "Mexican",
-  "Micronesian",
-  "Moldovan",
-  "Monacan",
-  "Mongolian",
-  "Moroccan",
-  "Mosotho",
-  "Motswana",
-  "Mozambican",
-  "Namibian",
-  "Nauruan",
-  "Nepalese",
-  "New Zealander",
-  "Nicaraguan",
-  "Nigerian",
-  "Nigerien",
-  "North Korean",
-  "Northern Irish",
-  "Norwegian",
-  "Omani",
-  "Pakistani",
-  "Palauan",
-  "Panamanian",
-  "Papua New Guinean",
-  "Paraguayan",
-  "Peruvian",
-  "Polish",
-  "Portuguese",
-  "Qatari",
-  "Romanian",
-  "Russian",
-  "Rwandan",
-  "Saint Lucian",
-  "Salvadoran",
-  "Samoan",
-  "San Marinese",
-  "Sao Tomean",
-  "Saudi",
-  "Scottish",
-  "Senegalese",
-  "Serbian",
-  "Seychellois",
-  "Sierra Leonean",
-  "Singaporean",
-  "Slovakian",
-  "Slovenian",
-  "Solomon Islander",
-  "Somali",
-  "South African",
-  "South Korean",
-  "Spanish",
-  "Sri Lankan",
-  "Sudanese",
-  "Surinamer",
-  "Swazi",
-  "Swedish",
-  "Swiss",
-  "Syrian",
-  "Taiwanese",
-  "Tajik",
-  "Tanzanian",
-  "Thai",
-  "Togolese",
-  "Tongan",
-  "Trinidadian or Tobagonian",
-  "Tunisian",
-  "Turkish",
-  "Tuvaluan",
-  "Ugandan",
-  "Ukrainian",
-  "Uruguayan",
-  "Uzbekistani",
-  "Venezuelan",
-  "Vietnamese",
-  "Welsh",
-  "Yemenite",
-  "Zambian",
-  "Zimbabwean",
-].map((n) => ({ value: n, label: n }));
 
 const AdmitPatient = ({
   isOpen,
@@ -244,6 +49,7 @@ const AdmitPatient = ({
   const [selectedReferral, setSelectedReferral] = useState(null);
   const [selectedNationality, setSelectedNationality] = useState(null);
   const [icdOptions, setIcdOptions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const toggle = () =>
     dispatch(admitDischargePatient({ data: null, isOpen: "" }));
@@ -262,6 +68,7 @@ const AdmitPatient = ({
       email: patient ? patient.email : "",
       dateOfBirth,
       gender: patient ? patient.gender : "",
+      aadhaarCardNumber: patient ? patient.aadhaarCardNumber : "",
       address: patient ? patient.address : "",
       nationality: patient ? patient.nationality || "" : "",
       //guardian
@@ -303,6 +110,12 @@ const AdmitPatient = ({
         .notRequired(),
       dateOfBirth: Yup.string().required("Please select Date of birth"),
       gender: Yup.string().required("Please select Gender"),
+      aadhaarCardNumber: Yup.string()
+        .required("Aadhaar Card Number is required")
+        .matches(
+          /^[0-9]{12}$/,
+          "Aadhaar Card Number must be exactly 12 digits",
+        ),
       address: Yup.string().required("Please select Address"),
       nationality: Yup.string().required("Please select Nationality"),
       guardianName: Yup.string().required("Please select Guardian Name"),
@@ -335,12 +148,21 @@ const AdmitPatient = ({
       //   .required("Please select Provisional Diagnosis"),
       Ipdnum: Yup.string().required("Please Wait for Ipd file number"),
     }),
-    onSubmit: (values) => {
-      if (data) dispatch(editAdmission(values));
-      else dispatch(admitIpdPatient(values));
-
-      validation.resetForm();
-      toggle();
+    onSubmit: async (values) => {
+      try {
+        setSubmitting(true);
+        if (data) {
+          await dispatch(editAdmission(values)).unwrap();
+        } else {
+          await dispatch(admitIpdPatient(values)).unwrap();
+        }
+        validation.resetForm();
+        toggle();
+      } catch {
+        // Error alert already shown by the thunk — modal stays open
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
@@ -473,6 +295,12 @@ const AdmitPatient = ({
       name: "gender",
       type: "radio",
       options: ["MALE", "FEMALE", "OTHERS"],
+    },
+    {
+      label: "Aadhaar Card Number",
+      name: "aadhaarCardNumber",
+      type: "text",
+      required: true,
     },
     {
       label: "Address",
@@ -678,6 +506,9 @@ const AdmitPatient = ({
                   value: ref._id,
                   label: ref.doctorName,
                 })),
+                { value: "psychiatrist", label: "Psychiatrist" },
+                { value: "doctor", label: "Doctor" },
+                { value: "online", label: "Online" },
                 { value: "other", label: "Other" },
               ]}
               placeholder="Select or search for a referral doctor"
@@ -969,12 +800,13 @@ const AdmitPatient = ({
         />
       </Row>
       <div className="d-flex justify-content-between mt-3">
-        <Button size="sm" color="secondary" onClick={() => setStep(1)}>
+        <Button size="sm" color="secondary" disabled={submitting} onClick={() => setStep(1)}>
           Back
         </Button>
         <Button
           size="sm"
           type="submit"
+          disabled={submitting}
           onClick={(e) => {
             e.preventDefault();
 
@@ -1044,7 +876,7 @@ const AdmitPatient = ({
             validation.handleSubmit();
           }}
         >
-          Save
+          {submitting ? <Spinner size="sm" /> : "Save"}
         </Button>
       </div>
     </>

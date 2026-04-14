@@ -131,10 +131,6 @@ export const addPatient = createAsyncThunk(
         setAlert({ type: "success", message: "Patient Saved Successfully" })
       );
 
-      dispatch(
-        togglePatientForm({ data: null, leadData: null, isOpen: false })
-      );
-
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
