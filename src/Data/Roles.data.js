@@ -361,6 +361,8 @@ export const permissionList = [
       // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
       { name: "RAISE_TICKET", label: "Raise Ticket" },
       { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
+      { name: "HR_ISSUES", label: "HR Issues" },
+      { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
       // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
