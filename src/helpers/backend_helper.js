@@ -1774,6 +1774,13 @@ export const searchPharmacyMedicines = (params = {}) => {
   });
 };
 
+export const getPharmacyStockByIds = (ids, centerId) => {
+  return api.get(url.PHARMACY_STOCK_BY_IDS, {
+    params: { ids: ids.join(","), centerId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const reviewInternalTransferRequisition = (id, data) => {
   return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/review`, data, {
     headers: {

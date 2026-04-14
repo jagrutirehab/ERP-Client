@@ -18,6 +18,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { getPharmacyStockByIds } from "../../../../../helpers/backend_helper";
 import {
     submitInternalTransferRequisition,
     editInternalTransferRequisition,
@@ -130,24 +131,48 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                     setFulfillingCenter({ value: fulCenter._id, label: fulCenter.title || "Unknown Center" });
                 }
 
-                setItems(
-                    (req.items || []).map((item) => {
-                        const pharm = item.pharmacyId || {};
-                        return {
-                            pharmacyId: pharm._id || item.pharmacyId,
-                            customId: pharm.id || "—",
-                            medicineName: str(pharm.medicineName) || str(item.medicineName),
-                            type: str(pharm.medicineId?.type),
-                            strength: str(pharm.Strength) || str(pharm.strength) || str(item.strength),
-                            unit: str(pharm.unitType) || str(pharm.unit) || str(item.unit),
-                            genericName: str(pharm.medicineId?.genericName),
-                            brandName: str(pharm.medicineId?.brandName) || str(pharm.medicineId?.name),
-                            availableStock: null, // not included in GET projection; re-search to see live stock
-                            requestedQty: item.requestedQty || 1,
-                            itemRemarks: item.itemRemarks || "",
-                        };
-                    })
-                );
+                const mappedItems = (req.items || []).map((item) => {
+                    const pharm = item.pharmacyId || {};
+                    return {
+                        pharmacyId: String(pharm._id || item.pharmacyId),
+                        customId: pharm.id || "—",
+                        medicineName: str(pharm.medicineName) || str(item.medicineName),
+                        type: str(pharm.medicineId?.type),
+                        strength: str(pharm.Strength) || str(pharm.strength) || str(item.strength),
+                        unit: str(pharm.unitType) || str(pharm.unit) || str(item.unit),
+                        genericName: str(pharm.medicineId?.genericName),
+                        brandName: str(pharm.medicineId?.brandName) || str(pharm.medicineId?.name),
+                        availableStock: null,
+                        requestedQty: item.requestedQty || 1,
+                        itemRemarks: item.itemRemarks || "",
+                    };
+                });
+
+                setItems(mappedItems);
+
+                // Fetch live stock for all pre-loaded items from the fulfilling center
+                const fulCenterId = fulCenter?._id || (typeof fulCenter === "string" ? fulCenter : null);
+                const pharmacyIds = mappedItems.map((i) => i.pharmacyId).filter(Boolean);
+                if (pharmacyIds.length > 0 && fulCenterId) {
+                    getPharmacyStockByIds(pharmacyIds, fulCenterId)
+                        .then((res) => {
+                            const stockMap = {};
+                            (res?.data || []).forEach(({ pharmacyId, stock }) => {
+                                stockMap[String(pharmacyId)] = stock;
+                            });
+                            setItems((prev) =>
+                                prev.map((item) => ({
+                                    ...item,
+                                    availableStock: stockMap[item.pharmacyId] ?? 0,
+                                    // clamp requestedQty to available stock
+                                    requestedQty: stockMap[item.pharmacyId] !== undefined
+                                        ? Math.min(item.requestedQty, Math.max(1, stockMap[item.pharmacyId]))
+                                        : item.requestedQty,
+                                }))
+                            );
+                        })
+                        .catch(() => {}); // silently fail — UI still works with null stock
+                }
             })
             .catch((error) => {
                 if (!handleAuthError(error)) {
