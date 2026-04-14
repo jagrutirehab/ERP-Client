@@ -193,12 +193,28 @@ const AdmitPatient = ({
   useEffect(() => {
     // Initialize selectedReferral and isOtherReferral based on patient data
     if (patient?.referredBy && referrals?.length) {
+      const doctorName =
+        typeof patient.referredBy === "string"
+          ? patient.referredBy
+          : patient.referredBy?.doctorName || "";
+
+      // Check if it matches an existing referral from the DB
       const referralMatch = referrals.find(
         (ref) =>
           ref._id === patient.referredBy.id ||
-          ref.doctorName === patient.referredBy.doctorName ||
-          ref.doctorName === patient.referredBy,
+          ref.doctorName === doctorName,
       );
+
+      // Check if it matches a static option
+      const STATIC_OPTIONS = [
+        { value: "psychiatrist", label: "Psychiatrist" },
+        { value: "doctor", label: "Doctor" },
+        { value: "online", label: "Online" },
+      ];
+      const staticMatch = STATIC_OPTIONS.find(
+        (opt) => opt.value === doctorName,
+      );
+
       if (referralMatch) {
         setSelectedReferral({
           value: referralMatch._id,
@@ -206,15 +222,14 @@ const AdmitPatient = ({
         });
         setIsOtherReferral(false);
         validation.setFieldValue("referredBy", referralMatch._id);
+      } else if (staticMatch) {
+        setSelectedReferral(staticMatch);
+        setIsOtherReferral(false);
+        validation.setFieldValue("referredBy", staticMatch.value);
       } else {
-        // If not found in referrals, treat as "Other"
+        // If not found in referrals or static options, treat as "Other"
         setSelectedReferral({ value: "other", label: "Other" });
         setIsOtherReferral(true);
-        // Ensure the field value is a string (doctor name), not an object
-        const doctorName =
-          typeof patient.referredBy === "string"
-            ? patient.referredBy
-            : patient.referredBy?.doctorName || "";
         validation.setFieldValue("referredBy", doctorName);
       }
     }
