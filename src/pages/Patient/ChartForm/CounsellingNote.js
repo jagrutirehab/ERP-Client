@@ -860,7 +860,7 @@ const CounsellingNote = ({
           </Col>
         )}
 
-        {!editCounsellingNote && (
+        {/* {!editCounsellingNote && (
           <Col xs={12} className="mt-3">
             <h5>Upload Audio File</h5>
             <Input
@@ -884,6 +884,54 @@ const CounsellingNote = ({
                   console.log({ isAudio, ext, allowed: allowedExt.includes(ext) });
 
                   if (!isAudio || !allowedExt.includes(ext)) {
+                    alert("Only valid audio files allowed");
+                    e.target.value = null;
+                    return
+                  }
+
+                  const audioFile = new File([file], file.name, {
+                    type: file.type || `audio/${ext}`,
+                  });
+                  setUploadedAudio(audioFile);
+                  setAudioFile(null);
+                  setIsRecording("uploaded")
+                }
+              }}
+            />
+            {uploadedAudio && (
+              <p className="text-success">
+                Uploaded: {uploadedAudio.name}
+              </p>
+            )}
+          </Col>
+        )} */}
+
+        {!editCounsellingNote && (
+          <Col xs={12} className="mt-3">
+            <h5>Upload Audio File</h5>
+            <Input
+              type="file"
+              // accept="audio/*"
+              accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  console.log("file.type ", file.type);
+                  console.log("file", file);
+
+
+                  const ext = file.name.split(".").pop().toLowerCase().trim();;
+
+                  const allowedExt = ["mp3", "wav", "webm", "ogg", "aac", "mpeg", "m4a"];
+
+                  const isAudio =
+                    file.type.startsWith("audio/") ||
+                    (file.type === "video/webm" && ext === "webm") ||
+                    (file.type === "" && allowedExt.includes(ext));
+
+                  console.log({ isAudio, ext, allowed: allowedExt.includes(ext) });
+
+                  if (!isAudio && !allowedExt.includes(ext)) {
                     alert("Only valid audio files allowed");
                     e.target.value = null;
                     return
