@@ -74,7 +74,7 @@ const PANSSResultComponent = ({ resultData }) => {
     };
 
     return (
-        <div className="">
+        <div>
             <div className="p-4 bg-light border border-primary rounded shadow-lg">
                 <h2 className="h5 h4-sm fw-semibold text-primary mb-3">
                     <i className="fas fa-chart-line me-2 text-primary"></i>
