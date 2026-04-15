@@ -166,7 +166,11 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
                 defaultValue={
                   age && patient?.gender
                     ? `${age} / ${patient.gender}`
-                    : age || ""
+                    : age
+                      ? `${age}`
+                      : patient?.gender
+                        ? `${patient.gender}`
+                        : ""
                 }
                 {...register("Emergency_Admission_ageGender")}
                 style={{
