@@ -279,6 +279,15 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
         <span>Provisional Diagnosis: </span>
         <input
           type="text"
+          defaultValue={
+            patient?.addmission?.provisional_diagnosis?.length
+              ? patient.addmission.provisional_diagnosis
+                  .map((d) => d.code)
+                  .join(", ")
+              : patient?.addmission?.provisionalDiagnosis ||
+                patient?.provisionalDiagnosis ||
+                ""
+          }
           {...register("Emergency_Admission_provisionalDiagnosis")}
           style={{
             fontWeight: "bold",
