@@ -199,7 +199,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
-                defaultValue={patient?.phone}
+                defaultValue={patient?.phoneNumber}
                 {...register("Emergency_Admission_contact")}
                 style={{
                   fontWeight: "bold",
@@ -232,7 +232,9 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
               <input
                 type="datetime-local"
                 defaultValue={
-                  today ? `${today}T${new Date().toTimeString().slice(0, 5)}` : ""
+                  today
+                    ? `${today}T${new Date().toTimeString().slice(0, 5)}`
+                    : ""
                 }
                 {...register("Emergency_Admission_dateTime")}
                 style={{
