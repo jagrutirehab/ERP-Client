@@ -1,5 +1,25 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 
+const panssScoreToAnswer = {
+    1: "Absent",
+    2: "Minimal",
+    3: "Mild",
+    4: "Moderate",
+    5: "Moderate Severe",
+    6: "Severe",
+    7: "Extreme",
+};
+
+const scoreBadgeClass = {
+    1: "success",
+    2: "success",
+    3: "info",
+    4: "warning",
+    5: "warning",
+    6: "danger",
+    7: "danger",
+};
+
 const PANSSResultComponent = ({ resultData }) => {
     const {
         systemTotalScore,
@@ -10,7 +30,8 @@ const PANSSResultComponent = ({ resultData }) => {
         Negative,
         General,
         Composite,
-        severity
+        severity,
+        questions,
     } = resultData;
 
     const formatRecommendations = (text) => {
@@ -110,6 +131,41 @@ const PANSSResultComponent = ({ resultData }) => {
                         {observation || "No observations recorded."}
                     </p>
                 </div>
+
+                {questions && questions.length > 0 && (
+                    <div className="mt-4">
+                        <p className="fw-bold text-primary mb-3 border-bottom pb-2">
+                            <i className="fas fa-list-ol me-2"></i>
+                            Questions & Answers
+                        </p>
+                        <div className="table-responsive">
+                            <table className="table table-bordered table-hover align-middle">
+                                <thead className="table-primary">
+                                    <tr>
+                                        <th style={{ width: "40px" }}>#</th>
+                                        <th>Question</th>
+                                        <th style={{ width: "160px" }} className="text-center">Answer</th>
+                                        <th style={{ width: "80px" }} className="text-center">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {questions.map((q, idx) => (
+                                        <tr key={idx} style={{ borderBottom: "6px solid #f8f9fa" }}>
+                                            <td className="text-muted fw-semibold">{idx + 1}</td>
+                                            <td className="text-dark" style={{ fontSize: "0.875rem" }}>{q.question}</td>
+                                            <td className="text-center">
+                                                <span className={`badge bg-${scoreBadgeClass[q.score] || "secondary"} px-2 py-1`} style={{ fontSize: "0.8rem" }}>
+                                                    {panssScoreToAnswer[q.score] || q.score}
+                                                </span>
+                                            </td>
+                                            <td className="text-center fw-bold">{q.score} / 7</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
