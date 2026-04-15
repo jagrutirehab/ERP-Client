@@ -148,7 +148,7 @@ const AudioRecorder = ({ onReady }) => {
   //   if (onReady) onReady(file);
   // };
 
-const buildAndSendFile = () => {
+  const buildAndSendFile = () => {
     if (audioChunksRef.current.length === 0) return null;
 
     const mimeType = mimeTypeRef.current || "audio/mp4";
@@ -161,7 +161,7 @@ const buildAndSendFile = () => {
     setPreviewUrl(url);
 
     return file;
-};
+  };
 
   const drawVisualizer = () => {
     const canvas = canvasRef.current;

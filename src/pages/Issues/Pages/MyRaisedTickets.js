@@ -16,17 +16,20 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { MyRaisedTicketsColumns } from "../Columns/MyRaisedTickets";
 
-const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
+const issueTypes = ["TECH", "HR"];
+// "PURCHASE", "REVIEW_SUBMISSION"
 
 const statuses = [
+    "new",
     "assigned",
     "in_progress",
     "on_hold",
     "pending_user",
     "pending_release",
     "resolved",
-    // "closed",
 ];
+
+
 
 const MyRaisedTickets = () => {
     const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -87,7 +90,7 @@ const MyRaisedTickets = () => {
 
             const response = await getRaisedIssues({
                 ...params,
-               issueType : type,
+                issueType: type,
             });
 
 
@@ -174,10 +177,24 @@ const MyRaisedTickets = () => {
         label: t,
     }));
 
-    const statusOptions = statuses.map((s) => ({
+    // const statusOptions = statuses.map((s) => ({
+    //     value: s,
+    //     label: normalizeStatus(s),
+    // }));
+
+    const finalStatuses =
+        type === "HR"
+            ? [...statuses, "rejected"]
+            : statuses;
+
+    const statusOptions = finalStatuses.map((s) => ({
         value: s,
         label: normalizeStatus(s),
     }));
+
+
+
+
 
 
     return (
@@ -209,7 +226,7 @@ const MyRaisedTickets = () => {
                         value={issueTypeOptions.find((o) => o.value === type)}
                         onChange={(selected) => setType(selected.value)}
                         styles={{ container: (base) => ({ ...base, width: 200 }) }}
-                        isDisabled={true}
+                    // isDisabled={true}
                     />
 
                     {/* Status */}

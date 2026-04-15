@@ -1,49 +1,112 @@
 import { useEffect, useState } from "react";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
-import { Row, Nav, NavItem, NavLink, Badge, Collapse } from "reactstrap";
+import { Row, Nav, NavItem, NavLink, Badge } from "reactstrap";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getMedicineActivitiesByStatus, getTodayCompletedActiveMedicines } from "../../../store/features/nurse/nurseSlice";
+import {
+  getMedicineActivitiesByStatus,
+  getPatientPrescriptionHistory,
+} from "../../../store/features/nurse/nurseSlice";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
 import {
-  CheckCircle,
-  Clock,
   CheckCheck,
-  ChevronDown,
-  ChevronUp,
-  Calendar,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import ActivityCard from "./Components/ActivityCard";
+import moment from "moment";
+import Select from "react-select";
+
+const LIMIT = 10;
 
 const Activities = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const { medicineLoading, medicines } = useSelector((state) => state.Nurse);
+  const { medicineLoading, medicines, prescriptionHistory, loading } =
+    useSelector((state) => state.Nurse);
   const [activeTab, setActiveTab] = useState("COMPLETED");
+  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState("");
+  const [page, setPage] = useState(1);
 
   const toggle = (tab) => {
-    if (activeTab !== tab) setActiveTab(tab);
+    if (activeTab !== tab) {
+      setActiveTab(tab);
+      setPage(1);
+    }
   };
 
+  // Fetch prescription history on mount
   useEffect(() => {
     if (!id || id === "*") return;
-    if (activeTab === "COMPLETED") {
-      dispatch(
-        getMedicineActivitiesByStatus({ patientId: id, status: "completed" })
-      );
-    } else if (activeTab === "MISSED") {
-      dispatch(
-        getMedicineActivitiesByStatus({ patientId: id, status: "missed" })
-      );
+    dispatch(getPatientPrescriptionHistory(id));
+  }, [id, dispatch]);
+
+  // Build react-select options with "Prescription 1", "Prescription 2" labels
+  const prescriptionOptions = prescriptionHistory?.map((p, index) => ({
+    value: p.prescriptionId,
+    label: `Prescription ${prescriptionHistory.length - index} — ${moment(p.startDate).format("DD MMM YYYY")} → ${moment(p.endDate).format("DD MMM YYYY")}`,
+  })) || [];
+
+  // Auto-select first prescription when history loads
+  useEffect(() => {
+    if (prescriptionHistory?.length > 0 && !selectedPrescriptionId) {
+      setSelectedPrescriptionId(prescriptionHistory[0].prescriptionId);
     }
-  }, [activeTab, id, dispatch]);
+  }, [prescriptionHistory]);
+
+  // Fetch activities whenever tab, prescription, or page changes
+  useEffect(() => {
+    if (!id || id === "*" || !selectedPrescriptionId) return;
+    dispatch(
+      getMedicineActivitiesByStatus({
+        patientId: id,
+        prescriptionId: selectedPrescriptionId,
+        status: activeTab === "COMPLETED" ? "completed" : "missed",
+        page,
+        limit: LIMIT,
+      })
+    );
+  }, [activeTab, id, selectedPrescriptionId, page, dispatch]);
+
+  const pagination = medicines?.activities?.pagination || {};
+  const totalPages = pagination.totalPages || 1;
+
+  const handlePrescriptionChange = (option) => {
+    setSelectedPrescriptionId(option?.value || "");
+    setPage(1);
+  };
 
   return (
     <div>
       <Row className="timeline-right" style={{ rowGap: "2rem" }}>
         <GeneralCard data="Daily Medication Record">
           <div style={{ padding: "1rem" }}>
+            {/* Prescription selector */}
+            <div className="mb-3">
+              <label className="form-label fw-semibold small text-muted mb-1">
+                Select Prescription
+              </label>
+              {loading ? (
+                <div className="text-muted small">Loading prescriptions…</div>
+              ) : prescriptionHistory?.length > 0 ? (
+                <Select
+                  options={prescriptionOptions}
+                  value={prescriptionOptions.find(
+                    (o) => o.value === selectedPrescriptionId
+                  ) || null}
+                  onChange={handlePrescriptionChange}
+                  placeholder="Select a prescription…"
+                  isSearchable={false}
+                  styles={{ container: (base) => ({ ...base, maxWidth: 480 }) }}
+                />
+              ) : (
+                <div className="text-muted small">
+                  No prescription history found
+                </div>
+              )}
+            </div>
+
             <Nav tabs className="mb-4">
               <NavItem>
                 <NavLink
@@ -57,7 +120,7 @@ const Activities = () => {
                     Completed
                   </div>
                 </NavLink>
-              </NavItem>{" "}
+              </NavItem>
               <NavItem>
                 <NavLink
                   className={`cursor-pointer ${
@@ -66,7 +129,7 @@ const Activities = () => {
                   onClick={() => toggle("MISSED")}
                 >
                   <div className="d-flex align-items-center gap-2">
-                    <XCircle size={16} className="text-danger"/>
+                    <XCircle size={16} className="text-danger" />
                     Missed
                   </div>
                 </NavLink>
@@ -75,122 +138,42 @@ const Activities = () => {
 
             {medicineLoading ? (
               <Placeholder />
-            ) : // : activeTab === "PENDING" ?
-            //  (
-            //   medicines?.pending?.length > 0 ? (
-            //     <div className="space-y-3">
-            //       {medicines?.pending.map((med) => (
-            //         <div
-            //           key={med?._id}
-            //           className="border rounded-lg p-3 bg-white shadow-sm"
-            //         >
-            //           <div className="d-flex justify-content-between align-items-start">
-            //             <div className="flex-grow-1">
-            //               <h6 className="fw-bold text-dark mb-1">
-            //                 {med?.medicineName}
-            //               </h6>
-
-            //               <small className="text-muted d-flex flex-wrap align-items-center gap-2">
-            //                 <span>
-            //                   <strong>Dosage:</strong> x{med?.dosage}
-            //                 </span>
-            //                 <span>
-            //                   <strong>Intake:</strong> {med?.intake}
-            //                 </span>
-            //                 <span>
-            //                   <strong>Time:</strong>
-            //                   <Badge
-            //                     color="light"
-            //                     className="ms-1 border text-primary"
-            //                     style={{
-            //                       fontSize: "0.6rem",
-            //                       fontWeight: "600",
-            //                       padding: "0.15rem 0.4rem",
-            //                     }}
-            //                   >
-            //                     {med?.timeSlot?.toUpperCase() || ""}
-            //                   </Badge>
-            //                 </span>
-            //               </small>
-
-            //               {med.instructions && (
-            //                 <div className="mt-2 p-2 bg-light border rounded">
-            //                   <small className="text-muted">
-            //                     <strong>Note:</strong> {med.instructions}
-            //                   </small>
-            //                 </div>
-            //               )}
-            //             </div>
-
-            //             <Button
-            //               color="success"
-            //               size="sm"
-            //               className="ms-3 d-flex align-items-center gap-1 text-white"
-            //               onClick={() =>
-            //                 handleMarkAsGiven({
-            //                   medicineId: med._id,
-            //                   timeSlot: med.timeSlot,
-            //                 })
-            //               }
-            //               disabled={markingId === med._id}
-            //             >
-            //               {markingId === med._id ? (
-            //                 <Spinner size="sm">Loading...</Spinner>
-            //               ) : (
-            //                 <CheckCircle size={16} />
-            //               )}
-            //               Mark Given
-            //             </Button>
-            //           </div>
-            //         </div>
-            //       ))}
-            //     </div>
-            //   ) : (
-            //     <div className="text-center py-4">
-            //       <CheckCircle
-            //         size={48}
-            //         className="text-success mb-2 opacity-75"
-            //       />
-            //       <h6 className="text-muted">No pending medications</h6>
-            //       <p className="text-muted small">
-            //         All medications have been administered
-            //       </p>
-            //     </div>
-            //   )
-            // )
-            activeTab === "COMPLETED" ? (
-              <ActivityCard medicines={medicines} status={"completed"} />
+            ) : activeTab === "COMPLETED" ? (
+              <ActivityCard medicines={medicines} status="completed" />
             ) : (
-              <ActivityCard medicines={medicines} status={"missed"} />
+              <ActivityCard medicines={medicines} status="missed" />
+            )}
+
+            {/* Pagination */}
+            {!medicineLoading && totalPages > 1 && (
+              <div className="d-flex justify-content-between align-items-center mt-4">
+                <small className="text-muted">
+                  Page {pagination.page} of {totalPages} &nbsp;·&nbsp; Total:{" "}
+                  {pagination.total} date(s)
+                </small>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => p - 1)}
+                  >
+                    <ChevronLeft size={14} /> Prev
+                  </button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Next <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </GeneralCard>
       </Row>
 
       <style jsx>{`
-        .spinner-border {
-          width: 1rem;
-          height: 1rem;
-          border: 2px solid currentColor;
-          border-right-color: transparent;
-          border-radius: 50%;
-          animation: spinner-border 0.75s linear infinite;
-        }
-
-        @keyframes spinner-border {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .space-y-3 > * + * {
-          margin-top: 0.75rem;
-        }
-
-        .space-y-4 > * + * {
-          margin-top: 1rem;
-        }
-
         .nav-tabs .nav-link.active {
           background-color: #fff;
           border-color: #dee2e6 #dee2e6 #fff;
@@ -213,6 +196,14 @@ const Activities = () => {
 
         .cursor-pointer {
           cursor: pointer;
+        }
+
+        .space-y-3 > * + * {
+          margin-top: 0.75rem;
+        }
+
+        .space-y-4 > * + * {
+          margin-top: 1rem;
         }
       `}</style>
     </div>

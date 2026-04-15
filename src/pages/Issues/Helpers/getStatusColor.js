@@ -8,7 +8,9 @@ export const getStatusColor = (status) => {
     pending_release: "warning",
     resolved: "success",
     closed: "secondary",
-    approved: "success"
+    approved: "success",
+    pending : "warning",
+    rejected : "danger"
   };
 
   return statusColors[status] || "light";

@@ -159,7 +159,7 @@ export const Issues = (
 
     ),
 
-    ...(status !== "new"
+    ...(status !== "new" && status !== "rejected"
       ? [{
         name: <div className="text-center">Assigned To</div>,
         width: "160px",
@@ -230,6 +230,24 @@ export const Issues = (
         );
       },
     },
+    ...(type === "HR" ? [
+      {
+        name: <div className="text-center">Manager's Approval</div>,
+        width: "180px",
+        // center: true,
+        cell: (row) => {
+          const status = row?.hrIssue?.status;
+          console.log("row", row);
+
+
+          return (
+            <Badge color={getStatusColor(status)} pill>
+              {status?.replaceAll("_", " ") || "-"}
+            </Badge>
+          );
+        },
+      },
+    ] : []),
     {
       name: <div className="text-center">Raised on</div>,
       selector: (row) => normalizeDates(row?.createdAt) || "-",
@@ -237,7 +255,7 @@ export const Issues = (
       width: "180px",
     },
 
-    ...(status === "new" && canEdit
+    ...(status === "new" && type !== "HR" && canEdit
       ? [{
         name: <div className="text-center">Assign</div>,
         width: "140px",
@@ -252,7 +270,7 @@ export const Issues = (
       }]
       : []),
 
-    ...(status === "resolved" && canEdit
+    ...((status === "resolved" && type !== "HR") && canEdit
       ? [
         {
           name: <div className="text-center">Approval</div>,

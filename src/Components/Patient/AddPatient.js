@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-import { Form, Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
+import { Form, Row, Col, Label, Input, FormFeedback, Button, Spinner } from "reactstrap";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -50,6 +50,7 @@ const AddPatient = ({
   const cropperRef = useRef(null);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const editData = patient.data;
   const leadData = patient.leadData;
@@ -87,8 +88,6 @@ const AddPatient = ({
       ? leadData.location?.[0]?._id
       : "";
 
-  console.log({ leadData });
-
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -117,11 +116,9 @@ const AddPatient = ({
       dateOfAddmission: editData?.dateOfAddmission
         ? format(new Date(editData.dateOfAddmission), "yyyy-MM-dd")
         : "",
-      referredBy: editData
-        ? editData.referredBy
-        : leadData
-          ? leadData.refferedBy
-          : "",
+      referredBy: editData?.referredBy?.doctorName
+        ? editData.referredBy.doctorName
+        : leadData?.refferedBy || "",
       referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
@@ -166,7 +163,7 @@ const AddPatient = ({
         ),
     }),
 
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const formData = convertToFormDataPatient(values);
       if (values.aadhaarCard?.file instanceof Blob) {
         formData.append("aadhaarCard", values.aadhaarCard.file);
@@ -174,32 +171,34 @@ const AddPatient = ({
       if (values.profilePicture instanceof Blob) {
         formData.append("profilePicture", values.profilePicture);
       }
-      if (editData) {
-        formData.append("editId", editData?._id);
-        if (!(values.profilePicture instanceof Blob))
-          formData.delete("profilePicture");
-        if (!(values.aadhaarCard?.file instanceof Blob))
-          formData.delete("aadhaarCard");
-        dispatch(updatePatient(formData));
+
+      try {
+        setSubmitting(true);
+        if (editData) {
+          formData.append("editId", editData?._id);
+          if (!(values.profilePicture instanceof Blob))
+            formData.delete("profilePicture");
+          if (!(values.aadhaarCard?.file instanceof Blob))
+            formData.delete("aadhaarCard");
+          await dispatch(updatePatient(formData)).unwrap();
+        } else if (leadData) {
+          formData.append("lead", leadData._id);
+          formData.append("leadOrigin", leadData.leadOrigin);
+          formData.append("leadQuery", JSON.stringify(leadData.leadQuery));
+          formData.append("centerAccess", JSON.stringify(leadData.centerAccess));
+          formData.append("grouped", JSON.stringify(leadData.grouped));
+          formData.append("date", JSON.stringify(leadData.date));
+          await dispatch(addLeadPatient(formData)).unwrap();
+        } else {
+          await dispatch(addPatient(formData)).unwrap();
+        }
         dispatch(
           togglePatientForm({ data: null, leadData: null, isOpen: false }),
         );
-      } else if (leadData) {
-        formData.append("lead", leadData._id);
-        formData.append("leadOrigin", leadData.leadOrigin);
-        formData.append("leadQuery", JSON.stringify(leadData.leadQuery));
-        formData.append("centerAccess", JSON.stringify(leadData.centerAccess));
-        formData.append("grouped", JSON.stringify(leadData.grouped));
-        formData.append("date", JSON.stringify(leadData.date));
-        dispatch(addLeadPatient(formData));
-        dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false }),
-        );
-      } else {
-        dispatch(addPatient(formData));
-        dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false }),
-        );
+      } catch {
+        // Error alert already shown by the thunk — modal stays open
+      } finally {
+        setSubmitting(false);
       }
     },
   });
@@ -236,11 +235,28 @@ const AddPatient = ({
   useEffect(() => {
     // Initialize selectedReferral and isOtherReferral based on editData
     if (editData?.referredBy && referrals?.length) {
+      const doctorName =
+        typeof editData.referredBy === "string"
+          ? editData.referredBy
+          : editData.referredBy?.doctorName || "";
+
+      // Check if it matches an existing referral from the DB
       const referralMatch = referrals.find(
         (ref) =>
           ref._id === editData.referredBy.id ||
-          ref.doctorName === editData.referredBy.doctorName,
+          ref.doctorName === doctorName,
       );
+
+      // Check if it matches a static option
+      const STATIC_OPTIONS = [
+        { value: "psychiatrist", label: "Psychiatrist" },
+        { value: "doctor", label: "Doctor" },
+        { value: "online", label: "Online" },
+      ];
+      const staticMatch = STATIC_OPTIONS.find(
+        (opt) => opt.value === doctorName,
+      );
+
       if (referralMatch) {
         setSelectedReferral({
           value: referralMatch._id,
@@ -248,15 +264,14 @@ const AddPatient = ({
         });
         setIsOtherReferral(false);
         validation.setFieldValue("referredBy", referralMatch._id);
+      } else if (staticMatch) {
+        setSelectedReferral(staticMatch);
+        setIsOtherReferral(false);
+        validation.setFieldValue("referredBy", staticMatch.value);
       } else {
-        // If not found in referrals, treat as "Other"
+        // If not found in referrals or static options, treat as "Other"
         setSelectedReferral({ value: "other", label: "Other" });
         setIsOtherReferral(true);
-        // Ensure the field value is a string (doctor name), not an object
-        const doctorName =
-          typeof editData.referredBy === "string"
-            ? editData.referredBy
-            : editData.referredBy?.doctorName || "";
         validation.setFieldValue("referredBy", doctorName);
       }
     }
@@ -288,14 +303,6 @@ const AddPatient = ({
     setFields(fls);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
-
-  useEffect(() => {
-    if (patient?.submitSuccess) {
-      dispatch(
-        togglePatientForm({ data: null, leadData: null, isOpen: false }),
-      );
-    }
-  }, [dispatch, patient?.submitSuccess]);
 
   const toggleCropModal = () => setIsCropModalOpen(!isCropModalOpen);
 
@@ -525,6 +532,9 @@ const AddPatient = ({
                       value: ref._id,
                       label: ref.doctorName,
                     })),
+                    { value: "psychiatrist", label: "Psychiatrist" },
+                    { value: "doctor", label: "Doctor" },
+                    { value: "online", label: "Online" },
                     { value: "other", label: "Other" },
                   ]}
                   placeholder="Select or search for a referral doctor"
@@ -772,6 +782,7 @@ const AddPatient = ({
                 onClick={cancelForm}
                 size="sm"
                 color="danger"
+                disabled={submitting}
                 style={{
                   padding: "0.5rem 1.5rem", // px-6 py-2
                   borderRadius: "0.375rem", // rounded-md
@@ -795,6 +806,7 @@ const AddPatient = ({
                 type="submit"
                 size="sm"
                 color="primary"
+                disabled={submitting}
                 style={{
                   padding: "0.5rem 1.5rem", // px-6 py-2
                   borderRadius: "0.375rem", // rounded-md
@@ -812,7 +824,13 @@ const AddPatient = ({
                   (e.currentTarget.style.backgroundColor = "#2563eb")
                 }
               >
-                {editData ? "Update" : "Save"}
+                {submitting ? (
+                  <Spinner size="sm" color="light" />
+                ) : editData ? (
+                  "Update"
+                ) : (
+                  "Save"
+                )}
               </Button>
             </div>
           </Col>

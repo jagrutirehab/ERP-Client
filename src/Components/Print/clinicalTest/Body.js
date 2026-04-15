@@ -84,6 +84,16 @@ const testInfo = [
     },
 ];
 
+const panssScoreToAnswer = {
+    1: "Absent",
+    2: "Minimal",
+    3: "Mild",
+    4: "Moderate",
+    5: "Moderate Severe",
+    6: "Severe",
+    7: "Extreme",
+};
+
 const styles = StyleSheet.create({
     pageTitle: {
         textAlign: 'center',
@@ -139,6 +149,88 @@ const styles = StyleSheet.create({
     bullet: {
         marginRight: 8,
         fontSize: 16,
+    },
+    qaSection: {
+        marginTop: 12,
+    },
+    qaSectionTitle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginTop: 8,
+        marginBottom: 8,
+        textAlign: 'center',
+        textDecoration: 'underline',
+    },
+    qaTableHeader: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderColor: '#000',
+        paddingVertical: 3,
+        paddingHorizontal: 4,
+        backgroundColor: '#e8e8e8',
+    },
+    qaTableHeaderId: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        width: 30,
+    },
+    qaTableHeaderQ: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        flex: 1,
+    },
+    qaTableHeaderA: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        width: 110,
+        textAlign: 'center',
+    },
+    qaRow: {
+        flexDirection: 'row',
+        borderBottomWidth: 0.5,
+        borderColor: '#aaa',
+        paddingVertical: 5,
+        paddingHorizontal: 4,
+    },
+    qaRowAlt: {
+        flexDirection: 'row',
+        borderBottomWidth: 0.5,
+        borderColor: '#aaa',
+        paddingVertical: 5,
+        paddingHorizontal: 4,
+        backgroundColor: '#f2f2f2',
+    },
+    qaQuestionId: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        width: 30,
+    },
+    qaQuestionText: {
+        fontSize: 10,
+        flex: 1,
+        lineHeight: 1.4,
+    },
+    qaAnswerCol: {
+        width: 110,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    qaAnswerLabel: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        borderWidth: 0.5,
+        borderColor: '#000',
+        paddingVertical: 2,
+        paddingHorizontal: 4,
+        width: 100,
+    },
+    qaAnswerScore: {
+        fontSize: 8,
+        textAlign: 'center',
+        color: '#444',
+        marginTop: 2,
     },
 });
 
@@ -330,6 +422,28 @@ const Body = ({ clinicalTest, charts }) => {
                                 </View>
                             )
                         }
+                        {clinicalTest?.testType === 15 && clinicalTest?.questions?.length > 0 && (
+                            <View style={styles.qaSection}>
+                                <View style={styles.divider} />
+                                <Text style={styles.qaSectionTitle}>QUESTIONS & ANSWERS</Text>
+                                <View style={styles.qaTableHeader}>
+                                    <Text style={styles.qaTableHeaderId}>No.</Text>
+                                    <Text style={styles.qaTableHeaderQ}>QUESTION</Text>
+                                    <Text style={styles.qaTableHeaderA}>ANSWER</Text>
+                                </View>
+                                {clinicalTest.questions.map((q, idx) => (
+                                    <View key={idx} style={idx % 2 === 0 ? styles.qaRow : styles.qaRowAlt} wrap={false}>
+                                        <Text style={styles.qaQuestionId}>{idx + 1}.</Text>
+                                        <Text style={styles.qaQuestionText}>{q.question}</Text>
+                                        <View style={styles.qaAnswerCol}>
+                                            <Text style={styles.qaAnswerLabel}>{panssScoreToAnswer[q.score] || q.score}</Text>
+                                            <Text style={styles.qaAnswerScore}>Score: {q.score} / 7</Text>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+
                         <View style={{ marginTop: 16 }}>
                             <View style={styles.divider} />
                             <Text

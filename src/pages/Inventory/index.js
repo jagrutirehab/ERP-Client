@@ -8,6 +8,9 @@ import GivenMedicine from "./GivenMedicine";
 import MedicineApproval from "./MedicineApproval";
 import AuditDashboad from "./AuditDashboard";
 import NurseGivenMedicine from "./NurseGivenMedicine";
+import InternalTransfer from "./Requisition/InternalTransfer";
+import InternalTransferAddRequest from "./Requisition/InternalTransfer/AddRequest";
+import InternalTransferEditRequest from "./Requisition/InternalTransfer/EditRequest";
 
 const Pharmacy = () => {
   return (
@@ -24,6 +27,9 @@ const Pharmacy = () => {
                 <Route path={`/nurse-given-med`} element={<NurseGivenMedicine />} />
                 <Route path={`/approval`} element={<MedicineApproval />} />
                 <Route path={`/audit`} element={<AuditDashboad />} />
+                <Route path={`/requisition/internal-transfer`} element={<InternalTransfer />} />
+                <Route path={`/requisition/internal-transfer/add`} element={<InternalTransferAddRequest />} />
+                <Route path={`/requisition/internal-transfer/edit/:id`} element={<InternalTransferEditRequest />} />
               </Routes>
             </div>
           </Container>
