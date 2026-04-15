@@ -332,6 +332,7 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
+export const GET_PRESCRIPTION_HISTORY="/nurse/prescription-history";
 
 
 // alerts
@@ -423,6 +424,11 @@ export const UPLOAD_AUDIT_REPORT = "/pharmacy/audit/upload-chunk";
 export const GET_AUDIT_REPORT = "/pharmacy/audit/report";
 export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
+
+// PHARMACY REQUISITION - INTERNAL TRANSFER
+export const PHARMACY_INTERNAL_TRANSFER = "/pharmacy/requisition/internal-transfer";
+export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
+export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
 
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
@@ -591,6 +597,8 @@ export const APPROVE_ISSUE = "/issues/approval"
 export const POST_ISSUE = "/issues/post"
 export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
 export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
+export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
+export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update/approved"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";

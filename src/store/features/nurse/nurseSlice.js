@@ -14,6 +14,7 @@ import {
   getPatientOverview,
   getPatientPrescription,
   getPendingActiveMedicines,
+  getPrescriptionHistory,
   markAlertAsRead,
   markTomorrowMedicines,
 } from "../../../helpers/backend_helper";
@@ -26,9 +27,13 @@ const initialState = {
   notesLoading: false,
   medicineLoading: false,
   medicines: {
-    activities: [],
+    activities: {
+      data: [],
+      pagination: {},
+    },
     nextDay: [],
   },
+  prescriptionHistory: [],
   givenMedicines: {
     data: [],
     pagination: {},
@@ -242,6 +247,19 @@ export const getNurseGivenMedicinesList = createAsyncThunk(
     }
   }
 );
+export const getPatientPrescriptionHistory = createAsyncThunk(
+  "nurse/getPrescriptionHistory",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getPrescriptionHistory(patientId);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch prescription history");
+    }
+  }
+);
+
 export const markUnreadAlert = createAsyncThunk(
   "nurse/markAlertAsRead",
   async (data, { dispatch, rejectWithValue }) => {
@@ -456,7 +474,10 @@ export const NurseSlice = createSlice({
       .addCase(
         getMedicineActivitiesByStatus.fulfilled,
         (state, { payload }) => {
-          state.medicines.activities = payload.data;
+          state.medicines.activities = {
+            data: payload.data || [],
+            pagination: payload.pagination || {},
+          };
           state.medicineLoading = false;
         }
       )
@@ -519,6 +540,17 @@ export const NurseSlice = createSlice({
       })
       .addCase(getNurseGivenMedicinesList.rejected, (state) => {
         state.medicineLoading = false;
+      });
+    builder
+      .addCase(getPatientPrescriptionHistory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getPatientPrescriptionHistory.fulfilled, (state, { payload }) => {
+        state.prescriptionHistory = payload.payload || [];
+        state.loading = false;
+      })
+      .addCase(getPatientPrescriptionHistory.rejected, (state) => {
+        state.loading = false;
       });
     builder.addCase(markUnreadAlert.fulfilled, (state, { payload }) => {
       // const alertIndex = state.alertData.findIndex(

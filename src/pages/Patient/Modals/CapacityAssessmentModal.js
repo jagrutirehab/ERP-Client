@@ -58,6 +58,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     vulnerableAdult: false,
     managementPlan: "",
     signatures: [],
+    consultantName: "",
   });
   const capacityFormRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -67,7 +68,10 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   const dispatch = useDispatch();
 
   const loggedIn = JSON.parse(localStorage.getItem("authUser"));
+  console.log("loggedIn", loggedIn);
+
   const loggedInUserName = loggedIn?.data.name;
+  const loggedInUserDesignation = loggedIn?.data?.role
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -257,6 +261,17 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     return pdf;
   };
 
+  const formatDateTimeLocal = (date) => {
+    if (!date) return "";
+
+    const d = new Date(date);
+    const pad = (n) => (n < 10 ? "0" + n : n);
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+      d.getDate()
+    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const handlePrint = async () => {
     setIsGenerating(true);
     try {
@@ -276,17 +291,73 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     }
   };
 
-  console.log("Patient", patient);
+  console.log("patient", patient);
+
+  const formatDeepObject = (obj, parentKey = "") => {
+    if (!obj) return "";
+
+    return Object.entries(obj)
+      .flatMap(([key, value]) => {
+        const newKey = parentKey ? `${parentKey}.${key}` : key;
+
+        if (value === "" || value === null || value === undefined) return [];
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) return [];
+          return `${newKey}: ${value.join(", ")}`;
+        }
+
+        if (typeof value === "object") {
+          return formatDeepObject(value, newKey);
+        }
+
+        return `${newKey}: ${value}`;
+      })
+      .join(", ");
+  };
+
+  const me = patient?.detailAdmission?.mentalExaminationV2;
+
+
+
   useEffect(() => {
     if (patient?.name) {
+      const age = patient?.age || "";
+      const sex = patient?.gender || "";
+      const admission = patient?.addmission?.addmissionDate || ""
+      const consultant = patient?.psychologistData?.name || "";
+      const me = patient?.detailAdmission?.mentalExaminationV2;
       setFormData((prev) => ({
         ...prev,
         patientName: patient.name,
-        assessedBy: loggedInUserName || "",
+        assessedBy: `${loggedInUserName} - ${loggedInUserDesignation}` || "",
         uhidIpdNo:
           patient?.id?.prefix && patient?.id?.value
             ? `${patient.id.prefix}${patient.id.value}`
             : "",
+        ageSex: age && sex ? `${age} / ${sex}` : "",
+        assessmentDateTime: formatDateTimeLocal(admission),
+        nominatedRepresentativeInformed: patient?.guardianName ? "Yes" : "",
+        representativeName: patient?.guardianName || "",
+        relationship: patient?.guardianRelation || "",
+        consultantName: consultant || "",
+        primaryDiagnosis: patient?.detailAdmission?.doctorSignature?.diagnosis
+          ?.map((d) => d?.code)
+          ?.join(", "),
+        mentalStatusSummary: `
+Appearance & Behavior: ${formatDeepObject(me?.appearanceAndBehavior)}
+Speech: ${formatDeepObject(me?.speech)}
+Mood: ${formatDeepObject(me?.mood)}
+Affect: ${formatDeepObject(me?.affectV2)}
+Thought: ${formatDeepObject(me?.thought)}
+Cognition: ${formatDeepObject(me?.cognition)}
+Insight: ${formatDeepObject(me?.insight)}
+Judgment: ${me?.judgment || ""}
+Perception: ${me?.perception || ""}
+Remarks: ${me?.remarks || ""}
+`,
+        managementPlan: patient?.detailAdmission?.doctorSignature?.managmentPlan
+
       }));
     }
   }, [patient, loggedInUserName]);
@@ -371,6 +442,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="text"
                       plainText
                       name="ageSex"
+                      value={formData?.ageSex}
                       onChange={handleChange}
                       className="p-0 ps-2"
                     />
@@ -395,6 +467,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="datetime-local"
                       name="assessmentDateTime"
                       onChange={handleChange}
+                      value={formData?.assessmentDateTime}
                       className="border-0 p-0"
                     />
                   </td>
@@ -482,6 +555,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="primaryDiagnosis"
+                      value={formData?.primaryDiagnosis}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -494,6 +568,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="mentalStatusSummary"
+                      value={formData?.mentalStatusSummary}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -610,6 +685,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="nominatedRepresentativeInformed"
+                      value={formData?.nominatedRepresentativeInformed}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -622,6 +698,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="representativeName"
+                      value={formData?.representativeName}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -634,6 +711,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       type="textarea"
                       rows="2"
                       name="relationship"
+                      value={formData?.relationship}
                       onChange={handleChange}
                       className="border-0"
                     />
@@ -699,6 +777,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
               type="textarea"
               rows="4"
               name="managementPlan"
+              value={formData?.managementPlan}
               onChange={handleChange}
               style={{ border: "1px solid #000", borderRadius: 0 }}
             />
@@ -730,14 +809,31 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       {row.role}
                     </td>
                     <td>
-                      <Input
+                      {/* <Input
                         type="text"
                         plainText
                         className="px-2"
                         placeholder="Name"
-                        // You might need to adjust your state logic to handle signature objects
-                        // For now, these will act as visual placeholders
-                      />
+                        // value={formData?.consultantName || ""}
+                      // You might need to adjust your state logic to handle signature objects
+                      // For now, these will act as visual placeholders
+                      /> */}
+                      {index === 0 ? (
+                        <Input
+                          type="text"
+                          className="px-2"
+                          name="consultantName"
+                          value={formData?.consultantName || ""}
+                          onChange={handleChange}
+                        />
+                      ) : (
+                        <Input
+                          type="text"
+                          plainText
+                          className="px-2"
+                          placeholder="Name"
+                        />
+                      )}
                     </td>
                     <td>
                       <Input
@@ -748,7 +844,20 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
                       />
                     </td>
                     <td>
-                      <Input type="date" plainText className="px-2" />
+                      {/* <Input type="date" plainText className="px-2" /> */}
+                      {index === 0 ? (
+                        <Input
+                          type="datetime-local"
+                          className="px-2"
+                          value={formatDateTimeLocal(new Date())}
+                        />
+                      ) : (
+                        <Input
+                          type="date"
+                          plainText
+                          className="px-2"
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}

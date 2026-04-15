@@ -223,6 +223,18 @@ export const renderStatusBadge = (stage) => {
       text: "TPM",
       color: "info",
     },
+    FULFILLED: {
+      text: "Fulfilled",
+      color: "success"
+    },
+    PARTIALLY_RECEIVED: {
+      text: "Partially Received",
+      color: "warning"
+    },
+    DISPATCHED: {
+      text: "Dispatched",
+      color: "primary"
+    }
   };
 
   const config = map[stage];

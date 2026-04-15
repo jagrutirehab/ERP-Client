@@ -7,6 +7,7 @@ import Admissionpage2 from "./Admissionpage2";
 import IndependentAdmAdult from "./IndependentAdmAdult";
 import IndependentAdmMinor from "./IndependentAdmMinor";
 import AdmWithHighSupport from "./AdmWithHighSupport";
+import EmergencyAdmissionForm from "./EmergencyAdmissionForm";
 import SeriousnessConsent from "./SeriousnessConsent";
 import MediactionConcent from "./MediactionConcent";
 import ECTConsentForm from "./ECTConsentForm";
@@ -100,6 +101,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const adultRef = useRef(null);
   const minorRef = useRef(null);
   const supportRef = useRef(null);
+  const emergencyRef = useRef(null);
   // const indipendentref1 = useRef(null);
   // const indipendentref2 = useRef(null);
   // const indipendentref3 = useRef(null);
@@ -408,6 +410,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       if (adultRef.current) await captureSection(adultRef, pdf, true);
       if (minorRef.current) await captureSection(minorRef, pdf, true);
       if (supportRef.current) await captureSection(supportRef, pdf, true);
+      if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -458,6 +461,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       if (adultRef.current) await captureSection(adultRef, pdf, true);
       if (minorRef.current) await captureSection(minorRef, pdf, true);
       if (supportRef.current) await captureSection(supportRef, pdf, true);
+      if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
       formData.append(
@@ -1475,6 +1479,17 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                     />
                   </div>
                 )}
+              {/* emergency admission form */}
+              {admissiontype === "EMERGENCY_ADMISSION" && (
+                <div ref={emergencyRef}>
+                  <EmergencyAdmissionForm
+                    register={register}
+                    chartData={chartData}
+                    patient={patient}
+                    details={details}
+                  />
+                </div>
+              )}
               {/* hidden opinions */}
               {/* <div
                 style={{

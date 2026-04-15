@@ -1006,10 +1006,14 @@ export const getCompletedActiveMedicines = ({ patientId, status }) => {
   );
 };
 
-export const getActivitiesByStatus = ({ patientId, status }) => {
+export const getActivitiesByStatus = ({ patientId, prescriptionId, status, page = 1, limit = 10 }) => {
   return api.get(
-    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&status=${status}`,
+    `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&prescriptionId=${prescriptionId}&status=${status}&page=${page}&limit=${limit}`,
   );
+};
+
+export const getPrescriptionHistory = (patientId) => {
+  return api.get(`${url.GET_PRESCRIPTION_HISTORY}?patientId=${patientId}`);
 };
 
 export const markTomorrowMedicines = (data) => {
@@ -1041,7 +1045,7 @@ export const getNurseGivenMedicines = (params = {}) => {
 export const getNurseGivenMedicineDetails = (params = {}) => {
   return api.get(url.GET_NURSE_GIVEN_MEDICINE_DETAILS, {
     params,
-    headers:{
+    headers: {
       "X-No-Cookie-Token": "true",
     }
   });
@@ -1741,6 +1745,88 @@ export const downloadAuditFailedMedicines = (id) => {
   });
 };
 
+// PHARMACY REQUISITION - INTERNAL TRANSFER
+export const getInternalTransferRequisitions = (params = {}) => {
+  return api.get(url.PHARMACY_INTERNAL_TRANSFER, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
+export const createInternalTransferRequisition = (data) => {
+  return api.create(url.PHARMACY_INTERNAL_TRANSFER, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const searchPharmacyMedicines = (params = {}) => {
+  return api.get(url.PHARMACY_MEDICINE_SEARCH, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getPharmacyStockByIds = (ids, centerId) => {
+  return api.get(url.PHARMACY_STOCK_BY_IDS, {
+    params: { ids: ids.join(","), centerId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const reviewInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/review`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getInternalTransferRequisitionById = (id) => {
+  return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const dispatchInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/dispatch`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const grnInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/grn`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const updateInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const generateGRNNumber = () => {
+  return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/generate-grn`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // MI REPORTING
 export const getMIHubSpotContacts = (params = {}) => {
   return api.get(url.GET_MI_HUBSPOT_CONTACTS, {
@@ -1835,9 +1921,9 @@ export const getRoundNotesDOD = (data) => {
   return api.get(url.GET_ROUND_NOTES_DOD, {
     params: {
       centerIds: data?.centerAccess,
-      
+
     }
-  
+
   });
 };
 
@@ -2582,7 +2668,7 @@ export const getCancellationsRequests = (params = {}) => {
   })
 }
 
-export const getCancellationsHistory= (params = {}) => {
+export const getCancellationsHistory = (params = {}) => {
   return axios.get(url.GET_CANCELLATIONS_HISTORY, {
     params,
     headers: {
@@ -3159,6 +3245,17 @@ export const getRaisedIssues = (params = {}) => {
   return axios.get(url.GET_RAISED_TICKETS, {
     params,
   });
+}
+
+export const getHRIssuesRequests = (params = {}) => {
+  return axios.get(url.GET_HR_ISSUES_REQUESTS, {
+    params
+  });
+}
+export const updateHRIssueRequest = (data) => {
+  return axios.patch(url.UPDATE_HR_ISSUE_REQUEST, 
+    data
+  )
 }
 
 // Recordings

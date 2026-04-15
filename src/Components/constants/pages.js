@@ -398,6 +398,20 @@ export const Pharmacy = [
     link: "/pharmacy/audit",
     icon: "bx bx-fingerprint",
   },
+  {
+    id: "requisition",
+    label: "Requisition",
+    icon: "bx bx-fingerprint",
+    isAccordion: true,
+    children: [
+      {
+        id: "internal-transfer",
+        label: "Internal Transfer",
+        link: "/pharmacy/requisition/internal-transfer",
+        icon: "bx bx-transfer",
+      },
+    ]
+  },
 ];
 
 export const MIReporting = [
@@ -1118,6 +1132,20 @@ export const ISSUES = [
   //   link: "/issues/review-submissions",
   //   icon: "bx bx-check-shield",
   // },
+
+  {
+    id: "hr-issues",
+    label: "HR Tickets",
+    icon: "bx bx-task",
+    link: "/issues/hr/issues",
+  },
+
+  {
+    id: "hr-issues-requests",
+    label: "HR Tickets Requests",
+    icon: "bx bx-envelope-open",
+    link: "/issues/hr/issues/requests",
+  },
   {
     id: "my-issues",
     label: "My Assigned Tickets",

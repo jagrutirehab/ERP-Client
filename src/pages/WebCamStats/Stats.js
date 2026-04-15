@@ -53,16 +53,21 @@ const Stats = () => {
   // Media View Modal
   const [mediaModal, setMediaModal] = useState({
     isOpen: false,
-    mediaUrl: null,
-    mediaType: "image", // "image" | "video"
+    mediaUrls: [], // always an array
+    activeIndex: 0,
   });
 
-  const toggleMediaModal = (url = null, type = "image") => {
-    setMediaModal({
-      isOpen: !!url,
-      mediaUrl: url,
-      mediaType: type,
-    });
+  const toggleMediaModal = (urlOrUrls = null) => {
+    if (!urlOrUrls) {
+      setMediaModal({ isOpen: false, mediaUrls: [], activeIndex: 0 });
+      return;
+    }
+    const urls = Array.isArray(urlOrUrls) ? urlOrUrls : [urlOrUrls];
+    setMediaModal({ isOpen: true, mediaUrls: urls, activeIndex: 0 });
+  };
+
+  const setActiveMediaIndex = (index) => {
+    setMediaModal((prev) => ({ ...prev, activeIndex: index }));
   };
 
   // Action Modal (existing)
@@ -419,18 +424,13 @@ const Stats = () => {
                           : "N/A"}
                       </td>
                       <td>
-                        {item.fileName ? (
+                        {item.fileName && (Array.isArray(item.fileName) ? item.fileName.length > 0 : true) ? (
                           <Button
                             color="info"
                             size="sm"
-                            onClick={() =>
-                              toggleMediaModal(
-                                item.fileName,
-                                getMediaType(item.fileName),
-                              )
-                            }
+                            onClick={() => toggleMediaModal(item.fileName)}
                           >
-                            View
+                            View{Array.isArray(item.fileName) && item.fileName.length > 1 ? ` (${item.fileName.length})` : ""}
                           </Button>
                         ) : (
                           "N/A"
@@ -530,31 +530,117 @@ const Stats = () => {
       >
         <ModalHeader toggle={() => toggleMediaModal()}>
           Evidence Preview
+          {mediaModal.mediaUrls.length > 1 && (
+            <small className="ms-2 text-muted" style={{ fontSize: "0.75rem" }}>
+              ({mediaModal.activeIndex + 1} / {mediaModal.mediaUrls.length})
+            </small>
+          )}
         </ModalHeader>
-        <ModalBody className="text-center p-3">
-          {mediaModal.mediaUrl ? (
-            mediaModal.mediaType === "video" ? (
-              <video
-                controls
-                autoPlay
-                style={{ maxWidth: "100%", maxHeight: "70vh" }}
-              >
-                <source src={mediaModal.mediaUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <img
-                src={mediaModal.mediaUrl}
-                alt="Evidence"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "70vh",
-                  objectFit: "contain",
-                }}
-              />
-            )
+        <ModalBody className="p-3">
+          {mediaModal.mediaUrls.length > 0 ? (
+            <>
+              {/* Main Preview */}
+              <div className="text-center mb-3">
+                {(() => {
+                  const activeUrl = mediaModal.mediaUrls[mediaModal.activeIndex];
+                  const mediaType = getMediaType(activeUrl);
+                  return mediaType === "video" ? (
+                    <video
+                      key={activeUrl}
+                      controls
+                      autoPlay
+                      style={{ maxWidth: "100%", maxHeight: "60vh" }}
+                    >
+                      <source src={activeUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      key={activeUrl}
+                      src={activeUrl}
+                      alt={`Evidence ${mediaModal.activeIndex + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "60vh",
+                        objectFit: "contain",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  );
+                })()}
+              </div>
+
+              {mediaModal.mediaUrls.length > 1 && (
+                <div
+                  className="d-flex gap-2 justify-content-center flex-wrap"
+                  style={{ maxHeight: "130px", overflowY: "auto" }}
+                >
+                  {mediaModal.mediaUrls.map((url, idx) => {
+                    const isActive = idx === mediaModal.activeIndex;
+                    const isVideo = getMediaType(url) === "video";
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveMediaIndex(idx)}
+                        style={{
+                          cursor: "pointer",
+                          border: isActive ? "2.5px solid #0d6efd" : "2px solid transparent",
+                          borderRadius: "6px",
+                          overflow: "hidden",
+                          width: "90px",
+                          height: "70px",
+                          background: "#f0f0f0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          opacity: isActive ? 1 : 0.6,
+                          transition: "opacity 0.2s, border-color 0.2s",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isVideo ? (
+                          <span style={{ fontSize: "1.8rem" }}>🎬</span>
+                        ) : (
+                          <img
+                            src={url}
+                            alt={`thumb-${idx}`}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Prev / Next navigation */}
+              {mediaModal.mediaUrls.length > 1 && (
+                <div className="d-flex justify-content-center gap-3 mt-3">
+                  <Button
+                    size="sm"
+                    color="secondary"
+                    disabled={mediaModal.activeIndex === 0}
+                    onClick={() => setActiveMediaIndex(mediaModal.activeIndex - 1)}
+                  >
+                    ← Prev
+                  </Button>
+                  <Button
+                    size="sm"
+                    color="secondary"
+                    disabled={mediaModal.activeIndex === mediaModal.mediaUrls.length - 1}
+                    onClick={() => setActiveMediaIndex(mediaModal.activeIndex + 1)}
+                  >
+                    Next →
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
-            <p>No media available</p>
+            <p className="text-center">No media available</p>
           )}
         </ModalBody>
         <ModalFooter>
