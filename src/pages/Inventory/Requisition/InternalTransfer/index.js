@@ -35,6 +35,7 @@ import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { getInternalTransferColumns } from "../../Columns/Pharmacy/InternalTransferColumns";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import CheckPermission from "../../../../Components/HOC/CheckPermission";
 
 const STATUS_OPTIONS = [
     { value: "PENDING", label: "Pending" },
@@ -60,7 +61,7 @@ const InternalTransfer = () => {
     const handleAuthError = useAuthError();
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
-    const { hasPermission } = usePermissions(token);
+    const { hasPermission, roles } = usePermissions(token);
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const {
@@ -746,16 +747,20 @@ const InternalTransfer = () => {
                 </ModalBody>
                 <ModalFooter>
                     {selectedReq?.status === "PENDING" ? (
-                        <div className="d-flex w-100 justify-content-end gap-2">
-                            <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
-                                <i className="bx bx-x me-1" />
-                                Reject
-                            </Button>
-                            <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
-                                <i className="bx bx-check me-1" />
-                                Approve
-                            </Button>
-                        </div>
+                        <CheckPermission accessRolePermission={roles?.permissions}
+                            permission={"edit"}
+                            subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
+                            <div className="d-flex w-100 justify-content-end gap-2">
+                                <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
+                                    <i className="bx bx-x me-1" />
+                                    Reject
+                                </Button>
+                                <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
+                                    <i className="bx bx-check me-1" />
+                                    Approve
+                                </Button>
+                            </div>
+                        </CheckPermission>
                     ) : (
                         <Button color="secondary" outline onClick={closeDetail}>
                             Close

@@ -194,11 +194,11 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             cell: (row) => renderStatusBadge(row?.status),
             wrap: true,
         },
-        ...(hasWritePermission ? [{
+        {
             name: <div>Action</div>,
             cell: (row) => (
                 <div className="d-flex align-items-center gap-2">
-                    {row.status === "PENDING" && (
+                    {hasWritePermission && row.status === "PENDING" && (
                         <>
                             <button
                                 type="button"
@@ -235,7 +235,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                             </button>
                         </>
                     )}
-                    {row.status === "APPROVED" && (
+                    {hasWritePermission && row.status === "APPROVED" && (
                         <button
                             type="button"
                             className="btn btn-sm btn-primary text-white"
@@ -249,7 +249,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                             Dispatch
                         </button>
                     )}
-                    {row.status === "DISPATCHED" && (
+                    {hasWritePermission && row.status === "DISPATCHED" && (
                         <button
                             type="button"
                             className="btn btn-sm btn-success text-white"
@@ -280,6 +280,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             allowOverflow: true,
             button: true,
             width: "220px",
-        }] : [])
+        }
     ];
 };
