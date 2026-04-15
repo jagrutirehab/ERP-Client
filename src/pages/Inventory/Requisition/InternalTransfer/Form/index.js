@@ -116,10 +116,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         if (answer === true) {
             const special = SPECIAL_ORDER_CENTERS.find((c) => c.id === centerId);
             if (special) {
-                if (items.length > 0) {
-                    setItems([]);
-                    toast.info("Cart cleared — fulfilling center changed.");
-                }
                 setFulfillingCenter({ value: special.id, label: special.label });
             }
         } else {
@@ -134,6 +130,27 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
     const isSpecialFulfillingLocked = SPECIAL_ORDER_CENTERS.some(
         (c) => specialCenterChoices[c.id] === true
     );
+
+    // Re-fetch stock whenever fulfilling center changes and cart has items
+    useEffect(() => {
+        if (!fulfillingCenter?.value || items.length === 0) return;
+        const pharmacyIds = items.map((i) => i.pharmacyId);
+        getPharmacyStockByIds(pharmacyIds, fulfillingCenter.value)
+            .then((res) => {
+                const stockMap = {};
+                (res?.data || []).forEach(({ pharmacyId, stock }) => {
+                    stockMap[String(pharmacyId)] = stock;
+                });
+                setItems((prev) =>
+                    prev.map((item) => ({
+                        ...item,
+                        availableStock: stockMap[String(item.pharmacyId)] ?? 0,
+                    }))
+                );
+            })
+            .catch(() => {});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fulfillingCenter?.value]);
 
     useEffect(() => {
         if (!isEdit || !requisitionId) return;
@@ -154,6 +171,10 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 }
                 if (fulCenter) {
                     setFulfillingCenter({ value: fulCenter._id, label: fulCenter.title || "Unknown Center" });
+                    const matchedSpecial = SPECIAL_ORDER_CENTERS.find((c) => c.id === fulCenter._id);
+                    if (matchedSpecial) {
+                        setSpecialCenterChoices((prev) => ({ ...prev, [matchedSpecial.id]: true }));
+                    }
                 }
 
                 const mappedItems = (req.items || []).map((item) => {
@@ -546,10 +567,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                                     value={fulfillingCenter}
                                     onChange={(opt) => {
                                         setFulfillingCenter(opt);
-                                        if (items.length > 0) {
-                                            setItems([]);
-                                            toast.info("Cart cleared — fulfilling center changed.");
-                                        }
                                     }}
                                     placeholder="Center that supplies stock…"
                                     isClearable
