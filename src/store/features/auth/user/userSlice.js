@@ -297,7 +297,12 @@ export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (token, { rejectWithValue }) => {
     const clearAuthData = () => {
-      localStorage.clear();
+      // localStorage.clear();
+      Object.keys(localStorage).forEach((key) => {
+        if (!key.startsWith("detailAdmissionDraft_")) {
+          localStorage.removeItem(key);
+        }
+      });
       Cookies.remove("jajantarammamantaram");
       Cookies.remove("token");
       Cookies.remove("XSRF-TOKEN");
