@@ -84,13 +84,13 @@ function* loginUser({ payload: { values, navigate } }) {
           const microToken = microLoginRes?.data?.token;
           const rolesRes = yield call(getRoles, microToken);
           const roles = rolesRes?.data;
-          const hasEmergencyRole = roles?.permissions?.some(
+          const hasEmergencyRole = roles?.permissions?.find(
             (p) => p.module === "EMERGENCY",
           );
 
           console.log({ hasEmergencyRole, rolesRes });
 
-          if (hasEmergencyRole) {
+          if (hasEmergencyRole?.type !== "NONE") {
             redirectPath = "/emergency";
           }
         }
