@@ -121,6 +121,7 @@ const DetailAdmission = ({
   chartDate,
   editChartData,
   type,
+  closeForm
 }) => {
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
@@ -133,6 +134,7 @@ const DetailAdmission = ({
   console.log("detailAdmissionForm", detailAdmissionForm);
 
   const isEdit = Boolean(editChartData?._id);
+  const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
 
   const hasExistingDiagnosis =
     isEdit &&
@@ -146,6 +148,15 @@ const DetailAdmission = ({
 
   console.log("hasExistingProDiagnosis", hasExistingProDiagnosis);
 
+  const savedDraft = useMemo(() => {
+    if (isEdit) return null;
+    try {
+      const d = localStorage.getItem(draftKey);
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
+  }, [draftKey, isEdit]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -390,6 +401,7 @@ const DetailAdmission = ({
 
         remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
 
+
       } : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm
@@ -442,6 +454,7 @@ const DetailAdmission = ({
       chart: DETAIL_ADMISSION,
       date: chartDate,
       type,
+      ...(!isEdit && savedDraft ? savedDraft : {}),
     },
 
     validationSchema: Yup.object({
@@ -569,11 +582,13 @@ const DetailAdmission = ({
         dispatch(updateDetailAdmission(formData));
       } else if (type === "GENERAL") {
         dispatch(addGeneralDetailAdmission(formData));
+        localStorage.removeItem(draftKey);
       } else {
         for (let [key, value] of formData.entries()) {
           console.log(key, value);
         }
         dispatch(addDetailAdmission(formData));
+        localStorage.removeItem(draftKey);
       }
     },
   });
@@ -583,7 +598,6 @@ const DetailAdmission = ({
       validation.resetForm();
       setConsentFiles([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, detailAdmissionForm]);
 
 
@@ -600,6 +614,15 @@ const DetailAdmission = ({
       )
     );
   }, [editChartData, detailAdmissionForm]);
+
+
+
+  useEffect(() => {
+    if (isEdit) return; // don't overwrite real data with a draft
+    localStorage.setItem(draftKey, JSON.stringify(validation.values));
+  }, [validation.values]);
+
+
 
   return (
     <React.Fragment>
@@ -659,7 +682,8 @@ const DetailAdmission = ({
           </div>
           <div className="mt-4">
             <Form
-              key={detailAdmissionForm?._id || "new"}
+              // key={detailAdmissionForm?._id || "new"}
+              key="detail-admission-form"
               onSubmit={(e) => {
                 e.preventDefault();
                 validation.handleSubmit();
@@ -743,6 +767,7 @@ const DetailAdmission = ({
                 <DoctorSignature
                   validation={validation}
                   setFormStep={setFormStep}
+                  closeForm={closeForm}
                 />
               )}
             </Form>
