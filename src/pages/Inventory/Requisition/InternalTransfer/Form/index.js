@@ -73,6 +73,13 @@ const stockPill = (n) =>
                 : pill("#f8d7da", "#721c24");
 
 
+const SPECIAL_ORDER_CENTERS = [
+    {
+        id: process.env.REACT_APP_ENV === "production" ? "69c5311b0a5aee96ac8d5b8c" : "69df2e66732bc118687e38d9",
+        label: "Sareyaan Pharma",
+        question: "Do you want to order from Saareyan?",
+    },
+];
 const InternalTransferForm = ({ mode = "add", requisitionId }) => {
     const isEdit = mode === "edit";
 
@@ -88,6 +95,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
     const [requisitionNumber, setRequisitionNumber] = useState("");
     const [requisingCenter, setRequisingCenter] = useState(null);
     const [fulfillingCenter, setFulfillingCenter] = useState(null);
+    const [specialCenterChoices, setSpecialCenterChoices] = useState({});
     const [items, setItems] = useState([]);
 
     const medicineSearchRef = useRef(null);
@@ -102,6 +110,47 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         value: c._id,
         label: c.title || "Unknown Center",
     }));
+
+    const handleSpecialCenterChoice = (centerId, answer) => {
+        setSpecialCenterChoices((prev) => ({ ...prev, [centerId]: answer }));
+        if (answer === true) {
+            const special = SPECIAL_ORDER_CENTERS.find((c) => c.id === centerId);
+            if (special) {
+                setFulfillingCenter({ value: special.id, label: special.label });
+            }
+        } else {
+            // Only clear fulfilling if it was set to this special center
+            setFulfillingCenter((prev) =>
+                prev?.value === centerId ? null : prev
+            );
+        }
+    };
+
+    // Is any special center selected as fulfilling?
+    const isSpecialFulfillingLocked = SPECIAL_ORDER_CENTERS.some(
+        (c) => specialCenterChoices[c.id] === true
+    );
+
+    // Re-fetch stock whenever fulfilling center changes and cart has items
+    useEffect(() => {
+        if (!fulfillingCenter?.value || items.length === 0) return;
+        const pharmacyIds = items.map((i) => i.pharmacyId);
+        getPharmacyStockByIds(pharmacyIds, fulfillingCenter.value)
+            .then((res) => {
+                const stockMap = {};
+                (res?.data || []).forEach(({ pharmacyId, stock }) => {
+                    stockMap[String(pharmacyId)] = stock;
+                });
+                setItems((prev) =>
+                    prev.map((item) => ({
+                        ...item,
+                        availableStock: stockMap[String(item.pharmacyId)] ?? 0,
+                    }))
+                );
+            })
+            .catch(() => {});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fulfillingCenter?.value]);
 
     useEffect(() => {
         if (!isEdit || !requisitionId) return;
@@ -122,6 +171,10 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 }
                 if (fulCenter) {
                     setFulfillingCenter({ value: fulCenter._id, label: fulCenter.title || "Unknown Center" });
+                    const matchedSpecial = SPECIAL_ORDER_CENTERS.find((c) => c.id === fulCenter._id);
+                    if (matchedSpecial) {
+                        setSpecialCenterChoices((prev) => ({ ...prev, [matchedSpecial.id]: true }));
+                    }
                 }
 
                 const mappedItems = (req.items || []).map((item) => {
@@ -277,6 +330,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
         const payload = {
             requisingCenter: requisingCenter.value,
             fulfillingCenter: fulfillingCenter.value,
+            orderFromSaareyan: isSpecialFulfillingLocked,
             items: items.map((i) => ({
                 pharmacyId: i.pharmacyId,
                 requestedQty: Number(i.requestedQty),
@@ -416,6 +470,37 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                 </div>
             </div>
 
+            {/* Special order center questions */}
+            {SPECIAL_ORDER_CENTERS.map((special) => (
+                <Card key={special.id} className="mb-4" style={{ ...CARD_STYLE, border: "1px solid #c8e6c9" }}>
+                    <CardBody className="px-4 py-3">
+                        <p className="fw-semibold mb-2" style={{ fontSize: 14 }}>
+                            {special.question}
+                        </p>
+                        <div className="d-flex gap-4">
+                            <label className="d-flex align-items-center gap-2" style={{ cursor: "pointer", fontSize: 14 }}>
+                                <input
+                                    type="radio"
+                                    name={`specialCenter_${special.id}`}
+                                    checked={specialCenterChoices[special.id] === true}
+                                    onChange={() => handleSpecialCenterChoice(special.id, true)}
+                                />
+                                Yes
+                            </label>
+                            <label className="d-flex align-items-center gap-2" style={{ cursor: "pointer", fontSize: 14 }}>
+                                <input
+                                    type="radio"
+                                    name={`specialCenter_${special.id}`}
+                                    checked={specialCenterChoices[special.id] === false}
+                                    onChange={() => handleSpecialCenterChoice(special.id, false)}
+                                />
+                                No
+                            </label>
+                        </div>
+                    </CardBody>
+                </Card>
+            ))}
+
             <Card className="mb-4" style={CARD_STYLE}>
                 <CardHeader className="py-3 px-4" style={HEADER_STYLE}>
                     <div className="d-flex align-items-center gap-2">
@@ -482,13 +567,10 @@ const InternalTransferForm = ({ mode = "add", requisitionId }) => {
                                     value={fulfillingCenter}
                                     onChange={(opt) => {
                                         setFulfillingCenter(opt);
-                                        if (items.length > 0) {
-                                            setItems([]);
-                                            toast.info("Cart cleared — fulfilling center changed.");
-                                        }
                                     }}
                                     placeholder="Center that supplies stock…"
                                     isClearable
+                                    isDisabled={isSpecialFulfillingLocked}
                                 />
                                 <small className="text-muted d-block mt-1" style={{ fontSize: 11 }}>
                                     <i className="bx bx-package me-1" />
