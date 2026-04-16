@@ -797,9 +797,9 @@ Remarks: ${me?.remarks || ""}
               </thead>
               <tbody>
                 {[
-                  { role: "Consultant Psychiatrist", key: "psychiatrist" },
+                  { role: "Consultant Mental Health Professional", key: "psychiatrist" },
                   {
-                    role: "Second Psychiatrist (if required)",
+                    role: "Second Mental Health Professional (if required)",
                     key: "secondPsychiatrist",
                   },
                   { role: "Witness (Nurse/Psychologist)", key: "witness" },
