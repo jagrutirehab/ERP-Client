@@ -1,6 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Col, Form, FormFeedback, Input, Label, Row, Spinner } from "reactstrap";
+import {
+  Button,
+  Col,
+  Form,
+  FormFeedback,
+  Input,
+  Label,
+  Row,
+  Spinner,
+} from "reactstrap";
 import Select from "react-select";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
@@ -79,6 +88,7 @@ const AdmitPatient = ({
         ? patient.referredBy?.doctorName || patient.referredBy
         : "",
       referralPhoneNumber: patient?.referredBy?.mobileNumber || "",
+      referralType: patient?.referredBy?.speciality || "",
       ipdFileNumber: patient ? patient.ipdFileNumber : "",
 
       //admission
@@ -168,6 +178,7 @@ const AdmitPatient = ({
 
   useEffect(() => {
     setStep(1);
+    referralInitialized.current = false;
   }, [isOpen]);
 
   useEffect(() => {
@@ -190,29 +201,57 @@ const AdmitPatient = ({
     }
   }, [patient, isOpen]);
 
+  const referralInitialized = useRef(false);
   useEffect(() => {
-    // Initialize selectedReferral and isOtherReferral based on patient data
-    if (patient?.referredBy && referrals?.length) {
-      const doctorName =
-        typeof patient.referredBy === "string"
-          ? patient.referredBy
-          : patient.referredBy?.doctorName || "";
+    // Only run once when patient and referrals are both available
+    if (!patient?.referredBy || !referrals?.length) return;
+    if (referralInitialized.current) return;
+    referralInitialized.current = true;
 
+    const doctorName =
+      typeof patient.referredBy === "string"
+        ? patient.referredBy
+        : patient.referredBy?.doctorName || "";
+    const speciality = patient.referredBy?.speciality || "";
+
+    // Check if speciality matches a static option (priority check)
+    const STATIC_OPTIONS = [
+      { value: "psychiatrist", label: "Psychiatrist" },
+      { value: "doctor", label: "Doctor" },
+      { value: "online", label: "Online" },
+      { value: "other", label: "Other" },
+    ];
+    const staticMatch = STATIC_OPTIONS.find((opt) => opt.value === speciality);
+
+    const referralMatch = referrals.find(
+      (ref) =>
+        ref._id === patient.referredBy.id || ref.doctorName === doctorName,
+    );
+
+    if (referralMatch) {
+      // Approved DB referral — just select it from the list
+      setSelectedReferral({
+        value: referralMatch._id,
+        label: referralMatch.doctorName,
+      });
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", referralMatch._id);
+      validation.setFieldValue("referralType", "");
+    } else if (staticMatch) {
+      // Saved via a static option — pre-select it and show name + phone
+      setSelectedReferral(staticMatch);
+      setIsOtherReferral(true);
+      validation.setFieldValue("referredBy", doctorName);
+      validation.setFieldValue(
+        "referralPhoneNumber",
+        patient.referredBy?.mobileNumber || "",
+      );
+      validation.setFieldValue("referralType", staticMatch.value);
+    } else {
       // Check if it matches an existing referral from the DB
       const referralMatch = referrals.find(
         (ref) =>
-          ref._id === patient.referredBy.id ||
-          ref.doctorName === doctorName,
-      );
-
-      // Check if it matches a static option
-      const STATIC_OPTIONS = [
-        { value: "psychiatrist", label: "Psychiatrist" },
-        { value: "doctor", label: "Doctor" },
-        { value: "online", label: "Online" },
-      ];
-      const staticMatch = STATIC_OPTIONS.find(
-        (opt) => opt.value === doctorName,
+          ref._id === patient.referredBy.id || ref.doctorName === doctorName,
       );
 
       if (referralMatch) {
@@ -222,15 +261,12 @@ const AdmitPatient = ({
         });
         setIsOtherReferral(false);
         validation.setFieldValue("referredBy", referralMatch._id);
-      } else if (staticMatch) {
-        setSelectedReferral(staticMatch);
-        setIsOtherReferral(false);
-        validation.setFieldValue("referredBy", staticMatch.value);
-      } else {
-        // If not found in referrals or static options, treat as "Other"
+      } else if (doctorName) {
+        // Legacy data without speciality — treat as "Other"
         setSelectedReferral({ value: "other", label: "Other" });
         setIsOtherReferral(true);
         validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue("referralType", "other");
       }
     }
   }, [patient, referrals]);
@@ -505,14 +541,22 @@ const AdmitPatient = ({
               value={selectedReferral}
               onChange={(option) => {
                 setSelectedReferral(option);
-                if (option?.value === "other") {
+                const staticValues = [
+                  "other",
+                  "doctor",
+                  "psychiatrist",
+                  "online",
+                ];
+                if (option && staticValues.includes(option.value)) {
                   setIsOtherReferral(true);
                   validation.setFieldValue("referredBy", "");
                   validation.setFieldValue("referralPhoneNumber", "");
+                  validation.setFieldValue("referralType", option.value);
                 } else {
                   setIsOtherReferral(false);
                   validation.setFieldValue("referredBy", option?.value || "");
                   validation.setFieldValue("referralPhoneNumber", "");
+                  validation.setFieldValue("referralType", "");
                 }
               }}
               onBlur={() => validation.setFieldTouched("referredBy", true)}
@@ -815,7 +859,12 @@ const AdmitPatient = ({
         />
       </Row>
       <div className="d-flex justify-content-between mt-3">
-        <Button size="sm" color="secondary" disabled={submitting} onClick={() => setStep(1)}>
+        <Button
+          size="sm"
+          color="secondary"
+          disabled={submitting}
+          onClick={() => setStep(1)}
+        >
           Back
         </Button>
         <Button
