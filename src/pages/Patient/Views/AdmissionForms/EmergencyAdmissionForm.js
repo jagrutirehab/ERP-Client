@@ -166,7 +166,11 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
                 defaultValue={
                   age && patient?.gender
                     ? `${age} / ${patient.gender}`
-                    : age || ""
+                    : age
+                      ? `${age}`
+                      : patient?.gender
+                        ? `${patient.gender}`
+                        : ""
                 }
                 {...register("Emergency_Admission_ageGender")}
                 style={{
@@ -199,7 +203,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
-                defaultValue={patient?.phone}
+                defaultValue={patient?.phoneNumber}
                 {...register("Emergency_Admission_contact")}
                 style={{
                   fontWeight: "bold",
@@ -232,7 +236,9 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
               <input
                 type="datetime-local"
                 defaultValue={
-                  today ? `${today}T${new Date().toTimeString().slice(0, 5)}` : ""
+                  today
+                    ? `${today}T${new Date().toTimeString().slice(0, 5)}`
+                    : ""
                 }
                 {...register("Emergency_Admission_dateTime")}
                 style={{
@@ -279,6 +285,15 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
         <span>Provisional Diagnosis: </span>
         <input
           type="text"
+          defaultValue={
+            patient?.addmission?.provisional_diagnosis?.length
+              ? patient.addmission.provisional_diagnosis
+                  .map((d) => d.code)
+                  .join(", ")
+              : patient?.addmission?.provisionalDiagnosis ||
+                patient?.provisionalDiagnosis ||
+                ""
+          }
           {...register("Emergency_Admission_provisionalDiagnosis")}
           style={{
             fontWeight: "bold",
