@@ -158,6 +158,8 @@ const DetailAdmission = ({
     }
   }, [draftKey, isEdit]);
 
+  console.log("INVESTIGATION FROM API:", detailAdmissionForm?.doctorSignature?.investigation);
+
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -442,8 +444,32 @@ const DetailAdmission = ({
       managmentPlan: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.managmentPlan
         : "",
+      // investigation: detailAdmissionForm
+      //   ? detailAdmissionForm.doctorSignature?.investigation
+      //   : [],
       investigation: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.investigation
+        ? (() => {
+          const data = detailAdmissionForm.doctorSignature?.investigation;
+
+          if (!data) return [];
+
+          let result = [];
+
+          if (Array.isArray(data)) {
+            data.forEach(item => {
+              if (typeof item === "string") {
+                // handle "RFT,HIV"
+                if (item.includes(",")) {
+                  result.push(...item.split(","));
+                } else {
+                  result.push(item);
+                }
+              }
+            });
+          }
+
+          return result.map(i => i.trim());
+        })()
         : [],
       specialTest: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.specialTest
