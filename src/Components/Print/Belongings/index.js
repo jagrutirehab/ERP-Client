@@ -176,9 +176,7 @@ const styles = StyleSheet.create({
   },
   signatureGuideBox: {
     width: "100%",
-    height: 54,
-    border: "1.5px solid #000",
-    borderBottom: "none",
+    height: 70,
     marginBottom: 0,
   },
   signatureLine: {
@@ -191,7 +189,13 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: "Roboto",
   },
-  // Image Attachments
+  signatureQR: {
+    position: "absolute",
+    bottom: 2,
+    left: 2,
+    width: 42,
+    height: 42,
+  },
   attachmentsTitle: {
     fontFamily: "Roboto",
     fontSize: 11,
@@ -231,7 +235,7 @@ const breakLongText = (text, chunkSize = 15) => {
   return match ? match.join("\n") : text;
 };
 
-const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
+const BelongingsPDF = ({ items, patient, date, center, handedOverTo, leftQrDataUrl, rightQrDataUrl }) => {
   const formattedDate = date
     ? format(new Date(date), "dd MMM yyyy, hh:mm a")
     : "";
@@ -432,15 +436,22 @@ const BelongingsPDF = ({ items, patient, date, center, handedOverTo }) => {
           </View>
         )}
 
-        {/* Signatures */}
+        {/* Signatures + QR anchors (bottom-left corner inside each box).
+              QRs use error correction level H → survive 30% ink coverage.
+              Left  QR = patient UID        → zone anchor + UID source
+              Right QR = jagrutirehab.org   → zone anchor + authenticity check */}
         <View style={styles.signatureSection} wrap={false}>
           <View style={styles.signatureBox}>
-            <View style={styles.signatureGuideBox} />
+            <View style={{ ...styles.signatureGuideBox, position: "relative" }}>
+              {leftQrDataUrl && <Image src={leftQrDataUrl} style={styles.signatureQR} />}
+            </View>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Patient / Attendant</Text>
           </View>
           <View style={styles.signatureBox}>
-            <View style={styles.signatureGuideBox} />
+            <View style={{ ...styles.signatureGuideBox, position: "relative" }}>
+              {rightQrDataUrl && <Image src={rightQrDataUrl} style={styles.signatureQR} />}
+            </View>
             <View style={styles.signatureLine} />
             <Text style={styles.signatureLabel}>Authorized Signatory</Text>
           </View>
