@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Row, Col, Label, Input, Button, FormFeedback } from "reactstrap";
+import { Form, Row, Col, Label, Input, Button, FormFeedback, Spinner } from "reactstrap";
 import PropTypes from "prop-types";
 // import { Button } from "@mui/material";/
 
@@ -24,6 +24,8 @@ import {
 } from "../../../store/actions";
 import { IPD, LAB_REPORT } from "../../../Components/constants/patient";
 import UploadedFiles from "./Components/UploadedFiles";
+import { toast } from "react-toastify";
+import { generateLabReport } from "../../../helpers/backend_helper";
 
 // Register the plugins
 registerPlugin(
@@ -35,6 +37,9 @@ registerPlugin(
 const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
   const dispatch = useDispatch();
   const [reports, setReports] = useState([]);
+  const [existingDescriptions, setExistingDescriptions] = useState([]);
+  const [summaries, setSummaries] = useState({});
+  const [loadingMap, setLoadingMap] = useState({});
 
   const editLabReport = editChartData?.labReport;
   const validation = useFormik({
@@ -56,6 +61,7 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
         "notEmpty",
         "Atleast one report is required",
         (value) => {
+          if (editLabReport) return true;
           if (!value || value.length === 0) {
             return false;
           }
@@ -75,11 +81,17 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
       (reports || []).forEach((report) => {
         formData.append("file", report.file);
         formData.append("name", report.name);
+        formData.append("description", report.description || "");
+        formData.append("aiResponse", JSON.stringify(report.aiResponse || {}));
       });
 
       if (editLabReport) {
         formData.append("id", editChartData._id);
         formData.append("chartId", editLabReport._id);
+        existingDescriptions.forEach((desc, idx) => {
+          formData.append("fileId", editLabReport.reports[idx]._id);
+          formData.append("description", desc);
+        });
         dispatch(updateLabReport(formData));
       } else if (type === "GENERAL") {
         dispatch(addGeneralLabReport(formData));
@@ -105,7 +117,66 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
   const closeForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     setReports([]);
+    setSummaries({});
+    setLoadingMap({});
   };
+
+
+  useEffect(() => {
+    if (editLabReport?.reports?.length > 0) {
+      setExistingDescriptions(
+        editLabReport.reports.map((r) => r.description || "")
+      );
+    }
+  }, [editChartData]);
+
+  console.log("patient", patient);
+
+
+  const handleGenerateSummary = async (file, idx, name) => {
+    try {
+      setLoadingMap((prev) => ({
+        ...prev,
+        [idx]: true,
+      }));
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("patient", patient?._id || "");
+      formData.append("addmission", patient?.addmission?._id || "");
+
+      const response = await generateLabReport(formData);
+      const data = response?.data;
+
+      setSummaries((prev) => ({
+        ...prev,
+        [idx]: data,
+      }));
+
+      setReports((prev) => {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          aiResponse: data,
+        };
+        return updated;
+      });
+
+    } catch (error) {
+      console.log("Summary Error", error);
+      toast.error(error?.message || "Error generating summary");
+
+      // if (inputEl) inputEl.value = null;
+
+    } finally {
+      setLoadingMap((prev) => ({
+        ...prev,
+        [idx]: false,
+      }));
+    }
+  };
+
+
 
   return (
     <React.Fragment>
@@ -128,14 +199,33 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
           <Row className="align-items-end row-gap-3">
             <Col xs={12} className="mt-3 mb-4">
               {editLabReport?.reports?.length > 0 && (
-                <UploadedFiles
-                  id={editChartData._id}
-                  chartId={editLabReport._id}
-                  files={editLabReport.reports}
-                />
+                <>
+                  <UploadedFiles
+                    id={editChartData._id}
+                    chartId={editLabReport._id}
+                    files={editLabReport.reports}
+                  />
+                  {editLabReport.reports.map((report, idx) => (
+                    <Col xs={12} key={report._id} className="mt-2">
+                      <Label>{report.name} — Description</Label>
+                      <Input
+                        type="textarea"
+                        bsSize="sm"
+                        className="form-control presc-border rounded"
+                        value={existingDescriptions[idx] || ""}
+                        onChange={(e) => {
+                          const updated = [...existingDescriptions];
+                          updated[idx] = e.target.value;
+                          setExistingDescriptions(updated);
+                        }}
+                      />
+                    </Col>
+                  ))}
+                </>
               )}
             </Col>
             {(reports || []).map((report, idx) => (
+
               <React.Fragment key={idx}>
                 <Col xs={12} md={6}>
                   <Label>Name*</Label>
@@ -148,6 +238,7 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                       const rps = [...reports];
                       rps[idx]["name"] = e.target.value;
                       setReports(rps);
+
                     }}
                     value={report.name || ""}
                     className="form-control presc-border pt-5 rounded"
@@ -163,8 +254,13 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                     required
                     onChange={(e) => {
                       const rps = [...reports];
+                      const file = e.target.files[0];
                       rps[idx]["file"] = e.target.files[0];
                       setReports(rps);
+                      if (file) {
+                        handleGenerateSummary(file, idx, report?.name, e.target);
+                      }
+
                     }}
                     // value={""}
                     className="form-control presc-border pt-5 rounded"
@@ -190,6 +286,99 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                     className="filepond filepond-input-multiple"
                   /> */}
                 </Col>
+                <Col xs={12}>
+                  <Label>Description</Label>
+                  <Input
+                    type="textarea"
+                    bsSize="sm"
+                    name="description"
+                    onChange={(e) => {
+                      const rps = [...reports];
+                      rps[idx]["description"] = e.target.value;
+                      setReports(rps);
+                    }}
+                    value={report.description || ""}
+                    className="form-control presc-border rounded"
+                  />
+                </Col>
+                <Col xs={12}>
+                  <Label>Summary Response</Label>
+
+                  {loadingMap[idx] ? (
+                    <div className="d-flex justify-content-center p-3">
+                      <Spinner color="primary" />
+                    </div>
+                  ) : summaries[idx] ? (
+                    <div className="p-2 border rounded">
+                      <p><strong>Test:</strong> {summaries[idx]?.testName}</p>
+
+                      <p><strong>Flagged:</strong></p>
+                      <ul style={{ paddingLeft: "0px" }}>
+                        {summaries[idx]?.flaggedItems?.map((item, i) => {
+
+                          const getColor = (severity) => {
+                            switch (severity) {
+                              case "Very High":
+                              case "High":
+                                return "#dc3545";
+                              case "Medium":
+                                return "#ffc107";
+                              case "Low":
+                              case "Very Low":
+                                return "#dc3545";
+                              default:
+                                return "#28a745";
+                            }
+                          };
+
+                          return (
+                            <li
+                              key={i}
+                              style={{
+                                listStyle: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              {/* 🔴 circle */}
+                              <span
+                                style={{
+                                  width: "10px",
+                                  height: "10px",
+                                  borderRadius: "50%",
+                                  backgroundColor: getColor(item.severity),
+                                  marginRight: "10px",
+                                }}
+                              />
+
+                              {/* text */}
+                              <span>
+                                {item.name}: {item.value}{" "}
+                                <strong>({item.severity})</strong>
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+
+                      <p><strong>Summary:</strong> {summaries[idx]?.summary}</p>
+                    </div>
+                  ) : (
+                    <p>No summary available</p>
+                  )}
+                </Col>
+                {/* {loadingIndex !== idx && report.file && (
+                  <Button
+                    size="sm"
+                    color="warning"
+                    onClick={() =>
+                      handleGenerateSummary(report.file, idx, report?.name)
+                    }
+                  >
+                    Retry
+                  </Button>
+                )} */}
               </React.Fragment>
             ))}
             <Col xs={12}>

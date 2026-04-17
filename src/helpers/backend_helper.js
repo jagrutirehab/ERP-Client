@@ -471,6 +471,13 @@ export const editGeneralLabReport = (data) =>
   api.put(url.EDIT_GENERAL_LAB_REPORT, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+export const generateLabReport = (data) =>
+  api.create(url.GENERATE_LAB_SUMMARY, data,
+    { headers: { "Content-Type": "multipart/form-data" }, }
+  );
+
+
 export const postRealtiveVisit = (data) =>
   api.create(url.POST_RELATIVE_VISIT, data);
 export const editRealtiveVisit = (data) =>
@@ -3253,7 +3260,7 @@ export const getHRIssuesRequests = (params = {}) => {
   });
 }
 export const updateHRIssueRequest = (data) => {
-  return axios.patch(url.UPDATE_HR_ISSUE_REQUEST, 
+  return axios.patch(url.UPDATE_HR_ISSUE_REQUEST,
     data
   )
 }
