@@ -27,6 +27,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import BelongingsPDF from "../../../Components/Print/Belongings";
+import QRCode from "qrcode";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const riskBadgeColor = (risk) => {
@@ -70,6 +71,19 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
     const [pdfLoading, setPdfLoading] = useState(false);
     const [pdfError, setPdfError] = useState(false);
     const pdfBlobUrlRef = useRef(null);
+    const [leftQrDataUrl, setLeftQrDataUrl]   = useState(null);
+    const [rightQrDataUrl, setRightQrDataUrl] = useState(null);
+
+    useEffect(() => {
+        const uid = `${patient?.id?.prefix || ""}${patient?.id?.value || ""}`.trim();
+        // errorCorrectionLevel H = 30% damage tolerance
+        // QR can still be decoded even if signature partially covers it
+        const qrOpts = { margin: 1, width: 180, errorCorrectionLevel: "H" };
+        if (uid) {
+            QRCode.toDataURL(uid, qrOpts).then(setLeftQrDataUrl).catch(() => {});
+            QRCode.toDataURL(uid, qrOpts).then(setRightQrDataUrl).catch(() => {});
+        }
+    }, [patient?.id?.prefix, patient?.id?.value]);
 
     const isMobile = useMediaQuery("(max-width: 640px)");
 
@@ -427,7 +441,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
             setPdfError(false);
             try {
                 const blob = await pdf(
-                    <BelongingsPDF items={selectedItems} patient={patient} date={date} center={center} handedOverTo={handedOverTo} />
+                    <BelongingsPDF items={selectedItems} patient={patient} date={date} center={center} handedOverTo={handedOverTo} leftQrDataUrl={leftQrDataUrl} rightQrDataUrl={rightQrDataUrl} />
                 ).toBlob();
                 if (cancelled) return;
                 // Revoke previous URL
@@ -471,6 +485,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                             date={date}
                             center={center}
                             handedOverTo={handedOverTo}
+                            leftQrDataUrl={leftQrDataUrl} rightQrDataUrl={rightQrDataUrl}
                         />
                     }
                     fileName={`Belongings_${patient?.name || "patient"}.pdf`}
@@ -552,6 +567,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                     patient={patient}
                                     date={date}
                                     center={center}
+                                    leftQrDataUrl={leftQrDataUrl} rightQrDataUrl={rightQrDataUrl}
                                 />
                             }
                             fileName={`Belongings_${patient?.name || "patient"}.pdf`}

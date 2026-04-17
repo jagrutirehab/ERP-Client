@@ -133,6 +133,8 @@ export const EDIT_LAB_REPORT = "/chart/lab-report";
 export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const EDIT_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
+export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report"
+
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
 export const POST_COUNSELLING_NOTE = "/chart/counselling-note";
