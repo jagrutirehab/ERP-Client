@@ -5,7 +5,7 @@ import { renderStatusBadge } from "../../../../Components/Common/renderStatusBad
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
-export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleDispatch, handleReceive, statusFilter, hasWritePermission }) => {
+export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleDispatch, handleReceive, statusFilter, hasWritePermission, userCenterAccess = [] }) => {
     const showRemarks = !["PENDING", ""].includes(statusFilter);
     const isReceivedTab = statusFilter === "PARTIALLY_RECEIVED,FULFILLED";
     return [
@@ -196,86 +196,99 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
         },
         {
             name: <div>Action</div>,
-            cell: (row) => (
-                <div className="d-flex align-items-center gap-2">
-                    {hasWritePermission && row.status === "PENDING" && (
-                        <>
+            cell: (row) => {
+                const reqCenterId = row.requestingCenter?._id || row.requestingCenter;
+                const fulCenterId = row.fulfillingCenter?._id || row.fulfillingCenter;
+                const hasRequestingAccess = userCenterAccess.includes(reqCenterId?.toString());
+                const hasFulfillingAccess = userCenterAccess.includes(fulCenterId?.toString());
+
+                return (
+                    <div className="d-flex align-items-center gap-2">
+                        {hasWritePermission && row.status === "PENDING" && (
+                            <>
+                                {hasFulfillingAccess && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-success text-white"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (handleApprove) handleApprove(row);
+                                            }}
+                                            title="Approve"
+                                        >
+                                            <i className="bx bx-check" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-danger text-white"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (handleReject) handleReject(row);
+                                            }}
+                                            title="Reject"
+                                        >
+                                            <i className="bx bx-x" />
+                                        </button>
+                                    </>
+                                )}
+                                {hasRequestingAccess && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-secondary"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (handleEdit) handleEdit(row);
+                                        }}
+                                        title="Edit"
+                                    >
+                                        <i className="bx bx-pencil" />
+                                    </button>
+                                )}
+                            </>
+                        )}
+                        {hasWritePermission && row.status === "APPROVED" && hasFulfillingAccess && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-primary text-white"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (handleDispatch) handleDispatch(row);
+                                }}
+                                title="Dispatch"
+                            >
+                                <i className="bx bx-package me-1" />
+                                Dispatch
+                            </button>
+                        )}
+                        {hasWritePermission && row.status === "DISPATCHED" && hasRequestingAccess && (
                             <button
                                 type="button"
                                 className="btn btn-sm btn-success text-white"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (handleApprove) handleApprove(row);
+                                    if (handleReceive) handleReceive(row);
                                 }}
-                                title="Approve"
+                                title="Receive"
                             >
-                                <i className="bx bx-check" />
+                                <i className="bx bx-check-double me-1" />
+                                Receive
                             </button>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-danger text-white"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (handleReject) handleReject(row);
-                                }}
-                                title="Reject"
-                            >
-                                <i className="bx bx-x" />
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (handleEdit) handleEdit(row);
-                                }}
-                                title="Edit"
-                            >
-                                <i className="bx bx-pencil" />
-                            </button>
-                        </>
-                    )}
-                    {hasWritePermission && row.status === "APPROVED" && (
+                        )}
                         <button
                             type="button"
-                            className="btn btn-sm btn-primary text-white"
+                            className="btn btn-sm btn-outline-primary"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (handleDispatch) handleDispatch(row);
+                                openDetail(row);
                             }}
-                            title="Dispatch"
                         >
-                            <i className="bx bx-package me-1" />
-                            Dispatch
+                            <i className="bx bx-show me-1" />
+                            Details
                         </button>
-                    )}
-                    {hasWritePermission && row.status === "DISPATCHED" && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-success text-white"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (handleReceive) handleReceive(row);
-                            }}
-                            title="Receive"
-                        >
-                            <i className="bx bx-check-double me-1" />
-                            Receive
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            openDetail(row);
-                        }}
-                    >
-                        <i className="bx bx-show me-1" />
-                        Details
-                    </button>
-                </div>
-            ),
+                    </div>
+                )
+            },
             ignoreRowClick: true,
             allowOverflow: true,
             button: true,

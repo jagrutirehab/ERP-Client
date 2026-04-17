@@ -412,8 +412,14 @@ const InternalTransfer = () => {
         handleDispatch: openDispatch,
         handleReceive: openGrn,
         statusFilter,
-        hasWritePermission
+        hasWritePermission,
+        userCenterAccess: user?.centerAccess || []
     });
+
+    const hasFulfillingAccess = (req) => {
+        const fulCenterId = req?.fulfillingCenter?._id || req?.fulfillingCenter;
+        return (user?.centerAccess || []).includes(fulCenterId?.toString());
+    };
 
     return (
         <CardBody
@@ -750,16 +756,18 @@ const InternalTransfer = () => {
                         <CheckPermission accessRolePermission={roles?.permissions}
                             permission={"edit"}
                             subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
-                            <div className="d-flex w-100 justify-content-end gap-2">
-                                <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
-                                    <i className="bx bx-x me-1" />
-                                    Reject
-                                </Button>
-                                <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
-                                    <i className="bx bx-check me-1" />
-                                    Approve
-                                </Button>
-                            </div>
+                            {hasFulfillingAccess(selectedReq) && (
+                                <div className="d-flex w-100 justify-content-end gap-2">
+                                    <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
+                                        <i className="bx bx-x me-1" />
+                                        Reject
+                                    </Button>
+                                    <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
+                                        <i className="bx bx-check me-1" />
+                                        Approve
+                                    </Button>
+                                </div>
+                            )}
                         </CheckPermission>
                     ) : (
                         <Button color="secondary" outline onClick={closeDetail}>
