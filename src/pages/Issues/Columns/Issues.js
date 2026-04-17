@@ -33,6 +33,11 @@ export const Issues = (
       width: "160px",
     },
     {
+      name: <div className="text-center">Contact</div>,
+      selector: (row) => row?.contact || "-",
+      width: "160px",
+    },
+    {
       name: <div className="text-center">Requested For</div>,
       selector: (row) => row?.requestedFrom?.name || "-",
       // center: true,
