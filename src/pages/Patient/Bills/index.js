@@ -209,7 +209,7 @@ const Bills = ({
           dispatch(
             setTotalAmount({
               calculatedPayable: 0,
-              calculatedAdvance: totalAdvance,
+              calculatedAdvance: calcAdvance,
               totalPayable,
               totalAdvance,
               totalDeposit,
