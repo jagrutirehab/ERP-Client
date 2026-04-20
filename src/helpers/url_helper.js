@@ -573,6 +573,9 @@ export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
 export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
 export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
 
+export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings"
+export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings"
+
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves"
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
@@ -604,6 +607,7 @@ export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
 export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
 export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
 export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update/approved"
+export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";

@@ -757,6 +757,12 @@ export const HR = [
     ],
   },
   {
+    id: "transfer-manager-approval",
+    label: "Transfer Manager Approvals",
+    icon: "bx bx-line-chart",
+    link: "/hr/transfer/manager/approvals",
+  },
+  {
     id: "hiring",
     label: "Hiring",
     icon: "bx bx-badge",
@@ -1158,6 +1164,12 @@ export const ISSUES = [
     icon: "bx bx-user-check",
     link: "/issues/my/raised/tickets",
   },
+  // {
+  //   id: "finance-tickets",
+  //   label: "My Finance Tickets",
+  //   icon: "bx bx-rupee",
+  //   link: "/issues/my/finance/tickets",
+  // }
 
 ];
 

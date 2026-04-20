@@ -223,6 +223,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasTransferApprovalsPermission = hasPermission(
+    "HR",
+    "TRANSFER_MANAGER_APPROVALS",
+    "READ"
+  )
+
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -438,6 +444,7 @@ const Sidebar = () => {
     if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     if (page.id === "finance" && !hasFinancePermission) return false;
+    if (page.id === "transfer-manager-approval" && !hasTransferApprovalsPermission) return false
 
     if (page.id === "hr-dashboard") {
       page.children = page.children.filter((child) => {
@@ -457,6 +464,8 @@ const Sidebar = () => {
 
     return true;
   });
+
+
 
 
   useEffect(() => {

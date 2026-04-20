@@ -2725,6 +2725,25 @@ export const changeLeaveStatusByHR = (data) => {
   );
 };
 
+export const getPendingApprovalsByManagerId = (data) => {
+  return axios.get(url.GET_PENDING_APPROVALS_BY_MANAGER_ID, {
+    params: data,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const transferManagerPendingApprovals = (data) => {
+  return axios.patch(url.TRANSFER_MANAGER_PENDING_APPROVALS,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    })
+}
+
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
@@ -3270,6 +3289,11 @@ export const updateHRIssueRequest = (data) => {
     data
   )
 }
+export const getFinanceIssues = (params = {}) => {
+  return axios.get(url.GET_FINANCE_ISSUES, {
+    params,
+  });
+};
 
 // Recordings
 // Call recordings

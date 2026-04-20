@@ -9,6 +9,7 @@ import RaiseTicket from "./Pages/RaiseTicket";
 import Dashboard from "./Pages/Dashboard";
 import MyRaisedTickets from "./Pages/MyRaisedTickets";
 import HRissuesRequests from "./Pages/HRissuesRequests";
+import FinanceIssues from "./Pages/FinanceIssues";
 // import IssuesSidebar from "./Sidebar";
 // import TechIssues from "./TechIssues";
 // import OtherIssues from "./OtherIssues";
@@ -61,6 +62,8 @@ const Issues = () => {
                                             <Route path="purchase" element={<IssuesPage type={"PURCHASE"} />} />
                                             <Route path="review-submissions" element={<IssuesPage type={"REVIEW_SUBMISSION"} />} />
                                             <Route path="hr/issues" element={<IssuesPage type={"HR"} />} />
+                                            
+                                            <Route path="/my/finance/tickets" element={<FinanceIssues type={"HR"} />} />
                                             <Route path="hr/issues/requests" element={<HRissuesRequests />} />
                                             <Route path="my/issues" element={<MyIssues />} />
                                             <Route path="my/raised/tickets" element={<MyRaisedTickets />} />

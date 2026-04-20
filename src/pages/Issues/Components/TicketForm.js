@@ -44,7 +44,7 @@ const TicketForm = ({
             const managerId = res?.data?.manager?._id;
             setForm((prev) => ({
                 ...prev,
-                manager : managerId,
+                manager: managerId,
             }));
 
         } catch (error) {
@@ -78,6 +78,11 @@ const TicketForm = ({
             if (!form.requestType) return false;
             if (!form.hrDescription) return false;
         }
+
+        if (issueType === "FINANCE") {
+            if (!form.financeDescription) return false;
+            if (!form.financeIssueType) return false;
+        }
         // if (!form.files || form.files.length === 0) return false;
 
         return true;
@@ -92,6 +97,7 @@ const TicketForm = ({
     const issueTypeOptions = [
         { value: "TECH", label: "TECH" },
         { value: "HR", label: "HR" },
+        // { value: "FINANCE", label: "FINANCE" }
         // { value: "PURCHASE", label: "PURCHASE" },
         // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
     ];
@@ -328,6 +334,44 @@ const TicketForm = ({
                     </>
                 )}
 
+
+                {issueType === "FINANCE" && (
+                    <>
+                        {/* REQUEST TYPE */}
+                        <Col md={6}>
+                            <Label className="fw-semibold">
+                                Request Type<span className="text-danger">*</span>
+                            </Label>
+                            <Select
+                                placeholder="Select Request Type"
+                                options={[
+                                    { value: "⁠SALARY_SLIPS", label: "Salary Slips" },
+                                    { value: "SALARY/COMPLAINCE", label: "Salary/Complaince" },
+                                    { value: "TAX", label: "Tax" },
+                                ]}
+                                value={form.financeIssueType}
+                                onChange={(option) =>
+                                    setForm({ ...form, financeIssueType: option })
+                                }
+                            />
+                        </Col>
+
+
+                        {/* DESCRIPTION FULL WIDTH */}
+                        <Col md={12}>
+                            <Label className="fw-semibold">
+                                Description<span className="text-danger">*</span>
+                            </Label>
+                            <Input
+                                type="textarea"
+                                name="financeDescription"
+                                rows="3"
+                                value={form.financeDescription || ""}
+                                onChange={handleChange}
+                            />
+                        </Col>
+                    </>
+                )}
                 {/* FILE UPLOAD */}
                 <Col md={12}>
                     <Label className="fw-semibold">Upload Files</Label>

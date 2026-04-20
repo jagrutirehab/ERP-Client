@@ -329,6 +329,7 @@ export const permissionList = [
       { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
+      { name: "TRANSFER_MANAGER_APPROVALS", label: "Transfer Manager Approvals" },
     ],
   },
   // {
@@ -364,6 +365,7 @@ export const permissionList = [
       { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
       { name: "HR_ISSUES", label: "HR Issues" },
       { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
+      // { name: "FINANCE_ISSUES", label: "MY Finance Issues" },
       // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
