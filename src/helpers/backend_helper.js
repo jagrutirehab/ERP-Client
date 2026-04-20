@@ -1071,6 +1071,12 @@ export const getAllEmergencyPatients = (params = {}) => {
   });
 };
 
+export const getSopOverview = (admissionId, currentDate) => {
+  return api.get(`${url.GET_SOP_OVERVIEW}/${admissionId}`, {
+    params: { currentDate },
+  });
+};
+
 export const getICDCodes = () => {
   return api.get(url.GET_ICD_CODES);
 };

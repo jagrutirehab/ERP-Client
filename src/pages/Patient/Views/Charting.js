@@ -40,7 +40,7 @@ const Charting = ({
 }) => {
   const dispatch = useDispatch();
   const isClinincalTab = useSelector(
-    (state) => state.ClinicalTest.isClinincalTab
+    (state) => state.ClinicalTest.isClinincalTab,
   );
   const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
@@ -105,7 +105,7 @@ const Charting = ({
     values,
     files,
     editChartData,
-    editClinicalNote
+    editClinicalNote,
   ) => {
     const {
       author,
@@ -150,7 +150,7 @@ const Charting = ({
     const config = {
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
+          (progressEvent.loaded * 100) / progressEvent.total,
         );
         setUploadProgress(percentCompleted);
       },
@@ -160,13 +160,13 @@ const Charting = ({
       formData.append("id", editChartData._id);
       formData.append("chartId", editClinicalNote._id);
       dispatch(updateClinicalNote({ data: formData, config })).finally(() =>
-        setUploadProgress(0)
+        setUploadProgress(0),
       );
     } else if (chartType === "GENERAL") {
       dispatch(addGeneralClinicalNote(values));
     } else {
       dispatch(addClinicalNote({ data: formData, config })).finally(() =>
-        setUploadProgress(0)
+        setUploadProgress(0),
       );
     }
   };

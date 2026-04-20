@@ -9,7 +9,7 @@ import {
   INVOICE,
   OPD,
   REFUND,
-  WRITE_OFF
+  WRITE_OFF,
 } from "../../../Components/constants/patient";
 import AdvancePayment from "./AdvancePayment";
 import Invoice from "./Invoice";
@@ -209,7 +209,7 @@ const Bills = ({
           dispatch(
             setTotalAmount({
               calculatedPayable: 0,
-              calculatedAdvance: totalAdvance,
+              calculatedAdvance: calcAdvance,
               totalPayable,
               totalAdvance,
               totalDeposit,
@@ -246,8 +246,7 @@ const Bills = ({
             totalDeposit,
           }),
         );
-      }
-      else if (bill.bill === WRITE_OFF) {
+      } else if (bill.bill === WRITE_OFF) {
         dispatch(
           setTotalAmount({
             calculatedPayable: previousPayable,
@@ -257,8 +256,7 @@ const Bills = ({
             totalDeposit,
           }),
         );
-      }
-      else {
+      } else {
         dispatch(
           setTotalAmount({
             calculatedPayable: bill.advancePayment?.calculatedPayable ?? 0,
@@ -290,7 +288,7 @@ const Bills = ({
     console.log("Bill", bill);
     console.log("bill._id", bill?._id);
     console.log("latestBill?._id", latestBill?._id);
-    
+
     dispatch(
       createEditBill({ data: bill, bill: bill.bill, isOpen: false, isLatest }),
     );
@@ -325,7 +323,6 @@ const Bills = ({
   };
 
   const newDate = new Date();
-
 
   return (
     <React.Fragment>
@@ -379,21 +376,21 @@ const Bills = ({
                     disableEdit={
                       (bill.bill === ADVANCE_PAYMENT ||
                         bill.bill === DEPOSIT) &&
-                        // || bill.bill === INVOICE
-                        // user?.email !== "rijutarafder000@gmail.com" &&
-                        user?.email !== "surjeet.parida@gmail.com" &&
-                        user?.email !== "hemanthshinde@gmail.com"
-                        // user?.email !== "vikas@jagrutirehab.org" &&
-                        // user?.email !== "bishal@gmail.com"
-                        ? true
+                      // || bill.bill === INVOICE
+                      // user?.email !== "rijutarafder000@gmail.com" &&
+                      user?.email !== "surjeet.parida@gmail.com" &&
+                      user?.email !== "hemanthshinde@gmail.com"
+                        ? // user?.email !== "vikas@jagrutirehab.org" &&
+                          // user?.email !== "bishal@gmail.com"
+                          true
                         : bill.bill === INVOICE &&
-                          superUser.includes(user.email)
+                            superUser.includes(user.email)
                           ? false
                           : bill.bill === INVOICE &&
-                            differenceInDays(
-                              newDate,
-                              new Date(bill.createdAt),
-                            ) > 30
+                              differenceInDays(
+                                newDate,
+                                new Date(bill.createdAt),
+                              ) > 30
                             ? true
                             : false
                     }
@@ -414,7 +411,6 @@ const Bills = ({
                     >
                       <Invoice data={bill?.invoice} bill={bill} />
                     </RenderWhen>
-
                   </Wrapper>
                 );
               })}
