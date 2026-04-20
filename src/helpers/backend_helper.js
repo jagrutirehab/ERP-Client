@@ -2744,6 +2744,14 @@ export const transferManagerPendingApprovals = (data) => {
     })
 }
 
+export const getTemporaryManager = () => {
+  return axios.get(url.GET_TEMPORARY_MANAGER, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,

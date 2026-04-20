@@ -4,6 +4,7 @@ import "flatpickr/dist/themes/material_green.css";
 
 import {
   getMyManager,
+  getTemporaryManager,
   postCompOffRequest,
   postLeaveRequest,
 } from "../../../../helpers/backend_helper";
@@ -29,6 +30,8 @@ const LeaveApplications = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
+  const [manager, setManager] = useState();
+  const [temporary, setTemporary] = useState();
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
@@ -51,6 +54,7 @@ const LeaveApplications = () => {
         const res = await getMyManager(token);
 
         setManagerName(res?.data?.manager?.name || "");
+        setManager(res?.data?.manager || {})
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
         // console.log(error);
@@ -63,6 +67,7 @@ const LeaveApplications = () => {
     };
 
     getMyManagers();
+    handleGetTemporaryManager();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -116,15 +121,18 @@ const LeaveApplications = () => {
     }
   };
 
-  // const handleCompOffRequest = () => {
-  //   try {
-  //     console.log("CLicked");
+  const handleGetTemporaryManager = async () => {
+    try {
+      const response = await getTemporaryManager()
+      console.log("Response", response);
+      setTemporary(response);
 
-  //   } catch (error) {
-  //     console.log(error);
+    } catch (error) {
+      console.log("Error", error);
+    }
+  }
 
-  //   }
-  // }
+
 
   return (
     <CardBody
@@ -200,9 +208,23 @@ const LeaveApplications = () => {
                   disabled
                 />
               </div>
+              {manager?._id !== temporary?._id && temporary?._id && (
+                <div
+                  style={{
+                    background: "#fff3cd",
+                    color: "#856404",
+                    padding: "8px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid #ffeeba",
+                    marginTop: "5px"
+                  }}
+                >
+                  ⚠️ Leave requests will be transferred to <strong>{temporary?.name}</strong>
+                </div>
+              )}
 
               <div className="mb-3">
-                <label className="form-label">
+                <label className="form-label mt-4">
                   Shift Time <span className="text-danger">*</span>
                 </label>
 

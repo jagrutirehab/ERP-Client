@@ -159,7 +159,16 @@ const TransferManagerApprovals = () => {
 
 
   return (
-    <Container style={{ maxWidth: "500px", marginTop: "40px" }}>
+    <Container
+      style={{
+        maxWidth: "500px",
+        marginTop: "40px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        padding: "20px",
+        height : "100%"
+      }}
+    >
       <h3 className="mb-3">Transfer Manager Approvals</h3>
 
       <Form onSubmit={handleSubmit}>
