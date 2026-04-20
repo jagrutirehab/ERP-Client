@@ -1,4 +1,4 @@
-import { Badge } from "reactstrap";
+import { Badge, Spinner } from "reactstrap";
 import moment from "moment";
 
 const Center = ({ children }) => (
@@ -201,15 +201,16 @@ export const regularizeRequestColumn = (
           <Center>
             {actionLoadingId === row._id ? (
               (console.log("row", row._id),
-              (
-                <button className="btn btn-sm btn-secondary" disabled>
-                  Processing...
-                </button>
-              ))
+                (
+                  <button className="btn btn-sm btn-secondary" disabled>
+                    <Spinner size="sm" />
+                  </button>
+                ))
             ) : hasWrite || hasDelete ? (
-              <div className="d-flex gap-1 justify-content-center">
+              <div className="d-flex gap-1 justify-content-center align-items-center gap-2">
                 <button
                   className="btn btn-sm btn-success"
+                  style={{ minWidth: "70px" }}
                   onClick={() => handleAction(row._id, "regularized")}
                   disabled={actionLoadingId !== null}
                 >
@@ -218,6 +219,7 @@ export const regularizeRequestColumn = (
 
                 <button
                   className="btn btn-sm btn-danger"
+                  style={{ minWidth: "70px" }}
                   onClick={() => handleAction(row._id, "rejected")}
                   disabled={actionLoadingId !== null}
                 >

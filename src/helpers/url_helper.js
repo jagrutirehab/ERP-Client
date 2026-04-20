@@ -575,6 +575,7 @@ export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
 
 export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings"
 export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings"
+export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager"
 
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves"
