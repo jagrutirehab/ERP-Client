@@ -22,6 +22,7 @@ const initialFormState = {
   requestType: null,
   hrDescription: "",
   manager: "",
+  financeIssueType : "",
   files: [],
 };
 const RaiseTicket = () => {
@@ -169,6 +170,11 @@ const RaiseTicket = () => {
         formData.append("requestType", form.requestType?.value);
         formData.append("description", form.hrDescription);
         formData.append("manager", form.manager);
+      }
+
+       if (issueType === "FINANCE") {
+        formData.append("financeIssueType", form.financeIssueType?.value);
+        formData.append("description", form.financeDescription);
       }
 
       if (form.files && form.files.length) {

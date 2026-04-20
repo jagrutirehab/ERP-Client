@@ -23,7 +23,7 @@ const IssuesSidebar = () => {
   const hasTechnicalIssuesPermission = hasPermission("ISSUES", "TECHNICAL_ISSUES", "READ");
   const hasHRIssuesPermission = hasPermission("ISSUES", "HR_ISSUES", "READ");
   const hasHRIssuesRequestsPermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "READ");
-  
+
 
   const navigate = useNavigate();
 
@@ -32,13 +32,14 @@ const IssuesSidebar = () => {
     if (page.id === "raise-ticket") return hasRaiseTicketPermission;
     if (page.id === "my-issues") return hasMyIssuesPermission;
     if (page.id === "tech-issues") return hasTechnicalIssuesPermission;
-    
+
     if (page.id === "hr-issues") return hasHRIssuesPermission;
-    
+
     if (page.id === "hr-issues-requests") return hasHRIssuesRequestsPermission;
     // if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
     // if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
     if (page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
+    // if (page.id === "finance-tickets") return hasPermission("ISSUES", "FINANCE_ISSUES", "READ")
 
     return false;
   });
