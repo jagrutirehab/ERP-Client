@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
+const EmergencyAdmissionForm = ({
+  register,
+  setValue,
+  patient,
+  details,
+  chartData,
+  emergencyType,
+  emergencyRestraint,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -104,6 +112,28 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
     setToday(localISODate);
   }, []);
 
+  useEffect(() => {
+    if (setValue) {
+      // if (emergencyType) {
+      //   setValue("Emergency_Admission_description", emergencyType);
+      // }
+      const genderAge =
+        age && patient?.gender
+          ? `${age} / ${patient.gender}`
+          : age
+            ? `${age}`
+            : patient?.gender
+              ? `${patient.gender}`
+              : "";
+      setValue("Emergency_Admission_ageGender", genderAge);
+      if (emergencyRestraint) {
+        setValue("Emergency_Admission_restraint", emergencyRestraint);
+      }
+    }
+  }, [setValue, emergencyType, emergencyRestraint]);
+
+  console.log({ age, gender: patient.gender });
+
   return (
     <div style={pageContainer}>
       <style>
@@ -163,15 +193,6 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
-                defaultValue={
-                  age && patient?.gender
-                    ? `${age} / ${patient.gender}`
-                    : age
-                      ? `${age}`
-                      : patient?.gender
-                        ? `${patient.gender}`
-                        : ""
-                }
                 {...register("Emergency_Admission_ageGender")}
                 style={{
                   fontWeight: "bold",
@@ -255,8 +276,9 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
       {/* Emergency Type */}
       <div style={sectionHeading}>Emergency Type</div>
       <p style={{ marginBottom: "5px" }}>
-        Risk to self / others / agitation / psychosis / substance / inability to
-        care
+        {/* Risk to self / others / agitation / psychosis / substance / inability to
+        care */}
+        {emergencyType}
       </p>
       <div
         style={{

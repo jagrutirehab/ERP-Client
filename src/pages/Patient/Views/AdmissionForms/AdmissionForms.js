@@ -73,6 +73,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
   const [supporttype, setSupporttype] = useState("");
+  const [emergencyType, setEmergencyType] = useState("");
+  const [emergencyRestraint, setEmergencyRestraint] = useState("");
   const [chartData, setChartData] = useState([]);
   const [details, setDetails] = useState({
     roomtype: "",
@@ -156,7 +158,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
   }, [dispatch, patient, addmissionId]);
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, setValue } = useForm();
 
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
@@ -443,6 +445,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     setAdmissiontype("");
     setAdultationtype("");
     setSupporttype("");
+    setEmergencyType("");
+    setEmergencyRestraint("");
     setDetails({
       IPDnum: "",
       bed: "",
@@ -481,6 +485,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       setAdmissiontype("");
       setAdultationtype("");
       setSupporttype("");
+      setEmergencyType("");
+      setEmergencyRestraint("");
       setDetails({
         IPDnum: "",
         bed: "",
@@ -1405,6 +1411,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         isOpen={openform}
         toggle={() => {
           setOpenform(false);
+          setEmergencyType("");
+          setEmergencyRestraint("");
         }}
         size="xl"
         backdrop="static"
@@ -1413,6 +1421,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         <ModalHeader
           toggle={() => {
             setOpenform(false);
+            setEmergencyType("");
+            setEmergencyRestraint("");
           }}
         >
           Admission Form
@@ -1484,9 +1494,12 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                 <div ref={emergencyRef}>
                   <EmergencyAdmissionForm
                     register={register}
+                    setValue={setValue}
                     chartData={chartData}
                     patient={patient}
                     details={details}
+                    emergencyType={emergencyType}
+                    emergencyRestraint={emergencyRestraint}
                   />
                 </div>
               )}
@@ -1546,6 +1559,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   disabled={isGenerating2}
                   onClick={() => {
                     setOpenform(false);
+                    setEmergencyType("");
+                    setEmergencyRestraint("");
                   }}
                 >
                   Close
@@ -1861,6 +1876,10 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         setAdultationtype={setAdultationtype}
         supporttype={supporttype}
         setSupporttype={setSupporttype}
+        emergencyType={emergencyType}
+        setEmergencyType={setEmergencyType}
+        emergencyRestraint={emergencyRestraint}
+        setEmergencyRestraint={setEmergencyRestraint}
         details={details}
         setDetails={setDetails}
         setOpenform={setOpenform}

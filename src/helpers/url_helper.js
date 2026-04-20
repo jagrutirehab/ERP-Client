@@ -350,6 +350,9 @@ export const ROUND_NOTES_STAFF = "/round-notes/staff";
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
 
+// SOP Overview
+export const GET_SOP_OVERVIEW = "/patient/sop-overview";
+
 // cash managemenet
 export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
 export const ADD_SPENDING = "/cash/spending";

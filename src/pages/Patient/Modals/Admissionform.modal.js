@@ -19,11 +19,21 @@ const AdmissionFormModal = ({
   setAdultationtype,
   supporttype,
   setSupporttype,
+  emergencyType,
+  setEmergencyType,
+  emergencyRestraint,
+  setEmergencyRestraint,
   details,
   setDetails,
   setOpenform,
 }) => {
   const dispatch = useDispatch();
+
+  const handleCancel = () => {
+    setEmergencyType("");
+    setEmergencyRestraint("");
+    toggle();
+  };
 
   useEffect(() => {
     if (!chartDate) {
@@ -54,7 +64,7 @@ const AdmissionFormModal = ({
   };
 
   return (
-    <CustomModal isOpen={isOpen} title="Admission" toggle={toggle}>
+    <CustomModal isOpen={isOpen} title="Admission" toggle={handleCancel}>
       <div>
         {/* Date + Time */}
         <p className="text-muted mt-0 mb-1">Chart date and time</p>
@@ -174,6 +184,39 @@ const AdmissionFormModal = ({
             </div>
           )}
 
+          {admissiontype === "EMERGENCY_ADMISSION" && (
+            <>
+              <div className="mt-3">
+                <Label className="text-muted mb-1">Emergency Type</Label>
+                <Input
+                  type="select"
+                  value={emergencyType}
+                  onChange={(e) => setEmergencyType(e.target.value)}
+                >
+                  <option value="">Select Emergency Type</option>
+                  <option value="Risk to self">Risk to self</option>
+                  <option value="Risk to others">Risk to others</option>
+                  <option value="Agitation">Agitation</option>
+                  <option value="Psychosis">Psychosis</option>
+                  <option value="Substance">Substance</option>
+                  <option value="Inability to care">Inability to care</option>
+                </Input>
+              </div>
+              <div className="mt-3">
+                <Label className="text-muted mb-1">Restraint</Label>
+                <Input
+                  type="select"
+                  value={emergencyRestraint}
+                  onChange={(e) => setEmergencyRestraint(e.target.value)}
+                >
+                  <option value="">Select Restraint</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </Input>
+              </div>
+            </>
+          )}
+
           {/* Next Button */}
           <div className="text-center mt-4">
             <Button
@@ -182,7 +225,9 @@ const AdmissionFormModal = ({
               disabled={
                 !admissiontype ||
                 (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype) ||
-                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype)
+                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype) ||
+                (admissiontype === "EMERGENCY_ADMISSION" &&
+                  (!emergencyType || !emergencyRestraint))
               }
               onClick={() => {
                 toggle();
