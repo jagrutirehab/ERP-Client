@@ -1802,6 +1802,14 @@ export const reviewInternalTransferRequisition = (id, data) => {
   });
 };
 
+export const requestingReviewInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/requesting-review`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getInternalTransferRequisitionById = (id) => {
   return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, {
     headers: {

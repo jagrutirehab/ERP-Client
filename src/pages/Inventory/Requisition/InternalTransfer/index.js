@@ -20,6 +20,7 @@ import moment from "moment";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { pdf } from "@react-pdf/renderer";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { generateGRNNumber } from "../../../../helpers/backend_helper";
@@ -27,35 +28,42 @@ import {
     fetchInternalTransferRequisitions,
     fetchInternalTransferById,
     reviewInternalTransfer,
+    requestingReviewInternalTransfer,
     dispatchInternalTransfer,
     grnInternalTransfer,
 } from "../../../../store/features/pharmacy/pharmacySlice";
 import DataTableComponent from "../../../../Components/Common/DataTable";
+import PreviewFile from "../../../../Components/Common/PreviewFile";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { getInternalTransferColumns } from "../../Columns/Pharmacy/InternalTransferColumns";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
+import InternalTransferPDF from "../../../../Components/Print/InternalTransfer";
 
 const STATUS_OPTIONS = [
-    { value: "PENDING", label: "Pending" },
+    { value: "PENDING_REQUESTING", label: "Requesting Pending" },
+    { value: "PENDING_FULFILLING", label: "Fulfilling Pending" },
     { value: "APPROVED", label: "Approved" },
     { value: "DISPATCHED", label: "Dispatched" },
     { value: "PARTIALLY_RECEIVED,FULFILLED", label: "Received" },
-    { value: "REJECTED", label: "Rejected" },
+    { value: "REJECTED,REQUESTING_REJECTED,FULFILLING_REJECTED", label: "Rejected" },
 ];
 
 const STATUS_COLORS = {
-    PENDING: "warning",
+    PENDING_REQUESTING: "warning",
+    PENDING_FULFILLING: "warning",
     APPROVED: "info",
     DISPATCHED: "primary",
     PARTIALLY_RECEIVED: "warning",
     FULFILLED: "success",
     REJECTED: "danger",
+    REQUESTING_REJECTED: "danger",
+    FULFILLING_REJECTED: "danger",
 };
 
 
-const InternalTransfer = () => {
+const InternalTransfer = ({ isSareyaanPage = false }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -76,29 +84,46 @@ const InternalTransfer = () => {
 
     const [searchQuery, setSearchQuery] = useState("");
 
-    // ── Review modal ────────────────────────────────────────────────────────
     const [reviewModal, setReviewModal] = useState({ open: false, mode: null, row: null });
     const [approveItems, setApproveItems] = useState([]);
     const [reviewRemarks, setReviewRemarks] = useState("");
 
-    // ── Dispatch modal ──────────────────────────────────────────────────────
     const [dispatchModal, setDispatchModal] = useState({ open: false, row: null });
     const [dispatchItems, setDispatchItems] = useState([]);
     const [dispatchNote, setDispatchNote] = useState("");
 
-    // ── GRN modal ───────────────────────────────────────────────────────────
+    // Helper for pluralizing units
+    const formatUnit = (u, q) => {
+        if (!u || q <= 1) return u;
+        const lower = u.toLowerCase();
+        if (lower.endsWith('s')) return u;
+        if (lower.endsWith('x')) return u + (u === u.toUpperCase() ? "ES" : "es");
+        return u + (u === u.toUpperCase() ? "S" : "s");
+    };
+    const [courierName, setCourierName] = useState("");
+    const [courierId, setCourierId] = useState("");
+
     const [grnModal, setGrnModal] = useState({ open: false, row: null });
     const [grnItems, setGrnItems] = useState([]);
     const [grnNumber, setGrnNumber] = useState("");
     const [receiveNote, setReceiveNote] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("PENDING");
+    const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
     const [detailModal, setDetailModal] = useState(false);
     const [selectedReq, setSelectedReq] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
+
+    const [requestingReviewModal, setRequestingReviewModal] = useState({ open: false, row: null, mode: null });
+    const [requestingReviewRemarks, setRequestingReviewRemarks] = useState("");
+
+    const [pdfModal, setPdfModal] = useState({ open: false, row: null });
+    const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfError, setPdfError] = useState(false);
+    const pdfBlobUrlRef = useRef(null);
 
     const [expandedRows, setExpandedRows] = useState({});
     const toggleExpand = (reqId) => setExpandedRows(p => ({ ...p, [reqId]: !p[reqId] }));
@@ -118,13 +143,19 @@ const InternalTransfer = () => {
         "DELETE"
     );
 
-    const allUserCenterIds = (user?.centerAccess || []).join(",");
+    const SPECIAL_ORDER_CENTER_IDS = ["6673daaeccb7e3e7f6eab071"];
+    const filteredCenterAccess = (user?.centerAccess || []).filter((id) => {
+        if (isSareyaanPage) return true;
+        return !SPECIAL_ORDER_CENTER_IDS.includes(id);
+    });
+
+    const allUserCenterIds = filteredCenterAccess.join(",");
 
     const centerOptions = [
-        ...(user?.centerAccess?.length > 1
+        ...(filteredCenterAccess.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(user?.centerAccess?.map((id) => {
+        ...(filteredCenterAccess.map((id) => {
             const center = user?.userCenters?.find((c) => c._id === id);
             return { value: id, label: center?.title || "Unknown Center" };
         }) || []),
@@ -165,6 +196,7 @@ const InternalTransfer = () => {
                 search: debouncedSearch || undefined,
                 status: statusFilter || undefined,
                 centerIds: getCenterIds() || undefined,
+                type: isSareyaanPage ? "ORDER_FROM_SAAREYAN" : "INTERNAL_TRANSFER",
             })
         ).unwrap().catch((error) => {
             if (!handleAuthError(error)) {
@@ -181,6 +213,7 @@ const InternalTransfer = () => {
                 search: debouncedSearch || undefined,
                 status: statusFilter || undefined,
                 centerIds: getCenterIds() || undefined,
+                type: isSareyaanPage ? "ORDER_FROM_SAAREYAN" : "INTERNAL_TRANSFER",
             })
         )
             .unwrap()
@@ -190,7 +223,7 @@ const InternalTransfer = () => {
                 }
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentPage, debouncedSearch, statusFilter, selectedCenter, allUserCenterIds]);
+    }, [currentPage, debouncedSearch, statusFilter, selectedCenter, allUserCenterIds, isSareyaanPage]);
 
     const openDetail = (row) => {
         setSelectedReq(null);
@@ -214,6 +247,67 @@ const InternalTransfer = () => {
         setDetailLoading(false);
     };
 
+    const openPdfModal = (row) => {
+        setPdfModal({ open: true, row });
+        setPdfBlobUrl(null);
+        setPdfLoading(true);
+        setPdfError(false);
+
+        dispatch(fetchInternalTransferById(row._id))
+            .unwrap()
+            .then((res) => {
+                const fullReq = res?.data || res;
+                const centerData = fullReq.requestingCenter
+                    ? {
+                        name: fullReq.requestingCenter.title || "JAGRUTI REHABILITATION CENTRE",
+                        address: fullReq.requestingCenter.address || "",
+                        numbers: fullReq.requestingCenter.phoneNumbers || "",
+                    }
+                    : null;
+
+                generatePdf(fullReq, centerData);
+            })
+            .catch((error) => {
+                if (!handleAuthError(error)) {
+                    toast.error(error?.message || "Failed to load details for PDF.");
+                }
+                setPdfError(true);
+                setPdfLoading(false);
+                setPdfModal({ open: false, row: null });
+            });
+    };
+
+    const generatePdf = async (requisition, center, attempt = 1) => {
+        try {
+            const blob = await pdf(
+                <InternalTransferPDF requisition={requisition} center={center} />
+            ).toBlob();
+            const url = URL.createObjectURL(blob);
+            pdfBlobUrlRef.current = url;
+            setPdfBlobUrl(url);
+            setPdfLoading(false);
+        } catch (err) {
+            if (attempt < 3) {
+                setTimeout(() => generatePdf(requisition, center, attempt + 1), 500);
+            } else {
+                setPdfError(true);
+                setPdfLoading(false);
+                toast.error("Failed to generate PDF. Please try again.");
+            }
+        }
+    };
+
+    const closePdfModal = () => {
+        if (pdfBlobUrlRef.current) {
+            URL.revokeObjectURL(pdfBlobUrlRef.current);
+            pdfBlobUrlRef.current = null;
+        }
+        setPdfModal({ open: false, row: null });
+        setPdfBlobUrl(null);
+        setPdfLoading(false);
+        setPdfError(false);
+    };
+
 
 
     const handleEdit = (row) => {
@@ -233,7 +327,7 @@ const InternalTransfer = () => {
                         medicineName: pharm.medicineName || item.medicineName || "Unknown",
                         type: med.type || "",
                         strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: pharm.unitType || pharm.unit || item.unit || "",
+                        unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
                         genericName: med.genericName || "",
                         brandName: med.brandName || med.name || "",
                         approvedQty: item.approvedQty,
@@ -242,6 +336,8 @@ const InternalTransfer = () => {
                 })
         );
         setDispatchNote("");
+        setCourierName("");
+        setCourierId("");
         setDispatchModal({ open: true, row });
     };
 
@@ -250,19 +346,23 @@ const InternalTransfer = () => {
         setDispatchModal({ open: false, row: null });
         setDispatchItems([]);
         setDispatchNote("");
+        setCourierName("");
+        setCourierId("");
     };
 
     const handleDispatchSubmit = async () => {
-        const itemsToSend = dispatchItems.filter((i) => Number(i.dispatchedQty) > 0);
-        if (itemsToSend.length === 0) {
-            toast.warning("At least one item must have a dispatched quantity greater than 0.");
+        const totalDispatched = dispatchItems.reduce((sum, i) => sum + Number(i.dispatchedQty || 0), 0);
+        if (totalDispatched === 0) {
+            toast.warning("Cannot dispatch: At least one item must have a dispatched quantity greater than 0.");
             return;
         }
         try {
             await dispatch(dispatchInternalTransfer({
                 id: dispatchModal.row._id,
                 dispatchNote,
-                items: itemsToSend.map((i) => ({
+                courierName,
+                courierId,
+                items: dispatchItems.map((i) => ({
                     itemId: i.itemId,
                     dispatchedQty: Number(i.dispatchedQty),
                 })),
@@ -280,7 +380,7 @@ const InternalTransfer = () => {
     const openGrn = (row) => {
         setGrnItems(
             (row.items || [])
-                .filter((item) => (item.dispatchedQty ?? 0) > 0)
+                .filter((item) => (item.approvedQty ?? 0) > 0)
                 .map((item) => {
                     const pharm = item.pharmacyId || {};
                     const med = pharm.medicineId || {};
@@ -290,11 +390,11 @@ const InternalTransfer = () => {
                         medicineName: pharm.medicineName || item.medicineName || "Unknown",
                         type: med.type || "",
                         strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: pharm.unitType || pharm.unit || item.unit || "",
+                        unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
                         genericName: med.genericName || "",
                         brandName: med.brandName || med.name || "",
-                        dispatchedQty: item.dispatchedQty,
-                        receivedQty: item.dispatchedQty,
+                        approvedQty: item.approvedQty,
+                        receivedQty: item.approvedQty,
                     };
                 })
         );
@@ -351,11 +451,13 @@ const InternalTransfer = () => {
                     medicineName: pharm.medicineName || item.medicineName || "Unknown",
                     type: med.type || "",
                     strength: pharm.Strength || pharm.strength || item.strength || "",
-                    unit: pharm.unitType || pharm.unit || item.unit || "",
+                    unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
                     genericName: med.genericName || "",
                     brandName: med.brandName || med.name || "",
                     requestedQty: item.requestedQty,
                     approvedQty: item.requestedQty,
+                    availableBatches: Array.isArray(pharm.Batch) ? pharm.Batch : (pharm.Batch ? [pharm.Batch] : []),
+                    batch: "",
                 };
             })
         );
@@ -375,6 +477,37 @@ const InternalTransfer = () => {
         setReviewRemarks("");
     };
 
+    const openRequestingReview = (row, mode) => {
+        setRequestingReviewRemarks("");
+        setRequestingReviewModal({ open: true, row, mode }); // mode: "approve" | "reject"
+    };
+
+    const closeRequestingReviewModal = () => {
+        if (submitLoading) return;
+        setRequestingReviewModal({ open: false, row: null, mode: null });
+        setRequestingReviewRemarks("");
+    };
+
+    const handleRequestingReviewSubmit = async () => {
+        const { row, mode } = requestingReviewModal;
+        try {
+            await dispatch(requestingReviewInternalTransfer({
+                id: row._id,
+                action: mode === "approve" ? "APPROVED" : "REJECTED",
+                remarks: requestingReviewRemarks,
+            })).unwrap();
+            toast.success(mode === "approve"
+                ? "Request approved — sent to fulfilling center!"
+                : "Request rejected by requesting center.");
+            closeRequestingReviewModal();
+            reloadTable();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Action failed.");
+            }
+        }
+    };
+
     const handleReviewSubmit = async () => {
         const { mode, row } = reviewModal;
         const payload = { id: row._id, action: mode === "approve" ? "APPROVED" : "REJECTED", remarks: reviewRemarks };
@@ -387,6 +520,7 @@ const InternalTransfer = () => {
             payload.items = approvedOnly.map((i) => ({
                 itemId: i.itemId,
                 approvedQty: Number(i.approvedQty),
+                batch: i.batch || "",
             }));
         }
         try {
@@ -409,8 +543,11 @@ const InternalTransfer = () => {
         handleEdit,
         handleApprove: openApprove,
         handleReject: openReject,
+        handleRequestingApprove: (row) => openRequestingReview(row, "approve"),
+        handleRequestingReject: (row) => openRequestingReview(row, "reject"),
         handleDispatch: openDispatch,
         handleReceive: openGrn,
+        handlePdf: openPdfModal,
         statusFilter,
         hasWritePermission,
         userCenterAccess: user?.centerAccess || []
@@ -428,23 +565,41 @@ const InternalTransfer = () => {
         >
             <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
                 <div>
-                    <h5 className="mb-1 fw-semibold">Internal Transfer Requisitions</h5>
+                    <h5 className="mb-1 fw-semibold">
+                        {isSareyaanPage ? "Sareyaan Pharma Orders" : "Internal Transfer Requisitions"}
+                    </h5>
                     <p className="text-muted mb-0 fs-13">
-                        Manage stock transfer requests between centers
+                        {isSareyaanPage
+                            ? "Manage stock orders and approvals from Sareyaan Pharma"
+                            : "Manage stock transfer requests between centers"}
                     </p>
                 </div>
                 {hasWritePermission && (
-                    <Button
-                        color="primary"
-                        className="text-white d-flex align-items-center gap-1 w-100 w-sm-auto justify-content-center"
-                        onClick={() =>
-                            navigate("/pharmacy/requisition/internal-transfer/add")
-                        }
-                        style={{ maxWidth: "160px" }}
-                    >
-                        <i className="bx bx-plus fs-5" />
-                        <span>Add Request</span>
-                    </Button>
+                    <div className="d-flex gap-2 flex-wrap justify-content-end">
+                        {!isSareyaanPage ? (
+                            <Button
+                                color="primary"
+                                className="text-white d-flex align-items-center gap-1 justify-content-center"
+                                onClick={() =>
+                                    navigate("/pharmacy/requisition/internal-transfer/add?type=internal")
+                                }
+                            >
+                                <i className="bx bx-transfer fs-5" />
+                                <span>Add Internal Transfer Request</span>
+                            </Button>
+                        ) : (
+                            <Button
+                                color="success"
+                                className="text-white d-flex align-items-center gap-1 justify-content-center"
+                                onClick={() =>
+                                    navigate("/pharmacy/requisition/sareyaan-orders/add?type=sareyaan")
+                                }
+                            >
+                                <i className="bx bx-plus fs-5" />
+                                <span>Add Sareyaan Order</span>
+                            </Button>
+                        )}
+                    </div>
                 )}
             </div>
 
@@ -569,13 +724,19 @@ const InternalTransfer = () => {
                                         </p>
                                     </div>
                                 </Col>
-                                <Col sm={6} md={3}>
+                                <Col sm={6} md={2}>
                                     <div className="p-3 bg-light rounded">
                                         <p className="text-muted fs-12 mb-1">Requesting Center</p>
                                         <p className="fw-semibold mb-0">{selectedReq.requestingCenter?.title || "—"}</p>
                                     </div>
                                 </Col>
-                                <Col sm={6} md={3}>
+                                <Col sm={6} md={2}>
+                                    <div className="p-3 bg-light rounded">
+                                        <p className="text-muted fs-12 mb-1">Requested By</p>
+                                        <p className="fw-semibold mb-0">{selectedReq.filledBy?.name || "—"}</p>
+                                    </div>
+                                </Col>
+                                <Col sm={6} md={2}>
                                     <div className="p-3 bg-light rounded">
                                         <p className="text-muted fs-12 mb-1">Fulfilling Center</p>
                                         <p className="fw-semibold mb-0">{selectedReq.fulfillingCenter?.title || "—"}</p>
@@ -583,32 +744,76 @@ const InternalTransfer = () => {
                                 </Col>
                             </Row>
 
-                            {/* ── Review Info ───────────────────────────────────── */}
-                            {selectedReq.status !== "PENDING" && selectedReq.review && (
+
+                            {/* ── Requesting Center Review Info ──────────────────────── */}
+                            {selectedReq.requestingCenterReview && (
                                 <>
                                     <p className="text-muted fw-semibold fs-12 mb-2 text-uppercase" style={{ letterSpacing: "0.05em" }}>
-                                        <i className="bx bx-check-shield me-1 text-success" />Review
+                                        <i className="bx bx-buildings me-1 text-warning" />Requesting Center Review
                                     </p>
                                     <Row className="mb-3 g-3">
                                         <Col sm={6} md={3}>
                                             <div className="p-3 bg-light rounded">
+                                                <p className="text-muted fs-12 mb-1">Action</p>
+                                                <p className={`fw-semibold mb-0 ${selectedReq.requestingCenterReview.action === "APPROVED" ? "text-success" : "text-danger"}`}>
+                                                    {selectedReq.requestingCenterReview.action}
+                                                </p>
+                                            </div>
+                                        </Col>
+                                        <Col sm={6} md={3}>
+                                            <div className="p-3 bg-light rounded">
                                                 <p className="text-muted fs-12 mb-1">Reviewed By</p>
-                                                <p className="fw-semibold mb-0">{selectedReq.review.actionBy?.name || "—"}</p>
+                                                <p className="fw-semibold mb-0">{selectedReq.requestingCenterReview.actionBy?.name || "—"}</p>
                                             </div>
                                         </Col>
                                         <Col sm={6} md={3}>
                                             <div className="p-3 bg-light rounded">
                                                 <p className="text-muted fs-12 mb-1">Reviewed At</p>
                                                 <p className="fw-semibold mb-0">
-                                                    {selectedReq.review.actionAt ? moment(selectedReq.review.actionAt).format("DD MMM YYYY, hh:mm A") : "—"}
+                                                    {selectedReq.requestingCenterReview.actionAt
+                                                        ? moment(selectedReq.requestingCenterReview.actionAt).format("DD MMM YYYY, hh:mm A")
+                                                        : "—"}
                                                 </p>
                                             </div>
                                         </Col>
-                                        {selectedReq.review.remarks && (
+                                        {selectedReq.requestingCenterReview.remarks && (
+                                            <Col sm={12} md={3}>
+                                                <div className="p-3 bg-light rounded">
+                                                    <p className="text-muted fs-12 mb-1">Remarks</p>
+                                                    <p className="fw-semibold mb-0">{capitalizeWords(selectedReq.requestingCenterReview.remarks)}</p>
+                                                </div>
+                                            </Col>
+                                        )}
+                                    </Row>
+                                </>
+                            )}
+
+                            {/* ── Fulfilling Center Review Info ────────────────────── */}
+                            {selectedReq.fulfillingCenterReview && (
+                                <>
+                                    <p className="text-muted fw-semibold fs-12 mb-2 text-uppercase" style={{ letterSpacing: "0.05em" }}>
+                                        <i className="bx bx-check-shield me-1 text-success" />Fulfilling Center Review
+                                    </p>
+                                    <Row className="mb-3 g-3">
+                                        <Col sm={6} md={3}>
+                                            <div className="p-3 bg-light rounded">
+                                                <p className="text-muted fs-12 mb-1">Reviewed By</p>
+                                                <p className="fw-semibold mb-0">{selectedReq.fulfillingCenterReview.actionBy?.name || "—"}</p>
+                                            </div>
+                                        </Col>
+                                        <Col sm={6} md={3}>
+                                            <div className="p-3 bg-light rounded">
+                                                <p className="text-muted fs-12 mb-1">Reviewed At</p>
+                                                <p className="fw-semibold mb-0">
+                                                    {selectedReq.fulfillingCenterReview.actionAt ? moment(selectedReq.fulfillingCenterReview.actionAt).format("DD MMM YYYY, hh:mm A") : "—"}
+                                                </p>
+                                            </div>
+                                        </Col>
+                                        {selectedReq.fulfillingCenterReview.remarks && (
                                             <Col sm={12} md={6}>
                                                 <div className="p-3 bg-light rounded">
                                                     <p className="text-muted fs-12 mb-1">Remarks</p>
-                                                    <p className="fw-semibold mb-0">{capitalizeWords(selectedReq.review.remarks)}</p>
+                                                    <p className="fw-semibold mb-0">{capitalizeWords(selectedReq.fulfillingCenterReview.remarks)}</p>
                                                 </div>
                                             </Col>
                                         )}
@@ -637,6 +842,22 @@ const InternalTransfer = () => {
                                                 </p>
                                             </div>
                                         </Col>
+                                        {selectedReq.dispatch.courierName && (
+                                            <Col sm={6} md={3}>
+                                                <div className="p-3 bg-light rounded">
+                                                    <p className="text-muted fs-12 mb-1">Courier Name</p>
+                                                    <p className="fw-semibold mb-0">{selectedReq.dispatch.courierName}</p>
+                                                </div>
+                                            </Col>
+                                        )}
+                                        {selectedReq.dispatch.courierId && (
+                                            <Col sm={6} md={3}>
+                                                <div className="p-3 bg-light rounded">
+                                                    <p className="text-muted fs-12 mb-1">Courier ID</p>
+                                                    <p className="fw-bold text-primary mb-0" style={{ textTransform: "uppercase" }}>{selectedReq.dispatch.courierId}</p>
+                                                </div>
+                                            </Col>
+                                        )}
                                         {selectedReq.dispatch.dispatchNote && (
                                             <Col sm={12} md={6}>
                                                 <div className="p-3 bg-light rounded">
@@ -705,8 +926,8 @@ const InternalTransfer = () => {
                                                 <th style={{ fontSize: 12 }}>#</th>
                                                 <th style={{ fontSize: 12 }}>Medicine</th>
                                                 <th className="text-center" style={{ fontSize: 12 }}>Requested</th>
-                                                {selectedReq.review && <th className="text-center" style={{ fontSize: 12 }}>Approved</th>}
-                                                {selectedReq.dispatch?.dispatchedAt && <th className="text-center" style={{ fontSize: 12 }}>Dispatched</th>}
+                                                {selectedReq.fulfillingCenterReview && <th className="text-center" style={{ fontSize: 12 }}>Approved</th>}
+                                                {selectedReq.dispatch?.dispatchedAt && <th className="text-center" style={{ fontSize: 12 }}>Dispatched / Batch</th>}
                                                 {selectedReq.receive?.receivedAt && <th className="text-center" style={{ fontSize: 12 }}>Received</th>}
                                                 <th style={{ fontSize: 12 }}>Remarks</th>
                                             </tr>
@@ -719,6 +940,8 @@ const InternalTransfer = () => {
                                                 const customId = pharm.id;
                                                 const genericName = med.genericName || "";
                                                 const brandName = med.brandName || med.name || "";
+                                                const rawUnit = pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "";
+
                                                 return (
                                                     <tr key={item._id || idx}>
                                                         <td className="text-muted" style={{ fontSize: 12 }}>{idx + 1}</td>
@@ -736,10 +959,15 @@ const InternalTransfer = () => {
                                                                 )}
                                                             </p>
                                                         </td>
-                                                        <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty}</td>
-                                                        {selectedReq.review && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.approvedQty ?? "—"}</td>}
-                                                        {selectedReq.dispatch?.dispatchedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.dispatchedQty ?? "—"}</td>}
-                                                        {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty ?? "—"}</td>}
+                                                        <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty} {formatUnit(rawUnit, item.requestedQty)}</td>
+                                                        {selectedReq.fulfillingCenterReview && <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>{item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${formatUnit(rawUnit, item.approvedQty)}` : "—"}</td>}
+                                                        {selectedReq.dispatch?.dispatchedAt && (
+                                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                                {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${formatUnit(rawUnit, item.dispatchedQty)}` : "—"}
+                                                                {item.batch && <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>Batch: {item.batch}</div>}
+                                                            </td>
+                                                        )}
+                                                        {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${formatUnit(rawUnit, item.receivedQty)}` : "—"}</td>}
                                                         <td className="text-muted" style={{ fontSize: 12 }}>{item.itemRemarks || "—"}</td>
                                                     </tr>
                                                 );
@@ -752,24 +980,76 @@ const InternalTransfer = () => {
                     ) : null}
                 </ModalBody>
                 <ModalFooter>
-                    {selectedReq?.status === "PENDING" ? (
-                        <CheckPermission accessRolePermission={roles?.permissions}
-                            permission={"edit"}
-                            subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
-                            {hasFulfillingAccess(selectedReq) && (
-                                <div className="d-flex w-100 justify-content-end gap-2">
-                                    <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
-                                        <i className="bx bx-x me-1" />
-                                        Reject
-                                    </Button>
-                                    <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
-                                        <i className="bx bx-check me-1" />
-                                        Approve
-                                    </Button>
+                    {["PENDING_REQUESTING", "PENDING_FULFILLING"].includes(selectedReq?.status) ? (() => {
+                        const reqCenterId = selectedReq?.requestingCenter?._id || selectedReq?.requestingCenter;
+                        const fulCenterId = selectedReq?.fulfillingCenter?._id || selectedReq?.fulfillingCenter;
+                        const userCenterIds = user?.centerAccess || [];
+                        const isRequesting = userCenterIds.includes(reqCenterId?.toString());
+                        const isFulfilling = userCenterIds.includes(fulCenterId?.toString());
+
+                        // ── PENDING_FULFILLING: Fulfilling center acts (Approve / Reject) ──
+                        if (selectedReq.status === "PENDING_FULFILLING" && isFulfilling) {
+                            return (
+                                <CheckPermission accessRolePermission={roles?.permissions}
+                                    permission={"edit"}
+                                    subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
+                                    <div className="d-flex w-100 justify-content-end gap-2">
+                                        <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
+                                            <i className="bx bx-x me-1" />
+                                            Reject
+                                        </Button>
+                                        <Button color="success" onClick={() => { closeDetail(); openApprove(selectedReq); }} className="text-white">
+                                            <i className="bx bx-check me-1" />
+                                            Approve
+                                        </Button>
+                                    </div>
+                                </CheckPermission>
+                            );
+                        }
+
+                        // ── PENDING_REQUESTING: Requesting center can Approve / Reject / Edit ──
+                        if (selectedReq.status === "PENDING_REQUESTING" && isRequesting) {
+                            return (
+                                <CheckPermission accessRolePermission={roles?.permissions}
+                                    permission={"edit"}
+                                    subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
+                                    <div className="d-flex w-100 justify-content-between align-items-center">
+                                        <Button color="secondary" outline onClick={closeDetail}>Close</Button>
+                                        <div className="d-flex gap-2">
+                                            <Button color="primary" outline onClick={() => { closeDetail(); handleEdit(selectedReq); }}>
+                                                <i className="bx bx-pencil me-1" />
+                                                Edit
+                                            </Button>
+                                            <Button color="danger" outline onClick={() => { closeDetail(); openRequestingReview(selectedReq, "reject"); }}>
+                                                <i className="bx bx-x me-1" />
+                                                Reject
+                                            </Button>
+                                            <Button color="success" className="text-white"
+                                                onClick={() => { closeDetail(); openRequestingReview(selectedReq, "approve"); }}>
+                                                <i className="bx bx-check me-1" />
+                                                Approve
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CheckPermission>
+                            );
+                        }
+
+                        // Fallback for PENDING_FULFILLING requesting center view (read-only)
+                        if (selectedReq.status === "PENDING_FULFILLING" && isRequesting) {
+                            return (
+                                <div className="d-flex w-100 justify-content-between align-items-center">
+                                    <Button color="secondary" outline onClick={closeDetail}>Close</Button>
+                                    <span className="text-muted" style={{ fontSize: 12 }}>
+                                        <i className="bx bx-time me-1" />Awaiting fulfilling center review
+                                    </span>
                                 </div>
-                            )}
-                        </CheckPermission>
-                    ) : (
+                            );
+                        }
+
+                        // No center access — just close
+                        return <Button color="secondary" outline onClick={closeDetail}>Close</Button>;
+                    })() : (
                         <Button color="secondary" outline onClick={closeDetail}>
                             Close
                         </Button>
@@ -806,6 +1086,7 @@ const InternalTransfer = () => {
                                             <th style={{ fontSize: 12 }}>#</th>
                                             <th style={{ fontSize: 12 }}>Medicine</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Requested Qty</th>
+                                            <th className="text-center" style={{ fontSize: 12, width: 140 }}>Batch</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Status</th>
                                         </tr>
@@ -818,10 +1099,10 @@ const InternalTransfer = () => {
                                                     <td className="text-muted" style={{ fontSize: 12 }}>{idx + 1}</td>
                                                     <td>
                                                         <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>
+                                                            {item.customId && <span className="text-primary me-1">[{item.customId}]</span>}
                                                             {[item.type, item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
                                                         </p>
                                                         <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                                                            <span className="fw-medium text-primary">ID: {item.customId || "—"}</span>
                                                             {(item.genericName || item.brandName) && (
                                                                 <>
                                                                     <span className="mx-1">·</span>
@@ -832,28 +1113,57 @@ const InternalTransfer = () => {
                                                             )}
                                                         </p>
                                                     </td>
-                                                    <td className="text-center fw-semibold" style={{ fontSize: 13 }}>
-                                                        {item.requestedQty}
+                                                    <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                        {item.requestedQty} {formatUnit(item.unit, item.requestedQty)}
                                                     </td>
-                                                    <td style={{ width: 110 }}>
-                                                        <Input
-                                                            type="number"
-                                                            bsSize="sm"
-                                                            min={0}
-                                                            max={item.requestedQty}
-                                                            value={item.approvedQty}
-                                                            onChange={(e) => {
-                                                                let val = parseInt(e.target.value, 10);
-                                                                if (isNaN(val) || val < 0) val = 0;
-                                                                if (val > item.requestedQty) val = item.requestedQty;
-                                                                setApproveItems((prev) =>
-                                                                    prev.map((i) =>
-                                                                        i.itemId === item.itemId ? { ...i, approvedQty: val } : i
-                                                                    )
-                                                                );
-                                                            }}
-                                                            style={{ textAlign: "center", fontWeight: 700 }}
-                                                        />
+                                                    <td style={{ verticalAlign: "middle" }}>
+                                                        {item.availableBatches && item.availableBatches.length > 0 ? (
+                                                            <Input
+                                                                type="select"
+                                                                bsSize="sm"
+                                                                value={item.batch}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value;
+                                                                    setApproveItems((prev) =>
+                                                                        prev.map((i) =>
+                                                                            i.itemId === item.itemId ? { ...i, batch: val } : i
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                style={{ fontSize: 12 }}
+                                                            >
+                                                                <option value="">-- Select --</option>
+                                                                {item.availableBatches.map((b) => (
+                                                                    <option key={b} value={b}>{b}</option>
+                                                                ))}
+                                                            </Input>
+                                                        ) : (
+                                                            <span className="text-muted" style={{ fontSize: 11 }}>No batches</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ width: 150, verticalAlign: "middle" }}>
+                                                        <div className="input-group input-group-sm">
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                max={item.requestedQty}
+                                                                value={item.approvedQty}
+                                                                onChange={(e) => {
+                                                                    let val = parseInt(e.target.value, 10);
+                                                                    if (isNaN(val) || val < 0) val = 0;
+                                                                    if (val > item.requestedQty) val = item.requestedQty;
+                                                                    setApproveItems((prev) =>
+                                                                        prev.map((i) =>
+                                                                            i.itemId === item.itemId ? { ...i, approvedQty: val } : i
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                style={{ textAlign: "center", fontWeight: 700 }}
+                                                            />
+                                                            <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                                {formatUnit(item.unit, item.approvedQty) || "Unit"}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="text-center">
                                                         {isSkipped ? (
@@ -911,6 +1221,65 @@ const InternalTransfer = () => {
                 </ModalFooter>
             </Modal>
 
+            {/* ── Requesting Center Review Modal ────────────────────────────── */}
+            <Modal isOpen={requestingReviewModal.open} toggle={closeRequestingReviewModal} size="md">
+                <ModalHeader toggle={closeRequestingReviewModal}>
+                    {requestingReviewModal.mode === "approve" ? (
+                        <><i className="bx bx-check-circle me-2 text-success" />Approve Request (Requesting Center)</>
+                    ) : (
+                        <><i className="bx bx-x-circle me-2 text-danger" />Reject Request (Requesting Center)</>
+                    )}
+                    {requestingReviewModal.row?.requisitionNumber && (
+                        <span className="ms-2 text-muted" style={{ fontSize: 13, fontWeight: 400 }}>
+                            — {requestingReviewModal.row.requisitionNumber}
+                        </span>
+                    )}
+                </ModalHeader>
+                <ModalBody>
+                    <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+                        {requestingReviewModal.mode === "approve"
+                            ? "Approving will forward this requisition to the fulfilling center for their review."
+                            : "Rejecting will close this requisition. This action cannot be undone."}
+                    </p>
+                    <div>
+                        <label className="fw-medium mb-1 d-block" style={{ fontSize: 13 }}>
+                            {requestingReviewModal.mode === "approve" ? "Remarks (optional)" : "Rejection Reason (optional)"}
+                        </label>
+                        <Input
+                            type="textarea"
+                            rows={3}
+                            placeholder={
+                                requestingReviewModal.mode === "approve"
+                                    ? "Add any notes before forwarding…"
+                                    : "Reason for rejecting this request…"
+                            }
+                            value={requestingReviewRemarks}
+                            onChange={(e) => setRequestingReviewRemarks(e.target.value)}
+                            style={{ resize: "none", fontSize: 13 }}
+                        />
+                    </div>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" outline onClick={closeRequestingReviewModal} disabled={submitLoading}>
+                        Cancel
+                    </Button>
+                    <Button
+                        color={requestingReviewModal.mode === "approve" ? "success" : "danger"}
+                        onClick={handleRequestingReviewSubmit}
+                        disabled={submitLoading}
+                        className="text-white"
+                    >
+                        {submitLoading ? (
+                            <><Spinner size="sm" className="me-2" />{requestingReviewModal.mode === "approve" ? "Approving…" : "Rejecting…"}</>
+                        ) : requestingReviewModal.mode === "approve" ? (
+                            <><i className="bx bx-check me-1" />Approve & Forward</>
+                        ) : (
+                            <><i className="bx bx-x me-1" />Confirm Rejection</>
+                        )}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
             {/* ── Dispatch Modal ───────────────────────────────────────────── */}
             <Modal isOpen={dispatchModal.open} toggle={closeDispatchModal} size="lg">
                 <ModalHeader toggle={closeDispatchModal}>
@@ -924,8 +1293,7 @@ const InternalTransfer = () => {
                 </ModalHeader>
                 <ModalBody>
                     <p className="text-muted mb-3" style={{ fontSize: 13 }}>
-                        Confirm the dispatched quantity for each item. Items with&nbsp;
-                        <strong>0</strong> will not be dispatched.
+                        Set the dispatched quantity for each item. Items with&nbsp;<strong>0</strong> will be skipped.
                     </p>
                     <div className="table-responsive mb-3">
                         <table className="table table-sm table-bordered mb-0">
@@ -953,28 +1321,32 @@ const InternalTransfer = () => {
                                                     {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
                                                 </p>
                                             </td>
-                                            <td className="text-center fw-semibold" style={{ fontSize: 13 }}>
-                                                {item.approvedQty}
+                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                {item.approvedQty} {formatUnit(item.unit, item.approvedQty)}
                                             </td>
-                                            <td style={{ width: 110 }}>
-                                                <Input
-                                                    type="number"
-                                                    bsSize="sm"
-                                                    min={0}
-                                                    max={item.approvedQty}
-                                                    value={item.dispatchedQty}
-                                                    onChange={(e) => {
-                                                        let val = parseInt(e.target.value, 10);
-                                                        if (isNaN(val) || val < 0) val = 0;
-                                                        if (val > item.approvedQty) val = item.approvedQty;
-                                                        setDispatchItems((prev) =>
-                                                            prev.map((i) =>
-                                                                i.itemId === item.itemId ? { ...i, dispatchedQty: val } : i
-                                                            )
-                                                        );
-                                                    }}
-                                                    style={{ textAlign: "center", fontWeight: 700 }}
-                                                />
+                                            <td style={{ width: 150, verticalAlign: "middle" }}>
+                                                <div className="input-group input-group-sm">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        max={item.approvedQty}
+                                                        value={item.dispatchedQty}
+                                                        onChange={(e) => {
+                                                            let val = parseInt(e.target.value, 10);
+                                                            if (isNaN(val) || val < 0) val = 0;
+                                                            if (val > item.approvedQty) val = item.approvedQty;
+                                                            setDispatchItems((prev) =>
+                                                                prev.map((i) =>
+                                                                    i.itemId === item.itemId ? { ...i, dispatchedQty: val } : i
+                                                                )
+                                                            );
+                                                        }}
+                                                        style={{ textAlign: "center", fontWeight: 700 }}
+                                                    />
+                                                    <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                        {formatUnit(item.unit, item.dispatchedQty) || "Unit"}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -982,6 +1354,35 @@ const InternalTransfer = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    <Row className="g-3 mb-3">
+                        <Col md={6}>
+                            <label className="fw-medium mb-1 d-block" style={{ fontSize: 13 }}>
+                                Courier Name (optional)
+                            </label>
+                            <Input
+                                type="text"
+                                placeholder="Enter courier name"
+                                bsSize="sm"
+                                value={courierName}
+                                onChange={(e) => setCourierName(e.target.value)}
+                            />
+                        </Col>
+                        <Col md={6}>
+                            <label className="fw-medium mb-1 d-block" style={{ fontSize: 13 }}>
+                                Tracking ID (optional)
+                            </label>
+                            <Input
+                                type="text"
+                                placeholder="Tracking / ID"
+                                bsSize="sm"
+                                value={courierId}
+                                onChange={(e) => setCourierId(e.target.value)}
+                                style={{ textTransform: "uppercase" }}
+                            />
+                        </Col>
+                    </Row>
+
                     <div>
                         <label className="fw-medium mb-1 d-block" style={{ fontSize: 13 }}>
                             Dispatch Note (optional)
@@ -1033,14 +1434,14 @@ const InternalTransfer = () => {
                                 <tr>
                                     <th style={{ fontSize: 12 }}>#</th>
                                     <th style={{ fontSize: 12 }}>Medicine</th>
-                                    <th className="text-center" style={{ fontSize: 12 }}>Dispatched Qty</th>
+                                    <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Received Qty</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {grnItems.map((item, idx) => {
                                     const received = Number(item.receivedQty);
-                                    const isShort = received < item.dispatchedQty && received > 0;
+                                    const isShort = received < item.approvedQty && received > 0;
                                     const isMissing = received === 0;
                                     const rowStyle = isMissing
                                         ? { opacity: 0.5, background: "#fff5f5" }
@@ -1061,27 +1462,31 @@ const InternalTransfer = () => {
                                                 </p>
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13 }}>
-                                                {item.dispatchedQty}
+                                                {item.approvedQty} {formatUnit(item.unit, item.approvedQty)}
                                             </td>
-                                            <td style={{ width: 110 }}>
-                                                <Input
-                                                    type="number"
-                                                    bsSize="sm"
-                                                    min={0}
-                                                    max={item.dispatchedQty}
-                                                    value={item.receivedQty}
-                                                    onChange={(e) => {
-                                                        let val = parseInt(e.target.value, 10);
-                                                        if (isNaN(val) || val < 0) val = 0;
-                                                        if (val > item.dispatchedQty) val = item.dispatchedQty;
-                                                        setGrnItems((prev) =>
-                                                            prev.map((i) =>
-                                                                i.itemId === item.itemId ? { ...i, receivedQty: val } : i
-                                                            )
-                                                        );
-                                                    }}
-                                                    style={{ textAlign: "center", fontWeight: 700 }}
-                                                />
+                                            <td style={{ width: 150 }}>
+                                                <div className="input-group input-group-sm">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        max={item.approvedQty}
+                                                        value={item.receivedQty}
+                                                        onChange={(e) => {
+                                                            let val = parseInt(e.target.value, 10);
+                                                            if (isNaN(val) || val < 0) val = 0;
+                                                            if (val > item.approvedQty) val = item.approvedQty;
+                                                            setGrnItems((prev) =>
+                                                                prev.map((i) =>
+                                                                    i.itemId === item.itemId ? { ...i, receivedQty: val } : i
+                                                                )
+                                                            );
+                                                        }}
+                                                        style={{ textAlign: "center", fontWeight: 700 }}
+                                                    />
+                                                    <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                        {formatUnit(item.unit, item.receivedQty) || "Unit"}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -1130,6 +1535,14 @@ const InternalTransfer = () => {
                     </Button>
                 </ModalFooter>
             </Modal>
+
+            <PreviewFile
+                title={`Internal Transfer - ${pdfModal.row?.requisitionNumber || "Document"}`}
+                file={pdfBlobUrl ? { url: pdfBlobUrl, type: "application/pdf" } : null}
+                isOpen={pdfModal.open}
+                toggle={closePdfModal}
+                allowDownload={true}
+            />
         </CardBody>
     );
 };

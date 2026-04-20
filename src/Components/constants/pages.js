@@ -410,6 +410,12 @@ export const Pharmacy = [
         link: "/pharmacy/requisition/internal-transfer",
         icon: "bx bx-transfer",
       },
+      {
+        id: "sareyaan-orders",
+        label: "Sareyaan Orders",
+        link: "/pharmacy/requisition/sareyaan-orders",
+        icon: "bx bx-store-alt",
+      },
     ]
   },
 ];
