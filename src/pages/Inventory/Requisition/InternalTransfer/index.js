@@ -40,6 +40,7 @@ import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import InternalTransferPDF from "../../../../Components/Print/InternalTransfer";
+import { pluralizeUnit } from "../../../../utils/pluralizeUnit";
 
 const STATUS_OPTIONS = [
     { value: "PENDING_REQUESTING", label: "Requesting Pending" },
@@ -92,14 +93,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [dispatchItems, setDispatchItems] = useState([]);
     const [dispatchNote, setDispatchNote] = useState("");
 
-    // Helper for pluralizing units
-    const formatUnit = (u, q) => {
-        if (!u || q <= 1) return u;
-        const lower = u.toLowerCase();
-        if (lower.endsWith('s')) return u;
-        if (lower.endsWith('x')) return u + (u === u.toUpperCase() ? "ES" : "es");
-        return u + (u === u.toUpperCase() ? "S" : "s");
-    };
     const [courierName, setCourierName] = useState("");
     const [courierId, setCourierId] = useState("");
 
@@ -109,7 +102,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [receiveNote, setReceiveNote] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
+const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
     const [detailModal, setDetailModal] = useState(false);
@@ -959,15 +952,15 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                 )}
                                                             </p>
                                                         </td>
-                                                        <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty} {formatUnit(rawUnit, item.requestedQty)}</td>
-                                                        {selectedReq.fulfillingCenterReview && <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>{item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${formatUnit(rawUnit, item.approvedQty)}` : "—"}</td>}
+                                                        <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty} {pluralizeUnit(rawUnit)}</td>
+                                                        {selectedReq.fulfillingCenterReview && <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>{item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
                                                         {selectedReq.dispatch?.dispatchedAt && (
                                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                                {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${formatUnit(rawUnit, item.dispatchedQty)}` : "—"}
+                                                                {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${pluralizeUnit(rawUnit)}` : "—"}
                                                                 {item.batch && <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>Batch: {item.batch}</div>}
                                                             </td>
                                                         )}
-                                                        {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${formatUnit(rawUnit, item.receivedQty)}` : "—"}</td>}
+                                                        {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
                                                         <td className="text-muted" style={{ fontSize: 12 }}>{item.itemRemarks || "—"}</td>
                                                     </tr>
                                                 );
@@ -1114,7 +1107,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                         </p>
                                                     </td>
                                                     <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                        {item.requestedQty} {formatUnit(item.unit, item.requestedQty)}
+                                                        {item.requestedQty} {pluralizeUnit(item.unit)}
                                                     </td>
                                                     <td style={{ verticalAlign: "middle" }}>
                                                         {item.availableBatches && item.availableBatches.length > 0 ? (
@@ -1161,7 +1154,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                 style={{ textAlign: "center", fontWeight: 700 }}
                                                             />
                                                             <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
-                                                                {formatUnit(item.unit, item.approvedQty) || "Unit"}
+                                                                {pluralizeUnit(item.unit) || "Unit"}
                                                             </span>
                                                         </div>
                                                     </td>
@@ -1322,7 +1315,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                 </p>
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                {item.approvedQty} {formatUnit(item.unit, item.approvedQty)}
+                                                {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
                                             </td>
                                             <td style={{ width: 150, verticalAlign: "middle" }}>
                                                 <div className="input-group input-group-sm">
@@ -1344,7 +1337,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                         style={{ textAlign: "center", fontWeight: 700 }}
                                                     />
                                                     <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
-                                                        {formatUnit(item.unit, item.dispatchedQty) || "Unit"}
+                                                        {pluralizeUnit(item.unit, item.dispatchedQty) || "Unit"}
                                                     </span>
                                                 </div>
                                             </td>
@@ -1462,7 +1455,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                 </p>
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13 }}>
-                                                {item.approvedQty} {formatUnit(item.unit, item.approvedQty)}
+                                                {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
                                             </td>
                                             <td style={{ width: 150 }}>
                                                 <div className="input-group input-group-sm">
@@ -1484,7 +1477,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                         style={{ textAlign: "center", fontWeight: 700 }}
                                                     />
                                                     <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
-                                                        {formatUnit(item.unit, item.receivedQty) || "Unit"}
+                                                        {pluralizeUnit(item.unit, item.receivedQty) || "Unit"}
                                                     </span>
                                                 </div>
                                             </td>

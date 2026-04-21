@@ -25,6 +25,7 @@ import {
     fetchInternalTransferById,
     searchPharmacyInventory,
 } from "../../../../../store/features/pharmacy/pharmacySlice";
+import { pluralizeUnit } from "../../../../../utils/pluralizeUnit";
 
 const str = (v) => {
     if (!v) return "";
@@ -765,7 +766,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                 <td className="py-3 px-3 text-center">
                                                     {hasStock ? (
                                                         <span style={stockPill(item.availableStock)}>
-                                                            {item.availableStock}
+                                                            {item.availableStock} {pluralizeUnit(item.baseUnit || "Unit")}
                                                         </span>
                                                     ) : (
                                                         <span
@@ -816,12 +817,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                             +
                                                         </button>
                                                         <span className="ms-1 fw-medium text-dark text-start" style={{ fontSize: 13, minWidth: "40px" }}>
-                                                            {item.purchaseUnit || "Unit"}
+                                                            {pluralizeUnit(item.purchaseUnit || "Unit")}
                                                         </span>
                                                     </div>
                                                     {factor !== 1 && item.requestedQty > 0 && (
                                                         <div className="mt-1" style={{ fontSize: 11, color: "#6c757d", fontWeight: 600 }}>
-                                                            = {convertedQty.toFixed(2).replace(/\.00$/, '')} {item.baseUnit || "Unit"}
+                                                            = {convertedQty.toFixed(2).replace(/\.00$/, '')} {pluralizeUnit(item.baseUnit || "Unit")}
                                                         </div>
                                                     )}
                                                 </td>

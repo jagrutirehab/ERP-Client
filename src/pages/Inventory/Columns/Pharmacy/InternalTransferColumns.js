@@ -4,6 +4,7 @@ import moment from "moment";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { pluralizeUnit } from "../../../../utils/pluralizeUnit";
 
 export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleRequestingApprove, handleRequestingReject, handleDispatch, handleReceive, handlePdf, statusFilter, hasWritePermission, userCenterAccess = [] }) => {
     const showRemarks = !["PENDING_REQUESTING", ""].includes(statusFilter);
@@ -95,7 +96,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                                             {[medType, medName, strength].filter(Boolean).join(" ") || "Unknown Item"}
                                         </div>
                                         <Badge color="light" className="text-dark border" style={{ fontSize: 10 }}>
-                                            Qty: {qty} {qty > 1 && unit ? (unit.toLowerCase().endsWith('s') ? unit : (unit.toLowerCase().endsWith('x') ? unit + (unit === unit.toUpperCase() ? "ES" : "es") : unit + (unit === unit.toUpperCase() ? "S" : "s"))) : unit}
+                                            Qty: {qty} {pluralizeUnit(unit)}
                                         </Badge>
                                     </div>
                                     {i !== visibleItems.length - 1 && (
