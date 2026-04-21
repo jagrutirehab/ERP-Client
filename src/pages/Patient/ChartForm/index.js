@@ -48,20 +48,20 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const title = isPrescription
     ? "Prescription"
     : isClinicalNotes
-    ? "Clinical Notes"
-    : isCounsellingNotes
-    ? "Counselling Notes"
-    : isVitalSigns
-    ? "Vital Signs"
-    : isLabReports
-    ? "Lab Report"
-    : isDischargeSummary
-    ? "Discharge Summary"
-    : isRelativeVisit
-    ? "Relative Visit"
-    : isMentalExamination
-    ? "Clinical Notes"
-    : "Detail Admission";
+      ? "Clinical Notes"
+      : isCounsellingNotes
+        ? "Counselling Notes"
+        : isVitalSigns
+          ? "Vital Signs"
+          : isLabReports
+            ? "Lab Report"
+            : isDischargeSummary
+              ? "Discharge Summary"
+              : isRelativeVisit
+                ? "Relative Visit"
+                : isMentalExamination
+                  ? "Clinical Notes"
+                  : "Detail Admission";
 
   // console.log({ type });
 
@@ -88,7 +88,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isLabReports && <LabReport {...rest} />}
         {isRelativeVisit && <RelativeVisit {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
-        {isDetailAdmission && <DetailAdmission {...rest} />}
+        {isDetailAdmission && <DetailAdmission {...rest} closeForm={toggleForm} />}
         {isMentalExamination && <MentalExamination {...rest} />}
       </CustomModal>
     </React.Fragment>

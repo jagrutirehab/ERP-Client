@@ -27,9 +27,11 @@ const Pharmacy = () => {
                 <Route path={`/nurse-given-med`} element={<NurseGivenMedicine />} />
                 <Route path={`/approval`} element={<MedicineApproval />} />
                 <Route path={`/audit`} element={<AuditDashboad />} />
-                <Route path={`/requisition/internal-transfer`} element={<InternalTransfer />} />
+                <Route path={`/requisition/internal-transfer`} element={<InternalTransfer isSareyaanPage={false} />} />
                 <Route path={`/requisition/internal-transfer/add`} element={<InternalTransferAddRequest />} />
                 <Route path={`/requisition/internal-transfer/edit/:id`} element={<InternalTransferEditRequest />} />
+                <Route path={`/requisition/sareyaan-orders`} element={<InternalTransfer isSareyaanPage={true} />} />
+                <Route path={`/requisition/sareyaan-orders/add`} element={<InternalTransferAddRequest />} />
               </Routes>
             </div>
           </Container>

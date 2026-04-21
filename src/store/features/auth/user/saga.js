@@ -17,8 +17,8 @@ import {
   postJwtLogin,
   PostLoginService,
   GetCsrf,
+  getRoles,
 } from "../../../../helpers/backend_helper";
-
 
 function* loginUser({ payload: { values, navigate } }) {
   try {
@@ -44,7 +44,9 @@ function* loginUser({ payload: { values, navigate } }) {
         yield put(setMicroLogin(microLoginRes.data));
       } else if (microLoginRes) {
         toast.dismiss();
-        toast.warn("Microservice login failed", { toastId: "micoservice-error" });
+        toast.warn("Microservice login failed", {
+          toastId: "micoservice-error",
+        });
       }
     }
 
@@ -56,10 +58,10 @@ function* loginUser({ payload: { values, navigate } }) {
         token: mainLoginRes.token,
         status: "success",
       };
-       localStorage.setItem("authUser", JSON.stringify(authUser));
+      localStorage.setItem("authUser", JSON.stringify(authUser));
       localStorage.setItem(
         "userCenters",
-        JSON.stringify(mainLoginRes.userCenters)
+        JSON.stringify(mainLoginRes.userCenters),
       );
 
       yield put(setUser(authUser));
@@ -68,7 +70,37 @@ function* loginUser({ payload: { values, navigate } }) {
       yield put(setLoading(false));
       toast.dismiss();
       toast.success("Login successful", { toastId: "login-success" });
-      navigate("/dashboard");
+
+      let redirectPath = "/dashboard";
+      try {
+        const pageAccess = mainLoginRes.payload?.pageAccess?.pages || [];
+        const hasEmergencyPage = pageAccess.some(
+          (page) => page.name === "Emergency",
+        );
+
+        console.log({ haspageaccess: pageAccess, hasEmergencyPage });
+
+        if (hasEmergencyPage) {
+          const microToken = microLoginRes?.data?.token;
+          const rolesRes = yield call(getRoles, microToken);
+          const roles = rolesRes?.data;
+          const hasEmergencyRole = roles?.permissions?.find(
+            (p) => p.module === "EMERGENCY",
+          );
+
+          console.log({ hasEmergencyRole, rolesRes });
+
+          if (hasEmergencyRole?.type !== "NONE") {
+            redirectPath = "/emergency";
+          }
+        }
+      } catch (error) {
+        console.error("Error checking emergency access:", error);
+      }
+
+      console.log({ redirectPath });
+
+      navigate(redirectPath);
       return { status: 200, payload: mainLoginRes };
     } else if (mainLoginRes.status === 403) {
       yield put(setLoading(false));
@@ -91,7 +123,7 @@ function* loginUser({ payload: { values, navigate } }) {
     }
     toast.dismiss();
     toast.error(
-      error.response?.data?.message || error.message || "Login failed"
+      error.response?.data?.message || error.message || "Login failed",
     );
     yield put(apiError(error));
   }

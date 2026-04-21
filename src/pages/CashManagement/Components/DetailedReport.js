@@ -103,7 +103,9 @@ const DetailedReport = ({
     },
     {
       name: "Name",
-      selector: (row) => row.name ? `${capitalizeWords(row.name)} (${row?.patientId || row?.internId || "-"})` : "-",
+      selector: (row) => (row.name && row.name !== "-")
+        ? `${capitalizeWords(row.name)}${(row.patientId && row.patientId !== "-") ? ` (${row.patientId})` : ""}`
+        : "-",
       wrap: true,
     },
     {

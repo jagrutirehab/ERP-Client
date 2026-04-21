@@ -40,8 +40,8 @@ const MedicinesList = ({
           </span>
         ),
       },
-      { name: "Brand Name", selector: (row) => row.brandName?.toUpperCase(), minWidth: "130px", wrap: true },
-      { name: "Generic Name", selector: (row) => row.genericName?.toUpperCase(), minWidth: "140px", wrap: true },
+      // { name: "Brand Name", selector: (row) => row.brandName?.toUpperCase(), minWidth: "130px", wrap: true },
+      { name: "Generic Name", selector: (row) => row.genericName?.toUpperCase(), minWidth: "160px", wrap: true },
       { name: "Form", selector: (row) => normalizeUnderscores(row.form), minWidth: "120px", wrap: true },
       { name: "Type", selector: (row) => normalizeUnderscores(row.type), minWidth: "100px", wrap: true },
       { name: "Strength", selector: (row) => row.strength, minWidth: "100px", wrap: true },
@@ -53,7 +53,7 @@ const MedicinesList = ({
         minWidth: "180px", wrap: true,
         cell: (row) =>
           row.baseUnit && row.purchaseUnit && row.conversion?.baseQuantity && row.conversion?.purchaseQuantity
-            ? `${row.conversion.baseQuantity} ${normalizeUnderscores(row.baseUnit)} = ${row.conversion.purchaseQuantity} ${normalizeUnderscores(row.purchaseUnit)}`
+            ? `${row.conversion.purchaseQuantity} ${normalizeUnderscores(row.purchaseUnit)} = ${row.conversion.baseQuantity} ${normalizeUnderscores(row.baseUnit)}`
             : "-",
       },
       { name: "Category", selector: (row) => normalizeUnderscores(row.category), minWidth: "120px", wrap: true },

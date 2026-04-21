@@ -19,6 +19,7 @@ import {
   unAssignNurseToPatient,
   updateAdmissionAssignment,
   updatePatientAdmission,
+  getSopOverview,
 } from "../../../helpers/backend_helper";
 import { setChartAdmission, updateChartAdmission } from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
@@ -55,6 +56,8 @@ const initialState = {
   phoneNumberLoading: false,
   patientRefLoading: false,
   nurseLoading: false,
+  sopOverview: null,
+  sopLoading: false,
 };
 
 export const fetchPatients = createAsyncThunk(
@@ -344,6 +347,18 @@ export const assignEmergencyPatientType = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to assign patient type");
+    }
+  }
+);
+
+export const fetchSopOverview = createAsyncThunk(
+  "patient/fetchSopOverview",
+  async ({ admissionId, currentDate }, { rejectWithValue }) => {
+    try {
+      const response = await getSopOverview(admissionId, currentDate);
+      return response;
+    } catch (error) {
+      return rejectWithValue("Failed to fetch SOP overview");
     }
   }
 );
@@ -682,6 +697,18 @@ export const patientSlice = createSlice({
           payload.data.patientType;
       }
     );
+
+    builder
+      .addCase(fetchSopOverview.pending, (state) => {
+        state.sopLoading = true;
+      })
+      .addCase(fetchSopOverview.fulfilled, (state, { payload }) => {
+        state.sopLoading = false;
+        state.sopOverview = payload;
+      })
+      .addCase(fetchSopOverview.rejected, (state) => {
+        state.sopLoading = false;
+      });
   },
 });
 

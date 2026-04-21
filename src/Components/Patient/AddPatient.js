@@ -1,6 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-import { Form, Row, Col, Label, Input, FormFeedback, Button, Spinner } from "reactstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Label,
+  Input,
+  FormFeedback,
+  Button,
+  Spinner,
+} from "reactstrap";
 import { isValidPhoneNumber } from "react-phone-number-input";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
@@ -120,6 +129,7 @@ const AddPatient = ({
         ? editData.referredBy.doctorName
         : leadData?.refferedBy || "",
       referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
+      referralType: editData?.referredBy?.speciality || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
@@ -185,7 +195,10 @@ const AddPatient = ({
           formData.append("lead", leadData._id);
           formData.append("leadOrigin", leadData.leadOrigin);
           formData.append("leadQuery", JSON.stringify(leadData.leadQuery));
-          formData.append("centerAccess", JSON.stringify(leadData.centerAccess));
+          formData.append(
+            "centerAccess",
+            JSON.stringify(leadData.centerAccess),
+          );
           formData.append("grouped", JSON.stringify(leadData.grouped));
           formData.append("date", JSON.stringify(leadData.date));
           await dispatch(addLeadPatient(formData)).unwrap();
@@ -198,6 +211,8 @@ const AddPatient = ({
       } catch {
         // Error alert already shown by the thunk — modal stays open
       } finally {
+        setSelectedReferral(null);
+        validation.resetForm();
         setSubmitting(false);
       }
     },
@@ -220,7 +235,10 @@ const AddPatient = ({
   };
 
   useEffect(() => {
-    if (!editData) validation.resetForm();
+    if (!editData) {
+      validation.resetForm();
+      referralInitialized.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
 
@@ -232,47 +250,62 @@ const AddPatient = ({
     dispatch(fetchReferrals());
   }, [dispatch]);
 
+  const referralInitialized = useRef(false);
   useEffect(() => {
-    // Initialize selectedReferral and isOtherReferral based on editData
-    if (editData?.referredBy && referrals?.length) {
-      const doctorName =
-        typeof editData.referredBy === "string"
-          ? editData.referredBy
-          : editData.referredBy?.doctorName || "";
+    // Only run once when editData and referrals are both available
+    if (!editData?.referredBy || !referrals?.length) return;
+    if (referralInitialized.current) return;
+    referralInitialized.current = true;
 
-      // Check if it matches an existing referral from the DB
-      const referralMatch = referrals.find(
-        (ref) =>
-          ref._id === editData.referredBy.id ||
-          ref.doctorName === doctorName,
-      );
+    const doctorName =
+      typeof editData.referredBy === "string"
+        ? editData.referredBy
+        : editData.referredBy?.doctorName || "";
+    const speciality = editData.referredBy?.speciality || "";
 
-      // Check if it matches a static option
+    // Check if it matches an approved referral from the DB first
+    const referralMatch = referrals.find(
+      (ref) =>
+        ref._id === editData.referredBy.id || ref.doctorName === doctorName,
+    );
+
+    if (referralMatch) {
+      // Approved DB referral — just select it from the list
+      setSelectedReferral({
+        value: referralMatch._id,
+        label: referralMatch.doctorName,
+      });
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", referralMatch._id);
+      validation.setFieldValue("referralType", "");
+    } else {
+      // Not in DB — check if speciality matches a static option
       const STATIC_OPTIONS = [
         { value: "psychiatrist", label: "Psychiatrist" },
         { value: "doctor", label: "Doctor" },
         { value: "online", label: "Online" },
+        { value: "other", label: "Other" },
       ];
       const staticMatch = STATIC_OPTIONS.find(
-        (opt) => opt.value === doctorName,
+        (opt) => opt.value === speciality,
       );
 
-      if (referralMatch) {
-        setSelectedReferral({
-          value: referralMatch._id,
-          label: referralMatch.doctorName,
-        });
-        setIsOtherReferral(false);
-        validation.setFieldValue("referredBy", referralMatch._id);
-      } else if (staticMatch) {
+      if (staticMatch) {
+        // Pending static option — pre-select it and show name + phone
         setSelectedReferral(staticMatch);
-        setIsOtherReferral(false);
-        validation.setFieldValue("referredBy", staticMatch.value);
-      } else {
-        // If not found in referrals or static options, treat as "Other"
+        setIsOtherReferral(true);
+        validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue(
+          "referralPhoneNumber",
+          editData.referredBy?.mobileNumber || "",
+        );
+        validation.setFieldValue("referralType", staticMatch.value);
+      } else if (doctorName) {
+        // Legacy data without speciality — treat as "Other"
         setSelectedReferral({ value: "other", label: "Other" });
         setIsOtherReferral(true);
         validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue("referralType", "other");
       }
     }
   }, [editData, referrals]);
@@ -513,10 +546,17 @@ const AddPatient = ({
                   value={selectedReferral}
                   onChange={(option) => {
                     setSelectedReferral(option);
-                    if (option?.value === "other") {
+                    const staticValues = [
+                      "other",
+                      "doctor",
+                      "psychiatrist",
+                      "online",
+                    ];
+                    if (option && staticValues.includes(option.value)) {
                       setIsOtherReferral(true);
                       validation.setFieldValue("referredBy", "");
                       validation.setFieldValue("referralPhoneNumber", "");
+                      validation.setFieldValue("referralType", option.value);
                     } else {
                       setIsOtherReferral(false);
                       validation.setFieldValue(
@@ -524,6 +564,7 @@ const AddPatient = ({
                         option?.value || "",
                       );
                       validation.setFieldValue("referralPhoneNumber", "");
+                      validation.setFieldValue("referralType", "");
                     }
                   }}
                   onBlur={() => validation.setFieldTouched("referredBy", true)}

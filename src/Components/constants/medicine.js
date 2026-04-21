@@ -26,20 +26,48 @@ export const medicineTypes = [
 export const medicineTypes2 = [
   "TABLET",
   "CAPSULE",
-  "SOFTGEL",
   "SYRUP",
-  "SUSPENSION",
-  "SOLUTION",
-  "DROPS",
   "INJECTION",
-  "VIAL",
+  "DEVICE",
+  "SOAP",
   "AMPOULE",
+  "VIAL",
+  "CREAM",
+  "LOTION",
   "OINTMENT",
   "GEL",
-  "LOTION",
-  "INHALER",
+  "POWDER",
+  "SOLUTION",
+  "SUSPENSION",
+  "SACHET",
+  "EYE DROP",
+  "EAR DROP",
+  "DROPS",
+  "GARGLE",
+  "RINSE",
+  "SUPPOSITORY",
+  "SHAMPOO",
+  "LOZENGES",
+  "GUM",
+  "PATCH",
+  "SPRAY",
   "NASAL SPRAY",
-  "TRANSDERMAL PATCH"
+  "INHALER",
+  "RESPULE",
+  "LIQUID",
+  "SOLID FORM",
+  "PEN CARTRIDGE",
+  "PRE-FILLED SYRINGE",
+  "SYRINGE",
+  "PRE-FILLED PEN",
+  "IV BOTTLE",
+  "BOTTLE",
+  "ENEMA",
+  "OIL",
+  "LACQUER",
+  "PROCEDURE",
+  "PAINT",
+  "PEN"
 ]
 
 export const medicineUnits = [GM, MCG, MG];
@@ -49,11 +77,14 @@ export const medicineForms = [
   "LIQUID_FORM",
   "INJECTABLE",
   "EXTERNAL_USE",
-  "SPECIAL_CASE"
+  "SPECIAL_CASE",
+  "SURGICAL",
+  "OTHERS",
+  "TOPICAL",
+  "OPHTHALMIC"
 ];
 
 export const baseUnits = [
-  "BOX",
   "NOS",
   "ML",
   "VIAL",
@@ -61,7 +92,29 @@ export const baseUnits = [
   "GM",
   "DOSE",
   "SPRAY",
-  "PATCH"
+  "PATCH",
+  "PEN",
+  "INHALER_UNIT",
+  "TABLET",
+  "CAPSULE",
+  "APPLICATION",
+  "UNIT",
+  "INJECTION",
+  "RESPULE",
+  "DROP",
+  "PAIR",
+  "SACHET",
+  "LOZENGE",
+  "ROLL",
+  "PIECE",
+  "STRIP",
+  "SUPPOSITORY",
+  "SCOOP",
+  "SPOON",
+  "TEASPOON",
+  "SESSION",
+  "PUFF",
+  "BOTTLE"
 ];
 
 export const normalizeLabel = (val) =>
@@ -72,7 +125,16 @@ export const purchaseUnits = [
   "BOTTLE",
   "INHALER_UNIT",
   "BOX",
-  "STRIP"
+  "STRIP",
+  "UNIT",
+  "PIECE",
+  "PACK",
+  "ROLL",
+  "TABLET",
+  "VIAL",
+  "PEN",
+  "TIN",
+  "SESSION"
 ];
 
 export const medicineCategories = [

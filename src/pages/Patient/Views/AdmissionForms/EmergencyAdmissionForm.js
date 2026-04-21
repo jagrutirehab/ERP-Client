@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
+const EmergencyAdmissionForm = ({
+  register,
+  setValue,
+  patient,
+  details,
+  chartData,
+  emergencyType,
+  emergencyRestraint,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -104,12 +112,37 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
     setToday(localISODate);
   }, []);
 
+  useEffect(() => {
+    if (setValue) {
+      // if (emergencyType) {
+      //   setValue("Emergency_Admission_description", emergencyType);
+      // }
+      const genderAge =
+        age && patient?.gender
+          ? `${age} / ${patient.gender}`
+          : age
+            ? `${age}`
+            : patient?.gender
+              ? `${patient.gender}`
+              : "";
+
+      console.log({ genderAge });
+
+      setValue("Emergency_Admission_ageGender", genderAge);
+      if (emergencyRestraint) {
+        setValue("Emergency_Admission_restraint", emergencyRestraint);
+      }
+    }
+  }, [setValue, emergencyType, emergencyRestraint, age, patient]);
+
+  console.log({ age, gender: patient.gender });
+
   return (
     <div style={pageContainer}>
       <style>
         {`
           @media (max-width: 768px) {
-            input, textarea {
+            input:not([type='radio']):not([type='checkbox']), textarea {
               width: 100% !important;
               margin: 5px 0 !important;
               display: block;
@@ -147,6 +180,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.name}
                 {...register("Emergency_Admission_name")}
                 style={{
@@ -163,11 +197,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
-                defaultValue={
-                  age && patient?.gender
-                    ? `${age} / ${patient.gender}`
-                    : age || ""
-                }
+                data-no-underline
                 {...register("Emergency_Admission_ageGender")}
                 style={{
                   fontWeight: "bold",
@@ -183,6 +213,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.address}
                 {...register("Emergency_Admission_address")}
                 style={{
@@ -199,7 +230,8 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
-                defaultValue={patient?.phone}
+                data-no-underline
+                defaultValue={patient?.phoneNumber}
                 {...register("Emergency_Admission_contact")}
                 style={{
                   fontWeight: "bold",
@@ -215,6 +247,7 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.guardianName}
                 {...register("Emergency_Admission_broughtBy")}
                 style={{
@@ -231,8 +264,11 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
             <td style={tdInput}>
               <input
                 type="datetime-local"
+                data-no-underline
                 defaultValue={
-                  today ? `${today}T${new Date().toTimeString().slice(0, 5)}` : ""
+                  today
+                    ? `${today}T${new Date().toTimeString().slice(0, 5)}`
+                    : ""
                 }
                 {...register("Emergency_Admission_dateTime")}
                 style={{
@@ -249,8 +285,9 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
       {/* Emergency Type */}
       <div style={sectionHeading}>Emergency Type</div>
       <p style={{ marginBottom: "5px" }}>
-        Risk to self / others / agitation / psychosis / substance / inability to
-        care
+        {/* Risk to self / others / agitation / psychosis / substance / inability to
+        care */}
+        {emergencyType}
       </p>
       <div
         style={{
@@ -279,6 +316,15 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
         <span>Provisional Diagnosis: </span>
         <input
           type="text"
+          defaultValue={
+            patient?.addmission?.provisional_diagnosis?.length
+              ? patient.addmission.provisional_diagnosis
+                  .map((d) => d.code)
+                  .join(", ")
+              : patient?.addmission?.provisionalDiagnosis ||
+                patient?.provisionalDiagnosis ||
+                ""
+          }
           {...register("Emergency_Admission_provisionalDiagnosis")}
           style={{
             fontWeight: "bold",
@@ -289,7 +335,34 @@ const EmergencyAdmissionForm = ({ register, patient, details, chartData }) => {
         />
       </div>
       <div style={{ marginBottom: "15px" }}>
-        <span>Capacity: Unable to understand / appreciate / communicate</span>
+        <span>Capacity: Unable to </span>
+        <label style={{ marginLeft: "5px", marginRight: "10px" }}>
+          <input
+            type="radio"
+            value="understand"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          understand
+        </label>
+        <label style={{ marginRight: "10px" }}>
+          <input
+            type="radio"
+            value="appreciate"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          appreciate
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="communicate"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          communicate
+        </label>
       </div>
 
       {/* Justification */}
