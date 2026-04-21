@@ -634,7 +634,13 @@ export const HR = [
         label: "Cancellations History",
         link: "/hr/all/cancellations/req",
         icon: "bx bx-layer",
-      }
+      },
+      {
+        id: "transfer-manager-approval",
+        label: "Transfer Manager Approvals",
+        icon: "bx bx-line-chart",
+        link: "/hr/transfer/manager/approvals",
+      },
     ],
   },
   {
@@ -762,12 +768,7 @@ export const HR = [
       },
     ],
   },
-  {
-    id: "transfer-manager-approval",
-    label: "Transfer Manager Approvals",
-    icon: "bx bx-line-chart",
-    link: "/hr/transfer/manager/approvals",
-  },
+
   {
     id: "hiring",
     label: "Hiring",

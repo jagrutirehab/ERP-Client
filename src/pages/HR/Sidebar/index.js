@@ -444,7 +444,7 @@ const Sidebar = () => {
     if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     if (page.id === "finance" && !hasFinancePermission) return false;
-    if (page.id === "transfer-manager-approval" && !hasTransferApprovalsPermission) return false
+    
 
     if (page.id === "hr-dashboard") {
       page.children = page.children.filter((child) => {
@@ -456,6 +456,7 @@ const Sidebar = () => {
           return false;
         if (child.id === "comp-off-history" && !hasCompOffHistoryPerm) return false;
         if (child.id === "cancellations-history" && !hasCancellationsHistory) return false;
+        if (child.id === "transfer-manager-approval" && !hasTransferApprovalsPermission) return false
 
         return true;
       });
