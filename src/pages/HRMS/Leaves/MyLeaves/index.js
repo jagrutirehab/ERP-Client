@@ -108,7 +108,8 @@ const MyLeaves = () => {
           approvalAuthority: d?.approvalAuthority,
           regularizedDates: l?.regularizedDates,
           cancellationAction : l?.cancellationAction,
-          cancellationReason : l?.cancellationReason
+          cancellationReason : l?.cancellationReason,
+          currentApprovalAuthority : d?.currentApprovalAuthority
         })) || [],
     )
     : [];
@@ -208,7 +209,6 @@ const MyLeaves = () => {
     }
   };
 
-  console.log("data", data)
 
 
   return (
