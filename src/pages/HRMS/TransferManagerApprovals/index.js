@@ -34,6 +34,8 @@ const TransferManagerApprovals = () => {
 
   const [pendingsLeaves, setPendingsleaves] = useState([]);
   const [pendingRegs, setPendingRegs] = useState([]);
+  const [pendingCan, setPendingCan] = useState([]);
+  const [pendingComp, setPendingComp] = useState([]);
   const [loadingPending, setLoadingPending] = useState(false);
 
   const [selectedFrom, setSelectedFrom] = useState(null);
@@ -165,6 +167,8 @@ const TransferManagerApprovals = () => {
       });
       setPendingsleaves(response?.leaves);
       setPendingRegs(response?.regs);
+      setPendingCan(response?.cancellations)
+      setPendingComp(response?.compOffs)
     } catch (error) {
       console.log(error);
     } finally {
@@ -176,7 +180,9 @@ const TransferManagerApprovals = () => {
     l?.leaves?.filter((leave) => leave?.status === "pending") || []
   );
   const pendingR = pendingRegs?.filter((r) => r?.status === "PENDING");
+  const pendingC = pendingCan?.filter((c) => c?.status === "pending");
 
+  const pendingCo = pendingComp?.filter((co) => co?.status === "pending");
   return (
     <Container
       style={{
@@ -333,7 +339,7 @@ const TransferManagerApprovals = () => {
       <div style={{ marginTop: "20px" }}>
         {loadingPending ? (
           <Spinner size="sm" />
-        ) : pendingL?.length > 0 || pendingR?.length > 0 ? (
+        ) : pendingL?.length > 0 || pendingR?.length > 0 || pendingC.length > 0 || pendingCo.length > 0 ? (
           <>
             {pendingL?.length > 0 && (
               <div style={{ marginBottom: "6px" }}>
@@ -345,6 +351,18 @@ const TransferManagerApprovals = () => {
               <div>
                 <span style={{ color: "#6c757d" }}>Pending Regularizations:</span>{" "}
                 <span style={{ fontWeight: "bold" }}>{pendingR.length}</span>
+              </div>
+            )}
+            {pendingC?.length > 0 && (
+              <div>
+                <span style={{ color: "#6c757d" }}>Pending Cancellations:</span>{" "}
+                <span style={{ fontWeight: "bold" }}>{pendingC.length}</span>
+              </div>
+            )}
+            {pendingCo?.length > 0 && (
+              <div>
+                <span style={{ color: "#6c757d" }}>Pending Comp-Offs:</span>{" "}
+                <span style={{ fontWeight: "bold" }}>{pendingCo.length}</span>
               </div>
             )}
           </>
