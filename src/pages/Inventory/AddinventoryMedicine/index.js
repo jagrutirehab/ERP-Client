@@ -87,11 +87,13 @@ const AddinventoryMedicine = ({
   const [hasUserTyped, setHasUserTyped] = useState(false);
   const [selectedCenters, setSelectedCenters] = useState(
     defaultValues.centers
-      ? defaultValues.centers.map((c) => {
-        return typeof c.centerId === "object"
-          ? String(c.centerId._id)
-          : String(c.centerId);
-      })
+      ? defaultValues.centers
+        .map((c) => {
+          return typeof c.centerId === "object"
+            ? String(c.centerId._id)
+            : String(c.centerId);
+        })
+        .filter((id) => user?.centerAccess?.includes(id))
       : []
   );
   const [centerStocks, setCenterStocks] = useState(() => {
@@ -231,7 +233,7 @@ const AddinventoryMedicine = ({
 
 
 
-  const allowedCenters = user?.userCenters.filter((c) =>
+  const allowedCenters = (user?.userCenters || []).filter((c) =>
     user?.centerAccess?.includes(String(c._id))
   );
 

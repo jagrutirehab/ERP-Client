@@ -298,6 +298,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                 const convertedQuantity = dispatchedQty * conversionFactor;
 
                                 const salesPrice = pharm.SalesPrice || 0;
+                                const purchaseUnitPrice = salesPrice * conversionFactor;
                                 const taxes = pharm.taxes || 0;
                                 const amount = convertedQuantity * salesPrice;
                                 const batch = item.batch || "—";
@@ -321,7 +322,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                         </View>
                                         <View style={{ width: "12%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                {formatCurrencyPDF(salesPrice)}
+                                                {formatCurrencyPDF(purchaseUnitPrice)}
                                             </Text>
                                         </View>
                                         <View style={{ width: "10%", textAlign: "center" }}>
