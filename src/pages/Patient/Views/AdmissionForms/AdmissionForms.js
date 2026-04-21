@@ -158,7 +158,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
   }, [dispatch, patient, addmissionId]);
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, reset, watch } = useForm();
 
   const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!ref?.current) return pdf;
@@ -173,6 +173,64 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
     // === CLONE + replace inputs with spans ===
     const clone = el.cloneNode(true);
+
+    // Sync radio/checkbox checked state from original to clone
+    const originalRadios = el.querySelectorAll(
+      "input[type='radio'], input[type='checkbox']",
+    );
+    const cloneRadios = clone.querySelectorAll(
+      "input[type='radio'], input[type='checkbox']",
+    );
+    originalRadios.forEach((orig, i) => {
+      if (cloneRadios[i]) cloneRadios[i].checked = orig.checked;
+    });
+
+    // Handle radio groups: replace each group with "Selected" or "A / B"
+    const handledRadioNames = new Set();
+    const allRadios = clone.querySelectorAll("input[type='radio']");
+    allRadios.forEach((radio) => {
+      const name = radio.getAttribute("name");
+      if (!name || handledRadioNames.has(name)) return;
+      handledRadioNames.add(name);
+
+      const group = clone.querySelectorAll(
+        `input[type='radio'][name='${name}']`,
+      );
+      const labels = [];
+      let selectedValue = null;
+
+      group.forEach((r) => {
+        const label = r.closest("label");
+        const text = r.value || (label ? label.textContent.trim() : "");
+        if (r.checked) selectedValue = text;
+        labels.push({ radio: r, label, text });
+      });
+
+      // Build replacement span
+      const resultSpan = document.createElement("span");
+      resultSpan.style.fontWeight = "bold";
+      resultSpan.style.textTransform = "uppercase";
+      resultSpan.style.marginLeft = "10px";
+
+      if (selectedValue) {
+        resultSpan.innerText = selectedValue.toUpperCase();
+        // resultSpan.style.textDecoration = "underline";
+      } else {
+        resultSpan.innerText = labels
+          .map((l) => l.text)
+          .join(" / ")
+          .toUpperCase();
+      }
+
+      // Insert result span before first label, then remove all labels
+      const firstLabel = labels[0].label || labels[0].radio.parentNode;
+      firstLabel.parentNode.insertBefore(resultSpan, firstLabel);
+      labels.forEach(({ radio, label }) => {
+        if (label) label.remove();
+        else radio.remove();
+      });
+    });
+
     const inputsInClone = clone.querySelectorAll("input, textarea, select");
     inputsInClone.forEach((input) => {
       const span = document.createElement("span");
@@ -481,6 +539,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       });
 
       toast.success("Admission form submitted successfully!");
+      reset();
       setOpenform(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -1410,7 +1469,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       <Modal
         isOpen={openform}
         toggle={() => {
+          reset();
           setOpenform(false);
+          setAdmissiontype("");
+          setAdultationtype("");
+          setSupporttype("");
           setEmergencyType("");
           setEmergencyRestraint("");
         }}
@@ -1420,7 +1483,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       >
         <ModalHeader
           toggle={() => {
+            reset();
             setOpenform(false);
+            setAdmissiontype("");
+            setAdultationtype("");
+            setSupporttype("");
             setEmergencyType("");
             setEmergencyRestraint("");
           }}
@@ -1558,7 +1625,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                   className="me-2"
                   disabled={isGenerating2}
                   onClick={() => {
+                    reset();
                     setOpenform(false);
+                    setAdmissiontype("");
+                    setAdultationtype("");
+                    setSupporttype("");
                     setEmergencyType("");
                     setEmergencyRestraint("");
                   }}

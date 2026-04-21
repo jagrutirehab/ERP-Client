@@ -125,12 +125,15 @@ const EmergencyAdmissionForm = ({
             : patient?.gender
               ? `${patient.gender}`
               : "";
+
+      console.log({ genderAge });
+
       setValue("Emergency_Admission_ageGender", genderAge);
       if (emergencyRestraint) {
         setValue("Emergency_Admission_restraint", emergencyRestraint);
       }
     }
-  }, [setValue, emergencyType, emergencyRestraint]);
+  }, [setValue, emergencyType, emergencyRestraint, age, patient]);
 
   console.log({ age, gender: patient.gender });
 
@@ -139,7 +142,7 @@ const EmergencyAdmissionForm = ({
       <style>
         {`
           @media (max-width: 768px) {
-            input, textarea {
+            input:not([type='radio']):not([type='checkbox']), textarea {
               width: 100% !important;
               margin: 5px 0 !important;
               display: block;
@@ -326,7 +329,34 @@ const EmergencyAdmissionForm = ({
         />
       </div>
       <div style={{ marginBottom: "15px" }}>
-        <span>Capacity: Unable to understand / appreciate / communicate</span>
+        <span>Capacity: Unable to </span>
+        <label style={{ marginLeft: "5px", marginRight: "10px" }}>
+          <input
+            type="radio"
+            value="understand"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          understand
+        </label>
+        <label style={{ marginRight: "10px" }}>
+          <input
+            type="radio"
+            value="appreciate"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          appreciate
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="communicate"
+            {...register("Emergency_Admission_capacity")}
+            style={{ marginRight: "4px" }}
+          />
+          communicate
+        </label>
       </div>
 
       {/* Justification */}

@@ -61,6 +61,9 @@ const SopIndicator = ({ id, label, tooltip, status, date }) => {
   const config = sopStatusConfig[status] || sopStatusConfig.na;
   const tooltipId = `sop-${id}`;
   const formattedDate = formatSopDate(date);
+
+  console.log({ id, status, config });
+
   return (
     <>
       <span
