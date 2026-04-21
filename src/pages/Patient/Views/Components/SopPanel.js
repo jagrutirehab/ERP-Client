@@ -14,7 +14,7 @@ const chartTypeLabels = {
   PRESCRIPTION: "Prescription",
   LAB_REPORT: "Lab Report",
   DETAIL_ADMISSION: "Admission Form",
-  MENTAL_EXAMINATION: "Mental Examination",
+  MENTAL_EXAMINATION: "Clinical Note (Mental Examination)",
   DISCHARGE_SUMMARY: "Discharge Summary",
 };
 
@@ -72,6 +72,8 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
       );
     }
   }, [dispatch, activeAdmission?._id]);
+
+  console.log({ activeAdmission });
 
   if (!patient?.isAdmit || !activeAdmission) {
     return null;
