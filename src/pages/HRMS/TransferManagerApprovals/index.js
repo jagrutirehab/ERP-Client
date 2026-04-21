@@ -11,6 +11,7 @@ import { getEmployeesBySearch, getPendingApprovalsByManagerId, transferManagerPe
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const ALL_CENTERS_OPTION = { value: "all", label: "All Centers" };
 
@@ -41,6 +42,15 @@ const TransferManagerApprovals = () => {
 
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
+  const hasRead = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
+  const hasWrite = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "WRITE");
+  const hasDelete = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "DELETE");
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   const isECodeLike = (value) =>
     /^[A-Za-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*$/.test(value);
@@ -307,7 +317,7 @@ const TransferManagerApprovals = () => {
           </div>
         )}
 
-        <Button
+        {!isReadOnly && <Button
           color="primary"
           type="submit"
           disabled={actionLoading}
@@ -317,7 +327,7 @@ const TransferManagerApprovals = () => {
           }}
         >
           {actionLoading ? <Spinner size="sm" /> : "Transfer"}
-        </Button>
+        </Button>}
       </Form>
 
       <div style={{ marginTop: "20px" }}>
