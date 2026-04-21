@@ -9,19 +9,17 @@ const DAILY_TYPES = ["VITAL_SIGN", "COUNSELLING_NOTE"];
 const chartTypeLabels = {
   VITAL_SIGN: "Vital Sign",
   COUNSELLING_NOTE: "Counselling Note",
-  CLINICAL_NOTE: "Clinical Note",
   RELATIVE_VISIT: "Family Update",
   PRESCRIPTION: "Prescription",
   LAB_REPORT: "Lab Report",
   DETAIL_ADMISSION: "Admission Form",
-  MENTAL_EXAMINATION: "Clinical Note (Mental Examination)",
+  MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
 };
 
 const DISPLAY_ORDER = [
   "VITAL_SIGN",
   "COUNSELLING_NOTE",
-  "CLINICAL_NOTE",
   "RELATIVE_VISIT",
   "PRESCRIPTION",
   "LAB_REPORT",
