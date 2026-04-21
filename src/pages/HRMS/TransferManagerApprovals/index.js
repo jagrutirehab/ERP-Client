@@ -150,6 +150,8 @@ const TransferManagerApprovals = () => {
       setSelectedCenter(null);
       setPendingsleaves([]);
       setPendingRegs([]);
+      setPendingComp([]);
+      setPendingCan([]);
       setError("");
     } catch (error) {
       toast.error("Error updating data");
