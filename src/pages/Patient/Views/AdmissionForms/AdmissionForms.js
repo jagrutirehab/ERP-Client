@@ -243,7 +243,9 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       span.innerText = value ? String(value).toUpperCase() : "\u00A0";
       span.style.fontWeight = "bold";
       span.style.textTransform = "uppercase";
-      span.style.borderBottom = "1px solid #000";
+      if (!input.hasAttribute("data-no-underline")) {
+        span.style.borderBottom = "1px solid #000";
+      }
       span.style.display = "inline-block";
       span.style.minWidth = "100px";
       span.style.maxWidth = "100%";

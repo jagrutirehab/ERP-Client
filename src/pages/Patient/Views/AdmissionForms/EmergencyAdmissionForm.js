@@ -180,6 +180,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.name}
                 {...register("Emergency_Admission_name")}
                 style={{
@@ -196,6 +197,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 {...register("Emergency_Admission_ageGender")}
                 style={{
                   fontWeight: "bold",
@@ -211,6 +213,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.address}
                 {...register("Emergency_Admission_address")}
                 style={{
@@ -227,6 +230,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.phoneNumber}
                 {...register("Emergency_Admission_contact")}
                 style={{
@@ -243,6 +247,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="text"
+                data-no-underline
                 defaultValue={patient?.guardianName}
                 {...register("Emergency_Admission_broughtBy")}
                 style={{
@@ -259,6 +264,7 @@ const EmergencyAdmissionForm = ({
             <td style={tdInput}>
               <input
                 type="datetime-local"
+                data-no-underline
                 defaultValue={
                   today
                     ? `${today}T${new Date().toTimeString().slice(0, 5)}`
