@@ -3,6 +3,7 @@ export const BASE_BALANCE_VIEW = "BALANCE";
 export const DEPOSITS_VIEW = "DEPOSITS";
 export const SPENDING_VIEW = "SPENDING";
 export const INFLOW_VIEW = "INFLOW";
+export const LEDGER_REPORT_VIEW = "LEDGER_REPORT";
 
 export const summaryOptions = [
   { value: "AA_SESSION", label: "AA SESSION" },

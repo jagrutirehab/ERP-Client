@@ -361,7 +361,7 @@ export const GET_LASTEST_INFLOWS = "/cash/inflow/list";
 export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
 export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
 export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
-
+export const GET_DATE_RANGE_REPORT = "/cash/report/ledger";
 // central payment
 export const CENTRAL_PAYMENT = "/central-payment";
 export const CENTRAL_PAYMENT_ACTION = "/central-payment/action";

@@ -1234,6 +1234,15 @@ export const getSummaryCashReport = (params = {}) => {
   });
 };
 
+export const getDateRangeReport = (params = {}) => {
+  return api.create(url.GET_DATE_RANGE_REPORT, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 // central payment
 export const getCentralPayments = (params = {}) => {
   return api.get(url.CENTRAL_PAYMENT, {
