@@ -68,7 +68,7 @@ const Views = (props) => {
         {questionShow === false ? (
           <div className="patient-content postion-relative overflow-auto bg-white mt-1 px-3 py-3">
             <Row>
-              <Col className="mb-2" xs={12} xl={4}>
+              <Col className="mb-2" xs={12} xl={5} xxl={4}>
                 <ButtonGroup size="sm">
                   {props?.pageAccess
                     ?.find((pg) => pg.name === "Patient")
@@ -108,7 +108,7 @@ const Views = (props) => {
                     })}
                 </ButtonGroup>
               </Col>
-              <Col xs={12} xl={8}>
+              <Col xs={12} xl={7} xxl={8}>
                 <SopPanel />
               </Col>
             </Row>
