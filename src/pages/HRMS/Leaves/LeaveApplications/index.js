@@ -31,7 +31,6 @@ const LeaveApplications = () => {
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
   const [manager, setManager] = useState();
-  const [temporary, setTemporary] = useState();
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
@@ -67,7 +66,6 @@ const LeaveApplications = () => {
     };
 
     getMyManagers();
-    handleGetTemporaryManager();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -121,16 +119,6 @@ const LeaveApplications = () => {
     }
   };
 
-  const handleGetTemporaryManager = async () => {
-    try {
-      const response = await getTemporaryManager()
-      console.log("Response", response);
-      setTemporary(response);
-
-    } catch (error) {
-      console.log("Error", error);
-    }
-  }
 
 
 
@@ -208,23 +196,10 @@ const LeaveApplications = () => {
                   disabled
                 />
               </div>
-              {manager?._id !== temporary?._id && temporary?._id && (
-                <div
-                  style={{
-                    background: "#fff3cd",
-                    color: "#856404",
-                    padding: "8px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid #ffeeba",
-                    marginTop: "5px"
-                  }}
-                >
-                  ⚠️ Leave requests will be transferred to <strong>{temporary?.name}</strong>
-                </div>
-              )}
+            
 
               <div className="mb-3">
-                <label className="form-label mt-4">
+                <label className="form-label">
                   Shift Time <span className="text-danger">*</span>
                 </label>
 
