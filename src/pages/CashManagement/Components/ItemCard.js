@@ -14,25 +14,25 @@ const ItemCard = ({ item, type }) => {
           <Col md={8}>
             <div className="d-flex align-items-center mb-2">
               <Badge color="primary" className="me-2">
-                {capitalizeWords(item.center.title)}
+                {capitalizeWords(item?.center?.title)}
               </Badge>
               <i className="text-muted">
-                {moment(item.createdAt).format("lll")}
+                {moment(item?.createdAt).format("lll")}
               </i>
             </div>
-            {item.summary && (
+            {item?.summary && (
               <h6 className="mb-1 fw-bold text-dark">
-                {capitalizeWords(item.summary.replace(/_/g, " "))}
+                {capitalizeWords(item?.summary.replace(/_/g, " "))}
               </h6>
             )}
-            {item.comments && (
-              <ExpandableText text={capitalizeWords(item.comments)} />
+            {item?.comments && (
+              <ExpandableText text={capitalizeWords(item?.comments)} />
             )}
-            {item.attachment && (
+            {item?.attachment && (
               <div
                 className="d-flex align-items-center text-primary mt-2"
                 style={{ cursor: "pointer" }}
-                onClick={() => downloadFile(item.attachment)}
+                onClick={() => downloadFile(item?.attachment)}
               >
                 <FileText size={14} className="me-1 flex-shrink-0" />
                 <span
@@ -42,7 +42,7 @@ const ItemCard = ({ item, type }) => {
                     overflowWrap: 'break-word'
                   }}
                 >
-                  {item.attachment.originalName}
+                  {item?.attachment?.originalName}
                 </span>
               </div>
             )}
