@@ -4,6 +4,7 @@ import "flatpickr/dist/themes/material_green.css";
 
 import {
   getMyManager,
+  getTemporaryManager,
   postCompOffRequest,
   postLeaveRequest,
 } from "../../../../helpers/backend_helper";
@@ -29,6 +30,7 @@ const LeaveApplications = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
+  const [manager, setManager] = useState();
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ const LeaveApplications = () => {
         const res = await getMyManager(token);
 
         setManagerName(res?.data?.manager?.name || "");
+        setManager(res?.data?.manager || {})
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
         // console.log(error);
@@ -116,15 +119,8 @@ const LeaveApplications = () => {
     }
   };
 
-  // const handleCompOffRequest = () => {
-  //   try {
-  //     console.log("CLicked");
 
-  //   } catch (error) {
-  //     console.log(error);
 
-  //   }
-  // }
 
   return (
     <CardBody
@@ -200,6 +196,7 @@ const LeaveApplications = () => {
                   disabled
                 />
               </div>
+            
 
               <div className="mb-3">
                 <label className="form-label">

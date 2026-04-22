@@ -46,6 +46,7 @@ const Main = ({ loading, data, centerAccess }) => {
         search: debouncedSearch,
         flag,
         centerAccess,
+        currentDate: new Date().toISOString(),
       })
     );
   }, [page, limit, debouncedSearch, flag, roles, centerAccess, dispatch]);

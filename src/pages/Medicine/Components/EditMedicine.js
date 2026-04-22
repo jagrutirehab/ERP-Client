@@ -158,10 +158,10 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
               <FormFeedback type="invalid" className="d-block">{validation.errors.name}</FormFeedback>
             )}
           </Col>
-          <Col md={4} className="mb-3">
+          {/* <Col md={4} className="mb-3">
             <label className="fs-12 text-muted mb-1">Brand Name</label>
             <Input onChange={validation.handleChange} name="brandName" onBlur={validation.handleBlur} value={validation.values.brandName || ""} bsSize="sm" placeholder="Brand Name" />
-          </Col>
+          </Col> */}
           <Col md={4} className="mb-3">
             <label className="fs-12 text-muted mb-1">Generic Name</label>
             <Input onChange={validation.handleChange} name="genericName" onBlur={validation.handleBlur} value={validation.values.genericName || ""} bsSize="sm" placeholder="Generic Name" />

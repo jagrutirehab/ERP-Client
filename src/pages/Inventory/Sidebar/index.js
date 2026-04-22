@@ -17,6 +17,7 @@ const Sidebar = () => {
   const hasUserPermission5 = hasPermission("PHARMACY", "AUDIT", "READ");
   const hasUserPermission6 = hasPermission("PHARMACY", "NURSEGIVENMEDICINES", "READ");
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
+  const hasUserPermission8 = hasPermission("PHARMACY", "REQUISITION_SAREYAAN_ORDERS", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -44,6 +45,7 @@ const Sidebar = () => {
         ...page,
         children: (page.children || []).filter((child) => {
           if (child.id === "internal-transfer" && !hasUserPermission7) return false;
+          if (child.id === "sareyaan-orders" && !hasUserPermission8) return false;
           return true;
         }),
       };

@@ -5,8 +5,8 @@ import { renderStatusBadge } from "../../../../Components/Common/renderStatusBad
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
-export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleDispatch, handleReceive, statusFilter, hasWritePermission }) => {
-    const showRemarks = !["PENDING", ""].includes(statusFilter);
+export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleRequestingApprove, handleRequestingReject, handleDispatch, handleReceive, handlePdf, statusFilter, hasWritePermission, userCenterAccess = [] }) => {
+    const showRemarks = !["PENDING_REQUESTING", ""].includes(statusFilter);
     const isReceivedTab = statusFilter === "PARTIALLY_RECEIVED,FULFILLED";
     return [
         {
@@ -56,7 +56,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             name: <div>Items</div>,
             minWidth: "250px",
             cell: (row) => {
-                const isPostApproval = !["PENDING", "REJECTED"].includes(row.status);
+                const isPostApproval = !["PENDING_REQUESTING", "PENDING_FULFILLING", "REJECTED", "REQUESTING_REJECTED", "FULFILLING_REJECTED"].includes(row.status);
                 const isDispatched = ["DISPATCHED"].includes(row.status);
                 const isReceived = ["FULFILLED", "PARTIALLY_RECEIVED"].includes(row.status);
 
@@ -75,27 +75,27 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                     <div className="d-flex flex-column w-100 my-2 gap-1 rounded">
                         {visibleItems.map((item, i) => {
                             const m = item.pharmacyId || {};
+                            const med = m.medicineId || {};
                             const customId = m.id || item.customId || "";
+                            const medType = med.type || "";
                             const medName = m.medicineName || item.medicineName || "";
                             const strength = m.Strength || m.strength || item.strength || "";
-                            const unit = m.unitType || m.unit || item.unit || "";
+                            const unit = m.medicineId?.purchaseUnit || m.unitType || m.unit || item.unit || "";
                             const qty = isReceived
-                                ? (item.receivedQty ?? item.dispatchedQty ?? item.approvedQty)
-                                : isDispatched
-                                    ? (item.dispatchedQty ?? item.approvedQty)
-                                    : isPostApproval
-                                        ? item.approvedQty
-                                        : item.requestedQty;
+                                ? (item.receivedQty ?? item.approvedQty)
+                                : isPostApproval
+                                    ? item.approvedQty
+                                    : item.requestedQty;
 
                             return (
                                 <React.Fragment key={i}>
                                     <div className="d-flex align-items-center justify-content-between py-1">
                                         <div className="fw-medium me-3" style={{ whiteSpace: "normal" }}>
                                             {customId && <span className="text-primary me-1">[{customId}]</span>}
-                                            {[medName, strength, unit].filter(Boolean).join(" ") || "Unknown Item"}
+                                            {[medType, medName, strength].filter(Boolean).join(" ") || "Unknown Item"}
                                         </div>
                                         <Badge color="light" className="text-dark border" style={{ fontSize: 10 }}>
-                                            Qty: {qty}
+                                            Qty: {qty} {qty > 1 && unit ? (unit.toLowerCase().endsWith('s') ? unit : (unit.toLowerCase().endsWith('x') ? unit + (unit === unit.toUpperCase() ? "ES" : "es") : unit + (unit === unit.toUpperCase() ? "S" : "s"))) : unit}
                                         </Badge>
                                     </div>
                                     {i !== visibleItems.length - 1 && (
@@ -137,22 +137,59 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
         },
         ...(showRemarks ? [
             {
-                name: <div>{statusFilter === "REJECTED" ? "Remarks" : "Approval Remarks"}</div>,
+                name: <div>
+                    {statusFilter === "PENDING_FULFILLING" 
+                        ? "Requesting Remarks" 
+                        : (statusFilter.includes("REJECTED") ? "Remarks" : "Approval Remarks")}
+                </div>,
                 cell: (row) => {
-                    return <ExpandableText text={capitalizeWords(row.review?.remarks) || "-"} />;
+                    let text = row.fulfillingCenterReview?.remarks || row.requestingCenterReview?.remarks;
+                    if (statusFilter === "PENDING_FULFILLING") {
+                        text = row.requestingCenterReview?.remarks;
+                    } else if (statusFilter === "APPROVED" || isReceivedTab || statusFilter === "DISPATCHED") {
+                        text = row.fulfillingCenterReview?.remarks;
+                    } else if (statusFilter.includes("REJECTED")) {
+                        if (row.status === "REQUESTING_REJECTED") text = row.requestingCenterReview?.remarks;
+                        else if (row.status === "FULFILLING_REJECTED") text = row.fulfillingCenterReview?.remarks;
+                    }
+                    return <ExpandableText text={capitalizeWords(text) || "-"} />;
                 },
                 wrap: true,
                 minWidth: "140px",
             },
             ...(isReceivedTab ? [
                 {
-                    name: <div>Dispatch Remarks</div>,
+                    name: <div>Dispatch Details</div>,
                     cell: (row) => {
-                        const remarks = row.dispatch?.dispatchNote;
-                        return <ExpandableText text={capitalizeWords(remarks) || "-"} />;
+                        const dispatch = row.dispatch;
+                        if (!dispatch) return <span className="text-muted">—</span>;
+                        const hasCourier = dispatch.courierName || dispatch.courierId;
+                        return (
+                            <div className="d-flex flex-column gap-1 py-1" style={{ fontSize: 12, minWidth: 140 }}>
+                                {hasCourier && (
+                                    <div className="d-flex flex-column mb-1">
+                                        {dispatch.courierName && (
+                                            <span className="fw-semibold" style={{ color: "#495057" }}>
+                                                {capitalizeWords(dispatch.courierName)}
+                                            </span>
+                                        )}
+                                        {dispatch.courierId && (
+                                            <span className="text-primary fw-medium" style={{ fontSize: 11, textTransform: "uppercase" }}>
+                                                {dispatch.courierId}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                                {dispatch.dispatchNote ? (
+                                    <ExpandableText text={capitalizeWords(dispatch.dispatchNote)} />
+                                ) : (
+                                    !hasCourier && <span className="text-muted">—</span>
+                                )}
+                            </div>
+                        );
                     },
                     wrap: true,
-                    minWidth: "140px",
+                    minWidth: "160px",
                 },
                 {
                     name: <div>GRN Details</div>,
@@ -196,90 +233,180 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
         },
         {
             name: <div>Action</div>,
-            cell: (row) => (
-                <div className="d-flex align-items-center gap-2">
-                    {hasWritePermission && row.status === "PENDING" && (
-                        <>
+            cell: (row) => {
+                const reqCenterId = row.requestingCenter?._id || row.requestingCenter;
+                const fulCenterId = row.fulfillingCenter?._id || row.fulfillingCenter;
+                const hasRequestingAccess = userCenterAccess.includes(reqCenterId?.toString());
+                const hasFulfillingAccess = userCenterAccess.includes(fulCenterId?.toString());
+
+                // ── PENDING_REQUESTING: Requesting center internal review ──────
+                if (row.status === "PENDING_REQUESTING") {
+                    if (hasRequestingAccess) {
+                        return (
+                            <div className="d-flex align-items-center gap-1 flex-wrap">
+                                {hasWritePermission && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-success text-white"
+                                            onClick={(e) => { e.stopPropagation(); if (handleRequestingApprove) handleRequestingApprove(row); }}
+                                            title="Approve (Requesting Center)"
+                                        >
+                                            <i className="bx bx-check" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-danger text-white"
+                                            onClick={(e) => { e.stopPropagation(); if (handleRequestingReject) handleRequestingReject(row); }}
+                                            title="Reject (Requesting Center)"
+                                        >
+                                            <i className="bx bx-x" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={(e) => { e.stopPropagation(); if (handleEdit) handleEdit(row); }}
+                                            title="Edit"
+                                        >
+                                            <i className="bx bx-pencil" />
+                                        </button>
+                                    </>
+                                )}
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={(e) => { e.stopPropagation(); openDetail(row); }}
+                                >
+                                    <i className="bx bx-show me-1" />
+                                    Details
+                                </button>
+                            </div>
+                        );
+                    }
+                    return (
+                        <button type="button" className="btn btn-sm btn-outline-primary"
+                            onClick={(e) => { e.stopPropagation(); openDetail(row); }}>
+                            <i className="bx bx-show me-1" />Details
+                        </button>
+                    );
+                }
+                // ── END PENDING_REQUESTING ───────────────────────────────────
+
+                // ── PENDING_FULFILLING: Fulfilling center reviews ─────────────
+                if (row.status === "PENDING_FULFILLING") {
+                    if (hasFulfillingAccess) {
+                        return (
+                            <div className="d-flex align-items-center gap-1 flex-wrap">
+                                {hasWritePermission && (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-success text-white"
+                                            onClick={(e) => { e.stopPropagation(); if (handleApprove) handleApprove(row); }}
+                                            title="Approve"
+                                        >
+                                            <i className="bx bx-check" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-danger text-white"
+                                            onClick={(e) => { e.stopPropagation(); if (handleReject) handleReject(row); }}
+                                            title="Reject"
+                                        >
+                                            <i className="bx bx-x" />
+                                        </button>
+                                    </>
+                                )}
+                                <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={(e) => { e.stopPropagation(); openDetail(row); }}
+                                >
+                                    <i className="bx bx-show me-1" />
+                                    Details
+                                </button>
+                            </div>
+                        );
+                    }
+                    // Requesting center view of PENDING_FULFILLING — read only
+                    if (hasRequestingAccess) {
+                        return (
+                            <button type="button" className="btn btn-sm btn-outline-primary"
+                                onClick={(e) => { e.stopPropagation(); openDetail(row); }}>
+                                <i className="bx bx-show me-1" />Details
+                            </button>
+                        );
+                    }
+                    return (
+                        <button type="button" className="btn btn-sm btn-outline-primary"
+                            onClick={(e) => { e.stopPropagation(); openDetail(row); }}>
+                            <i className="bx bx-show me-1" />Details
+                        </button>
+                    );
+                }
+                // ── END PENDING_FULFILLING ───────────────────────────────────
+
+                return (
+                    <div className="d-flex align-items-center gap-2">
+                        {hasWritePermission && row.status === "APPROVED" && hasFulfillingAccess && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-primary text-white"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (handleDispatch) handleDispatch(row);
+                                }}
+                                title="Dispatch"
+                            >
+                                <i className="bx bx-package me-1" />
+                                Dispatch
+                            </button>
+                        )}
+                        {hasWritePermission && row.status === "DISPATCHED" && hasRequestingAccess && (
                             <button
                                 type="button"
                                 className="btn btn-sm btn-success text-white"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (handleApprove) handleApprove(row);
+                                    if (handleReceive) handleReceive(row);
                                 }}
-                                title="Approve"
+                                title="Receive"
                             >
-                                <i className="bx bx-check" />
+                                <i className="bx bx-check-double me-1" />
+                                Receive
                             </button>
+                        )}
+                        {row.status === "DISPATCHED" && (
                             <button
                                 type="button"
-                                className="btn btn-sm btn-danger text-white"
+                                className="btn btn-sm btn-outline-danger"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (handleReject) handleReject(row);
+                                    if (handlePdf) handlePdf(row);
                                 }}
-                                title="Reject"
+                                title="View PDF"
                             >
-                                <i className="bx bx-x" />
+                                <i className="bx bxs-file-pdf" />
                             </button>
-                            <button
-                                type="button"
-                                className="btn btn-sm btn-outline-secondary"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (handleEdit) handleEdit(row);
-                                }}
-                                title="Edit"
-                            >
-                                <i className="bx bx-pencil" />
-                            </button>
-                        </>
-                    )}
-                    {hasWritePermission && row.status === "APPROVED" && (
+                        )}
                         <button
                             type="button"
-                            className="btn btn-sm btn-primary text-white"
+                            className="btn btn-sm btn-outline-primary"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (handleDispatch) handleDispatch(row);
+                                openDetail(row);
                             }}
-                            title="Dispatch"
                         >
-                            <i className="bx bx-package me-1" />
-                            Dispatch
+                            <i className="bx bx-show me-1" />
+                            Details
                         </button>
-                    )}
-                    {hasWritePermission && row.status === "DISPATCHED" && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-success text-white"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (handleReceive) handleReceive(row);
-                            }}
-                            title="Receive"
-                        >
-                            <i className="bx bx-check-double me-1" />
-                            Receive
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            openDetail(row);
-                        }}
-                    >
-                        <i className="bx bx-show me-1" />
-                        Details
-                    </button>
-                </div>
-            ),
+                    </div>
+                );
+            },
             ignoreRowClick: true,
             allowOverflow: true,
             button: true,
-            width: "220px",
+            width: "240px",
         }
     ];
 };

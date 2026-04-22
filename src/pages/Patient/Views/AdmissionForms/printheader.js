@@ -101,20 +101,20 @@ const getResponsiveStyles = (pageWidth) =>
     orgName: {
       fontFamily: "Roboto",
       fontWeight: "bold",
-      fontSize: pageWidth <= 600 ? 10 : 30, // responsive font size
+      fontSize: pageWidth <= 600 ? 13 : 30,
       textTransform: "uppercase",
       marginBottom: 2,
     },
     address: {
-      fontSize: pageWidth <= 600 ? 7 : 20,
+      fontSize: pageWidth <= 600 ? 11 : 20,
       marginBottom: 1,
     },
     phone: {
-      fontSize: pageWidth <= 600 ? 7 : 20,
+      fontSize: pageWidth <= 600 ? 11 : 20,
       marginBottom: 1,
     },
     website: {
-      fontSize: pageWidth <= 600 ? 7 : 20,
+      fontSize: pageWidth <= 600 ? 11 : 20,
     },
   });
 
