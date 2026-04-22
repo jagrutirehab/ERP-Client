@@ -5,9 +5,11 @@ import {
   INFLOW_VIEW,
   REPORTS_VIEW,
   SPENDING_VIEW,
+  LEDGER_REPORT_VIEW,
 } from "../../../Components/constants/cash";
 import { Button, ButtonGroup, Spinner } from "reactstrap";
 import Reports from "./Reports";
+// import LedgerReport from "./LedgerReport";
 import Balance from "./Balance";
 import Deposits from "./Deposits";
 import Spending from "./Spending";
@@ -27,6 +29,11 @@ const Views = () => {
   const hasDepositsPermission = hasPermission("CASH", "CASHDEPOSITS", "READ");
   const hasSpendingPermission = hasPermission("CASH", "CASHSPENDING", "READ");
   const hasInflowPermission = hasPermission("CASH", "CASHINFLOW", "READ");
+  // const hasLedgerReportPermission = hasPermission(
+  //   "CASH",
+  //   "LEDGERREPORT",
+  //   "READ",
+  // );
 
   const availableViews = [
     {
@@ -59,6 +66,12 @@ const Views = () => {
       hasAccess: hasInflowPermission,
       order: 4,
     },
+    // {
+    //   name: "Ledger Report",
+    //   view: LEDGER_REPORT_VIEW,
+    //   hasAccess: hasLedgerReportPermission,
+    //   order: 5,
+    // },
   ]
     .filter((view) => view.hasAccess)
     .sort((a, b) => a.order - b.order);
@@ -71,7 +84,8 @@ const Views = () => {
       BASE_BALANCE_VIEW,
       DEPOSITS_VIEW,
       SPENDING_VIEW,
-      INFLOW_VIEW
+      INFLOW_VIEW,
+      LEDGER_REPORT_VIEW,
     ];
 
     for (const view of priorityOrder) {
@@ -174,6 +188,19 @@ const Views = () => {
             >
               {view === INFLOW_VIEW && <Inflows />}
             </CheckPermission>
+
+            {/* {view === LEDGER_REPORT_VIEW && (
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                permission={"read"}
+                subAccess={"LEDGERREPORT"}
+              >
+                <LedgerReport
+                  activeTab="dateRange" // ← add this
+                  hasUserPermission={hasLedgerReportPermission} // ← add this
+                />
+              </CheckPermission>
+            )} */}
           </div>
         </div>
       </div>

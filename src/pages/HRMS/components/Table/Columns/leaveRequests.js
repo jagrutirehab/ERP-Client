@@ -308,4 +308,12 @@ export const leaveRequestsColumns = (
       ),
       width: "120px",
     },
+
+    ...(activeTab !== "pending" ? [
+      {
+        name: <Center>Leave Action By</Center>,
+        cell: (row) => <Center>{row?.leaveActionBy || "-"}</Center>,
+        width: "220px",
+      },
+    ] : [])
   ];

@@ -37,7 +37,7 @@ export const MyLeavesColumn = (
     },
     {
       name: <Center>Manager Name</Center>,
-      cell: (row) => <Center>{row?.approvalAuthority?.name || "-"}</Center>,
+      cell: (row) => <Center>{row?.currentApprovalAuthority?.name || row?.approvalAuthority?.name || "-"}</Center>,
       width: "180px",
     },
     {
@@ -267,17 +267,11 @@ export const MyLeavesColumn = (
       : []),
 
     ...(activeTab === "cancelled" ? [
-        {
+      {
         name: <Center>Cancellation Reason</Center>,
         cell: (row) => <Center>{row?.leave?.cancellationReason || "-"}</Center>,
         width: "180px",
       },
 
-      {
-        name: <Center>Manager Name</Center>,
-        cell: (row) => <Center>{row?.leave?.cancellationAction || "-"}</Center>,
-        width: "180px",
-      },
-      
     ] : [])
   ];

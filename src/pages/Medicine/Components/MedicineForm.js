@@ -240,10 +240,10 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
                   </FormFeedback>
                 )}
               </Col>
-              <Col md={4} className="mb-3">
+              {/* <Col md={4} className="mb-3">
                 <label className="fs-12 text-muted mb-1">Brand Name</label>
                 <Input bsSize="sm" id={idx} onChange={handleChange} name="brandName" value={medicine.brandName} type="text" placeholder="Brand Name" />
-              </Col>
+              </Col> */}
               <Col md={4} className="mb-3">
                 <label className="fs-12 text-muted mb-1">Generic Name</label>
                 <Input bsSize="sm" id={idx} onChange={handleChange} name="genericName" value={medicine.genericName} type="text" placeholder="Generic Name" />

@@ -134,64 +134,64 @@ const SummaryReport = ({
             No summary data available for your centers.
           </div>
         ) : summaryReport?.data?.map((data) => (
-          <Col key={data.center._id} xs="12" md="6" xl="3" className="mb-4">
+          <Col key={data?.center?._id} xs="12" md="6" xl="3" className="mb-4">
             <Card className="shadow-sm h-100 hover-shadow bg-white">
               <CardBody>
                 <CardTitle tag="h5" className="fw-bold mb-3">
-                  {data.center.title}
+                  {data?.center?.title}
                 </CardTitle>
                 <ListGroup flush>
                   <ListGroupItem className="d-flex justify-content-between align-items-center bg-white">
                     <span className="fw-medium text-muted">Base Balance:</span>
-                    <span>{formatCurrency(data.baseBalanceAmount)}</span>
+                    <span>{formatCurrency(data?.baseBalanceAmount)}</span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-danger bg-white">
                     <span className="fw-medium">Total Bank Deposits:</span>
                     <span className="fw-semibold">
-                      - {formatCurrency(data.totalDeposits)}
+                      - {formatCurrency(data?.totalDeposits)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-danger bg-white">
                     <span className="fw-medium">Total Spending:</span>
                     <span className="fw-semibold">
-                      - {formatCurrency(data.totalSpending)}
+                      - {formatCurrency(data?.totalSpending)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total Cash Inflow:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalInflows)}
+                      + {formatCurrency(data?.totalInflows)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total IPD Payments:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalAdvancePayments)}
+                      + {formatCurrency(data?.totalAdvancePayments)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total OPD Payments:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalOPDPayments)}
+                      + {formatCurrency(data?.totalOPDPayments)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total Intern Payments:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalInternPayments)}
+                      + {formatCurrency(data?.totalInternPayments)}
                     </span>
                   </ListGroupItem>
 
                   <ListGroupItem className="d-flex justify-content-between align-items-center text-success bg-white">
                     <span className="fw-medium">Total Deposit - Olive:</span>
                     <span className="fw-semibold">
-                      + {formatCurrency(data.totalIPDDeposits)}
+                      + {formatCurrency(data?.totalIPDDeposits)}
                     </span>
                   </ListGroupItem>
 
@@ -199,10 +199,10 @@ const SummaryReport = ({
                     <span className="fw-bold">Ending Balance:</span>
                     <h6>
                       <Badge
-                        color={data.currentBalance >= 0 ? "success" : "danger"}
+                        color={data?.currentBalance >= 0 ? "success" : "danger"}
                         pill
                       >
-                        {formatCurrency(data.currentBalance)}
+                        {formatCurrency(data?.currentBalance)}
                       </Badge>
                     </h6>
                   </ListGroupItem>

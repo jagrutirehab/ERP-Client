@@ -7,12 +7,13 @@ import {
   getLatestInflows,
   getLatestSpendings,
   getSummaryCashReport,
+  getDateRangeReport,
   postBankDeposit,
   postBaseBalance,
   postInflow,
   postSpending,
 } from "../../../helpers/backend_helper";
-
+ 
 const initialState = {
   loading: false,
   bankDeposits: {},
@@ -235,6 +236,18 @@ export const getSummaryReport = createAsyncThunk(
   }
 );
 
+export const getRangeReport = createAsyncThunk(
+  "cash/getDateRangeReport",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getDateRangeReport(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const CashSlice = createSlice({
   name: "cash",
   initialState,
@@ -395,6 +408,16 @@ export const CashSlice = createSlice({
         }
       })
       .addCase(getSummaryReport.rejected, (state) => {
+        state.loading = false;
+      });
+      builder.addCase(getRangeReport.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getRangeReport.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.rangeReport = payload?.payload;
+      })
+      .addCase(getRangeReport.rejected, (state) => {
         state.loading = false;
       });
 

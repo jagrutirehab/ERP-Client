@@ -46,7 +46,8 @@ const Main = ({ loading, data, centerAccess }) => {
         search: debouncedSearch,
         flag,
         centerAccess,
-      })
+        currentDate: new Date().toISOString(),
+      }),
     );
   }, [page, limit, debouncedSearch, flag, roles, centerAccess, dispatch]);
 
@@ -95,7 +96,15 @@ const Main = ({ loading, data, centerAccess }) => {
         ) : data.data && data.data.length > 0 ? (
           <Row className="g-3">
             {data.data.map((patient) => (
-              <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
+              <Col
+                className="h-auto"
+                xl={3}
+                lg={4}
+                md={6}
+                sm={6}
+                xs={12}
+                key={patient._id}
+              >
                 <PatientCard patient={patient} />
               </Col>
             ))}
@@ -143,13 +152,13 @@ const Main = ({ loading, data, centerAccess }) => {
 Main.propTypes = {
   loading: PropTypes.bool,
   data: PropTypes.array,
-  centerAccess: PropTypes.array.isRequired
+  centerAccess: PropTypes.array.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   loading: state.Emergency.loading,
   data: state.Emergency.data,
-  centerAccess: state.User?.centerAccess
+  centerAccess: state.User?.centerAccess,
 });
 
 export default connect(mapStateToProps)(Main);

@@ -1071,6 +1071,12 @@ export const getAllEmergencyPatients = (params = {}) => {
   });
 };
 
+export const getSopOverview = (admissionId, currentDate) => {
+  return api.get(`${url.GET_SOP_OVERVIEW}/${admissionId}`, {
+    params: { currentDate },
+  });
+};
+
 export const getICDCodes = () => {
   return api.get(url.GET_ICD_CODES);
 };
@@ -1234,6 +1240,15 @@ export const getDetailedCashReport = (params = {}) => {
 
 export const getSummaryCashReport = (params = {}) => {
   return api.create(url.GET_SUMMARY_CASH_REPORT, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getDateRangeReport = (params = {}) => {
+  return api.create(url.GET_DATE_RANGE_REPORT, params, {
     headers: {
       "X-No-Cookie-Token": "true",
       "Content-Type": "application/json",
@@ -1790,6 +1805,14 @@ export const getPharmacyStockByIds = (ids, centerId) => {
 
 export const reviewInternalTransferRequisition = (id, data) => {
   return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/review`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const requestingReviewInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/requesting-review`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2719,6 +2742,33 @@ export const changeLeaveStatusByHR = (data) => {
   );
 };
 
+export const getPendingApprovalsByManagerId = (data) => {
+  return axios.get(url.GET_PENDING_APPROVALS_BY_MANAGER_ID, {
+    params: data,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const transferManagerPendingApprovals = (data) => {
+  return axios.patch(url.TRANSFER_MANAGER_PENDING_APPROVALS,
+    data,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
+    })
+}
+
+export const getTemporaryManager = () => {
+  return axios.get(url.GET_TEMPORARY_MANAGER, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
 export const gettodayMyAttendanceStatus = (params = {}) => {
   return api.get(url.TODAY_MY_ATTENDANCE_STATUS, {
     params,
@@ -3264,6 +3314,11 @@ export const updateHRIssueRequest = (data) => {
     data
   )
 }
+export const getFinanceIssues = (params = {}) => {
+  return axios.get(url.GET_FINANCE_ISSUES, {
+    params,
+  });
+};
 
 // Recordings
 // Call recordings

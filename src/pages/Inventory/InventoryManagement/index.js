@@ -98,7 +98,7 @@ const InventoryManagement = () => {
 
 
   const centerOptions = [
-    ...(user?.centerAccess?.length > 1
+    ...(user?.userCenters?.length > 1
       ? [{
         value: "ALL",
         label: "All Centers",
@@ -107,11 +107,10 @@ const InventoryManagement = () => {
       : []
     ),
     ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
+      user?.userCenters?.map(center => {
         return {
-          value: id,
-          label: center?.title || "Unknown Center"
+          value: center._id || center.id,
+          label: center.title || "Unknown Center"
         };
       }) || []
     )
@@ -125,20 +124,18 @@ const InventoryManagement = () => {
   useEffect(() => {
     if (
       selectedCenter !== "ALL" &&
-      !user?.centerAccess?.includes(selectedCenter)
+      !user?.userCenters?.some(c => c._id === selectedCenter)
     ) {
       setSelectedCenter("ALL");
       setCurrentPage(1);
     }
-  }, [selectedCenter, user?.centerAccess]);
+  }, [selectedCenter, user?.userCenters]);
 
 
   const centers =
     selectedCenter === "ALL"
-      ? user?.centerAccess
+      ? user?.userCenters?.map(c => c._id) || []
       : [selectedCenter];
-
-
 
   const toggleDropdown = (id) => {
     setDropdownOpen((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -277,7 +274,7 @@ const InventoryManagement = () => {
         limit,
         search: q || undefined,
         fillter: fillter || undefined,
-        centers,
+        centers: centers?.join(",") || undefined,
       };
 
       // if (center) {
@@ -343,7 +340,7 @@ const InventoryManagement = () => {
     debouncedSearch,
     qfilter,
     selectedCenter,
-    user?.centerAccess,
+    user?.userCenters,
   ]);
 
 
@@ -481,7 +478,7 @@ const InventoryManagement = () => {
                     const params = {
                       search: debouncedSearch || undefined,
                       fillter: qfilter || undefined,
-                      centers,
+                      centers: centers?.join(",") || undefined,
                     };
 
                     // if (selectedCenter) {
@@ -516,7 +513,7 @@ const InventoryManagement = () => {
                       "Barcode",
                       "Code",
                       "Medicine Name",
-                      "Brand Name",
+                      // "Brand Name",
                       "Generic Name",
                       "Form",
                       "Base Unit",
@@ -570,7 +567,7 @@ const InventoryManagement = () => {
                           purchaseUnit !== "-" &&
                           conversion?.baseQuantity &&
                           conversion?.purchaseQuantity
-                          ? `${conversion.baseQuantity} ${baseUnit} = ${conversion.purchaseQuantity} ${purchaseUnit}`
+                          ? `${conversion.purchaseQuantity} ${purchaseUnit} = ${conversion.baseQuantity} ${baseUnit}`
                           : "-";
 
                       let barcodeDataURL = null;
@@ -591,7 +588,7 @@ const InventoryManagement = () => {
                         "",
                         med?.code || "-",
                         med?.medicineName || "-",
-                        medicineDetails?.brandName ?? med?.brandName ?? "-",
+                        // medicineDetails?.brandName ?? med?.brandName ?? "-",
                         medicineDetails?.genericName ?? med?.genericName ?? "-",
                         medicineDetails?.form ?? med?.form ?? "-",
                         baseUnit,
@@ -622,7 +619,7 @@ const InventoryManagement = () => {
                         med?.purchasePrice ?? formatCurrency(med?.purchasePrice),
                         med?.SalesPrice ?? formatCurrency(med?.SalesPrice),
                         med?.Expiry ?? "-",
-                        med?.Batch ?? "-",
+                        Array.isArray(med?.Batch) ? med.Batch.join(", ") : (med?.Batch ?? "-"),
                         med?.company ?? "-",
                         med?.manufacturer ?? "-",
                         med?.RackNum ?? "-",
@@ -828,7 +825,7 @@ const InventoryManagement = () => {
                     <TableRow>
                       <TableHead noWrap>ID</TableHead>
                       <TableHead noWrap>Name</TableHead>
-                      <TableHead noWrap>Brand Name</TableHead>
+                      {/* <TableHead noWrap>Brand Name</TableHead> */}
                       <TableHead noWrap>Generic Name</TableHead>
                       <TableHead noWrap>Form</TableHead>
                       <TableHead noWrap>Base Unit</TableHead>
@@ -896,14 +893,14 @@ const InventoryManagement = () => {
                           >
                             {display(med?.name)}
                           </TableCell>
-                          <TableCell noWrap>{med?.brandName?.toUpperCase() || "-"}</TableCell>
+                          {/* <TableCell noWrap>{med?.brandName?.toUpperCase() || "-"}</TableCell> */}
                           <TableCell noWrap>{med?.genericName?.toUpperCase() || "-"}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.form)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.baseUnit)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.purchaseUnit)}</TableCell>
                           <TableCell noWrap>
                             {med?.baseUnit && med?.purchaseUnit && med?.conversion?.baseQuantity && med?.conversion?.purchaseQuantity
-                              ? `${med.conversion.baseQuantity} ${normalizeUnderscores(med.baseUnit)} = ${med.conversion.purchaseQuantity} ${normalizeUnderscores(med.purchaseUnit)}`
+                              ? `${med.conversion.purchaseQuantity} ${normalizeUnderscores(med.purchaseUnit)} = ${med.conversion.baseQuantity} ${normalizeUnderscores(med.baseUnit)}`
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.category)}</TableCell>
@@ -958,7 +955,7 @@ const InventoryManagement = () => {
                       <TableHead noWrap>Bar Code</TableHead>
                       <TableHead noWrap>Code</TableHead>
                       <TableHead noWrap>Medicine Name</TableHead>
-                      <TableHead noWrap>Brand Name</TableHead>
+                      {/* <TableHead noWrap>Brand Name</TableHead> */}
                       <TableHead noWrap>Generic Name</TableHead>
                       <TableHead noWrap>Form</TableHead>
                       <TableHead noWrap>Base Unit</TableHead>
@@ -1065,14 +1062,14 @@ const InventoryManagement = () => {
                           >
                             {display(med?.medicineName)}
                           </TableCell>
-                          <TableCell noWrap>{med?.medicineId?.brandName?.toUpperCase() || "-"}</TableCell>
+                          {/* <TableCell noWrap>{med?.medicineId?.brandName?.toUpperCase() || "-"}</TableCell> */}
                           <TableCell noWrap>{med?.medicineId?.genericName?.toUpperCase() || "-"}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.form)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.baseUnit)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.purchaseUnit)}</TableCell>
                           <TableCell noWrap>
                             {med?.medicineId?.baseUnit && med?.medicineId?.purchaseUnit && med?.medicineId?.conversion?.baseQuantity && med?.medicineId?.conversion?.purchaseQuantity
-                              ? `${med.medicineId.conversion.baseQuantity} ${normalizeUnderscores(med.medicineId.baseUnit)} = ${med.medicineId.conversion.purchaseQuantity} ${normalizeUnderscores(med.medicineId.purchaseUnit)}`
+                              ? `${med.medicineId.conversion.purchaseQuantity} ${normalizeUnderscores(med.medicineId.purchaseUnit)} = ${med.medicineId.conversion.baseQuantity} ${normalizeUnderscores(med.medicineId.baseUnit)}`
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.category)}</TableCell>
@@ -1213,7 +1210,9 @@ const InventoryManagement = () => {
                               ? new Date(med.Expiry).toLocaleDateString("en-US")
                               : "-"}
                           </TableCell>
-                          <TableCell noWrap>{display(med?.Batch)}</TableCell>
+                          <TableCell noWrap>
+                            {Array.isArray(med?.Batch) ? med.Batch.join(", ") : display(med?.Batch)}
+                          </TableCell>
                           <TableCell noWrap>{display(med?.company)}</TableCell>
                           <TableCell noWrap>
                             {display(med?.manufacturer)}

@@ -55,6 +55,14 @@ export const renderStatusBadge = (stage) => {
       text: "Pending",
       color: "warning",
     },
+    PENDING_REQUESTING: {
+      text: "Req. Center Pending",
+      color: "warning",
+    },
+    PENDING_FULFILLING: {
+      text: "Ful. Center Pending",
+      color: "warning",
+    },
     PRESENT: {
       text: "Present",
       color: "success",
@@ -73,6 +81,14 @@ export const renderStatusBadge = (stage) => {
     },
     REJECTED: {
       text: "Rejected",
+      color: "danger",
+    },
+    REQUESTING_REJECTED: {
+      text: "Req. Center Rejected",
+      color: "danger",
+    },
+    FULFILLING_REJECTED: {
+      text: "Ful. Center Rejected",
       color: "danger",
     },
     EARNED_LEAVE: {

@@ -352,6 +352,9 @@ export const ROUND_NOTES_STAFF = "/round-notes/staff";
 export const ASSIGN_TYPE_TO_PATIENT = "/emergency/assign";
 export const GET_EMERGENCY_PATIENTS = "/emergency";
 
+// SOP Overview
+export const GET_SOP_OVERVIEW = "/patient/sop-overview";
+
 // cash managemenet
 export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
 export const ADD_SPENDING = "/cash/spending";
@@ -363,7 +366,7 @@ export const GET_LASTEST_INFLOWS = "/cash/inflow/list";
 export const GET_BASE_BALANCE_BY_CENTER = "/cash/base-balance";
 export const GET_DETAILED_CASH_REPORT = "/cash/report/detailed";
 export const GET_SUMMARY_CASH_REPORT = "/cash/report/summary";
-
+export const GET_DATE_RANGE_REPORT = "/cash/report/ledger";
 // central payment
 export const CENTRAL_PAYMENT = "/central-payment";
 export const CENTRAL_PAYMENT_ACTION = "/central-payment/action";
@@ -570,6 +573,10 @@ export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
 export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
 export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
 
+export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings"
+export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings"
+export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager"
+
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves"
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
@@ -601,6 +608,7 @@ export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
 export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
 export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
 export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update/approved"
+export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";
