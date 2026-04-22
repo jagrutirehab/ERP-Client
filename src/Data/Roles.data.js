@@ -77,7 +77,11 @@ export const permissionList = [
       { name: "CASHDEPOSITS", label: "Cash Deposits" },
       { name: "CASHSPENDING", label: "Cash Spending" },
       { name: "CASHINFLOW", label: "Cash Inflow" },
+<<<<<<< Updated upstream
       // {name: "LEDGERREPORT", label: "Ledger Report"}
+=======
+      { name: "LEDGERREPORT", label: "Ledger Report" }
+>>>>>>> Stashed changes
     ],
   },
   {
@@ -367,7 +371,8 @@ export const permissionList = [
       { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
       { name: "HR_ISSUES", label: "HR Issues" },
       { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
-      // { name: "FINANCE_ISSUES", label: "MY Finance Issues" },
+      { name: "FINANCE_ISSUES", label: "Finance Issues" },
+      { name: "FINANCE_ISSUES_APPROVAL", label: "Finance Issues Approval" },
       // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },

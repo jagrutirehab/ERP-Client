@@ -4,12 +4,13 @@ import { getStatusColor } from "../Helpers/getStatusColor";
 import { getNextStatus, returnButtonText } from "../Helpers/getNextStatus";
 import Select from "react-select";
 
-export const HRIssuesReqColumn = (
+export const FinanceIssuesReqColumn = (
     handleUpdate,
     activeTab,
     loadingId,
     hr,
     selectedHRs,
+    loadHR,
     setSelectedHRs,
     showModal,
     setShowModal,
@@ -49,18 +50,18 @@ export const HRIssuesReqColumn = (
         },
         {
             name: <div className="text-center">Request Type</div>,
-            selector: (row) => row?.hrIssue?.requestType || "-",
+            selector: (row) => row?.financeIssue?.financeIssueType || "-",
             width: "200px",
             wrap: true,
         },
-        {
-            name: <div className="text-center">Manager</div>,
-            selector: (row) => row?.hrIssue?.manager?.name || "-",
-            width: "210px",
-        },
+        // {
+        //     name: <div className="text-center">Manager</div>,
+        //     selector: (row) => row?.hrIssue?.manager?.name || "-",
+        //     width: "210px",
+        // },
         {
             name: <div className="text-center">Description</div>,
-            selector: (row) => row?.hrIssue?.description || "-",
+            selector: (row) => row?.financeIssue?.description || "-",
             width: "160px",
             wrap: true,
         },
@@ -70,28 +71,28 @@ export const HRIssuesReqColumn = (
             cell: (row) => (
                 <span
                     style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-                    onClick={() => handleViewImages(row?.hrIssue?.files)}
+                    onClick={() => handleViewImages(row?.financeIssue?.files)}
                 >
                     View Images
                 </span>
             ),
         },
-        {
-            name: <div className="text-center">Manager's Approval</div>,
-            width: "180px",
-            // center: true,
-            cell: (row) => {
-                const status = row?.hrIssue?.status;
-                console.log("row", row);
+        // {
+        //     name: <div className="text-center">Manager's Approval</div>,
+        //     width: "180px",
+        //     // center: true,
+        //     cell: (row) => {
+        //         const status = row?.hrIssue?.status;
+        //         console.log("row", row);
 
 
-                return (
-                    <Badge color={getStatusColor(status)} pill>
-                        {status?.replaceAll("_", " ") || "-"}
-                    </Badge>
-                );
-            },
-        },
+        //         return (
+        //             <Badge color={getStatusColor(status)} pill>
+        //                 {status?.replaceAll("_", " ") || "-"}
+        //             </Badge>
+        //         );
+        //     },
+        // },
         {
             name: <div className="text-center">Issue's Status</div>,
             width: "180px",
@@ -107,7 +108,6 @@ export const HRIssuesReqColumn = (
                 );
             },
         },
-
         ...(activeTab === "approved" ? [
             {
                 name: <div className="text-center">Assigned to</div>,
@@ -119,15 +119,14 @@ export const HRIssuesReqColumn = (
         ...(canChangeStatus ? [
             ...(activeTab === "pending" ? [
                 {
-                    name: <div className="text-center">Assign HR</div>,
+                    name: <div className="text-center">Assign Employee</div>,
                     cell: (row) => (
                         <Select
-                            options={hr?.map((h) => ({
-                                value: h._id,
-                                label: h.name,
-                            }))}
+                            options={hr || []}
                             placeholder="Select HR"
                             value={selectedHRs[row._id] || null}
+                            onInputChange={(value) => { loadHR(value); }}
+                            filterOption={() => true}
                             styles={{
                                 container: (base) => ({ ...base, width: 180 }),
                                 menu: (base) => ({ ...base, zIndex: 9999 }),
@@ -192,7 +191,7 @@ export const HRIssuesReqColumn = (
         ...(activeTab !== "pending" ? [
             {
                 name: <div className="text-center">{activeTab === "approved" ? "Approved" : "Rejected"} on</div>,
-                selector: (row) => normalizeDates(row?.hrIssue?.actionOn) || "-",
+                selector: (row) => normalizeDates(row?.financeIssue?.actionOn) || "-",
                 // center: true,
                 width: "180px",
             },
@@ -200,7 +199,7 @@ export const HRIssuesReqColumn = (
         ...(activeTab !== "pending"
             ? [
                 {
-                    name: <div className="text-center">Manager Note</div>,
+                    name: <div className="text-center">Notes</div>,
                     width: "160px",
                     cell: (row) => {
                         console.log("row", row);
