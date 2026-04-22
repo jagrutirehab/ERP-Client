@@ -126,13 +126,14 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
 
     const searchTimerRef = useRef(null);
 
+    const permissionName = isSareyaanPage ? "REQUISITION_SAREYAAN_ORDERS" : "REQUISITION_INTERNAL_TRANSFER";
     const hasWritePermission = hasPermission(
         "PHARMACY",
-        "REQUISITION_INTERNAL_TRANSFER",
+        permissionName,
         "WRITE"
     ) || hasPermission(
         "PHARMACY",
-        "REQUISITION_INTERNAL_TRANSFER",
+        permissionName,
         "DELETE"
     );
 
@@ -304,7 +305,8 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
 
 
     const handleEdit = (row) => {
-        navigate(`/pharmacy/requisition/internal-transfer/edit/${row._id}`);
+        const basePath = isSareyaanPage ? "/pharmacy/requisition/sareyaan-orders" : "/pharmacy/requisition/internal-transfer";
+        navigate(`${basePath}/edit/${row._id}`);
     };
 
     const openDispatch = (row) => {
@@ -325,6 +327,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                         brandName: med.brandName || med.name || "",
                         approvedQty: item.approvedQty,
                         dispatchedQty: item.approvedQty,
+                        batch: item.batch || "—",
                     };
                 })
         );
@@ -388,6 +391,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                         brandName: med.brandName || med.name || "",
                         approvedQty: item.approvedQty,
                         receivedQty: item.approvedQty,
+                        batch: item.batch || "—",
                     };
                 })
         );
@@ -985,7 +989,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                             return (
                                 <CheckPermission accessRolePermission={roles?.permissions}
                                     permission={"edit"}
-                                    subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
+                                    subAccess={isSareyaanPage ? "REQUISITION_SAREYAAN_ORDERS" : "REQUISITION_INTERNAL_TRANSFER"}>
                                     <div className="d-flex w-100 justify-content-end gap-2">
                                         <Button color="danger" outline onClick={() => { closeDetail(); openReject(selectedReq); }}>
                                             <i className="bx bx-x me-1" />
@@ -1005,7 +1009,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                             return (
                                 <CheckPermission accessRolePermission={roles?.permissions}
                                     permission={"edit"}
-                                    subAccess={"REQUISITION_INTERNAL_TRANSFER"}>
+                                    subAccess={isSareyaanPage ? "REQUISITION_SAREYAAN_ORDERS" : "REQUISITION_INTERNAL_TRANSFER"}>
                                     <div className="d-flex w-100 justify-content-between align-items-center">
                                         <Button color="secondary" outline onClick={closeDetail}>Close</Button>
                                         <div className="d-flex gap-2">
@@ -1294,6 +1298,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                 <tr>
                                     <th style={{ fontSize: 12 }}>#</th>
                                     <th style={{ fontSize: 12 }}>Medicine</th>
+                                    <th className="text-center" style={{ fontSize: 12 }}>Batch</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Dispatched Qty</th>
                                 </tr>
@@ -1313,6 +1318,9 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                                     {item.customId && <span className="text-primary me-1">{item.customId}</span>}
                                                     {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
                                                 </p>
+                                            </td>
+                                            <td className="text-center" style={{ fontSize: 12, verticalAlign: "middle" }}>
+                                                {item.batch}
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                 {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
@@ -1427,6 +1435,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                 <tr>
                                     <th style={{ fontSize: 12 }}>#</th>
                                     <th style={{ fontSize: 12 }}>Medicine</th>
+                                    <th className="text-center" style={{ fontSize: 12 }}>Batch</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Received Qty</th>
                                 </tr>
@@ -1454,7 +1463,10 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                                     {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
                                                 </p>
                                             </td>
-                                            <td className="text-center fw-semibold" style={{ fontSize: 13 }}>
+                                            <td className="text-center" style={{ fontSize: 12, verticalAlign: "middle" }}>
+                                                {item.batch}
+                                            </td>
+                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                 {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
                                             </td>
                                             <td style={{ width: 150 }}>

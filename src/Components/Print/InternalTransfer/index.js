@@ -252,22 +252,22 @@ const InternalTransferPDF = ({ requisition }) => {
                                 <View style={{ width: "3%", paddingRight: 2 }}>
                                     <Text style={styles.tableHeaderText}>No.</Text>
                                 </View>
-                                <View style={{ width: "36%", paddingRight: 4 }}>
+                                <View style={{ width: "46%", paddingRight: 4 }}>
                                     <Text style={styles.tableHeaderText}>Name</Text>
                                 </View>
                                 <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Quantity</Text>
                                 </View>
-                                <View style={{ width: "14%", textAlign: "center" }}>
+                                {/* <View style={{ width: "14%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Base Rate</Text>
-                                </View>
+                                </View> */}
                                 <View style={{ width: "11%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Rate</Text>
                                 </View>
                                 <View style={{ width: "11%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Amount</Text>
                                 </View>
-                                <View style={{ width: "12%", paddingLeft: 4 }}>
+                                <View style={{ width: "16%", paddingLeft: 4 }}>
                                     <Text style={styles.tableHeaderText}>Batch</Text>
                                 </View>
                             </View>
@@ -296,9 +296,9 @@ const InternalTransferPDF = ({ requisition }) => {
                                 const conversion = med.conversion || {};
                                 const conversionFactor = (conversion.baseQuantity || 1) / (conversion.purchaseQuantity || 1);
                                 const purchasePrice = pharm.purchasePrice || 0;
-                                const baseRate = purchasePrice;
+                                // const baseRate = purchasePrice;
                                 const rate = purchasePrice * (conversionFactor || 1);
-                                const baseUnit = med.baseUnit || "";
+                                // const baseUnit = med.baseUnit || "";
                                 const amount = dispatchedQty * rate;
                                 const batch = item.batch || "—";
 
@@ -311,7 +311,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                         <View style={{ width: "3%", paddingRight: 2 }}>
                                             <Text style={styles.cellText}>{idx + 1}</Text>
                                         </View>
-                                        <View style={{ width: "36%", paddingRight: 4 }}>
+                                        <View style={{ width: "46%", paddingRight: 4 }}>
                                             <Text style={styles.cellText}>{primaryLabel}</Text>
                                         </View>
                                         <View style={{ width: "13%", textAlign: "center" }}>
@@ -319,11 +319,11 @@ const InternalTransferPDF = ({ requisition }) => {
                                                 {dispatchedQty} {pluralizeUnit(purchaseUnit)}
                                             </Text>
                                         </View>
-                                        <View style={{ width: "14%", textAlign: "center" }}>
+                                        {/* <View style={{ width: "14%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
                                                 Rs. {Number(baseRate || 0).toFixed(2)}/- {pluralizeUnit(baseUnit)}
                                             </Text>
-                                        </View>
+                                        </View> */}
                                         <View style={{ width: "11%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
                                                 Rs. {Number(rate || 0).toFixed(2)}
@@ -334,7 +334,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                                 Rs. {Number(amount || 0).toFixed(2)}
                                             </Text>
                                         </View>
-                                        <View style={{ width: "12%", paddingLeft: 4 }}>
+                                        <View style={{ width: "16%", paddingLeft: 4 }}>
                                             <Text style={styles.cellText}>{batch}</Text>
                                         </View>
                                     </View>
