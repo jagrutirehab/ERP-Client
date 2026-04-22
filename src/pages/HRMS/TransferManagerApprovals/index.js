@@ -12,6 +12,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useSelector } from "react-redux";
 
 const ALL_CENTERS_OPTION = { value: "all", label: "All Centers" };
 
@@ -44,6 +45,20 @@ const TransferManagerApprovals = () => {
 
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const user = useSelector((state) => state.User);
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [{ value: "ALL", label: "All Centers" }]
+      : []),
+    ...(user?.centerAccess?.map((id) => {
+      const center = user?.userCenters?.find((c) => c._id === id);
+      return {
+        value: id,
+        label: center?.title || "Unknown Center",
+      };
+    }) || []),
+  ];
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
 
@@ -203,7 +218,7 @@ const TransferManagerApprovals = () => {
         {/* CENTER */}
         <FormGroup>
           <Label>Center</Label>
-          <Select
+          {/* <Select
             value={selectedCenter}
             placeholder="Search Center..."
             isClearable
@@ -232,6 +247,21 @@ const TransferManagerApprovals = () => {
               setPendingsleaves([]);
               setPendingRegs([]);
             }}
+          /> */}
+          <Select
+            options={centerOptions}
+            value={centerOptions.find((c) => c.value === selectedCenter?.value) || null}
+            onChange={(option) => {
+              setSelectedCenter(option);
+              setSelectedFrom(null);
+              setSelectedTo(null);
+              setFormData({ from: "", to: "", center: option?.value || "" });
+              setPendingsleaves([]);
+              setPendingRegs([]);
+            }}
+            placeholder="Select Center"
+            isClearable
+            isDisabled={!centerOptions.length}
           />
         </FormGroup>
 
