@@ -46,6 +46,7 @@ export const CompOffRequestsColumn = (
             cell: (row) => <Center>{row?.employee?.name || "-"}</Center>,
             width: "220px",
         },
+    
         {
             name: <Center>Center</Center>,
             cell: (row) => <Center>{row?.center?.title || "-"}</Center>,

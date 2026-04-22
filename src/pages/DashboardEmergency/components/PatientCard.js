@@ -21,10 +21,10 @@ const statusColors = {
 };
 
 const sopStatusConfig = {
-  yes: { bg: "#9AD872", text: "#fff", label: "Yes" },
-  no: { bg: "#FF8383", text: "#fff", label: "No" },
-  partial: { bg: "#ffd043ff", text: "#000", label: "Draft Only" },
-  na: { bg: "#6c757d", text: "#fff", label: "N/A" },
+  yes: { bg: "#9AD872", label: "Yes" },
+  no: { bg: "#FF8383", label: "No" },
+  partial: { bg: "#ffd043", label: "Draft Only" },
+  na: { bg: "#6c757d", label: "N/A" },
 };
 
 const sopItems = {
@@ -62,27 +62,34 @@ const SopIndicator = ({ id, label, tooltip, status, date }) => {
   const tooltipId = `sop-${id}`;
   const formattedDate = formatSopDate(date);
 
-  console.log({ id, status, config });
-
   return (
     <>
-      <span
+      <div
         id={tooltipId}
-        className="badge rounded-pill d-inline-flex flex-column align-items-center"
-        style={{
-          backgroundColor: config.bg,
-          color: config.text,
-          fontSize: "0.65rem",
-          padding: "3px 7px",
-          cursor: "default",
-          lineHeight: 1.3,
-        }}
+        className="d-flex flex-column align-items-start"
+        style={{ minWidth: 100, cursor: "default" }}
       >
-        <span>{label}</span>
-        <span style={{ fontSize: "0.55rem", opacity: 0.9 }}>
-          {formattedDate || "N/A"}
+        <div className="d-flex align-items-center gap-1">
+          <span
+            className="rounded-circle d-inline-block"
+            style={{
+              width: 8,
+              height: 8,
+              backgroundColor: config.bg,
+              flexShrink: 0,
+            }}
+          ></span>
+          <span className="fw-medium text-dark" style={{ fontSize: "0.65rem" }}>
+            {label}
+          </span>
+        </div>
+        <span
+          className="text-muted"
+          style={{ fontSize: "0.7rem", paddingLeft: 14 }}
+        >
+          {formattedDate || "Not yet"}
         </span>
-      </span>
+      </div>
       <UncontrolledTooltip target={tooltipId} placement="top">
         {tooltip}: {config.label}
         {formattedDate ? ` (${formattedDate})` : ""}
@@ -103,10 +110,10 @@ const PatientCard = ({ patient }) => {
 
   return (
     <Card
-      className="position-relative shadow-sm border-1 w-100 h-100"
+      className="position-relative shadow-sm border-1 w-100 h-"
       style={{
         borderTop: `4px solid ${border}`,
-        minHeight: "200px",
+        minHeight: "180px",
       }}
     >
       <div className="position-absolute top-0 end-0 d-flex">
@@ -126,7 +133,7 @@ const PatientCard = ({ patient }) => {
         </Badge>
       </div>
 
-      <CardBody className="d-flex flex-column h-100 mt-2">
+      <CardBody className="d-flex flex-column flex-grow-0 mt-2">
         <CardTitle
           tag="h5"
           className="mb-2 fw-semibold d-flex align-items-center gap-2"
@@ -155,21 +162,6 @@ const PatientCard = ({ patient }) => {
             <span className="ms-2 text-muted">({patient.uid})</span>
           </span>
         </CardTitle>
-
-        {patient.sopCompliance && (
-          <div className="d-flex flex-wrap gap-1 mb-2">
-            {Object.entries(sopItems).map(([key, { label, tooltip }]) => (
-              <SopIndicator
-                key={key}
-                id={`${patient.patientId}-${key}`}
-                label={label}
-                tooltip={tooltip}
-                status={patient.sopCompliance[key]?.status}
-                date={patient.sopCompliance[key]?.date}
-              />
-            ))}
-          </div>
-        )}
 
         {patient?.vitals ? (
           <>
@@ -252,6 +244,23 @@ const PatientCard = ({ patient }) => {
               </span>
             </div>
           </>
+        )}
+
+        {patient.sopCompliance && (
+          <div className="rounded mb-2 bg-whit">
+            <div className="d-flex flex-wrap gap-1">
+              {Object.entries(sopItems).map(([key, { label, tooltip }]) => (
+                <SopIndicator
+                  key={key}
+                  id={`${patient.patientId}-${key}`}
+                  label={label}
+                  tooltip={tooltip}
+                  status={patient.sopCompliance[key]?.status}
+                  date={patient.sopCompliance[key]?.date}
+                />
+              ))}
+            </div>
+          </div>
         )}
       </CardBody>
 

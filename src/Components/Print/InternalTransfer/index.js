@@ -9,6 +9,7 @@ import {
 import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
 import { format } from "date-fns";
 import Footer from "../Charts/Footer";
+import { pluralizeUnit } from "../../../utils/pluralizeUnit";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const formatCurrencyPDF = (value) => `Rs. ${Number(value).toFixed(2)}`;
@@ -251,22 +252,22 @@ const InternalTransferPDF = ({ requisition }) => {
                                 <View style={{ width: "3%", paddingRight: 2 }}>
                                     <Text style={styles.tableHeaderText}>No.</Text>
                                 </View>
-                                <View style={{ width: "25%", paddingRight: 4 }}>
+                                <View style={{ width: "41%", paddingRight: 4 }}>
                                     <Text style={styles.tableHeaderText}>Name</Text>
                                 </View>
-                                <View style={{ width: "10%", textAlign: "center" }}>
+                                <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Quantity</Text>
                                 </View>
-                                <View style={{ width: "12%", textAlign: "center" }}>
+                                {/* <View style={{ width: "14%", textAlign: "center" }}>
+                                    <Text style={styles.tableHeaderText}>Base Rate</Text>
+                                </View> */}
+                                <View style={{ width: "11%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Rate</Text>
                                 </View>
-                                <View style={{ width: "10%", textAlign: "center" }}>
-                                    <Text style={styles.tableHeaderText}>Taxes</Text>
-                                </View>
-                                <View style={{ width: "15%", textAlign: "center" }}>
+                                <View style={{ width: "11%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Amount</Text>
                                 </View>
-                                <View style={{ width: "25%", paddingLeft: 4 }}>
+                                <View style={{ width: "21%", paddingLeft: 4 }}>
                                     <Text style={styles.tableHeaderText}>Batch</Text>
                                 </View>
                             </View>
@@ -292,16 +293,14 @@ const InternalTransferPDF = ({ requisition }) => {
 
                                 const dispatchedQty = item.dispatchedQty ?? item.approvedQty ?? item.requestedQty ?? 0;
 
-                                // Apply conversion: convert purchase quantity to base quantity
                                 const conversion = med.conversion || {};
                                 const conversionFactor = (conversion.baseQuantity || 1) / (conversion.purchaseQuantity || 1);
-                                const convertedQuantity = dispatchedQty * conversionFactor;
-
-                                const salesPrice = pharm.SalesPrice || 0;
-                                const purchaseUnitPrice = salesPrice * conversionFactor;
-                                const taxes = pharm.taxes || 0;
-                                const amount = convertedQuantity * salesPrice;
-                                const batch = item.batch || "—";
+                                const purchasePrice = pharm.purchasePrice || 0;
+                                // const baseRate = purchasePrice;
+                                const rate = purchasePrice * (conversionFactor || 1);
+                                // const baseUnit = med.baseUnit || "";
+                                const amount = dispatchedQty * rate;
+                                const batch = item.batch ? `${item.batch} (Manually)` : "Automatically";
 
                                 return (
                                     <View
@@ -312,31 +311,31 @@ const InternalTransferPDF = ({ requisition }) => {
                                         <View style={{ width: "3%", paddingRight: 2 }}>
                                             <Text style={styles.cellText}>{idx + 1}</Text>
                                         </View>
-                                        <View style={{ width: "25%", paddingRight: 4 }}>
-                                            <Text style={styles.cellTextCaps}>{primaryLabel || "—"}</Text>
+                                        <View style={{ width: "41%", paddingRight: 4 }}>
+                                            <Text style={styles.cellText}>{primaryLabel}</Text>
                                         </View>
-                                        <View style={{ width: "10%", textAlign: "center" }}>
+                                        <View style={{ width: "13%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                {dispatchedQty} {purchaseUnit}
+                                                {dispatchedQty} {pluralizeUnit(purchaseUnit)}
                                             </Text>
                                         </View>
-                                        <View style={{ width: "12%", textAlign: "center" }}>
+                                        {/* <View style={{ width: "14%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                {formatCurrencyPDF(purchaseUnitPrice)}
+                                                Rs. {Number(baseRate || 0).toFixed(2)}/- {pluralizeUnit(baseUnit)}
+                                            </Text>
+                                        </View> */}
+                                        <View style={{ width: "11%", textAlign: "center" }}>
+                                            <Text style={{ ...styles.cellText, textAlign: "center" }}>
+                                                Rs. {Number(rate || 0).toFixed(2)}
                                             </Text>
                                         </View>
-                                        <View style={{ width: "10%", textAlign: "center" }}>
+                                        <View style={{ width: "11%", textAlign: "center" }}>
                                             <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                {formatCurrencyPDF(taxes)}
+                                                Rs. {Number(amount || 0).toFixed(2)}
                                             </Text>
                                         </View>
-                                        <View style={{ width: "15%", textAlign: "center" }}>
-                                            <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                {formatCurrencyPDF(amount)}
-                                            </Text>
-                                        </View>
-                                        <View style={{ width: "25%", paddingLeft: 4 }}>
-                                            <Text style={styles.cellTextCaps}>{batch}</Text>
+                                        <View style={{ width: "21%", paddingLeft: 4 }}>
+                                            <Text style={styles.cellText}>{batch}</Text>
                                         </View>
                                     </View>
                                 );
@@ -344,10 +343,10 @@ const InternalTransferPDF = ({ requisition }) => {
 
                             {/* Total Row */}
                             <View style={[styles.tableRow, { borderTop: border, paddingTop: 8, marginTop: 2 }]}>
-                                <View style={{ width: "73%", textAlign: "right", paddingRight: 4 }}>
+                                <View style={{ width: "77%", textAlign: "right", paddingRight: 4 }}>
                                     <Text style={{ ...styles.cellText, textAlign: "right", fontWeight: 600 }}>Total</Text>
                                 </View>
-                                <View style={{ width: "27%", textAlign: "center" }}>
+                                <View style={{ width: "11%", textAlign: "center" }}>
                                     <Text style={{ ...styles.cellText, textAlign: "center", fontWeight: 600 }}>
                                         {formatCurrencyPDF((requisition.items || []).reduce((sum, item) => {
                                             const pharm = item.pharmacyId || {};
@@ -355,19 +354,21 @@ const InternalTransferPDF = ({ requisition }) => {
                                             const dispatchedQty = item.dispatchedQty ?? item.approvedQty ?? item.requestedQty ?? 0;
                                             const conversion = med.conversion || {};
                                             const conversionFactor = (conversion.baseQuantity || 1) / (conversion.purchaseQuantity || 1);
+                                            const purchasePrice = pharm.purchasePrice || 0;
+                                            const baseRate = purchasePrice;
                                             const convertedQuantity = dispatchedQty * conversionFactor;
-                                            const salesPrice = pharm.SalesPrice || 0;
-                                            return sum + (convertedQuantity * salesPrice);
+                                            return sum + (convertedQuantity * baseRate);
                                         }, 0))}
                                     </Text>
                                 </View>
+                                <View style={{ width: "12%" }} />
                             </View>
                         </View>
 
                         {/* Signature */}
                         <View style={{ marginTop: 50, paddingTop: 30 }}>
                             <View style={{ marginLeft: "auto", width: "35%" }}>
-                                <View style={{ borderTop: border, minHeight: 50 }} />
+                                <View style={{ borderTop: border, paddingTop: 5, width: "100%" }} />
                                 <Text style={{ fontSize: 12, fontWeight: 600, marginTop: 0, textAlign: "center" }}>
                                     Signature
                                 </Text>

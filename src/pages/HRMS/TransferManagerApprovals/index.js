@@ -12,6 +12,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useSelector } from "react-redux";
 
 const ALL_CENTERS_OPTION = { value: "all", label: "All Centers" };
 
@@ -34,6 +35,8 @@ const TransferManagerApprovals = () => {
 
   const [pendingsLeaves, setPendingsleaves] = useState([]);
   const [pendingRegs, setPendingRegs] = useState([]);
+  const [pendingCan, setPendingCan] = useState([]);
+  const [pendingComp, setPendingComp] = useState([]);
   const [loadingPending, setLoadingPending] = useState(false);
 
   const [selectedFrom, setSelectedFrom] = useState(null);
@@ -42,6 +45,20 @@ const TransferManagerApprovals = () => {
 
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const user = useSelector((state) => state.User);
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [{ value: "ALL", label: "All Centers" }]
+      : []),
+    ...(user?.centerAccess?.map((id) => {
+      const center = user?.userCenters?.find((c) => c._id === id);
+      return {
+        value: id,
+        label: center?.title || "Unknown Center",
+      };
+    }) || []),
+  ];
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
 
@@ -148,6 +165,8 @@ const TransferManagerApprovals = () => {
       setSelectedCenter(null);
       setPendingsleaves([]);
       setPendingRegs([]);
+      setPendingComp([]);
+      setPendingCan([]);
       setError("");
     } catch (error) {
       toast.error("Error updating data");
@@ -165,6 +184,8 @@ const TransferManagerApprovals = () => {
       });
       setPendingsleaves(response?.leaves);
       setPendingRegs(response?.regs);
+      setPendingCan(response?.cancellations)
+      setPendingComp(response?.compOffs)
     } catch (error) {
       console.log(error);
     } finally {
@@ -176,7 +197,9 @@ const TransferManagerApprovals = () => {
     l?.leaves?.filter((leave) => leave?.status === "pending") || []
   );
   const pendingR = pendingRegs?.filter((r) => r?.status === "PENDING");
+  const pendingC = pendingCan?.filter((c) => c?.status === "pending");
 
+  const pendingCo = pendingComp?.filter((co) => co?.status === "pending");
   return (
     <Container
       style={{
@@ -195,7 +218,7 @@ const TransferManagerApprovals = () => {
         {/* CENTER */}
         <FormGroup>
           <Label>Center</Label>
-          <Select
+          {/* <Select
             value={selectedCenter}
             placeholder="Search Center..."
             isClearable
@@ -224,6 +247,21 @@ const TransferManagerApprovals = () => {
               setPendingsleaves([]);
               setPendingRegs([]);
             }}
+          /> */}
+          <Select
+            options={centerOptions}
+            value={centerOptions.find((c) => c.value === selectedCenter?.value) || null}
+            onChange={(option) => {
+              setSelectedCenter(option);
+              setSelectedFrom(null);
+              setSelectedTo(null);
+              setFormData({ from: "", to: "", center: option?.value || "" });
+              setPendingsleaves([]);
+              setPendingRegs([]);
+            }}
+            placeholder="Select Center"
+            isClearable
+            isDisabled={!centerOptions.length}
           />
         </FormGroup>
 
@@ -333,7 +371,7 @@ const TransferManagerApprovals = () => {
       <div style={{ marginTop: "20px" }}>
         {loadingPending ? (
           <Spinner size="sm" />
-        ) : pendingL?.length > 0 || pendingR?.length > 0 ? (
+        ) : pendingL?.length > 0 || pendingR?.length > 0 || pendingC.length > 0 || pendingCo.length > 0 ? (
           <>
             {pendingL?.length > 0 && (
               <div style={{ marginBottom: "6px" }}>
@@ -345,6 +383,18 @@ const TransferManagerApprovals = () => {
               <div>
                 <span style={{ color: "#6c757d" }}>Pending Regularizations:</span>{" "}
                 <span style={{ fontWeight: "bold" }}>{pendingR.length}</span>
+              </div>
+            )}
+            {pendingC?.length > 0 && (
+              <div>
+                <span style={{ color: "#6c757d" }}>Pending Cancellations:</span>{" "}
+                <span style={{ fontWeight: "bold" }}>{pendingC.length}</span>
+              </div>
+            )}
+            {pendingCo?.length > 0 && (
+              <div>
+                <span style={{ color: "#6c757d" }}>Pending Comp-Offs:</span>{" "}
+                <span style={{ fontWeight: "bold" }}>{pendingCo.length}</span>
               </div>
             )}
           </>

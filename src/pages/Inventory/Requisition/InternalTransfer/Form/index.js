@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getPharmacyStockByIds } from "../../../../../helpers/backend_helper";
 import {
@@ -25,6 +26,7 @@ import {
     fetchInternalTransferById,
     searchPharmacyInventory,
 } from "../../../../../store/features/pharmacy/pharmacySlice";
+import { pluralizeUnit } from "../../../../../utils/pluralizeUnit";
 
 const str = (v) => {
     if (!v) return "";
@@ -92,6 +94,10 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const user = useSelector((state) => state.User);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
 
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+    const { hasPermission } = usePermissions(token);
+
     const [pageLoading, setPageLoading] = useState(isEdit);
     const [requisitionNumber, setRequisitionNumber] = useState("");
     const [requisingCenter, setRequisingCenter] = useState(null);
@@ -130,6 +136,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     // Is the fulfilling center locked to a Sareyaan-type center?
     const isSpecialFulfillingLocked = isSareyaanOrder || SPECIAL_ORDER_CENTERS.some(
         (c) => c.id === fulfillingCenter?.value
+    );
+
+    const hasWritePermission = hasPermission(
+        "PHARMACY",
+        isSpecialFulfillingLocked ? "REQUISITION_SAREYAAN_ORDERS" : "REQUISITION_INTERNAL_TRANSFER",
+        "WRITE"
     );
 
 
@@ -323,7 +335,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const centersSet = requisingCenter && fulfillingCenter && !isSameCenterSelected;
 
     const isSubmitDisabled =
-        submitLoading || items.length === 0 ||
+        submitLoading || items.length === 0 || !hasWritePermission ||
         !requisingCenter || !fulfillingCenter || isSameCenterSelected ||
         items.some((i) => {
             const hasStock = i.availableStock !== null && i.availableStock !== undefined;
@@ -426,13 +438,23 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
             >
                 <i className="bx bx-chevron-left" /> {isSareyaanOrder ? "Sareyaan Pharma Orders" : "Internal Transfer Requisitions"}
             </button>
+            {!hasWritePermission && (
+                <div className="alert alert-danger d-flex align-items-center gap-2 mt-2 mb-4" style={{ fontSize: 13, borderRadius: 8 }}>
+                    <i className="bx bx-error-circle fs-5" />
+                    <span>
+                        You do not have permission to <strong>{isEdit ? "edit" : "create"}</strong> {isSpecialFulfillingLocked ? "Sareyaan orders" : "internal transfer requests"}.
+                    </span>
+                </div>
+            )}
 
             {/* ── Page heading + step pills ────────────────────────────────────── */}
             <div className="d-flex align-items-start justify-content-between mb-4">
                 <div>
                     <h5 className="mb-1 fw-semibold">
                         {isEdit
-                            ? "Edit Transfer Requisition"
+                            ? isSareyaanOrder
+                                ? "Edit Sareyaan Order"
+                                : "Edit Transfer Requisition"
                             : isSareyaanOrder
                                 ? "New Sareyaan Order"
                                 : "New Internal Transfer Request"}
@@ -446,7 +468,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                 Only PENDING requisitions can be edited
                             </>
                         ) : (
-                            "Request stock transfer from one center to another"
+                            isSareyaanOrder ? "Order stock from Sareyaan Pharma" : "Request stock transfer from one center to another"
                         )}
                     </p>
                 </div>
@@ -765,7 +787,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                 <td className="py-3 px-3 text-center">
                                                     {hasStock ? (
                                                         <span style={stockPill(item.availableStock)}>
-                                                            {item.availableStock}
+                                                            {item.availableStock} {pluralizeUnit(item.baseUnit || "Unit")}
                                                         </span>
                                                     ) : (
                                                         <span
@@ -816,12 +838,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                             +
                                                         </button>
                                                         <span className="ms-1 fw-medium text-dark text-start" style={{ fontSize: 13, minWidth: "40px" }}>
-                                                            {item.purchaseUnit || "Unit"}
+                                                            {pluralizeUnit(item.purchaseUnit || "Unit")}
                                                         </span>
                                                     </div>
                                                     {factor !== 1 && item.requestedQty > 0 && (
                                                         <div className="mt-1" style={{ fontSize: 11, color: "#6c757d", fontWeight: 600 }}>
-                                                            = {convertedQty.toFixed(2).replace(/\.00$/, '')} {item.baseUnit || "Unit"}
+                                                            = {convertedQty.toFixed(2).replace(/\.00$/, '')} {pluralizeUnit(item.baseUnit || "Unit")}
                                                         </div>
                                                     )}
                                                 </td>
