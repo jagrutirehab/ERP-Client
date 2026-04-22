@@ -77,7 +77,7 @@ export const permissionList = [
       { name: "CASHDEPOSITS", label: "Cash Deposits" },
       { name: "CASHSPENDING", label: "Cash Spending" },
       { name: "CASHINFLOW", label: "Cash Inflow" },
-      {name: "LEDGERREPORT", label: "Ledger Report"}
+      // {name: "LEDGERREPORT", label: "Ledger Report"}
     ],
   },
   {
