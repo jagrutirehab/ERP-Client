@@ -1,20 +1,41 @@
 import { useEffect, useState } from "react";
-import { Collapse } from "reactstrap";
+import { Collapse, UncontrolledTooltip } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import { format } from "date-fns";
 import { fetchSopOverview } from "../../../../store/features/patient/patientSlice";
 
-const DAILY_TYPES = ["VITAL_SIGN", "COUNSELLING_NOTE"];
+const DAILY_TYPES = [
+  "VITAL_SIGN",
+  "COUNSELLING_NOTE",
+  "RELATIVE_VISIT",
+  "MENTAL_EXAMINATION",
+];
 
 const chartTypeLabels = {
   VITAL_SIGN: "Vital Sign",
   COUNSELLING_NOTE: "Counselling Note",
   RELATIVE_VISIT: "Family Update",
   PRESCRIPTION: "Prescription",
-  LAB_REPORT: "Lab Report",
+  LAB_REPORT: "Lab Test",
   DETAIL_ADMISSION: "Admission Form",
   MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
+};
+
+const chartTypeTooltips = {
+  VITAL_SIGN: "Submitted every 24 hours",
+  COUNSELLING_NOTE: "Submitted every 24 hours",
+  RELATIVE_VISIT: "Submitted every 24 hours",
+  MENTAL_EXAMINATION: "Submitted every 24 hours",
+  PRESCRIPTION: "Within 1st 2 hours of admission",
+  LAB_REPORT: "Within 1st 24 hours of admission",
+  DETAIL_ADMISSION: "Within 1st 24 hours of admission",
+  DISCHARGE_SUMMARY: "Created at discharge",
+};
+
+const statusLabels = {
+  yes: "Yes",
+  no: "No",
 };
 
 const DISPLAY_ORDER = [
@@ -31,6 +52,7 @@ const DISPLAY_ORDER = [
 const statusColors = {
   yes: { bg: "#9AD872", text: "#fff" },
   no: { bg: "#FF8383", text: "#fff" },
+  null: { bg: "#FF8383", text: "#fff" },
 };
 
 const formatDate = (dateStr) => {
@@ -56,9 +78,7 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(true);
 
-  const activeAdmission = (addmissionsCharts || []).find(
-    (a) => !a.dischargeDate,
-  );
+  const activeAdmission = patient.addmission;
 
   useEffect(() => {
     if (activeAdmission?._id) {
@@ -78,6 +98,8 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
   }
 
   const overview = sopOverview?.sopOverview;
+
+  console.log({ overview });
 
   return (
     <div className="position-relativ">
@@ -112,34 +134,31 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
               : DISPLAY_ORDER.map((chartType) => {
                   const data = overview[chartType];
                   if (!data) return null;
-                  const isDaily = DAILY_TYPES.includes(chartType);
                   const lastDate = formatDate(data.lastDate);
 
-                  let statusKey = null;
-                  if (isDaily && data.lastDate) {
-                    statusKey = data.doneYesterday ? "yes" : "no";
-                  }
-                  const showDot = statusKey !== null;
-                  const statusStyle = showDot ? statusColors[statusKey] : null;
+                  const statusKey = data.status || null;
+                  const statusStyle = statusColors[statusKey];
+                  const tooltipId = `sop-${chartType}`;
+                  const tooltipText = chartTypeTooltips[chartType];
+                  const statusLabel = statusLabels[statusKey];
 
                   return (
                     <div
                       key={chartType}
+                      id={tooltipId}
                       className="d-flex flex-column align-items-start"
-                      style={{ minWidth: 100 }}
+                      style={{ minWidth: 100, cursor: "default" }}
                     >
                       <div className="d-flex align-items-center gap-1">
-                        {showDot && (
-                          <span
-                            className="rounded-circle d-inline-block"
-                            style={{
-                              width: 8,
-                              height: 8,
-                              backgroundColor: statusStyle.bg,
-                              flexShrink: 0,
-                            }}
-                          ></span>
-                        )}
+                        <span
+                          className="rounded-circle d-inline-block"
+                          style={{
+                            width: 8,
+                            height: 8,
+                            backgroundColor: statusStyle.bg,
+                            flexShrink: 0,
+                          }}
+                        ></span>
                         <span
                           className="fw-medium text-dark"
                           style={{ fontSize: "0.75rem" }}
@@ -151,11 +170,16 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
                         className="text-muted"
                         style={{
                           fontSize: "0.7rem",
-                          paddingLeft: showDot ? 14 : 0,
+                          paddingLeft: 14,
                         }}
                       >
                         {lastDate || "Not yet"}
                       </span>
+                      <UncontrolledTooltip target={tooltipId} placement="top">
+                        {tooltipText}
+                        {statusLabel ? `: ${statusLabel}` : ""}
+                        {lastDate ? ` (${lastDate})` : ""}
+                      </UncontrolledTooltip>
                     </div>
                   );
                 })}
