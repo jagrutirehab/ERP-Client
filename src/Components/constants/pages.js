@@ -1171,12 +1171,18 @@ export const ISSUES = [
     icon: "bx bx-user-check",
     link: "/issues/my/raised/tickets",
   },
-  // {
-  //   id: "finance-tickets",
-  //   label: "My Finance Tickets",
-  //   icon: "bx bx-rupee",
-  //   link: "/issues/my/finance/tickets",
-  // }
+  {
+    id: "finance-tickets",
+    label: "Finance Tickets",
+    icon: "bx bx-rupee",
+    link: "/issues/my/finance/tickets",
+  },
+  {
+    id: "finance-tickets-approval",
+    label: "Finance Tickets Approval",
+    icon: "bx bx-receipt",
+    link: "/issues/finance/payslips/tickets",
+  }
 
 ];
 
