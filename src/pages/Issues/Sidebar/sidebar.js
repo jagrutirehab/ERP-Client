@@ -39,7 +39,10 @@ const IssuesSidebar = () => {
     // if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
     // if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
     if (page.id === "my-raised-tickets") return hasPermission("ISSUES", "MY_RAISED_TICKETS", "READ");
-    // if (page.id === "finance-tickets") return hasPermission("ISSUES", "FINANCE_ISSUES", "READ")
+    if (page.id === "finance-tickets") return hasPermission("ISSUES", "FINANCE_ISSUES", "READ")
+    if (page.id === "finance-tickets-approval") return hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "READ")
+
+
 
     return false;
   });

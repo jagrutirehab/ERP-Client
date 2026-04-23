@@ -45,6 +45,15 @@ export const MyIssuesCol = (
       width: "180px",
     },
 
+    ...(type !== "TECH" ? [
+
+      {
+        name: <div className="text-center">Request Type</div>,
+        selector: (row) => row?.issueType === "HR" ? row?.hrIssue?.requestType : row?.issueType === "FINANCE" ? row?.financeIssue?.financeIssueType : "-",
+        // width: "180px",
+      },
+    ] : []),
+
     ...(type === "TECH" ?
       [{
         name: <div className="text-center">Description</div>,
@@ -153,6 +162,72 @@ export const MyIssuesCol = (
       ] : []
 
     ),
+    ...(type === "HR" ?
+      [{
+        name: <div className="text-center">Description</div>,
+        width: "300px",
+        cell: (row) => (
+          <div
+            style={{
+              maxHeight: "80px",
+              overflowY: "auto",
+              paddingRight: "6px",
+              lineHeight: "1.4",
+              wordBreak: "break-word",
+            }}
+          >
+            {row?.hrIssue?.description || "-"}
+          </div>
+        ),
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.hrIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      }
+      ] : []
+    ),
+    ...(type === "FINANCE" ?
+      [{
+        name: <div className="text-center">Description</div>,
+        width: "300px",
+        cell: (row) => (
+          <div
+            style={{
+              maxHeight: "80px",
+              overflowY: "auto",
+              paddingRight: "6px",
+              lineHeight: "1.4",
+              wordBreak: "break-word",
+            }}
+          >
+            {row?.financeIssue?.description || "-"}
+          </div>
+        ),
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.financeIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      }
+      ] : []
+    ),
+
+
     ...(activeTab !== "new"
       ? [
         {
@@ -222,9 +297,9 @@ export const MyIssuesCol = (
 
 
 
-    ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
+    ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && !["HR", "FINANCE"].includes(type)
       ? [
-        ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && type !== "HR"
+        ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && !["HR", "FINANCE"].includes(type)
           ? [
             {
               name: <div className="text-center">Approval</div>,

@@ -97,7 +97,7 @@ const TicketForm = ({
     const issueTypeOptions = [
         { value: "TECH", label: "TECH" },
         { value: "HR", label: "HR" },
-        // { value: "FINANCE", label: "FINANCE" }
+        { value: "FINANCE", label: "FINANCE" }
         // { value: "PURCHASE", label: "PURCHASE" },
         // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
     ];
@@ -345,8 +345,8 @@ const TicketForm = ({
                             <Select
                                 placeholder="Select Request Type"
                                 options={[
-                                    { value: "⁠SALARY_SLIPS", label: "Salary Slips" },
-                                    { value: "SALARY/COMPLAINCE", label: "Salary/Complaince" },
+                                    { value: "SALARY_SLIPS", label: "Salary Slips" },
+                                    { value: "SALARY/COMPLIANCE", label: "Salary/Compliance" },
                                     { value: "TAX", label: "Tax" },
                                 ]}
                                 value={form.financeIssueType}
