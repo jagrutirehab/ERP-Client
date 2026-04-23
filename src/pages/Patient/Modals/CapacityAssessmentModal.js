@@ -59,6 +59,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     managementPlan: "",
     signatures: [],
     consultantName: "",
+    consultantDateTime: "",
   });
   const capacityFormRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -341,6 +342,7 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
         representativeName: patient?.guardianName || "",
         relationship: patient?.guardianRelation || "",
         consultantName: consultant || "",
+        consultantDateTime: formatDateTimeLocal(new Date()),
         primaryDiagnosis: patient?.detailAdmission?.doctorSignature?.diagnosis
           ?.map((d) => d?.code)
           ?.join(", "),
@@ -849,7 +851,10 @@ Remarks: ${me?.remarks || ""}
                         <Input
                           type="datetime-local"
                           className="px-2"
-                          value={formatDateTimeLocal(new Date())}
+                          // value={formatDateTimeLocal(new Date())}
+                          name="consultantDateTime"
+                          value={formData?.consultantDateTime || ""}
+                          onChange={handleChange}
                         />
                       ) : (
                         <Input
