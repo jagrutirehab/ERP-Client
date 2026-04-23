@@ -79,7 +79,7 @@ const SopIndicator = ({ id, label, tooltip, status, date }) => {
               flexShrink: 0,
             }}
           ></span>
-          <span className="fw-medium text-dark" style={{ fontSize: "0.65rem" }}>
+          <span className="fw-medium text-dark" style={{ fontSize: "0.75rem" }}>
             {label}
           </span>
         </div>
