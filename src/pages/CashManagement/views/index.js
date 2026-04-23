@@ -9,7 +9,7 @@ import {
 } from "../../../Components/constants/cash";
 import { Button, ButtonGroup, Spinner } from "reactstrap";
 import Reports from "./Reports";
-// import LedgerReport from "./LedgerReport";
+import LedgerReport from "./LedgerReport";
 import Balance from "./Balance";
 import Deposits from "./Deposits";
 import Spending from "./Spending";
@@ -29,11 +29,11 @@ const Views = () => {
   const hasDepositsPermission = hasPermission("CASH", "CASHDEPOSITS", "READ");
   const hasSpendingPermission = hasPermission("CASH", "CASHSPENDING", "READ");
   const hasInflowPermission = hasPermission("CASH", "CASHINFLOW", "READ");
-  // const hasLedgerReportPermission = hasPermission(
-  //   "CASH",
-  //   "LEDGERREPORT",
-  //   "READ",
-  // );
+  const hasLedgerReportPermission = hasPermission(
+    "CASH",
+    "LEDGERREPORT",
+    "READ",
+  );
 
   const availableViews = [
     {
@@ -66,12 +66,12 @@ const Views = () => {
       hasAccess: hasInflowPermission,
       order: 4,
     },
-    // {
-    //   name: "Ledger Report",
-    //   view: LEDGER_REPORT_VIEW,
-    //   hasAccess: hasLedgerReportPermission,
-    //   order: 5,
-    // },
+    {
+      name: "Ledger Report",
+      view: LEDGER_REPORT_VIEW,
+      hasAccess: hasLedgerReportPermission,
+      order: 5,
+    },
   ]
     .filter((view) => view.hasAccess)
     .sort((a, b) => a.order - b.order);
@@ -189,7 +189,7 @@ const Views = () => {
               {view === INFLOW_VIEW && <Inflows />}
             </CheckPermission>
 
-            {/* {view === LEDGER_REPORT_VIEW && (
+            {view === LEDGER_REPORT_VIEW && (
               <CheckPermission
                 accessRolePermission={roles?.permissions}
                 permission={"read"}
@@ -200,7 +200,7 @@ const Views = () => {
                   hasUserPermission={hasLedgerReportPermission} // ← add this
                 />
               </CheckPermission>
-            )} */}
+            )}
           </div>
         </div>
       </div>
