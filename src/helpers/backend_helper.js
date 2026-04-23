@@ -3314,8 +3314,22 @@ export const updateHRIssueRequest = (data) => {
     data
   )
 }
+
+export const updateFinanceIssueRequest = (data) => {
+  return axios.patch(url.UPDATE_FINANCE_ISSUE_REQUEST,
+    data
+  )
+}
+
+
 export const getFinanceIssues = (params = {}) => {
   return axios.get(url.GET_FINANCE_ISSUES, {
+    params,
+  });
+};
+
+export const getPayslipsIssuesRequests = (params = {}) => {
+  return axios.get(url.GET_PAYSLIPS_ISSUES_REQUESTS, {
     params,
   });
 };

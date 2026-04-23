@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react'
+
+
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { getHRRequests } from '../Helpers/FetchIssues'
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
@@ -9,13 +11,14 @@ import Select from "react-select";
 import { useSelector } from 'react-redux';
 import { normalizeStatus } from '../Components/normalizeStatus';
 import classnames from "classnames";
-import { getEmployeesBySearch, updateHRIssueRequest } from '../../../helpers/backend_helper';
+import { getEmployeesBySearch, getPayslipsIssuesRequests, updateFinanceIssueRequest } from '../../../helpers/backend_helper';
 import ManagerApproveRejectModal from '../Components/ManagerApproveRejectModal';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
+import { FinanceIssuesReqColumn } from '../Columns/FinanceRequestCol';
 import ImagesModal from '../Components/ImagesModal';
 
 
-const HRissuesRequests = () => {
+const PayslipsRequests = () => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [loading, setLoading] = useState(false);
     const [loadingId, setLoadingId] = useState([]);
@@ -27,23 +30,23 @@ const HRissuesRequests = () => {
     const [limit, setLimit] = useState(10);
     const user = useSelector((state) => state.User);
     const [pagination, setPagination] = useState(null);
-    const [hr, setHr] = useState();
+    const [employees, setEmployees] = useState();
     const [selectedHRs, setSelectedHRs] = useState({});
     const [showModal, setShowModal] = useState(false);
     const [actionType, setActionType] = useState("");
     const [selectedRowId, setSelectedRowId] = useState(null);
-
     const [imageModal, setImageModal] = useState(false);
     const [files, setFiles] = useState([]);
 
-
     const token = JSON.parse(localStorage.getItem("user"))?.token;
     const { hasPermission } = usePermissions(token);
-    const hasUserPermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "READ");
-    const hasWritePermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "WRITE");
-    const hasDeletePermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "DELETE");
+    const hasUserPermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "READ");
+    const hasWritePermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "WRITE");
+    const hasDeletePermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "DELETE");
 
     const canChangeStatus = hasWritePermission || hasDeletePermission;
+
+    const debounceTimer = useRef(null);
 
 
     const loadRequests = async () => {
@@ -69,7 +72,7 @@ const HRissuesRequests = () => {
             };
 
 
-            const response = await getHRRequests(params);
+            const response = await getPayslipsIssuesRequests(params);
             setRequests(response?.data)
             setPagination({
                 ...response?.pagination,
@@ -90,22 +93,53 @@ const HRissuesRequests = () => {
         user?.centerAccess
     ])
 
-    const loadHR = async () => {
-        const params = {
-            type: "hr",
-        };
-        try {
-            const response = await getEmployeesBySearch(params);
-            console.log("response", response);
-            setHr(response?.data);
-        } catch (error) {
-            toast.error("Error fetching HR");
-        }
-    }
+    // const loadHR = async () => {
+    //     const params = {
+    //         type: "employee",
+    //     };
+    //     try {
+    //         const response = await getEmployeesBySearch(params);
+    //         console.log("response", response);
+    //         setEmployees(response?.data);
+    //     } catch (error) {
+    //         toast.error("Error fetching HR");
+    //     }
+    // }
 
-    useEffect(() => {
-        loadHR();
-    }, [])
+    const isECodeLike = (value) => {
+        return /^[A-Za-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*$/.test(value);
+    };
+
+    const loadHR = useCallback((searchText) => {
+        clearTimeout(debounceTimer.current);
+
+        if (!searchText || searchText.length < 2) {
+            setEmployees([]);
+            return;
+        }
+
+        debounceTimer.current = setTimeout(async () => {
+            try {
+                const params = { type: "employee" };
+
+                if (/^\d+$/.test(searchText) || isECodeLike(searchText)) {
+                    params.eCode = searchText;
+                } else {
+                    params.name = searchText;
+                }
+
+                const response = await getEmployeesBySearch(params);
+                const options = response?.data?.map((emp) => ({
+                    value: emp._id,
+                    label: `${emp.name} (${emp.eCode})`,
+                })) || [];
+
+                setEmployees(options);
+            } catch (error) {
+                console.log("Error loading employees", error);
+            }
+        }, 500); // ⏱ waits 500ms after user stops typing
+    }, []);
 
 
     const centerOptions = [
@@ -142,8 +176,7 @@ const HRissuesRequests = () => {
                 hr,
                 note
             }
-
-            const response = await updateHRIssueRequest(data);
+            const response = await updateFinanceIssueRequest(data);
             console.log("Response", response);
             toast.success(response?.message || "Updated");
             loadRequests();
@@ -175,6 +208,7 @@ const HRissuesRequests = () => {
 
 
 
+
     return (
         <>
             <CardBody
@@ -182,7 +216,7 @@ const HRissuesRequests = () => {
                 style={isMobile ? { width: "100%" } : { width: "78%" }}
             >
                 <div className="text-center text-md-left mb-4">
-                    <h1 className="display-6 fw-bold text-primary">HR TICKET REQUESTS</h1>
+                    <h1 className="display-6 fw-bold text-primary">FINANCE TICKET REQUESTS</h1>
                 </div>
 
                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
@@ -222,12 +256,13 @@ const HRissuesRequests = () => {
 
 
                 <DataTableComponent
-                    columns={HRIssuesReqColumn(
+                    columns={FinanceIssuesReqColumn(
                         handleUpdate,
                         activeTab,
                         loadingId,
-                        hr,
+                        employees,
                         selectedHRs,
+                        loadHR,
                         setSelectedHRs,
                         showModal,
                         setShowModal,
@@ -261,10 +296,9 @@ const HRissuesRequests = () => {
                 toggle={() => setImageModal(false)}
                 files={files}
             />
-
         </>
 
     )
 }
 
-export default HRissuesRequests
+export default PayslipsRequests

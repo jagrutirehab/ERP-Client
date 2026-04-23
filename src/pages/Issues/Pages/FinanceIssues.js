@@ -159,7 +159,7 @@ const FinanceIssues = () => {
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(data?.status)
+      // setStatus(data?.status)
       loadIssues();
 
     } catch (error) {
@@ -188,7 +188,7 @@ const FinanceIssues = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">MY FINANCE TICKETS</h1>
+          <h1 className="display-6 fw-bold text-primary">FINANCE TICKETS</h1>
         </div>
 
         {/* Filters */}
