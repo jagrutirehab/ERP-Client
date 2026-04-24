@@ -528,8 +528,8 @@ const InventoryManagement = () => {
                       "Centre Wise Stock",
                       "Unit",
                       "Stock",
-                      "Cost Price",
-                      "Value",
+                      // "Cost Price",
+                      // "Value",
                       "MRP",
                       "Purchase Price",
                       "Sales Price",
@@ -613,8 +613,8 @@ const InventoryManagement = () => {
                           : "-",
                         med?.unitType || med?.unit || "-",
                         med?.stock ?? "-",
-                        med?.costprice ?? formatCurrency(med?.costprice),
-                        med?.value ?? "-",
+                        // med?.costprice ?? formatCurrency(med?.costprice),
+                        // med?.value ?? "-",
                         med?.mrp ?? formatCurrency(med?.mrp),
                         med?.purchasePrice ?? formatCurrency(med?.purchasePrice),
                         med?.SalesPrice ?? formatCurrency(med?.SalesPrice),
@@ -969,8 +969,8 @@ const InventoryManagement = () => {
                       <TableHead noWrap>Centre / Available stock</TableHead>
                       <TableHead noWrap>Unit</TableHead>
                       {/* <TableHead noWrap>Current Stock</TableHead> */}
-                      <TableHead noWrap>Cost Price</TableHead>
-                      <TableHead noWrap>Value</TableHead>
+                      {/* <TableHead noWrap>Cost Price</TableHead>
+                      <TableHead noWrap>Value</TableHead> */}
                       <TableHead noWrap>M.R.P</TableHead>
                       <TableHead noWrap>Purchase Price</TableHead>
                       <TableHead noWrap>Sales Price</TableHead>
@@ -1198,8 +1198,8 @@ const InventoryManagement = () => {
                             {display(med?.unitType || med?.unit)}
                           </TableCell>
                           {/* <TableCell noWrap>{display(med?.stock)}</TableCell> */}
-                          <TableCell noWrap>{display(med?.costprice)}</TableCell>
-                          <TableCell noWrap>{display(med?.value)}</TableCell>
+                          {/* <TableCell noWrap>{display(med?.costprice)}</TableCell>
+                          <TableCell noWrap>{display(med?.value)}</TableCell> */}
                           <TableCell noWrap>{display(med?.mrp)}</TableCell>
                           <TableCell noWrap>
                             {display(med?.purchasePrice)}
