@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { TabPane, Input, Spinner, Button } from "reactstrap";
+import { TabPane, Spinner, Button } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import { getRangeReport } from "../../../store/features/cashManagement/cashSlice";
 import PropTypes from "prop-types";
@@ -7,6 +7,8 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
 import { RotateCw } from "lucide-react";
+import { startOfDay, endOfDay, subDays } from "date-fns";
+import Header from "../../Report/Components/Header";
 
 const formatINR = (n) =>
   new Intl.NumberFormat("en-IN", {
@@ -42,31 +44,18 @@ const fmtDateFull = (dateStr) => {
   } catch { return ""; }
 };
 
-const getTodayBusinessDate = () => {
-  try {
-    const now = new Date();
-    const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
-    const yyyy = ist.getUTCFullYear();
-    const mm = String(ist.getUTCMonth() + 1).padStart(2, "0");
-    const dd = String(ist.getUTCDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  } catch {
-    return new Date().toISOString().slice(0, 10);
-  }
+const dateToBusinessStr = (date) => {
+  const d = new Date(date);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 };
 
 const addDays = (businessDateStr, days) => {
   const [yyyy, mm, dd] = businessDateStr.split("-").map(Number);
   const d = new Date(Date.UTC(yyyy, mm - 1, dd + days));
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-};
-
-const getDateRange = (days) => {
-  const end = getTodayBusinessDate();
-  const [yyyy, mm, dd] = end.split("-").map(Number);
-  const startD = new Date(Date.UTC(yyyy, mm - 1, dd - (days - 1)));
-  const start = `${startD.getUTCFullYear()}-${String(startD.getUTCMonth() + 1).padStart(2, "0")}-${String(startD.getUTCDate()).padStart(2, "0")}`;
-  return { start, end };
 };
 
 const getBusinessDatesInRange = (start, end) => {
@@ -171,20 +160,26 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
 
-  const [rangeDays, setRangeDays] = useState(7);
+  const [reportDate, setReportDate] = useState({
+    start: startOfDay(subDays(new Date(), 6)),
+    end: endOfDay(new Date()),
+  });
   const [page, setPage] = useState(1);
 
   const centerIds = centerAccess?.length > 0 ? centerAccess : [];
 
+  const startBusinessDate = dateToBusinessStr(reportDate.start);
+  const endBusinessDate = dateToBusinessStr(reportDate.end);
+  const dates = getBusinessDatesInRange(startBusinessDate, endBusinessDate);
+
   const fetchReport = async (overridePage) => {
     if (!hasUserPermission || centerIds.length === 0) return;
-    const { start, end } = getDateRange(rangeDays);
-    if (!start || !end) return;
+    if (!startBusinessDate || !endBusinessDate) return;
     try {
       await dispatch(getRangeReport({
         centerIds,
-        startDate: start,
-        endDate: end,
+        startDate: startBusinessDate,
+        endDate: endBusinessDate,
         page: overridePage ?? page,
         limit: 15,
       })).unwrap();
@@ -198,21 +193,19 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
   useEffect(() => {
     if (activeTab !== "dateRange" || !hasUserPermission || centerIds.length === 0) return;
     fetchReport();
-  }, [centerIds, rangeDays, page, activeTab, hasUserPermission]);
+  }, [centerIds, reportDate, page, activeTab, hasUserPermission]);
 
-  const handleRefresh = () => {
-    fetchReport();
+  const handleDateChange = (newDate) => {
+    setPage(1);
+    setReportDate(newDate);
   };
+
+  const handleRefresh = () => fetchReport();
 
   const payload = Array.isArray(rangeReport?.data) ? rangeReport.data : [];
   const totalPages = rangeReport?.totalPages || 1;
   const totalCenters = rangeReport?.totalCenters || 0;
   const currentPage = rangeReport?.currentPage || 1;
-
-  const { start, end } = getDateRange(rangeDays);
-  const dates = getBusinessDatesInRange(start, end);
-
-  // Only show pagination if there are more centers than page limit
   const showPagination = totalPages > 1;
 
   return (
@@ -230,22 +223,11 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
 
       <div style={{ paddingTop: "1rem" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <Input
-              type="select"
-              value={rangeDays}
-              onChange={(e) => {
-                setPage(1);
-                setRangeDays(parseInt(e.target.value));
-              }}
-              style={{ minWidth: "140px", width: "auto" }}
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={15}>Last 15 days</option>
-              <option value={30}>Last 30 days</option>
-            </Input>
-
-            {/* Refresh button */}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+            <Header
+              reportDate={reportDate}
+              setReportDate={handleDateChange}
+            />
             <Button
               color="outline-secondary"
               size="sm"
@@ -311,7 +293,6 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
               </table>
             </div>
 
-            {/* Only show pagination when needed */}
             {showPagination && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
                 <Button size="sm" color="outline-secondary" disabled={currentPage === 1 || loading} onClick={() => setPage((p) => p - 1)}>
