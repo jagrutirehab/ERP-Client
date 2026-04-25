@@ -16,7 +16,8 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 
 // const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
-const issueTypes = ["TECH", "HR", "FINANCE"];
+const issueTypes = ["TECH",  "FINANCE"];
+// "HR",
 
 const statuses = [
   "assigned",

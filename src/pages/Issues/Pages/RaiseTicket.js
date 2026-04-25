@@ -169,7 +169,7 @@ const RaiseTicket = () => {
       if (issueType === "HR") {
         formData.append("requestType", form.requestType?.value);
         formData.append("description", form.hrDescription);
-        formData.append("manager", form.manager);
+        // formData.append("manager", form.manager);
       }
 
        if (issueType === "FINANCE") {

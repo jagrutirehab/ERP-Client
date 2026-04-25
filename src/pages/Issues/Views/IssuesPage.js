@@ -243,9 +243,18 @@ const IssuesPage = ({ type }) => {
 
     const status = ["new", "assigned", "in_progress", "on_hold", "pending_user", "pending_release", "resolved"]
 
-    if (type === "HR") {
-        status.push("rejected")
-    }
+    // if (type === "HR") {
+    //     status.push("rejected")
+    // }
+
+    const handleAction = ({ issue, nextStatus }) => {
+        setSelectedIssue({
+            ...issue,
+            nextStatus,
+        });
+
+        setAssignModal(true);
+    };
 
     return (
         <>
@@ -329,7 +338,8 @@ const IssuesPage = ({ type }) => {
                             setEditedApprovalBy,
                             approvers,
                             setEditRowId,
-                            canEdit
+                            canEdit,
+                            handleAction
                         )}
                     data={issues}
                     loading={loading}
@@ -368,6 +378,15 @@ const IssuesPage = ({ type }) => {
                 toggle={() => setApprovalModal(false)}
                 issue={approvalIssue}
                 onSubmit={handleApprovalSubmit}
+            />
+
+            <StatusModal
+                isOpen={assignModal}
+                toggle={() => setAssignModal(false)}
+                issue={selectedIssue}
+                onAssign={handleAssignSubmit}
+                activeTab={status}
+                title={`Update Issue Status`}
             />
         </>
     );
