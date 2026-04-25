@@ -290,7 +290,7 @@ const TicketForm = ({
                         </Col>
 
                         {/* Manager */}
-                        <Col md={6}>
+                        {/* <Col md={6}>
                             <Label className="fw-semibold">
                                 Manager<span className="text-danger">*</span>
                             </Label>
@@ -316,7 +316,7 @@ const TicketForm = ({
                                     />
                                 )}
                             </div>
-                        </Col>
+                        </Col> */}
 
                         {/* DESCRIPTION FULL WIDTH */}
                         <Col md={12}>

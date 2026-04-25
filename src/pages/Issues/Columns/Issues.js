@@ -1,6 +1,7 @@
 import { Badge, Button } from "reactstrap";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { getStatusColor } from "../Helpers/getStatusColor";
+import { normalizeText } from "../Helpers/NormalizeText";
 
 export const Issues = (
   handleViewDescription,
@@ -18,7 +19,8 @@ export const Issues = (
   setEditedApprovalBy,
   approvers,
   setEditRowId,
-  canEdit
+  canEdit,
+  handleAction
 ) => [
     {
       name: <div className="text-center">Issue-Id</div>,
@@ -163,8 +165,35 @@ export const Issues = (
       ] : []
 
     ),
+    ...(type === "HR" ? [
+      {
+        name: <div className="text-center">Request Type</div>,
+        selector: (row) =>
+          normalizeText(row?.hrIssue?.requestType) || "-",
+        width: "160px",
+        wrap: true,
+      },
+      {
+        name: <div className="text-center">Description</div>,
+        selector: (row) => row?.hrIssue?.description || "-",
+        width: "160px",
+        wrap: true,
+      },
+      {
+        name: <div className="text-center">Images</div>,
+        width: "140px",
+        cell: (row) => (
+          <span
+            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+            onClick={() => handleViewImages(row?.hrIssue?.files)}
+          >
+            View Images
+          </span>
+        ),
+      },
+    ] : []),
 
-    ...(status !== "new" && status !== "rejected"
+    ...(status !== "new" && status !== "rejected" && type !== "HR"
       ? [{
         name: <div className="text-center">Assigned To</div>,
         width: "160px",
@@ -235,24 +264,6 @@ export const Issues = (
         );
       },
     },
-    ...(type === "HR" ? [
-      {
-        name: <div className="text-center">Manager's Approval</div>,
-        width: "180px",
-        // center: true,
-        cell: (row) => {
-          const status = row?.hrIssue?.status;
-          console.log("row", row);
-
-
-          return (
-            <Badge color={getStatusColor(status)} pill>
-              {status?.replaceAll("_", " ") || "-"}
-            </Badge>
-          );
-        },
-      },
-    ] : []),
     {
       name: <div className="text-center">Raised on</div>,
       selector: (row) => normalizeDates(row?.createdAt) || "-",
@@ -357,6 +368,36 @@ export const Issues = (
                 onClick={() => handleEdit(row)}
               >
                 <i className="bx bx-pencil"></i>
+              </Button>
+            );
+          },
+        },
+      ]
+      : []),
+
+    // canChangeStatus && 
+    ...(type === "HR" && canEdit && (status !== "resolved" || status === "")
+      ? [
+        {
+          name: <div className="text-center">Action</div>,
+          width: "200px",
+          cell: (row) => {
+
+            // prevent button only for resolved rows
+            if (row?.status === "resolved") return "-";
+
+            return (
+              <Button
+                size="sm"
+                color="primary"
+                onClick={() =>
+                  handleAction({
+                    issue: row,
+                    nextStatus: row?.status
+                  })
+                }
+              >
+                Change Status
               </Button>
             );
           },
