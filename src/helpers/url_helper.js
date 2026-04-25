@@ -607,8 +607,10 @@ export const POST_ISSUE = "/issues/post"
 export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
 export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
 export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
-export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update/approved"
+export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update"
+export const UPDATE_FINANCE_ISSUE_REQUEST = "/issues/finance/update/status"
 export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
+export const GET_PAYSLIPS_ISSUES_REQUESTS = "/issues/get/finance/payslip/requests"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";

@@ -7,11 +7,14 @@ import {
   CardFooter,
   Button,
   UncontrolledTooltip,
+  Row,
+  Col,
 } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import userDummayImage from "../../../assets/images/users/user-dummy-img.jpg";
 import { Link } from "react-router-dom";
 import { format, isValid } from "date-fns";
+import Divider from "../../../Components/Common/Divider";
 
 const statusColors = {
   suicidal: { color: "danger", border: "#ffcdd2" },
@@ -66,7 +69,7 @@ const SopIndicator = ({ id, label, tooltip, status, date }) => {
     <>
       <div
         id={tooltipId}
-        className="d-flex flex-column align-items-start"
+        className="d-flex flex-column mb-2 justify-content-between align-items-start"
         style={{ minWidth: 100, cursor: "default" }}
       >
         <div className="d-flex align-items-center gap-1">
@@ -79,14 +82,12 @@ const SopIndicator = ({ id, label, tooltip, status, date }) => {
               flexShrink: 0,
             }}
           ></span>
-          <span className="fw-medium text-dark" style={{ fontSize: "0.65rem" }}>
+          <span className="fw-medium text-dark">
+            {/* style={{ fontSize: "0.90rem" }} */}
             {label}
           </span>
         </div>
-        <span
-          className="text-muted"
-          style={{ fontSize: "0.7rem", paddingLeft: 14 }}
-        >
+        <span className="text-muted" style={{ paddingLeft: 14 }}>
           {formattedDate || "Not yet"}
         </span>
       </div>
@@ -246,20 +247,27 @@ const PatientCard = ({ patient }) => {
           </>
         )}
 
+        <div
+          style={{ height: "1px", backgroundColor: "#dddee0ff" }}
+          className="w-100"
+        />
+
         {patient.sopCompliance && (
-          <div className="rounded mb-2 bg-whit">
-            <div className="d-flex flex-wrap gap-1">
+          <div className="rounded my-2 bg-whit">
+            <Row className="">
               {Object.entries(sopItems).map(([key, { label, tooltip }]) => (
-                <SopIndicator
-                  key={key}
-                  id={`${patient.patientId}-${key}`}
-                  label={label}
-                  tooltip={tooltip}
-                  status={patient.sopCompliance[key]?.status}
-                  date={patient.sopCompliance[key]?.date}
-                />
+                <Col xs={6}>
+                  <SopIndicator
+                    key={key}
+                    id={`${patient.patientId}-${key}`}
+                    label={label}
+                    tooltip={tooltip}
+                    status={patient.sopCompliance[key]?.status}
+                    date={patient.sopCompliance[key]?.date}
+                  />
+                </Col>
               ))}
-            </div>
+            </Row>
           </div>
         )}
       </CardBody>

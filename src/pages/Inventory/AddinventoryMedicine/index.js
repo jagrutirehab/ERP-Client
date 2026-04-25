@@ -36,8 +36,8 @@ const AddinventoryMedicine = ({
       unitType: defaultValues.unitType || "",
       Strength: defaultValues.Strength || "",
       stock: defaultValues.stock || "",
-      costprice: defaultValues.costprice || "",
-      value: defaultValues.value || "",
+      // costprice: defaultValues.costprice || "",
+      // value: defaultValues.value || "",
       mrp: defaultValues.mrp || "",
       purchasePrice: defaultValues.purchasePrice || "",
       SalesPrice: defaultValues.SalesPrice || "",
@@ -560,8 +560,8 @@ const AddinventoryMedicine = ({
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
               <InputField label="Code" name="code" validation={{ required: "Code is required" }} />
               <InputField label="Unit Type" name="unitType" disabled={true} />
-              <InputField label="Cost Price" name="costprice" type="number" step="any" validation={{ required: "Cost Price is required", min: { value: 0, message: "Must be non-negative" } }} />
-              <InputField label="Value" name="value" type="number" step="any" validation={{ required: "Value is required", min: { value: 0, message: "Must be non-negative" } }} />
+              {/* <InputField label="Cost Price" name="costprice" type="number" step="any" validation={{ required: "Cost Price is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Value" name="value" type="number" step="any" validation={{ required: "Value is required", min: { value: 0, message: "Must be non-negative" } }} /> */}
               <InputField label="M.R.P" name="mrp" type="number" step="any" validation={{ required: "MRP is required", min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Purchase Price" name="purchasePrice" type="number" step="any" validation={{ min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Sales Price" name="SalesPrice" type="number" step="any" validation={{ required: "Sales Price is required", min: { value: 0, message: "Must be non-negative" } }} />
