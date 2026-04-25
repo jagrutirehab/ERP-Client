@@ -156,6 +156,7 @@ export const permissionList = [
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
       { name: "AUDIT", label: "Audit" },
       { name: "REQUISITION_INTERNAL_TRANSFER", label: "Requisition: Internal Transfer" },
+      { name: "REQUISITION_SAREYAAN_ORDERS", label: "Requisition: Sareyaan Orders" },
     ],
   },
   {
@@ -330,6 +331,7 @@ export const permissionList = [
       { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
+      { name: "TRANSFER_MANAGER_APPROVALS", label: "Transfer Manager Approvals" },
     ],
   },
   // {
