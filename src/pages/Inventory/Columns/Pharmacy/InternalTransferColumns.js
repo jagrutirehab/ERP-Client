@@ -81,7 +81,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                             const medType = med.type || "";
                             const medName = m.medicineName || item.medicineName || "";
                             const strength = m.Strength || m.strength || item.strength || "";
-                            const unit = m.medicineId?.purchaseUnit || m.unitType || m.unit || item.unit || "";
+                            const unit = m.unitType || m.unit || item.unit || "";
                             const qty = isReceived
                                 ? (item.receivedQty ?? item.approvedQty)
                                 : isPostApproval
