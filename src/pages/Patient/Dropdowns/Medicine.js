@@ -61,7 +61,7 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
               setTimeout(() => setDropdown(false), 300);
             }}
           />
-          <span
+          {/* <span
             onClick={() => {
               addItem(searchItem, data);
               setSearchItem("");
@@ -74,7 +74,7 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
               transform: "translateY(-50%)",
               cursor: "pointer",
             }}
-          ></span>
+          ></span> */}
         </DropdownToggle>
 
         <DropdownMenu
