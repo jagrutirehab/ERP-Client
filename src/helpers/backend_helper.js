@@ -2971,6 +2971,15 @@ export const getPolicies = () => {
   });
 };
 
+export const getLatestPolicy = () => {
+  return api.get(`${url.GET_LATEST_POLICY}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  })
+}
+
+
 // department
 
 export const getDepartments = () => {
