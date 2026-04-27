@@ -550,6 +550,7 @@ export const GET_MY_LEAVES = "/hrms/get/my/leaves";
 export const RETRIEVE_ACTION = "/hrms/leaves";
 export const ADD_POLICIES = "/hrms/employee/policy";
 export const GET_POLICIES = "/hrms/employee/get/policies";
+export const GET_LATEST_POLICY = "/hrms/latest/policy"
 export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";
 export const GET_FESTIVE_LEAVES_LISTS = "/hrms/get/all/lists";
 export const POST_FESTIVE_LEAVES_LIST = "/hrms/post/festive-leaves/list";
