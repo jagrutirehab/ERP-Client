@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { Button, Container, Row, Col } from "reactstrap";
 import _ from "lodash";
 
-const chunkSize = 50;
+const chunkSize = 30;
 const BatchSelector = ({ charts, onSelect }) => {
   const batches = _.chunk(charts || [], chunkSize);
 
