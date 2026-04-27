@@ -9,12 +9,13 @@ import { connect, useDispatch } from "react-redux";
 //charts
 import Charts from "./Charts";
 import BulkCharts from "./BulkPrint/Chart";
+import BatchSelector from "./BulkPrint/BatchSelector";
 import { togglePrint } from "../../store/actions";
 import Bills from "./Bills";
 import InternBills from "./Intern/index";
 import RenderWhen from "../Common/RenderWhen";
 import { useMediaQuery } from "../Hooks/useMediaQuery";
-import { Spinner } from "reactstrap";
+import { Spinner, Button } from "reactstrap";
 import ClinicalTest from "./clinicalTest";
 import PDFErrorBoundary from "./PDFErrorBoundary";
 
@@ -33,14 +34,30 @@ const Print = ({
   const dispatch = useDispatch();
 
   const [vp, setVp] = useState(null);
+  const [selectedBatch, setSelectedBatch] = useState(null);
+
   useEffect(() => {
     setVp(window.innerWidth);
   }, [vp]);
+
+  useEffect(() => {
+    if (!modal) {
+      setSelectedBatch(null);
+    }
+  }, [modal]);
 
   const isMobile = useMediaQuery("(max-width: 640px)");
 
   const closePrint = () => {
     dispatch(togglePrint({ data: null, modal: false }));
+  };
+
+  const handleBatchSelect = (batch) => {
+    setSelectedBatch(batch);
+  };
+
+  const handleBackToBatchSelector = () => {
+    setSelectedBatch(null);
   };
 
   let printAllCharts = [];
@@ -137,26 +154,47 @@ const Print = ({
               </RenderWhen>
 
               <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
-                <div className="mb-3 p-3 border rounded bg-light">
-                  <p className="text-muted mb-3">
-                    Preview not available, please download.
-                  </p>
-                  <PDFDownloadLink
-                    document={
-                      <BulkCharts
-                        admission={admission}
-                        charts={printAllCharts}
-                        patient={patient}
-                      />
-                    }
-                    fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-charts.pdf`}
-                    className="btn btn-primary btn-sm"
-                  >
-                    {({ loading }) =>
-                      loading ? <Spinner size="sm" /> : 'Download'
-                    }
-                  </PDFDownloadLink>
-                </div>
+                <RenderWhen isTrue={selectedBatch !== null ? true : false}>
+                  <div style={{ textAlign: "left", marginBottom: "15px" }}>
+                    <Button
+                      size="sm"
+                      outline
+                      onClick={handleBackToBatchSelector}
+                    >
+                      ← Back
+                    </Button>
+                  </div>
+                </RenderWhen>
+                <RenderWhen isTrue={selectedBatch === null ? true : false}>
+                  <BatchSelector
+                    charts={printAllCharts}
+                    onSelect={handleBatchSelect}
+                  />
+                </RenderWhen>
+                <RenderWhen isTrue={selectedBatch !== null ? true : false}>
+                  <div className="mb-3 p-3 border rounded bg-light">
+                    <p className="text-muted mb-3">
+                      Preview not available, please download.
+                    </p>
+                    <div className="d-flex gap-2 justify-content-center">
+                      <PDFDownloadLink
+                        document={
+                          <BulkCharts
+                            admission={admission}
+                            charts={selectedBatch}
+                            patient={patient}
+                          />
+                        }
+                        fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-charts.pdf`}
+                        className="btn btn-primary btn-sm"
+                      >
+                        {({ loading }) =>
+                          loading ? <Spinner size="sm" /> : 'Download'
+                        }
+                      </PDFDownloadLink>
+                    </div>
+                  </div>
+                </RenderWhen>
               </RenderWhen>
             </RenderWhen>
 
@@ -206,57 +244,76 @@ const Print = ({
           </div>
         </RenderWhen>
         <RenderWhen isTrue={!isMobile}>
-          <PDFErrorBoundary>
-            <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
-              <RenderWhen isTrue={patient ? true : false}>
-                <RenderWhen isTrue={printData?.chart ? true : false}>
-                  <Charts
-                    charts={[printData]}
-                    center={printData?.center}
-                    patient={patient}
-                    admission={admission}
-                    doctor={doctor}
-                  />
+          <RenderWhen isTrue={printData?.printAdmissionCharts && selectedBatch !== null ? true : false}>
+            <div style={{ textAlign: "left", marginBottom: "15px" }}>
+              <Button
+                size="sm"
+                outline
+                onClick={handleBackToBatchSelector}
+              >
+                ← Back to Batch Selection
+              </Button>
+            </div>
+          </RenderWhen>
+          <RenderWhen isTrue={printData?.printAdmissionCharts && selectedBatch === null ? true : false}>
+            <BatchSelector
+              charts={printAllCharts}
+              onSelect={handleBatchSelect}
+            />
+          </RenderWhen>
+          <RenderWhen isTrue={!(printData?.printAdmissionCharts && selectedBatch === null) ? true : false}>
+            <PDFErrorBoundary>
+              <PDFViewer width={vp > 1000 ? 1000 : 400} height={600}>
+                <RenderWhen isTrue={patient ? true : false}>
+                  <RenderWhen isTrue={printData?.chart ? true : false}>
+                    <Charts
+                      charts={[printData]}
+                      center={printData?.center}
+                      patient={patient}
+                      admission={admission}
+                      doctor={doctor}
+                    />
+                  </RenderWhen>
+                  <RenderWhen isTrue={printData?.bill && patient ? true : false}>
+                    <Bills
+                      bill={printData}
+                      center={printData?.center}
+                      patient={patient}
+                      admission={admission}
+                    />
+                  </RenderWhen>
+                  <RenderWhen isTrue={printData?.bill && intern ? true : false}>
+                    <Bills
+                      bill={printData}
+                      center={printData?.center}
+                      intern={intern}
+                      admission={admission}
+                    />
+                  </RenderWhen>
+                  <RenderWhen isTrue={printData?.printAdmissionCharts && selectedBatch !== null ? true : false}>
+                    <BulkCharts
+                      admission={admission}
+                      charts={selectedBatch}
+                      patient={patient}
+                    />
+                  </RenderWhen>
                 </RenderWhen>
-                <RenderWhen isTrue={printData?.bill && patient ? true : false}>
-                  <Bills
-                    bill={printData}
-                    center={printData?.center}
-                    patient={patient}
-                    admission={admission}
-                  />
-                </RenderWhen>
-                <RenderWhen isTrue={printData?.bill && intern ? true : false}>
-                  <Bills
+                <RenderWhen isTrue={intern ? true : false}>
+                  <InternBills
                     bill={printData}
                     center={printData?.center}
                     intern={intern}
-                    admission={admission}
                   />
                 </RenderWhen>
-                <RenderWhen isTrue={printData?.printAdmissionCharts ? true : false}>
-                  <BulkCharts
-                    admission={admission}
-                    charts={printAllCharts}
-                    patient={patient}
+                <RenderWhen isTrue={clinicalTest ? true : false}>
+                  <ClinicalTest
+                    charts={charts}
+                    clinicalTest={clinicalTest}
                   />
                 </RenderWhen>
-              </RenderWhen>
-              <RenderWhen isTrue={intern ? true : false}>
-                <InternBills
-                  bill={printData}
-                  center={printData?.center}
-                  intern={intern}
-                />
-              </RenderWhen>
-              <RenderWhen isTrue={clinicalTest ? true : false}>
-                <ClinicalTest
-                  charts={charts}
-                  clinicalTest={clinicalTest}
-                />
-              </RenderWhen>
-            </PDFViewer>
-          </PDFErrorBoundary>
+              </PDFViewer>
+            </PDFErrorBoundary>
+          </RenderWhen>
         </RenderWhen>
 
       </CustomModal>
