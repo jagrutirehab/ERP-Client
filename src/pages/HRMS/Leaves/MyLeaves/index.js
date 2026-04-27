@@ -203,7 +203,7 @@ const MyLeaves = () => {
       setIsCancelModalOpen(false);
       setSelectedLeave(null);
     } catch (err) {
-      toast.error("Failed to cancel");
+      toast.error(err?.message || "Failed to cancel leave");
     } finally {
       setRequestLoader(false);
     }

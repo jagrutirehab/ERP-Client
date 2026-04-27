@@ -127,6 +127,8 @@ const Policies = () => {
     status: p?.isSoftDeleted ? "Inactive" : "Active",
     policyName: p?.policyName,
     regularization_limits: p?.regularization_limits,
+    earnedCarry: p?.earnedCarry,
+    compOffCarry: p?.compOffCarry
   }));
 
   const handleWeekOffClick = (row) => {

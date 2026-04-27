@@ -174,10 +174,10 @@ const ManageLeaves = () => {
       approvalAuthority: item.approvalAuthority,
       createdAt: item.createdAt,
       eCode: item.eCode,
-      cancellationRequested : item?.leaves?.cancellationRequested,
-      cancellationStatus : item?.leaves?.cancellationStatus,
-      reason : item?.leaves?.cancellationReason,
-      cancellationAction : item?.leaves?.cancellationAction
+      cancellationRequested: item?.leaves?.cancellationRequested,
+      cancellationStatus: item?.leaves?.cancellationStatus,
+      reason: item?.leaves?.cancellationReason,
+      cancellationAction: item?.leaves?.cancellationAction
     }));
   }, [requestsData]);
 
@@ -254,14 +254,14 @@ const ManageLeaves = () => {
       fetchLeaves();
     } catch (error) {
       console.log("Cancel Error:", error);
-      toast.error("Failed to cancel leave");
+      toast.error(error?.message || "Failed to cancel leave");
     } finally {
       setCancellationLoading(null);
     }
   };
 
   console.log("leaves", leaves);
-  
+
 
   return (
     <CardBody
