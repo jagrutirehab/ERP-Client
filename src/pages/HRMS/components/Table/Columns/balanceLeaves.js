@@ -19,8 +19,19 @@ export const balanceLeavesColumn = () => [
     name: "Unpaid",
     cell: (row) => row.unpaidLeaves ?? "-",
   },
-    {
+  {
     name: "Comp-Off's",
     cell: (row) => row.compOff ?? "-",
   },
+  // {
+  //   name: "Comp-Off Carry Forwards",
+  //   cell: (row) => {
+  //     return row?.compOff ?? "-";
+  //   }
+  // },
+  // {
+  //   name: "Earned Carry Forwards",
+  //   cell: (row) => row?.earnedLeaves ?? "-"
+  // },
+
 ];
