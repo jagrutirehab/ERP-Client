@@ -619,7 +619,7 @@ const InventoryManagement = () => {
                         med?.purchasePrice ?? formatCurrency(med?.purchasePrice),
                         med?.SalesPrice ?? formatCurrency(med?.SalesPrice),
                         med?.Expiry ?? "-",
-                        Array.isArray(med?.Batch) ? med.Batch.join(", ") : (med?.Batch ?? "-"),
+                        med?.Batch ?? "-",
                         med?.company ?? "-",
                         med?.manufacturer ?? "-",
                         med?.RackNum ?? "-",
@@ -1211,7 +1211,7 @@ const InventoryManagement = () => {
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>
-                            {Array.isArray(med?.Batch) ? med.Batch.join(", ") : display(med?.Batch)}
+                            {display(med?.Batch)}
                           </TableCell>
                           <TableCell noWrap>{display(med?.company)}</TableCell>
                           <TableCell noWrap>

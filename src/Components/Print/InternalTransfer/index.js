@@ -275,7 +275,7 @@ const InternalTransferPDF = ({ requisition }) => {
                             {/* Table Body */}
                             {requisition.items.map((item, idx) => {
                                 const pharm = item.pharmacyId || {};
-                                const med = pharm.medicineId || {};
+                                const med = item.medicineId || pharm.medicineId || {};
                                 const customId = pharm.id || "";
                                 const medType = med.type || "";
                                 const medicineName = pharm.medicineName || item.medicineName || "";
@@ -300,7 +300,9 @@ const InternalTransferPDF = ({ requisition }) => {
                                 const rate = purchasePrice * (conversionFactor || 1);
                                 // const baseUnit = med.baseUnit || "";
                                 const amount = dispatchedQty * rate;
-                                const batch = item.batch ? `${item.batch} (Manually)` : "Automatically";
+                                const batchNumber = pharm.Batch || "—";
+                                const selectionMethod = item.batchSelectionMethod === "MANUAL" ? "(Manually)" : "(Automatically)";
+                                const batch = `${batchNumber} ${selectionMethod}`;
 
                                 return (
                                     <View

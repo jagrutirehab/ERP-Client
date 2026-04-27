@@ -76,12 +76,14 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                     <div className="d-flex flex-column w-100 my-2 gap-1 rounded">
                         {visibleItems.map((item, i) => {
                             const m = item.pharmacyId || {};
-                            const med = m.medicineId || {};
-                            const customId = m.id || item.customId || "";
+                            const med = item.medicineId || m.medicineId || {};
+                            // For post-approval statuses (APPROVED, DISPATCHED, RECEIVED), show pharmacy ID; otherwise show medicine ID
+                            const isPostApprovalStatus = ["APPROVED", "DISPATCHED", "FULFILLED", "PARTIALLY_RECEIVED"].includes(row.status);
+                            const customId = isPostApprovalStatus ? (m.id || item.customId || "") : (med.id || m.id || item.customId || "");
                             const medType = med.type || "";
                             const medName = m.medicineName || item.medicineName || "";
                             const strength = m.Strength || m.strength || item.strength || "";
-                            const unit = m.unitType || m.unit || item.unit || "";
+                            const unit = med.purchaseUnit || m.unitType || m.unit || item.unit || "";
                             const qty = isReceived
                                 ? (item.receivedQty ?? item.approvedQty)
                                 : isPostApproval
@@ -96,7 +98,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                                             {[medType, medName, strength].filter(Boolean).join(" ") || "Unknown Item"}
                                         </div>
                                         <Badge color="light" className="text-dark border" style={{ fontSize: 10 }}>
-                                            Qty: {qty} {pluralizeUnit(unit)}
+                                            Qty: {qty} {pluralizeUnit(med?.purchaseUnit || "")}
                                         </Badge>
                                     </div>
                                     {i !== visibleItems.length - 1 && (
@@ -291,7 +293,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                         </button>
                     );
                 }
-                // ── END PENDING_REQUESTING ───────────────────────────────────
 
                 // ── PENDING_FULFILLING: Fulfilling center reviews ─────────────
                 if (row.status === "PENDING_FULFILLING") {

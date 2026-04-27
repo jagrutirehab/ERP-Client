@@ -31,6 +31,7 @@ import {
     requestingReviewInternalTransfer,
     dispatchInternalTransfer,
     grnInternalTransfer,
+    searchPharmacyInventory,
 } from "../../../../store/features/pharmacy/pharmacySlice";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
@@ -88,6 +89,8 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [reviewModal, setReviewModal] = useState({ open: false, mode: null, row: null });
     const [approveItems, setApproveItems] = useState([]);
     const [reviewRemarks, setReviewRemarks] = useState("");
+    const [pharmacyOptions, setPharmacyOptions] = useState({});
+    const [pharmacyOptionsLoading, setPharmacyOptionsLoading] = useState({});
 
     const [dispatchModal, setDispatchModal] = useState({ open: false, row: null });
     const [dispatchItems, setDispatchItems] = useState([]);
@@ -102,7 +105,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [receiveNote, setReceiveNote] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
-const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
+    const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
     const [detailModal, setDetailModal] = useState(false);
@@ -315,19 +318,19 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                 .filter((item) => (item.approvedQty ?? 0) > 0)
                 .map((item) => {
                     const pharm = item.pharmacyId || {};
-                    const med = pharm.medicineId || {};
+                    const med = item.medicineId || pharm.medicineId || {};
                     return {
                         itemId: item._id,
                         customId: pharm.id || "—",
                         medicineName: pharm.medicineName || item.medicineName || "Unknown",
                         type: med.type || "",
                         strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
+                        unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
                         genericName: med.genericName || "",
                         brandName: med.brandName || med.name || "",
                         approvedQty: item.approvedQty,
                         dispatchedQty: item.approvedQty,
-                        batch: item.batch || "—",
+                        batch: pharm.Batch || "—",
                     };
                 })
         );
@@ -379,19 +382,19 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                 .filter((item) => (item.approvedQty ?? 0) > 0)
                 .map((item) => {
                     const pharm = item.pharmacyId || {};
-                    const med = pharm.medicineId || {};
+                    const med = item.medicineId || pharm.medicineId || {};
                     return {
                         itemId: item._id,
                         customId: pharm.id || "—",
                         medicineName: pharm.medicineName || item.medicineName || "Unknown",
                         type: med.type || "",
                         strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
+                        unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
                         genericName: med.genericName || "",
                         brandName: med.brandName || med.name || "",
                         approvedQty: item.approvedQty,
                         receivedQty: item.approvedQty,
-                        batch: item.batch || "—",
+                        batch: pharm.Batch || "—",
                     };
                 })
         );
@@ -437,27 +440,67 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
         }
     };
 
-    const openApprove = (row) => {
-        setApproveItems(
-            (row.items || []).map((item) => {
-                const pharm = item.pharmacyId || {};
-                const med = pharm.medicineId || {};
-                return {
-                    itemId: item._id,
-                    customId: pharm.id || "—",
-                    medicineName: pharm.medicineName || item.medicineName || "Unknown",
-                    type: med.type || "",
-                    strength: pharm.Strength || pharm.strength || item.strength || "",
-                    unit: pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
-                    genericName: med.genericName || "",
-                    brandName: med.brandName || med.name || "",
-                    requestedQty: item.requestedQty,
-                    approvedQty: item.requestedQty,
-                    availableBatches: Array.isArray(pharm.Batch) ? pharm.Batch : (pharm.Batch ? [pharm.Batch] : []),
-                    batch: "",
-                };
-            })
-        );
+    const openApprove = async (row) => {
+        const items = (row.items || []).map((item) => {
+            const pharm = item.pharmacyId || {};
+            const med = item.medicineId || pharm.medicineId || {};
+            const conversion = med.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
+            return {
+                itemId: item._id,
+                medicineId: item.medicineId,
+                customId: med.id || pharm.id || "—",
+                medicineName: pharm.medicineName || item.medicineName || "Unknown",
+                type: med.type || "",
+                strength: pharm.Strength || pharm.strength || item.strength || "",
+                unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
+                baseUnit: med.baseUnit || "",
+                conversion,
+                genericName: med.genericName || "",
+                brandName: med.brandName || med.name || "",
+                requestedQty: item.requestedQty,
+                approvedQty: item.requestedQty,
+                selectedPharmacyId: pharm._id,
+            };
+        });
+
+        setApproveItems(items);
+
+        // Fetch pharmacy options for items with medicineId
+        if (row.fulfillingCenter?._id || row.fulfillingCenter) {
+            const centerId = row.fulfillingCenter._id || row.fulfillingCenter;
+            const newPharmacyOptions = {};
+            const newLoading = {};
+
+            for (const item of items) {
+                if (item.medicineId) {
+                    newLoading[item.itemId] = true;
+                }
+            }
+            setPharmacyOptionsLoading(newLoading);
+
+            for (const item of items) {
+                if (item.medicineId) {
+                    try {
+                        const medId = item.medicineId?._id || item.medicineId;
+                        const response = await dispatch(
+                            searchPharmacyInventory({
+                                medicineId: medId,
+                                centerId,
+                                limit: 50,
+                                deduplicate: false,
+                            })
+                        ).unwrap();
+                        newPharmacyOptions[item.itemId] = response.data || [];
+                    } catch (error) {
+                        newPharmacyOptions[item.itemId] = [];
+                    }
+                    newLoading[item.itemId] = false;
+                }
+            }
+            setPharmacyOptions(newPharmacyOptions);
+            setPharmacyOptionsLoading(newLoading);
+        }
+
         setReviewRemarks("");
         setReviewModal({ open: true, mode: "approve", row });
     };
@@ -472,6 +515,8 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
         setReviewModal({ open: false, mode: null, row: null });
         setApproveItems([]);
         setReviewRemarks("");
+        setPharmacyOptions({});
+        setPharmacyOptionsLoading({});
     };
 
     const openRequestingReview = (row, mode) => {
@@ -505,6 +550,19 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
         }
     };
 
+    const handleSelectPharmacy = (itemId, pharmacy) => {
+        setApproveItems((prev) =>
+            prev.map((item) =>
+                item.itemId === itemId
+                    ? {
+                          ...item,
+                          selectedPharmacyId: pharmacy._id,
+                        }
+                    : item
+            )
+        );
+    };
+
     const handleReviewSubmit = async () => {
         const { mode, row } = reviewModal;
         const payload = { id: row._id, action: mode === "approve" ? "APPROVED" : "REJECTED", remarks: reviewRemarks };
@@ -517,7 +575,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
             payload.items = approvedOnly.map((i) => ({
                 itemId: i.itemId,
                 approvedQty: Number(i.approvedQty),
-                batch: i.batch || "",
+                pharmacyId: i.selectedPharmacyId,
             }));
         }
         try {
@@ -932,12 +990,14 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                         <tbody>
                                             {selectedReq.items.map((item, idx) => {
                                                 const pharm = item.pharmacyId || {};
-                                                const med = pharm.medicineId || {};
+                                                const med = item.medicineId || pharm.medicineId || {};
                                                 const primaryLabel = [med.type, pharm.medicineName || item.medicineName, pharm.Strength || pharm.strength || item.strength, pharm.unitType || pharm.unit || item.unit].filter(Boolean).join(" ");
-                                                const customId = pharm.id;
+                                                // For post-approval statuses (APPROVED, DISPATCHED, RECEIVED), show pharmacy ID; otherwise show medicine ID
+                                                const isPostApprovalStatus = ["APPROVED", "DISPATCHED", "FULFILLED", "PARTIALLY_RECEIVED"].includes(selectedReq?.status);
+                                                const customId = isPostApprovalStatus ? (pharm.id) : (med.id || pharm.id);
                                                 const genericName = med.genericName || "";
                                                 const brandName = med.brandName || med.name || "";
-                                                const rawUnit = pharm.medicineId?.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "";
+                                                const rawUnit = med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "";
 
                                                 return (
                                                     <tr key={item._id || idx}>
@@ -961,7 +1021,7 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                                         {selectedReq.dispatch?.dispatchedAt && (
                                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                                 {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${pluralizeUnit(rawUnit)}` : "—"}
-                                                                {item.batch && <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>Batch: {item.batch}</div>}
+                                                                {pharm.Batch && <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>Batch: {pharm.Batch}</div>}
                                                             </td>
                                                         )}
                                                         {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
@@ -1083,7 +1143,6 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                             <th style={{ fontSize: 12 }}>#</th>
                                             <th style={{ fontSize: 12 }}>Medicine</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Requested Qty</th>
-                                            <th className="text-center" style={{ fontSize: 12, width: 140 }}>Batch</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
                                             <th className="text-center" style={{ fontSize: 12 }}>Status</th>
                                         </tr>
@@ -1112,31 +1171,6 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                                     </td>
                                                     <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                         {item.requestedQty} {pluralizeUnit(item.unit)}
-                                                    </td>
-                                                    <td style={{ verticalAlign: "middle" }}>
-                                                        {item.availableBatches && item.availableBatches.length > 0 ? (
-                                                            <Input
-                                                                type="select"
-                                                                bsSize="sm"
-                                                                value={item.batch}
-                                                                onChange={(e) => {
-                                                                    const val = e.target.value;
-                                                                    setApproveItems((prev) =>
-                                                                        prev.map((i) =>
-                                                                            i.itemId === item.itemId ? { ...i, batch: val } : i
-                                                                        )
-                                                                    );
-                                                                }}
-                                                                style={{ fontSize: 12 }}
-                                                            >
-                                                                <option value="">-- Select --</option>
-                                                                {item.availableBatches.map((b) => (
-                                                                    <option key={b} value={b}>{b}</option>
-                                                                ))}
-                                                            </Input>
-                                                        ) : (
-                                                            <span className="text-muted" style={{ fontSize: 11 }}>No batches</span>
-                                                        )}
                                                     </td>
                                                     <td style={{ width: 150, verticalAlign: "middle" }}>
                                                         <div className="input-group input-group-sm">
@@ -1175,6 +1209,108 @@ const [statusFilter, setStatusFilter] = useState("PENDING_REQUESTING");
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Pharmacy Selection Section */}
+                            {approveItems.some((item) => item.medicineId) && (
+                                <div className="mt-4">
+                                    <label className="fw-medium mb-2 d-block" style={{ fontSize: 13 }}>
+                                        <i className="bx bx-package me-2" />Select By Batch
+                                    </label>
+                                    {approveItems.map((item) => {
+                                        if (!item.medicineId) return null;
+                                        const options = pharmacyOptions[item.itemId] || [];
+                                        const isLoading = pharmacyOptionsLoading[item.itemId];
+                                        const selected = options.find((p) => p._id === item.selectedPharmacyId);
+
+                                        return (
+                                            <div key={item.itemId} className="mb-3 p-2 border rounded" style={{ background: "#f8f9fa" }}>
+                                                <p className="mb-2" style={{ fontSize: 12 }}>
+                                                    <strong>{item.medicineName}</strong> {item.strength && <span className="text-muted">· {item.strength} {item.unit}</span>}
+                                                </p>
+                                                {isLoading ? (
+                                                    <div className="d-flex align-items-center" style={{ fontSize: 12 }}>
+                                                        <Spinner size="sm" className="me-2" />
+                                                        Loading options…
+                                                    </div>
+                                                ) : options.filter((p) => {
+                                                    const availableStock = p.centers?.[0]?.stock ?? p.stock ?? 0;
+                                                    const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
+                                                    const requiredBaseUnits = item.requestedQty * conversionFactor;
+                                                    return availableStock >= requiredBaseUnits;
+                                                }).length > 0 ? (
+                                                    <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                                                        <table className="table table-sm table-bordered mb-0" style={{ fontSize: 11 }}>
+                                                            <thead className="table-light">
+                                                                <tr>
+                                                                    <th style={{ fontSize: 11, width: 30 }}>Select</th>
+                                                                    <th style={{ fontSize: 11 }}>Pharmacy ID</th>
+                                                                    <th style={{ fontSize: 11 }}>Batch</th>
+                                                                    <th style={{ fontSize: 11 }}>Expiry</th>
+                                                                    <th style={{ fontSize: 11 }}>Company</th>
+                                                                    <th style={{ fontSize: 11 }}>Purchase Price</th>
+                                                                    <th style={{ fontSize: 11, textAlign: "center" }}>Stock</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {options
+                                                                    .filter((pharmacy) => {
+                                                                        const availableStock = pharmacy.centers?.[0]?.stock ?? pharmacy.stock ?? 0;
+                                                                        // Convert requested qty from purchase units to base units for comparison
+                                                                        const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
+                                                                        const requiredBaseUnits = item.requestedQty * conversionFactor;
+                                                                        return availableStock >= requiredBaseUnits;
+                                                                    })
+                                                                    .map((pharmacy) => (
+                                                                    <tr
+                                                                        key={pharmacy._id}
+                                                                        style={{
+                                                                            background: selected?._id === pharmacy._id ? "#e7f3ff" : "white",
+                                                                            cursor: "pointer",
+                                                                        }}
+                                                                        onClick={() => handleSelectPharmacy(item.itemId, pharmacy)}
+                                                                    >
+                                                                        <td style={{ textAlign: "center", width: 30 }}>
+                                                                            <input
+                                                                                type="radio"
+                                                                                checked={selected?._id === pharmacy._id}
+                                                                                onChange={() => handleSelectPharmacy(item.itemId, pharmacy)}
+                                                                                style={{ cursor: "pointer" }}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{ fontSize: 11 }}>{pharmacy.id || "—"}</td>
+                                                                        <td style={{ fontSize: 11 }}>{pharmacy.Batch || "—"}</td>
+                                                                        <td style={{ fontSize: 11 }}>
+                                                                            {pharmacy.Expiry || "—"}
+                                                                        </td>
+                                                                        <td style={{ fontSize: 11 }}>{pharmacy.company || "—"}</td>
+                                                                        <td style={{ fontSize: 11, textAlign: "right" }}>
+                                                                            {pharmacy.purchasePrice ? `₹${pharmacy.purchasePrice.toFixed(2)}` : "—"}
+                                                                        </td>
+                                                                        <td style={{ fontSize: 11, textAlign: "center" }}>
+                                                                            {pharmacy.centers?.[0]?.stock ?? pharmacy.stock ?? 0} {pluralizeUnit(item.baseUnit)}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                ) : (() => {
+                                                    const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
+                                                    const requiredBaseUnits = item.requestedQty * conversionFactor;
+                                                    const conversionText = conversionFactor !== 1 ? ` (${item.requestedQty} ${item.unit || "units"} = ${Math.round(requiredBaseUnits)} ${item.baseUnit || "units"})` : "";
+                                                    return (
+                                                        <p className="text-muted mb-0" style={{ fontSize: 11 }}>
+                                                            {options.length === 0
+                                                                ? "No pharmacy records available for this medicine."
+                                                                : `No pharmacy records with sufficient stock (${requiredBaseUnits} ${item.baseUnit} required)${conversionText}.`}
+                                                        </p>
+                                                    );
+                                                })()}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </>
                     )}
 
