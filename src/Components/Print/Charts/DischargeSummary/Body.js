@@ -100,12 +100,6 @@ const SummaryBody = ({ chart, patient }) => {
   //     .map((line) => line.trim())
   //     .filter((line) => line);
   // };
-
-  console.log("discharge summary data:", JSON.stringify(data, null, 2));
-  console.log("patient signatures:", {
-    doctor: patient?.doctorData?.signature,
-    psychologist: patient?.psychologistData?.signature,
-  });
   return (
     <React.Fragment>
       <View style={styles.body} wrap>

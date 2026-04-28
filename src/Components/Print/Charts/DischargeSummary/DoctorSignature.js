@@ -1,6 +1,5 @@
 import { View, StyleSheet, Image, Text } from "@react-pdf/renderer";
 import { safeText } from "../../../../utils/safeText";
-import React from "react";
 
 const styles = StyleSheet.create({
   row: {
@@ -22,35 +21,11 @@ const styles = StyleSheet.create({
 });
 
 const DoctorSignature = ({ doctor }) => {
-  const [doctorSig, setDoctorSig] = React.useState(null);
-  const [psychSig, setPsychSig] = React.useState(null);
-
-
-
-  React.useEffect(() => {
-    const toBase64 = async (url, setter) => {
-      if (!url) return;
-      try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => setter(reader.result);
-        reader.readAsDataURL(blob);
-      } catch (e) {
-        console.error("Signature fetch failed", e);
-      }
-    };
-
-    toBase64(doctor?.doctorData?.signature, setDoctorSig);
-    toBase64(doctor?.psychologistData?.signature, setPsychSig);
-  }, [doctor]);
-
-  const renderImage = (src) => {
+  console.log(doctor);
+  const renderImage = (src, width) => {
     if (!src) return null;
-    return <Image src={src} style={styles?.image} />;
+    return <Image src={src} style={styles.image} />;
   };
-
-
   return (
     <View
       wrap={false}
@@ -67,7 +42,7 @@ const DoctorSignature = ({ doctor }) => {
           justifyContent: "center",
         }}
       >
-        {doctorSig && (
+        {doctor?.doctorData?.signature && (
           <View
             style={{
               width: "100%",
@@ -76,7 +51,7 @@ const DoctorSignature = ({ doctor }) => {
             }}
             wrap={false}
           >
-           {renderImage(doctorSig)}
+            {renderImage(doctor?.doctorData?.signature, 200)}
           </View>
         )}
         {doctor?.doctorData?.name && (
@@ -126,7 +101,7 @@ const DoctorSignature = ({ doctor }) => {
           justifyContent: "center",
         }}
       >
-        {psychSig && (
+        {doctor?.psychologistData?.signature && (
           <View
             style={{
               width: "100%",
@@ -135,7 +110,7 @@ const DoctorSignature = ({ doctor }) => {
             }}
             wrap={false}
           >
-            {renderImage(psychSig)}
+            {renderImage(doctor?.psychologistData?.signature, 200)}
           </View>
         )}
         {doctor?.psychologistData?.name && (
