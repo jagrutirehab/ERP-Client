@@ -169,7 +169,22 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
 
           {/* Row 2 */}
           {selectField("Form", "form", medicineForms, "Choose Form")}
-          {selectField("Base Unit", "baseUnit", baseUnits, "Choose B. Unit")}
+          <Col md={4} className="mb-3">
+            <label className="fs-12 text-muted mb-1">Base Unit</label>
+            <Select
+              name="baseUnit"
+              placeholder="Choose B. Unit"
+              options={(baseUnits || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
+              onChange={(selected) => {
+                const val = selected ? selected.value : "";
+                validation.setFieldValue("baseUnit", val);
+                validation.setFieldValue("unit", val);
+              }}
+              onBlur={() => validation.setFieldTouched("baseUnit", true)}
+              value={validation.values.baseUnit ? { value: validation.values.baseUnit, label: normalizeLabel(validation.values.baseUnit) } : null}
+              classNamePrefix="react-select"
+            />
+          </Col>
           {selectField("Purchase Unit", "purchaseUnit", purchaseUnits, "Choose P. Unit")}
 
           {/* Conversion  */}
@@ -229,7 +244,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
             />
             {dupError && <FormFeedback className="d-block">{dupError}</FormFeedback>}
           </Col>
-          {selectField("Unit", "unit", medicineUnits, "Choose Unit")}
+          {/* {selectField("Unit", "unit", medicineUnits, "Choose Unit")} */}
 
           {/* Row 5 */}
           <Col md={4} className="mb-3">

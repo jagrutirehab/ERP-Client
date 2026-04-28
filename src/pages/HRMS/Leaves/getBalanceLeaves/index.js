@@ -43,6 +43,10 @@ const GetBalanceLeaves = () => {
           category: "Pending Leaves",
           ...data.pendingLeaves?.[0],
         },
+        {
+          category : "Carry Forwards",
+          ...data.carryForward
+        }
       ];
 
       setBalanceData(rows);

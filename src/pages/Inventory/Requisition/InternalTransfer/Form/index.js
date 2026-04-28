@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import { getPharmacyStockByIds } from "../../../../../helpers/backend_helper";
+import { getStockByMedicineIds } from "../../../../../helpers/backend_helper";
 import {
     submitInternalTransferRequisition,
     editInternalTransferRequisition,
@@ -104,6 +104,14 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [fulfillingCenter, setFulfillingCenter] = useState(null);
     const [items, setItems] = useState([]);
 
+    const [centerMedicines, setCenterMedicines] = useState([]);
+    const [centerMedicinesLoading, setCenterMedicinesLoading] = useState(false);
+    const [centerMedicinesPage, setCenterMedicinesPage] = useState(1);
+    const [centerMedicinesPageSize, setCenterMedicinesPageSize] = useState(10);
+    const [centerMedicinesTotalPages, setCenterMedicinesTotalPages] = useState(1);
+    const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
+    const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
+
     // Auto-set Sareyaan as fulfilling center when creating a sareyaan order
     useEffect(() => {
         if (!isSareyaanOrder || isEdit) return;
@@ -145,26 +153,8 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     );
 
 
-    // Re-fetch stock whenever fulfilling center changes and cart has items
-    useEffect(() => {
-        if (!fulfillingCenter?.value || items.length === 0) return;
-        const pharmacyIds = items.map((i) => i.pharmacyId);
-        getPharmacyStockByIds(pharmacyIds, fulfillingCenter.value)
-            .then((res) => {
-                const stockMap = {};
-                (res?.data || []).forEach(({ pharmacyId, stock }) => {
-                    stockMap[String(pharmacyId)] = stock;
-                });
-                setItems((prev) =>
-                    prev.map((item) => ({
-                        ...item,
-                        availableStock: stockMap[String(item.pharmacyId)] ?? 0,
-                    }))
-                );
-            })
-            .catch(() => {});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fulfillingCenter?.value]);
+    // Stock is now displayed from search results (total stock)
+    // No need to re-fetch as pharmacyId is not stored until approval
 
     useEffect(() => {
         if (!isEdit || !requisitionId) return;
@@ -188,19 +178,21 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                 }
 
                 const mappedItems = (req.items || []).map((item) => {
+                    const med = item.medicineId || {};
                     const pharm = item.pharmacyId || {};
                     return {
+                        medicineId: item.medicineId?._id || item.medicineId,
                         pharmacyId: String(pharm._id || item.pharmacyId),
-                        customId: pharm.id || "—",
+                        customId: med.id || pharm.id || "—",
                         medicineName: str(pharm.medicineName) || str(item.medicineName),
-                        type: str(pharm.medicineId?.type),
+                        type: str(med.type),
                         strength: str(pharm.Strength) || str(pharm.strength) || str(item.strength),
-                        unit: str(pharm.medicineId?.purchaseUnit) || str(pharm.unitType) || str(pharm.unit) || str(item.unit),
-                        genericName: str(pharm.medicineId?.genericName),
-                        brandName: str(pharm.medicineId?.brandName) || str(pharm.medicineId?.name),
-                        baseUnit: str(pharm.medicineId?.baseUnit),
-                        purchaseUnit: str(pharm.medicineId?.purchaseUnit),
-                        conversion: pharm.medicineId?.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
+                        unit: str(med.purchaseUnit) || str(pharm.unitType) || str(pharm.unit) || str(item.unit),
+                        genericName: str(med.genericName),
+                        brandName: str(med.brandName) || str(med.name),
+                        baseUnit: str(med.baseUnit),
+                        purchaseUnit: str(med.purchaseUnit),
+                        conversion: med.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
                         availableStock: null,
                         requestedQty: item.requestedQty || 1,
                         itemRemarks: item.itemRemarks || "",
@@ -209,22 +201,22 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
 
                 setItems(mappedItems);
 
-                // Fetch live stock for all pre-loaded items from the fulfilling center
+                // For edit mode: refetch stock for already-approved items to adjust quantities if stock decreased
                 const fulCenterId = fulCenter?._id || (typeof fulCenter === "string" ? fulCenter : null);
-                const pharmacyIds = mappedItems.map((i) => i.pharmacyId).filter(Boolean);
-                if (pharmacyIds.length > 0 && fulCenterId) {
-                    getPharmacyStockByIds(pharmacyIds, fulCenterId)
+                const medicineIds = mappedItems.filter((i) => i.medicineId).map((i) => i.medicineId).filter(Boolean);
+                if (medicineIds.length > 0 && fulCenterId) {
+                    getStockByMedicineIds(medicineIds, fulCenterId)
                         .then((res) => {
                             const stockMap = {};
-                            (res?.data || []).forEach(({ pharmacyId, stock }) => {
-                                stockMap[String(pharmacyId)] = stock;
+                            (res?.data || []).forEach(({ medicineId, stock }) => {
+                                stockMap[String(medicineId)] = stock;
                             });
                             setItems((prev) =>
                                 prev.map((item) => ({
                                     ...item,
-                                    availableStock: stockMap[item.pharmacyId] ?? 0,
-                                    requestedQty: stockMap[item.pharmacyId] !== undefined
-                                        ? Math.min(item.requestedQty, Math.max(1, stockMap[item.pharmacyId]))
+                                    availableStock: stockMap[String(item.medicineId)] ?? 0,
+                                    requestedQty: stockMap[String(item.medicineId)] !== undefined
+                                        ? Math.min(item.requestedQty, Math.max(1, stockMap[String(item.medicineId)]))
                                         : item.requestedQty,
                                 }))
                             );
@@ -249,7 +241,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         }
         try {
             const result = await dispatch(
-                searchPharmacyInventory({ q: inputValue, centerId: fulfillingCenter.value })
+                searchPharmacyInventory({ q: inputValue, centerId: fulfillingCenter.value, totalStock: true })
             ).unwrap();
             const results = result?.data || result || [];
             return results.map((med) => ({
@@ -289,12 +281,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         setItems((prev) => [
             ...prev,
             {
+                medicineId: med.medicineId?._id || med.medicineId,
                 pharmacyId: med._id,
-                customId: med.id || "—",
+                customId: med.medicineId?.id || "—",
                 medicineName: str(med.medicineName),
                 type: str(med.medicineId?.type),
                 strength: str(med.Strength) || str(med.strength),
-                unit: str(med.medicineId?.purchaseUnit) || str(med.unitType) || str(med.unit),
+                unit: str(med.unitType) || str(med.unit),
                 genericName: str(med.medicineId?.genericName),
                 brandName: str(med.medicineId?.brandName) || str(med.medicineId?.name),
                 baseUnit: str(med.medicineId?.baseUnit),
@@ -306,6 +299,37 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
             },
         ]);
         setMedicineKey((k) => k + 1);
+    };
+
+    const handleAddFromTable = (med) => {
+        if (items.some((i) => i.pharmacyId === med._id)) {
+            toast.warning(`${med.medicineName} is already in the list.`);
+            return;
+        }
+        const centerEntry = (med.centers || []).find(
+            (c) => (c.centerId?._id || c.centerId) === fulfillingCenter?.value
+        );
+        setItems((prev) => [
+            ...prev,
+            {
+                medicineId: med.medicineId?._id || med.medicineId || null,
+                pharmacyId: med._id,
+                customId: med.id || "—",
+                medicineName: str(med.medicineName),
+                type: str(med.medicineId?.type),
+                strength: str(med.Strength) || str(med.strength),
+                unit: str(med.unitType) || str(med.unit),
+                genericName: str(med.medicineId?.genericName),
+                brandName: str(med.medicineId?.brandName) || str(med.medicineId?.name),
+                baseUnit: str(med.medicineId?.baseUnit),
+                purchaseUnit: str(med.medicineId?.purchaseUnit),
+                conversion: med.medicineId?.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
+                availableStock: centerEntry?.stock ?? 0,
+                requestedQty: 1,
+                itemRemarks: "",
+            },
+        ]);
+        toast.success(`${med.medicineName} added to cart!`);
     };
 
     const updateItem = (pharmacyId, field, value) =>
@@ -352,7 +376,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
             fulfillingCenter: fulfillingCenter.value,
             orderFromSaareyan: isSpecialFulfillingLocked,
             items: items.map((i) => ({
-                pharmacyId: i.pharmacyId,
+                medicineId: i.medicineId,
                 requestedQty: Number(i.requestedQty),
                 itemRemarks: i.itemRemarks || "",
             })),
@@ -388,12 +412,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         ].filter(Boolean).join(" ");
         const genericName = med.medicineId?.genericName || "";
         const brandName = med.medicineId?.brandName || "";
+        const medicineId = med.medicineId?.id || "—";
         return (
             <div className="d-flex align-items-center justify-content-between py-1 px-1 gap-3">
                 <div>
                     <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{primaryLabel}</p>
                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                        <span className="fw-medium text-primary">ID: {med.id || "—"}</span>
+                        <span className="fw-medium text-primary">ID: {medicineId}</span>
                         {(genericName || brandName) && (
                             <>
                                 <span className="mx-1">·</span>
@@ -404,9 +429,14 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                         )}
                     </p>
                 </div>
-                <span style={{ ...stockPill(centerStock), whiteSpace: "nowrap", flexShrink: 0 }}>
-                    {centerStock} available
-                </span>
+                <div className="d-flex flex-column align-items-end gap-1">
+                    <span style={{ ...stockPill(centerStock), whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {centerStock} available
+                    </span>
+                    <span style={{ fontSize: 9, color: "#6c757d", whiteSpace: "nowrap" }}>
+                        (Total stock)
+                    </span>
+                </div>
             </div>
         );
     };
@@ -634,19 +664,25 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                         <div>
                             <p className="mb-0 fw-semibold" style={{ fontSize: 14 }}>Add Medicines</p>
                             <p className="mb-0 text-muted" style={{ fontSize: 12 }}>
-                                Search the fulfilling center&apos;s inventory and add items
+                                Browse or search the fulfilling center&apos;s inventory and add items
                             </p>
                         </div>
                     </div>
                 </CardHeader>
                 <CardBody className="px-4 py-4">
+                    <div className="alert alert-info d-flex align-items-start gap-2 mb-3" style={{ fontSize: 12, borderRadius: 8 }}>
+                        <i className="bx bx-info-circle mt-1 fs-6" />
+                        <span>
+                            The stock displayed is the <strong>total available</strong> across all batches of each medicine at the selected fulfilling center.
+                        </span>
+                    </div>
                     <div style={{
                         background: "var(--bs-light,#f8f9fa)", borderRadius: 10,
                         border: "1px dashed var(--bs-border-color,#dee2e6)", padding: "16px 20px",
                     }}>
                         <Label className="fw-semibold mb-2 d-block" style={{ fontSize: 13 }}>
                             <i className="bx bx-search-alt me-1 text-primary" />
-                            Search Medicine
+                            Quick Search (or select from table above)
                         </Label>
                         <AsyncSelect
                             ref={medicineSearchRef}
@@ -769,7 +805,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                 </td>
                                                 <td className="py-3 px-3" style={{ minWidth: 220 }}>
                                                     <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>
-                                                        {[item.type, item.medicineName, item.strength, item.unit]
+                                                        {[item.type, item.medicineName, item.strength]
                                                             .filter(Boolean).join(" ")}
                                                     </p>
                                                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
