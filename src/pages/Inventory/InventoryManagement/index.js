@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { display } from "../../../utils/display";
 import {
   Search,
   Table as TableIcon,
@@ -363,7 +364,6 @@ const InventoryManagement = () => {
     setPageSize(newSize);
     setCurrentPage(1);
   };
-  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   // useEffect(() => {
   //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));

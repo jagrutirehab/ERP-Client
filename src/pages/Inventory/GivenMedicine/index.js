@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { display } from "../../../utils/display";
 // import { Search } from "lucide-react";
 import {
   Table,
@@ -84,8 +85,6 @@ const GivenMedicine = () => {
   const handleGiveMedicine = () => {
     setModalOpengive(true);
   };
-
-  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   const getPageRange = (total, current, maxButtons = 7) => {
     if (total <= maxButtons)

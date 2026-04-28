@@ -1,7 +1,5 @@
-import React from "react";
 import { normalizeUnderscores } from "../../../../utils/normalizeUnderscore";
-
-const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
+import { display } from "../../../../utils/display";
 
 export const getStockSummaryColumns = () => [
     {

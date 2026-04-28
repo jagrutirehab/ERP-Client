@@ -13,6 +13,7 @@ import { getNurseGivenMedicineDetails } from "../../../helpers/backend_helper";
 import Header from "../../Report/Components/Header";
 import { getNurseGivenMedicines } from "../../../store/features/pharmacy/pharmacySlice";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import { display } from "../../../utils/display";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
     Table,
@@ -168,8 +169,6 @@ const NurseGivenMedicine = () => {
         setSelectedRecord(null);
         setDetailsLoading(false);
     };
-
-    const display = (value) => (value === undefined || value === null || value === "" ? "-" : value);
 
     const getPageRange = (total, current, maxButtons = 7) => {
         if (total <= maxButtons) {
