@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
     Card,
     CardBody,
@@ -324,9 +324,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                     .map((item) => {
                         const med = item.medicineId || {};
                         const batches = item.batches && item.batches.length > 0 ? item.batches : null;
-                        const batchLabels = batches
-                            ? batches.map(b => `${b.pharmacyId?.Batch || b.Batch || "—"}`).join(" + ")
-                            : "—";
 
                         return {
                             itemId: item._id,
@@ -338,9 +335,15 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                             genericName: med.genericName || "",
                             brandName: med.brandName || med.name || "",
                             approvedQty: item.approvedQty,
-                            dispatchedQty: item.approvedQty,
-                            batch: batchLabels,
-                            batches: batches,
+                            batches: batches || [],
+                            batchAllocations: batches
+                                ? batches.map(b => ({
+                                    pharmacyId: b.pharmacyId?._id || b.pharmacyId,
+                                    batchName: b.pharmacyId?.Batch || b.Batch || "No Batch",
+                                    approvedQty: b.approvedQty || 0,
+                                    dispatchedQty: b.approvedQty || 0,
+                                  }))
+                                : [],
                         };
                     })
             );
@@ -365,9 +368,18 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     };
 
     const handleDispatchSubmit = async () => {
-        const totalDispatched = dispatchItems.reduce((sum, i) => sum + Number(i.dispatchedQty || 0), 0);
-        if (totalDispatched === 0) {
-            toast.warning("Cannot dispatch: At least one item must have a dispatched quantity greater than 0.");
+        const items = dispatchItems.map((i) => ({
+            itemId: i.itemId,
+            batches: i.batchAllocations
+                .filter(b => (b.dispatchedQty ?? 0) > 0)
+                .map(b => ({
+                  pharmacyId: b.pharmacyId,
+                  dispatchedQty: Number(b.dispatchedQty),
+                })),
+        })).filter(i => i.batches.length > 0);
+
+        if (items.length === 0) {
+            toast.warning("Cannot dispatch: At least one batch must have a dispatched quantity greater than 0.");
             return;
         }
         try {
@@ -376,10 +388,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                 dispatchNote,
                 courierName,
                 courierId,
-                items: dispatchItems.map((i) => ({
-                    itemId: i.itemId,
-                    dispatchedQty: Number(i.dispatchedQty),
-                })),
+                items,
             })).unwrap();
             toast.success("Requisition dispatched successfully!");
             closeDispatchModal();
@@ -402,9 +411,6 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                     .map((item) => {
                         const med = item.medicineId || {};
                         const batches = item.batches && item.batches.length > 0 ? item.batches : null;
-                        const batchLabels = batches
-                            ? batches.map(b => `${b.pharmacyId?.Batch || b.Batch || "—"}`).join(" + ")
-                            : "—";
 
                         return {
                             itemId: item._id,
@@ -416,9 +422,15 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                             genericName: med.genericName || "",
                             brandName: med.brandName || med.name || "",
                             approvedQty: item.approvedQty,
-                            receivedQty: item.dispatchedQty || item.approvedQty,
-                            batch: batchLabels,
-                            batches: batches,
+                            batches: batches || [],
+                            batchAllocations: batches
+                                ? batches.map(b => ({
+                                    pharmacyId: b.pharmacyId?._id || b.pharmacyId,
+                                    batchName: b.pharmacyId?.Batch || b.Batch || "No Batch",
+                                    dispatchedQty: b.dispatchedQty || 0,
+                                    receivedQty: b.dispatchedQty || 0,
+                                  }))
+                                : [],
                         };
                     })
             );
@@ -444,20 +456,25 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     };
 
     const handleGrnSubmit = async () => {
-        if (grnItems.length === 0) return;
-        const totalReceived = grnItems.reduce((sum, i) => sum + Number(i.receivedQty || 0), 0);
-        if (totalReceived === 0) {
-            toast.warning("Cannot generate GRN: At least one item must have a received quantity greater than 0.");
+        const items = grnItems.map((i) => ({
+            itemId: i.itemId,
+            batches: i.batchAllocations
+                .filter(b => (b.receivedQty ?? 0) > 0)
+                .map(b => ({
+                  pharmacyId: b.pharmacyId,
+                  receivedQty: Number(b.receivedQty),
+                })),
+        })).filter(i => i.batches.length > 0);
+
+        if (items.length === 0) {
+            toast.warning("Cannot generate GRN: At least one batch must have a received quantity greater than 0.");
             return;
         }
         try {
             await dispatch(grnInternalTransfer({
                 id: grnModal.row._id,
                 receiveNote,
-                items: grnItems.map((i) => ({
-                    itemId: i.itemId,
-                    receivedQty: Number(i.receivedQty),
-                })),
+                items,
             })).unwrap();
             toast.success("GRN recorded successfully!");
             closeGrnModal();
@@ -569,9 +586,9 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
             prev.map((item) =>
                 item.itemId === itemId
                     ? {
-                          ...item,
-                          selectedPharmacyId: pharmacy._id,
-                        }
+                        ...item,
+                        selectedPharmacyId: pharmacy._id,
+                    }
                     : item
             )
         );
@@ -1016,7 +1033,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                 <th style={{ fontSize: 12 }}>#</th>
                                                 <th style={{ fontSize: 12 }}>Medicine</th>
                                                 <th className="text-center" style={{ fontSize: 12 }}>Requested</th>
-                                                {selectedReq.fulfillingCenterReview && <th className="text-center" style={{ fontSize: 12 }}>Approved (with Batch)</th>}
+                                                {selectedReq.fulfillingCenterReview && <th className="text-center" style={{ fontSize: 12 }}>Approved </th>}
                                                 {selectedReq.dispatch?.dispatchedAt && <th className="text-center" style={{ fontSize: 12 }}>Dispatched</th>}
                                                 {selectedReq.receive?.receivedAt && <th className="text-center" style={{ fontSize: 12 }}>Received</th>}
                                                 <th style={{ fontSize: 12 }}>Remarks</th>
@@ -1050,23 +1067,53 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                         </td>
                                                         <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty} {pluralizeUnit(rawUnit)}</td>
                                                         {selectedReq.fulfillingCenterReview && (
-                                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                                {item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                            <td style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                                <div className="text-center fw-semibold mb-2">
+                                                                    {item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                                </div>
                                                                 {(item.batches || []).length > 0 && (
-                                                                    <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>
+                                                                    <div className="text-muted fw-normal" style={{ fontSize: 11 }}>
                                                                         {item.batches.map((b, bIdx) => (
-                                                                            <div key={bIdx}>Batch: {b.pharmacyId?.Batch || b.Batch || "—"}</div>
+                                                                            <div key={bIdx} className="mb-1">
+                                                                                <strong>{b.pharmacyId?.Batch || "No Batch"}</strong>: {b.approvedQty} {pluralizeUnit(rawUnit)}
+                                                                            </div>
                                                                         ))}
                                                                     </div>
                                                                 )}
                                                             </td>
                                                         )}
                                                         {selectedReq.dispatch?.dispatchedAt && (
-                                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                                {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                            <td style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                                <div className="text-center fw-semibold mb-2">
+                                                                    {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                                </div>
+                                                                {(item.batches || []).length > 0 && (
+                                                                    <div className="text-muted fw-normal" style={{ fontSize: 11 }}>
+                                                                        {item.batches.map((b, bIdx) => (
+                                                                            <div key={bIdx} className="mb-1">
+                                                                                <strong>{b.pharmacyId?.Batch || "No Batch"}</strong>: {b.dispatchedQty || 0} {pluralizeUnit(rawUnit)}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                             </td>
                                                         )}
-                                                        {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
+                                                        {selectedReq.receive?.receivedAt && (
+                                                            <td style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                                <div className="text-center fw-semibold mb-2">
+                                                                    {item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                                </div>
+                                                                {(item.batches || []).length > 0 && (
+                                                                    <div className="text-muted fw-normal" style={{ fontSize: 11 }}>
+                                                                        {item.batches.map((b, bIdx) => (
+                                                                            <div key={bIdx} className="mb-1">
+                                                                                <strong>{b.pharmacyId?.Batch || "No Batch"}</strong>: {b.receivedQty || 0} {pluralizeUnit(rawUnit)}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        )}
                                                         <td className="text-muted" style={{ fontSize: 12 }}>{item.itemRemarks || "—"}</td>
                                                     </tr>
                                                 );
@@ -1252,16 +1299,16 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                     {item.availableBatches.map((batch, bIdx) => {
                                                                         const allocatedQty = (item.allocations || []).find(a => a.pharmacyId === batch._id)?.qty || 0;
                                                                         return (
-                                                                            <div key={`${batch._id}-${bIdx}`} className="d-flex align-items-center gap-2 p-2" style={{ background: "white", borderRadius: 3, border: "1px solid #dee2e6" }}>
+                                                                            <div key={`${batch._id}-${bIdx}`} className="d-flex align-items-start gap-2 p-2" style={{ background: "white", borderRadius: 3, border: "1px solid #dee2e6" }}>
                                                                                 <div style={{ flex: 1 }}>
-                                                                                    <p className="mb-0" style={{ fontSize: 12, fontWeight: 500 }}>
+                                                                                    <p className="mb-0" style={{ fontSize: 12, fontWeight: 500, lineHeight: "24px" }}>
                                                                                         {batch.Batch || "No Batch"} <span className="text-muted">({batch.company || "—"})</span>
                                                                                     </p>
                                                                                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                                                                                        Stock: {batch.stock} | Price: {batch.purchasePrice}
+                                                                                        Stock: {batch.stock} {pluralizeUnit(item.unit)} | Price: {batch.purchasePrice}
                                                                                     </p>
                                                                                 </div>
-                                                                                <div className="d-flex align-items-center gap-1">
+                                                                                <div className="d-flex align-items-start gap-1">
                                                                                     {(() => {
                                                                                         const errorKey = `${item.itemId}-${batch._id}`;
                                                                                         const hasError = allocationErrors[errorKey];
@@ -1271,63 +1318,94 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                                         const remaining = item.approvedQty - currentTotal;
 
                                                                                         return (
-                                                                                            <div>
-                                                                                                <Input
-                                                                                                    type="number"
-                                                                                                    min={0}
-                                                                                                    value={allocatedQty}
-                                                                                                    style={{
-                                                                                                        borderColor: hasError ? "#dc3545" : undefined,
-                                                                                                        borderWidth: hasError ? "2px" : undefined,
-                                                                                                    }}
-                                                                                                    onChange={(e) => {
-                                                                                                        const newQty = parseInt(e.target.value, 10);
-                                                                                                        if (isNaN(newQty) || newQty < 0) return;
-
-                                                                                                        // Calculate current total allocation from other batches
-                                                                                                        const currentTotal = (item.allocations || [])
-                                                                                                            .filter(a => a.pharmacyId !== batch._id)
-                                                                                                            .reduce((sum, a) => sum + (a.qty || 0), 0);
-
-                                                                                                        const errorKey = `${item.itemId}-${batch._id}`;
-                                                                                                        const hasError = currentTotal + newQty > item.approvedQty;
-
-                                                                                                        // Update error state
-                                                                                                        setAllocationErrors((prev) => ({
-                                                                                                            ...prev,
-                                                                                                            [errorKey]: hasError,
-                                                                                                        }));
-
-                                                                                                        setApproveItems((prev) =>
-                                                                                                            prev.map((i) => {
-                                                                                                                if (i.itemId === item.itemId) {
-                                                                                                                    const updated = [...(i.allocations || [])];
-                                                                                                                    const existingIdx = updated.findIndex(a => a.pharmacyId === batch._id);
-                                                                                                                    if (existingIdx >= 0) {
-                                                                                                                        if (newQty === 0) {
-                                                                                                                            updated.splice(existingIdx, 1);
-                                                                                                                        } else {
-                                                                                                                            updated[existingIdx].qty = newQty;
+                                                                                            <div className="text-end" style={{ minWidth: 150 }}>
+                                                                                                <div className="d-flex align-items-center justify-content-end gap-1">
+                                                                                                    <Input
+                                                                                                        type="number"
+                                                                                                        min={0}
+                                                                                                        value={allocatedQty}
+                                                                                                        style={{
+                                                                                                            borderColor: hasError ? "#dc3545" : undefined,
+                                                                                                            borderWidth: hasError ? "2px" : undefined,
+                                                                                                            width: 60,
+                                                                                                            textAlign: "center",
+                                                                                                            fontSize: 12,
+                                                                                                            padding: "4px",
+                                                                                                        }}
+                                                                                                        onChange={(e) => {
+                                                                                                            const inputValue = e.target.value;
+                                                                                                            if (inputValue === "") {
+                                                                                                                // Allow clearing the field
+                                                                                                                setApproveItems((prev) =>
+                                                                                                                    prev.map((i) => {
+                                                                                                                        if (i.itemId === item.itemId) {
+                                                                                                                            const updated = [...(i.allocations || [])];
+                                                                                                                            const existingIdx = updated.findIndex(a => a.pharmacyId === batch._id);
+                                                                                                                            if (existingIdx >= 0) {
+                                                                                                                                updated.splice(existingIdx, 1);
+                                                                                                                            }
+                                                                                                                            return { ...i, allocations: updated };
                                                                                                                         }
-                                                                                                                    } else if (newQty > 0) {
-                                                                                                                        updated.push({ pharmacyId: batch._id, qty: newQty });
+                                                                                                                        return i;
+                                                                                                                    })
+                                                                                                                );
+                                                                                                                setAllocationErrors((prev) => ({
+                                                                                                                    ...prev,
+                                                                                                                    [`${item.itemId}-${batch._id}`]: false,
+                                                                                                                }));
+                                                                                                                return;
+                                                                                                            }
+
+                                                                                                            const newQty = parseInt(inputValue, 10);
+                                                                                                            if (isNaN(newQty) || newQty < 0) return;
+
+                                                                                                            // Calculate current total allocation from other batches
+                                                                                                            const currentTotal = (item.allocations || [])
+                                                                                                                .filter(a => a.pharmacyId !== batch._id)
+                                                                                                                .reduce((sum, a) => sum + (a.qty || 0), 0);
+
+                                                                                                            const errorKey = `${item.itemId}-${batch._id}`;
+                                                                                                            // Validate against both approved qty and batch stock
+                                                                                                            const exceedsApproved = currentTotal + newQty > item.approvedQty;
+                                                                                                            const exceedsStock = newQty > (batch.stock || 0);
+                                                                                                            const hasError = exceedsApproved || exceedsStock;
+
+                                                                                                            // Update error state
+                                                                                                            setAllocationErrors((prev) => ({
+                                                                                                                ...prev,
+                                                                                                                [errorKey]: hasError,
+                                                                                                            }));
+
+                                                                                                            setApproveItems((prev) =>
+                                                                                                                prev.map((i) => {
+                                                                                                                    if (i.itemId === item.itemId) {
+                                                                                                                        const updated = [...(i.allocations || [])];
+                                                                                                                        const existingIdx = updated.findIndex(a => a.pharmacyId === batch._id);
+                                                                                                                        if (existingIdx >= 0) {
+                                                                                                                            if (newQty === 0) {
+                                                                                                                                updated.splice(existingIdx, 1);
+                                                                                                                            } else {
+                                                                                                                                updated[existingIdx].qty = newQty;
+                                                                                                                            }
+                                                                                                                        } else if (newQty > 0) {
+                                                                                                                            updated.push({ pharmacyId: batch._id, qty: newQty });
+                                                                                                                        }
+                                                                                                                        return { ...i, allocations: updated };
                                                                                                                     }
-                                                                                                                    return { ...i, allocations: updated };
-                                                                                                                }
-                                                                                                                return i;
-                                                                                                            })
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    placeholder="Qty"
-                                                                                                    style={{ width: 60, textAlign: "center", fontSize: 12, padding: "4px" }}
-                                                                                                    bsSize="sm"
-                                                                                                />
-                                                                                                <span style={{ fontSize: 11, color: "#6c757d", minWidth: 40 }}>
-                                                                                                    {pluralizeUnit(item.unit)}
-                                                                                                </span>
+                                                                                                                    return i;
+                                                                                                                })
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        placeholder="Qty"
+                                                                                                        bsSize="sm"
+                                                                                                    />
+                                                                                                    <span style={{ fontSize: 11, color: "#6c757d", minWidth: 40 }}>
+                                                                                                        {pluralizeUnit(item.unit)}
+                                                                                                    </span>
+                                                                                                </div>
                                                                                                 {hasError && (
                                                                                                     <p style={{ fontSize: 11, color: "#dc3545", marginTop: 4, marginBottom: 0 }}>
-                                                                                                        Max: {remaining} (already allocated: {currentTotal})
+                                                                                                        Max stock: {batch.stock} {pluralizeUnit(item.unit)} | Remaining to allocate: {remaining}
                                                                                                     </p>
                                                                                                 )}
                                                                                             </div>
@@ -1349,7 +1427,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                     const batchInfo = item.availableBatches.find(b => b._id === alloc.pharmacyId);
                                                                     return (
                                                                         <div key={aIdx} className="badge bg-info" style={{ fontSize: 11, padding: "4px 8px" }}>
-                                                                            {batchInfo?.Batch || alloc.pharmacyId}: {alloc.qty} {pluralizeUnit(item.unit)}
+                                                                            {batchInfo?.Batch || "No Batch"}: {alloc.qty} {pluralizeUnit(item.unit)}
                                                                             <button
                                                                                 type="button"
                                                                                 className="ms-1"
@@ -1519,71 +1597,89 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                 <tr>
                                     <th style={{ fontSize: 12 }}>#</th>
                                     <th style={{ fontSize: 12 }}>Medicine</th>
-                                    <th className="text-center" style={{ fontSize: 12 }}>Batch</th>
+                                    <th style={{ fontSize: 12 }}>Batch</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
-                                    <th className="text-center" style={{ fontSize: 12 }}>Dispatched Qty</th>
+                                    <th className="text-center" style={{ fontSize: 12 }}>Dispatch Qty</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {dispatchItems.map((item, idx) => {
-                                    const isSkipped = Number(item.dispatchedQty) === 0;
+                                    const totalDispatched = item.batchAllocations.reduce((sum, b) => sum + Number(b.dispatchedQty || 0), 0);
+                                    const isComplete = totalDispatched === item.approvedQty;
+                                    const isPartial = totalDispatched > 0 && totalDispatched < item.approvedQty;
+                                    const isSkipped = totalDispatched === 0;
+                                    const rowColor = isSkipped ? "#fff5f5" : isPartial ? "#fffbe6" : "transparent";
+
                                     return (
-                                        <tr key={item.itemId} style={isSkipped ? { opacity: 0.5, background: "#fff5f5" } : {}}>
-                                            <td className="text-muted" style={{ fontSize: 12 }}>{idx + 1}</td>
-                                            <td>
-                                                <p className="mb-0 fw-medium" style={{ fontSize: 13 }}>
-                                                    {item.type && <span className="text-muted me-1" style={{ fontSize: 11 }}>[{item.type}]</span>}
-                                                    {[item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
-                                                </p>
-                                                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                                                    {item.customId && <span className="text-primary me-1">{item.customId}</span>}
-                                                    {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
-                                                </p>
-                                            </td>
-                                            <td style={{ fontSize: 12, verticalAlign: "middle" }}>
-                                                {item.batches ? (
-                                                    <div className="d-flex flex-column gap-1">
-                                                        {item.batches.map((batch, bIdx) => {
-                                                            const batchName = batch.pharmacyId?.Batch || batch.Batch || "—";
-                                                            return (
-                                                                <div key={bIdx} style={{ fontSize: 11, padding: "4px 6px", background: "#e3f2fd", borderRadius: 3 }}>
-                                                                    <strong>{batchName}</strong>: {batch.approvedQty} {pluralizeUnit(item.unit)}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : (
-                                                    <span>{item.batch}</span>
-                                                )}
-                                            </td>
-                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
-                                            </td>
-                                            <td style={{ width: 150, verticalAlign: "middle" }}>
-                                                <div className="input-group input-group-sm">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        max={item.approvedQty}
-                                                        value={item.dispatchedQty}
-                                                        onChange={(e) => {
-                                                            let val = parseInt(e.target.value, 10);
-                                                            if (isNaN(val) || val < 0) val = 0;
-                                                            if (val > item.approvedQty) val = item.approvedQty;
-                                                            setDispatchItems((prev) =>
-                                                                prev.map((i) =>
-                                                                    i.itemId === item.itemId ? { ...i, dispatchedQty: val } : i
-                                                                )
-                                                            );
-                                                        }}
-                                                        style={{ textAlign: "center", fontWeight: 700 }}
-                                                    />
-                                                    <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
-                                                        {pluralizeUnit(item.unit, item.dispatchedQty) || "Unit"}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <React.Fragment key={item.itemId}>
+                                            <tr style={{ background: rowColor }}>
+                                                <td className="text-muted" style={{ fontSize: 12, verticalAlign: "top", paddingTop: 12 }}>{idx + 1}</td>
+                                                <td style={{ verticalAlign: "top", paddingTop: 12 }}>
+                                                    <p className="mb-0 fw-medium" style={{ fontSize: 13 }}>
+                                                        {item.type && <span className="text-muted me-1" style={{ fontSize: 11 }}>[{item.type}]</span>}
+                                                        {[item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
+                                                    </p>
+                                                    <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
+                                                        {item.customId && <span className="text-primary me-1">{item.customId}</span>}
+                                                        {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
+                                                    </p>
+                                                </td>
+                                                <td colSpan="3" className="p-0 border-0"></td>
+                                            </tr>
+                                            {item.batchAllocations.map((batch, bIdx) => (
+                                                <tr key={`${item.itemId}-${bIdx}`} style={{ background: rowColor }}>
+                                                    <td colSpan="2" className="border-0" style={{ paddingLeft: 0 }}></td>
+                                                    <td style={{ fontSize: 11, paddingLeft: 20, paddingRight: 12 }}>
+                                                        <strong>{batch.batchName}</strong>
+                                                    </td>
+                                                    <td className="text-center" style={{ fontSize: 12 }}>
+                                                        {batch.approvedQty} {pluralizeUnit(item.unit, batch.approvedQty)}
+                                                    </td>
+                                                    <td style={{ width: 150 }}>
+                                                        <div className="input-group input-group-sm">
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                max={batch.approvedQty}
+                                                                value={batch.dispatchedQty}
+                                                                onChange={(e) => {
+                                                                    let val = parseInt(e.target.value, 10);
+                                                                    if (isNaN(val) || val < 0) val = 0;
+                                                                    if (val > batch.approvedQty) val = batch.approvedQty;
+                                                                    setDispatchItems((prev) =>
+                                                                        prev.map((i) =>
+                                                                            i.itemId === item.itemId
+                                                                                ? {
+                                                                                    ...i,
+                                                                                    batchAllocations: i.batchAllocations.map((b, bId) =>
+                                                                                        bId === bIdx ? { ...b, dispatchedQty: val } : b
+                                                                                    ),
+                                                                                }
+                                                                                : i
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                style={{ textAlign: "center", fontWeight: 700 }}
+                                                            />
+                                                            <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                                {pluralizeUnit(item.unit, batch.dispatchedQty) || "Unit"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            <tr style={{ background: rowColor, borderTop: "2px solid #dee2e6" }}>
+                                                <td colSpan="3" className="text-right fw-semibold" style={{ fontSize: 12, textAlign: "right", paddingRight: 12 }}>
+                                                    Total:
+                                                </td>
+                                                <td className="text-center" style={{ fontSize: 12, fontWeight: 600 }}>
+                                                    {totalDispatched} / {item.approvedQty} {pluralizeUnit(item.unit)}
+                                                </td>
+                                                <td style={{ fontSize: 12, color: isComplete ? "#28a745" : isPartial ? "#ffc107" : "#6c757d" }}>
+                                                    {isComplete ? "✓ Complete" : isPartial ? "⚠ Partial" : "◌ Not started"}
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
                                     );
                                 })}
                             </tbody>
@@ -1669,78 +1765,89 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                 <tr>
                                     <th style={{ fontSize: 12 }}>#</th>
                                     <th style={{ fontSize: 12 }}>Medicine</th>
-                                    <th className="text-center" style={{ fontSize: 12 }}>Batch</th>
-                                    <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
+                                    <th style={{ fontSize: 12 }}>Batch</th>
+                                    <th className="text-center" style={{ fontSize: 12 }}>Dispatched Qty</th>
                                     <th className="text-center" style={{ fontSize: 12 }}>Received Qty</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {grnItems.map((item, idx) => {
-                                    const received = Number(item.receivedQty);
-                                    const isShort = received < item.approvedQty && received > 0;
-                                    const isMissing = received === 0;
-                                    const rowStyle = isMissing
-                                        ? { opacity: 0.5, background: "#fff5f5" }
-                                        : isShort
-                                            ? { background: "#fffbe6" }
-                                            : {};
+                                    const totalReceived = item.batchAllocations.reduce((sum, b) => sum + Number(b.receivedQty || 0), 0);
+                                    const totalDispatched = item.batchAllocations.reduce((sum, b) => sum + Number(b.dispatchedQty || 0), 0);
+                                    const isShort = totalReceived < totalDispatched && totalReceived > 0;
+                                    const isMissing = totalReceived === 0;
+                                    const rowColor = isMissing ? "#fff5f5" : isShort ? "#fffbe6" : "transparent";
+
                                     return (
-                                        <tr key={item.itemId} style={rowStyle}>
-                                            <td className="text-muted" style={{ fontSize: 12 }}>{idx + 1}</td>
-                                            <td>
-                                                <p className="mb-0 fw-medium" style={{ fontSize: 13 }}>
-                                                    {item.type && <span className="text-muted me-1" style={{ fontSize: 11 }}>[{item.type}]</span>}
-                                                    {[item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
-                                                </p>
-                                                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                                                    {item.customId && <span className="text-primary me-1">{item.customId}</span>}
-                                                    {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
-                                                </p>
-                                            </td>
-                                            <td style={{ fontSize: 12, verticalAlign: "middle" }}>
-                                                {item.batches ? (
-                                                    <div className="d-flex flex-column gap-1">
-                                                        {item.batches.map((batch, bIdx) => {
-                                                            const batchName = batch.pharmacyId?.Batch || batch.Batch || "—";
-                                                            return (
-                                                                <div key={bIdx} style={{ fontSize: 11, padding: "4px 6px", background: "#e3f2fd", borderRadius: 3 }}>
-                                                                    <strong>{batchName}</strong>: {batch.dispatchedQty} {pluralizeUnit(item.unit)}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                ) : (
-                                                    <span>{item.batch}</span>
-                                                )}
-                                            </td>
-                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
-                                            </td>
-                                            <td style={{ width: 150 }}>
-                                                <div className="input-group input-group-sm">
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        max={item.approvedQty}
-                                                        value={item.receivedQty}
-                                                        onChange={(e) => {
-                                                            let val = parseInt(e.target.value, 10);
-                                                            if (isNaN(val) || val < 0) val = 0;
-                                                            if (val > item.approvedQty) val = item.approvedQty;
-                                                            setGrnItems((prev) =>
-                                                                prev.map((i) =>
-                                                                    i.itemId === item.itemId ? { ...i, receivedQty: val } : i
-                                                                )
-                                                            );
-                                                        }}
-                                                        style={{ textAlign: "center", fontWeight: 700 }}
-                                                    />
-                                                    <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
-                                                        {pluralizeUnit(item.unit, item.receivedQty) || "Unit"}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <React.Fragment key={item.itemId}>
+                                            <tr style={{ background: rowColor }}>
+                                                <td className="text-muted" style={{ fontSize: 12, verticalAlign: "top", paddingTop: 12 }}>{idx + 1}</td>
+                                                <td style={{ verticalAlign: "top", paddingTop: 12 }}>
+                                                    <p className="mb-0 fw-medium" style={{ fontSize: 13 }}>
+                                                        {item.type && <span className="text-muted me-1" style={{ fontSize: 11 }}>[{item.type}]</span>}
+                                                        {[item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
+                                                    </p>
+                                                    <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
+                                                        {item.customId && <span className="text-primary me-1">{item.customId}</span>}
+                                                        {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
+                                                    </p>
+                                                </td>
+                                                <td colSpan="3" className="p-0 border-0"></td>
+                                            </tr>
+                                            {item.batchAllocations.map((batch, bIdx) => (
+                                                <tr key={`${item.itemId}-${bIdx}`} style={{ background: rowColor }}>
+                                                    <td colSpan="2" className="border-0" style={{ paddingLeft: 0 }}></td>
+                                                    <td style={{ fontSize: 11, paddingLeft: 20, paddingRight: 12 }}>
+                                                        <strong>{batch.batchName}</strong>
+                                                    </td>
+                                                    <td className="text-center" style={{ fontSize: 12 }}>
+                                                        {batch.dispatchedQty} {pluralizeUnit(item.unit, batch.dispatchedQty)}
+                                                    </td>
+                                                    <td style={{ width: 150 }}>
+                                                        <div className="input-group input-group-sm">
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                max={batch.dispatchedQty}
+                                                                value={batch.receivedQty}
+                                                                onChange={(e) => {
+                                                                    let val = parseInt(e.target.value, 10);
+                                                                    if (isNaN(val) || val < 0) val = 0;
+                                                                    if (val > batch.dispatchedQty) val = batch.dispatchedQty;
+                                                                    setGrnItems((prev) =>
+                                                                        prev.map((i) =>
+                                                                            i.itemId === item.itemId
+                                                                                ? {
+                                                                                    ...i,
+                                                                                    batchAllocations: i.batchAllocations.map((b, bId) =>
+                                                                                        bId === bIdx ? { ...b, receivedQty: val } : b
+                                                                                    ),
+                                                                                }
+                                                                                : i
+                                                                        )
+                                                                    );
+                                                                }}
+                                                                style={{ textAlign: "center", fontWeight: 700 }}
+                                                            />
+                                                            <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                                {pluralizeUnit(item.unit, batch.receivedQty) || "Unit"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            <tr style={{ background: rowColor, borderTop: "2px solid #dee2e6" }}>
+                                                <td colSpan="3" className="text-right fw-semibold" style={{ fontSize: 12, textAlign: "right", paddingRight: 12 }}>
+                                                    Total:
+                                                </td>
+                                                <td className="text-center" style={{ fontSize: 12, fontWeight: 600 }}>
+                                                    {totalDispatched} {pluralizeUnit(item.unit)}
+                                                </td>
+                                                <td style={{ fontSize: 12, color: totalReceived === totalDispatched ? "#28a745" : totalReceived > 0 ? "#ffc107" : "#6c757d" }}>
+                                                    {totalReceived === totalDispatched ? "✓ Complete" : totalReceived > 0 ? `⚠ ${totalReceived} / ${totalDispatched}` : "◌ Not started"}
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
                                     );
                                 })}
                             </tbody>

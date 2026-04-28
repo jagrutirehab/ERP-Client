@@ -252,19 +252,16 @@ const InternalTransferPDF = ({ requisition }) => {
                                 <View style={{ width: "3%", paddingRight: 2 }}>
                                     <Text style={styles.tableHeaderText}>No.</Text>
                                 </View>
-                                <View style={{ width: "41%", paddingRight: 4 }}>
+                                <View style={{ width: "37%", paddingRight: 4 }}>
                                     <Text style={styles.tableHeaderText}>Name</Text>
                                 </View>
                                 <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Quantity</Text>
                                 </View>
-                                {/* <View style={{ width: "14%", textAlign: "center" }}>
-                                    <Text style={styles.tableHeaderText}>Base Rate</Text>
-                                </View> */}
-                                <View style={{ width: "11%", textAlign: "center" }}>
+                                <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Rate</Text>
                                 </View>
-                                <View style={{ width: "11%", textAlign: "center" }}>
+                                <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={styles.tableHeaderText}>Amount</Text>
                                 </View>
                                 <View style={{ width: "21%", paddingLeft: 4 }}>
@@ -297,7 +294,9 @@ const InternalTransferPDF = ({ requisition }) => {
                                 const hasBatches = item.batches && item.batches.length > 0;
                                 const rowsToRender = hasBatches ? item.batches : [{ pharmacyId: {}, approvedQty: item.approvedQty, dispatchedQty: item.dispatchedQty }];
 
-                                return rowsToRender.map((batchRow, batchIdx) => {
+                                return rowsToRender
+                                    .filter(batch => (batch.dispatchedQty ?? batch.approvedQty ?? 0) > 0)
+                                    .map((batchRow, batchIdx) => {
                                     // Handle both old (flat) and new (populated) batch structure
                                     const batchPharm = batchRow.pharmacyId || {};
                                     const dispatchedQty = (batchRow.dispatchedQty ?? batchRow.approvedQty ?? 0) || (batchIdx === 0 ? item.dispatchedQty ?? item.approvedQty : 0);
@@ -316,7 +315,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                             <View style={{ width: "3%", paddingRight: 2 }}>
                                                 <Text style={styles.cellText}>{rowIndex}</Text>
                                             </View>
-                                            <View style={{ width: "41%", paddingRight: 4 }}>
+                                            <View style={{ width: "37%", paddingRight: 4 }}>
                                                 <Text style={styles.cellText}>{primaryLabel}</Text>
                                             </View>
                                             <View style={{ width: "13%", textAlign: "center" }}>
@@ -324,12 +323,12 @@ const InternalTransferPDF = ({ requisition }) => {
                                                     {dispatchedQty} {pluralizeUnit(purchaseUnit)}
                                                 </Text>
                                             </View>
-                                            <View style={{ width: "11%", textAlign: "center" }}>
+                                            <View style={{ width: "13%", textAlign: "center" }}>
                                                 <Text style={{ ...styles.cellText, textAlign: "center" }}>
                                                     Rs. {Number(rate || 0).toFixed(2)}
                                                 </Text>
                                             </View>
-                                            <View style={{ width: "11%", textAlign: "center" }}>
+                                            <View style={{ width: "13%", textAlign: "center" }}>
                                                 <Text style={{ ...styles.cellText, textAlign: "center" }}>
                                                     Rs. {Number(amount || 0).toFixed(2)}
                                                 </Text>
@@ -344,10 +343,10 @@ const InternalTransferPDF = ({ requisition }) => {
 
                             {/* Total Row */}
                             <View style={[styles.tableRow, { borderTop: border, paddingTop: 8, marginTop: 2 }]}>
-                                <View style={{ width: "77%", textAlign: "right", paddingRight: 4 }}>
+                                <View style={{ width: "66%", textAlign: "right", paddingRight: 4 }}>
                                     <Text style={{ ...styles.cellText, textAlign: "right", fontWeight: 600 }}>Total</Text>
                                 </View>
-                                <View style={{ width: "11%", textAlign: "center" }}>
+                                <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={{ ...styles.cellText, textAlign: "center", fontWeight: 600 }}>
                                         {formatCurrencyPDF((requisition.items || []).reduce((sum, item) => {
                                             const med = item.medicineId || (item.pharmacyId?.medicineId || {});
@@ -372,7 +371,7 @@ const InternalTransferPDF = ({ requisition }) => {
                                         }, 0))}
                                     </Text>
                                 </View>
-                                <View style={{ width: "12%" }} />
+                                <View style={{ width: "21%" }} />
                             </View>
                         </View>
 

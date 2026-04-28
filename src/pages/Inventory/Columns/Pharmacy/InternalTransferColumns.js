@@ -87,9 +87,11 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
 
                             const qty = isReceived
                                 ? (item.receivedQty ?? item.approvedQty)
-                                : isPostApproval
-                                    ? item.approvedQty
-                                    : item.requestedQty;
+                                : isDispatched
+                                    ? item.dispatchedQty
+                                    : isPostApproval
+                                        ? item.approvedQty
+                                        : item.requestedQty;
 
                             return (
                                 <React.Fragment key={i}>
