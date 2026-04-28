@@ -1767,6 +1767,15 @@ export const downloadAuditFailedMedicines = (id) => {
   });
 };
 
+export const getPharmacyConsolidated = (params) => api.get(url.PHARMACY_CONSOLIDATED, {
+  params,
+  headers: {
+    "X-No-Cookie-Token": "true",
+  },
+  paramsSerializer: (parameters) =>
+    qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+});
+
 // PHARMACY REQUISITION - INTERNAL TRANSFER
 export const getInternalTransferRequisitions = (params = {}) => {
   return api.get(url.PHARMACY_INTERNAL_TRANSFER, {

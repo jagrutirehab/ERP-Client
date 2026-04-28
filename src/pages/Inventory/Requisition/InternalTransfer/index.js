@@ -342,7 +342,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                     batchName: b.pharmacyId?.Batch || b.Batch || "No Batch",
                                     approvedQty: b.approvedQty || 0,
                                     dispatchedQty: b.approvedQty || 0,
-                                  }))
+                                }))
                                 : [],
                         };
                     })
@@ -373,8 +373,8 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
             batches: i.batchAllocations
                 .filter(b => (b.dispatchedQty ?? 0) > 0)
                 .map(b => ({
-                  pharmacyId: b.pharmacyId,
-                  dispatchedQty: Number(b.dispatchedQty),
+                    pharmacyId: b.pharmacyId,
+                    dispatchedQty: Number(b.dispatchedQty),
                 })),
         })).filter(i => i.batches.length > 0);
 
@@ -429,7 +429,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                     batchName: b.pharmacyId?.Batch || b.Batch || "No Batch",
                                     dispatchedQty: b.dispatchedQty || 0,
                                     receivedQty: b.dispatchedQty || 0,
-                                  }))
+                                }))
                                 : [],
                         };
                     })
@@ -461,8 +461,8 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
             batches: i.batchAllocations
                 .filter(b => (b.receivedQty ?? 0) > 0)
                 .map(b => ({
-                  pharmacyId: b.pharmacyId,
-                  receivedQty: Number(b.receivedQty),
+                    pharmacyId: b.pharmacyId,
+                    receivedQty: Number(b.receivedQty),
                 })),
         })).filter(i => i.batches.length > 0);
 
@@ -1305,7 +1305,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                                         {batch.Batch || "No Batch"} <span className="text-muted">({batch.company || "—"})</span>
                                                                                     </p>
                                                                                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                                                                                        Stock: {batch.stock} {pluralizeUnit(item.unit)} | Price: {batch.purchasePrice}
+                                                                                        Stock: {batch.stock} {pluralizeUnit(item.unit)}
                                                                                     </p>
                                                                                 </div>
                                                                                 <div className="d-flex align-items-start gap-1">

@@ -16,6 +16,7 @@ import {
     dispatchInternalTransferRequisition,
     grnInternalTransferRequisition,
     requestingReviewInternalTransferRequisition,
+    getPharmacyConsolidated,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -199,6 +200,18 @@ export const searchPharmacyInventory = createAsyncThunk(
     async (params, { rejectWithValue }) => {
         try {
             const response = await searchPharmacyMedicines(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchPharmacyConsolidated = createAsyncThunk(
+    "pharmacy/fetchPharmacyConsolidated",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getPharmacyConsolidated(params);
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -415,6 +428,24 @@ export const pharmacySlice = createSlice({
             })
             .addCase(requestingReviewInternalTransfer.rejected, (state) => {
                 state.submitLoading = false;
+            });
+
+        builder
+            .addCase(fetchPharmacyConsolidated.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchPharmacyConsolidated.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload.data || [];
+                state.pagination = {
+                    total: payload.total || 0,
+                    pages: payload.pages || 1,
+                    page: payload.page || 1,
+                    limit: payload.limit || 10,
+                };
+            })
+            .addCase(fetchPharmacyConsolidated.rejected, (state) => {
+                state.loading = false;
             });
     }
 });

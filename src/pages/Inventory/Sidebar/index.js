@@ -18,6 +18,7 @@ const Sidebar = () => {
   const hasUserPermission6 = hasPermission("PHARMACY", "NURSEGIVENMEDICINES", "READ");
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
   const hasUserPermission8 = hasPermission("PHARMACY", "REQUISITION_SAREYAAN_ORDERS", "READ");
+  const hasUserPermission9 = hasPermission("PHARMACY", "INVENTORY_STOCK_SUMMARY", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -73,6 +74,10 @@ const Sidebar = () => {
 
     if (page.id === "requisition") {
       return page.children.length > 0;
+    }
+
+    if (page.id === "stockSummary" && !hasUserPermission9) {
+      return false;
     }
 
     return true;

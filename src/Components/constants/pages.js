@@ -418,6 +418,12 @@ export const Pharmacy = [
       },
     ]
   },
+  {
+    id: "stockSummary",
+    label: "Stock Summary",
+    link: "/pharmacy/stock-summary",
+    icon: "bx bx-box",
+  }
 ];
 
 export const MIReporting = [

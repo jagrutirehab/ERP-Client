@@ -437,6 +437,9 @@ export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
+// INVENTORY STOCK SUMMARY
+export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
+
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";

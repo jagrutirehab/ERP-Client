@@ -157,6 +157,7 @@ export const permissionList = [
       { name: "AUDIT", label: "Audit" },
       { name: "REQUISITION_INTERNAL_TRANSFER", label: "Requisition: Internal Transfer" },
       { name: "REQUISITION_SAREYAAN_ORDERS", label: "Requisition: Sareyaan Orders" },
+      { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
     ],
   },
   {

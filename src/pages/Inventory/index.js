@@ -11,6 +11,7 @@ import NurseGivenMedicine from "./NurseGivenMedicine";
 import InternalTransfer from "./Requisition/InternalTransfer";
 import InternalTransferAddRequest from "./Requisition/InternalTransfer/AddRequest";
 import InternalTransferEditRequest from "./Requisition/InternalTransfer/EditRequest";
+import StockSummary from "./StockSummary";
 
 const Pharmacy = () => {
   return (
@@ -33,6 +34,7 @@ const Pharmacy = () => {
                 <Route path={`/requisition/sareyaan-orders`} element={<InternalTransfer isSareyaanPage={true} />} />
                 <Route path={`/requisition/sareyaan-orders/add`} element={<InternalTransferAddRequest />} />
                 <Route path={`/requisition/sareyaan-orders/edit/:id`} element={<InternalTransferEditRequest transferType="sareyaan" />} />
+                <Route path={`/stock-summary`} element={<StockSummary />} />
               </Routes>
             </div>
           </Container>
