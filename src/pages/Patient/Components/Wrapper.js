@@ -6,7 +6,11 @@ import {
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
+  Input,
+  Label,
 } from "reactstrap";
+import { APIClient } from "../../../helpers/api_helper";
+import { toast } from "react-toastify";
 
 //framer motion
 import { motion } from "framer-motion";
@@ -46,8 +50,23 @@ const Wrapper = ({
   validatorId
 }) => {
   const dispatch = useDispatch();
+  const [showRelatives, setShowRelatives] = React.useState(item?.showToRelatives || false);
   const chart = item?.chart;
   const bill = item?.bill;
+
+  const handleToggleRelatives = async (e) => {
+    e.stopPropagation();
+    const newValue = e.target.checked;
+    setShowRelatives(newValue);
+    try {
+      const api = new APIClient();
+      await api.update(`/chart/${item._id}/toggle-relatives`, { showToRelatives: newValue });
+      toast.success("Chart visibility updated");
+    } catch (error) {
+      setShowRelatives(!newValue);
+      toast.error("Failed to update chart visibility");
+    }
+  };
 
   console.log("geminiResponseGeneratedBy", geminiResponseGeneratedBy?.name);
   
@@ -105,6 +124,20 @@ const Wrapper = ({
                 </span>
               )}
             </h5>
+            <RenderWhen isTrue={!bill && chart}>
+              <div className="form-check form-switch ms-3 d-flex align-items-center">
+                <Input
+                  type="checkbox"
+                  role="switch"
+                  id={`switch-relatives-${item?._id}`}
+                  checked={showRelatives}
+                  onChange={handleToggleRelatives}
+                />
+                <Label className="form-check-label fs-xs-11 ms-2 mb-0" htmlFor={`switch-relatives-${item?._id}`}>
+                  Show to relatives
+                </Label>
+              </div>
+            </RenderWhen>
           </div>
           <div className="d-flex justify-content-between ">
             <div>
