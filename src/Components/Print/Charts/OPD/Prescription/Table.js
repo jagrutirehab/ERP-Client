@@ -198,9 +198,9 @@ const PrescriptionTable = ({ medicines }) => {
                     {item.medicine.type ? `${item.medicine.type} ` : ""}
                   </Text>{" "}
                   {item.medicine?.name} {item.medicine.strength || ""}{" "}
-                  <Text style={{ textTransform: "uppercase" }}>
+                  {/* <Text style={{ textTransform: "uppercase" }}>
                     {item.medicine.unit || ""}
-                  </Text>
+                  </Text> */}
                 </Text>
                 <View style={{ ...styles.col3, flexDirection: "row" }}>
                   <View style={{ flex: 1, alignItems: "center" }}>
