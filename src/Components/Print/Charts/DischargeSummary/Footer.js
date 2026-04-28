@@ -107,6 +107,8 @@ const styles = StyleSheet.create({
 
 const SummaryFooter = ({ chart, patient, center }) => {
   const data = chart?.dischargeSummary ?? {};
+  console.log("data", data);
+  
   return (
     <React.Fragment>
       <View wrap={false}>
@@ -157,7 +159,7 @@ const SummaryFooter = ({ chart, patient, center }) => {
             Discharge Summary Prepared By: {data?.summaryPreparedBy || ""}
           </Text>
         </View>
-        {data?.typeOfDischarge && (
+        {data?.dischargeType && (
           <View
             style={{ ...styles.row, ...styles.marginBottom, ...styles.col12 }}
           >
@@ -169,7 +171,7 @@ const SummaryFooter = ({ chart, patient, center }) => {
             >
               Type of Discharge :{" "}
               <Text style={styles.fontHindi}>
-                {data?.typeOfDischarge || ""}
+                {data?.dischargeType || ""}
               </Text>
             </Text>
             {/* <Text style={styles.col6}>Date: 18/06/2022</Text> */}
