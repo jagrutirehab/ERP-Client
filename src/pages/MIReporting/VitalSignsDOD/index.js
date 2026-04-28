@@ -19,7 +19,7 @@
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    console.log(vitalSignsDOD)
+    // console.log(vitalSignsDOD)
     
     useEffect(() => {
 
@@ -380,7 +380,7 @@
                                                 zIndex: 12,
                                             }}
                                             >
-                                            {patient?.patient_name}
+                                            {patient?.patient_name }
                                             </td>
                                             <td
                                             className="text-center fw-bold px-2 py-2"

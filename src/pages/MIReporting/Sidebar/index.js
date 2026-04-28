@@ -214,6 +214,18 @@ const Sidebar = () => {
       label: "Vital Signs",
       link: "/mi-reporting/vital-signs",
       icon: "bx bx-money",
+    },
+    {
+      id: "patient-docs",
+      label: "IPD Patient Docs",
+      link: "/mi-reporting/patient-docs",
+      icon: "bx bx-money",
+    },
+    {
+      id: "opd-patient-docs",
+      label: "OPD Patient Docs",
+      link: "/mi-reporting/opd-patient-docs",
+      icon: "bx bx-money",
     }
   ];
   return (

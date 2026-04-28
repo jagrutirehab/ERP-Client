@@ -457,6 +457,8 @@ export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
 export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
 export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
+export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
+export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
 
 
 

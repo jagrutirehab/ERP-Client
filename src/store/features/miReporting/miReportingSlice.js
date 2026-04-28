@@ -17,6 +17,8 @@ import {
   getRoundNotesDOD,
   getClinicalNotesDOD,
   getVitalSignsDOD,
+  getPatientDocs,
+  getOpdPatientDocs,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -43,6 +45,8 @@ const initialState = {
   refundAmountMOM:[],
   fetchRoundNotesDOD:[],
   fetchVitalSignsDOD:[],
+  patientDocs:[],
+  opdPatientDocs:[],
   loading: false,
   error: null,
 };
@@ -272,7 +276,7 @@ export const fetchRoundNotesDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Round notes dod"
       );
     }
   }
@@ -288,7 +292,7 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Clinical notes dod"
       );
     }
   }
@@ -305,11 +309,42 @@ export const fetchVitalSignsDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Vital Signs DOD"
       );
     }
   }
 );
+
+export const fetchPatientDocs = createAsyncThunk(
+  "miReporting/fetchPatientDocs",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getPatientDocs(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Patient Docs"
+      );
+    }
+  }
+);
+
+export const fetchOpdPatientDocs = createAsyncThunk(
+  "miReporting/fetchOpdPatientDocs",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getOpdPatientDocs(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Patient Docs"
+      );
+    }
+  }
+);
+
 
 const miReportingSlice = createSlice({
   name: "miReporting",
@@ -551,9 +586,35 @@ const miReportingSlice = createSlice({
       .addCase(fetchVitalSignsDOD.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      //Patient Docs
+      .addCase(fetchPatientDocs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPatientDocs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.patientDocs = action.payload.payload || [];
+      })
+      .addCase(fetchPatientDocs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //OPD Patient Docs
+      .addCase(fetchOpdPatientDocs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOpdPatientDocs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.opdPatientDocs = action.payload.payload || [];
+      })
+      .addCase(fetchOpdPatientDocs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
-
-
 
       
   },

@@ -1991,6 +1991,32 @@ export const getVitalSignsDOD = (data) => {
 };
 
 
+export const getPatientDocs = (data) => {
+
+  return api.get(url.GET_PATIENT_DOCS, {
+    params: {
+      centerIds: data?.centerAccess,
+      month:data?.selectedMonth,
+      status:data?.selectedStatus
+    }
+  });
+};
+
+
+
+export const getOpdPatientDocs = (data) => {
+
+  return api.get(url.GET_OPD_PATIENT_DOCS, {
+    params: {
+      centerIds: data?.centerAccess,
+      month:data?.selectedMonth,
+      status:data?.selectedStatus
+    }
+  });
+};
+
+
+
 
 
 
