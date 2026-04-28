@@ -59,6 +59,8 @@ import AllCompOffs from "./Dashboard/AllCompOffs";
 import RaisedCompOffsRequest from "../HRMS/Leaves/MyRaisedCompOffs/RaisedCompOffsRequest";
 import CancellationRequestsHr from "./Dashboard/CancellationRequestsHr";
 import TransferManagerApprovals from "../HRMS/TransferManagerApprovals";
+import MyPaySlips from "./PaySlips/Views/MyPaySlips";
+import EmployeePaySlips from "./PaySlips/Views/EmployeePaySlips";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -206,6 +208,9 @@ const HR = () => {
                 <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
 
                 <Route path={`/finance`} element={<FinanceDashboard />} />
+                <Route path={`/pay-slip/my`} element={<MyPaySlips/>} />
+
+                <Route path={`/pay-slip/employees`} element={<EmployeePaySlips/>} />
 
                 <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
                 <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />

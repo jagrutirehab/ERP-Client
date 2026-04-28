@@ -7,7 +7,7 @@ const typeRank = { NONE: 0, READ: 1, WRITE: 2, DELETE: 3 };
 let rolesCache = null;
 
 export const resetRolesCache = () => {
-  rolesCache = null;
+  rolesCache = null; 
 };
 
 export const usePermissions = (token) => {
