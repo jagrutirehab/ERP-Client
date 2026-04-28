@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
-import { getPharmacyStockByIds } from "../../../../../helpers/backend_helper";
+import { getStockByMedicineIds } from "../../../../../helpers/backend_helper";
 import {
     submitInternalTransferRequisition,
     editInternalTransferRequisition,
@@ -153,60 +153,8 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     );
 
 
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedCenterSearch(centerMedicinesSearch), 300);
-        return () => clearTimeout(timer);
-    }, [centerMedicinesSearch]);
-
-    useEffect(() => {
-        if (!fulfillingCenter?.value) {
-            setCenterMedicines([]);
-            setCenterMedicinesPage(1);
-            return;
-        }
-
-        setCenterMedicinesLoading(true);
-        dispatch(
-            searchPharmacyInventory({
-                q: debouncedCenterSearch,
-                centerId: fulfillingCenter.value,
-                page: centerMedicinesPage,
-                limit: centerMedicinesPageSize,
-            })
-        )
-            .unwrap()
-            .then((result) => {
-                const meds = result?.data || result || [];
-                setCenterMedicines(Array.isArray(meds) ? meds : []);
-                setCenterMedicinesTotalPages(result?.pages || result?.totalPages || 1);
-            })
-            .catch(() => {
-                setCenterMedicines([]);
-            })
-            .finally(() => setCenterMedicinesLoading(false));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fulfillingCenter?.value, debouncedCenterSearch, centerMedicinesPage, centerMedicinesPageSize]);
-
-    // Re-fetch stock whenever fulfilling center changes and cart has items
-    useEffect(() => {
-        if (!fulfillingCenter?.value || items.length === 0) return;
-        const pharmacyIds = items.map((i) => i.pharmacyId);
-        getPharmacyStockByIds(pharmacyIds, fulfillingCenter.value)
-            .then((res) => {
-                const stockMap = {};
-                (res?.data || []).forEach(({ pharmacyId, stock }) => {
-                    stockMap[String(pharmacyId)] = stock;
-                });
-                setItems((prev) =>
-                    prev.map((item) => ({
-                        ...item,
-                        availableStock: stockMap[String(item.pharmacyId)] ?? 0,
-                    }))
-                );
-            })
-            .catch(() => {});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fulfillingCenter?.value]);
+    // Stock is now displayed from search results (total stock)
+    // No need to re-fetch as pharmacyId is not stored until approval
 
     useEffect(() => {
         if (!isEdit || !requisitionId) return;
@@ -230,19 +178,21 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                 }
 
                 const mappedItems = (req.items || []).map((item) => {
+                    const med = item.medicineId || {};
                     const pharm = item.pharmacyId || {};
                     return {
+                        medicineId: item.medicineId?._id || item.medicineId,
                         pharmacyId: String(pharm._id || item.pharmacyId),
-                        customId: pharm.id || "—",
+                        customId: med.id || pharm.id || "—",
                         medicineName: str(pharm.medicineName) || str(item.medicineName),
-                        type: str(pharm.medicineId?.type),
+                        type: str(med.type),
                         strength: str(pharm.Strength) || str(pharm.strength) || str(item.strength),
-                        unit: str(pharm.unitType) || str(pharm.unit) || str(item.unit),
-                        genericName: str(pharm.medicineId?.genericName),
-                        brandName: str(pharm.medicineId?.brandName) || str(pharm.medicineId?.name),
-                        baseUnit: str(pharm.medicineId?.baseUnit),
-                        purchaseUnit: str(pharm.medicineId?.purchaseUnit),
-                        conversion: pharm.medicineId?.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
+                        unit: str(med.purchaseUnit) || str(pharm.unitType) || str(pharm.unit) || str(item.unit),
+                        genericName: str(med.genericName),
+                        brandName: str(med.brandName) || str(med.name),
+                        baseUnit: str(med.baseUnit),
+                        purchaseUnit: str(med.purchaseUnit),
+                        conversion: med.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
                         availableStock: null,
                         requestedQty: item.requestedQty || 1,
                         itemRemarks: item.itemRemarks || "",
@@ -251,22 +201,22 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
 
                 setItems(mappedItems);
 
-                // Fetch live stock for all pre-loaded items from the fulfilling center
+                // For edit mode: refetch stock for already-approved items to adjust quantities if stock decreased
                 const fulCenterId = fulCenter?._id || (typeof fulCenter === "string" ? fulCenter : null);
-                const pharmacyIds = mappedItems.map((i) => i.pharmacyId).filter(Boolean);
-                if (pharmacyIds.length > 0 && fulCenterId) {
-                    getPharmacyStockByIds(pharmacyIds, fulCenterId)
+                const medicineIds = mappedItems.filter((i) => i.medicineId).map((i) => i.medicineId).filter(Boolean);
+                if (medicineIds.length > 0 && fulCenterId) {
+                    getStockByMedicineIds(medicineIds, fulCenterId)
                         .then((res) => {
                             const stockMap = {};
-                            (res?.data || []).forEach(({ pharmacyId, stock }) => {
-                                stockMap[String(pharmacyId)] = stock;
+                            (res?.data || []).forEach(({ medicineId, stock }) => {
+                                stockMap[String(medicineId)] = stock;
                             });
                             setItems((prev) =>
                                 prev.map((item) => ({
                                     ...item,
-                                    availableStock: stockMap[item.pharmacyId] ?? 0,
-                                    requestedQty: stockMap[item.pharmacyId] !== undefined
-                                        ? Math.min(item.requestedQty, Math.max(1, stockMap[item.pharmacyId]))
+                                    availableStock: stockMap[String(item.medicineId)] ?? 0,
+                                    requestedQty: stockMap[String(item.medicineId)] !== undefined
+                                        ? Math.min(item.requestedQty, Math.max(1, stockMap[String(item.medicineId)]))
                                         : item.requestedQty,
                                 }))
                             );
@@ -291,7 +241,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         }
         try {
             const result = await dispatch(
-                searchPharmacyInventory({ q: inputValue, centerId: fulfillingCenter.value })
+                searchPharmacyInventory({ q: inputValue, centerId: fulfillingCenter.value, totalStock: true })
             ).unwrap();
             const results = result?.data || result || [];
             return results.map((med) => ({
@@ -331,9 +281,9 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         setItems((prev) => [
             ...prev,
             {
-                medicineId: med.medicineId?._id || med.medicineId || null,
+                medicineId: med.medicineId?._id || med.medicineId,
                 pharmacyId: med._id,
-                customId: med.id || "—",
+                customId: med.medicineId?.id || "—",
                 medicineName: str(med.medicineName),
                 type: str(med.medicineId?.type),
                 strength: str(med.Strength) || str(med.strength),
@@ -427,7 +377,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
             orderFromSaareyan: isSpecialFulfillingLocked,
             items: items.map((i) => ({
                 medicineId: i.medicineId,
-                pharmacyId: i.pharmacyId,
                 requestedQty: Number(i.requestedQty),
                 itemRemarks: i.itemRemarks || "",
             })),
@@ -463,12 +412,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
         ].filter(Boolean).join(" ");
         const genericName = med.medicineId?.genericName || "";
         const brandName = med.medicineId?.brandName || "";
+        const medicineId = med.medicineId?.id || "—";
         return (
             <div className="d-flex align-items-center justify-content-between py-1 px-1 gap-3">
                 <div>
                     <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{primaryLabel}</p>
                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
-                        <span className="fw-medium text-primary">ID: {med.id || "—"}</span>
+                        <span className="fw-medium text-primary">ID: {medicineId}</span>
                         {(genericName || brandName) && (
                             <>
                                 <span className="mx-1">·</span>
@@ -479,9 +429,14 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                         )}
                     </p>
                 </div>
-                <span style={{ ...stockPill(centerStock), whiteSpace: "nowrap", flexShrink: 0 }}>
-                    {centerStock} available
-                </span>
+                <div className="d-flex flex-column align-items-end gap-1">
+                    <span style={{ ...stockPill(centerStock), whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {centerStock} available
+                    </span>
+                    <span style={{ fontSize: 9, color: "#6c757d", whiteSpace: "nowrap" }}>
+                        (Total stock)
+                    </span>
+                </div>
             </div>
         );
     };
@@ -715,197 +670,12 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                     </div>
                 </CardHeader>
                 <CardBody className="px-4 py-4">
-                    {false && (
-                        <>
-                            {!centersSet && (
-                                <p className="text-muted mb-0 mt-2" style={{ fontSize: 12 }}>
-                                    <i className="bx bx-info-circle me-1" />
-                                    Select both centers above to browse available medicines.
-                                </p>
-                            )}
-
-                            {centersSet && (
-                                <div className="mb-4">
-                                    <div className="d-flex align-items-center gap-2 mb-3">
-                                        <i className="bx bx-list-ul text-primary" style={{ fontSize: 18 }} />
-                                        <h6 className="mb-0 fw-semibold">{fulfillingCenter.label} - Available Medicines</h6>
-                                    </div>
-
-                                    <div className="d-flex align-items-center gap-2 mb-3">
-                                        <div className="flex-grow-1" style={{ maxWidth: "300px" }}>
-                                            <div className="position-relative">
-                                                <i className="bx bx-search-alt position-absolute" style={{
-                                                    left: "10px", top: "50%", transform: "translateY(-50%)",
-                                                    color: "#6c757d", fontSize: 16
-                                                }} />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Search medicines…"
-                                                    className="form-control"
-                                                    style={{ paddingLeft: "36px", borderRadius: 8 }}
-                                                    value={centerMedicinesSearch}
-                                                    onChange={(e) => {
-                                                        setCenterMedicinesSearch(e.target.value);
-                                                        setCenterMedicinesPage(1);
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#6c757d" }}>
-                                            <span className="fw-medium">Show</span>
-                                            <select
-                                                className="form-select form-select-sm"
-                                                style={{ width: "70px" }}
-                                                value={centerMedicinesPageSize}
-                                                onChange={(e) => {
-                                                    setCenterMedicinesPageSize(Number(e.target.value));
-                                                    setCenterMedicinesPage(1);
-                                                }}
-                                            >
-                                                <option value={5}>5</option>
-                                                <option value={10}>10</option>
-                                                <option value={25}>25</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div style={{
-                                        overflowX: "auto",
-                                        border: "1px solid #eef0f7",
-                                        borderRadius: 8,
-                                        marginBottom: "16px",
-                                        WebkitOverflowScrolling: "touch"
-                                    }}>
-                                        <table className="table table-hover mb-0" style={{ fontSize: "12px", minWidth: "1200px" }}>
-                                            <thead style={TABLE_HEAD_STYLE}>
-                                                <tr>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Medicine</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>ID</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Type</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Strength</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Base Unit</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Purchase Unit</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Batch No</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Expiry</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Purchase Price</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", fontSize: "11px", fontWeight: 600 }}>Available Stock</th>
-                                                    <th className="py-2 px-2" style={{ whiteSpace: "nowrap", textAlign: "center", fontSize: "11px", fontWeight: 600 }}>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {centerMedicinesLoading ? (
-                                                    <tr>
-                                                        <td colSpan="11" className="py-4 text-center" style={{ color: "#6c757d" }}>
-                                                            <Spinner size="sm" color="primary" /> Loading medicines…
-                                                        </td>
-                                                    </tr>
-                                                ) : centerMedicines.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan="11" className="py-4 text-center" style={{ color: "#6c757d" }}>
-                                                            No medicines found
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    centerMedicines.map((med) => {
-                                                        const centerEntry = (med.centers || []).find(
-                                                            (c) => (c.centerId?._id || c.centerId) === fulfillingCenter?.value
-                                                        );
-                                                        const stock = centerEntry?.stock ?? 0;
-                                                        const isAlreadyAdded = items.some((i) => i.pharmacyId === med._id);
-                                                        const expiryDate = med.Expiry ? new Date(med.Expiry).toLocaleDateString("en-US") : "—";
-
-                                                        return (
-                                                            <tr key={med._id} style={{ borderBottom: "1px solid #f1f3f5" }}>
-                                                                <td className="py-2 px-2" style={{ minWidth: "140px" }}>
-                                                                    <p className="mb-0 fw-semibold" style={{ fontSize: 12, color: "#212529" }}>
-                                                                        {med.medicineName || "—"}
-                                                                    </p>
-                                                                    <p className="mb-0 text-muted" style={{ fontSize: 10 }}>
-                                                                        {med.medicineId?.genericName ? `${med.medicineId.genericName}` : "—"}
-                                                                    </p>
-                                                                </td>
-                                                                <td className="py-2 px-2" style={{ color: "var(--bs-primary)", fontWeight: 600, fontSize: "11px" }}>
-                                                                    {med.id || "—"}
-                                                                </td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px" }}>{med.medicineId?.type || "—"}</td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px" }}>{med.Strength || med.strength || "—"}</td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px" }}>{med.medicineId?.baseUnit || "—"}</td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px" }}>{med.medicineId?.purchaseUnit || "—"}</td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px", maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                                                    {Array.isArray(med.Batch) ? med.Batch.slice(0, 1).join(", ") : (med.Batch || "—")}
-                                                                </td>
-                                                                <td className="py-2 px-2" style={{ fontSize: "11px" }}>{expiryDate}</td>
-                                                                <td className="py-2 px-2 fw-semibold" style={{ color: "var(--bs-success)", fontSize: "11px" }}>
-                                                                    ₹{med.purchasePrice ? med.purchasePrice.toFixed(2) : "—"}
-                                                                </td>
-                                                                <td className="py-2 px-2">
-                                                                    <span style={{ ...stockPill(stock), fontSize: "10px", padding: "2px 6px" }}>
-                                                                        {stock} {pluralizeUnit(med.medicineId?.baseUnit || med.baseUnit || "Unit")}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="py-2 px-2" style={{ textAlign: "center", minWidth: "80px" }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        disabled={isAlreadyAdded}
-                                                                        onClick={() => handleAddFromTable(med)}
-                                                                        style={{
-                                                                            padding: "4px 8px",
-                                                                            borderRadius: 4,
-                                                                            border: "none",
-                                                                            background: isAlreadyAdded ? "#e9ecef" : "var(--bs-primary)",
-                                                                            color: isAlreadyAdded ? "#adb5bd" : "#fff",
-                                                                            cursor: isAlreadyAdded ? "not-allowed" : "pointer",
-                                                                            fontSize: 10,
-                                                                            fontWeight: 600,
-                                                                            transition: "all .2s",
-                                                                            whiteSpace: "nowrap"
-                                                                        }}
-                                                                        title={isAlreadyAdded ? "Already added to cart" : "Add to cart"}
-                                                                    >
-                                                                        <i className={`bx bx-${isAlreadyAdded ? "check" : "plus"}`} style={{ fontSize: 12, marginRight: "2px" }} />
-                                                                        {isAlreadyAdded ? "Added" : "Add"}
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {!centerMedicinesLoading && centerMedicines.length > 0 && centerMedicinesTotalPages > 1 && (
-                                        <div className="d-flex align-items-center justify-content-center gap-2">
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-outline-primary"
-                                                disabled={centerMedicinesPage === 1}
-                                                onClick={() => setCenterMedicinesPage(p => Math.max(1, p - 1))}
-                                                style={{ padding: "6px 12px", fontSize: 12 }}
-                                            >
-                                                <i className="bx bx-chevron-left me-1" /> Previous
-                                            </button>
-                                            <span style={{ fontSize: 13, color: "#6c757d", minWidth: "100px", textAlign: "center" }}>
-                                                Page {centerMedicinesPage} of {centerMedicinesTotalPages}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-outline-primary"
-                                                disabled={centerMedicinesPage >= centerMedicinesTotalPages}
-                                                onClick={() => setCenterMedicinesPage(p => Math.min(centerMedicinesTotalPages, p + 1))}
-                                                style={{ padding: "6px 12px", fontSize: 12 }}
-                                            >
-                                                Next <i className="bx bx-chevron-right ms-1" />
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    <hr style={{ margin: "20px 0", borderColor: "#eef0f7" }} />
-                                </div>
-                            )}
-                        </>
-                    )}
-
+                    <div className="alert alert-info d-flex align-items-start gap-2 mb-3" style={{ fontSize: 12, borderRadius: 8 }}>
+                        <i className="bx bx-info-circle mt-1 fs-6" />
+                        <span>
+                            The stock displayed is the <strong>total available</strong> across all batches of each medicine at the selected fulfilling center.
+                        </span>
+                    </div>
                     <div style={{
                         background: "var(--bs-light,#f8f9fa)", borderRadius: 10,
                         border: "1px dashed var(--bs-border-color,#dee2e6)", padding: "16px 20px",
@@ -1035,7 +805,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                                 </td>
                                                 <td className="py-3 px-3" style={{ minWidth: 220 }}>
                                                     <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>
-                                                        {[item.type, item.medicineName, item.strength, item.unit]
+                                                        {[item.type, item.medicineName, item.strength]
                                                             .filter(Boolean).join(" ")}
                                                     </p>
                                                     <p className="mb-0 text-muted" style={{ fontSize: 11 }}>

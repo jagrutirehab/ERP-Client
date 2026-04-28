@@ -1803,6 +1803,20 @@ export const getPharmacyStockByIds = (ids, centerId) => {
   });
 };
 
+export const getStockByMedicineIds = (medicineIds, centerId) => {
+  return api.get(url.PHARMACY_STOCK_BY_MEDICINES, {
+    params: { ids: medicineIds.join(","), centerId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getBatchesByMedicines = (medicineIds, centerId) => {
+  return api.get(url.PHARMACY_BATCHES_BY_MEDICINES, {
+    params: { medicineIds: medicineIds.join(","), centerId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const reviewInternalTransferRequisition = (id, data) => {
   return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/review`, data, {
     headers: {

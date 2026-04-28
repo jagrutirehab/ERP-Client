@@ -434,6 +434,8 @@ export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 export const PHARMACY_INTERNAL_TRANSFER = "/pharmacy/requisition/internal-transfer";
 export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
 export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
+export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
+export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";

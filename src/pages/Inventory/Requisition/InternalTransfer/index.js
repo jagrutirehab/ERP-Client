@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { pdf } from "@react-pdf/renderer";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
-import { generateGRNNumber } from "../../../../helpers/backend_helper";
+import { generateGRNNumber, getBatchesByMedicines } from "../../../../helpers/backend_helper";
 import {
     fetchInternalTransferRequisitions,
     fetchInternalTransferById,
@@ -89,8 +89,9 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     const [reviewModal, setReviewModal] = useState({ open: false, mode: null, row: null });
     const [approveItems, setApproveItems] = useState([]);
     const [reviewRemarks, setReviewRemarks] = useState("");
-    const [pharmacyOptions, setPharmacyOptions] = useState({});
-    const [pharmacyOptionsLoading, setPharmacyOptionsLoading] = useState({});
+    const [batchesByMedicine, setBatchesByMedicine] = useState({});
+    const [batchesLoading, setBatchesLoading] = useState(false);
+    const [allocationErrors, setAllocationErrors] = useState({});
 
     const [dispatchModal, setDispatchModal] = useState({ open: false, row: null });
     const [dispatchItems, setDispatchItems] = useState([]);
@@ -312,32 +313,46 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         navigate(`${basePath}/edit/${row._id}`);
     };
 
-    const openDispatch = (row) => {
-        setDispatchItems(
-            (row.items || [])
-                .filter((item) => (item.approvedQty ?? 0) > 0)
-                .map((item) => {
-                    const pharm = item.pharmacyId || {};
-                    const med = item.medicineId || pharm.medicineId || {};
-                    return {
-                        itemId: item._id,
-                        customId: pharm.id || "—",
-                        medicineName: pharm.medicineName || item.medicineName || "Unknown",
-                        type: med.type || "",
-                        strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
-                        genericName: med.genericName || "",
-                        brandName: med.brandName || med.name || "",
-                        approvedQty: item.approvedQty,
-                        dispatchedQty: item.approvedQty,
-                        batch: pharm.Batch || "—",
-                    };
-                })
-        );
-        setDispatchNote("");
-        setCourierName("");
-        setCourierId("");
-        setDispatchModal({ open: true, row });
+    const openDispatch = async (row) => {
+        try {
+            const result = await dispatch(fetchInternalTransferById(row._id)).unwrap();
+            const fullRow = result?.data || row;
+
+            setDispatchItems(
+                (fullRow.items || [])
+                    .filter((item) => (item.approvedQty ?? 0) > 0)
+                    .map((item) => {
+                        const med = item.medicineId || {};
+                        const batches = item.batches && item.batches.length > 0 ? item.batches : null;
+                        const batchLabels = batches
+                            ? batches.map(b => `${b.pharmacyId?.Batch || b.Batch || "—"}`).join(" + ")
+                            : "—";
+
+                        return {
+                            itemId: item._id,
+                            customId: med.id || "—",
+                            medicineName: med.name || item.medicineName || "Unknown",
+                            type: med.type || "",
+                            strength: med.strength || item.strength || "",
+                            unit: med.purchaseUnit || item.unit || "",
+                            genericName: med.genericName || "",
+                            brandName: med.brandName || med.name || "",
+                            approvedQty: item.approvedQty,
+                            dispatchedQty: item.approvedQty,
+                            batch: batchLabels,
+                            batches: batches,
+                        };
+                    })
+            );
+            setDispatchNote("");
+            setCourierName("");
+            setCourierId("");
+            setDispatchModal({ open: true, row: fullRow });
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to load requisition details.");
+            }
+        }
     };
 
     const closeDispatchModal = () => {
@@ -376,34 +391,48 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         }
     };
 
-    const openGrn = (row) => {
-        setGrnItems(
-            (row.items || [])
-                .filter((item) => (item.approvedQty ?? 0) > 0)
-                .map((item) => {
-                    const pharm = item.pharmacyId || {};
-                    const med = item.medicineId || pharm.medicineId || {};
-                    return {
-                        itemId: item._id,
-                        customId: pharm.id || "—",
-                        medicineName: pharm.medicineName || item.medicineName || "Unknown",
-                        type: med.type || "",
-                        strength: pharm.Strength || pharm.strength || item.strength || "",
-                        unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
-                        genericName: med.genericName || "",
-                        brandName: med.brandName || med.name || "",
-                        approvedQty: item.approvedQty,
-                        receivedQty: item.approvedQty,
-                        batch: pharm.Batch || "—",
-                    };
-                })
-        );
-        setGrnNumber("");
-        setReceiveNote("");
-        setGrnModal({ open: true, row });
-        generateGRNNumber()
-            .then((res) => setGrnNumber(res?.grnNumber || res?.data?.grnNumber || ""))
-            .catch(() => { });
+    const openGrn = async (row) => {
+        try {
+            const result = await dispatch(fetchInternalTransferById(row._id)).unwrap();
+            const fullRow = result?.data || row;
+
+            setGrnItems(
+                (fullRow.items || [])
+                    .filter((item) => (item.approvedQty ?? 0) > 0)
+                    .map((item) => {
+                        const med = item.medicineId || {};
+                        const batches = item.batches && item.batches.length > 0 ? item.batches : null;
+                        const batchLabels = batches
+                            ? batches.map(b => `${b.pharmacyId?.Batch || b.Batch || "—"}`).join(" + ")
+                            : "—";
+
+                        return {
+                            itemId: item._id,
+                            customId: med.id || "—",
+                            medicineName: med.name || item.medicineName || "Unknown",
+                            type: med.type || "",
+                            strength: med.strength || item.strength || "",
+                            unit: med.purchaseUnit || item.unit || "",
+                            genericName: med.genericName || "",
+                            brandName: med.brandName || med.name || "",
+                            approvedQty: item.approvedQty,
+                            receivedQty: item.dispatchedQty || item.approvedQty,
+                            batch: batchLabels,
+                            batches: batches,
+                        };
+                    })
+            );
+            setGrnNumber("");
+            setReceiveNote("");
+            setGrnModal({ open: true, row: fullRow });
+            generateGRNNumber()
+                .then((res) => setGrnNumber(res?.grnNumber || res?.data?.grnNumber || ""))
+                .catch(() => { });
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to load requisition details.");
+            }
+        }
     };
 
     const closeGrnModal = () => {
@@ -441,68 +470,53 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     };
 
     const openApprove = async (row) => {
-        const items = (row.items || []).map((item) => {
-            const pharm = item.pharmacyId || {};
-            const med = item.medicineId || pharm.medicineId || {};
-            const conversion = med.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
-            return {
-                itemId: item._id,
-                medicineId: item.medicineId,
-                customId: med.id || pharm.id || "—",
-                medicineName: pharm.medicineName || item.medicineName || "Unknown",
-                type: med.type || "",
-                strength: pharm.Strength || pharm.strength || item.strength || "",
-                unit: med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "",
-                baseUnit: med.baseUnit || "",
-                conversion,
-                genericName: med.genericName || "",
-                brandName: med.brandName || med.name || "",
-                requestedQty: item.requestedQty,
-                approvedQty: item.requestedQty,
-                selectedPharmacyId: pharm._id,
-            };
-        });
+        try {
+            setBatchesLoading(true);
 
-        setApproveItems(items);
+            const medicineIds = [...new Set(
+                (row.items || [])
+                    .map(i => i.medicineId?._id || i.medicineId)
+                    .filter(Boolean)
+            )];
 
-        // Fetch pharmacy options for items with medicineId
-        if (row.fulfillingCenter?._id || row.fulfillingCenter) {
-            const centerId = row.fulfillingCenter._id || row.fulfillingCenter;
-            const newPharmacyOptions = {};
-            const newLoading = {};
-
-            for (const item of items) {
-                if (item.medicineId) {
-                    newLoading[item.itemId] = true;
-                }
+            let batchesData = {};
+            if (medicineIds.length > 0) {
+                const res = await getBatchesByMedicines(medicineIds, row.fulfillingCenter._id || row.fulfillingCenter);
+                batchesData = res?.data || {};
             }
-            setPharmacyOptionsLoading(newLoading);
+            setBatchesByMedicine(batchesData);
 
-            for (const item of items) {
-                if (item.medicineId) {
-                    try {
-                        const medId = item.medicineId?._id || item.medicineId;
-                        const response = await dispatch(
-                            searchPharmacyInventory({
-                                medicineId: medId,
-                                centerId,
-                                limit: 50,
-                                deduplicate: false,
-                            })
-                        ).unwrap();
-                        newPharmacyOptions[item.itemId] = response.data || [];
-                    } catch (error) {
-                        newPharmacyOptions[item.itemId] = [];
-                    }
-                    newLoading[item.itemId] = false;
-                }
-            }
-            setPharmacyOptions(newPharmacyOptions);
-            setPharmacyOptionsLoading(newLoading);
+            setApproveItems(
+                (row.items || []).map((item) => {
+                    const med = item.medicineId || {};
+                    const medicineId = String(med._id || med);
+                    const batches = batchesData[medicineId] || [];
+
+                    return {
+                        itemId: item._id,
+                        medicineId,
+                        customId: med.id || "—",
+                        medicineName: med.name || item.medicineName || "Unknown",
+                        type: med.type || "",
+                        strength: med.strength || item.strength || "",
+                        unit: med.purchaseUnit || item.unit || "",
+                        genericName: med.genericName || "",
+                        brandName: med.brandName || "",
+                        requestedQty: item.requestedQty,
+                        approvedQty: item.requestedQty,
+                        availableBatches: batches,
+                        allocations: [],
+                    };
+                })
+            );
+            setBatchesLoading(false);
+            setReviewRemarks("");
+            setReviewModal({ open: true, mode: "approve", row });
+        } catch (error) {
+            setBatchesLoading(false);
+            toast.error("Failed to load batches");
+            console.error(error);
         }
-
-        setReviewRemarks("");
-        setReviewModal({ open: true, mode: "approve", row });
     };
 
     const openReject = (row) => {
@@ -515,8 +529,8 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         setReviewModal({ open: false, mode: null, row: null });
         setApproveItems([]);
         setReviewRemarks("");
-        setPharmacyOptions({});
-        setPharmacyOptionsLoading({});
+        setBatchesByMedicine({});
+        setAllocationErrors({});
     };
 
     const openRequestingReview = (row, mode) => {
@@ -572,10 +586,31 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                 toast.warning("At least one item must have an approved quantity greater than 0.");
                 return;
             }
+
+            // Validate that each approved item has at least one batch allocated and doesn't exceed approved qty
+            for (const item of approvedOnly) {
+                if (!item.allocations || item.allocations.length === 0) {
+                    toast.warning(`Please allocate batches for all approved items.`);
+                    return;
+                }
+                const totalAllocated = item.allocations.reduce((sum, a) => sum + (a.qty || 0), 0);
+                if (totalAllocated > Number(item.approvedQty)) {
+                    toast.warning(`Total allocated qty cannot exceed approved qty.`);
+                    return;
+                }
+                if (totalAllocated === 0) {
+                    toast.warning(`Please allocate at least some quantity for all approved items.`);
+                    return;
+                }
+            }
+
             payload.items = approvedOnly.map((i) => ({
                 itemId: i.itemId,
                 approvedQty: Number(i.approvedQty),
-                pharmacyId: i.selectedPharmacyId,
+                batches: (i.allocations || []).map(a => ({
+                    pharmacyId: a.pharmacyId,
+                    approvedQty: a.qty,
+                })),
             }));
         }
         try {
@@ -981,23 +1016,20 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                 <th style={{ fontSize: 12 }}>#</th>
                                                 <th style={{ fontSize: 12 }}>Medicine</th>
                                                 <th className="text-center" style={{ fontSize: 12 }}>Requested</th>
-                                                {selectedReq.fulfillingCenterReview && <th className="text-center" style={{ fontSize: 12 }}>Approved</th>}
-                                                {selectedReq.dispatch?.dispatchedAt && <th className="text-center" style={{ fontSize: 12 }}>Dispatched / Batch</th>}
+                                                {selectedReq.fulfillingCenterReview && <th className="text-center" style={{ fontSize: 12 }}>Approved (with Batch)</th>}
+                                                {selectedReq.dispatch?.dispatchedAt && <th className="text-center" style={{ fontSize: 12 }}>Dispatched</th>}
                                                 {selectedReq.receive?.receivedAt && <th className="text-center" style={{ fontSize: 12 }}>Received</th>}
                                                 <th style={{ fontSize: 12 }}>Remarks</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {selectedReq.items.map((item, idx) => {
-                                                const pharm = item.pharmacyId || {};
-                                                const med = item.medicineId || pharm.medicineId || {};
-                                                const primaryLabel = [med.type, pharm.medicineName || item.medicineName, pharm.Strength || pharm.strength || item.strength, pharm.unitType || pharm.unit || item.unit].filter(Boolean).join(" ");
-                                                // For post-approval statuses (APPROVED, DISPATCHED, RECEIVED), show pharmacy ID; otherwise show medicine ID
-                                                const isPostApprovalStatus = ["APPROVED", "DISPATCHED", "FULFILLED", "PARTIALLY_RECEIVED"].includes(selectedReq?.status);
-                                                const customId = isPostApprovalStatus ? (pharm.id) : (med.id || pharm.id);
+                                                const med = item.medicineId || {};
+                                                const primaryLabel = [med.type, med.name || item.medicineName, med.strength || item.strength].filter(Boolean).join(" ");
+                                                const customId = med.id || "—";
                                                 const genericName = med.genericName || "";
                                                 const brandName = med.brandName || med.name || "";
-                                                const rawUnit = med.purchaseUnit || pharm.unitType || pharm.unit || item.unit || "";
+                                                const rawUnit = med.purchaseUnit || item.unit || "";
 
                                                 return (
                                                     <tr key={item._id || idx}>
@@ -1017,11 +1049,21 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                             </p>
                                                         </td>
                                                         <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.requestedQty} {pluralizeUnit(rawUnit)}</td>
-                                                        {selectedReq.fulfillingCenterReview && <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>{item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
+                                                        {selectedReq.fulfillingCenterReview && (
+                                                            <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
+                                                                {item.approvedQty !== undefined && item.approvedQty !== null ? `${item.approvedQty} ${pluralizeUnit(rawUnit)}` : "—"}
+                                                                {(item.batches || []).length > 0 && (
+                                                                    <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>
+                                                                        {item.batches.map((b, bIdx) => (
+                                                                            <div key={bIdx}>Batch: {b.pharmacyId?.Batch || b.Batch || "—"}</div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        )}
                                                         {selectedReq.dispatch?.dispatchedAt && (
                                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                                 {item.dispatchedQty !== undefined && item.dispatchedQty !== null ? `${item.dispatchedQty} ${pluralizeUnit(rawUnit)}` : "—"}
-                                                                {pharm.Batch && <div className="text-muted fw-normal mt-1" style={{ fontSize: 11 }}>Batch: {pharm.Batch}</div>}
                                                             </td>
                                                         )}
                                                         {selectedReq.receive?.receivedAt && <td className="text-center fw-semibold" style={{ fontSize: 13 }}>{item.receivedQty !== undefined && item.receivedQty !== null ? `${item.receivedQty} ${pluralizeUnit(rawUnit)}` : "—"}</td>}
@@ -1115,7 +1157,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
             </Modal>
 
             {/* ── Review Modal (Approve / Reject) ─────────────────────────── */}
-            <Modal isOpen={reviewModal.open} toggle={closeReviewModal} size={reviewModal.mode === "approve" ? "lg" : "md"}>
+            <Modal isOpen={reviewModal.open} toggle={closeReviewModal} size="xl">
                 <ModalHeader toggle={closeReviewModal}>
                     {reviewModal.mode === "approve" ? (
                         <><i className="bx bx-check-circle me-2 text-success" />Approve Requisition</>
@@ -1136,25 +1178,26 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                 Set the approved quantity for each item. Items with&nbsp;
                                 <strong>0</strong> will be excluded from the approval.
                             </p>
-                            <div className="table-responsive mb-3">
-                                <table className="table table-sm table-bordered mb-0">
-                                    <thead className="table-light">
-                                        <tr>
-                                            <th style={{ fontSize: 12 }}>#</th>
-                                            <th style={{ fontSize: 12 }}>Medicine</th>
-                                            <th className="text-center" style={{ fontSize: 12 }}>Requested Qty</th>
-                                            <th className="text-center" style={{ fontSize: 12 }}>Approved Qty</th>
-                                            <th className="text-center" style={{ fontSize: 12 }}>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {approveItems.map((item, idx) => {
-                                            const isSkipped = Number(item.approvedQty) === 0;
-                                            return (
-                                                <tr key={item.itemId} style={isSkipped ? { opacity: 0.5, background: "#fff5f5" } : {}}>
-                                                    <td className="text-muted" style={{ fontSize: 12 }}>{idx + 1}</td>
-                                                    <td>
-                                                        <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>
+                            {batchesLoading && (
+                                <div className="text-center py-4">
+                                    <Spinner size="sm" className="me-2" />
+                                    Loading batches...
+                                </div>
+                            )}
+                            {!batchesLoading && (
+                                <div className="mb-3 d-flex flex-column gap-3">
+                                    {approveItems.map((item, idx) => {
+                                        const isSkipped = Number(item.approvedQty) === 0;
+                                        const totalAllocated = (item.allocations || []).reduce((sum, a) => sum + (a.qty || 0), 0);
+                                        const isOverAllocated = totalAllocated > Number(item.approvedQty);
+                                        const isProperlyAllocated = totalAllocated > 0 && totalAllocated <= Number(item.approvedQty);
+
+                                        return (
+                                            <div key={item.itemId} className="border rounded p-3" style={isSkipped ? { opacity: 0.6, background: "#fff5f5" } : {}}>
+                                                <div className="d-flex justify-content-between align-items-start mb-3">
+                                                    <div style={{ flex: 1 }}>
+                                                        <p className="mb-1 fw-semibold" style={{ fontSize: 13 }}>
+                                                            <span style={{ color: "#6c757d", marginRight: 8 }}>#{idx + 1}</span>
                                                             {item.customId && <span className="text-primary me-1">[{item.customId}]</span>}
                                                             {[item.type, item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
                                                         </p>
@@ -1168,12 +1211,12 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                 </>
                                                             )}
                                                         </p>
-                                                    </td>
-                                                    <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
-                                                        {item.requestedQty} {pluralizeUnit(item.unit)}
-                                                    </td>
-                                                    <td style={{ width: 150, verticalAlign: "middle" }}>
-                                                        <div className="input-group input-group-sm">
+                                                    </div>
+                                                    <div className="text-end">
+                                                        <p className="mb-1" style={{ fontSize: 12 }}>
+                                                            <span className="fw-semibold">Requested:</span> {item.requestedQty} {pluralizeUnit(item.unit)}
+                                                        </p>
+                                                        <div className="input-group input-group-sm" style={{ width: 150 }}>
                                                             <Input
                                                                 type="number"
                                                                 min={0}
@@ -1185,127 +1228,169 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                     if (val > item.requestedQty) val = item.requestedQty;
                                                                     setApproveItems((prev) =>
                                                                         prev.map((i) =>
-                                                                            i.itemId === item.itemId ? { ...i, approvedQty: val } : i
+                                                                            i.itemId === item.itemId ? { ...i, approvedQty: val, allocations: [] } : i
                                                                         )
                                                                     );
                                                                 }}
-                                                                style={{ textAlign: "center", fontWeight: 700 }}
+                                                                style={{ textAlign: "center", fontWeight: 700, fontSize: 12 }}
                                                             />
-                                                            <span className="input-group-text fw-medium" style={{ fontSize: 12, background: "#f8f9fa" }}>
+                                                            <span className="input-group-text fw-medium" style={{ fontSize: 11, background: "#f8f9fa", padding: "4px 6px" }}>
                                                                 {pluralizeUnit(item.unit) || "Unit"}
                                                             </span>
                                                         </div>
-                                                    </td>
-                                                    <td className="text-center">
-                                                        {isSkipped ? (
-                                                            <span className="badge bg-danger" style={{ fontSize: 10 }}>Skipped</span>
-                                                        ) : (
-                                                            <span className="badge bg-success" style={{ fontSize: 10 }}>Approved</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Pharmacy Selection Section */}
-                            {approveItems.some((item) => item.medicineId) && (
-                                <div className="mt-4">
-                                    <label className="fw-medium mb-2 d-block" style={{ fontSize: 13 }}>
-                                        <i className="bx bx-package me-2" />Select By Batch
-                                    </label>
-                                    {approveItems.map((item) => {
-                                        if (!item.medicineId) return null;
-                                        const options = pharmacyOptions[item.itemId] || [];
-                                        const isLoading = pharmacyOptionsLoading[item.itemId];
-                                        const selected = options.find((p) => p._id === item.selectedPharmacyId);
-
-                                        return (
-                                            <div key={item.itemId} className="mb-3 p-2 border rounded" style={{ background: "#f8f9fa" }}>
-                                                <p className="mb-2" style={{ fontSize: 12 }}>
-                                                    <strong>{item.medicineName}</strong> {item.strength && <span className="text-muted">· {item.strength} {item.unit}</span>}
-                                                </p>
-                                                {isLoading ? (
-                                                    <div className="d-flex align-items-center" style={{ fontSize: 12 }}>
-                                                        <Spinner size="sm" className="me-2" />
-                                                        Loading options…
                                                     </div>
-                                                ) : options.filter((p) => {
-                                                    const availableStock = p.centers?.[0]?.stock ?? p.stock ?? 0;
-                                                    const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
-                                                    const requiredBaseUnits = item.requestedQty * conversionFactor;
-                                                    return availableStock >= requiredBaseUnits;
-                                                }).length > 0 ? (
-                                                    <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                                                        <table className="table table-sm table-bordered mb-0" style={{ fontSize: 11 }}>
-                                                            <thead className="table-light">
-                                                                <tr>
-                                                                    <th style={{ fontSize: 11, width: 30 }}>Select</th>
-                                                                    <th style={{ fontSize: 11 }}>Pharmacy ID</th>
-                                                                    <th style={{ fontSize: 11 }}>Batch</th>
-                                                                    <th style={{ fontSize: 11 }}>Expiry</th>
-                                                                    <th style={{ fontSize: 11 }}>Company</th>
-                                                                    <th style={{ fontSize: 11 }}>Purchase Price</th>
-                                                                    <th style={{ fontSize: 11, textAlign: "center" }}>Stock</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {options
-                                                                    .filter((pharmacy) => {
-                                                                        const availableStock = pharmacy.centers?.[0]?.stock ?? pharmacy.stock ?? 0;
-                                                                        // Convert requested qty from purchase units to base units for comparison
-                                                                        const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
-                                                                        const requiredBaseUnits = item.requestedQty * conversionFactor;
-                                                                        return availableStock >= requiredBaseUnits;
-                                                                    })
-                                                                    .map((pharmacy) => (
-                                                                    <tr
-                                                                        key={pharmacy._id}
-                                                                        style={{
-                                                                            background: selected?._id === pharmacy._id ? "#e7f3ff" : "white",
-                                                                            cursor: "pointer",
-                                                                        }}
-                                                                        onClick={() => handleSelectPharmacy(item.itemId, pharmacy)}
-                                                                    >
-                                                                        <td style={{ textAlign: "center", width: 30 }}>
-                                                                            <input
-                                                                                type="radio"
-                                                                                checked={selected?._id === pharmacy._id}
-                                                                                onChange={() => handleSelectPharmacy(item.itemId, pharmacy)}
-                                                                                style={{ cursor: "pointer" }}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{ fontSize: 11 }}>{pharmacy.id || "—"}</td>
-                                                                        <td style={{ fontSize: 11 }}>{pharmacy.Batch || "—"}</td>
-                                                                        <td style={{ fontSize: 11 }}>
-                                                                            {pharmacy.Expiry || "—"}
-                                                                        </td>
-                                                                        <td style={{ fontSize: 11 }}>{pharmacy.company || "—"}</td>
-                                                                        <td style={{ fontSize: 11, textAlign: "right" }}>
-                                                                            {pharmacy.purchasePrice ? `₹${pharmacy.purchasePrice.toFixed(2)}` : "—"}
-                                                                        </td>
-                                                                        <td style={{ fontSize: 11, textAlign: "center" }}>
-                                                                            {pharmacy.centers?.[0]?.stock ?? pharmacy.stock ?? 0} {pluralizeUnit(item.baseUnit)}
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
+                                                </div>
+
+                                                {item.approvedQty > 0 && (
+                                                    <>
+                                                        <div style={{ background: "#f8f9fa", padding: 10, borderRadius: 4, marginBottom: 10 }}>
+                                                            <p style={{ fontSize: 12, marginBottom: 8 }} className="fw-medium">
+                                                                Available Batches <span className="text-muted">(Select & Allocate)</span>
+                                                            </p>
+                                                            {item.availableBatches && item.availableBatches.length > 0 ? (
+                                                                <div className="d-flex flex-column gap-2">
+                                                                    {item.availableBatches.map((batch, bIdx) => {
+                                                                        const allocatedQty = (item.allocations || []).find(a => a.pharmacyId === batch._id)?.qty || 0;
+                                                                        return (
+                                                                            <div key={`${batch._id}-${bIdx}`} className="d-flex align-items-center gap-2 p-2" style={{ background: "white", borderRadius: 3, border: "1px solid #dee2e6" }}>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <p className="mb-0" style={{ fontSize: 12, fontWeight: 500 }}>
+                                                                                        {batch.Batch || "No Batch"} <span className="text-muted">({batch.company || "—"})</span>
+                                                                                    </p>
+                                                                                    <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
+                                                                                        Stock: {batch.stock} | Price: {batch.purchasePrice}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div className="d-flex align-items-center gap-1">
+                                                                                    {(() => {
+                                                                                        const errorKey = `${item.itemId}-${batch._id}`;
+                                                                                        const hasError = allocationErrors[errorKey];
+                                                                                        const currentTotal = (item.allocations || [])
+                                                                                            .filter(a => a.pharmacyId !== batch._id)
+                                                                                            .reduce((sum, a) => sum + (a.qty || 0), 0);
+                                                                                        const remaining = item.approvedQty - currentTotal;
+
+                                                                                        return (
+                                                                                            <div>
+                                                                                                <Input
+                                                                                                    type="number"
+                                                                                                    min={0}
+                                                                                                    value={allocatedQty}
+                                                                                                    style={{
+                                                                                                        borderColor: hasError ? "#dc3545" : undefined,
+                                                                                                        borderWidth: hasError ? "2px" : undefined,
+                                                                                                    }}
+                                                                                                    onChange={(e) => {
+                                                                                                        const newQty = parseInt(e.target.value, 10);
+                                                                                                        if (isNaN(newQty) || newQty < 0) return;
+
+                                                                                                        // Calculate current total allocation from other batches
+                                                                                                        const currentTotal = (item.allocations || [])
+                                                                                                            .filter(a => a.pharmacyId !== batch._id)
+                                                                                                            .reduce((sum, a) => sum + (a.qty || 0), 0);
+
+                                                                                                        const errorKey = `${item.itemId}-${batch._id}`;
+                                                                                                        const hasError = currentTotal + newQty > item.approvedQty;
+
+                                                                                                        // Update error state
+                                                                                                        setAllocationErrors((prev) => ({
+                                                                                                            ...prev,
+                                                                                                            [errorKey]: hasError,
+                                                                                                        }));
+
+                                                                                                        setApproveItems((prev) =>
+                                                                                                            prev.map((i) => {
+                                                                                                                if (i.itemId === item.itemId) {
+                                                                                                                    const updated = [...(i.allocations || [])];
+                                                                                                                    const existingIdx = updated.findIndex(a => a.pharmacyId === batch._id);
+                                                                                                                    if (existingIdx >= 0) {
+                                                                                                                        if (newQty === 0) {
+                                                                                                                            updated.splice(existingIdx, 1);
+                                                                                                                        } else {
+                                                                                                                            updated[existingIdx].qty = newQty;
+                                                                                                                        }
+                                                                                                                    } else if (newQty > 0) {
+                                                                                                                        updated.push({ pharmacyId: batch._id, qty: newQty });
+                                                                                                                    }
+                                                                                                                    return { ...i, allocations: updated };
+                                                                                                                }
+                                                                                                                return i;
+                                                                                                            })
+                                                                                                        );
+                                                                                                    }}
+                                                                                                    placeholder="Qty"
+                                                                                                    style={{ width: 60, textAlign: "center", fontSize: 12, padding: "4px" }}
+                                                                                                    bsSize="sm"
+                                                                                                />
+                                                                                                <span style={{ fontSize: 11, color: "#6c757d", minWidth: 40 }}>
+                                                                                                    {pluralizeUnit(item.unit)}
+                                                                                                </span>
+                                                                                                {hasError && (
+                                                                                                    <p style={{ fontSize: 11, color: "#dc3545", marginTop: 4, marginBottom: 0 }}>
+                                                                                                        Max: {remaining} (already allocated: {currentTotal})
+                                                                                                    </p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        );
+                                                                                    })()}
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ) : (
+                                                                <p className="mb-0 text-muted" style={{ fontSize: 11 }}>No batches available</p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                            <div className="d-flex gap-2 flex-wrap">
+                                                                {(item.allocations || []).map((alloc, aIdx) => {
+                                                                    const batchInfo = item.availableBatches.find(b => b._id === alloc.pharmacyId);
+                                                                    return (
+                                                                        <div key={aIdx} className="badge bg-info" style={{ fontSize: 11, padding: "4px 8px" }}>
+                                                                            {batchInfo?.Batch || alloc.pharmacyId}: {alloc.qty} {pluralizeUnit(item.unit)}
+                                                                            <button
+                                                                                type="button"
+                                                                                className="ms-1"
+                                                                                style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 0 }}
+                                                                                onClick={() => {
+                                                                                    setApproveItems((prev) =>
+                                                                                        prev.map((i) =>
+                                                                                            i.itemId === item.itemId
+                                                                                                ? { ...i, allocations: (i.allocations || []).filter((_, idx) => idx !== aIdx) }
+                                                                                                : i
+                                                                                        )
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                ×
+                                                                            </button>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            <div className="text-end">
+                                                                <span
+                                                                    className="badge"
+                                                                    style={{
+                                                                        background: isProperlyAllocated ? "#28a745" : "#ffc107",
+                                                                        fontSize: 11,
+                                                                        padding: "4px 8px",
+                                                                    }}
+                                                                >
+                                                                    Allocated: {totalAllocated} / {item.approvedQty}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {isSkipped && (
+                                                    <div className="text-center" style={{ color: "#dc3545", fontSize: 12 }}>
+                                                        <strong>Skipped</strong>
                                                     </div>
-                                                ) : (() => {
-                                                    const conversionFactor = (item.conversion?.baseQuantity || 1) / (item.conversion?.purchaseQuantity || 1);
-                                                    const requiredBaseUnits = item.requestedQty * conversionFactor;
-                                                    const conversionText = conversionFactor !== 1 ? ` (${item.requestedQty} ${item.unit || "units"} = ${Math.round(requiredBaseUnits)} ${item.baseUnit || "units"})` : "";
-                                                    return (
-                                                        <p className="text-muted mb-0" style={{ fontSize: 11 }}>
-                                                            {options.length === 0
-                                                                ? "No pharmacy records available for this medicine."
-                                                                : `No pharmacy records with sufficient stock (${requiredBaseUnits} ${item.baseUnit} required)${conversionText}.`}
-                                                        </p>
-                                                    );
-                                                })()}
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -1340,7 +1425,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                     <Button
                         color={reviewModal.mode === "approve" ? "success" : "danger"}
                         onClick={handleReviewSubmit}
-                        disabled={submitLoading}
+                        disabled={submitLoading || (reviewModal.mode === "approve" && Object.values(allocationErrors).some(error => error === true))}
                         className="text-white"
                     >
                         {submitLoading ? (
@@ -1455,8 +1540,21 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                     {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
                                                 </p>
                                             </td>
-                                            <td className="text-center" style={{ fontSize: 12, verticalAlign: "middle" }}>
-                                                {item.batch}
+                                            <td style={{ fontSize: 12, verticalAlign: "middle" }}>
+                                                {item.batches ? (
+                                                    <div className="d-flex flex-column gap-1">
+                                                        {item.batches.map((batch, bIdx) => {
+                                                            const batchName = batch.pharmacyId?.Batch || batch.Batch || "—";
+                                                            return (
+                                                                <div key={bIdx} style={{ fontSize: 11, padding: "4px 6px", background: "#e3f2fd", borderRadius: 3 }}>
+                                                                    <strong>{batchName}</strong>: {batch.approvedQty} {pluralizeUnit(item.unit)}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <span>{item.batch}</span>
+                                                )}
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                 {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
@@ -1599,8 +1697,21 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                     {[item.genericName, item.brandName].filter(Boolean).join(" · ")}
                                                 </p>
                                             </td>
-                                            <td className="text-center" style={{ fontSize: 12, verticalAlign: "middle" }}>
-                                                {item.batch}
+                                            <td style={{ fontSize: 12, verticalAlign: "middle" }}>
+                                                {item.batches ? (
+                                                    <div className="d-flex flex-column gap-1">
+                                                        {item.batches.map((batch, bIdx) => {
+                                                            const batchName = batch.pharmacyId?.Batch || batch.Batch || "—";
+                                                            return (
+                                                                <div key={bIdx} style={{ fontSize: 11, padding: "4px 6px", background: "#e3f2fd", borderRadius: 3 }}>
+                                                                    <strong>{batchName}</strong>: {batch.dispatchedQty} {pluralizeUnit(item.unit)}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <span>{item.batch}</span>
+                                                )}
                                             </td>
                                             <td className="text-center fw-semibold" style={{ fontSize: 13, verticalAlign: "middle" }}>
                                                 {item.approvedQty} {pluralizeUnit(item.unit, item.approvedQty)}
