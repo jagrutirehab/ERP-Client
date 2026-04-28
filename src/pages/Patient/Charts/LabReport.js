@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Col, Row } from "reactstrap";
+import { Col, Row, Spinner } from "reactstrap";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import Divider from "../../../Components/Common/Divider";
@@ -42,7 +42,7 @@ const LabReport = ({ data, date }) => {
 
                   {report.description && (
                     <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>
-                     Description : {report.description}
+                      Description : {report.description}
                     </p>
                   )}
                 </div>
@@ -52,6 +52,12 @@ const LabReport = ({ data, date }) => {
               </div>
 
               {/* AI RESPONSE */}
+
+              {report.aiStatus === "pending" && !report.aiResponse && (
+                <div className="mt-2 p-2 border rounded" style={{ background: "#fafafa", fontSize: "13px", color: "#888" }}>
+                  <Spinner size="sm" />  AI is analyzing this report...
+                </div>
+              )}
               {report.aiResponse && (
                 <div className="mt-2 p-2 border rounded" style={{ background: "#fafafa" }}>
 

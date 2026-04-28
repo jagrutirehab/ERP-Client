@@ -19,6 +19,7 @@ import {
   createEditChart,
   fetchCharts,
   fetchChartsAddmissions,
+  fetchGeneralCharts,
   removeChart,
   togglePrint,
 } from "../../../store/actions";
@@ -49,11 +50,17 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     chart: null,
     isOpen: false,
   });
+  const [socketReady, setSocketReady] = useState(false);
 
 
   const socketRef = useRef(null);
 
   const addmissionRef = useRef(addmission);
+  const chartsRef = useRef(charts);
+
+  useEffect(() => {
+    chartsRef.current = charts;
+  }, [charts]);
 
   useEffect(() => {
     addmissionRef.current = addmission;
@@ -61,7 +68,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
 
   // console.log("Admission ID:", addmissionRef.current._id);
   useEffect(() => {
-    console.log("🚀 useEffect triggered");
+    console.log(" useEffect triggered");
 
     const SOCKET_BASE_URL = api.API_URL.replace("/api/v1", "");
 
@@ -72,15 +79,16 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     });
 
     socketRef.current.on("connect", () => {
-      console.log("✅ Socket connected:", socketRef.current.id);
+      console.log(" Socket connected:", socketRef.current.id);
+      setSocketReady(true);
     });
 
     socketRef.current.on("connect_error", (err) => {
-      console.log("❌ Socket error:", err.message);
+      console.log(" Socket error:", err.message);
     });
 
     socketRef.current.on("audioProcessingDone", (data) => {
-      console.log("🔥 Processing Done:", data);
+      console.log(" Processing Done:", data);
 
       setTimeout(() => {
         dispatch(fetchChartsAddmissions([addmissionRef.current._id]));
@@ -94,6 +102,43 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
       socketRef.current?.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!socketReady || !socketRef.current) return;
+    if (!charts?.length) return;
+
+    console.log("[AI] Registering onAny listener");
+
+    const handler = (eventName, data) => {
+      if (!eventName.startsWith("lab-report-ai:")) return;
+      console.log(`[AI] Socket received: ${eventName}`, data);
+      console.log("addmissionRef.current?._id", addmissionRef.current?._id);
+      console.log("Addmission ref", addmissionRef);
+
+
+      setTimeout(() => {
+        if (addmissionRef.current?._id) {
+          // IPD flow
+          dispatch(fetchChartsAddmissions([addmissionRef.current._id]));
+          dispatch(fetchCharts(addmissionRef.current._id));
+        } else {
+          // General flow — get patient from charts data
+          // const patientId = chartsRef.current?.[0]?.patient;
+          const patientId = chartsRef.current?.[chartsRef.current.length - 1]?.patient
+            || chartsRef.current?.[0]?.patient;
+          if (patientId) {
+            dispatch(fetchGeneralCharts({ patient: patientId, type: "GENERAL" }));
+          }
+        }
+      }, 2000);
+    };
+
+    socketRef.current.onAny(handler);
+
+    return () => {
+      socketRef.current?.offAny(handler);
+    };
+  }, [socketReady, charts]);
 
   const editChart = (chart) => {
     toggleDateModal();

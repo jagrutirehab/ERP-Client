@@ -17,8 +17,6 @@ const Navdata = () => {
     (page) => page && page.id !== "hrms",
   );
 
-
-
   console.log("User Pages:", userPages);
   const sortPages = (routes) => {
     const sortOrder = [
@@ -41,6 +39,7 @@ const Navdata = () => {
       "guidelines",
       "hr",
       "issues",
+      "recordings",
       // "hrms",
       "webcamstats",
       "tally",
@@ -83,9 +82,8 @@ const Navdata = () => {
   const existingIds = filteredDynamicPages.map((p) => p.id);
 
   const safeStaticPages = staticPages.filter(
-    (p) => !existingIds.includes(p.id)
+    (p) => !existingIds.includes(p.id),
   );
-
 
   const menuItems = [
     {
@@ -101,7 +99,7 @@ const Navdata = () => {
     ...sortPages(filteredDynamicPages),
     // pages.find((p) => p.id === "issues"),
     // pages.find((p) => p.id === "recordings"),
-    ...safeStaticPages,
+    // ...safeStaticPages,
   ];
 
   console.log({ userPages, menuItems });

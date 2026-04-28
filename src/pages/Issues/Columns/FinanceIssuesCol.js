@@ -79,6 +79,38 @@ export const FinanceIssuesCol = (
                 </span>
             ),
         },
+        ...(activeTab
+            ? [
+                {
+                    name: <div className="text-center">Notes</div>,
+                    width: "160px",
+                    cell: (row) => {
+                        const note =
+                            row?.notes?.filter((d) => d?.status === activeTab)?.[0]?.note || "-";
+
+                        return (
+                            <div
+                                style={{
+                                    whiteSpace: "normal",
+                                    wordBreak: "break-word",
+                                    lineHeight: "1.4",
+                                }}
+                            >
+                                {note}
+                            </div>
+                        );
+                    },
+                },
+                {
+                    name: <div className="text-center">Action on</div>,
+                    selector: (row) =>
+                        normalizeDates(
+                            row?.notes?.filter((d) => d?.status === activeTab)?.[0]?.changedOn
+                        ) || "-",
+                    width: "180px",
+                },
+            ]
+            : []),
 
         {
             name: <div className="text-center">Status</div>,
