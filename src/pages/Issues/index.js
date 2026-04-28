@@ -68,7 +68,7 @@ const Issues = () => {
                                             <Route path="/finance/payslips/tickets" element={<PayslipsRequests />} />
 
                                             
-                                            <Route path="hr/issues/requests" element={<HRissuesRequests />} />
+                                            {/* <Route path="hr/issues/requests" element={<HRissuesRequests />} /> */}
                                             <Route path="my/issues" element={<MyIssues />} />
                                             <Route path="my/raised/tickets" element={<MyRaisedTickets />} />
                                             <Route path="raise/ticket" element={<RaiseTicket />} />

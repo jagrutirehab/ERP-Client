@@ -31,29 +31,38 @@ const TicketForm = ({
     canSubmit,
 
 }) => {
-    const [manager, setManager] = useState();
-    const [managerId, setManagerId] = useState();
     const [loading, setLoading] = useState(false);
     const token = JSON.parse(localStorage.getItem("user"))?.token;
-    const loadManager = async () => {
-        setLoading(true);
-        try {
-            const res = await getMyManager(token);
-            console.log("Manager", res);
-            setManager(res?.data?.manager?.name)
-            const managerId = res?.data?.manager?._id;
-            setForm((prev) => ({
-                ...prev,
-                manager: managerId,
-            }));
 
-        } catch (error) {
-            console.log(error);
-            toast.error("Error fetching manager");
-        } finally {
-            setLoading(false);
-        }
-    }
+
+    // const [manager, setManager] = useState();
+    // const [managerId, setManagerId] = useState();
+
+    // const loadManager = async () => {
+    //     setLoading(true);
+    //     try {
+    //         const res = await getMyManager(token);
+    //         console.log("Manager", res);
+    //         setManager(res?.data?.manager?.name)
+    //         const managerId = res?.data?.manager?._id;
+    //         setForm((prev) => ({
+    //             ...prev,
+    //             manager: managerId,
+    //         }));
+
+    //     } catch (error) {
+    //         console.log(error);
+    //         toast.error("Error fetching manager");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }
+
+    // useEffect(() => {
+    //     if (issueType === "HR") {
+    //         loadManager();
+    //     }
+    // }, [issueType]);
 
     const isFormValid = () => {
 
@@ -88,11 +97,7 @@ const TicketForm = ({
         return true;
     };
 
-    useEffect(() => {
-        if (issueType === "HR") {
-            loadManager();
-        }
-    }, [issueType]);
+
 
     const issueTypeOptions = [
         { value: "TECH", label: "TECH" },
@@ -290,7 +295,7 @@ const TicketForm = ({
                         </Col>
 
                         {/* Manager */}
-                        <Col md={6}>
+                        {/* <Col md={6}>
                             <Label className="fw-semibold">
                                 Manager<span className="text-danger">*</span>
                             </Label>
@@ -316,7 +321,7 @@ const TicketForm = ({
                                     />
                                 )}
                             </div>
-                        </Col>
+                        </Col> */}
 
                         {/* DESCRIPTION FULL WIDTH */}
                         <Col md={12}>

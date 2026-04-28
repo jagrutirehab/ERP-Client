@@ -369,7 +369,7 @@ export const permissionList = [
       { name: "RAISE_TICKET", label: "Raise Ticket" },
       { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
       { name: "HR_ISSUES", label: "HR Issues" },
-      { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
+      // { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
       { name: "FINANCE_ISSUES", label: "Finance Issues" },
       { name: "FINANCE_ISSUES_APPROVAL", label: "Finance Issues Approval" },
       // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },

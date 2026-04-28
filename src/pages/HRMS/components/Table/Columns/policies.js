@@ -1,6 +1,6 @@
 import { Button, Badge } from "reactstrap";
 
-export const policyColumn = (onWeekOffClick = () => {}) => [
+export const policyColumn = (onWeekOffClick = () => { }) => [
   {
     name: <div>Policy Name</div>,
     selector: (row) => row?.policyName || "-",
@@ -53,6 +53,22 @@ export const policyColumn = (onWeekOffClick = () => {}) => [
     wrap: true,
     minWidth: "140px",
   },
+  {
+    name: <div>Earned-Leaves Carry Forwards</div>,
+    selector: (row) => row?.earnedCarry ?? "-",
+    grow: 1.5,
+    wrap: true,
+    minWidth: "140px",
+  },
+
+  {
+    name: <div>Comp-Off Carry Forwards</div>,
+    selector: (row) => row?.compOffCarry ?? "-",
+    grow: 1.5,
+    wrap: true,
+    minWidth: "140px",
+  },
+
   {
     name: <div>Posted On</div>,
     selector: (row) => row?.postedOn || "-",

@@ -345,6 +345,9 @@ const Prescription = ({
   const addMdicine = (med, data) => {
     if (!med) return;
 
+    // Only allow adding if the medicine is selected from the dropdown
+    if (!med.name) return;
+
     const checkMedicine = data.find(
       (val) => val.medicine?.name === med?.name || val.medicine?.name === med,
     );
@@ -354,7 +357,7 @@ const Prescription = ({
         medicine: {
           _id: med?._id || "",
           name: med?.name || med,
-          isNew: med.name ? false : true,
+          isNew: false, // med.name ? false : true,
           type: med?.type || "TAB",
           strength: med?.strength || "",
           unit: med?.unit || "MG",
@@ -370,7 +373,7 @@ const Prescription = ({
         unit: "Day (s)",
         frequency: 1,
       };
-      console.log(medicine);
+      // console.log(medicine);
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }

@@ -113,6 +113,9 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
     const idx = parseInt(e.target.id, 10);
 
     medList[idx][prop] = value;
+    if (prop === "baseUnit") {
+      medList[idx].unit = value;
+    }
     setMedicines(medList);
 
     if (prop === "strength") {
@@ -356,7 +359,7 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
                 />
                 {errors[idx] && <FormFeedback className="d-block">{errors[idx]}</FormFeedback>}
               </Col>
-              <Col md={4} className="mb-3">
+              {/* <Col md={4} className="mb-3">
                 <label className="fs-12 text-muted mb-1">Unit</label>
                 <Select
                   name="unit"
@@ -367,7 +370,7 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
                   classNamePrefix="react-select"
                   isDisabled={isSaving}
                 />
-              </Col>
+              </Col> */}
 
               {/* Row 5 */}
               <Col md={4} className="mb-3">

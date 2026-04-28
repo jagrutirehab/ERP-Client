@@ -114,7 +114,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
       selector: (row) =>
         <div className="d-flex flex-column">
           <span>
-            {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength} {row.medicine?.unit}
+            {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength}
           </span>
           {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
             <span className="text-danger small fw-bold">

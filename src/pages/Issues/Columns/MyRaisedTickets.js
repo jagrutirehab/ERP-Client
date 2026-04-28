@@ -228,7 +228,7 @@ export const MyRaisedTicketsColumns = (
 
 
 
-    ...(activeTab !== "new" && activeTab !== "rejected"
+    ...(activeTab !== "new" && activeTab !== "rejected" && type !== "HR"
       ? [
         {
           name: <div className="text-center">Assigned To</div>,
@@ -289,21 +289,21 @@ export const MyRaisedTicketsColumns = (
       },
     },
 
-    ...(type === "HR" ? [
-      {
-        name: <div className="text-center">Manager's Approval</div>,
-        width: "180px",
-        cell: (row) => {
-          const status = row?.hrIssue?.status;
+    // ...(type === "HR" ? [
+    //   {
+    //     name: <div className="text-center">Manager's Approval</div>,
+    //     width: "180px",
+    //     cell: (row) => {
+    //       const status = row?.hrIssue?.status;
 
-          return (
-            <Badge color={getStatusColor(status)} pill>
-              {status?.replaceAll("_", " ") || "-"}
-            </Badge>
-          );
-        },
-      },
-    ] : []),
+    //       return (
+    //         <Badge color={getStatusColor(status)} pill>
+    //           {status?.replaceAll("_", " ") || "-"}
+    //         </Badge>
+    //       );
+    //     },
+    //   },
+    // ] : []),
 
     {
       name: <div className="text-center">Raised on</div>,

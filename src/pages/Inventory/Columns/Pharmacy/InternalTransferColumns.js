@@ -75,18 +75,23 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                 return (
                     <div className="d-flex flex-column w-100 my-2 gap-1 rounded">
                         {visibleItems.map((item, i) => {
-                            const m = item.pharmacyId || {};
-                            const med = m.medicineId || {};
-                            const customId = m.id || item.customId || "";
-                            const medType = med.type || "";
-                            const medName = m.medicineName || item.medicineName || "";
-                            const strength = m.Strength || m.strength || item.strength || "";
-                            const unit = m.medicineId?.purchaseUnit || m.unitType || m.unit || item.unit || "";
+                            const isPending = ["PENDING_REQUESTING", "PENDING_FULFILLING"].includes(row.status);
+
+                            let customId, medType, medName, strength, unit;
+                            const med = item.medicineId || {};
+                            customId = med.id || item.customId || "";
+                            medType = med.type || "";
+                            medName = med.name || item.medicineName || "";
+                            strength = med.strength || item.strength || "";
+                            unit = med.purchaseUnit || item.unit || "";
+
                             const qty = isReceived
                                 ? (item.receivedQty ?? item.approvedQty)
-                                : isPostApproval
-                                    ? item.approvedQty
-                                    : item.requestedQty;
+                                : isDispatched
+                                    ? item.dispatchedQty
+                                    : isPostApproval
+                                        ? item.approvedQty
+                                        : item.requestedQty;
 
                             return (
                                 <React.Fragment key={i}>
@@ -291,7 +296,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                         </button>
                     );
                 }
-                // ── END PENDING_REQUESTING ───────────────────────────────────
 
                 // ── PENDING_FULFILLING: Fulfilling center reviews ─────────────
                 if (row.status === "PENDING_FULFILLING") {

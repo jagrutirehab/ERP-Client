@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dropdown, DropdownToggle, Spinner } from "reactstrap";
 import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
 
 const normalizeLabel = (val) =>
   val ? val.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "";
@@ -45,7 +44,7 @@ const AddinventoryMedicine = ({
       manufacturer: defaultValues.manufacturer || "",
       RackNum: defaultValues.RackNum || "",
       Expiry: defaultValues.Expiry || "",
-      Batch: Array.isArray(defaultValues.Batch) ? defaultValues.Batch : (defaultValues.Batch ? [defaultValues.Batch] : []),
+      Batch: defaultValues.Batch || "",
       Status: defaultValues.Status || "NORMAL",
     },
   });
@@ -55,6 +54,20 @@ const AddinventoryMedicine = ({
   const submitHandler = (data) => {
     if (!selectedCenters.length) {
       alert("At least one valid center is required");
+      return;
+    }
+
+    const zeroStockCenters = selectedCenters.filter((id) => {
+      const stock = Number(centerStocks[id]) || 0;
+      return stock === 0;
+    });
+
+    if (zeroStockCenters.length > 0) {
+      const touchedCenters = zeroStockCenters.reduce((acc, id) => {
+        acc[id] = true;
+        return acc;
+      }, {});
+      setCenterStockTouched((prev) => ({ ...prev, ...touchedCenters }));
       return;
     }
 
@@ -115,6 +128,7 @@ const AddinventoryMedicine = ({
     defaultValues.medicineId?.conversion || defaultValues.conversion || null
   );
   const [centerStockUnits, setCenterStockUnits] = useState({});
+  const [centerStockTouched, setCenterStockTouched] = useState({});
 
 
 
@@ -529,9 +543,18 @@ const AddinventoryMedicine = ({
                         <input
                           type="number" min="0" step="any"
                           value={rawStockStr}
-                          onChange={(e) => setCenterStocks((prev) => ({ ...prev, [id]: e.target.value }))}
+                          onChange={(e) => {
+                            setCenterStocks((prev) => ({ ...prev, [id]: e.target.value }));
+                            if (centerStockTouched[id] === undefined) {
+                              setCenterStockTouched((prev) => ({ ...prev, [id]: true }));
+                            }
+                          }}
+                          onBlur={() => setCenterStockTouched((prev) => ({ ...prev, [id]: true }))}
                           className="form-control w-50"
                           placeholder="Stock"
+                          style={{
+                            borderColor: centerStockTouched[id] && stockNum === 0 ? "#e53e3e" : "",
+                          }}
                         />
                         <select
                           className="form-select w-50"
@@ -542,7 +565,10 @@ const AddinventoryMedicine = ({
                           <option value="PURCHASE">{normalizeLabel(watch("purchaseUnit")) || "Purchase Unit"}</option>
                         </select>
                       </div>
-                      {rawStockStr !== "" && (
+                      {centerStockTouched[id] && stockNum === 0 && (
+                        <p style={styles.errorText}>Stock quantity cannot be 0</p>
+                      )}
+                      {rawStockStr !== "" && stockNum !== 0 && (
                         <div className="fs-12 text-dark mt-1 fw-medium" style={{ fontSize: "11px" }}>
                           Total Stock: {convertedStock} {normalizeLabel(watch("baseUnit")) || "Unit"}
                         </div>
@@ -566,19 +592,7 @@ const AddinventoryMedicine = ({
               <InputField label="Purchase Price" name="purchasePrice" type="number" step="any" validation={{ min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Sales Price" name="SalesPrice" type="number" step="any" validation={{ required: "Sales Price is required", min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Expiry Date" name="Expiry" type="date" />
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Batch Numbers</label>
-                <CreatableSelect
-                  isMulti
-                  isClearable
-                  placeholder="Type batch and press enter..."
-                  components={{ DropdownIndicator: null }}
-                  formatCreateLabel={(inputValue) => inputValue.toUpperCase()}
-                  value={(watch("Batch") || []).map((b) => ({ label: b, value: b }))}
-                  onChange={(newVal) => setValue("Batch", newVal ? newVal.map((v) => v.value.toUpperCase()) : [])}
-                  classNamePrefix="react-select"
-                />
-              </div>
+              <InputField label="Batch Number" name="Batch" />
               <InputField label="Company" name="company" validation={{ required: "Company is required" }} />
               <InputField label="Manufacturer" name="manufacturer" />
               <InputField label="Rack Number" name="RackNum" />
