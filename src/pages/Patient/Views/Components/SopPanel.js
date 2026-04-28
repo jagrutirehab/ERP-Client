@@ -17,7 +17,7 @@ const chartTypeLabels = {
   RELATIVE_VISIT: "Family Update",
   PRESCRIPTION: "Prescription",
   LAB_REPORT: "Lab Test",
-  DETAIL_ADMISSION: "Admission Form",
+  DETAIL_ADMISSION: "Detail History",
   MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
 };
