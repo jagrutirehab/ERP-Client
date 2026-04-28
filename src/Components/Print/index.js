@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFViewer, PDFDownloadLink, pdf } from "@react-pdf/renderer";
+import _ from "lodash";
 
 //modal
 import CustomModal from "../Common/Modal";
@@ -35,6 +36,9 @@ const Print = ({
 
   const [vp, setVp] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
+  const [downloadingAll, setDownloadingAll] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState("");
+  const [failedBatches, setFailedBatches] = useState([]);
 
   useEffect(() => {
     setVp(window.innerWidth);
@@ -58,6 +62,72 @@ const Print = ({
 
   const handleBackToBatchSelector = () => {
     setSelectedBatch(null);
+  };
+
+  // Never put more than this many charts in a single downloaded PDF
+  const MAX_DOWNLOAD_CHUNK_SIZE = 50;
+  // After every GROUP_SIZE downloads, take a long GC recovery pause
+  const GROUP_SIZE = 5;
+  const RECOVERY_DELAY = 10000; // 10s — lets GC fully reclaim heap
+  const BETWEEN_DELAY = 3000;   // 3s between individual downloads
+
+  const handleDownloadAll = async (batches, startBatchNum = 1) => {
+    setDownloadingAll(true);
+    setFailedBatches([]);
+    const failed = [];
+
+    const displayChunkSize = batches[0]?.length || MAX_DOWNLOAD_CHUNK_SIZE;
+    const effectiveSize = Math.min(MAX_DOWNLOAD_CHUNK_SIZE, displayChunkSize);
+    const downloadBatches = effectiveSize < displayChunkSize
+      ? _.chunk(batches.flat(), effectiveSize)
+      : batches;
+
+    const downloadBlob = async (charts, index) => {
+      const blob = await pdf(
+        <BulkCharts admission={admission} charts={charts} patient={patient} />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${patient?.id?.value}-${(patient?.name || "patient").replace(/\s+/g, "_")}-charts-batch-${startBatchNum + index}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    for (let i = 0; i < downloadBatches.length; i++) {
+      setDownloadProgress(`Downloading batch ${i + 1} of ${downloadBatches.length}...`);
+      let success = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          if (attempt > 0) {
+            setDownloadProgress(`Retrying batch ${i + 1} of ${downloadBatches.length}...`);
+            await new Promise((resolve) => setTimeout(resolve, 6000));
+          }
+          await downloadBlob(downloadBatches[i], i);
+          success = true;
+          break;
+        } catch (err) {
+          console.error(`Batch ${i + 1} attempt ${attempt + 1} failed:`, err);
+        }
+      }
+      if (!success) failed.push(i + 1);
+
+      if (i < downloadBatches.length - 1) {
+        const isGroupBoundary = (i + 1) % GROUP_SIZE === 0;
+        if (isGroupBoundary) {
+          setDownloadProgress(`Recovering memory... (${i + 1}/${downloadBatches.length} done)`);
+          await new Promise((resolve) => setTimeout(resolve, RECOVERY_DELAY));
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, BETWEEN_DELAY));
+        }
+      }
+    }
+
+    setDownloadingAll(false);
+    setFailedBatches(failed);
+    setDownloadProgress(failed.length > 0 ? `Done. Failed batches: ${failed.join(", ")}` : "");
   };
 
   let printAllCharts = [];
@@ -169,6 +239,10 @@ const Print = ({
                   <BatchSelector
                     charts={printAllCharts}
                     onSelect={handleBatchSelect}
+                    onDownloadAll={handleDownloadAll}
+                    downloadingAll={downloadingAll}
+                    downloadProgress={downloadProgress}
+                    failedBatches={failedBatches}
                   />
                 </RenderWhen>
                 <RenderWhen isTrue={selectedBatch !== null ? true : false}>
@@ -259,6 +333,10 @@ const Print = ({
             <BatchSelector
               charts={printAllCharts}
               onSelect={handleBatchSelect}
+              onDownloadAll={handleDownloadAll}
+              downloadingAll={downloadingAll}
+              downloadProgress={downloadProgress}
+              failedBatches={failedBatches}
             />
           </RenderWhen>
           <RenderWhen isTrue={!(printData?.printAdmissionCharts && selectedBatch === null) ? true : false}>
