@@ -1,5 +1,6 @@
 import { normalizeUnderscores } from "../../../../utils/normalizeUnderscore";
 import { display } from "../../../../utils/display";
+import { ListGroup, ListGroupItem, Button } from "reactstrap";
 
 export const getStockSummaryColumns = () => [
     {
@@ -12,7 +13,7 @@ export const getStockSummaryColumns = () => [
         accessor: "medicineName",
         cell: (row) => (
             <span className="font-weight-bold text-primary">
-                {display(row.medicine?.name || row.medicineName)}
+                {display(row.medicineName)}
             </span>
         ),
     },
@@ -20,11 +21,6 @@ export const getStockSummaryColumns = () => [
         header: "Generic Name",
         accessor: "genericName",
         cell: (row) => <span>{row.medicine?.genericName?.toUpperCase() || "-"}</span>,
-    },
-    {
-        header: "Form",
-        accessor: "form",
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.form)}</span>,
     },
     {
         header: "Type",
@@ -36,12 +32,35 @@ export const getStockSummaryColumns = () => [
         accessor: "strength",
         cell: (row) => <span>{display(row.medicine?.strength)}</span>,
     },
+     {
+        header: "Base Unit",
+        accessor: "baseUnit",
+        cell: (row) => <span>{normalizeUnderscores(row.medicine?.baseUnit)}</span>,
+    },
     {
         header: "Total Stock",
         accessor: "totalStock",
         cell: (row) => (
             <span>
                 {row.totalStock || 0}
+            </span>
+        ),
+    },
+    {
+        header: "Total Reserved",
+        accessor: "totalReservedQty",
+        cell: (row) => (
+            <span>
+                {row.totalReservedQty ? `-${row.totalReservedQty}` : 0}
+            </span>
+        ),
+    },
+    {
+        header: "Total In-Transit",
+        accessor: "totalInTransitQty",
+        cell: (row) => (
+            <span>
+                {row.totalInTransitQty ? `+${row.totalInTransitQty}` : 0}
             </span>
         ),
     },
@@ -64,11 +83,17 @@ export const getStockSummaryColumns = () => [
                 const isExpanded = button.getAttribute("data-expanded") === "true";
 
                 if (isExpanded) {
-                    hiddenItems.forEach((item) => (item.style.display = "none"));
+                    hiddenItems.forEach((item) => {
+                        item.classList.add("d-none");
+                        item.classList.remove("d-flex");
+                    });
                     button.innerText = `View all (+${hiddenCount})`;
                     button.setAttribute("data-expanded", "false");
                 } else {
-                    hiddenItems.forEach((item) => (item.style.display = "flex"));
+                    hiddenItems.forEach((item) => {
+                        item.classList.remove("d-none");
+                        item.classList.add("d-flex");
+                    });
                     button.innerText = "View less";
                     button.setAttribute("data-expanded", "true");
                 }
@@ -76,85 +101,67 @@ export const getStockSummaryColumns = () => [
 
             return (
                 <div
-                    style={{
-                        whiteSpace: "normal",
-                        minWidth: "180px",
-                        padding: "4px 0",
-                    }}
+                    style={{ minWidth: "320px", whiteSpace: "normal" }}
+                    className="py-1"
                     id={containerId}
                 >
                     {centers.length > 0 ? (
-                        <ul
-                            style={{
-                                listStyle: "none",
-                                padding: 0,
-                                margin: 0,
-                            }}
-                        >
-                            {centers.map((item, index) => {
-                                const isHidden = index >= initialCount;
-                                return (
-                                    <li
-                                        key={index}
-                                        className={isHidden ? "hidden-center-item" : ""}
-                                        style={{
-                                            display: isHidden ? "none" : "flex",
-                                            justifyContent: "space-between",
-                                            borderBottom: index < centers.length - 1 ? "1px solid #eee" : "none",
-                                            padding: "2px 0",
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                fontWeight: 600,
-                                                color: "#007bff",
-                                                fontSize: "0.85rem",
-                                            }}
+                        <>
+                            <div className="d-flex align-items-center border-bottom border-2 pb-1 mb-1 fw-bold" style={{ fontSize: "0.75rem", gap: "4px" }}>
+                                <span className="flex-grow-1 text-nowrap">Center</span>
+                                <span className="text-end text-nowrap" style={{ width: "52px" }}>Total</span>
+                                <span className="text-end text-nowrap" style={{ width: "62px" }}>Reserved</span>
+                                <span className="text-end text-nowrap" style={{ width: "66px" }}>In-Transit</span>
+                            </div>
+                            <ListGroup flush className="p-0 m-0 border-0 bg-transparent">
+                                {centers.map((item, index) => {
+                                    const isHidden = index >= initialCount;
+                                    return (
+                                        <ListGroupItem
+                                            key={index}
+                                            className={`p-1 border-0 ${index < centers.length - 1 ? 'border-bottom' : ''} ${isHidden ? "hidden-center-item d-none" : "d-flex"} align-items-center bg-transparent`}
+                                            style={{ gap: "4px" }}
                                         >
-                                            {display(item?.centerInfo?.title)}
-                                        </span>
-                                        <span
-                                            style={{
-                                                fontWeight: 500,
-                                                marginLeft: "10px",
-                                                fontSize: "0.85rem",
-                                            }}
-                                        >
-                                            {display(item?.stock)}
-                                        </span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
+                                            <span className="flex-grow-1 fw-semibold text-primary" style={{ fontSize: "0.85rem" }}>
+                                                {display(item?.centerInfo?.title)}
+                                            </span>
+                                            <span className="text-end fw-medium" style={{ width: "52px", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                                                {display(item?.stock)}
+                                            </span>
+                                            <span className="text-end fw-medium" style={{ width: "62px", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                                                {item?.reservedQty ? `-${item.reservedQty}` : 0}
+                                            </span>
+                                            <span className="text-end fw-medium" style={{ width: "66px", fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                                                {item?.inTransitQty ? `+${item.inTransitQty}` : 0}
+                                            </span>
+                                        </ListGroupItem>
+                                    );
+                                })}
+                            </ListGroup>
+                        </>
                     ) : (
                         "-"
                     )}
 
                     {hiddenCount > 0 && (
-                        <button
+                        <Button
+                            color="link"
+                            className="p-0 mt-1 text-primary shadow-none fw-medium text-decoration-none"
+                            style={{ fontSize: "0.8rem" }}
                             onClick={toggleCenters}
                             data-expanded="false"
-                            style={{
-                                background: "none",
-                                border: "none",
-                                color: "#007bff",
-                                cursor: "pointer",
-                                padding: "2px 0",
-                                marginTop: "4px",
-                                fontSize: "0.8rem",
-                            }}
                         >
                             {`View all (+${hiddenCount})`}
-                        </button>
+                        </Button>
                     )}
                 </div>
             );
         },
     },
     {
-        header: "Base Unit",
-        accessor: "baseUnit",
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.baseUnit)}</span>,
+        header: "Form",
+        accessor: "form",
+        cell: (row) => <span>{normalizeUnderscores(row.medicine?.form)}</span>,
     },
     {
         header: "Category",
