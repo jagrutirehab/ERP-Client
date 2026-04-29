@@ -199,12 +199,12 @@ const DetailAdmission = ({
       referral: detailAdmissionForm
         ? detailAdmissionForm.detailAdmission?.referral
         : "",
-      provisionaldiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id) || []
+      provisionaldiagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.provisionaldiagnosis)
+        ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(d => d.code_id)
         : [],
 
-      diagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id) || []
+      diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
+        ? detailAdmissionForm.doctorSignature.diagnosis.map(d => d.code_id)
         : [],
 
 
@@ -431,12 +431,12 @@ const DetailAdmission = ({
         ? detailAdmissionForm.physicalExamination?.formulation
         : "",
       //diagnosis & doctor signature
-      provisionaldiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis?.map(d => d.code_id) || []
+      provisionaldiagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.provisionaldiagnosis)
+        ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(d => d.code_id)
         : [],
 
-      diagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.diagnosis?.map(d => d.code_id) || []
+      diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
+        ? detailAdmissionForm.doctorSignature.diagnosis.map(d => d.code_id)
         : [],
 
 
