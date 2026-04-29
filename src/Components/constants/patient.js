@@ -1335,7 +1335,7 @@ const patientGuradianFields = [
   {
     label: "Phone Number",
     name: "guardianPhoneNumber",
-    type: "text",
+    type: "phoneNumber",
     required: true,
   },
   // {
