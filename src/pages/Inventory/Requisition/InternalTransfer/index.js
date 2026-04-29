@@ -516,7 +516,9 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                         medicineName: med.name || item.medicineName || "Unknown",
                         type: med.type || "",
                         strength: med.strength || item.strength || "",
-                        unit: med.purchaseUnit || item.unit || "",
+                        unit: med.baseUnit || item.unit || "",
+                        purchaseUnit: med.purchaseUnit || "",
+                        conversion: med.conversion || { purchaseQuantity: 1, baseQuantity: 1 },
                         genericName: med.genericName || "",
                         brandName: med.brandName || "",
                         requestedQty: item.requestedQty,
@@ -1238,6 +1240,9 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                         const totalAllocated = (item.allocations || []).reduce((sum, a) => sum + (a.qty || 0), 0);
                                         const isOverAllocated = totalAllocated > Number(item.approvedQty);
                                         const isProperlyAllocated = totalAllocated > 0 && totalAllocated <= Number(item.approvedQty);
+                                        const conv = item.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
+                                        const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
+                                        const convertedApproved = (item.approvedQty || 0) * factor;
 
                                         return (
                                             <div key={item.itemId} className="border rounded p-3" style={isSkipped ? { opacity: 0.6, background: "#fff5f5" } : {}}>
@@ -1246,7 +1251,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                         <p className="mb-1 fw-semibold" style={{ fontSize: 13 }}>
                                                             <span style={{ color: "#6c757d", marginRight: 8 }}>#{idx + 1}</span>
                                                             {item.customId && <span className="text-primary me-1">[{item.customId}]</span>}
-                                                            {[item.type, item.medicineName, item.strength, item.unit].filter(Boolean).join(" ")}
+                                                            {[item.type, item.medicineName, item.strength].filter(Boolean).join(" ")}
                                                         </p>
                                                         <p className="mb-0 text-muted" style={{ fontSize: 11 }}>
                                                             {(item.genericName || item.brandName) && (
@@ -1261,7 +1266,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                     </div>
                                                     <div className="text-end">
                                                         <p className="mb-1" style={{ fontSize: 12 }}>
-                                                            <span className="fw-semibold">Requested:</span> {item.requestedQty} {pluralizeUnit(item.unit)}
+                                                            <span className="fw-semibold">Requested:</span> {item.requestedQty} {pluralizeUnit(item.purchaseUnit || item.unit)}
                                                         </p>
                                                         <div className="input-group input-group-sm" style={{ width: 150 }}>
                                                             <Input
@@ -1282,9 +1287,14 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                 style={{ textAlign: "center", fontWeight: 700, fontSize: 12 }}
                                                             />
                                                             <span className="input-group-text fw-medium" style={{ fontSize: 11, background: "#f8f9fa", padding: "4px 6px" }}>
-                                                                {pluralizeUnit(item.unit) || "Unit"}
+                                                                {pluralizeUnit(item.purchaseUnit || item.unit) || "Unit"}
                                                             </span>
                                                         </div>
+                                                        {factor !== 1 && item.approvedQty > 0 && (
+                                                            <p className="mt-1 mb-0 text-muted" style={{ fontSize: 11 }}>
+                                                                = {convertedApproved} {pluralizeUnit(item.unit)}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -1367,7 +1377,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                                                             const errorKey = `${item.itemId}-${batch._id}`;
                                                                                                             // Validate against both approved qty and batch stock
                                                                                                             const exceedsApproved = currentTotal + newQty > item.approvedQty;
-                                                                                                            const exceedsStock = newQty > (batch.stock || 0);
+                                                                                                            const exceedsStock = (newQty * factor) > (batch.stock || 0);
                                                                                                             const hasError = exceedsApproved || exceedsStock;
 
                                                                                                             // Update error state
@@ -1400,12 +1410,17 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                                                         bsSize="sm"
                                                                                                     />
                                                                                                     <span style={{ fontSize: 11, color: "#6c757d", minWidth: 40 }}>
-                                                                                                        {pluralizeUnit(item.unit)}
+                                                                                                        {pluralizeUnit(item.purchaseUnit || item.unit)}
                                                                                                     </span>
                                                                                                 </div>
+                                                                                                {factor !== 1 && allocatedQty > 0 && (
+                                                                                                    <p className="mt-1 mb-0 text-muted text-end" style={{ fontSize: 10 }}>
+                                                                                                        = {allocatedQty * factor} {pluralizeUnit(item.unit)}
+                                                                                                    </p>
+                                                                                                )}
                                                                                                 {hasError && (
                                                                                                     <p style={{ fontSize: 11, color: "#dc3545", marginTop: 4, marginBottom: 0 }}>
-                                                                                                        Max stock: {batch.stock} {pluralizeUnit(item.unit)} | Remaining to allocate: {remaining}
+                                                                                                        Max stock: {batch.stock} {pluralizeUnit(item.unit)} | Remaining: {remaining} {pluralizeUnit(item.purchaseUnit || item.unit)}
                                                                                                     </p>
                                                                                                 )}
                                                                                             </div>
@@ -1427,7 +1442,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
                                                                     const batchInfo = item.availableBatches.find(b => b._id === alloc.pharmacyId);
                                                                     return (
                                                                         <div key={aIdx} className="badge bg-info" style={{ fontSize: 11, padding: "4px 8px" }}>
-                                                                            {batchInfo?.Batch || "No Batch"}: {alloc.qty} {pluralizeUnit(item.unit)}
+                                                                            {batchInfo?.Batch || "No Batch"}: {alloc.qty} {pluralizeUnit(item.purchaseUnit || item.unit)}
                                                                             <button
                                                                                 type="button"
                                                                                 className="ms-1"
