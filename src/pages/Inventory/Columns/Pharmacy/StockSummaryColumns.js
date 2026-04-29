@@ -65,7 +65,14 @@ export const getStockSummaryColumns = () => [
         ),
     },
     {
-        header: "Center-wise Stock",
+        header: (
+            <div className="d-flex align-items-center w-100 fw-bold" style={{ fontSize: "0.75rem", gap: "4px" }}>
+                <span className="flex-grow-1 text-nowrap">Center</span>
+                <span className="text-end text-nowrap" style={{ width: "52px" }}>Total</span>
+                <span className="text-end text-nowrap" style={{ width: "62px" }}>Reserved</span>
+                <span className="text-end text-nowrap" style={{ width: "66px" }}>In-Transit</span>
+            </div>
+        ),
         accessor: "centers",
         cell: (row) => {
             const centers = row.centers || [];
@@ -107,12 +114,6 @@ export const getStockSummaryColumns = () => [
                 >
                     {centers.length > 0 ? (
                         <>
-                            <div className="d-flex align-items-center border-bottom border-2 pb-1 mb-1 fw-bold" style={{ fontSize: "0.75rem", gap: "4px" }}>
-                                <span className="flex-grow-1 text-nowrap">Center</span>
-                                <span className="text-end text-nowrap" style={{ width: "52px" }}>Total</span>
-                                <span className="text-end text-nowrap" style={{ width: "62px" }}>Reserved</span>
-                                <span className="text-end text-nowrap" style={{ width: "66px" }}>In-Transit</span>
-                            </div>
                             <ListGroup flush className="p-0 m-0 border-0 bg-transparent">
                                 {centers.map((item, index) => {
                                     const isHidden = index >= initialCount;
