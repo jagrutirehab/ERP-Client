@@ -370,7 +370,9 @@ const IssuesPage = ({ type }) => {
                 issue={selectedIssue}
                 onAssign={handleAssignSubmit}
                 activeTab={activeTab}
-                title={"Assign Issue to employee"}
+                title={activeTab === "new" && selectedIssue?.issueType === "TECH"
+                    ? "Assign Issue to Employee"
+                    : "Update Issue Status"}
             />
 
             <ApprovalModal
@@ -380,14 +382,14 @@ const IssuesPage = ({ type }) => {
                 onSubmit={handleApprovalSubmit}
             />
 
-            <StatusModal
+            {/* <StatusModal
                 isOpen={assignModal}
                 toggle={() => setAssignModal(false)}
                 issue={selectedIssue}
                 onAssign={handleAssignSubmit}
                 activeTab={status}
                 title={`Update Issue Status`}
-            />
+            /> */}
         </>
     );
 };
