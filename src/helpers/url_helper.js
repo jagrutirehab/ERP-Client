@@ -462,6 +462,9 @@ export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
 export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
 export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
 export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
+export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
+export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
+export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
 
 
 
