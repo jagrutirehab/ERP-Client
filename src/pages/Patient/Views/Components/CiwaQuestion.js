@@ -73,18 +73,7 @@ const CiwaQuestions = () => {
   }, [dispatch, id]);
 
   // // State to store the scores for each CIWA-AR item
-  const [scores, setScores] = useState({
-    nauseaVomiting: 0,
-    tremor: 0,
-    paroxysmalSweats: 0,
-    anxiety: 0,
-    agitation: 0,
-    tactileDisturbances: 0,
-    auditoryDisturbances: 0,
-    visualDisturbances: 0,
-    headache: 0,
-    orientation: 0,
-  });
+  const [scores, setScores] = useState({});
 
   // State for managing image previews (for psychiatrist)
   const [imagePreview, setImagePreview] = useState(null);
@@ -392,10 +381,19 @@ const CiwaQuestions = () => {
       return {
         questionId: q.id,
         question: q.question,
-        score: selectedScore,
+        score: selectedScore !== undefined ? selectedScore : null,
         label: selectedOption ? selectedOption.label : "Not answered",
       };
     });
+
+    const unansweredQuestions = formattedAnswers.filter(
+      (item) => item.score === null
+    );
+
+    if (unansweredQuestions.length > 0) {
+      openModal("Please answer all the questions before submitting.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("patientId", id);
