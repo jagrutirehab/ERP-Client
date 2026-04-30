@@ -157,6 +157,7 @@ export const permissionList = [
       { name: "AUDIT", label: "Audit" },
       { name: "REQUISITION_INTERNAL_TRANSFER", label: "Requisition: Internal Transfer" },
       { name: "REQUISITION_SAREYAAN_ORDERS", label: "Requisition: Sareyaan Orders" },
+      { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
     ],
   },
   {
@@ -289,6 +290,7 @@ export const permissionList = [
       { name: "MONTHLY_ATTENDANCE", label: "Monthly Attendance" },
       // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      { name: "REPORTINGS_ATTENDANCE_METRICS", label: "Attendance Metrics - Direct Reportings" },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
       { name: "MY_ATTENDANCE_REGULARIZATION", label: "My Attendance Regularization" },
 

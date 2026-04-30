@@ -18,6 +18,7 @@ const Sidebar = () => {
   const hasUserPermission6 = hasPermission("PHARMACY", "NURSEGIVENMEDICINES", "READ");
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
   const hasUserPermission8 = hasPermission("PHARMACY", "REQUISITION_SAREYAAN_ORDERS", "READ");
+  const hasUserPermission9 = hasPermission("PHARMACY", "INVENTORY_STOCK_SUMMARY", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -75,6 +76,10 @@ const Sidebar = () => {
       return page.children.length > 0;
     }
 
+    if (page.id === "stockSummary" && !hasUserPermission9) {
+      return false;
+    }
+
     return true;
   });
 
@@ -123,7 +128,7 @@ const Sidebar = () => {
     }
 `}
       </style>
-      <div className="chat-leftsidebar">
+      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
         <div className="ps-4 pe-3 pt-4 mb-">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">

@@ -418,6 +418,12 @@ export const Pharmacy = [
       },
     ]
   },
+  {
+    id: "stockSummary",
+    label: "Stock Summary",
+    link: "/pharmacy/stock-summary",
+    icon: "bx bx-box",
+  }
 ];
 
 export const MIReporting = [
@@ -846,6 +852,12 @@ export const HR = [
         id: "attendance-metrics",
         label: "Attendance Metrics",
         link: "/hr/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+      {
+        id: "reporting-metrics",
+        label: "Attendance Metrics - Direct Reportings",
+        link: "/hr/reporting/metrics",
         icon: "bx bx-stats",
       },
       {

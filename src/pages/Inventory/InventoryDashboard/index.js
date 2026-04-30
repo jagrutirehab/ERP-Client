@@ -370,16 +370,17 @@ const App = () => {
             borderBottom: "1px solid #e5e7eb",
           }}
         >
-          <h1
+          <h4
             style={{
-              fontSize: "2rem",
-              fontWeight: "800",
+              fontSize: "1.5rem",
+              fontWeight: "700",
               color: "#0d9488",
               letterSpacing: "-0.025em",
+              margin: 0,
             }}
           >
             Pharmacy Dashboard
-          </h1>
+          </h4>
           <div
             style={{
               display: "flex",

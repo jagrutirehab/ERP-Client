@@ -437,6 +437,9 @@ export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
+// INVENTORY STOCK SUMMARY
+export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
+
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";
@@ -457,6 +460,8 @@ export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
 export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
 export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
+export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
+export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
 
 
 
@@ -530,6 +535,7 @@ export const ATTENDANCE_TEMPLATE = "/hrms/attendance/template";
 export const UPLOAD_ATTENDANCE = "/hrms/attendance/upload";
 
 export const ATTENDANCE_METRICS = "/hrms/attendance/metrics";
+export const REPORTING_METRICS = "/hrms/reporting/metrics";
 export const EXPORT_ATTENDANCE_METRICS = "/hrms/attendance/metrics/export";
 export const TODAY_MY_ATTENDANCE_STATUS = "/hrms/attendance/status/today";
 export const ATTENDANCE_SUMMARY = "/hrms/attendance/summary";

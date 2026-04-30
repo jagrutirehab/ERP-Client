@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { display } from "../../../utils/display";
 // import { Search } from "lucide-react";
 import {
   Table,
@@ -84,8 +85,6 @@ const GivenMedicine = () => {
   const handleGiveMedicine = () => {
     setModalOpengive(true);
   };
-
-  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   const getPageRange = (total, current, maxButtons = 7) => {
     if (total <= maxButtons)
@@ -195,10 +194,10 @@ const GivenMedicine = () => {
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
-        <div className="text-center text-md-left mb-4">
-          <h1 className="display-5 font-weight-bold text-primary">
-            GIVEN MEDICINE
-          </h1>
+        <div className="text-center text-md-left mb-3">
+          <h4 className="font-weight-bold text-primary text-uppercase">
+            Given Medicine
+          </h4>
         </div>
 
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">

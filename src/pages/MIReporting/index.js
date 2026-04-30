@@ -25,6 +25,8 @@ import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
 import ClinicalNotesDOD from "./ClinicalNotesDOD";
 import VitalSignsDOD from "./VitalSignsDOD";
+import PatientDocs from "./PatientDocs";
+import OpdPatientDocs from "./OpdPatientDocs";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -190,6 +192,19 @@ const MiReporting = () => {
                     path="/vital-signs"
                     element={<VitalSignsDOD />}
                   />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/patient-docs"
+                    element={<PatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-patient-docs"
+                    element={<OpdPatientDocs />}
+                  />}
+
+                  
               </Routes>
             </div>
           </Container>
