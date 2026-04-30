@@ -122,6 +122,12 @@ const Sidebar = () => {
     "READ"
   );
 
+  const hasReportingMetricsPermission = hasPermission(
+    "HR",
+    "REPORTINGS_ATTENDANCE_METRICS",
+    "READ"
+  );
+
   const hasMyAttendancePermission = hasPermission(
     "HR",
     "MY_ATTENDANCE",
@@ -354,6 +360,13 @@ const Sidebar = () => {
           !hasAttendanceMetricsPermission
         )
           return false;
+
+        if (
+          child.id === "reporting-metrics" &&
+          !hasReportingMetricsPermission
+        )
+          return false
+
         if (child.id === "my-attendance" && !hasMyAttendancePermission)
           return false;
 
@@ -444,7 +457,7 @@ const Sidebar = () => {
     if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
 
     if (page.id === "finance" && !hasFinancePermission) return false;
-    
+
 
     if (page.id === "hr-dashboard") {
       page.children = page.children.filter((child) => {

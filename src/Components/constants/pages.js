@@ -855,6 +855,12 @@ export const HR = [
         icon: "bx bx-stats",
       },
       {
+        id: "reporting-metrics",
+        label: "Attendance Metrics - Direct Reportings",
+        link: "/hr/reporting/metrics",
+        icon: "bx bx-stats",
+      },
+      {
         id: "my-attendance",
         label: "My Attendance",
         link: "/hr/attendance/self",

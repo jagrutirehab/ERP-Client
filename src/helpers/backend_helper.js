@@ -2620,6 +2620,18 @@ export const getAttendanceMetrics = (params = {}) => {
   });
 };
 
+export const getReportingMetrics = (params = {}) => {
+  return api.get(url.REPORTING_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
 export const exportAttendanceMetrics = (params = {}) => {
   return api.get(url.EXPORT_ATTENDANCE_METRICS, {
     params,
