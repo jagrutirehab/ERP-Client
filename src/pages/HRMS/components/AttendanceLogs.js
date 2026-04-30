@@ -17,7 +17,7 @@ import RegularizeModal from "../../../Components/Common/RegularizeModal";
 import LeaveModal from "./LeaveModal";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 
-const AttendanceLogs = ({ employeeId, centerId }) => {
+const AttendanceLogs = ({ employeeId, centerId, type }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const [reportDate, setReportDate] = useState(getTableRange());
@@ -46,6 +46,9 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
   // const hasDeleteForMetrics = hasPermission("HR", "ATTENDANCE_METRICS", "DELETE");
 
   const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
+
+  console.log("typeinlogs", type);
+  
 
   const loadMyAttendanceLogs = async () => {
     try {
@@ -111,7 +114,8 @@ const AttendanceLogs = ({ employeeId, centerId }) => {
     loading,
     // canShowActionButton,
     hasMyRegularizationPermission,
-    isSelf: !employeeId
+    isSelf: !employeeId,
+    type : type
   });
 
   const reloadAttendance = () => {

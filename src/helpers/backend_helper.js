@@ -2644,6 +2644,18 @@ export const exportAttendanceMetrics = (params = {}) => {
     },
   });
 };
+export const exportReportingMetrics = (params = {}) => {
+  return api.get(url.EXPORT_REPORTING_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
 
 // REGULARIZATION
 export const requestForRegularization = (data) => {

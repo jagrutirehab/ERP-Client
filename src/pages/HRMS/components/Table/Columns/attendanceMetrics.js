@@ -3,7 +3,7 @@ import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { minutesToTime } from "../../../../../utils/time";
 import Highlighter from "react-highlight-words";
 
-export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission, searchText }) => [
+export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission, searchText, type }) => [
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
@@ -31,7 +31,7 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         wrap: true,
         minWidth: "160px",
     },
-    {
+   type !== "directreporting" && {
         name: <div>Biometric ID</div>,
         selector: row => row?.biometricId || "-",
         cell: row => (
@@ -96,13 +96,15 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
     {
         name: <div>Actions</div>,
         cell: (row) => {
+            console.log("Type", type);
+            
 
             return (
                 <Button
                     color="primary"
                     size="sm"
                     className="text-white"
-                    onClick={() => onNavigate(row.employee?._id, row.center?._id)}>
+                    onClick={() => onNavigate(row.employee?._id, row.center?._id, type)}>
                     Attendance
                 </Button>
             )
