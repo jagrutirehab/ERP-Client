@@ -14,6 +14,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearMedicineApprovals } from "../../../store/features/pharmacy/pharmacySlice";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 const tabOptions = ["OPD", "IPD"];
 const subTabOptions = ["ALL", "DETAILED", "HISTORY"];
@@ -23,7 +24,7 @@ const MedicineApproval = () => {
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState("OPD");
     const [activeSubTab, setActiveSubTab] = useState("ALL");
-
+    const isMobile = useMediaQuery("(max-width: 1000px)");
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -80,10 +81,13 @@ const MedicineApproval = () => {
     };
 
     return (
-        <CardBody className="bg-white px-4 pt-2 w-100">
+        <CardBody
+            className="p-3 bg-white"
+            style={isMobile ? { width: "100%" } : { width: "78%" }}
+        >
             <div className="content-wrapper">
-                <div className="text-center text-md-left">
-                    <h1 className="display-6 fw-bold text-primary">APPROVE MEDICINE</h1>
+                <div className="text-center text-md-left mb-3">
+                    <h4 className="font-weight-bold text-primary text-uppercase">Approve Medicine</h4>
                 </div>
 
                 <Nav tabs className="mb-3">

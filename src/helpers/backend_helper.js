@@ -45,60 +45,101 @@ export const markUserActiveInactive = (data) =>
   api.update(url.UPDATE_USER_ACTIVE_INACTIVE, data);
 
 export const getCiwaTest = (data) =>
-  api.get(`${url.GET_CIWA_TEST}?patientId=${data}`);
+  api.get(`${url.GET_CIWA_TEST}`, {
+    params: {
+      patientId: data
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
 export const postCiwatest = (data) =>
   api.create(url.POST_CIWA_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postSsrstest = (data) =>
   api.create(url.POST_SSRS_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postMPQtest = (data) =>
   api.create(url.POST_MPQ_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postMMSEtest = (data) =>
   api.create(url.POST_MMSE_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
-export const postYmrsTest = (data) => {
+export const postYmrsTest = (data) =>
   api.create(url.POST_YMRS_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
-};
 
 export const postYBOCSTest = (data) =>
   api.create(url.POST_YBOCS_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postACDSTest = (data) =>
   api.create(url.POST_ACDS_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postHAMATest = (data) =>
   api.create(url.POST_HAMA_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postHAMDTest = (data) =>
   api.create(url.POST_HAMD_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const postPANSSTest = (data) =>
   api.create(url.POST_PANSS_TEST, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
   });
 
 export const getClinicalTest = (data) =>
-  api.get(`${url.FETCH_CLINICAL_TEST}?patientId=${data.patientId}`);
+  api.get(`${url.FETCH_CLINICAL_TEST}`, {
+    params: { patientId: data?.patientId },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postJwtLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postLogout = () => api.get(url.POST_USER_LOGOUT);
@@ -2005,8 +2046,8 @@ export const getPatientDocs = (data) => {
   return api.get(url.GET_PATIENT_DOCS, {
     params: {
       centerIds: data?.centerAccess,
-      month:data?.selectedMonth,
-      status:data?.selectedStatus
+      month: data?.selectedMonth,
+      status: data?.selectedStatus
     }
   });
 };
@@ -2018,8 +2059,8 @@ export const getOpdPatientDocs = (data) => {
   return api.get(url.GET_OPD_PATIENT_DOCS, {
     params: {
       centerIds: data?.centerAccess,
-      month:data?.selectedMonth,
-      status:data?.selectedStatus
+      month: data?.selectedMonth,
+      status: data?.selectedStatus
     }
   });
 };

@@ -389,8 +389,8 @@ const InventoryManagement = () => {
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
-        <div className="text-center text-md-left mb-4">
-          <h1 className="display-4 font-weight-bold text-primary">INVENTORY</h1>
+        <div className="text-center text-md-left mb-3">
+          <h4 className="font-weight-bold text-primary text-uppercase">Inventory Management</h4>
         </div>
 
         <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">

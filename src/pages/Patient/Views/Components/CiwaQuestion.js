@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { connect, useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
 import {
   createCiwaTest,
@@ -19,9 +20,11 @@ import {
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 // Main App component
 const CiwaQuestions = () => {
+  const handleAuthError = useAuthError();
   // State to store current user's ID for Firestore (conceptual, not implemented in this frontend)
   const [userId, setUserId] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -409,11 +412,16 @@ const CiwaQuestions = () => {
       }
     }
 
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
-
-    dispatch(createCiwaTest(formData));
+    try {
+      await dispatch(createCiwaTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    }
   };
 
   return (

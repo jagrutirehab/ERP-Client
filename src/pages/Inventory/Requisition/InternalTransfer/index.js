@@ -672,7 +672,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
             className="p-3 bg-white"
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
-            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
+            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-3">
                 <div>
                     <h5 className="mb-1 fw-semibold">
                         {isSareyaanPage ? "Sareyaan Pharma Orders" : "Internal Transfer Requisitions"}

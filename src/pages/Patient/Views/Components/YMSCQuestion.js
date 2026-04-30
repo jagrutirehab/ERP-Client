@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { toast } from "react-toastify";
 import { useParams } from 'react-router-dom';
 import { fetchDoctors, fetchPatientById } from '../../../../store/actions';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 import Loader from '../../../../Components/Common/Loader';
 import { createYMRSTest, setIsClinicalTab, setTestName, setTestPageOpen } from '../../../../store/features/clinicalTest/clinicalTestSlice';
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import axios from 'axios';
 
 const YMSCQuestion = () => {
+    const handleAuthError = useAuthError();
     const [userId, setUserId] = useState('dummy-user-id');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [dummyDrop, setDummyDrop] = useState(false);
@@ -273,7 +276,7 @@ const YMSCQuestion = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (selectedDoctor.id == -1) {
@@ -322,11 +325,16 @@ const YMSCQuestion = () => {
         formData.append("observation", observation);
         // formData.append("evidence", evidenceDetails);
 
-        dispatch(createYMRSTest(formData));
-
-        setAttempTotalQuestion(true);
-        setIsModalOpen(true);
-        setModalMessage("Test submitted! The results are now available on the next page.");
+        try {
+            await dispatch(createYMRSTest(formData)).unwrap();
+            setAttempTotalQuestion(true);
+            setIsModalOpen(true);
+            setModalMessage("Test submitted! The results are now available on the next page.");
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to submit assessment");
+            }
+        }
     };
 
 

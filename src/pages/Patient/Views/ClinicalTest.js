@@ -7,6 +7,7 @@ import {
   UncontrolledTooltip,
   Button,
 } from "reactstrap";
+import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
 import { connect, useDispatch, useSelector } from "react-redux";
 import Placeholder from "./Components/Placeholder";
@@ -23,6 +24,7 @@ import ACDSResultComponent from "./Components/ACDSResult";
 import HAMAResultComponent from "./Components/HAMAResult";
 import HAMDResultComponent from "./Components/HAMDResult";
 import PANSSResultComponent from "./Components/PANSSResult";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const ClinicalTest = ({
   // addmissionsCharts,
@@ -35,14 +37,22 @@ const ClinicalTest = ({
   setAddmissionId,
 }) => {
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(fetchClinicalTest({ patientId: patient._id }));
-  }, [patient]);
-
+  const handleAuthError = useAuthError();
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
 
-  
+  const loadClinialTests = async () => {
+    try {
+      await dispatch(fetchClinicalTest({ patientId: patient._id })).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to load clinical test")
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadClinialTests();
+  }, [patient]);
 
   return (
     <React.Fragment>
@@ -62,17 +72,17 @@ const ClinicalTest = ({
                   }}
                 >
                   {/* {patient.isAdmit === true && ( */}
-                    <Button
-                      onClick={() => {
-                        toggleModal(); // Opens the modal
-                        setChartType(CLINIC_TEST); // Set your own type
-                      }}
-                      size="sm"
-                      color="primary"
-                      className="mr-10"
-                    >
-                      Create new test
-                    </Button>
+                  <Button
+                    onClick={() => {
+                      toggleModal(); // Opens the modal
+                      setChartType(CLINIC_TEST); // Set your own type
+                    }}
+                    size="sm"
+                    color="primary"
+                    className="mr-10"
+                  >
+                    Create new test
+                  </Button>
                   {/* )} */}
                 </div>
 
@@ -93,11 +103,10 @@ const ClinicalTest = ({
                     outline
                   >
                     <i
-                      className={`${
-                        open === idx.toString()
-                          ? "ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
-                      } fs-6`}
+                      className={`${open === idx.toString()
+                        ? "ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
+                        } fs-6`}
                     ></i>
                   </Button>
                 </div>
@@ -127,7 +136,7 @@ const ClinicalTest = ({
                                   return (
                                     <div>
                                       <Wrapper
-                                        printItem={() => dispatch(togglePrint({modal: true, clinicalTest: test, doctor:test.doctorId, patient:test.patientId}))}
+                                        printItem={() => dispatch(togglePrint({ modal: true, clinicalTest: test, doctor: test.doctorId, patient: test.patientId }))}
                                         disableEdit={true}
                                         disableDelete={true}
                                         item={{
@@ -181,7 +190,7 @@ const ClinicalTest = ({
                                           <HAMDResultComponent
                                             resultData={test}
                                           />
-                                        )} 
+                                        )}
                                         {test?.testType === 15 && (
                                           <PANSSResultComponent
                                             resultData={test}
