@@ -31,17 +31,7 @@ const StockSummary = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-    const totalItems = pagination?.total || 0;
-
-    const rawColumns = getStockSummaryColumns();
-    const columns = useMemo(() => rawColumns.map(col => ({
-        name: col.header,
-        selector: row => row[col.accessor],
-        cell: col.cell,
-        sortable: col.accessor !== 'centers',
-        wrap: col.accessor === 'centers',
-        minWidth: col.accessor === 'centers' ? '350px' : '150px',
-    })), [rawColumns]);
+    const totalItems = pagination?.total || 0;   
 
     const centerOptions = [
         ...(user?.userCenters?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
@@ -160,7 +150,7 @@ const StockSummary = () => {
 
                 <div className="border rounded shadow-sm overflow-hidden bg-white">
                     <DataTable
-                        columns={columns}
+                        columns={getStockSummaryColumns()}
                         data={data}
                         loading={loading}
                         pagination={{ totalDocs: totalItems }}
