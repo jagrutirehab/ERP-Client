@@ -128,7 +128,7 @@ const Sidebar = () => {
     }
 `}
       </style>
-      <div className="chat-leftsidebar">
+      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
         <div className="ps-4 pe-3 pt-4 mb-">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">
