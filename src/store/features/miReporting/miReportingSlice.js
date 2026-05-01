@@ -17,6 +17,11 @@ import {
   getRoundNotesDOD,
   getClinicalNotesDOD,
   getVitalSignsDOD,
+  getPatientDocs,
+  getOpdPatientDocs,
+  getDailyInvoices,
+  getCounsellingSessions,
+  getCounsellingRecordings,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -43,6 +48,11 @@ const initialState = {
   refundAmountMOM:[],
   fetchRoundNotesDOD:[],
   fetchVitalSignsDOD:[],
+  patientDocs:[],
+  opdPatientDocs:[],
+  dailyInvoices:[],
+  counsellingSessions:[],
+  counsellingRecordings:[],
   loading: false,
   error: null,
 };
@@ -272,7 +282,7 @@ export const fetchRoundNotesDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Round notes dod"
       );
     }
   }
@@ -288,7 +298,7 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Clinical notes dod"
       );
     }
   }
@@ -305,11 +315,92 @@ export const fetchVitalSignsDOD = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Refund amount mom"
+        error.message || "Failed to fetch Vital Signs DOD"
       );
     }
   }
 );
+
+export const fetchPatientDocs = createAsyncThunk(
+  "miReporting/fetchPatientDocs",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getPatientDocs(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Patient Docs"
+      );
+    }
+  }
+);
+
+export const fetchOpdPatientDocs = createAsyncThunk(
+  "miReporting/fetchOpdPatientDocs",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getOpdPatientDocs(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch OPD Patient Docs"
+      );
+    }
+  }
+);
+
+
+export const fetchDailyInvoices = createAsyncThunk(
+  "miReporting/fetchDailyInvoices",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getDailyInvoices(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Daily Invoices"
+      );
+    }
+  }
+);
+
+export const fetchCounsellingSessions = createAsyncThunk(
+  "miReporting/fetchCounsellingSessions",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingSessions(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Counselling Sessions"
+      );
+    }
+  }
+);
+
+export const fetchCounsellingRecordings = createAsyncThunk(
+  "miReporting/fetchCounsellingRecordings",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingRecordings(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Counselling Sessions"
+      );
+    }
+  }
+);
+
+
+
+
+
 
 const miReportingSlice = createSlice({
   name: "miReporting",
@@ -551,9 +642,79 @@ const miReportingSlice = createSlice({
       .addCase(fetchVitalSignsDOD.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      //Patient Docs
+      .addCase(fetchPatientDocs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPatientDocs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.patientDocs = action.payload.payload || [];
+      })
+      .addCase(fetchPatientDocs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //OPD Patient Docs
+      .addCase(fetchOpdPatientDocs.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOpdPatientDocs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.opdPatientDocs = action.payload.payload || [];
+      })
+      .addCase(fetchOpdPatientDocs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      
+      //Daily Invoices
+      .addCase(fetchDailyInvoices.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDailyInvoices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dailyInvoices = action.payload.payload || [];
+      })
+      .addCase(fetchDailyInvoices.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //Counselling sessions
+      .addCase(fetchCounsellingSessions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingSessions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingSessions = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingSessions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      //Counselling Recordings
+      .addCase(fetchCounsellingRecordings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingRecordings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingRecordings = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingRecordings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
-
-
 
       
   },

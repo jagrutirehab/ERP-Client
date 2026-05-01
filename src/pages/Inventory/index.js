@@ -1,7 +1,7 @@
 import React from "react";
-import { Container } from "reactstrap";
+import { Container, Spinner } from "reactstrap";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { Route, Routes } from "react-router-dom";
 import InventoryManagement from "./InventoryManagement";
 import InventoryDashboard from "./InventoryDashboard";
 import GivenMedicine from "./GivenMedicine";
@@ -11,8 +11,34 @@ import NurseGivenMedicine from "./NurseGivenMedicine";
 import InternalTransfer from "./Requisition/InternalTransfer";
 import InternalTransferAddRequest from "./Requisition/InternalTransfer/AddRequest";
 import InternalTransferEditRequest from "./Requisition/InternalTransfer/EditRequest";
+import StockSummary from "./StockSummary";
+import { usePermissions } from "../../Components/Hooks/useRoles";
 
 const Pharmacy = () => {
+  const navigate = useNavigate();
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { hasPermission, loading: permissionLoader } = usePermissions(token);
+  const hasUserPermission = hasPermission("PHARMACY", null, "READ");
+
+  if (permissionLoader) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <Spinner color="primary" />
+      </div>
+    );
+  }
+
+  if (!permissionLoader && !hasUserPermission) {
+    navigate("/unauthorized");
+  }
+
+  document.title = "Pharmacy Dashboard";
   return (
     <React.Fragment>
       <div className="page-conten overflow-hidden">
@@ -33,6 +59,7 @@ const Pharmacy = () => {
                 <Route path={`/requisition/sareyaan-orders`} element={<InternalTransfer isSareyaanPage={true} />} />
                 <Route path={`/requisition/sareyaan-orders/add`} element={<InternalTransferAddRequest />} />
                 <Route path={`/requisition/sareyaan-orders/edit/:id`} element={<InternalTransferEditRequest transferType="sareyaan" />} />
+                <Route path={`/stock-summary`} element={<StockSummary />} />
               </Routes>
             </div>
           </Container>

@@ -73,19 +73,47 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
     //     toggle();
     // };
     console.log(selectedStatus?.value, "lala");
-    
-    const handleSubmit = () => {
+    console.log("issue", issue?.issueType);
 
-        if (activeTab === "new") {
+
+    // const handleSubmit = () => {
+
+    //     if (activeTab === "new") {
+    //         onAssign({
+    //             issueId: issue?._id,
+    //             assignedTo: employee?.value,
+    //             note,
+    //             status: "assigned",
+    //         });
+    //     }
+
+    //     if (activeTab !== "new") {
+    //         onAssign({
+    //             issueId: issue?._id,
+    //             note,
+    //             status: selectedStatus?.value,
+    //         });
+    //     }
+
+    //     setEmployee(null);
+    //     setSelectedStatus(null);
+    //     setNote("");
+
+    //     toggle();
+    // };
+
+
+    const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
+
+    const handleSubmit = () => {
+        if (isTechAssign) {
             onAssign({
                 issueId: issue?._id,
                 assignedTo: employee?.value,
                 note,
                 status: "assigned",
             });
-        }
-
-        if (activeTab !== "new") {
+        } else {
             onAssign({
                 issueId: issue?._id,
                 note,
@@ -96,12 +124,10 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
         setEmployee(null);
         setSelectedStatus(null);
         setNote("");
-
         toggle();
     };
-
     const statusOptions = [
-        // { value: "assigned", label: "Assigned" },
+        { value: "assigned", label: "Assigned" },
         { value: "in_progress", label: "In Progress" },
         { value: "on_hold", label: "On Hold" },
         { value: "pending_user", label: "Pending User" },
@@ -109,13 +135,16 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
         { value: "resolved", label: "Resolved" },
     ];
 
+
+
+
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered>
             <ModalHeader toggle={toggle}>{title}</ModalHeader>
 
             <ModalBody>
                 {/* Employee Dropdown */}
-                {activeTab === "new" && (
+                {isTechAssign && (
                     <div className="mb-3">
                         <label className="form-label fw-semibold">Assign To</label>
 
@@ -141,7 +170,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
                 )}
 
 
-                {activeTab !== "new" && (
+                {!isTechAssign && (
                     <div className="mb-3">
                         <label className="form-label fw-semibold">Change Status</label>
 

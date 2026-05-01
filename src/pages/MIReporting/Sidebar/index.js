@@ -214,7 +214,38 @@ const Sidebar = () => {
       label: "Vital Signs",
       link: "/mi-reporting/vital-signs",
       icon: "bx bx-money",
-    }
+    },
+    {
+      id: "patient-docs",
+      label: "IPD Patient Docs",
+      link: "/mi-reporting/patient-docs",
+      icon: "bx bx-money",
+    },
+    {
+      id: "opd-patient-docs",
+      label: "OPD Patient Docs",
+      link: "/mi-reporting/opd-patient-docs",
+      icon: "bx bx-money",
+    },
+    {
+      id: "daily-invoices",
+      label: "Daily Invoices",
+      link: "/mi-reporting/daily-invoices",
+      icon: "bx bx-money",
+    },
+    {
+      id: "counselling-sessions",
+      label: "Counselling Sessions",
+      link: "/mi-reporting/counselling-sessions",
+      icon: "bx bx-money",
+    },
+    {
+      id: "counselling-recording",
+      label: "Counselling Recording",
+      link: "/mi-reporting/counselling-recording",
+      icon: "bx bx-money",
+    },
+    
   ];
   return (
     <div>

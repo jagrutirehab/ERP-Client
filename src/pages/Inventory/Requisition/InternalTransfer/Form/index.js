@@ -182,7 +182,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                     const pharm = item.pharmacyId || {};
                     return {
                         medicineId: item.medicineId?._id || item.medicineId,
-                        pharmacyId: String(pharm._id || item.pharmacyId),
+                        pharmacyId: String(pharm._id || item.pharmacyId || item._id),
                         customId: med.id || pharm.id || "—",
                         medicineName: str(pharm.medicineName) || str(item.medicineName),
                         type: str(med.type),

@@ -1,6 +1,6 @@
 import { Card, CardBody } from 'reactstrap'
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAttendanceSummary } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
@@ -21,9 +21,16 @@ const EmployeeAttendance = () => {
     const [selectedMonth, setSelectedMonth] = useState(new Date());
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
+    const location = useLocation();
+
+
 
     const { attendanceSummary } = useSelector((state) => state.HRMS);
     const { data: summary, loading: summaryLoader } = attendanceSummary;
+
+    const type = location.state?.type;
+    console.log("Typein", type);
+
 
     const fetchEmployeeAttendanceSummaryByMonth = async () => {
         try {
@@ -124,6 +131,7 @@ const EmployeeAttendance = () => {
                         <AttendanceLogs
                             employeeId={employeeId}
                             centerId={centerId}
+                            type={type}
                         />
                     </CardBody>
                 </Card>

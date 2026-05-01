@@ -8,11 +8,11 @@ import Select from "react-select";
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { endOfDay, format, startOfDay } from 'date-fns';
 import DataTableComponent from '../../../../Components/Common/DataTable';
-import { fetchAttendanceMetrics } from '../../../../store/features/HRMS/hrmsSlice';
+import { fetchReportingMetrics } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
-import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
+import { exportReportingMetrics } from '../../../../helpers/backend_helper';
 import { RotateCw } from 'lucide-react';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
 
@@ -22,7 +22,7 @@ const sortByOptions = [
     { value: "totalDaysAbsent", label: "Sort By Days Absent" },
 ];
 
-const AttendanceMetrics = () => {
+const ReportingMetrices = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -47,11 +47,11 @@ const AttendanceMetrics = () => {
     const { hasPermission, loading: permissionLoader } =
         usePermissions(token);
     const { centerAccess, userCenters } = useSelector((state) => state.User);
-    const { data, pagination, loading } = useSelector((state) => state.HRMS);
+    const { data, pagination, loading } = useSelector((state) => state.HRMS.reportingMetrics);
 
     const hasUserPermission = hasPermission(
         "HR",
-        "ATTENDANCE_METRICS",
+        "REPORTINGS_ATTENDANCE_METRICS",
         "READ"
     );
 
@@ -91,7 +91,7 @@ const AttendanceMetrics = () => {
         try {
 
             await dispatch(
-                fetchAttendanceMetrics({
+                fetchReportingMetrics({
                     page,
                     limit,
                     search,
@@ -148,7 +148,7 @@ const AttendanceMetrics = () => {
     const handleExportXLSX = async () => {
         setIsExcelGenerating(true);
         try {
-            const res = await exportAttendanceMetrics({
+            const res = await exportReportingMetrics({
                 page,
                 limit,
                 search,
@@ -186,13 +186,14 @@ const AttendanceMetrics = () => {
         navigate("/unauthorized");
     }
 
-    const handleNavigate = (employeeId, centerId) => {
-        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`)
+    const handleNavigate = (employeeId, centerId, type) => {
+        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`, { state: { type } })
     }
 
     const columns = attendanceMetricsColumns({
         onNavigate: handleNavigate,
-        searchText: debouncedSearch
+        searchText: debouncedSearch,
+        type: "directreporting"
     });
 
     return (
@@ -201,7 +202,7 @@ const AttendanceMetrics = () => {
         >
             <div className="text-center text-md-left mb-4">
                 <h1 className="display-6 fw-bold text-primary">
-                    ATTENDANCE METRICS
+                    ATTENDANCE METRICS - DIRECT REPORTINGS
                 </h1>
             </div>
 
@@ -313,4 +314,4 @@ const AttendanceMetrics = () => {
     )
 }
 
-export default AttendanceMetrics;
+export default ReportingMetrices;

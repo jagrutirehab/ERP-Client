@@ -25,6 +25,11 @@ import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
 import ClinicalNotesDOD from "./ClinicalNotesDOD";
 import VitalSignsDOD from "./VitalSignsDOD";
+import PatientDocs from "./PatientDocs";
+import OpdPatientDocs from "./OpdPatientDocs";
+import DailyInvoices from "./DailyInvoices";
+import CounsellingSessions from "./CounsellingSessions";
+import CounsellingRecording from "./CounsellingRecording";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -190,6 +195,40 @@ const MiReporting = () => {
                     path="/vital-signs"
                     element={<VitalSignsDOD />}
                   />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/patient-docs"
+                    element={<PatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-patient-docs"
+                    element={<OpdPatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/daily-invoices"
+                    element={<DailyInvoices />}
+                  />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/counselling-sessions"
+                    element={<CounsellingSessions />}
+                  />}
+                  
+                   {hasMISPermission&&<Route
+                    path="/counselling-recording"
+                    element={<CounsellingRecording />}
+                  />}
+                  
+                  
+                  
+
+
+
+                  
               </Routes>
             </div>
           </Container>

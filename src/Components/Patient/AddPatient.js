@@ -157,9 +157,11 @@ const AddPatient = ({
       gender: Yup.string().required("Please Select Gender"),
       guardianName: Yup.string().required("Please Enter Guardian Name"),
       guardianRelation: Yup.string().required("Please Enter Guardian Relation"),
-      guardianPhoneNumber: Yup.string().required(
-        "Please Enter Guardian Phone Number",
-      ),
+      guardianPhoneNumber: Yup.string()
+        .required("Please Enter Guardian Phone Number")
+        .test("is-valid-guardian-phone", "Invalid phone number", function (value) {
+          return isValidPhoneNumber(value || "");
+        }),
       referralPhoneNumber: Yup.string()
         .nullable()
         .notRequired()
@@ -758,40 +760,68 @@ const AddPatient = ({
                     {f.label}
                     {f.required && <span className="text-danger">*</span>}
                   </Label>
-                  <Input
-                    type={f.type}
-                    name={f.name}
-                    onChange={validation.handleChange}
-                    onBlur={validation.handleBlur}
-                    value={validation.values[f.name] || ""}
-                    className={
-                      validation.touched[f.name] && validation.errors[f.name]
-                        ? "is-invalid"
-                        : ""
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "0.625rem 0.75rem",
-                      fontSize: "1rem",
-                      fontWeight: "400",
-                      border: `1px solid ${
+                  {f.type === "phoneNumber" ? (
+                    <PhoneInputWithCountrySelect
+                      placeholder="Enter phone number"
+                      name={f.name}
+                      value={validation.values[f.name]}
+                      onChange={(value) =>
+                        validation.setFieldValue(f.name, value || "")
+                      }
+                      onBlur={() => validation.setFieldTouched(f.name, true)}
+                      defaultCountry="IN"
+                      limitMaxLength={true}
+                      style={{
+                        width: "100%",
+                        height: "42px",
+                        padding: "0.5rem 0.75rem",
+                        border: `1px solid ${
+                          validation.touched[f.name] && validation.errors[f.name]
+                            ? "#ef4444"
+                            : "#d1d5db"
+                        }`,
+                        borderRadius: "0.375rem",
+                        fontSize: "1rem",
+                      }}
+                    />
+                  ) : (
+                    <Input
+                      type={f.type}
+                      name={f.name}
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values[f.name] || ""}
+                      className={
                         validation.touched[f.name] && validation.errors[f.name]
-                          ? "#ef4444"
-                          : "#d1d5db"
-                      }`,
-                      borderRadius: "0.375rem",
-                      outline: "none",
-                      boxShadow:
-                        validation.touched[f.name] && validation.errors[f.name]
-                          ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
-                          : "0 0 0 2px rgba(96, 165, 250, 0.3)",
-                      transition:
-                        "border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out",
-                    }}
-                    disabled={f.name === "dateOfAddmission" && !!editData}
-                  />
+                          ? "is-invalid"
+                          : ""
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.625rem 0.75rem",
+                        fontSize: "1rem",
+                        fontWeight: "400",
+                        border: `1px solid ${
+                          validation.touched[f.name] && validation.errors[f.name]
+                            ? "#ef4444"
+                            : "#d1d5db"
+                        }`,
+                        borderRadius: "0.375rem",
+                        outline: "none",
+                        boxShadow:
+                          validation.touched[f.name] && validation.errors[f.name]
+                            ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
+                            : "0 0 0 2px rgba(96, 165, 250, 0.3)",
+                        transition:
+                          "border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out",
+                      }}
+                      disabled={f.name === "dateOfAddmission" && !!editData}
+                    />
+                  )}
                   {validation.touched[f.name] && validation.errors[f.name] && (
                     <FormFeedback
+                      type="invalid"
+                      className="d-block"
                       style={{
                         color: "#ef4444",
                         fontSize: "0.875rem",

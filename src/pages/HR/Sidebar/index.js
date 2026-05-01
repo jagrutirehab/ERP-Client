@@ -49,26 +49,126 @@ const Sidebar = () => {
   const hasUserPermission4 = hasPermission("HR", "EXIT_EMPLOYEE_APPROVAL", "READ");
   const hasUserPermission5 = hasPermission("HR", "EXIT_EMPLOYEE_FNF", "READ");
   const hasUserPermission6 = hasPermission("HR", "EXIT_EMPLOYEE_IT", "READ");
-  const hasSalaryAdvanceApprovalPermission = hasPermission("HR", "SALARY_ADVANCE_APPROVAL", "READ");
-  const hasSalaryAdvanceAddRequestPermission = hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "READ");
-  const hasTransferEmployeeAddRequestPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_ADD_REQUEST", "READ");
-  const hasUserPermission8 = hasPermission("HR", "TRANSFER_EMPLOYEE_APPROVAL", "READ");
-  const hasUserPermission9 = hasPermission("HR", "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL", "READ");
-  const hasUserPermission10 = hasPermission("HR", "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL", "READ");
-  const hasUserPermission11 = hasPermission("HR", "TRANSFER_EMPLOYEE_IT", "READ");
-  const hasHiringAddRequestPermission = hasPermission("HR", "HIRING_ADD_REQUEST", "READ");
-  const hasHiringApprovalPermission = hasPermission("HR", "HIRING_APPROVAL", "READ");
-  const hasHiringManagementPermission = hasPermission("HR", "MY_HIRING_STATUS", "READ");
-  const hasTPMAddRequestPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_ADD_REQUEST", "READ");
-  const hasTPMApprovalPermission = hasPermission("HR", "THIRD_PARTY_MANPOWER_APPROVAL", "READ");
-  const hasAttendanceLogPermission = hasPermission("HR", "ATTENDANCE_LOG", "READ");
-  const hasMonthlyAttenancePermission = hasPermission("HR", "MONTHLY_ATTENDANCE", "READ");
-  const hasAttendanceMetricsPermission = hasPermission("HR", "ATTENDANCE_METRICS", "READ");
-  const hasMyAttendancePermission = hasPermission("HR", "MY_ATTENDANCE", "READ");
-  const hasMyRegularizationPersmission = hasPermission("HR", "MY_REGULARIZATIONS", "READ");
-  const hasGetRegularizeRequestsPersmission = hasPermission("HR", "GET_REGULARIZATIONS_REQUESTS", "READ");
-  const hasAssignManagerPermission = hasPermission("HR", "ASSIGN_MANAGER", "READ");
-  const hasEmployeeReportingsPermission = hasPermission("HR", "MANAGE_EMPLOYEE_REPORTINGS", "READ");
+
+  const hasSalaryAdvanceApprovalPermission = hasPermission(
+    "HR",
+    "SALARY_ADVANCE_APPROVAL",
+    "READ"
+  );
+  const hasSalaryAdvanceAddRequestPermission = hasPermission(
+    "HR",
+    "SALARY_ADVANCE_ADD_REQUEST",
+    "READ"
+  );
+
+  const hasTransferEmployeeAddRequestPermission = hasPermission(
+    "HR",
+    "TRANSFER_EMPLOYEE_ADD_REQUEST",
+    "READ"
+  );
+  const hasUserPermission8 = hasPermission(
+    "HR",
+    "TRANSFER_EMPLOYEE_APPROVAL",
+    "READ"
+  );
+  const hasUserPermission9 = hasPermission(
+    "HR",
+    "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
+    "READ"
+  );
+  const hasUserPermission10 = hasPermission(
+    "HR",
+    "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
+    "READ"
+  );
+  const hasUserPermission11 = hasPermission(
+    "HR",
+    "TRANSFER_EMPLOYEE_IT",
+    "READ"
+  );
+
+  const hasHiringAddRequestPermission = hasPermission(
+    "HR",
+    "HIRING_ADD_REQUEST",
+    "READ"
+  );
+  const hasHiringApprovalPermission = hasPermission(
+    "HR",
+    "HIRING_APPROVAL",
+    "READ"
+  );
+  const hasHiringManagementPermission = hasPermission(
+    "HR",
+    "MY_HIRING_STATUS",
+    "READ"
+  );
+
+  const hasTPMAddRequestPermission = hasPermission(
+    "HR",
+    "THIRD_PARTY_MANPOWER_ADD_REQUEST",
+    "READ"
+  );
+  const hasTPMApprovalPermission = hasPermission(
+    "HR",
+    "THIRD_PARTY_MANPOWER_APPROVAL",
+    "READ"
+  );
+
+  // Attendance
+  const hasAttendanceLogPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_LOG",
+    "READ"
+  );
+
+  const hasMonthlyAttenancePermission = hasPermission(
+    "HR",
+    "MONTHLY_ATTENDANCE",
+    "READ"
+  );
+
+  const hasAttendanceMetricsPermission = hasPermission(
+    "HR",
+    "ATTENDANCE_METRICS",
+    "READ"
+  );
+
+  const hasReportingMetricsPermission = hasPermission(
+    "HR",
+    "REPORTINGS_ATTENDANCE_METRICS",
+    "READ"
+  );
+
+  const hasMyAttendancePermission = hasPermission(
+    "HR",
+    "MY_ATTENDANCE",
+    "READ"
+  );
+
+  const hasMyRegularizationPersmission = hasPermission(
+    "HR",
+    "MY_REGULARIZATIONS",
+    "READ"
+  );
+
+  const hasGetRegularizeRequestsPersmission = hasPermission(
+    "HR",
+    "GET_REGULARIZATIONS_REQUESTS",
+    "READ"
+  );
+
+  // employee reportings & shift roster permissions
+  const hasAssignManagerPermission = hasPermission(
+    "HR",
+    "ASSIGN_MANAGER",
+    "READ"
+  );
+  const hasEmployeeReportingsPermission = hasPermission(
+    "HR",
+    "MANAGE_EMPLOYEE_REPORTINGS",
+    "READ"
+  );
+
   const hasAssignRotationalShiftPermission = hasPermission("HR", "ASSIGN_ROTATIONAL_SHIFT", "READ");
   const hasShiftRoasterPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
   const hasApplyLeavePermission = hasPermission("HR", "APPLY_LEAVE", "READ");
@@ -121,181 +221,167 @@ const Sidebar = () => {
     }
   }, [isSidebarOpen]);
 
-  // ── Permission-filtered nav options ───────────────────────────────────
-  const filteredHROptions = useMemo(() => {
-    return HR.map((page) => ({
-      ...page,
-      children: page.children ? [...page.children] : [],
-    })).filter((page) => {
-      if (page.id === "master-employee" && !hasUserPermission1) return false;
+const filteredHROptions = useMemo(() => {
+  return HR.map((page) => ({
+    ...page,
+    children: page.children ? [...page.children] : [],
+  })).filter((page) => {
 
-      if (page.id === "new-joinings") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-new-joining" && !hasNewJoiningAddRequestPermission) return false;
-          if (child.id === "new-joining-approval" && !hasUserPermission2) return false;
-          if (child.id === "new-joining-it" && !hasUserPermission3) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "master-employee" && !hasUserPermission1) return false;
 
-      if (page.id === "exit-employees") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-exit-request" && !hasExitEmployeeAddRequestPermission) return false;
-          if (child.id === "exit-approval" && !hasUserPermission4) return false;
-          if (child.id === "exit-fnf-approval" && !hasUserPermission5) return false;
-          if (child.id === "exit-it-approval" && !hasUserPermission6) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "new-joinings") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "add-new-joining" && !hasNewJoiningAddRequestPermission) return false;
+        if (child.id === "new-joining-approval" && !hasUserPermission2) return false;
+        if (child.id === "new-joining-it" && !hasUserPermission3) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "salary-advance") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-salary-advance-request" && !hasSalaryAdvanceAddRequestPermission) return false;
-          if (child.id === "salary-advance-approval" && !hasSalaryAdvanceApprovalPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "exit-employees") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "add-exit-request" && !hasExitEmployeeAddRequestPermission) return false;
+        if (child.id === "exit-approval" && !hasUserPermission4) return false;
+        if (child.id === "exit-fnf-approval" && !hasUserPermission5) return false;
+        if (child.id === "exit-it-approval" && !hasUserPermission6) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "transfer-employees") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-transfer-request" && !hasTransferEmployeeAddRequestPermission) return false;
-          if (child.id === "transfer-approval" && !hasUserPermission8) return false;
-          if (child.id === "transfer-current-location-approval" && !hasUserPermission9) return false;
-          if (child.id === "transfer-transferred-location-approval" && !hasUserPermission10) return false;
-          if (child.id === "transfer-it-approval" && !hasUserPermission11) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "attendance") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "attendance-log" && !hasAttendanceLogPermission) return false;
+        if (child.id === "monthly-attendance" && !hasMonthlyAttenancePermission) return false;
+        if (child.id === "attendance-metrics" && !hasAttendanceMetricsPermission) return false;
+        if (child.id === "reporting-metrics" && !hasReportingMetricsPermission) return false;
+        if (child.id === "my-attendance" && !hasMyAttendancePermission) return false;
+        if (child.id === "my-regularizations" && !hasMyRegularizationPersmission) return false;
+        if (child.id === "regularizations-requests" && !hasGetRegularizeRequestsPersmission) return false;
+        if (child.id === "main-attendance-dashboard" && !hasMainDashboardPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "hiring") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-hiring-request" && !hasHiringAddRequestPermission) return false;
-          if (child.id === "hiring-approval" && !hasHiringApprovalPermission) return false;
-          if (child.id === "my-hiring-status" && !hasHiringManagementPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "employee-reporting") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "assign-manager" && !hasAssignManagerPermission) return false;
+        if (child.id === "manage-employee-reporting" && !hasEmployeeReportingsPermission) return false;
+        if (child.id === "shift-roster" && !hasShiftRoasterPermission) return false;
+        if (child.id === "assign-rotational-shift" && !hasAssignRotationalShiftPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "third-party-manpower") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-tpm-request" && !hasTPMAddRequestPermission) return false;
-          if (child.id === "tpm-approval" && !hasTPMApprovalPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "leaves") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "apply-leave" && !hasApplyLeavePermission) return false;
+        if (child.id === "leave-history" && !hasLeaveHistoryPermission) return false;
+        if (child.id === "manage-leaves" && !hasManageLeavesPermission) return false;
+        if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
+        if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
+        if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
+        if (child.id === "cancellations-requests" && !hasCancellationsRequestsPerm) return false;
+        if (child.id === "comp-off-requests" && !hasCompOffRequestsPerm) return false;
+        if (child.id === "my-comp-off" && !hasRaisedCompOffPerm) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "attendance") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "attendance-log" && !hasAttendanceLogPermission) return false;
-          if (child.id === "monthly-attendance" && !hasMonthlyAttenancePermission) return false;
-          if (child.id === "attendance-metrics" && !hasAttendanceMetricsPermission) return false;
-          if (child.id === "my-attendance" && !hasMyAttendancePermission) return false;
-          if (child.id === "my-regularizations" && !hasMyRegularizationPersmission) return false;
-          if (child.id === "regularizations-requests" && !hasGetRegularizeRequestsPersmission) return false;
-          if (child.id === "main-attendance-dashboard" && !hasMainDashboardPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "policies") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "policy" && !hasPolicyPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "employee-reporting") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "assign-manager" && !hasAssignManagerPermission) return false;
-          if (child.id === "manage-employee-reporting" && !hasEmployeeReportingsPermission) return false;
-          if (child.id === "shift-roster" && !hasShiftRoasterPermission) return false;
-          if (child.id === "assign-rotational-shift" && !hasAssignRotationalShiftPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "incentives") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "add-incentives-request" && !hasIncentivesAddRequestPermission) return false;
+        if (child.id === "incentives-approval" && !hasIncentivesApprovalPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "leaves") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "apply-leave" && !hasApplyLeavePermission) return false;
-          if (child.id === "leave-history" && !hasLeaveHistoryPermission) return false;
-          if (child.id === "manage-leaves" && !hasManageLeavesPermission) return false;
-          if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
-          if (child.id === "my-balance-leaves" && !hasBalancePermission) return false;
-          if (child.id === "festive-leaves" && !hasFestiveLeavesPermission) return false;
-          if (child.id === "cancellations-requests" && !hasCancellationsRequestsPerm) return false;
-          if (child.id === "comp-off-requests" && !hasCompOffRequestsPerm) return false;
-          if (child.id === "my-comp-off" && !hasRaisedCompOffPerm) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "payslips") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "my-pay-slip" && !hasMyPayslipsPermission) return false;
+        if (child.id === "employee-pay-slip" && !hasEmployeePayslipsPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "policies") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "policy" && !hasPolicyPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "hr-dashboard") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "leave-balance-dashboard" && !hasLeaveBalanceDashboardPermission) return false;
+        if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm) return false;
+        if (child.id === "regularization-dashboard" && !hasRegularizationDashboardPermission) return false;
+        if (child.id === "comp-off-history" && !hasCompOffHistoryPerm) return false;
+        if (child.id === "cancellations-history" && !hasCancellationsHistory) return false;
+        if (child.id === "transfer-manager-approval" && !hasTransferApprovalsPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
-      if (page.id === "incentives") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "add-incentives-request" && !hasIncentivesAddRequestPermission) return false;
-          if (child.id === "incentives-approval" && !hasIncentivesApprovalPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
+    if (page.id === "salary" && !hasSalaryPermission) return false;
+    if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
+    if (page.id === "finance" && !hasFinancePermission) return false;
 
-      if (page.id === "salary" && !hasSalaryPermission) return false;
-      if (page.id === "my-pending-approvals" && !hasMyPendingApprovalsPermission) return false;
-      if (page.id === "finance" && !hasFinancePermission) return false;
-
-      if (page.id === "payslips") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "my-pay-slip" && !hasMyPayslipsPermission) return false;
-          if (child.id === "employee-pay-slip" && !hasEmployeePayslipsPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
-
-      if (page.id === "hr-dashboard") {
-        page.children = page.children.filter((child) => {
-          if (child.id === "leave-balance-dashboard" && !hasLeaveBalanceDashboardPermission) return false;
-          if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm) return false;
-          if (child.id === "regularization-dashboard" && !hasRegularizationDashboardPermission) return false;
-          if (child.id === "comp-off-history" && !hasCompOffHistoryPerm) return false;
-          if (child.id === "cancellations-history" && !hasCancellationsHistory) return false;
-          if (child.id === "transfer-manager-approval" && !hasTransferApprovalsPermission) return false;
-          return true;
-        });
-        return page.children.length > 0;
-      }
-
-      return true;
-    });
-  }, [
-    hasUserPermission1, hasNewJoiningAddRequestPermission, hasUserPermission2,
-    hasUserPermission3, hasExitEmployeeAddRequestPermission, hasUserPermission4,
-    hasUserPermission5, hasUserPermission6, hasSalaryAdvanceApprovalPermission,
-    hasSalaryAdvanceAddRequestPermission, hasTransferEmployeeAddRequestPermission,
-    hasUserPermission8, hasUserPermission9, hasUserPermission10, hasUserPermission11,
-    hasHiringAddRequestPermission, hasHiringApprovalPermission, hasHiringManagementPermission,
-    hasTPMAddRequestPermission, hasTPMApprovalPermission, hasAttendanceLogPermission,
-    hasMonthlyAttenancePermission, hasAttendanceMetricsPermission, hasMyAttendancePermission,
-    hasMyRegularizationPersmission, hasGetRegularizeRequestsPersmission, hasAssignManagerPermission,
-    hasEmployeeReportingsPermission, hasAssignRotationalShiftPermission, hasShiftRoasterPermission,
-    hasApplyLeavePermission, hasLeaveHistoryPermission, hasManageLeavesPermission,
-    hasMyLeavesPermission, hasPolicyPermission, hasBalancePermission, hasFestiveLeavesPermission,
-    hasCancellationsRequestsPerm, hasCompOffRequestsPerm, hasRaisedCompOffPerm, hasCompOffHistoryPerm,
-    hasCancellationsHistory, hasMainDashboardPermission, hasIncentivesAddRequestPermission,
-    hasIncentivesApprovalPermission, hasSalaryPermission, hasMyPendingApprovalsPermission,
-    hasFinancePermission, hasLeaveBalanceDashboardPermission, hasAllLeaveHistoryPerm,
-    hasRegularizationDashboardPermission, hasTransferApprovalsPermission,
-    hasMyPayslipsPermission, hasEmployeePayslipsPermission,
-  ]);
+    return true;
+  });
+}, [
+  hasUserPermission1,
+  hasNewJoiningAddRequestPermission,
+  hasUserPermission2,
+  hasUserPermission3,
+  hasExitEmployeeAddRequestPermission,
+  hasUserPermission4,
+  hasUserPermission5,
+  hasUserPermission6,
+  hasAttendanceLogPermission,
+  hasMonthlyAttenancePermission,
+  hasAttendanceMetricsPermission,
+  hasReportingMetricsPermission,
+  hasMyAttendancePermission,
+  hasMyRegularizationPersmission,
+  hasGetRegularizeRequestsPersmission,
+  hasAssignManagerPermission,
+  hasEmployeeReportingsPermission,
+  hasAssignRotationalShiftPermission,
+  hasShiftRoasterPermission,
+  hasApplyLeavePermission,
+  hasLeaveHistoryPermission,
+  hasManageLeavesPermission,
+  hasMyLeavesPermission,
+  hasPolicyPermission,
+  hasBalancePermission,
+  hasFestiveLeavesPermission,
+  hasCancellationsRequestsPerm,
+  hasCompOffRequestsPerm,
+  hasRaisedCompOffPerm,
+  hasCompOffHistoryPerm,
+  hasCancellationsHistory,
+  hasMainDashboardPermission,
+  hasIncentivesAddRequestPermission,
+  hasIncentivesApprovalPermission,
+  hasSalaryPermission,
+  hasMyPendingApprovalsPermission,
+  hasFinancePermission,
+  hasLeaveBalanceDashboardPermission,
+  hasAllLeaveHistoryPerm,
+  hasRegularizationDashboardPermission,
+  hasTransferApprovalsPermission,
+  hasMyPayslipsPermission,
+  hasEmployeePayslipsPermission,
+]);
 
   // Auto-open accordion section for the active route
   useEffect(() => {

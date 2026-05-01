@@ -13,6 +13,7 @@ import { getNurseGivenMedicineDetails } from "../../../helpers/backend_helper";
 import Header from "../../Report/Components/Header";
 import { getNurseGivenMedicines } from "../../../store/features/pharmacy/pharmacySlice";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import { display } from "../../../utils/display";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
     Table,
@@ -169,8 +170,6 @@ const NurseGivenMedicine = () => {
         setDetailsLoading(false);
     };
 
-    const display = (value) => (value === undefined || value === null || value === "" ? "-" : value);
-
     const getPageRange = (total, current, maxButtons = 7) => {
         if (total <= maxButtons) {
             return Array.from({ length: total }, (_, i) => i + 1);
@@ -215,10 +214,10 @@ const NurseGivenMedicine = () => {
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
             <div className="content-wrapper">
-                <div className="text-center text-md-left mb-4">
-                    <h1 className="display-5 font-weight-bold text-primary">
-                        NURSE GIVEN MEDICINE
-                    </h1>
+                <div className="text-center text-md-left mb-3">
+                    <h4 className="font-weight-bold text-primary text-uppercase">
+                        Nurse Given Medicine
+                    </h4>
                 </div>
             </div>
 

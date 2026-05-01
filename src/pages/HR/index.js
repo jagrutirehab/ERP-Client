@@ -61,6 +61,7 @@ import CancellationRequestsHr from "./Dashboard/CancellationRequestsHr";
 import TransferManagerApprovals from "../HRMS/TransferManagerApprovals";
 import MyPaySlips from "./PaySlips/Views/MyPaySlips";
 import EmployeePaySlips from "./PaySlips/Views/EmployeePaySlips";
+import ReportingMetrices from "../HRMS/Attendance/ReportingMetrices";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -169,6 +170,10 @@ const HR = () => {
                   path={`/attendance/metrics`}
                   element={<AttendanceMetrics />}
                 />
+                <Route
+                  path={`/reporting/metrics`}
+                  element={<ReportingMetrices />}
+                />
                 <Route path={`/attendance/self`} element={<MyAttendance />} />
                 <Route
                   path={`/attendance/employee`}
@@ -221,15 +226,15 @@ const HR = () => {
                 <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
 
                 <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
-                
+
                 <Route path={`/all/cancellations/req`} element={<CancellationRequestsHr />} />
                 <Route path={`/all/compOffs`} element={<AllCompOffs />} />
 
-                
+
                 <Route path={`/transfer/manager/approvals`} element={<TransferManagerApprovals />} />
 
 
-                
+
               </Routes>
             </div>
           </Container>

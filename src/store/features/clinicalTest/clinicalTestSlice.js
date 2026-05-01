@@ -22,8 +22,8 @@ export const fetchClinicalTest = createAsyncThunk(
       const response = await getClinicalTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -35,8 +35,8 @@ export const fetchCiwaTest = createAsyncThunk(
       const response = await getCiwaTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -48,8 +48,8 @@ export const createCiwaTest = createAsyncThunk(
       const response = await postCiwatest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -61,8 +61,8 @@ export const createSsrsTest = createAsyncThunk(
       const response = await postSsrstest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -74,8 +74,8 @@ export const createMPQTest = createAsyncThunk(
       const response = await postMPQtest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -87,8 +87,8 @@ export const createMMSETest = createAsyncThunk(
       const response = await postMMSEtest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -100,8 +100,8 @@ export const createYMRSTest = createAsyncThunk(
       const response = await postYmrsTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -113,8 +113,8 @@ export const createYBOCSTest = createAsyncThunk(
       const response = await postYBOCSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -126,8 +126,8 @@ export const createACDSTest = createAsyncThunk(
       const response = await postACDSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -139,8 +139,8 @@ export const createHAMATest = createAsyncThunk(
       const response = await postHAMATest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -152,8 +152,8 @@ export const createHAMDTest = createAsyncThunk(
       const response = await postHAMDTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
@@ -165,8 +165,8 @@ export const createPANSSTest = createAsyncThunk(
       const response = await postPANSSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
   }
 );
