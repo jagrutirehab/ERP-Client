@@ -113,7 +113,11 @@ const AdmitPatient = ({
       //   ),
       // aadhaarCard: Yup.string().required("Please select Aadhaar Card"),
       name: Yup.string().required("Please select Name"),
-      phoneNumber: Yup.string().required("Please select Phone Number"),
+      phoneNumber: Yup.string()
+        .required("Please select Phone Number")
+        .test("is-valid-phone", "Invalid phone number", function (value) {
+          return isValidPhoneNumber(value || "");
+        }),
       email: Yup.string()
         .email("Please enter a valid email")
         .nullable()
@@ -132,9 +136,15 @@ const AdmitPatient = ({
       guardianRelation: Yup.string().required(
         "Please select Guardian Relation",
       ),
-      guardianPhoneNumber: Yup.string().required(
-        "Please select Guardian Phone Number",
-      ),
+      guardianPhoneNumber: Yup.string()
+        .required("Please select Guardian Phone Number")
+        .test(
+          "is-valid-guardian-phone",
+          "Invalid phone number",
+          function (value) {
+            return isValidPhoneNumber(value || "");
+          },
+        ),
       referredBy: Yup.string().required("Please select Referred By"),
       referralPhoneNumber: Yup.string()
         .nullable()
@@ -376,7 +386,7 @@ const AdmitPatient = ({
     {
       label: "Phone Number",
       name: "guardianPhoneNumber",
-      type: "text",
+      type: "phoneNumber",
       required: true,
     },
     // {
@@ -508,23 +518,49 @@ const AdmitPatient = ({
                 {f.label}
                 {f.required && <span className="text-danger">*</span>}
               </Label>
-              <Input
-                type={f.type}
-                name={f.name}
-                onChange={validation.handleChange}
-                onBlur={validation.handleBlur}
-                value={validation.values[f.name] || ""}
-                invalid={
-                  validation.touched[f.name] && validation.errors[f.name]
-                    ? true
-                    : false
-                }
-                className="form-control"
-                placeholder=""
-                id={f.name}
-              />
+              {f.type === "phoneNumber" ? (
+                <PhoneInputWithCountrySelect
+                  placeholder="Enter phone number"
+                  name={f.name}
+                  value={validation.values[f.name]}
+                  onChange={(value) =>
+                    validation.setFieldValue(f.name, value || "")
+                  }
+                  onBlur={() => validation.setFieldTouched(f.name, true)}
+                  defaultCountry="IN"
+                  limitMaxLength={true}
+                  style={{
+                    width: "100%",
+                    height: "42px",
+                    padding: "0.5rem 0.75rem",
+                    border: `1px solid ${
+                      validation.touched[f.name] && validation.errors[f.name]
+                        ? "#dc3545"
+                        : "#ced4da"
+                    }`,
+                    borderRadius: "0.375rem",
+                    fontSize: "1rem",
+                  }}
+                />
+              ) : (
+                <Input
+                  type={f.type}
+                  name={f.name}
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values[f.name] || ""}
+                  invalid={
+                    validation.touched[f.name] && validation.errors[f.name]
+                      ? true
+                      : false
+                  }
+                  className="form-control"
+                  placeholder=""
+                  id={f.name}
+                />
+              )}
               {validation.touched[f.name] && validation.errors[f.name] ? (
-                <FormFeedback type="invalid">
+                <FormFeedback type="invalid" className="d-block">
                   <div>{validation.errors[f.name]}</div>
                 </FormFeedback>
               ) : null}

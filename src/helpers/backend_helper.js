@@ -2054,6 +2054,8 @@ export const getPatientDocs = (data) => {
 
 
 
+
+
 export const getOpdPatientDocs = (data) => {
 
   return api.get(url.GET_OPD_PATIENT_DOCS, {
@@ -2065,11 +2067,39 @@ export const getOpdPatientDocs = (data) => {
   });
 };
 
+export const getDailyInvoices = (data) => {
+
+  return api.get(url.GET_DAILY_INVOICES, {
+    params: {
+      centerIds: data?.centerAccess,
+      status:data?.selectedStatus
+    }
+  });
+};
 
 
 
 
+export const getCounsellingSessions = (data) => {
 
+  return api.get(url.GET_COUNSLLING_SESSIONS, {
+    params: {
+      centerIds: data?.centerAccess
+    }
+  });
+};
+
+
+
+
+export const getCounsellingRecordings = (data) => {
+
+  return api.get(url.GET_COUNSELLING_RECORDING, {
+    params: {
+      centerIds: data?.centerAccess
+    }
+  });
+};
 
 
 
@@ -2634,6 +2664,18 @@ export const getReportingMetrics = (params = {}) => {
 
 export const exportAttendanceMetrics = (params = {}) => {
   return api.get(url.EXPORT_ATTENDANCE_METRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+export const exportReportingMetrics = (params = {}) => {
+  return api.get(url.EXPORT_REPORTING_METRICS, {
     params,
     headers: {
       "X-No-Cookie-Token": "true",

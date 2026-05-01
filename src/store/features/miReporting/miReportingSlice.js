@@ -19,6 +19,9 @@ import {
   getVitalSignsDOD,
   getPatientDocs,
   getOpdPatientDocs,
+  getDailyInvoices,
+  getCounsellingSessions,
+  getCounsellingRecordings,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -47,6 +50,9 @@ const initialState = {
   fetchVitalSignsDOD:[],
   patientDocs:[],
   opdPatientDocs:[],
+  dailyInvoices:[],
+  counsellingSessions:[],
+  counsellingRecordings:[],
   loading: false,
   error: null,
 };
@@ -339,11 +345,61 @@ export const fetchOpdPatientDocs = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Patient Docs"
+        error.message || "Failed to fetch OPD Patient Docs"
       );
     }
   }
 );
+
+
+export const fetchDailyInvoices = createAsyncThunk(
+  "miReporting/fetchDailyInvoices",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getDailyInvoices(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Daily Invoices"
+      );
+    }
+  }
+);
+
+export const fetchCounsellingSessions = createAsyncThunk(
+  "miReporting/fetchCounsellingSessions",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingSessions(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Counselling Sessions"
+      );
+    }
+  }
+);
+
+export const fetchCounsellingRecordings = createAsyncThunk(
+  "miReporting/fetchCounsellingRecordings",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingRecordings(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Counselling Sessions"
+      );
+    }
+  }
+);
+
+
+
+
 
 
 const miReportingSlice = createSlice({
@@ -612,6 +668,50 @@ const miReportingSlice = createSlice({
         state.opdPatientDocs = action.payload.payload || [];
       })
       .addCase(fetchOpdPatientDocs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      
+      //Daily Invoices
+      .addCase(fetchDailyInvoices.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDailyInvoices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dailyInvoices = action.payload.payload || [];
+      })
+      .addCase(fetchDailyInvoices.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //Counselling sessions
+      .addCase(fetchCounsellingSessions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingSessions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingSessions = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingSessions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      //Counselling Recordings
+      .addCase(fetchCounsellingRecordings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingRecordings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingRecordings = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingRecordings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

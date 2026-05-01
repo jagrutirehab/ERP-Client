@@ -12,7 +12,7 @@ import { fetchReportingMetrics } from '../../../../store/features/HRMS/hrmsSlice
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
-import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
+import { exportReportingMetrics } from '../../../../helpers/backend_helper';
 import { RotateCw } from 'lucide-react';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
 
@@ -148,7 +148,7 @@ const ReportingMetrices = () => {
     const handleExportXLSX = async () => {
         setIsExcelGenerating(true);
         try {
-            const res = await exportAttendanceMetrics({
+            const res = await exportReportingMetrics({
                 page,
                 limit,
                 search,
@@ -186,13 +186,14 @@ const ReportingMetrices = () => {
         navigate("/unauthorized");
     }
 
-    const handleNavigate = (employeeId, centerId) => {
-        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`)
+    const handleNavigate = (employeeId, centerId, type) => {
+        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`, { state: { type } })
     }
 
     const columns = attendanceMetricsColumns({
         onNavigate: handleNavigate,
-        searchText: debouncedSearch
+        searchText: debouncedSearch,
+        type: "directreporting"
     });
 
     return (
@@ -230,7 +231,7 @@ const ReportingMetrices = () => {
                     <div style={{ minWidth: "220px" }}>
                         <Input
                             type="text"
-                            placeholder="Search by name, biometric ID..."
+                            placeholder="Search by name, eCode"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
