@@ -17,7 +17,7 @@ const STATUS_OPTIONS = [
 
 ];
 
-const CounsellingSessions = (report_name) => {
+const CounsellingSessions = () => {
     const dispatch = useDispatch();
     const counsellingSessions = useSelector((state) => state.MIReporting.counsellingSessions);
     const loading = useSelector((state) => state.MIReporting.loading);
@@ -35,8 +35,8 @@ const CounsellingSessions = (report_name) => {
     // console.log(counsellingSessions)
     
     useEffect(() => {
-        dispatch(fetchCounsellingSessions({ report_name,centerAccess  }));
-    }, [dispatch, centerAccess,report_name]);
+        dispatch(fetchCounsellingSessions({ centerAccess  }));
+    }, [dispatch, centerAccess]);
     // console.log(counsellingSessions)
     // Extract unique months and sort them descending
 
