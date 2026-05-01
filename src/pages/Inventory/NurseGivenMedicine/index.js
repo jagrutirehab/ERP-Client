@@ -214,10 +214,10 @@ const NurseGivenMedicine = () => {
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
             <div className="content-wrapper">
-                <div className="text-center text-md-left mb-4">
-                    <h1 className="display-5 font-weight-bold text-primary">
-                        NURSE GIVEN MEDICINE
-                    </h1>
+                <div className="text-center text-md-left mb-3">
+                    <h4 className="font-weight-bold text-primary text-uppercase">
+                        Nurse Given Medicine
+                    </h4>
                 </div>
             </div>
 

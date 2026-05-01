@@ -5,19 +5,19 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
-  const isFutureDate = (date) => {
-    if (!date) return false;
-    return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-  };
+const isFutureDate = (date) => {
+  if (!date) return false;
+  return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
+};
 
-  const canShowRegularizeButton = (row) => {
-    const regularizationStatus = row?.regularizations?.regularization_id?.status;
-    return (
-      (!row?.regularizations?.regularization_id ||
-        regularizationStatus === "REJECTED") &&
-      !isFutureDate(row?.date)
-    );
-  };
+const canShowRegularizeButton = (row) => {
+  const regularizationStatus = row?.regularizations?.regularization_id?.status;
+  return (
+    (!row?.regularizations?.regularization_id ||
+      regularizationStatus === "REJECTED") &&
+    !isFutureDate(row?.date)
+  );
+};
 
 export const myAttendanceLogsColumns = ({
   hasUserAllViewPermission,
@@ -27,7 +27,8 @@ export const myAttendanceLogsColumns = ({
   loading,
   // canShowActionButton,
   hasMyRegularizationPermission,
-  isSelf
+  isSelf,
+  type
 }) => [
     {
       name: <div>Date</div>,
@@ -43,6 +44,8 @@ export const myAttendanceLogsColumns = ({
       name: <div>Shift Timing</div>,
       selector: (row) => {
         const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
+        console.log("TYPEINPROPER", type);
+        
 
         return (
           <div className="d-flex flex-column gap-1">
@@ -118,7 +121,7 @@ export const myAttendanceLogsColumns = ({
       },
       wrap: true,
     },
-    ...(hasMyRegularizationPermission
+    ...(hasMyRegularizationPermission && type !== "directreporting"
       ? [
         {
           name: <div className="text-center">Action</div>,

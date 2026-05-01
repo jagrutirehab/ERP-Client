@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import { getAttendance, getAttendanceMetrics, getEmployeeReportings, getAttendanceLogs, getAttendanceSummary } from "../../../helpers/backend_helper";
+import { getAttendance, getAttendanceMetrics, getEmployeeReportings, getAttendanceLogs, getAttendanceSummary, getReportingMetrics } from "../../../helpers/backend_helper";
 
 
 const initialState = {
@@ -11,6 +11,11 @@ const initialState = {
         data: null,
         loading: false
     },
+    reportingMetrics: {
+        data: [],
+        loading: false,
+        pagination: {}
+    }
 };
 
 export const fetchAttendance = createAsyncThunk("hrms/getAttendance", async (data, { rejectWithValue }) => {
@@ -30,6 +35,16 @@ export const fetchAttendanceMetrics = createAsyncThunk("hrms/getAttendanceMetric
         return rejectWithValue(error);
     }
 });
+
+export const fetchReportingMetrics = createAsyncThunk("hrms/getReportingMetrics", async (data, { rejectWithValue }) => {
+    try {
+        const response = await getReportingMetrics(data);
+        return response;
+    } catch (error) {
+        return rejectWithValue(error);
+    }
+});
+
 
 export const fetchReportings = createAsyncThunk("hrms/getEmployeeReportings", async (data, { rejectWithValue }) => {
     try {
@@ -126,6 +141,20 @@ export const hrmsSlice = createSlice({
             })
             .addCase(fetchAttendanceSummary.rejected, (state) => {
                 state.attendanceSummary.loading = false;
+            });
+        builder
+            .addCase(fetchReportingMetrics.pending, (state) => {
+                state.reportingMetrics.loading = true;
+                state.reportingMetrics.data = [];
+                state.reportingMetrics.pagination = {};
+            })
+            .addCase(fetchReportingMetrics.fulfilled, (state, { payload }) => {
+                state.reportingMetrics.loading = false;
+                state.reportingMetrics.data = payload.data;
+                state.reportingMetrics.pagination = payload.pagination;
+            })
+            .addCase(fetchReportingMetrics.rejected, (state) => {
+                state.reportingMetrics.loading = false;
             });
     }
 });
