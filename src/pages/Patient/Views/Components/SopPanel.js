@@ -4,14 +4,7 @@ import { connect, useDispatch } from "react-redux";
 import { format } from "date-fns";
 import { fetchSopOverview } from "../../../../store/features/patient/patientSlice";
 
-const DAILY_TYPES = [
-  "VITAL_SIGN",
-  "COUNSELLING_NOTE",
-  "RELATIVE_VISIT",
-  "MENTAL_EXAMINATION",
-];
-
-const chartTypeLabels = {
+const itemLabels = {
   VITAL_SIGN: "Vital Sign",
   COUNSELLING_NOTE: "Counselling Note",
   RELATIVE_VISIT: "Family Update",
@@ -20,9 +13,12 @@ const chartTypeLabels = {
   DETAIL_ADMISSION: "Detail History",
   MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
+  ADMISSION_FORM: "Admission Form",
+  CONSENT_FORM: "Consent Form",
+  BELONGING_FORM: "Belonging Form",
 };
 
-const chartTypeTooltips = {
+const itemTooltips = {
   VITAL_SIGN: "Submitted every 24 hours",
   COUNSELLING_NOTE: "Submitted every 24 hours",
   RELATIVE_VISIT: "Submitted every 24 hours",
@@ -31,10 +27,14 @@ const chartTypeTooltips = {
   LAB_REPORT: "Within 1st 24 hours of admission",
   DETAIL_ADMISSION: "Within 1st 24 hours of admission",
   DISCHARGE_SUMMARY: "Created at discharge",
+  ADMISSION_FORM: "Signed copy uploaded within 1st 24 hours of admission",
+  CONSENT_FORM: "Signed copy uploaded within 1st 24 hours of admission",
+  BELONGING_FORM: "Signed copy uploaded within 1st 24 hours of admission",
 };
 
 const statusLabels = {
   yes: "Yes",
+  partial: "Partial",
   no: "No",
 };
 
@@ -47,10 +47,14 @@ const DISPLAY_ORDER = [
   "DETAIL_ADMISSION",
   "MENTAL_EXAMINATION",
   "DISCHARGE_SUMMARY",
+  "ADMISSION_FORM",
+  "CONSENT_FORM",
+  "BELONGING_FORM",
 ];
 
 const statusColors = {
   yes: { bg: "#9AD872", text: "#fff" },
+  partial: { bg: "#F2C94C", text: "#fff" },
   no: { bg: "#FF8383", text: "#fff" },
   null: { bg: "#FF8383", text: "#fff" },
 };
@@ -74,7 +78,7 @@ const SkeletonItem = () => (
   </div>
 );
 
-const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
+const SopPanel = ({ patient, sopOverview, sopLoading }) => {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(true);
 
@@ -91,20 +95,16 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
     }
   }, [dispatch, activeAdmission?._id]);
 
-  console.log({ activeAdmission });
-
   if (!patient?.isAdmit || !activeAdmission) {
     return null;
   }
 
   const overview = sopOverview?.sopOverview;
 
-  console.log({ overview });
-
   return (
-    <div className="position-relativ">
+    <div>
       <div
-        className="position-absolut border rounded py-2 px-3"
+        className="border rounded py-2 px-3"
         style={{ backgroundColor: "#fafbfc" }}
       >
         <div
@@ -123,28 +123,29 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
             style={{ fontSize: "1rem" }}
           ></i>
         </div>
-        <Collapse className="" isOpen={isOpen}>
+        <Collapse isOpen={isOpen}>
           <div className="d-flex flex-wrap gap-3 mt-2">
             {sopLoading || !overview
-              ? Array.from({ length: 9 }).map((_, i) => (
+              ? Array.from({ length: DISPLAY_ORDER.length }).map((_, i) => (
                   <div key={i} className="placeholder-glow">
                     <SkeletonItem />
                   </div>
                 ))
-              : DISPLAY_ORDER.map((chartType) => {
-                  const data = overview[chartType];
+              : DISPLAY_ORDER.map((itemKey) => {
+                  const data = overview[itemKey];
                   if (!data) return null;
                   const lastDate = formatDate(data.lastDate);
 
                   const statusKey = data.status || null;
-                  const statusStyle = statusColors[statusKey];
-                  const tooltipId = `sop-${chartType}`;
-                  const tooltipText = chartTypeTooltips[chartType];
+                  const statusStyle =
+                    statusColors[statusKey] || statusColors.null;
+                  const tooltipId = `sop-${itemKey}`;
+                  const tooltipText = itemTooltips[itemKey];
                   const statusLabel = statusLabels[statusKey];
 
                   return (
                     <div
-                      key={chartType}
+                      key={itemKey}
                       id={tooltipId}
                       className="d-flex flex-column align-items-start"
                       style={{ minWidth: 100, cursor: "default" }}
@@ -163,7 +164,7 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
                           className="fw-medium text-dark"
                           style={{ fontSize: "0.75rem" }}
                         >
-                          {chartTypeLabels[chartType]}
+                          {itemLabels[itemKey]}
                         </span>
                       </div>
                       <span
@@ -192,7 +193,6 @@ const SopPanel = ({ patient, addmissionsCharts, sopOverview, sopLoading }) => {
 
 const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
-  addmissionsCharts: state.Chart.data,
   sopOverview: state.Patient.sopOverview,
   sopLoading: state.Patient.sopLoading,
 });
