@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { TabPane, Spinner, Button } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import { getRangeReport } from "../../../store/features/cashManagement/cashSlice";
@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { RotateCw } from "lucide-react";
 import { startOfDay, endOfDay, subDays } from "date-fns";
 import Header from "../../Report/Components/Header";
+import { useLedgerExport } from "../../../utils/useLedgerExport";
 
 const formatINR = (n) =>
   new Intl.NumberFormat("en-IN", {
@@ -160,16 +161,29 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
 
-  const [reportDate, setReportDate] = useState({
+   const [reportDate, setReportDate] = useState({
     start: startOfDay(subDays(new Date(), 6)),
     end: endOfDay(new Date()),
   });
-  const [page, setPage] = useState(1);
-
-  const centerIds = centerAccess?.length > 0 ? centerAccess : [];
 
   const startBusinessDate = dateToBusinessStr(reportDate.start);
   const endBusinessDate = dateToBusinessStr(reportDate.end);
+
+  const isExportingRef = useRef(false);
+  const debounceTimerRef = useRef(null);
+
+  const { exportToExcel } = useLedgerExport({
+  rangeReport,
+  startBusinessDate,
+  endBusinessDate,
+});
+
+ 
+  const [page, setPage] = useState(1);
+  const [isExcelGenerating, setIsExcelGenerating] = useState(false);
+
+  const centerIds = centerAccess?.length > 0 ? centerAccess : [];
+
   const dates = getBusinessDatesInRange(startBusinessDate, endBusinessDate);
 
   const fetchReport = async (overridePage) => {
@@ -208,6 +222,49 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
   const currentPage = rangeReport?.currentPage || 1;
   const showPagination = totalPages > 1;
 
+
+const getDetailedReportXlsx = useCallback(() => {
+  if (isExportingRef.current) return;
+
+  if (debounceTimerRef.current) {
+    clearTimeout(debounceTimerRef.current);
+  }
+
+  debounceTimerRef.current = setTimeout(async () => {
+    isExportingRef.current = true;
+    setIsExcelGenerating(true);
+
+    const startTime = Date.now();
+
+    try {
+      const result = await dispatch(getRangeReport({
+        centerIds,
+        startDate: startBusinessDate,
+        endDate: endBusinessDate,
+        page: 1,
+        limit: 15,
+        exportAll: true,
+      })).unwrap();
+
+     const allData = result?.payload?.data ?? [];
+      await exportToExcel(allData);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to download report");
+      }
+    } finally {
+      const elapsed = Date.now() - startTime;
+      const remaining = 2000 - elapsed;
+
+      setTimeout(() => {
+        isExportingRef.current = false;
+        setIsExcelGenerating(false);
+      }, remaining > 0 ? remaining : 0);
+    }
+  }, 300);
+}, [exportToExcel, centerIds, startBusinessDate, endBusinessDate, dispatch]);
+
+
   return (
     <TabPane tabId="dateRange" style={{ padding: 0 }}>
       <style>{`
@@ -240,6 +297,14 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
                 size={16}
                 style={{ animation: loading ? "spin 1s linear infinite" : "none" }}
               />
+            </Button>
+
+            <Button
+              onClick={getDetailedReportXlsx}
+              disabled={isExcelGenerating}
+              className="d-flex align-items-center gap-1">
+              {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+              Export Excel
             </Button>
           </div>
 

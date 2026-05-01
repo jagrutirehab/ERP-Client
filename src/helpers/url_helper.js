@@ -522,6 +522,10 @@ export const GET_APPROVAL_INBOX = "/hr/approval-inbox";
 export const FINANCE = "/hr/salary";
 export const CHANGE_SALARY = "/hr/salary/change";
 
+export const GET_EMPLOYEE_PAYSLIPS = "/hr/payroll/employee-payslips";
+export const GET_MY_PAYSLIPS = "/hr/payroll/my-payslips";
+
+
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";

@@ -1,389 +1,315 @@
-import { useEffect, useMemo, useState } from "react";
-import { Button, CardBody, Input } from "reactstrap";
-import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
-import { Calendar, CheckCheck, XCircle } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { endOfMonth, startOfMonth } from "date-fns";
+import { Calendar, Download, RotateCcw } from "lucide-react";
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
+import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { fetchEmployeePayslips } from "../../../../store/features/HR/hrSlice";
+import {
+  displayMoney,
+  displayValue,
+  downloadPayslipPdfById,
+  monthLabel,
+  readStickyFilters,
+  useDebouncedValue,
+  writeStickyFilters,
+} from "../payslipUtils";
+
+const FILTER_KEY = "hr_employee_payslip_filters";
+
+const initialFilters = readStickyFilters(FILTER_KEY, {
+  center: "ALL",
+  search: "",
+  month: new Date().toISOString(),
+});
 
 const EmployeePaySlipsTab = () => {
-  const isMobile = useMediaQuery("(max-width: 1000px)");
+  const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
 
+  const [selectedCenter, setSelectedCenter] = useState(initialFilters.center);
+  const [search, setSearch] = useState(initialFilters.search);
+  const [selectedMonth, setSelectedMonth] = useState(
+    initialFilters.month ? new Date(initialFilters.month) : new Date()
+  );
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [approvalStatus, setApprovalStatus] = useState("PENDING");
-  const [loading, setLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState("");
 
-  const centerOptions = [
-    { value: "ALL", label: "All Centers" },
-    { value: "CENTER_1", label: "Center 1" },
-    { value: "CENTER_2", label: "Center 2" },
-  ];
+  const debouncedSearch = useDebouncedValue(search);
 
-  const approvalStatusOptions = [
-    { value: "ALL", label: "All Status" },
-    { value: "PENDING", label: "Pending" },
-    { value: "APPROVED", label: "Approved" },
-    { value: "REJECTED", label: "Rejected" },
-  ];
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission, loading: permissionLoader } = usePermissions(token);
+
+  const { centerAccess = [], userCenters = [] } = useSelector((state) => state.User);
+  const { data = [], pagination, loading } = useSelector(
+    (state) => state.HR.employeePayslips.data
+  );
+
+  const hasUserPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
+
+  const centerOptions = useMemo(
+    () => [
+      ...(centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
+      ...(centerAccess?.map((id) => {
+        const center = userCenters?.find((c) => c._id === id);
+        return { value: id, label: center?.title || "Unknown Center" };
+      }) || []),
+    ],
+    [centerAccess, userCenters]
+  );
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
 
-  const selectedApprovalStatusOption =
-    approvalStatusOptions.find((opt) => opt.value === approvalStatus) ||
-    approvalStatusOptions[0];
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 400);
-
-    return () => clearTimeout(handler);
-  }, [search]);
-
-  const allRows = useMemo(
-    () => [
-      {
-        _id: "1",
-        employeeCode: "EMP001",
-        employeeName: "Aman Sharma",
-        center: "CENTER_1",
-        fixedSalary: 42000,
-        earnedSalary: 40000,
-        pfEsicSalary: 1800,
-        employeeDeduction: 2500,
-        employerDeduction: 2200,
-        approvalStatus: "PENDING",
-      },
-      {
-        _id: "2",
-        employeeCode: "EMP002",
-        employeeName: "Priya Verma",
-        center: "CENTER_2",
-        fixedSalary: 48000,
-        earnedSalary: 45500,
-        pfEsicSalary: 2100,
-        employeeDeduction: 3000,
-        employerDeduction: 2600,
-        approvalStatus: "APPROVED",
-      },
-      {
-        _id: "3",
-        employeeCode: "EMP003",
-        employeeName: "Rohit Kumar",
-        center: "CENTER_1",
-        fixedSalary: 53000,
-        earnedSalary: 50000,
-        pfEsicSalary: 2400,
-        employeeDeduction: 4000,
-        employerDeduction: 3200,
-        approvalStatus: "REJECTED",
-      },
-    ],
-    []
+  const centers = useMemo(
+    () =>
+      selectedCenter === "ALL"
+        ? centerAccess
+        : centerAccess?.includes(selectedCenter)
+        ? [selectedCenter]
+        : [],
+    [centerAccess, selectedCenter]
   );
 
-  const filteredRows = useMemo(() => {
-    return allRows.filter((item) => {
-      const q = debouncedSearch.trim().toLowerCase();
+  useEffect(() => {
+    if (selectedCenter !== "ALL" && !centerAccess?.includes(selectedCenter)) {
+      setSelectedCenter("ALL");
+      setPage(1);
+    }
+  }, [selectedCenter, centerAccess]);
 
-      const matchesSearch =
-        !q ||
-        item.employeeName.toLowerCase().includes(q) ||
-        item.employeeCode.toLowerCase().includes(q);
-
-      const matchesCenter =
-        selectedCenter === "ALL" || item.center === selectedCenter;
-
-      const matchesStatus =
-        approvalStatus === "ALL" || item.approvalStatus === approvalStatus;
-
-      return matchesSearch && matchesCenter && matchesStatus;
+  useEffect(() => {
+    writeStickyFilters(FILTER_KEY, {
+      center: selectedCenter,
+      search,
+      month: selectedMonth?.toISOString?.() || "",
     });
-  }, [allRows, debouncedSearch, selectedCenter, approvalStatus]);
+  }, [selectedCenter, search, selectedMonth]);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 500);
-  };
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCenter, selectedMonth, limit, debouncedSearch]);
 
-  const handleApproveAll = () => {
-    console.log("Approve all clicked", filteredRows);
-  };
+  const latestRef = useRef({});
+  latestRef.current = { centers, selectedMonth, debouncedSearch, page, limit, hasUserPermission };
 
-  const handleRejectAll = () => {
-    console.log("Reject all clicked", filteredRows);
-  };
+  const runFetch = useCallback(async () => {
+    const { centers: c, selectedMonth: m, debouncedSearch: s, page: p, limit: l, hasUserPermission: hasPerm } =
+      latestRef.current;
 
-  const handleDownload = (row) => {
-    console.log("Download payslip", row);
-  };
+    if (!hasPerm || !c?.length) return;
 
-  const statusBadge = (status) => {
-    if (status === "APPROVED") {
-      return <span className="badge bg-success-subtle text-success">Approved</span>;
+    try {
+      await dispatch(
+        fetchEmployeePayslips({
+          page: p,
+          limit: l,
+          centers: c,
+          startDate: startOfMonth(m),
+          endDate: endOfMonth(m),
+          ...(s?.trim() && { search: s.trim() }),
+        })
+      ).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to fetch payslips");
+      }
     }
-    if (status === "REJECTED") {
-      return <span className="badge bg-danger-subtle text-danger">Rejected</span>;
-    }
-    return <span className="badge bg-warning-subtle text-warning">Pending</span>;
+  }, [dispatch, handleAuthError]);
+
+  const fetchKey = [
+    centers.join(","),
+    startOfMonth(selectedMonth).toISOString(),
+    page,
+    limit,
+    debouncedSearch.trim(),
+    hasUserPermission,
+  ].join("|");
+
+  useEffect(() => { runFetch(); }, [fetchKey]); // eslint-disable-line
+
+  const resetFilters = () => {
+    setSelectedCenter("ALL");
+    setSearch("");
+    setSelectedMonth(new Date());
+    setPage(1);
   };
 
-  const columns = [
-    {
-      name: "S No.",
-      cell: (row, index) => index + 1,
-      width: "90px",
-    },
-    {
-      name: "Employee Code",
-      selector: (row) => row.employeeCode,
-      sortable: true,
-      minWidth: "140px",
-    },
-    {
-      name: "Employee Name",
-      selector: (row) => row.employeeName,
-      sortable: true,
-      minWidth: "180px",
-    },
-    {
-      name: "Fixed Salary",
-      selector: (row) => row.fixedSalary,
-      sortable: true,
-      minWidth: "140px",
-      cell: (row) => `Rs. ${row.fixedSalary}`,
-    },
-    {
-      name: "Earned Salary",
-      selector: (row) => row.earnedSalary,
-      sortable: true,
-      minWidth: "140px",
-      cell: (row) => `Rs. ${row.earnedSalary}`,
-    },
-    {
-      name: "PF / ESIC Salary",
-      selector: (row) => row.pfEsicSalary,
-      sortable: true,
-      minWidth: "150px",
-      cell: (row) => `Rs. ${row.pfEsicSalary}`,
-    },
-    {
-      name: "Employee Deduction",
-      selector: (row) => row.employeeDeduction,
-      sortable: true,
-      minWidth: "170px",
-      cell: (row) => `Rs. ${row.employeeDeduction}`,
-    },
-    {
-      name: "Employer Deduction",
-      selector: (row) => row.employerDeduction,
-      sortable: true,
-      minWidth: "170px",
-      cell: (row) => `Rs. ${row.employerDeduction}`,
-    },
-    {
-      name: "Status",
-      selector: (row) => row.approvalStatus,
-      minWidth: "120px",
-      cell: (row) => statusBadge(row.approvalStatus),
-    },
-    {
-      name: "Action",
-      minWidth: "130px",
-      cell: (row) => (
-        <Button color="primary" size="sm" onClick={() => handleDownload(row)}>
-          Download
-        </Button>
-      ),
-    },
-  ];
+  const handleDownload = async (row) => {
+    try {
+      setDownloadingId(row._id);
+      await downloadPayslipPdfById(row._id, data);
+      toast.success("Payslip downloaded");
+    } catch {
+      toast.error("Failed to generate payslip PDF");
+    } finally {
+      setDownloadingId("");
+    }
+  };
+
+  // ── Columns — earned fields only, no PF/ESIC breakdown ───────────────────
+  const columns = useMemo(
+    () => [
+      {
+        name: "S No.",
+        cell: (_, index) => (page - 1) * limit + index + 1,
+        width: "70px",
+      },
+      {
+        name: "Month",
+        cell: (row) => displayValue(monthLabel(row)),
+        sortable: true,
+        minWidth: "130px",
+      },
+      {
+        name: "Emp Code",
+        cell: (row) => displayValue(row.employeeCode),
+        minWidth: "110px",
+      },
+      {
+        name: "Employee Name",
+        cell: (row) => displayValue(row.employeeName),
+        sortable: true,
+        minWidth: "180px",
+      },
+      {
+        name: "Center",
+        cell: (row) => displayValue(row.center?.title),
+        minWidth: "150px",
+      },
+      {
+        name: "Designation",
+        cell: (row) => displayValue(row.designation),
+        minWidth: "150px",
+      },
+      {
+        name: "Gross Salary",
+        cell: (row) => displayMoney(row.grossSalary),
+        right: true,
+        minWidth: "130px",
+      },
+      {
+        name: "Deductions",
+        cell: (row) => displayMoney(row.deductions),
+        right: true,
+        minWidth: "120px",
+      },
+      {
+        name: "Net Pay",
+        cell: (row) => displayMoney(row.inHandSalary),
+        right: true,
+        minWidth: "130px",
+      },
+      {
+        name: "Status",
+        cell: (row) => (
+          <span className="badge bg-success-subtle text-success">
+            {displayValue(row.approvalStatus)}
+          </span>
+        ),
+        minWidth: "100px",
+      },
+      {
+        name: "Download",
+        center: true,
+        minWidth: "100px",
+        cell: (row) => (
+          <Button
+            color="primary"
+            size="sm"
+            className="d-inline-flex align-items-center justify-content-center text-white"
+            onClick={() => handleDownload(row)}
+            disabled={downloadingId === row._id}
+            title="Download payslip"
+          >
+            {downloadingId === row._id ? <Spinner size="sm" /> : <Download size={16} />}
+          </Button>
+        ),
+      },
+    ],
+    [data, downloadingId, limit, page]
+  );
+
+  if (!permissionLoader && !hasUserPermission) return null;
 
   return (
-    <CardBody
-      className="p-3 bg-white"
-      style={isMobile ? { width: "100%" } : { width: "100%" }}
-    >
-      <div className="text-center text-md-left mb-4">
-        <h1 className="display-6 fw-bold text-primary">EMPLOYEES PAY SLIPS</h1>
+    <CardBody className="p-3 bg-white" style={{ width: "80%" }}>
+      <div className="text-center text-md-start mb-4">
+        <h4 className="fw-bold text-primary mb-0">EMPLOYEES PAY SLIPS</h4>
       </div>
 
-      <div className="mb-3">
-        <div className="mb-3 d-none d-md-block">
-          <div className="d-flex gap-3 align-items-center mb-2">
-            <div style={{ width: "200px" }}>
-              <Select
-                value={selectedCenterOption}
-                onChange={(opt) => setSelectedCenter(opt.value)}
-                options={centerOptions}
-                classNamePrefix="react-select"
-              />
-            </div>
-
-            <div style={{ width: "170px" }}>
-              <Select
-                value={selectedApprovalStatusOption}
-                onChange={(opt) => setApprovalStatus(opt.value)}
-                options={approvalStatusOptions}
-                classNamePrefix="react-select"
-              />
-            </div>
-
-            <div style={{ minWidth: "220px" }}>
-              <Input
-                type="text"
-                placeholder="Search by name, ECode..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-
-            <div style={{ minWidth: "150px" }}>
-              <div className="position-relative month-picker">
-                <Calendar
-                  size={14}
-                  className="position-absolute calendar-icon"
-                />
-                <Flatpickr
-                  value={selectedMonth}
-                  options={{
-                    plugins: [
-                      monthSelectPlugin({
-                        shorthand: false,
-                        dateFormat: "Y-m",
-                        altFormat: "F Y",
-                      }),
-                    ],
-                    altInput: true,
-                    disableMobile: true,
-                  }}
-                  onChange={([date]) => setSelectedMonth(date)}
-                  className="form-control form-control-sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="d-flex justify-content-end gap-2">
-            <RefreshButton loading={loading} onRefresh={handleRefresh} />
-
-            <Button
-              color="success"
-              className="d-flex align-items-center gap-1 text-white"
-              onClick={handleApproveAll}
-              disabled={loading || filteredRows.length === 0}
-            >
-              <CheckCheck size={16} />
-              Approve All
-            </Button>
-
-            <Button
-              color="danger"
-              className="d-flex align-items-center gap-1 text-white"
-              onClick={handleRejectAll}
-              disabled={loading || filteredRows.length === 0}
-            >
-              <XCircle size={16} />
-              Reject All
-            </Button>
-          </div>
-        </div>
-
-        <div className="mb-3 d-flex d-md-none flex-column gap-3">
+      <div className="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center mb-3">
+        <div style={{ minWidth: 210 }}>
           <Select
             value={selectedCenterOption}
-            onChange={(opt) => setSelectedCenter(opt.value)}
+            onChange={(opt) => setSelectedCenter(opt?.value || "ALL")}
             options={centerOptions}
             classNamePrefix="react-select"
           />
+        </div>
 
-          <Select
-            value={selectedApprovalStatusOption}
-            onChange={(opt) => setApprovalStatus(opt.value)}
-            options={approvalStatusOptions}
-            classNamePrefix="react-select"
-          />
-
+        <div style={{ minWidth: 240 }}>
           <Input
             type="text"
-            placeholder="Search by name, ECode..."
+            placeholder="Search name or employee code"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
 
+        <div style={{ minWidth: 170 }}>
           <div className="position-relative month-picker">
-            <Calendar
-              size={14}
-              className="position-absolute calendar-icon"
-            />
+            <Calendar size={14} className="position-absolute calendar-icon" />
             <Flatpickr
               value={selectedMonth}
               options={{
                 plugins: [
-                  monthSelectPlugin({
-                    shorthand: false,
-                    dateFormat: "Y-m",
-                    altFormat: "F Y",
-                  }),
+                  monthSelectPlugin({ shorthand: false, dateFormat: "Y-m", altFormat: "F Y" }),
                 ],
                 altInput: true,
                 disableMobile: true,
               }}
-              onChange={([date]) => setSelectedMonth(date)}
+              onChange={([date]) => date && setSelectedMonth(date)}
               className="form-control form-control-sm"
             />
           </div>
-
-          <div className="d-flex flex-wrap justify-content-end gap-2">
-            <RefreshButton loading={loading} onRefresh={handleRefresh} />
-
-            <Button
-              color="success"
-              className="d-flex align-items-center gap-1 text-white"
-              onClick={handleApproveAll}
-              disabled={loading || filteredRows.length === 0}
-            >
-              <CheckCheck size={16} />
-              Approve All
-            </Button>
-
-            <Button
-              color="danger"
-              className="d-flex align-items-center gap-1 text-white"
-              onClick={handleRejectAll}
-              disabled={loading || filteredRows.length === 0}
-            >
-              <XCircle size={16} />
-              Reject All
-            </Button>
-          </div>
         </div>
 
-        <DataTableComponent
-          columns={columns}
-          data={filteredRows}
-          page={page}
-          setPage={setPage}
-          limit={limit}
-          setLimit={setLimit}
-          loading={loading}
-          pagination={{
-            totalDocs: filteredRows.length,
-            totalPages: Math.ceil(filteredRows.length / limit) || 1,
-            page,
-            limit,
-          }}
-        />
+        <div className="d-flex gap-2 ms-lg-auto">
+          <RefreshButton loading={loading} onRefresh={runFetch} />
+          <Button
+            color="light"
+            className="d-inline-flex align-items-center gap-1"
+            onClick={resetFilters}
+          >
+            <RotateCcw size={16} />
+            Reset
+          </Button>
+        </div>
       </div>
+
+      <DataTableComponent
+        columns={columns}
+        data={data}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        loading={loading || permissionLoader}
+        pagination={pagination}
+        noDataComponent="No payslips found"
+      />
     </CardBody>
   );
 };

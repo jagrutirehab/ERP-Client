@@ -1,437 +1,580 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAdvanceSalaries, getAllEmployeeLeaveBalance, getAllEmployeeRegularizations, getApprovalInbox, getDesignations, getEmployees, getEmployeeTransfers, getExitEmployees, getFinance, getHirings, getIncentives, getITApprovals, getMonthlyAttendance, getPayrolls, getRegularizationsByEmployee, getTPMs, payrollAction, postDesignation, searchExitEmployee, updatePayrollRemarks } from "../../../helpers/backend_helper";
+import {
+  getAdvanceSalaries,
+  getEmployeePayslips,
+  getMyPayslips,
+  getAllEmployeeLeaveBalance,
+  getAllEmployeeRegularizations,
+  getApprovalInbox,
+  getDesignations,
+  getEmployees,
+  getEmployeeTransfers,
+  getExitEmployees,
+  getFinance,
+  getHirings,
+  getIncentives,
+  getITApprovals,
+  getMonthlyAttendance,
+  getPayrolls,
+  getRegularizationsByEmployee,
+  getTPMs,
+  payrollAction,
+  postDesignation,
+  searchExitEmployee,
+  updatePayrollRemarks,
+} from "../../../helpers/backend_helper";
 
 const initialState = {
-    data: [],
-    employees: [],
-    designations: [],
-    pagination: {},
-    selectedEmployee: null,
-    loading: false,
-    designationLoading: false,
+  data: [],
+  employees: [],
+  designations: [],
+  pagination: {},
+  selectedEmployee: null,
+  loading: false,
+  designationLoading: false,
+  myPayslips: { data: [], pagination: null, loading: false },
+  employeePayslips: { data: [], pagination: null, loading: false },
 };
 
-export const getMasterEmployees = createAsyncThunk("hr/getEmployees", async (data, { rejectWithValue }) => {
+export const getMasterEmployees = createAsyncThunk(
+  "hr/getEmployees",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getEmployees(data);
-        return response;
+      const response = await getEmployees(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchExitEmployees = createAsyncThunk("hr/exitEmployees", async (data, { rejectWithValue }) => {
+export const fetchExitEmployees = createAsyncThunk(
+  "hr/exitEmployees",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getExitEmployees(data);
-        return response;
+      const response = await getExitEmployees(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const getExitEmployeesBySearch = createAsyncThunk("hr/searchExitEmployee", async (data, { rejectWithValue }) => {
+export const getExitEmployeesBySearch = createAsyncThunk(
+  "hr/searchExitEmployee",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await searchExitEmployee(data);
-        return response;
+      const response = await searchExitEmployee(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchITApprovals = createAsyncThunk("hr/getITApprovals", async (data, { rejectWithValue }) => {
+export const fetchITApprovals = createAsyncThunk(
+  "hr/getITApprovals",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getITApprovals(data);
-        return response;
+      const response = await getITApprovals(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchAdvanceSalaries = createAsyncThunk("hr/getAdvanceSalaries", async (data, { rejectWithValue }) => {
+export const fetchAdvanceSalaries = createAsyncThunk(
+  "hr/getAdvanceSalaries",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getAdvanceSalaries(data);
-        return response;
+      const response = await getAdvanceSalaries(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchEmployeeTransfers = createAsyncThunk("hr/getEmployeeTransfers", async (data, { rejectWithValue }) => {
+export const fetchEmployeeTransfers = createAsyncThunk(
+  "hr/getEmployeeTransfers",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getEmployeeTransfers(data);
-        return response;
+      const response = await getEmployeeTransfers(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchDesignations = createAsyncThunk("hr/getDesignations", async (data, { rejectWithValue }) => {
+export const fetchDesignations = createAsyncThunk(
+  "hr/getDesignations",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getDesignations(data);
-        return response;
+      const response = await getDesignations(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const addDesignation = createAsyncThunk("hr/postDesignation", async (data, { rejectWithValue }) => {
+export const addDesignation = createAsyncThunk(
+  "hr/postDesignation",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await postDesignation(data);
-        return response;
+      const response = await postDesignation(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchHirings = createAsyncThunk("hr/getHirings", async (data, { rejectWithValue }) => {
+export const fetchHirings = createAsyncThunk(
+  "hr/getHirings",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getHirings(data);
-        return response;
+      const response = await getHirings(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchTPMs = createAsyncThunk("hr/getTPMs", async (data, { rejectWithValue }) => {
+export const fetchTPMs = createAsyncThunk(
+  "hr/getTPMs",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getTPMs(data);
-        return response;
+      const response = await getTPMs(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchIncentives = createAsyncThunk("hr/getIncentives", async (data, { rejectWithValue }) => {
+export const fetchIncentives = createAsyncThunk(
+  "hr/getIncentives",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getIncentives(data);
-        return response;
+      const response = await getIncentives(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchPayrolls = createAsyncThunk("hr/getPayrolls", async (data, { rejectWithValue }) => {
+export const fetchPayrolls = createAsyncThunk(
+  "hr/getPayrolls",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getPayrolls(data);
-        return response;
+      const response = await getPayrolls(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const editPayrollRemarks = createAsyncThunk("hr/updatePayrollRemarks", async ({ id, ...payload }, { rejectWithValue }) => {
+export const editPayrollRemarks = createAsyncThunk(
+  "hr/updatePayrollRemarks",
+  async ({ id, ...payload }, { rejectWithValue }) => {
     try {
-        const response = await updatePayrollRemarks(id, payload);
-        return response.data;
+      const response = await updatePayrollRemarks(id, payload);
+      return response.data;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const actionPayroll = createAsyncThunk("hr/payrollAction", async ({ id, ...payload }, { rejectWithValue }) => {
+export const actionPayroll = createAsyncThunk(
+  "hr/payrollAction",
+  async ({ id, ...payload }, { rejectWithValue }) => {
     try {
-        const response = await payrollAction(id, payload);
-        return response.data;
+      const response = await payrollAction(id, payload);
+      return response.data;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchMonthlyAttendance = createAsyncThunk("hr/getMonthlyAttendance", async (data, { rejectWithValue }) => {
+export const fetchMonthlyAttendance = createAsyncThunk(
+  "hr/getMonthlyAttendance",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getMonthlyAttendance(data);
-        return response;
+      const response = await getMonthlyAttendance(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchApprovalInbox = createAsyncThunk("hr/getApprovalInbox", async (data, { rejectWithValue }) => {
+export const fetchApprovalInbox = createAsyncThunk(
+  "hr/getApprovalInbox",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getApprovalInbox(data);
-        return response;
+      const response = await getApprovalInbox(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchFinance = createAsyncThunk("hr/getFinance", async (data, { rejectWithValue }) => {
+export const fetchFinance = createAsyncThunk(
+  "hr/getFinance",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getFinance(data);
-        return response;
+      const response = await getFinance(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchAllEmployeeLeaveBalance = createAsyncThunk("hr/getAllEmployeeLeaveBalance", async (data, { rejectWithValue }) => {
+export const fetchAllEmployeeLeaveBalance = createAsyncThunk(
+  "hr/getAllEmployeeLeaveBalance",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getAllEmployeeLeaveBalance(data);
-        return response;
+      const response = await getAllEmployeeLeaveBalance(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
 
-export const fetchAllEmployeeRegularizations = createAsyncThunk("hr/getAllEmployeeRegularizations", async (data, { rejectWithValue }) => {
+export const fetchEmployeePayslips = createAsyncThunk(
+  "HR/fetchEmployeePayslips",
+  async (params, { rejectWithValue }) => {
     try {
-        const response = await getAllEmployeeRegularizations(data);
-        return response;
-    } catch (error) {
-        return rejectWithValue(error);
+      const res = await getEmployeePayslips(params);
+      return res;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err);
     }
-});
+  },
+);
 
-export const fetchRegularizationsByEmployee = createAsyncThunk("hr/getRegularizationsByEmployee", async (data, { rejectWithValue }) => {
+export const fetchAllEmployeeRegularizations = createAsyncThunk(
+  "hr/getAllEmployeeRegularizations",
+  async (data, { rejectWithValue }) => {
     try {
-        const response = await getRegularizationsByEmployee(data);
-        return response;
+      const response = await getAllEmployeeRegularizations(data);
+      return response;
     } catch (error) {
-        return rejectWithValue(error);
+      return rejectWithValue(error);
     }
-});
+  },
+);
+
+export const fetchRegularizationsByEmployee = createAsyncThunk(
+  "hr/getRegularizationsByEmployee",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getRegularizationsByEmployee(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const fetchMyPayslips = createAsyncThunk(
+  "HR/fetchMyPayslips",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await getMyPayslips(params);
+      return res;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err);
+    }
+  },
+);
 
 export const hrSlice = createSlice({
-    name: "HR",
-    initialState,
-    extraReducers: (builder) => {
-        builder
-            .addCase(getMasterEmployees.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(getMasterEmployees.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(getMasterEmployees.rejected, (state) => {
-                state.loading = false
-            });
+  name: "HR",
+  initialState,
+  extraReducers: (builder) => {
+    builder
+      .addCase(getMasterEmployees.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getMasterEmployees.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(getMasterEmployees.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchExitEmployees.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchExitEmployees.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchExitEmployees.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchExitEmployees.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchExitEmployees.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchExitEmployees.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(getExitEmployeesBySearch.fulfilled, (state, { payload }) => {
-                state.employees = payload.data;
-            });
+    builder.addCase(
+      getExitEmployeesBySearch.fulfilled,
+      (state, { payload }) => {
+        state.employees = payload.data;
+      },
+    );
 
-        builder
-            .addCase(fetchITApprovals.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchITApprovals.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchITApprovals.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchITApprovals.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchITApprovals.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchITApprovals.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchAdvanceSalaries.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchAdvanceSalaries.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchAdvanceSalaries.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchAdvanceSalaries.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAdvanceSalaries.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchAdvanceSalaries.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchEmployeeTransfers.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchEmployeeTransfers.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchEmployeeTransfers.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchEmployeeTransfers.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchEmployeeTransfers.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchEmployeeTransfers.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchDesignations.pending, (state) => {
-                state.designationLoading = true
-            })
-            .addCase(fetchDesignations.fulfilled, (state, { payload }) => {
-                state.designationLoading = false;
-                state.designations = payload.data;
-            })
-            .addCase(fetchDesignations.rejected, (state) => {
-                state.designationLoading = false
-            });
+    builder
+      .addCase(fetchDesignations.pending, (state) => {
+        state.designationLoading = true;
+      })
+      .addCase(fetchDesignations.fulfilled, (state, { payload }) => {
+        state.designationLoading = false;
+        state.designations = payload.data;
+      })
+      .addCase(fetchDesignations.rejected, (state) => {
+        state.designationLoading = false;
+      });
 
-        builder.addCase(addDesignation.fulfilled, (state, { payload }) => {
-            state.designations.push(payload.data);
-        });
+    builder.addCase(addDesignation.fulfilled, (state, { payload }) => {
+      state.designations.push(payload.data);
+    });
 
-        builder
-            .addCase(fetchHirings.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchHirings.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchHirings.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchHirings.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchHirings.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchHirings.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchTPMs.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchTPMs.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchTPMs.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchTPMs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTPMs.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchTPMs.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchIncentives.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchIncentives.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchIncentives.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchIncentives.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchIncentives.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchIncentives.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchPayrolls.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchPayrolls.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchPayrolls.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchPayrolls.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPayrolls.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchPayrolls.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder.addCase(editPayrollRemarks.fulfilled, (state, { payload }) => {
-            const payrollIndex = state.data.findIndex((payroll) => payroll._id === payload._id);
-            if (payrollIndex !== -1) {
-                state.data[payrollIndex] = {
-                    ...state.data[payrollIndex],
-                    ...payload,
-                };
-            }
-        });
+    builder.addCase(editPayrollRemarks.fulfilled, (state, { payload }) => {
+      const payrollIndex = state.data.findIndex(
+        (payroll) => payroll._id === payload._id,
+      );
+      if (payrollIndex !== -1) {
+        state.data[payrollIndex] = {
+          ...state.data[payrollIndex],
+          ...payload,
+        };
+      }
+    });
 
-        builder.addCase(actionPayroll.fulfilled, (state, { payload }) => {
-            const index = state.data.findIndex((item) => item._id === payload._id);
-            if (index !== -1) {
-                state.data[index] = {
-                    ...state.data[index],
-                    ...payload,
-                };
-            }
-        });
+    builder.addCase(actionPayroll.fulfilled, (state, { payload }) => {
+      const index = state.data.findIndex((item) => item._id === payload._id);
+      if (index !== -1) {
+        state.data[index] = {
+          ...state.data[index],
+          ...payload,
+        };
+      }
+    });
 
-        builder
-            .addCase(fetchMonthlyAttendance.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchMonthlyAttendance.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchMonthlyAttendance.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchMyPayslips.pending, (state) => {
+        state.myPayslips.loading = true;
+      })
+      .addCase(fetchMyPayslips.fulfilled, (state, { payload }) => {
+        state.myPayslips.loading = false;
+        state.myPayslips.data = payload.data;
+        state.myPayslips.pagination = payload.pagination;
+      })
+      .addCase(fetchMyPayslips.rejected, (state) => {
+        state.myPayslips.loading = false;
+      })
+      .addCase(fetchEmployeePayslips.pending, (state) => {
+        state.employeePayslips.loading = true;
+      })
+      .addCase(fetchEmployeePayslips.fulfilled, (state, { payload }) => {
+        state.employeePayslips.loading = false;
+        state.employeePayslips.data = payload;
+        state.employeePayslips.pagination = payload.pagination;
+      })
+      .addCase(fetchEmployeePayslips.rejected, (state) => {
+        state.employeePayslips.loading = false;
+      });
 
-        builder
-            .addCase(fetchApprovalInbox.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchApprovalInbox.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchApprovalInbox.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchMonthlyAttendance.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchMonthlyAttendance.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchMonthlyAttendance.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchFinance.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchFinance.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchFinance.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchApprovalInbox.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchApprovalInbox.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchApprovalInbox.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchAllEmployeeLeaveBalance.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchAllEmployeeLeaveBalance.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchAllEmployeeLeaveBalance.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchFinance.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchFinance.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchFinance.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchAllEmployeeRegularizations.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchAllEmployeeRegularizations.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data;
-                state.pagination = payload.pagination;
-            })
-            .addCase(fetchAllEmployeeRegularizations.rejected, (state) => {
-                state.loading = false
-            });
+    builder
+      .addCase(fetchAllEmployeeLeaveBalance.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAllEmployeeLeaveBalance.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchAllEmployeeLeaveBalance.rejected, (state) => {
+        state.loading = false;
+      });
 
-        builder
-            .addCase(fetchRegularizationsByEmployee.pending, (state) => {
-                state.loading = true
-            })
-            .addCase(fetchRegularizationsByEmployee.fulfilled, (state, { payload }) => {
-                state.loading = false;
-                state.data = payload.data || [];
-                state.pagination = payload.pagination || {};
-                state.selectedEmployee = payload.employee || null;
-            })
-            .addCase(fetchRegularizationsByEmployee.rejected, (state) => {
-                state.loading = false
-            });
-    }
+    builder
+      .addCase(fetchAllEmployeeRegularizations.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        fetchAllEmployeeRegularizations.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          state.data = payload.data;
+          state.pagination = payload.pagination;
+        },
+      )
+      .addCase(fetchAllEmployeeRegularizations.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchRegularizationsByEmployee.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        fetchRegularizationsByEmployee.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          state.data = payload.data || [];
+          state.pagination = payload.pagination || {};
+          state.selectedEmployee = payload.employee || null;
+        },
+      )
+      .addCase(fetchRegularizationsByEmployee.rejected, (state) => {
+        state.loading = false;
+      });
+  },
 });
 
 export default hrSlice.reducer;
