@@ -230,7 +230,7 @@ const AttendanceMetrics = () => {
                     <div style={{ minWidth: "220px" }}>
                         <Input
                             type="text"
-                            placeholder="Search by name, biometric ID..."
+                            placeholder="Search by name, eCode"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
