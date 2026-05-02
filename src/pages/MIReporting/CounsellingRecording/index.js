@@ -35,7 +35,7 @@ const CounsellingRecording = () => {
     // console.log(counsellingRecordings)
     
     useEffect(() => {
-        dispatch(fetchCounsellingSessions({ report_name,centerAccess  }));
+        dispatch(fetchCounsellingSessions({ centerAccess  }));
     }, [dispatch, centerAccess]);
     // console.log(counsellingRecordings)
     // Extract unique months and sort them descending
@@ -64,14 +64,15 @@ const CounsellingRecording = () => {
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const rows = filteredData.map((patient) =>
-            labels.map((label) => {
-                const val = patient[labelsMapping[label]] ?? "";
-                if (label === "Admission Date" && val)
-                    return new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-                return val;
-            })
-        );
+        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
+
+        const rows = [
+            allHeaders,
+            ...filteredData.map((patient) => [
+                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...last30Days.map(({ key }) => patient[key] ?? ""),
+            ]),
+        ];
 
         setCsvData(rows);
 
@@ -189,7 +190,6 @@ const CounsellingRecording = () => {
                     <CSVLink
                         data={csvData || []}
                         filename={`patient-docs-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
-                        headers={labels}
                         className="d-none"
                         ref={csvRef}
                     />
