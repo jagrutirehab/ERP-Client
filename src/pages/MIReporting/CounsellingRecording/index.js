@@ -2,7 +2,7 @@
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import {  fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
+    import {  fetchCounsellingRecordings, fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
     import Flatpickr from "react-flatpickr";
     import "flatpickr/dist/themes/material_green.css";
@@ -35,7 +35,7 @@ const CounsellingRecording = () => {
     // console.log(counsellingRecordings)
     
     useEffect(() => {
-        dispatch(fetchCounsellingSessions({ centerAccess  }));
+        dispatch(fetchCounsellingRecordings({ centerAccess  }));
     }, [dispatch, centerAccess]);
     // console.log(counsellingRecordings)
     // Extract unique months and sort them descending
