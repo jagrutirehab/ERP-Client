@@ -434,6 +434,10 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   };
 
   const priceColumns = prodata?.center?.[0]?.prices || [];
+  const existingCenterIds =
+    prodata?.center
+      ?.map((c) => c?.center?._id)
+      ?.filter(Boolean) || [];
 
   return (
     <>
@@ -458,6 +462,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
             toggle={() => setShowCentersModal(false)}
             onSave={handleSaveCenters}
             proData={data}
+            existingCenterIds={existingCenterIds} 
           />
 
           {loading ? (

@@ -7,7 +7,7 @@ import {
   Container,
   Spinner,
 } from "reactstrap";
-import { getEmployeesBySearch, getPendingApprovalsByManagerId, transferManagerPendingApprovals, getCenters } from "../../../helpers/backend_helper";
+import { getEmployeesBySearch, getPendingApprovalsByManagerId, transferManagerPendingApprovals, getCenters, getEmployeesByWithoutFilter } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -120,7 +120,8 @@ const TransferManagerApprovals = () => {
         params.name = searchText;
       }
 
-      const response = await getEmployeesBySearch(params);
+      // 
+      const response = await getEmployeesByWithoutFilter(params);
 
       const options =
         response?.data?.map((emp) => ({

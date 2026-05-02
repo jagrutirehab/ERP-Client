@@ -2097,7 +2097,7 @@ export const getDailyInvoices = (data) => {
   return api.get(url.GET_DAILY_INVOICES, {
     params: {
       centerIds: data?.centerAccess,
-      status:data?.selectedStatus
+      status: data?.selectedStatus
     }
   });
 };
@@ -2929,6 +2929,18 @@ export const transferManagerPendingApprovals = (data) => {
       },
     })
 }
+
+// 
+export const getEmployeesByWithoutFilter = (params = {}) => {
+  return axios.get(url.GET_EMPLOYEES_WITHOUT_FILTER, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
 
 export const getTemporaryManager = () => {
   return axios.get(url.GET_TEMPORARY_MANAGER, {
