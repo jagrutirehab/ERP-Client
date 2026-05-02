@@ -252,27 +252,49 @@ const Inovice = ({
             <DropdownMenu className="dropdown-menu-md overflow-auto dropdown-height-md w-100">
               <DropdownItem></DropdownItem>
               {(dataList || [])
+                // .filter((item) => {
+                //   // Search Filter
+                //   const matchesSearch = item[fieldName]
+                //     ?.toLowerCase()
+                //     .includes(searchItem.toLowerCase());
+
+                //   // Center Filter
+                //   // const matchesCenter =
+                //   //   Array.isArray(item.center) &&
+                //   //   item.center.some((c) => String(c?.center?._id) === patientCenterId);
+
+                //   // Category Filter
+                //   const itemCategoryName = (item.category?.name || item.category)?.toLowerCase();
+
+
+
+                //   const matchesCategory =
+                //     activeCategoryFilters.length === 0 ||
+                //     (itemCategoryName && activeCategoryFilters.includes(itemCategoryName));
+
+                //   return  matchesSearch && matchesCategory;
+                //   // matchesCenter &&
+                // })
                 .filter((item) => {
-                  // Search Filter
                   const matchesSearch = item[fieldName]
                     ?.toLowerCase()
                     .includes(searchItem.toLowerCase());
 
-                  // Center Filter
-                  const matchesCenter =
-                    Array.isArray(item.center) &&
-                    item.center.some((c) => String(c?.center?._id) === patientCenterId);
-
-                  // Category Filter
                   const itemCategoryName = (item.category?.name || item.category)?.toLowerCase();
-
-
 
                   const matchesCategory =
                     activeCategoryFilters.length === 0 ||
                     (itemCategoryName && activeCategoryFilters.includes(itemCategoryName));
 
-                  return matchesCenter && matchesSearch && matchesCategory;
+                  const isRoomCharges = itemCategoryName === "room charges";
+                  const hasValidPrice = isRoomCharges
+                    ? item.center?.some((c) =>
+                      c.center?._id?.toString() === patientCenterId &&
+                      c.prices?.some((p) => p.price > 0)
+                    )
+                    : true;
+
+                  return matchesSearch && matchesCategory && hasValidPrice;
                 })
                 .map((item) => (
                   <DropdownItem
