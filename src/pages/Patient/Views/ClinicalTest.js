@@ -24,6 +24,9 @@ import ACDSResultComponent from "./Components/ACDSResult";
 import HAMAResultComponent from "./Components/HAMAResult";
 import HAMDResultComponent from "./Components/HAMDResult";
 import PANSSResultComponent from "./Components/PANSSResult";
+import MorseResultComponent from "./Components/Morsefallresult";
+import RamsayResultComponent from "./Components/Ramsayresult";
+import GCSResultComponent from "./Components/Gcsresult";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const ClinicalTest = ({
@@ -39,6 +42,7 @@ const ClinicalTest = ({
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
+
 
   const loadClinialTests = async () => {
     try {
@@ -196,6 +200,21 @@ const ClinicalTest = ({
                                             resultData={test}
                                           />
                                         )}
+                                        {test?.testType === 16 && (
+                                          <MorseResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 17 && (
+                                          <RamsayResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 18 && (
+                                          <GCSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}  
                                       </Wrapper>
                                     </div>
                                   );

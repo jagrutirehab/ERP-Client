@@ -193,7 +193,7 @@ const Sidebar = () => {
   const hasAllLeaveHistoryPerm = hasPermission("HR", "ALL_LEAVE_HISTORY", "READ");
   const hasRegularizationDashboardPermission = hasPermission("HR", "REGULARIZATION_DASHBOARD", "READ");
   const hasTransferApprovalsPermission = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
-  const hasMyPayslipsPermission = true; 
+  const hasMyPayslipsPermission = hasPermission("HR", "MY_PAYSLIPS", "READ"); 
   const hasEmployeePayslipsPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
 
   const location = useLocation();

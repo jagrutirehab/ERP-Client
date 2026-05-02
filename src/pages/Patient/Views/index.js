@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 import { ButtonGroup, Button, Row, Col } from "reactstrap";
-//constants
 import {
   BILLING_VIEW,
   CHARTING_VIEW,
@@ -10,8 +9,6 @@ import {
   BELONGINGS_VIEW,
 } from "../../../Components/constants/patient";
 import SopPanel from "./Components/SopPanel";
-
-//components
 import Charting from "./Charting";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
@@ -27,6 +24,9 @@ import ACDSQuestion from "./Components/ACDSQuestion";
 import HAMAQuestion from "./Components/HAMAQuestion";
 import HAMDQuestion from "./Components/HAMDQuestion";
 import PANSSQuestion from "./Components/PANSSQuestion";
+import RamsayQuestion from "./Components/Ramsayquestion";
+import GCSQuestion from "./Components/Gcsquestion";
+import Morsefallquestion from "./Components/Morsefallquestion";
 import Belongings from "./Belongings";
 
 const Views = (props) => {
@@ -134,6 +134,9 @@ const Views = (props) => {
             {data === "HAM-A" && <HAMAQuestion />}
             {data === "HAM-D" && <HAMDQuestion />}
             {data === "PANSS" && <PANSSQuestion />}
+            {data === "Morse Fall Scale" && <Morsefallquestion />}
+            {data === "Ramsay Sedation Scale" && <RamsayQuestion />}
+            {data === "GCS" && <GCSQuestion />}
           </div>
         )}
       </div>

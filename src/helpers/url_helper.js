@@ -301,6 +301,9 @@ export const POST_HAMA_TEST = "/clinical-test/hama-test";
 export const POST_HAMD_TEST = "/clinical-test/hamd-test";
 export const POST_PANSS_TEST = "/clinical-test/panss-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
+export const POST_MORSE_FALL_TEST = "/clinical-test/morse-fall-test";
+export const POST_RAMSAY_TEST = "/clinical-test/ramsay-test";
+export const POST_GCS_TEST = "/clinical-test/gcs-test";
 
 // OFFER
 export const ADD_OFFER = "/offer/addoffer";

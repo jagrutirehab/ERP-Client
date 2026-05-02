@@ -1,11 +1,6 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import {
-  calculateScores,
-  getInterpretationAndRecommendations,
-  ybocsQuestions,
-} from "./QuestionData/Y-BOCSQuestions";
 import { fetchDoctors } from "../../../../store/actions";
 import {
   Dropdown,
@@ -13,15 +8,20 @@ import {
   DropdownMenu,
   DropdownToggle,
 } from "reactstrap";
-import { createYBOCSTest } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import {
+  createMorseFallTest,
   setIsClinicalTab,
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import {
+  calculateScores,
+  getInterpretationAndRecommendations,
+  morseFallQuestions,
+} from "./QuestionData/Morsefallquestions";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
- 
-const YBSOCSAssesment = () => {
+
+const MorseFallAssessment = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
@@ -62,8 +62,10 @@ const YBSOCSAssesment = () => {
   };
 
   const closeModal = () => {
-    const unAnswered = ybocsQuestions.filter((q) => !answers[q.id]);
-    if (selectedDoctor.id === -1 || unAnswered.length > 0) {
+    const unanswered = morseFallQuestions.filter(
+      (q) => q.type !== "optional" && !answers[q.id]
+    );
+    if (selectedDoctor.id === -1 || unanswered.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
       return;
@@ -82,39 +84,44 @@ const YBSOCSAssesment = () => {
       return openModal("Please choose a doctor first");
     }
 
-    const unanswered = ybocsQuestions.filter((q) => !answers[q.id]);
+    const unanswered = morseFallQuestions.filter(
+      (q) => q.type !== "optional" && !answers[q.id]
+    );
     if (unanswered.length > 0) {
       return openModal("Please answer all the questions");
     }
 
-    const scores = calculateScores(answers);
+    const totalScore = calculateScores(answers);
     const { severity, interpretation, recommendations } =
-      getInterpretationAndRecommendations(scores);
+      getInterpretationAndRecommendations(totalScore);
 
-    const formattedQuestions = ybocsQuestions.map((q) => ({
-      questionId: q.id,
-      question: q.question[language],
-      answer: answers[q.id],
-      score: q.score?.[answers[q.id]] ?? 0,
-    }));
+    const formattedQuestions = morseFallQuestions
+      .filter((q) => answers[q.id] !== undefined)
+      .map((q) => ({
+        questionId: q.id,
+        question: q.question[language],
+        answer: answers[q.id],
+        score: q.score?.[answers[q.id]] ?? 0,
+      }));
 
     const formData = new FormData();
     formData.append("patientId", patient._id || patient.id);
     formData.append("doctorId", selectedDoctor.id);
     formData.append("observation", observations);
-    formData.append("systemTotalScore", scores.totalScore);
+    formData.append("systemTotalScore", totalScore);
     formData.append("systemSeverity", severity);
     formData.append("systemInterpretation", interpretation);
     formData.append("systemRecommendation", recommendations);
     formData.append("questions", JSON.stringify(formattedQuestions));
     formData.append("centerId", centerId);
+
     const files = fileInputRef.current?.files;
     if (files?.length > 0) {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
     try {
-      await dispatch(createYBOCSTest(formData)).unwrap();
+      await dispatch(createMorseFallTest(formData)).unwrap();
       openModal(
         "Test submitted! The results are now available on the next page."
       );
@@ -127,7 +134,6 @@ const YBSOCSAssesment = () => {
 
   return (
     <div className="p-2 p-sm-3">
-      {/* Patient + Doctor Selection */}
       <div className="mb-4 d-flex align-items-center justify-content-between p-3 border border-primary rounded text-primary small bg-light">
         <div>
           <div className="fw-semibold">
@@ -180,46 +186,43 @@ const YBSOCSAssesment = () => {
         </div>
       </div>
 
-      {/* Instructions */}
       <div className="mb-5 p-4 bg-light border border-primary rounded shadow-sm">
         <h2 className="h5 fw-semibold text-primary mb-3">
           <i className="fas fa-lightbulb me-2 text-primary"></i>
-          Psychologist Instructions
+          Clinician Instructions
         </h2>
         <ul className="ps-3 text-secondary small fs-6">
           <li className="mb-2 text-black">
-            <strong>Purpose:</strong> This test assists in screening for various
-            personality traits, including depression, based on patient
-            responses.
+            <strong>Purpose:</strong> The Morse Fall Scale assesses the risk of
+            patient falls based on six clinical risk factors.
           </li>
           <li className="mb-2 text-black">
-            <strong>Administration:</strong> Read each question clearly to the
-            patient. Ensure they understand the question before they respond. Do
-            not lead the patient or suggest answers.
+            <strong>Administration:</strong> Observe the patient and review
+            their chart to answer each item accurately. Do not rely solely on
+            patient self-report.
           </li>
           <li className="mb-2 text-black">
-            <strong>Response Entry:</strong> Select the option that best
-            reflects the patient's response. The scoring is automatically
-            handled.
+            <strong>Ambulatory Aid:</strong> Observe or ask about the patient's
+            current method of ambulation.
           </li>
           <li className="mb-2 text-black">
-            <strong>Observations:</strong> Use the 'Observations' field to note
-            any relevant non-verbal cues, patient demeanor, hesitations, or
-            additional comments during the test administration.
+            <strong>Gait:</strong> Observe the patient walking before selecting
+            a response.
           </li>
           <li className="mb-2 text-black">
-            <strong>Evidence/Image:</strong> If applicable, you can provide an
-            image (e.g., a relevant drawing by the patient, a visual aid used)
-            that serves as evidence for your observations.
+            <strong>Mental Status:</strong> Ask the patient if they can walk to
+            the bathroom alone and assess consistency with their actual ability.
           </li>
         </ul>
       </div>
 
-      {/* Questions */}
-      {ybocsQuestions.map((q, idx) => (
+      {morseFallQuestions.map((q, idx) => (
         <div key={q.id} className="mb-4 p-4 bg-white border rounded shadow-sm">
           <h3 className="h6 fw-semibold text-dark mb-2">
-            {idx + 1}. {q.question[language]}
+            {idx + 1}. {q.question[language]}{" "}
+            {q.type === "optional" && (
+              <span className="text-secondary fst-italic">(Optional)</span>
+            )}
           </h3>
           <p className="text-primary small mb-3 fst-italic">
             <i className="fas fa-info-circle me-1"></i>
@@ -250,7 +253,6 @@ const YBSOCSAssesment = () => {
         </div>
       ))}
 
-      {/* Observations */}
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-sticky-note me-2 text-primary"></i>
@@ -264,7 +266,6 @@ const YBSOCSAssesment = () => {
         />
       </div>
 
-      {/* Image Upload */}
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-camera me-2 text-primary"></i>
@@ -291,7 +292,6 @@ const YBSOCSAssesment = () => {
         )}
       </div>
 
-      {/* Submit Button */}
       <div className="d-flex justify-content-end">
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
@@ -301,7 +301,6 @@ const YBSOCSAssesment = () => {
         </button>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75"
@@ -326,4 +325,4 @@ const YBSOCSAssesment = () => {
   );
 };
 
-export default YBSOCSAssesment;
+export default MorseFallAssessment;

@@ -1,11 +1,6 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import {
-  calculateScores,
-  getInterpretationAndRecommendations,
-  ybocsQuestions,
-} from "./QuestionData/Y-BOCSQuestions";
 import { fetchDoctors } from "../../../../store/actions";
 import {
   Dropdown,
@@ -13,15 +8,20 @@ import {
   DropdownMenu,
   DropdownToggle,
 } from "reactstrap";
-import { createYBOCSTest } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import {
+  createGCSTest,
   setIsClinicalTab,
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import {
+  calculateScores,
+  getInterpretationAndRecommendations,
+  gcsQuestions,
+} from "./QuestionData/Gcsquestions";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
- 
-const YBSOCSAssesment = () => {
+
+const GCSAssessment = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
@@ -62,8 +62,10 @@ const YBSOCSAssesment = () => {
   };
 
   const closeModal = () => {
-    const unAnswered = ybocsQuestions.filter((q) => !answers[q.id]);
-    if (selectedDoctor.id === -1 || unAnswered.length > 0) {
+    const unanswered = gcsQuestions.filter(
+      (q) => q.type !== "optional" && !answers[q.id]
+    );
+    if (selectedDoctor.id === -1 || unanswered.length > 0) {
       setIsModalOpen(false);
       setModalMessage("");
       return;
@@ -82,39 +84,48 @@ const YBSOCSAssesment = () => {
       return openModal("Please choose a doctor first");
     }
 
-    const unanswered = ybocsQuestions.filter((q) => !answers[q.id]);
+    const unanswered = gcsQuestions.filter(
+      (q) => q.type !== "optional" && !answers[q.id]
+    );
     if (unanswered.length > 0) {
       return openModal("Please answer all the questions");
     }
 
-    const scores = calculateScores(answers);
+    const { totalScore, eyeScore, verbalScore, motorScore } =
+      calculateScores(answers);
     const { severity, interpretation, recommendations } =
-      getInterpretationAndRecommendations(scores);
+      getInterpretationAndRecommendations(totalScore);
 
-    const formattedQuestions = ybocsQuestions.map((q) => ({
-      questionId: q.id,
-      question: q.question[language],
-      answer: answers[q.id],
-      score: q.score?.[answers[q.id]] ?? 0,
-    }));
+    const formattedQuestions = gcsQuestions
+      .filter((q) => answers[q.id] !== undefined)
+      .map((q) => ({
+        questionId: q.id,
+        question: q.question[language],
+        answer: answers[q.id],
+        score: q.score?.[answers[q.id]] ?? 0,
+      }));
 
     const formData = new FormData();
     formData.append("patientId", patient._id || patient.id);
     formData.append("doctorId", selectedDoctor.id);
     formData.append("observation", observations);
-    formData.append("systemTotalScore", scores.totalScore);
+    formData.append("systemTotalScore", totalScore);
+    formData.append("eyeScore", eyeScore);
+    formData.append("verbalScore", verbalScore);
+    formData.append("motorScore", motorScore);
     formData.append("systemSeverity", severity);
     formData.append("systemInterpretation", interpretation);
     formData.append("systemRecommendation", recommendations);
     formData.append("questions", JSON.stringify(formattedQuestions));
     formData.append("centerId", centerId);
+
     const files = fileInputRef.current?.files;
     if (files?.length > 0) {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
     try {
-      await dispatch(createYBOCSTest(formData)).unwrap();
+      await dispatch(createGCSTest(formData)).unwrap();
       openModal(
         "Test submitted! The results are now available on the next page."
       );
@@ -125,9 +136,11 @@ const YBSOCSAssesment = () => {
     }
   };
 
+  const { totalScore, eyeScore, verbalScore, motorScore } =
+    calculateScores(answers);
+
   return (
     <div className="p-2 p-sm-3">
-      {/* Patient + Doctor Selection */}
       <div className="mb-4 d-flex align-items-center justify-content-between p-3 border border-primary rounded text-primary small bg-light">
         <div>
           <div className="fw-semibold">
@@ -180,47 +193,67 @@ const YBSOCSAssesment = () => {
         </div>
       </div>
 
-      {/* Instructions */}
       <div className="mb-5 p-4 bg-light border border-primary rounded shadow-sm">
         <h2 className="h5 fw-semibold text-primary mb-3">
           <i className="fas fa-lightbulb me-2 text-primary"></i>
-          Psychologist Instructions
+          Clinician Instructions
         </h2>
         <ul className="ps-3 text-secondary small fs-6">
           <li className="mb-2 text-black">
-            <strong>Purpose:</strong> This test assists in screening for various
-            personality traits, including depression, based on patient
-            responses.
+            <strong>Purpose:</strong> The Glasgow Coma Scale assesses the level
+            of consciousness using three independent components: Eye Opening
+            (E), Verbal Response (V), and Motor Response (M).
           </li>
           <li className="mb-2 text-black">
-            <strong>Administration:</strong> Read each question clearly to the
-            patient. Ensure they understand the question before they respond. Do
-            not lead the patient or suggest answers.
+            <strong>Total Score:</strong> GCS = E + V + M. Range is 3 (deepest
+            coma) to 15 (fully conscious).
           </li>
           <li className="mb-2 text-black">
-            <strong>Response Entry:</strong> Select the option that best
-            reflects the patient's response. The scoring is automatically
-            handled.
+            <strong>Best Response:</strong> Always record the best response
+            observed for Motor. Do not average responses from both sides.
           </li>
           <li className="mb-2 text-black">
-            <strong>Observations:</strong> Use the 'Observations' field to note
-            any relevant non-verbal cues, patient demeanor, hesitations, or
-            additional comments during the test administration.
+            <strong>Pain Stimulus:</strong> Apply only after ruling out higher
+            responses. Use a central stimulus (trapezius squeeze or sternal rub)
+            for Motor assessment.
           </li>
           <li className="mb-2 text-black">
-            <strong>Evidence/Image:</strong> If applicable, you can provide an
-            image (e.g., a relevant drawing by the patient, a visual aid used)
-            that serves as evidence for your observations.
+            <strong>Intubated Patients:</strong> If the patient cannot produce a
+            verbal response due to intubation, note this and select the closest
+            applicable response based on clinical context.
           </li>
         </ul>
       </div>
 
-      {/* Questions */}
-      {ybocsQuestions.map((q, idx) => (
+      {Object.values(answers).some(Boolean) && (
+        <div className="mb-4 p-3 bg-primary bg-opacity-10 border border-primary rounded">
+          <p className="fw-semibold text-primary mb-1">Live Score Preview</p>
+          <div className="d-flex gap-4 flex-wrap">
+            <span>
+              <strong>E:</strong> {eyeScore}
+            </span>
+            <span>
+              <strong>V:</strong> {verbalScore}
+            </span>
+            <span>
+              <strong>M:</strong> {motorScore}
+            </span>
+            <span>
+              <strong>Total GCS:</strong> {totalScore} / 15
+            </span>
+          </div>
+        </div>
+      )}
+
+      {gcsQuestions.map((q, idx) => (
         <div key={q.id} className="mb-4 p-4 bg-white border rounded shadow-sm">
-          <h3 className="h6 fw-semibold text-dark mb-2">
-            {idx + 1}. {q.question[language]}
+          <h3 className="h6 fw-semibold text-dark mb-1">
+            {idx + 1}. {q.question[language]}{" "}
+            {q.type === "optional" && (
+              <span className="text-secondary fst-italic">(Optional)</span>
+            )}
           </h3>
+          <p className="text-muted small mb-2 fw-medium">{q.component}</p>
           <p className="text-primary small mb-3 fst-italic">
             <i className="fas fa-info-circle me-1"></i>
             {q.guidance[language]}
@@ -250,7 +283,6 @@ const YBSOCSAssesment = () => {
         </div>
       ))}
 
-      {/* Observations */}
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-sticky-note me-2 text-primary"></i>
@@ -264,7 +296,6 @@ const YBSOCSAssesment = () => {
         />
       </div>
 
-      {/* Image Upload */}
       <div className="mb-4 p-4 bg-white border rounded shadow-sm">
         <h3 className="h6 fw-semibold text-dark mb-2">
           <i className="fas fa-camera me-2 text-primary"></i>
@@ -291,7 +322,6 @@ const YBSOCSAssesment = () => {
         )}
       </div>
 
-      {/* Submit Button */}
       <div className="d-flex justify-content-end">
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
@@ -301,7 +331,6 @@ const YBSOCSAssesment = () => {
         </button>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75"
@@ -326,4 +355,4 @@ const YBSOCSAssesment = () => {
   );
 };
 
-export default YBSOCSAssesment;
+export default GCSAssessment;

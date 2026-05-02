@@ -118,14 +118,14 @@ const styles = StyleSheet.create({
 const dv = (value) =>
   value !== undefined && value !== null && value !== "" ? String(value) : "--";
 
-// Format number as Indian locale; returns null for missing values
+// Format number as Indian locale; returns null for missing/non-finite values
 const fmt = (value) => {
   if (value === null || value === undefined || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n.toLocaleString("en-IN") : null;
 };
 
-// Data rows: null/undefined/empty → "--"; 0 → "Rs. 0"; number → "Rs. X"
+// Data rows: null/undefined → "--"; 0 → "Rs. 0"; number → "Rs. X"
 const dm = (value) => {
   const f = fmt(value);
   if (f === null) return "--";
@@ -141,7 +141,7 @@ const dmTotal = (value) => {
 const monthYearLabel = (row) =>
   row?.month && row?.year ? `${row.month} ${row.year}` : "--";
 
-// Sum all finite numeric values; null entries skipped
+// Sum all finite numeric values; null/undefined entries skipped
 const sumRows = (values = []) =>
   values
     .map((v) => Number(v))
@@ -159,7 +159,7 @@ const numberToWordsIndian = (num) => {
   ];
   const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
-  const twoDigits   = (x) =>
+  const twoDigits = (x) =>
     x < 20 ? a[x] : `${b[Math.floor(x / 10)]}${x % 10 ? ` ${a[x % 10]}` : ""}`;
   const threeDigits = (x) => {
     let s = "";
@@ -168,10 +168,10 @@ const numberToWordsIndian = (num) => {
     return s.trim();
   };
 
-  let n2    = Math.floor(n);
-  const crore = Math.floor(n2 / 10000000); n2 %= 10000000;
-  const lakh  = Math.floor(n2 / 100000);   n2 %= 100000;
-  const thou  = Math.floor(n2 / 1000);     n2 %= 1000;
+  let n2          = Math.floor(n);
+  const crore     = Math.floor(n2 / 10000000); n2 %= 10000000;
+  const lakh      = Math.floor(n2 / 100000);   n2 %= 100000;
+  const thou      = Math.floor(n2 / 1000);     n2 %= 1000;
 
   const parts = [];
   if (crore) parts.push(`${threeDigits(crore)} Crore`);
@@ -199,9 +199,10 @@ const TRow = ({ label, value }) => (
 
 const PayslipPdf = ({ row }) => {
 
-  // ── Earnings — 11 rows, exact labels from PDF ─────────────────────────────
-  // null  → field not present in DB      → shows "--"
-  // 0     → field present, zero value    → shows "Rs. 0"
+  // ── Earnings ──────────────────────────────────────────────────────────────
+  // All fields are now top-level on `row` (flattened by backend).
+  // null  → field absent in DB  → dm() shows "--"
+  // 0     → field present, zero → dm() shows "Rs. 0"
   const earningsRows = [
     { label: "Basic Salary Earned",         value: row?.basicAmount         ?? null },
     { label: "House Rent Allowance Earned", value: row?.HRAAmount           ?? null },
@@ -211,43 +212,60 @@ const PayslipPdf = ({ row }) => {
     { label: "Incentive",                   value: row?.incentives          ?? null },
     { label: "Leave Encashment",            value: row?.leaveEncashment     ?? null },
     { label: "Notice Pay out",              value: row?.noticePay           ?? null },
-    { label: "Gratuity",                    value: row?.gratuity            ?? null },
+    { label: "Gratuity",                    value: null           ?? null },  
     { label: "Other Variable",              value: row?.otherVariable1      ?? null },
-    { label: "Other Variable",              value: row?.otherVariable2      ?? null },
   ];
 
-  // ── Deductions — 11 rows, exact labels from PDF ───────────────────────────
+  // ── Deductions ────────────────────────────────────────────────────────────
+  // All keys are now camelCase from the new backend response format.
   const deductionRows = [
-    { label: "PF Employee",    value: row?.pfEmployee     ?? null },
+    { label: "PF Employee",    value: row?.pfEmployee     ?? null },  
     { label: "Voluntary PF",   value: row?.voluntaryPF    ?? null },
     { label: "PF Arrear",      value: row?.pfArrear       ?? null },
-    { label: "Member ESIC",    value: row?.esicEmployee   ?? null },
+    { label: "Member ESIC",    value: row?.esicEmployee   ?? null }, 
     { label: "LWF",            value: row?.LWFEmployee    ?? null },
+    { label: "PT",             value: row?.PT             ?? null },
     { label: "Salary Advance", value: row?.advanceSalary  ?? null },
-    { label: "Salary Advance", value: row?.advanceSalary2 ?? null },
-    { label: "--",             value: null },
-    { label: "--",             value: null },
-    { label: "--",             value: null },
-    { label: "--",             value: null },
+    { label: "TDS",            value: row?.TDSAmount      ?? null },
+    { label: "Insurance",      value: row?.insurance      ?? null },
+    { label: "--",             value: null                         },
   ];
 
   // ── Totals ─────────────────────────────────────────────────────────────────
   const totalE = sumRows(earningsRows.map((r) => r.value));
   const totalD = sumRows(deductionRows.map((r) => r.value));
 
-  // Prefer stored inHandSalary; fall back to computed
+  // Prefer stored inHandSalary (top-level); fall back to computed
   const netPay =
     row?.inHandSalary != null && Number.isFinite(Number(row.inHandSalary))
       ? Number(row.inHandSalary)
       : totalE - totalD;
 
-  // ── Info rows — exact order / labels from PDF ─────────────────────────────
   const infoRows = [
-    ["Employee Name",              row?.employeeName,  "Date of Joining",       row?.joiningDate],
-    ["Employee Code",              row?.employeeCode,  "LOP Days",              row?.lopDays      ?? "--"],
-    ["Designation",                row?.designation,   "Working Days Attended", row?.workingDaysAttended ?? "--"],
-    ["PAN",                        row?.pan,           "PF Number",             row?.pfNumber],
-    ["Beneficiary Account Number", row?.accountNumber, "UAN No.",               row?.uanNo],
+    [
+      "Employee Name",              row?.employeeName,
+      "Date of Joining",            row?.joiningDate,
+    ],
+    [
+      "Employee Code",              row?.employeeCode,
+      "LOP Days",                   row?.lopDays             ?? "--",
+    ],
+    [
+      "Designation",                row?.designation,        
+      "Working Days Attended",      row?.workingDaysAttended ?? "--",
+    ],
+    [
+      "Department",                 row?.department,          
+      "Payable Days",               row?.payableDays         ?? "--",
+    ],
+    [
+      "PAN",                        row?.pan,
+      "PF Number",                  row?.pfNumber,
+    ],
+    [
+      "Beneficiary Account Number", row?.accountNumber,
+      "UAN No.",                    row?.uanNo,
+    ],
   ];
 
   return (
@@ -255,7 +273,6 @@ const PayslipPdf = ({ row }) => {
       <Page size="A4" orientation="landscape" style={styles.page}>
         <View style={styles.sheet}>
 
-          {/* ── Header ─────────────────────────────────────────────────── */}
           <View style={styles.outerBox}>
             <View style={styles.logoWrap}>
               <Image src={logo} style={styles.logoImage} />
@@ -272,7 +289,6 @@ const PayslipPdf = ({ row }) => {
             </View>
           </View>
 
-          {/* ── Employee Info ───────────────────────────────────────────── */}
           <View style={styles.infoBox}>
             {infoRows.map((item, idx) => (
               <View
@@ -355,7 +371,7 @@ const PayslipPdf = ({ row }) => {
             </View>
           </View>
 
-          {/* ── Footer — Net Pay | Amount in Words | Note ──────────────── */}
+          {/* ── Footer ─────────────────────────────────────────────────── */}
           <View style={styles.footerBox}>
             <View style={styles.footerRow} wrap={false}>
               <View style={styles.footerLabelCell}>

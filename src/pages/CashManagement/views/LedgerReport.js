@@ -47,11 +47,14 @@ const fmtDateFull = (dateStr) => {
 
 const dateToBusinessStr = (date) => {
   const d = new Date(date);
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+
   return `${yyyy}-${mm}-${dd}`;
 };
+
 
 const addDays = (businessDateStr, days) => {
   const [yyyy, mm, dd] = businessDateStr.split("-").map(Number);
