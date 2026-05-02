@@ -58,11 +58,18 @@ const CounsellingRecording = () => {
 
         const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
 
+        const totalsRow = [
+            "Total",
+            ...Array(labels.length - 1).fill(""),
+            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+        ];
+
         const rows = [
+            totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
                 ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
-                ...last30Days.map(({ key }) => patient[key] ?? ""),
+                ...last30Days.map(({ label }) => patient[label] ?? ""),
             ]),
         ];
 
@@ -106,6 +113,8 @@ const CounsellingRecording = () => {
 
             ]
 
+    const fixedColWidths = [150, 120, 90, 100];
+
     const labelsMapping={
             "Psychologist Name":"psychologist",
             "Center Name":"center_name",
@@ -121,7 +130,7 @@ const CounsellingRecording = () => {
         for (let i =1; i < 30; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
+            const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             days.push({ key, label });
         }
@@ -245,13 +254,15 @@ const CounsellingRecording = () => {
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 0,
-                                                zIndex: 2,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 5,
+                                                minWidth: fixedColWidths[i],
                                             }}
                                         >
-                                            {i === 0 ? "Total" : ""}
+                                            {i === 3 ? "Total (Single Day)" : ""}
                                         </th>
                                     ))}
-                                    {last30Days.map(({ key }) => (
+                                    {last30Days.map(({ key ,label}) => (
                                         <th
                                             key={key}
                                             className="text-center fw-bold px-1 py-2"
@@ -265,12 +276,12 @@ const CounsellingRecording = () => {
                                                 zIndex: 2,
                                             }}
                                         >
-                                            {dateTotals[key] || ""}
+                                            {dateTotals[label] || ""}
                                         </th>
                                     ))}
                                 </tr>
                                 <tr>
-                                    {labels.map((label) => (
+                                    {labels.map((label, i) => (
                                         <th
                                             key={label}
                                             className="text-center fw-bold px-1 py-2"
@@ -281,7 +292,9 @@ const CounsellingRecording = () => {
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 37,
-                                                zIndex: 2,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 4,
+                                                minWidth: fixedColWidths[i],
                                             }}
                                         >
                                             {label}
@@ -310,7 +323,7 @@ const CounsellingRecording = () => {
                             <tbody>
                                 {filteredData.map((psychologist, idx) => (
                                     <tr key={psychologist?.patient_uid ?? idx}>
-                                        {labels.map((label) => (
+                                        {labels.map((label, i) => (
                                             <td
                                                 key={label}
                                                 className="text-center px-1 py-2"
@@ -318,12 +331,16 @@ const CounsellingRecording = () => {
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
+                                                    position: "sticky",
+                                                    left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                    zIndex: 3,
+                                                    minWidth: fixedColWidths[i],
                                                 }}
                                             >
                                                 {psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key }) => (
+                                        {last30Days.map(({ key,label }) => (
                                             <td
                                                 key={key}
                                                 className="text-center px-1 py-2"
@@ -333,7 +350,7 @@ const CounsellingRecording = () => {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[key] ?? ""}
+                                                {psychologist[label] ?? ""}
                                             </td>
                                         ))}
 

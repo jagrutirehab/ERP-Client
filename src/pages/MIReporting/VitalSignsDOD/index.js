@@ -1,124 +1,105 @@
-    import React, { useEffect, useRef, useState } from "react";
-    import { useDispatch, useSelector } from "react-redux";
+    import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import { fetchClinicalNotesDOD, fetchVitalSignsDOD } from "../../../store/features/miReporting/miReportingSlice";
+    import { fetchVitalSignsDOD } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
 
 
     const VitalSignsDOD = () => {
     const dispatch = useDispatch();
-    const { vitalSignsDOD, loading, error } = useSelector(
-        (state) => state.MIReporting
-    );
-    const centerAccess = useSelector((state) => state.User?.centerAccess || []);
-    const user = useSelector((state) => state.User);
-    
+    const { vitalSignsDOD, loading, error } = useSelector((state) => state.MIReporting);
+    const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
+
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(vitalSignsDOD)
-    
     useEffect(() => {
-
         dispatch(fetchVitalSignsDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
-    // console.log(vitalSignsDOD)
-    // Extract unique months and sort them descending
 
-   
-    const data = vitalSignsDOD?.data || [];
+    const data = useMemo(() => vitalSignsDOD?.data || [], [vitalSignsDOD]);
 
+    const last30Days = useMemo(() => {
+        const days = [];
+        const today = new Date();
+        for (let i = 1; i < 30; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            days.push({ key, label });
+        }
+        return days;
+    }, []);
 
+    const filteredData = useMemo(() =>
+        selectedCenter === "ALL" ? data : data.filter((item) => item?.center_name === selectedCenter),
+    [data, selectedCenter]);
 
-    const dates = Array.from({ length: 30 }, (_, index) => {
-        const date = new Date();
-        date.setDate((date.getDate()-1) - (29 - index));
+    const dateTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (row?.dod_data?.[key] ?? 0), 0);
+        });
+        return totals;
+    }, [filteredData, last30Days]);
 
-        return date.toISOString().split("T")[0]; // YYYY-MM-DD
-    }).reverse();
+    const centerOptions = useMemo(() => [
+        { value: "ALL", label: "All Centers" },
+        ...[...new Set(data.map((item) => item.center_name))].map((center) => ({
+            value: center,
+            label: center,
+        })),
+    ], [data]);
 
- 
-    const filteredData = selectedCenter==="ALL"?data:data.filter(
-        (item) =>item?.center_name===selectedCenter
-    );
+    const fixedLabels = ["Patient Name", "Center Name", "Psychologist Name", "Patient UID", "Total (Current Month)"];
+    const fixedColWidths = [150, 120, 150, 80, 100];
 
-    
-    const csvHeaders = [
-            "Patient Name",
-            "Center Name",
-            "Psychologist Name",
-            "Patient UID",
-            "Total(Current Month)",
-            ...dates.map((date) =>
-            new Date(date)
-                .toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                })
-                .replace(/ /g, "-")
-            ),
-        ];
-   
     const prepareCsvData = () => {
-    setCsvLoading(true);
-        
+        setCsvLoading(true);
 
-        const rows = filteredData.map((patient) => {
+        const allHeaders = [...fixedLabels, ...last30Days.map(({ label }) => label)];
 
-            return [
-            patient?.patient_name ?? "",
-            patient?.center_name ?? "",
-            patient?.psychologist_name ?? "",
-            `UID${patient?.patient_id ?? ""}`,
-            patient?.current_month_total ?? 0,
-            ...dates.map((date) => patient?.dod_data?.[date] ?? 0),
-            ];
-        });;
+        const totalsRow = [
+            "Total",
+            ...Array(fixedLabels.length - 1).fill(""),
+            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+        ];
 
-            setCsvData(rows);
+        const rows = [
+            totalsRow,
+            allHeaders,
+            ...filteredData.map((patient) => [
+                patient?.patient_name ?? "",
+                patient?.center_name ?? "",
+                patient?.psychologist_name ?? "",
+                patient?.patient_id ?? "",
+                patient?.current_month_total ?? "",
+                ...last30Days.map(({ key }) => patient?.dod_data?.[key] ?? ""),
+            ]),
+        ];
 
-    setTimeout(() => {
-        csvRef.current.link.click();
-        setCsvLoading(false);
-    }, 100);
+        setCsvData(rows);
+
+        setTimeout(() => {
+            csvRef.current.link.click();
+            setCsvLoading(false);
+        }, 100);
     };
 
-    const centerOptions = [
-    { value: "ALL", label: "All Centers" },
-    ...[...new Set(data.map((item) => item.center_name))].map((center) => ({
-        value: center,
-        label: center,
-    })),
-    ];
-
-    const dailyTotals = dates.reduce((acc, date) => {
-    acc[date] = filteredData.reduce(
-        (sum, patient) => sum + (patient?.dod_data?.[date] ?? 0),
-        0
-    );
-    return acc;
-}, {});
-
- 
     return (
         <div
         className="w-100 mt-4 mt-sm-0"
-        style={{
-            flex: 1,
-            width: "100%",
-            maxWidth: "100%",
-            minWidth: 0,
-        }}
-        >       
+        style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}
+        >
          <div className="row">
             <div className="col-12">
             <div className="p-3">
                 <div className="row align-items-center">
-                <div className="col-sm-6 col-8" >
+                <div className="col-sm-6 col-8">
                     <div className="d-flex align-items-center">
                     <div className="flex-grow-1 overflow-hidden">
                         <div className="d-flex align-items-center">
@@ -126,34 +107,26 @@
                             <i className="bx bx-bar-chart-alt-2 fs-1"></i>
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-truncate mb-0 fs-18">
-                            Vital Signs DOD
-                            </h6>
+                            <h6 className="text-truncate mb-0 fs-18">Vital Signs DOD</h6>
                         </div>
                         </div>
                     </div>
                     </div>
                 </div>
-                
+
                 <div className="col-sm-6 col-4">
                     <div className="d-flex justify-content-end">
                     <Button
                         color="info"
                         onClick={prepareCsvData}
-                        disabled={
-                        csvLoading ||
-                        loading ||
-                        !vitalSignsDOD ||
-                        vitalSignsDOD.length === 0
-                        }
+                        disabled={csvLoading || loading || !vitalSignsDOD || vitalSignsDOD.length === 0}
                         className="w-auto"
                     >
                         {csvLoading ? "Preparing CSV..." : "Export CSV"}
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename="vital-signs-dod.csv"
-                        headers={csvHeaders}
+                        filename={`vital-signs-dod-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />
@@ -165,13 +138,11 @@
             <div className="p-3 p-lg-4">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
-                    <Select
-                        value={
-                            centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]
-                        }
-                        onChange={(opt) => setSelectedCenter(opt.value)}
-                        options={centerOptions}
-                        placeholder="Center..."
+                        <Select
+                            value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+                            onChange={(opt) => setSelectedCenter(opt.value)}
+                            options={centerOptions}
+                            placeholder="Center..."
                         />
                     </Col>
                 </Row>
@@ -188,283 +159,135 @@
 
                     {!loading && !error && (
                         <>
-                    <div
-                        className="table-responsive"
-                        style={{
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch",
-                        maxWidth: "100%",
-                        display: "block",
-                        }}
-                    >
-                        <div className="table-responsive rounded-4 shadow-sm border bg-white overflow-scroll">
-                            <Table
-                                className="mb-0"
-                                style={{
-                                minWidth: "max-content",
-                                borderCollapse: "collapse",
-                                fontSize: "0.88rem",
-                                }}
-                            >
-                                <thead
-                                style={{
-                                    position: "sticky",
-                                    top: 0,
-                                    zIndex: 2,
-                                    background: "#f3f6fb",
-                                }}
-                                >
-                                    <tr>
+                    <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                        <Table
+                            className="mb-0 w-100"
+                            style={{
+                                borderCollapse: "separate",
+                                borderSpacing: 0,
+                                fontSize: "0.78rem",
+                            }}
+                        >
+                            <thead>
+                                <tr>
+                                    {fixedLabels.map((label, i) => {
+                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                        return (
                                         <th
-                                            colSpan={3}
-                                            className="text-center fw-bold px-2 py-2"
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-2"
                                             style={{
                                                 border: "1px solid #cfd8e3",
-                                                background: "#14532d",
+                                                background: "#004d00",
                                                 color: "white",
+                                                whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                left: 0,
-                                                zIndex: 20,
+                                                top: 0,
+                                                left,
+                                                zIndex: 5,
+                                                minWidth: fixedColWidths[i],
                                             }}
                                         >
+                                            {i === 0 ? "Total" : ""}
                                         </th>
+                                        );
+                                    })}
+                                    {last30Days.map(({ key }) => (
                                         <th
-                                            colSpan={2}
-                                            className="text-center fw-bold px-2 py-2"
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-2"
                                             style={{
                                                 border: "1px solid #cfd8e3",
-                                                background: "#14532d",
+                                                background: "#004d00",
                                                 color: "white",
+                                                whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                left: 0,
-                                                zIndex: 20,
+                                                top: 0,
+                                                zIndex: 2,
                                             }}
                                         >
-                                            Total (Single Day)
+                                            {dateTotals[key] || ""}
                                         </th>
-                                        
+                                    ))}
+                                </tr>
+                                <tr>
+                                    {fixedLabels.map((label, i) => {
+                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                        return (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "green",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 37,
+                                                left,
+                                                zIndex: 4,
+                                                minWidth: fixedColWidths[i],
+                                            }}
+                                        >
+                                            {label}
+                                        </th>
+                                        );
+                                    })}
+                                    {last30Days.map(({ key, label }) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "green",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 37,
+                                                zIndex: 2,
+                                            }}
+                                        >
+                                            {label}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
 
-                                        {dates.map((date) => (
-                                            <th
-                                                key={`total-${date}`}
-                                                className="text-center fw-bold px-2 py-2"
+                            <tbody>
+                                {filteredData.map((patient, idx) => (
+                                    <tr key={patient?.patient_id ?? idx}>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 0, zIndex: 3, minWidth: 150 }}>
+                                            {patient?.patient_name ?? ""}
+                                        </td>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
+                                            {patient?.center_name ?? ""}
+                                        </td>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 270, zIndex: 3, minWidth: 150 }}>
+                                            {patient?.psychologist_name ?? "-"}
+                                        </td>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 420, zIndex: 3, minWidth: 80 }}>
+                                            {patient?.patient_id ?? ""}
+                                        </td>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 500, zIndex: 3, minWidth: 100 }}>
+                                            {patient?.current_month_total ?? ""}
+                                        </td>
+                                        {last30Days.map(({ key }) => (
+                                            <td
+                                                key={key}
+                                                className="text-center px-1 py-2"
                                                 style={{
-                                                    minWidth: 95,
-                                                    border: "1px solid #cfd8e3",
-                                                    background: "#14532d",
-                                                    color: "white",
+                                                    border: "1px solid #d6dde8",
+                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {dailyTotals[date]}
-                                            </th>
+                                                {patient?.dod_data?.[key] ?? ""}
+                                            </td>
                                         ))}
                                     </tr>
-                                <tr>
-                                    <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 0,
-                                            zIndex: 12,
-                                        }}
-                                        >
-                                        Patient Name
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            // maxWidth: 140,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 180,
-                                            zIndex: 11,
-                                        }}
-                                        >
-                                        Center Name
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 360,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Psychologist Name
-                                        </th>
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 360,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Pateint UID
-                                        </th>
-                                        
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 360,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Total(Current Month)
-                                        </th>
-
-                                    {dates.map((date) => (
-                                    <th
-                                        key={date}
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                        minWidth: 95,
-                                        border: "1px solid #cfd8e3",
-                                        background: "green",
-                                        color: "white",
-                                        whiteSpace: "nowrap",
-                                        }}
-                                    >
-                                        {new Date(date).toLocaleDateString("en-GB", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric",
-                                        }).replace(/ /g, "-")}
-                                    </th>
-                                    ))}
-                                </tr>
-                                </thead>
-
-                                <tbody>
-                                    {filteredData.map((patient, idx) => {
-                                        
-                                        
-                                        return (
-                                        <tr key={idx}>
-                                            <td
-                                            className="text-center fw-bold px-2 py-2"
-                                            style={{
-                                                border: "1px solid #d6dde8",
-                                                 minWidth: 180,
-                                                maxWidth: 180,
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 0,
-                                                zIndex: 12,
-                                            }}
-                                            >
-                                            {patient?.patient_name }
-                                            </td>
-                                            <td
-                                            className="text-center fw-bold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 180,
-                                                zIndex: 11
-                                            }}
-                                            >
-                                            {patient?.center_name}
-                                            </td>
-
-                                            <td
-                                            className="text-center fw-semibold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 360,
-                                                zIndex: 10,
-                                            }}
-                                            >
-                                            {patient?.psychologist_name|| "-"}
-                                            </td>
-                                            <td
-                                            className="text-center fw-semibold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 360,
-                                                zIndex: 10,
-                                            }}
-                                            >
-                                            {patient?.patient_id}
-                                            </td>
-                                            
-                                            <td
-                                            className="text-center fw-semibold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 360,
-                                                zIndex: 10,
-                                            }}
-                                            >
-                                            {patient?.current_month_total}
-                                            </td>
-
-                                            {dates.map((date) => {
-                                            const value = patient?.dod_data?.[date] ?? 0;
-
-                                            return (
-                                                <td
-                                                key={date}
-                                                className="text-center px-2 py-2"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx === 0 ? "#dbeafe" : "#fff",
-                                                    color: value > 0 ? "#111827" : "#9ca3af",
-                                                    fontWeight: idx === 0 ? 700 : 500,
-                                                }}
-                                                >
-                                                {value}
-                                                </td>
-                                            );
-                                            })}
-                                        </tr>
-                                        );
-                                    })}
-                                    </tbody>
-                            </Table>
-                            </div>
-                                                
+                                ))}
+                            </tbody>
+                        </Table>
                     </div>
                     </>
                     )}
