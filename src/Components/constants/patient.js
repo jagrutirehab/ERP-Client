@@ -108,8 +108,6 @@ const Forms = [
   },
 ];
 const testRecord = [
-  // { name : "ROR" },
-  // { name : "NIMHAS" },
   { name: "YMRS" },
   { name: "CIWA-AR" },
   { name: "C-SSRS" },
@@ -120,6 +118,9 @@ const testRecord = [
   { name: "HAM-A" },
   { name: "HAM-D" },
   { name: "PANSS" },
+  { name: "Morse Fall Scale" },
+  { name: "Ramsay Sedation Scale" },
+  { name: "GCS" },
 ];
 
 const prescriptionFormFields = [

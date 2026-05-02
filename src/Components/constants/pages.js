@@ -1014,27 +1014,27 @@ export const HR = [
     ],
   },
 
-  {
-    id: "payslips",
-    label: "Pay Slip",
-    icon: "bx bx-gift",
-    link: "/hr/pay-slip",
-    isAccordion: true,
-    children: [
-      {
-        id: "employee-pay-slip",
-        label: "Employees Pay Slip",
-        icon: "bx bx-plus",
-        link: "/hr/pay-slip/employees",
-      },
-      {
-        id: "my-pay-slip",
-        label: "My Pay SLip",
-        icon: "bx bx-check-shield",
-        link: "/hr/pay-slip/my",
-      },
-    ],
-  },
+ {
+  id: "payslips",
+  label: "Pay Slip",
+  icon: "bx bx-wallet",   // changed
+  link: "/hr/pay-slip",
+  isAccordion: true,
+  children: [
+    {
+      id: "employee-pay-slip",
+      label: "Employees Pay Slip",
+      icon: "bx bx-group",   // changed
+      link: "/hr/pay-slip/employees",
+    },
+    {
+      id: "my-pay-slip",
+      label: "My Pay Slip",
+      icon: "bx bx-user-check",   // changed
+      link: "/hr/pay-slip/my",
+    },
+  ],
+},
   {
     id: "salary",
     label: "Salary",

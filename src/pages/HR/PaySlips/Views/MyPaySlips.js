@@ -2,12 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
-import { endOfMonth, startOfMonth, endOfYear, startOfYear } from "date-fns";
-import { Calendar, Download, RotateCcw } from "lucide-react";
-import Flatpickr from "react-flatpickr";
-import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
-import "flatpickr/dist/themes/material_blue.css";
-import "flatpickr/dist/plugins/monthSelect/style.css";
+import { endOfYear, startOfYear } from "date-fns";
+import { Download, RotateCcw } from "lucide-react";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
@@ -26,8 +22,8 @@ import {
 const FILTER_KEY = "hr_my_payslip_filters";
 
 const TYPE_OPTIONS = [
-  { value: "FORM",    label: "Form"    },
   { value: "PAYSLIP", label: "Payslip" },
+  { value: "FORM",    label: "Form"    },
 ];
 
 const currentYear = new Date().getFullYear();
@@ -39,8 +35,7 @@ const YEAR_OPTIONS = Array.from({ length: 6 }, (_, i) => {
 const initialFilters = readStickyFilters(FILTER_KEY, {
   type:   "PAYSLIP",
   search: "",
-  month:  "",
-  year:   "",
+  year:   currentYear,
 });
 
 const MyPaySlipsTab = () => {
@@ -49,13 +44,10 @@ const MyPaySlipsTab = () => {
 
   const [page,          setPage]          = useState(1);
   const [limit,         setLimit]         = useState(10);
-  const [type,          setType]          = useState(initialFilters.type);
-  const [search,        setSearch]        = useState(initialFilters.search);
-  const [selectedMonth, setSelectedMonth] = useState(
-    initialFilters.month ? new Date(initialFilters.month) : null
-  );
+  const [type,          setType]          = useState(initialFilters.type   || "PAYSLIP");
+  const [search,        setSearch]        = useState(initialFilters.search || "");
   const [selectedYear,  setSelectedYear]  = useState(
-    initialFilters.year ? Number(initialFilters.year) : null
+    initialFilters.year ? Number(initialFilters.year) : currentYear
   );
   const [downloadingId, setDownloadingId] = useState("");
 
@@ -64,27 +56,22 @@ const MyPaySlipsTab = () => {
   const { data = [], loading, pagination } =
     useSelector((state) => state.HR.myPayslips);
 
+  // ── Persist filters ────────────────────────────────────────────────────────
   useEffect(() => {
     writeStickyFilters(FILTER_KEY, {
       type,
       search,
-      month: selectedMonth?.toISOString?.() ?? "",
-      year:  selectedYear ?? "",
+      year: selectedYear ?? "",
     });
-  }, [type, search, selectedMonth, selectedYear]);
+  }, [type, search, selectedYear]);
 
-  useEffect(() => {
-    if (type === "FORM")    setSelectedMonth(null);
-    if (type === "PAYSLIP") setSelectedYear(null);
-  }, [type]);
-
+  // ── Reset page on filter change ────────────────────────────────────────────
   useEffect(() => {
     setPage(1);
-  }, [type, selectedMonth, selectedYear, limit, debouncedSearch]);
+  }, [type, selectedYear, limit, debouncedSearch]);
 
   const fetchKey = [
     type,
-    selectedMonth?.toISOString() ?? "",
     selectedYear ?? "",
     page,
     limit,
@@ -93,18 +80,16 @@ const MyPaySlipsTab = () => {
 
   const paramsRef = useRef({});
   paramsRef.current = {
-    type, selectedMonth, selectedYear,
+    type, selectedYear,
     page, limit, search: debouncedSearch.trim(),
   };
 
   const runFetch = useCallback(async () => {
-    const { type: t, selectedMonth: m, selectedYear: y, page: p, limit: l, search: s } =
-      paramsRef.current;
+    const { type: t, selectedYear: y, page: p, limit: l, search: s } = paramsRef.current;
 
+    // FORM type → backend returns empty array; still call to keep state consistent
     let dateRange = {};
-    if (t === "PAYSLIP" && m) {
-      dateRange = { startDate: startOfMonth(m), endDate: endOfMonth(m) };
-    } else if (t === "FORM" && y) {
+    if (y) {
       dateRange = {
         startDate: startOfYear(new Date(y, 0, 1)),
         endDate:   endOfYear(new Date(y, 0, 1)),
@@ -129,8 +114,7 @@ const MyPaySlipsTab = () => {
   const resetFilters = useCallback(() => {
     setType("PAYSLIP");
     setSearch("");
-    setSelectedMonth(null);
-    setSelectedYear(null);
+    setSelectedYear(currentYear);
     setPage(1);
   }, []);
 
@@ -146,7 +130,6 @@ const MyPaySlipsTab = () => {
     }
   };
 
-  // ── Columns — earned fields only ─────────────────────────────────────────
   const columns = useMemo(() => [
     {
       name: "S No.",
@@ -160,12 +143,6 @@ const MyPaySlipsTab = () => {
       minWidth: "140px",
     },
     {
-      name: "Type",
-      cell: (row) => displayValue(row.payslipType),
-      sortable: true,
-      minWidth: "110px",
-    },
-    {
       name: "Employee Code",
       cell: (row) => displayValue(row.employeeCode),
       minWidth: "140px",
@@ -176,14 +153,18 @@ const MyPaySlipsTab = () => {
       minWidth: "180px",
     },
     {
-      name: "Gross Salary",
-      cell: (row) => displayMoney(row.grossSalary),
-      right: true,
+      name: "Center",
+      cell: (row) => displayValue(row.center?.title),
       minWidth: "130px",
     },
     {
+      name: "Designation",
+      cell: (row) => displayValue(row.designation),
+      minWidth: "150px",
+    },
+    {
       name: "Deductions",
-      cell: (row) => displayMoney(row.deductions),
+      cell: (row) => displayMoney(row.totalDeductions),
       right: true,
       minWidth: "120px",
     },
@@ -191,7 +172,19 @@ const MyPaySlipsTab = () => {
       name: "Net Pay",
       cell: (row) => displayMoney(row.inHandSalary),
       right: true,
-      minWidth: "140px",
+      minWidth: "110px",
+    },
+    {
+      name: "LOP Days",
+      cell: (row) => displayValue(row.lopDays),
+      right: true,
+      minWidth: "100px",
+    },
+    {
+      name: "Days Attended",
+      cell: (row) => displayValue(row.workingDaysAttended),
+      right: true,
+      minWidth: "120px",
     },
     {
       name: "Download",
@@ -213,13 +206,14 @@ const MyPaySlipsTab = () => {
   ], [data, downloadingId, limit, page]); // eslint-disable-line
 
   return (
-    <CardBody className="p-3 bg-white" style={{ width: "100%" }}>
+    <CardBody className="p-3 bg-white" style={{ width: "80%" }}>
       <div className="mb-4 text-center text-md-start">
         <h4 className="fw-bold text-primary mb-0">MY PAY SLIPS</h4>
       </div>
 
       <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
 
+        {/* Type filter */}
         <div style={{ minWidth: 160 }}>
           <Select
             value={TYPE_OPTIONS.find((o) => o.value === type)}
@@ -231,48 +225,28 @@ const MyPaySlipsTab = () => {
           />
         </div>
 
-        <div style={{ minWidth: 250 }}>
+        {/* Search — works on name, employee code, center, designation */}
+        <div style={{ minWidth: 280 }}>
           <Input
             type="text"
-            placeholder="Search name, employee ID, month…"
+            placeholder="Search name, emp code, center, designation…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        {type === "PAYSLIP" && (
-          <div style={{ minWidth: 175 }}>
-            <div className="position-relative month-picker">
-              <Calendar size={14} className="position-absolute calendar-icon" />
-              <Flatpickr
-                value={selectedMonth}
-                options={{
-                  plugins: [monthSelectPlugin({ shorthand: false, dateFormat: "Y-m", altFormat: "F Y" })],
-                  altInput: true,
-                  disableMobile: true,
-                  allowInput: true,
-                }}
-                onChange={([date]) => setSelectedMonth(date ?? null)}
-                placeholder="Filter by month"
-                className="form-control form-control-sm"
-              />
-            </div>
-          </div>
-        )}
-
-        {type === "FORM" && (
-          <div style={{ minWidth: 140 }}>
-            <Select
-              isClearable
-              value={YEAR_OPTIONS.find((o) => o.value === selectedYear) ?? null}
-              onChange={(opt) => setSelectedYear(opt?.value ?? null)}
-              options={YEAR_OPTIONS}
-              classNamePrefix="react-select"
-              placeholder="Year"
-              isSearchable={false}
-            />
-          </div>
-        )}
+        {/* Year filter — shown for both PAYSLIP and FORM */}
+        <div style={{ minWidth: 140 }}>
+          <Select
+            isClearable
+            value={YEAR_OPTIONS.find((o) => o.value === selectedYear) ?? null}
+            onChange={(opt) => setSelectedYear(opt?.value ?? null)}
+            options={YEAR_OPTIONS}
+            classNamePrefix="react-select"
+            placeholder="Year"
+            isSearchable={false}
+          />
+        </div>
 
         <div className="d-flex gap-2 ms-auto">
           <RefreshButton loading={loading} onRefresh={runFetch} />
@@ -295,7 +269,11 @@ const MyPaySlipsTab = () => {
         setLimit={setLimit}
         loading={loading}
         pagination={pagination}
-        noDataComponent="No payslips found"
+        noDataComponent={
+          type === "FORM"
+            ? "Forms are not available yet"
+            : "No payslips found"
+        }
       />
     </CardBody>
   );

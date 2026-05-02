@@ -23,6 +23,9 @@ import {
   useDebouncedValue,
   writeStickyFilters,
 } from "../payslipUtils";
+import { format } from "date-fns";
+
+
 
 const FILTER_KEY = "hr_employee_payslip_filters";
 
@@ -35,11 +38,14 @@ const initialFilters = readStickyFilters(FILTER_KEY, {
 const EmployeePaySlipsTab = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
-
-  const [selectedCenter, setSelectedCenter] = useState(initialFilters.center);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedCenter, setSelectedCenter] = useState(() => {
+    const saved = initialFilters.center;
+    return saved || "ALL";
+  });
   const [search, setSearch] = useState(initialFilters.search);
   const [selectedMonth, setSelectedMonth] = useState(
-    initialFilters.month ? new Date(initialFilters.month) : new Date()
+    initialFilters.month ? new Date(initialFilters.month) : new Date(),
   );
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -51,43 +57,54 @@ const EmployeePaySlipsTab = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
 
-  const { centerAccess = [], userCenters = [] } = useSelector((state) => state.User);
-  const { data = [], pagination, loading } = useSelector(
-    (state) => state.HR.employeePayslips.data
-  );
+  // Read from user.centerAccess (original full list), not state.User.centerAccess
+  // which gets overwritten by changeUserAccess when parent center selector changes
+  const { user, userCenters = [] } = useSelector((state) => state.User);
+  const centerAccess = useMemo(() => user?.centerAccess || [], [user]);
+
+  const {
+    data = [],
+    pagination,
+    loading,
+  } = useSelector((state) => state.HR.employeePayslips.data);
 
   const hasUserPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
 
+  console.log(centerAccess, userCenters);
+
   const centerOptions = useMemo(
     () => [
-      ...(centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
-      ...(centerAccess?.map((id) => {
-        const center = userCenters?.find((c) => c._id === id);
+      ...(centerAccess.length > 1
+        ? [{ value: "ALL", label: "All Centers" }]
+        : []),
+      ...centerAccess.map((id) => {
+        const center = userCenters.find((c) => c._id === id);
         return { value: id, label: center?.title || "Unknown Center" };
-      }) || []),
+      }),
     ],
-    [centerAccess, userCenters]
+    [centerAccess, userCenters],
   );
 
   const selectedCenterOption =
-    centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
+    centerOptions.find((opt) => opt.value === selectedCenter) ||
+    centerOptions[0];
 
   const centers = useMemo(
     () =>
       selectedCenter === "ALL"
         ? centerAccess
-        : centerAccess?.includes(selectedCenter)
-        ? [selectedCenter]
-        : [],
-    [centerAccess, selectedCenter]
+        : centerAccess.includes(selectedCenter)
+          ? [selectedCenter]
+          : [],
+    [centerAccess, selectedCenter],
   );
 
   useEffect(() => {
-    if (selectedCenter !== "ALL" && !centerAccess?.includes(selectedCenter)) {
+    if (selectedCenter !== "ALL" && !centerAccess.includes(selectedCenter)) {
       setSelectedCenter("ALL");
       setPage(1);
     }
-  }, [selectedCenter, centerAccess]);
+  }, [centerAccess, selectedCenter]);
 
   useEffect(() => {
     writeStickyFilters(FILTER_KEY, {
@@ -102,32 +119,51 @@ const EmployeePaySlipsTab = () => {
   }, [selectedCenter, selectedMonth, limit, debouncedSearch]);
 
   const latestRef = useRef({});
-  latestRef.current = { centers, selectedMonth, debouncedSearch, page, limit, hasUserPermission };
+  latestRef.current = {
+    centers,
+    selectedMonth,
+    debouncedSearch,
+    page,
+    limit,
+    hasUserPermission,
+  };
 
-  const runFetch = useCallback(async () => {
-    const { centers: c, selectedMonth: m, debouncedSearch: s, page: p, limit: l, hasUserPermission: hasPerm } =
-      latestRef.current;
+  const runFetch = useCallback(
+    async (manual = false) => {
+      const {
+        centers: c,
+        selectedMonth: m,
+        debouncedSearch: s,
+        page: p,
+        limit: l,
+        hasUserPermission: hasPerm,
+      } = latestRef.current;
 
-    if (!hasPerm || !c?.length) return;
+      if (!hasPerm || !c?.length) return;
 
-    try {
-      await dispatch(
-        fetchEmployeePayslips({
-          page: p,
-          limit: l,
-          centers: c,
-          startDate: startOfMonth(m),
-          endDate: endOfMonth(m),
-          ...(s?.trim() && { search: s.trim() }),
-        })
-      ).unwrap();
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(error?.message || "Failed to fetch payslips");
+      try {
+        if (manual) setIsRefreshing(true);
+
+        await dispatch(
+          fetchEmployeePayslips({
+            page: p,
+            limit: l,
+            centers: c,
+            startDate: format(startOfMonth(m), "yyyy-MM-dd"),
+            endDate: format(endOfMonth(m), "yyyy-MM-dd"),
+            ...(s?.trim() && { search: s.trim() }),
+          }),
+        ).unwrap();
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.message || "Failed to fetch payslips");
+        }
+      } finally {
+        if (manual) setIsRefreshing(false);
       }
-    }
-  }, [dispatch, handleAuthError]);
-
+    },
+    [dispatch, handleAuthError],
+  );
   const fetchKey = [
     centers.join(","),
     startOfMonth(selectedMonth).toISOString(),
@@ -137,7 +173,9 @@ const EmployeePaySlipsTab = () => {
     hasUserPermission,
   ].join("|");
 
-  useEffect(() => { runFetch(); }, [fetchKey]); // eslint-disable-line
+  useEffect(() => {
+    runFetch();
+  }, [fetchKey]); // eslint-disable-line
 
   const resetFilters = () => {
     setSelectedCenter("ALL");
@@ -158,7 +196,6 @@ const EmployeePaySlipsTab = () => {
     }
   };
 
-  // ── Columns — earned fields only, no PF/ESIC breakdown ───────────────────
   const columns = useMemo(
     () => [
       {
@@ -186,7 +223,7 @@ const EmployeePaySlipsTab = () => {
       {
         name: "Center",
         cell: (row) => displayValue(row.center?.title),
-        minWidth: "150px",
+        minWidth: "130px",
       },
       {
         name: "Designation",
@@ -194,31 +231,28 @@ const EmployeePaySlipsTab = () => {
         minWidth: "150px",
       },
       {
-        name: "Gross Salary",
-        cell: (row) => displayMoney(row.grossSalary),
+        name: "Total Deductions",
+        cell: (row) => displayMoney(row.totalDeductions),
         right: true,
-        minWidth: "130px",
-      },
-      {
-        name: "Deductions",
-        cell: (row) => displayMoney(row.deductions),
-        right: true,
-        minWidth: "120px",
+        minWidth: "140px",
       },
       {
         name: "Net Pay",
         cell: (row) => displayMoney(row.inHandSalary),
         right: true,
-        minWidth: "130px",
+        minWidth: "110px",
       },
       {
-        name: "Status",
-        cell: (row) => (
-          <span className="badge bg-success-subtle text-success">
-            {displayValue(row.approvalStatus)}
-          </span>
-        ),
+        name: "Total Days",
+        cell: (row) => displayValue(row.totalDays),
+        right: true,
         minWidth: "100px",
+      },
+      {
+        name: "Payable Days",
+        cell: (row) => displayValue(row.workingDaysAttended),
+        right: true,
+        minWidth: "110px",
       },
       {
         name: "Download",
@@ -233,12 +267,16 @@ const EmployeePaySlipsTab = () => {
             disabled={downloadingId === row._id}
             title="Download payslip"
           >
-            {downloadingId === row._id ? <Spinner size="sm" /> : <Download size={16} />}
+            {downloadingId === row._id ? (
+              <Spinner size="sm" />
+            ) : (
+              <Download size={16} />
+            )}
           </Button>
         ),
       },
     ],
-    [data, downloadingId, limit, page]
+    [data, downloadingId, limit, page], // eslint-disable-line
   );
 
   if (!permissionLoader && !hasUserPermission) return null;
@@ -259,10 +297,10 @@ const EmployeePaySlipsTab = () => {
           />
         </div>
 
-        <div style={{ minWidth: 240 }}>
+        <div style={{ minWidth: 280 }}>
           <Input
             type="text"
-            placeholder="Search name or employee code"
+            placeholder="Search name, emp code, center, designation…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -275,7 +313,11 @@ const EmployeePaySlipsTab = () => {
               value={selectedMonth}
               options={{
                 plugins: [
-                  monthSelectPlugin({ shorthand: false, dateFormat: "Y-m", altFormat: "F Y" }),
+                  monthSelectPlugin({
+                    shorthand: false,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                  }),
                 ],
                 altInput: true,
                 disableMobile: true,
@@ -287,7 +329,10 @@ const EmployeePaySlipsTab = () => {
         </div>
 
         <div className="d-flex gap-2 ms-lg-auto">
-          <RefreshButton loading={loading} onRefresh={runFetch} />
+          <RefreshButton
+            loading={isRefreshing}
+            onRefresh={() => runFetch(true)}
+          />{" "}
           <Button
             color="light"
             className="d-inline-flex align-items-center gap-1"

@@ -133,6 +133,31 @@ export const postPANSSTest = (data) =>
     },
   });
 
+
+export const postMorseFallTest = (data) =>
+  api.create(url.POST_MORSE_FALL_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postRamsayTest = (data) =>
+  api.create(url.POST_RAMSAY_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postGCSTest = (data) =>
+  api.create(url.POST_GCS_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}`, {
     params: { patientId: data?.patientId },
@@ -140,6 +165,7 @@ export const getClinicalTest = (data) =>
       "X-No-Cookie-Token": "true",
     },
   });
+
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postJwtLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postLogout = () => api.get(url.POST_USER_LOGOUT);
