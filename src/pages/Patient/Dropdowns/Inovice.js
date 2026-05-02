@@ -185,10 +185,10 @@ const Inovice = ({
   const centers = useSelector((state) => state.User?.centerAccess);
   const [searchItem, setSearchItem] = useState("");
   const isMobile = useMediaQuery("(max-width: 640px)");
-  
-  
+
+
   const [availableCategories, setAvailableCategories] = useState([]);
- 
+
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   useEffect(() => {
@@ -213,10 +213,20 @@ const Inovice = ({
     loadCategories();
   }, []);
 
-  
-  const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
 
+  const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
+  const patientCenterId = String(center?._id ?? center);
+
+  console.log("dataList", dataList[0]);
   console.log("data", data);
+  console.log("center", center._id);
+  console.log("patientCenterId", patientCenterId);
+
+
+
+
+
+
 
   return (
     <React.Fragment>
@@ -248,14 +258,21 @@ const Inovice = ({
                     ?.toLowerCase()
                     .includes(searchItem.toLowerCase());
 
+                  // Center Filter
+                  const matchesCenter =
+                    Array.isArray(item.center) &&
+                    item.center.some((c) => String(c?.center?._id) === patientCenterId);
+
                   // Category Filter
                   const itemCategoryName = (item.category?.name || item.category)?.toLowerCase();
+
+
 
                   const matchesCategory =
                     activeCategoryFilters.length === 0 ||
                     (itemCategoryName && activeCategoryFilters.includes(itemCategoryName));
 
-                  return matchesSearch && matchesCategory;
+                  return matchesCenter && matchesSearch && matchesCategory;
                 })
                 .map((item) => (
                   <DropdownItem
