@@ -9,14 +9,6 @@
     import { startOfDay, endOfDay } from "date-fns";
 
 
-const STATUS_OPTIONS = [
-    { value: "ALL", label: "All Statuses" },
-    { value: "Overdue", label: "Overdue" },
-    { value: "Due Today", label: "Due Today" },
-    { value: "Upcoming", label: "Upcoming" }
-
-];
-
 const CounsellingRecording = () => {
     const dispatch = useDispatch();
     const counsellingRecordings = useSelector((state) => state.MIReporting.counsellingRecordings);
@@ -136,6 +128,14 @@ const CounsellingRecording = () => {
         return days;
     }, []);
 
+    const dateTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+        });
+        return totals;
+    }, [filteredData, last30Days]);
+
 
 
 
@@ -234,6 +234,42 @@ const CounsellingRecording = () => {
                         >
                             <thead>
                                 <tr>
+                                    {labels.map((label, i) => (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                zIndex: 2,
+                                            }}
+                                        >
+                                            {i === 0 ? "Total" : ""}
+                                        </th>
+                                    ))}
+                                    {last30Days.map(({ key }) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                zIndex: 2,
+                                            }}
+                                        >
+                                            {dateTotals[key] || ""}
+                                        </th>
+                                    ))}
+                                </tr>
+                                <tr>
                                     {labels.map((label) => (
                                         <th
                                             key={label}
@@ -244,7 +280,7 @@ const CounsellingRecording = () => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
+                                                top: 37,
                                                 zIndex: 2,
                                             }}
                                         >
@@ -261,7 +297,7 @@ const CounsellingRecording = () => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
+                                                top: 37,
                                                 zIndex: 2,
                                             }}
                                         >
@@ -287,7 +323,7 @@ const CounsellingRecording = () => {
                                                 {psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key,label }) => (
+                                        {last30Days.map(({ key }) => (
                                             <td
                                                 key={key}
                                                 className="text-center px-1 py-2"
@@ -297,7 +333,7 @@ const CounsellingRecording = () => {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[label] ?? ""}
+                                                {psychologist[key] ?? ""}
                                             </td>
                                         ))}
 
