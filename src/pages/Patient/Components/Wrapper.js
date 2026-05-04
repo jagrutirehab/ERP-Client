@@ -11,7 +11,7 @@ import {
 } from "reactstrap";
 import { APIClient } from "../../../helpers/api_helper";
 import { toast } from "react-toastify";
-
+ 
 //framer motion
 import { motion } from "framer-motion";
 
@@ -72,7 +72,6 @@ const Wrapper = ({
     }
   };
 
-  console.log("geminiResponseGeneratedBy", geminiResponseGeneratedBy?.name);
 
   const chartName = chart
     ? chart
