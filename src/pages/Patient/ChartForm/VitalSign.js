@@ -50,6 +50,8 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
       cvs: editVitalSign ? editVitalSign.cvs : "",
       rs: editVitalSign ? editVitalSign.rs : "",
       pa: editVitalSign ? editVitalSign.pa : "",
+      spo2: editVitalSign ? editVitalSign.spo2 : "",
+      bloodSugar: editVitalSign ? editVitalSign.bloodSugar : "",
       chart: VITAL_SIGN,
       type,
       date: chartDate,
@@ -66,6 +68,8 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
         cvs,
         rs,
         pa,
+        spo2,
+        bloodSugar,
       } = values;
 
       if (
@@ -76,7 +80,9 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
         cns ||
         cvs ||
         rs ||
-        pa
+        pa ||
+        spo2 ||
+        bloodSugar
       ) {
         if (editVitalSign) {
           dispatch(

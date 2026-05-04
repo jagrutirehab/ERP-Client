@@ -232,6 +232,16 @@ const vitalSignFields = [
     xs: 6,
     md: 3,
   },
+  {
+    label: "SpO2 (%)",
+    name: "spo2",
+    type: "text",
+  },
+  {
+    label: "BSL (mg/dL)",
+    name: "bloodSugar",
+    type: "text",
+  },
 ];
 
 const clinicalNoteFields = [
