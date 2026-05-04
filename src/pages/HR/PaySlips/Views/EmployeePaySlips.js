@@ -325,20 +325,7 @@ const EmployeePaySlipsTab = () => {
           </div>
         </div>
 
-        <div className="d-flex gap-2 ms-lg-auto">
-          <RefreshButton
-            loading={isRefreshing}
-            onRefresh={() => runFetch(true)}
-          />{" "}
-          <Button
-            color="light"
-            className="d-inline-flex align-items-center gap-1"
-            onClick={resetFilters}
-          >
-            <RotateCcw size={16} />
-            Reset
-          </Button>
-        </div>
+
       </div>
 
       <DataTableComponent
