@@ -77,7 +77,6 @@ const GCSResultComponent = ({ resultData }) => {
                 </p>
                 <p className="mb-0 fw-bold fs-4 text-primary">
                   {eyeScore ?? 0}
-                  <span className="text-muted fs-6"> / 4</span>
                 </p>
               </div>
             </div>
@@ -88,7 +87,6 @@ const GCSResultComponent = ({ resultData }) => {
                 </p>
                 <p className="mb-0 fw-bold fs-4 text-primary">
                   {verbalScore ?? 0}
-                  <span className="text-muted fs-6"> / 5</span>
                 </p>
               </div>
             </div>
@@ -99,7 +97,6 @@ const GCSResultComponent = ({ resultData }) => {
                 </p>
                 <p className="mb-0 fw-bold fs-4 text-primary">
                   {motorScore ?? 0}
-                  <span className="text-muted fs-6"> / 6</span>
                 </p>
               </div>
             </div>
