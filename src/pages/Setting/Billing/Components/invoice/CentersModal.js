@@ -181,12 +181,12 @@ import {
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 
-const CentersModal = ({ isOpen, toggle, centers, onSave, proData }) => {
+const CentersModal = ({ isOpen, toggle, centers, onSave, proData, existingCenterIds }) => {
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [costs, setCosts] = useState({});
   const [error, setError] = useState("");
 
-  console.log("proData", proData);
+  console.log("existingCenterIds", existingCenterIds);
 
   const unitsToRender = proData?.center?.[0]?.prices || [];
 
@@ -250,24 +250,53 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData }) => {
     }
   };
 
+  console.log("centers?.length || 0", centers?.length || 0);
+
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="md" centered>
       <ModalHeader toggle={toggle}>Add Centers</ModalHeader>
 
       <ModalBody>
-        <Label className="fw-bold mb-2">Select Centers</Label>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <Label className="fw-bold mb-0 fs-6">Select Centers</Label>
+
+          <div className="d-flex gap-2">
+            <span className="badge bg-light text-dark border">
+              Total: {centers?.length || 0}
+            </span>
+
+            <span className="badge bg-primary">
+              Selected: {existingCenterIds?.length || 0}
+            </span>
+          </div>
+        </div>
         <div
           className="d-flex flex-wrap gap-3 mb-4 p-2 border rounded"
           style={{ maxHeight: "150px", overflowY: "auto" }}
         >
           {(centers || []).map((cen) => (
             <div key={cen._id} className="d-flex align-items-center">
-              <Input
+              {/* <Input
                 type="checkbox"
                 id={`check-${cen._id}`}
                 checked={selectedCenters.includes(cen._id)}
+                disabled={existingCenterIds.includes(cen._id)}
+                onChange={() => handleCheckboxChange(cen._id)}
+              /> */}
+              <Input
+                type="checkbox"
+                id={`check-${cen._id}`}
+                checked={
+                  selectedCenters.includes(cen._id) ||
+                  existingCenterIds.includes(cen._id)
+                }
+                disabled={existingCenterIds.includes(cen._id)}
+                style={{
+                  accentColor: existingCenterIds.includes(cen._id) ? "red-checkbox" : undefined
+                }}
                 onChange={() => handleCheckboxChange(cen._id)}
               />
+
               <Label
                 for={`check-${cen._id}`}
                 className="ms-2 mb-0"

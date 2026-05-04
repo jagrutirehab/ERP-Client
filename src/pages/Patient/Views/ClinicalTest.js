@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
 import { connect, useDispatch, useSelector } from "react-redux";
 import Placeholder from "./Components/Placeholder";
-import { CLINIC_TEST } from "../../../Components/constants/patient"; // create if needed
+import { CLINIC_TEST } from "../../../Components/constants/patient";
 import Wrapper from "../Components/Wrapper";
 import CIWAResultComponent from "./Components/CIWAResultComponent ";
 import { fetchClinicalTest, togglePrint } from "../../../store/actions";
@@ -24,10 +24,12 @@ import ACDSResultComponent from "./Components/ACDSResult";
 import HAMAResultComponent from "./Components/HAMAResult";
 import HAMDResultComponent from "./Components/HAMDResult";
 import PANSSResultComponent from "./Components/PANSSResult";
+import MorseResultComponent from "./Components/Morsefallresult";
+import RamsayResultComponent from "./Components/Ramsayresult";
+import GCSResultComponent from "./Components/Gcsresult";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const ClinicalTest = ({
-  // addmissionsCharts,
   open,
   patient,
   loading,
@@ -45,14 +47,28 @@ const ClinicalTest = ({
       await dispatch(fetchClinicalTest({ patientId: patient._id })).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error.message || "Failed to load clinical test")
+        toast.error(error.message || "Failed to load clinical test");
       }
     }
-  }
+  };
 
   useEffect(() => {
     loadClinialTests();
   }, [patient]);
+
+  const handlePrint = (test) => {
+    dispatch(
+      togglePrint({
+        modal: true,
+        clinicalTest: test,
+        doctor: test.doctorId,
+        patient: test.patientId,
+      })
+    );
+  };
+
+  const handleEdit = () => {};
+  const handleDelete = () => {};
 
   return (
     <React.Fragment>
@@ -62,7 +78,7 @@ const ClinicalTest = ({
             <GeneralCard key={idx} data="Clinical Test">
               <div
                 style={{ width: "100%" }}
-                className="d-flex  align-items-center justify-content-between"
+                className="d-flex align-items-center justify-content-between"
               >
                 <div
                   style={{
@@ -71,11 +87,10 @@ const ClinicalTest = ({
                     justifyContent: "center",
                   }}
                 >
-                  {/* {patient.isAdmit === true && ( */}
                   <Button
                     onClick={() => {
-                      toggleModal(); // Opens the modal
-                      setChartType(CLINIC_TEST); // Set your own type
+                      toggleModal();
+                      setChartType(CLINIC_TEST);
                     }}
                     size="sm"
                     color="primary"
@@ -83,7 +98,6 @@ const ClinicalTest = ({
                   >
                     Create new test
                   </Button>
-                  {/* )} */}
                 </div>
 
                 <div className="d-flex align-items-center">
@@ -103,16 +117,16 @@ const ClinicalTest = ({
                     outline
                   >
                     <i
-                      className={`${open === idx.toString()
-                        ? "ri-arrow-up-s-line"
-                        : "ri-arrow-down-s-line"
-                        } fs-6`}
+                      className={`${
+                        open === idx.toString()
+                          ? "ri-arrow-up-s-line"
+                          : "ri-arrow-down-s-line"
+                      } fs-6`}
                     ></i>
                   </Button>
                 </div>
               </div>
 
-              {/* ACCORDION */}
               <Accordion
                 className="timeline-date w-100"
                 open={open}
@@ -134,16 +148,18 @@ const ClinicalTest = ({
                                 testResult.length > 0 &&
                                 testResult.map((test, index) => {
                                   return (
-                                    <div>
+                                    <div key={index}>
                                       <Wrapper
-                                        printItem={() => dispatch(togglePrint({ modal: true, clinicalTest: test, doctor: test.doctorId, patient: test.patientId }))}
+                                        printItem={() => handlePrint(test)}
+                                        editItem={handleEdit}
+                                        deleteItem={handleDelete}
                                         disableEdit={true}
                                         disableDelete={true}
                                         item={{
                                           clinicalTest: "ClinicalTest",
                                           author: {
-                                            name: test.doctorId.name,
-                                            role: test.doctorId.role,
+                                            name: test.doctorId?.name,
+                                            role: test.doctorId?.role,
                                           },
                                           date: test.createdAt,
                                         }}
@@ -193,6 +209,21 @@ const ClinicalTest = ({
                                         )}
                                         {test?.testType === 15 && (
                                           <PANSSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 16 && (
+                                          <MorseResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 17 && (
+                                          <RamsayResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 18 && (
+                                          <GCSResultComponent
                                             resultData={test}
                                           />
                                         )}

@@ -105,7 +105,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
-import { getMedicineFrequencyLabel } from "../../../helpers/prescriptionFrequency";
+import { getMedicineFrequencyLabel, formatDosage } from "../../../helpers/prescriptionFrequency";
 
 const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) => {
   const columns = [
@@ -161,11 +161,11 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
             textAlign: "center",
           }}
         >
-          <span>{row.dosageAndFrequency?.morning || "-"}</span>
+          <span>{formatDosage(row.dosageAndFrequency?.morning, row.dosageAndFrequency?.unit) || "-"}</span>
           <span>-</span>
-          <span>{row.dosageAndFrequency?.evening || "-"}</span>
+          <span>{formatDosage(row.dosageAndFrequency?.evening, row.dosageAndFrequency?.unit) || "-"}</span>
           <span>-</span>
-          <span>{row.dosageAndFrequency?.night || "-"}</span>
+          <span>{formatDosage(row.dosageAndFrequency?.night, row.dosageAndFrequency?.unit) || "-"}</span>
         </div>
       ),
 

@@ -378,10 +378,27 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         />
                       </div>
 
-                      <span className="ms-3">Tablets</span>
+                      <div className="d-flex flex-column align-items-center ms-2">
+                        <div className="fw-bold mb-1" style={{ fontSize: "11px" }}>Unit</div>
+                        <Input
+                          type="text"
+                          bsSize="sm"
+                          onChange={(e) => {
+                             const drugsTable = [...medicines];
+                             drugsTable[idx].dosageAndFrequency = {
+                               ...drugsTable[idx].dosageAndFrequency,
+                               unit: e.target.value
+                             };
+                             setMedicines(drugsTable);
+                          }}
+                          value={medicine.dosageAndFrequency.unit || ""}
+                          placeholder="ml, drop"
+                          style={{ width: "65px", fontSize: "12px" }}
+                        />
+                      </div>
                     </div>
                   </Col>
-                  <Col xs={2} className="">
+                  <Col xs={2} className="ps-3">
                     <div>
                       <Input
                         // id={idx}

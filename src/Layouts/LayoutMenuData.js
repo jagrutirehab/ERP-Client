@@ -17,7 +17,6 @@ const Navdata = () => {
     (page) => page && page.id !== "hrms",
   );
 
-  console.log("User Pages:", userPages);
   const sortPages = (routes) => {
     const sortOrder = [
       "nurse",
@@ -102,7 +101,6 @@ const Navdata = () => {
     // ...safeStaticPages,
   ];
 
-  console.log({ userPages, menuItems });
 
   return <React.Fragment>{menuItems}</React.Fragment>;
 };

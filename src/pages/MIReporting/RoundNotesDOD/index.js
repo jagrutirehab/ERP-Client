@@ -1,5 +1,5 @@
-    import React, { useEffect, useRef, useState } from "react";
-    import { useDispatch, useSelector } from "react-redux";
+    import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
     import { fetchRoundNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
@@ -8,259 +8,179 @@
 
     const RoundNotesDOD = () => {
     const dispatch = useDispatch();
-    const { roundNotesDOD, loading, error } = useSelector(
-        (state) => state.MIReporting
-    );
-    const centerAccess = useSelector((state) => state.User?.centerAccess || []);
-    const user = useSelector((state) => state.User);
-    
+    const { roundNotesDOD, loading, error } = useSelector((state) => state.MIReporting);
+    const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
+
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-
-    
     useEffect(() => {
-
         dispatch(fetchRoundNotesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
-    // console.log(roundNotesDOD)
-    // Extract unique months and sort them descending
 
-    const sessionOrder = [
-    "Actual Rounds",
-    "Morning",
-    "Afternoon",
-    "Evening",
-    "Night",
-    "Late Night",
-    ];
+    const sessionOrder = ["Actual Rounds", "Morning", "Afternoon", "Evening", "Night", "Late Night"];
 
-    const centerDodData = roundNotesDOD?.center_dod_data || [];
-    const dod_data = roundNotesDOD?.dod_data || [];
-    const dates = React.useMemo(() => {
+    const centerDodData = useMemo(() => roundNotesDOD?.center_dod_data || [], [roundNotesDOD]);
+    const dod_data = useMemo(() => roundNotesDOD?.dod_data || [], [roundNotesDOD]);
+
+    const dates = useMemo(() => {
         const totalData = centerDodData?.Total?.[0]?.data || {};
+        return Object.keys(totalData).sort((a, b) => new Date(b) - new Date(a));
+    }, [centerDodData]);
 
-        return Object.keys(totalData).sort((a, b) => {
-            return new Date(b) - new Date(a);
+    const formatDate = (dateStr) =>
+        new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+
+    const currentMonthDates = useMemo(() => {
+        const now = new Date();
+        return dates.filter((date) => {
+            const d = new Date(date);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         });
-        }, [centerDodData]);
-
-    const selectedCenterKey =
-    selectedCenter === "ALL" ? "Total" : selectedCenter;
-
-    const filteredData = React.useMemo(() => {
-    return centerDodData?.[selectedCenterKey] || [];
-    }, [centerDodData, selectedCenterKey]);
-
-    const totals = React.useMemo(() => {
-    const totalObj = {};
-
-    dates.forEach((date) => {
-        const actualRounds = filteredData.find(
-        (item) => item["Round Session"] === "Actual Rounds"
-        );
-
-        totalObj[date] = actualRounds?.data?.[date] ?? 0;
-    });
-
-    return totalObj;
-    }, [filteredData, dates]);
-
-    const csvHeaders = React.useMemo(() => {
-    const headers = [
-        { label: "Round Session", key: "session" },
-    ];
-
-    dates.forEach((date) => {
-        headers.push({
-        label: date,
-        key: date,
-        });
-    });
-
-    return headers;
     }, [dates]);
 
-    const prepareCsvData = () => {
-    setCsvLoading(true);
+    const selectedCenterKey = selectedCenter === "ALL" ? "Total" : selectedCenter;
 
-    const formatted = sessionOrder.map((session) => {
-        const sessionData = filteredData.find(
-        (item) => item["Round Session"] === session
-        );
+    const filteredData = useMemo(() => centerDodData?.[selectedCenterKey] || [], [centerDodData, selectedCenterKey]);
 
-        const row = {
-        session,
-        };
-
+    const sessionTotals = useMemo(() => {
+        const totalObj = {};
+        const actualRounds = filteredData.find((item) => item["Round Session"] === "Actual Rounds");
         dates.forEach((date) => {
-        row[date] = sessionData?.data?.[date] ?? 0;
+            totalObj[date] = actualRounds?.data?.[date] ?? 0;
         });
+        return totalObj;
+    }, [filteredData, dates]);
 
-        return row;
-    });
+    const dodRows = useMemo(() =>
+        Object.entries(dod_data || {}).flatMap(([roundTakenBy, centers]) => {
+            const role = centers?.role || "-";
+            return Object.entries(centers || {})
+                .filter(([centerName]) => {
+                    if (centerName === "role") return false;
+                    if (selectedCenter === "ALL") return true;
+                    return centerName === selectedCenter;
+                })
+                .map(([centerName, row]) => ({ roundTakenBy, centerName, role, row }));
+        }),
+    [dod_data, selectedCenter]);
 
-    setCsvData(formatted);
+    const dodTotals = useMemo(() => {
+        const totals = {};
+        dates.forEach((date) => {
+            totals[date] = dodRows.reduce((sum, { row }) => sum + (row?.[date] ?? 0), 0);
+        });
+        return totals;
+    }, [dodRows, dates]);
 
-    setTimeout(() => {
-        csvRef.current.link.click();
-        setCsvLoading(false);
-    }, 100);
-    };
-
-    // Helper to format month (e.g., "2025-11" -> "Nov 2025")
-    const formatMonth = (monthStr) => {
-        if (!monthStr) return "";
-        const [year, month] = monthStr.split("-");
-        const date = new Date(year, month - 1);
-        return date.toLocaleString("default", { month: "short", year: "numeric" });
-    };
-
-    // Prepare CSV data
-    
-
-    // Generate CSV headers dynamically
-   
-
-
-    const centerOptions = [
-    { value: "ALL", label: "All Centers" },
+    const centerOptions = useMemo(() => [
+        { value: "ALL", label: "All Centers" },
         ...Object.keys(centerDodData)
-        .filter((center) => center !== "Total")
-        .map((center) => ({
-        value: center,
-        label: center,
-        })),
-    ];
+            .filter((center) => center !== "Total")
+            .map((center) => ({ value: center, label: center })),
+    ], [centerDodData]);
 
- 
     const sessionList = [
-    {
-        label: "Full Day",
-        key: "Actual Rounds",
-    },
-    {
-        label: "6AM-11AM",
-        key: "Morning",
-    },
-    {
-        label: "11AM-3PM",
-        key: "Afternoon",
-    },
-    {
-        label: "3PM-7PM",
-        key: "Evening",
-    },
-    {
-        label: "7PM-11PM",
-        key: "Night",
-    },
-    {
-        label: "11PM-6AM",
-        key: "Late Night",
-    },
+        { label: "Full Day",    key: "Actual Rounds" },
+        { label: "6AM-11AM",   key: "Morning" },
+        { label: "11AM-3PM",   key: "Afternoon" },
+        { label: "3PM-7PM",    key: "Evening" },
+        { label: "7PM-11PM",   key: "Night" },
+        { label: "11PM-6AM",   key: "Late Night" },
     ];
 
-    const prepareDodCsvData = () => {
-    const csvRows = [];
+    const sessionFixedLabels = ["Round Session", "Total (Current Month)", "Session"];
+    const dodFixedLabels = ["Round Taken By", "Center Name", "Role", "Total (Last 30 Days)", "Total (Current Month)"];
 
-    Object.entries(dod_data || {}).forEach(([roundTakenBy, centers]) => {
-        const role = centers?.role || "-";
+    const prepareCsvData = () => {
+        setCsvLoading(true);
 
-        Object.entries(centers || {})
-        .filter(([centerName]) => {
-            if (centerName === "role") return false;
-            if (selectedCenter === "ALL") return true;
-            return centerName === selectedCenter || centerName === "Total";
-        })
-        .forEach(([centerName, row]) => {
-            const currentMonthTotal = currentMonthDates.reduce(
-            (sum, date) => sum + (row?.[date] ?? 0),
-            0
-            );
-
-            const last30DaysTotal = dates.reduce((sum, date) => {
-            const today = new Date();
-            const rowDate = new Date(date);
-
-            const diffInDays =
-                (new Date(today.setHours(0, 0, 0, 0)) -
-                new Date(rowDate.setHours(0, 0, 0, 0))) /
-                (1000 * 60 * 60 * 24);
-
-            return diffInDays >= 0 && diffInDays < 30
-                ? sum + (row?.[date] ?? 0)
-                : sum;
-            }, 0);
-
-            const csvRow = {
-            "Round Taken By": roundTakenBy,
-            "Centre Name": centerName,
-            Role: role,
-            "Total Rounds(LAST 30 DAYS)": last30DaysTotal,
-            "Total(Current Month)": currentMonthTotal,
-            };
-
-            dates.forEach((date) => {
-            csvRow[date] = row?.[date] ?? 0;
-            });
-
-            csvRows.push(csvRow);
+        // Sessions table
+        const sessionHeaders = [...sessionFixedLabels, ...dates.map(formatDate)];
+        const sessionTotalsRow = [
+            "Total",
+            ...Array(sessionFixedLabels.length - 1).fill(""),
+            ...dates.map((date) => sessionTotals[date] || ""),
+        ];
+        const sessionDataRows = sessionList.map((session) => {
+            const rowData = filteredData.find((item) => item["Round Session"] === session.key);
+            const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
+            return [
+                session.key,
+                currentMonthTotal,
+                session.label,
+                ...dates.map((date) => rowData?.data?.[date] ?? ""),
+            ];
         });
+
+        // DOD table
+        const dodHeaders = [...dodFixedLabels, ...dates.map(formatDate)];
+        const dodTotalsRow = [
+            "Total",
+            ...Array(dodFixedLabels.length - 1).fill(""),
+            ...dates.map((date) => dodTotals[date] || ""),
+        ];
+        const dodDataRows = dodRows.map(({ roundTakenBy, centerName, role, row }) => {
+            const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (row?.[date] ?? 0), 0);
+            const last30DaysTotal = dates.reduce((sum, date) => {
+                const current = new Date();
+                const rowDate = new Date(date);
+                const diffInDays = (current.setHours(0,0,0,0) - rowDate.setHours(0,0,0,0)) / (1000*60*60*24);
+                return diffInDays >= 0 && diffInDays <= 30 ? sum + (row?.[date] ?? 0) : sum;
+            }, 0);
+            return [
+                roundTakenBy,
+                centerName,
+                role,
+                last30DaysTotal,
+                currentMonthTotal,
+                ...dates.map((date) => row?.[date] ?? ""),
+            ];
+        });
+
+        setCsvData([
+            sessionTotalsRow,
+            sessionHeaders,
+            ...sessionDataRows,
+            [],
+            dodTotalsRow,
+            dodHeaders,
+            ...dodDataRows,
+        ]);
+
+        setTimeout(() => {
+            csvRef.current.link.click();
+            setCsvLoading(false);
+        }, 100);
+    };
+
+    const sessionColWidths = [130, 100, 100];
+    const dodColWidths = [150, 120, 100, 100, 100];
+
+    const thStyle = (top, dark, left = null, width = null) => ({
+        border: "1px solid #cfd8e3",
+        background: dark ? "#004d00" : "green",
+        color: "white",
+        whiteSpace: "nowrap",
+        position: "sticky",
+        top,
+        zIndex: left !== null ? (dark ? 5 : 4) : 2,
+        ...(left !== null && { left }),
+        ...(width !== null && { minWidth: width }),
     });
 
-    setCsvData(csvRows);
-
-    setTimeout(() => {
-        csvRef.current.link.click();
-    }, 100);
-    };
-
-    const dodCsvHeaders = [
-    { label: "Round Taken By", key: "Round Taken By" },
-    { label: "Centre Name", key: "Centre Name" },
-    { label: "Role", key: "Role" },
-    {
-        label: "Total Rounds(LAST 30 DAYS)",
-        key: "Total Rounds(LAST 30 DAYS)",
-    },
-    { label: "Total(Current Month)", key: "Total(Current Month)" },
-    ...dates.map((date) => ({
-        label: date,
-        key: date,
-    })),
-    ];
-
-
-    // Add total row
-    const totalRow = {
-        id: "",
-        center: "Total",
-    };
-    
-
-   const currentMonthDates = dates.filter((date) => {
-        const d = new Date(date);
-        const now = new Date();
-
-        return (
-            d.getMonth() === now.getMonth() &&
-            d.getFullYear() === now.getFullYear()
-        );
-        });
+    const tdStyle = (idx, left = null, width = null) => ({
+        border: "1px solid #d6dde8",
+        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+        whiteSpace: "nowrap",
+        ...(left !== null && { position: "sticky", left, zIndex: 3 }),
+        ...(width !== null && { minWidth: width }),
+    });
 
     return (
-        <div
-        className="w-100 mt-4 mt-sm-0"
-        style={{
-            flex: 1,
-            width: "100%",
-            maxWidth: "100%",
-            minWidth: 0,
-        }}
-        >
+        <div className="w-100 mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <div className="row">
             <div className="col-12">
             <div className="p-3">
@@ -273,34 +193,26 @@
                             <i className="bx bx-bar-chart-alt-2 fs-1"></i>
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-truncate mb-0 fs-18">
-                            Round Notes DOD
-                            </h6>
+                            <h6 className="text-truncate mb-0 fs-18">Round Notes DOD</h6>
                         </div>
                         </div>
                     </div>
                     </div>
                 </div>
-                
+
                 <div className="col-sm-6 col-4">
                     <div className="d-flex justify-content-end">
                     <Button
                         color="info"
                         onClick={prepareCsvData}
-                        disabled={
-                        csvLoading ||
-                        loading ||
-                        !roundNotesDOD ||
-                        roundNotesDOD.length === 0
-                        }
+                        disabled={csvLoading || loading || !roundNotesDOD || roundNotesDOD.length === 0}
                         className="w-auto"
                     >
                         {csvLoading ? "Preparing CSV..." : "Export CSV"}
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename="round-notes-dod.csv"
-                        headers={csvHeaders}
+                        filename={`round-notes-dod-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />
@@ -312,13 +224,11 @@
             <div className="p-3 p-lg-4">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
-                    <Select
-                        value={
-                            centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]
-                        }
-                        onChange={(opt) => setSelectedCenter(opt.value)}
-                        options={centerOptions}
-                        placeholder="Center..."
+                        <Select
+                            value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+                            onChange={(opt) => setSelectedCenter(opt.value)}
+                            options={centerOptions}
+                            placeholder="Center..."
                         />
                     </Col>
                 </Row>
@@ -335,451 +245,126 @@
 
                     {!loading && !error && (
                         <>
-                    <div
-                        className="table-responsive"
-                        style={{
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch",
-                        maxWidth: "100%",
-                        display: "block",
-                        }}
-                    >
-                        <div className="table-responsive rounded-4 shadow-sm border bg-white overflow-scroll">
-                            <Table
-                                className="mb-0"
-                                style={{
-                                minWidth: "max-content",
-                                borderCollapse: "collapse",
-                                fontSize: "0.88rem",
-                                }}
-                            >
-                                <thead
-                                style={{
-                                    position: "sticky",
-                                    top: 0,
-                                    zIndex: 2,
-                                    background: "#f3f6fb",
-                                }}
-                                >
-                                <tr>
-                                    <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 0,
-                                            zIndex: 12,
-                                        }}
-                                        >
-                                        Round Session
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            // maxWidth: 140,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 180,
-                                            zIndex: 11,
-                                        }}
-                                        >
-                                        Total(Current Month)
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 360,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Session
-                                        </th>
-
-                                    {dates.map((date) => (
-                                    <th
-                                        key={date}
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                        minWidth: 95,
-                                        border: "1px solid #cfd8e3",
-                                        background: "green",
-                                        color: "white",
-                                        whiteSpace: "nowrap",
-                                        }}
-                                    >
-                                        {date}
-                                    </th>
-                                    ))}
-                                </tr>
+                        {/* Sessions table */}
+                        <div className="shadow-sm bg-white mb-4" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
+                                <thead>
+                                    <tr>
+                                        {sessionFixedLabels.map((label, i) => {
+                                            const left = sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            return (
+                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, sessionColWidths[i])}>
+                                                {i === 2 ? "Total (Single Day)" : ""}
+                                            </th>
+                                            );
+                                        })}
+                                        {dates.map((date) => (
+                                            <th key={`tot-${date}`} className="text-center fw-bold px-1 py-2" style={thStyle(0, true)}>
+                                                {sessionTotals[date] || ""}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                    <tr>
+                                        {sessionFixedLabels.map((label, i) => {
+                                            const left = sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            return (
+                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(37, false, left, sessionColWidths[i])}>
+                                                {label}
+                                            </th>
+                                            );
+                                        })}
+                                        {dates.map((date) => (
+                                            <th key={date} className="text-center fw-bold px-1 py-2" style={thStyle(37, false)}>
+                                                {formatDate(date)}
+                                            </th>
+                                        ))}
+                                    </tr>
                                 </thead>
-
                                 <tbody>
                                     {sessionList.map((session, idx) => {
-                                        const rowData = filteredData.find(
-                                        (item) => item["Round Session"] === session.key
-                                        );
-
-                                        const currentMonthTotal = dates
-                                        .filter((date) => {
-                                            const d = new Date(date);
-                                            const now = new Date();
-
-                                            return (
-                                            d.getMonth() === now.getMonth() &&
-                                            d.getFullYear() === now.getFullYear()
-                                            );
-                                        })
-                                        .reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
-
+                                        const rowData = filteredData.find((item) => item["Round Session"] === session.key);
+                                        const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
                                         return (
-                                        <tr key={session.key}>
-                                            <td
-                                            className="text-center fw-bold px-2 py-2"
-                                            style={{
-                                                border: "1px solid #d6dde8",
-                                                 minWidth: 180,
-                                                maxWidth: 180,
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 0,
-                                                zIndex: 12,
-                                            }}
-                                            >
-                                            {session.key}
-                                            </td>
-                                            <td
-                                            className="text-center fw-bold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 180,
-                                                zIndex: 11
-                                            }}
-                                            >
-                                            {currentMonthTotal}
-                                            </td>
-
-                                            <td
-                                            className="text-center fw-semibold px-2 py-2"
-                                            style={{
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                border: "1px solid #d6dde8",
-                                                background: idx === 0 ? "#dbeafe" : "#fff",
-                                                position: "sticky",
-                                                left: 360,
-                                                zIndex: 10,
-                                            }}
-                                            >
-                                            {session.label}
-                                            </td>
-
-                                            {dates.map((date) => {
-                                            const value = rowData?.data?.[date] ?? 0;
-
-                                            return (
-                                                <td
-                                                key={date}
-                                                className="text-center px-2 py-2"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx === 0 ? "#dbeafe" : "#fff",
-                                                    color: value > 0 ? "#111827" : "#9ca3af",
-                                                    fontWeight: idx === 0 ? 700 : 500,
-                                                }}
-                                                >
-                                                {value}
-                                                </td>
-                                            );
-                                            })}
-                                        </tr>
+                                            <tr key={session.key}>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, 0, sessionColWidths[0])}>{session.key}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, sessionColWidths[0], sessionColWidths[1])}>{currentMonthTotal}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, sessionColWidths[0] + sessionColWidths[1], sessionColWidths[2])}>{session.label}</td>
+                                                {dates.map((date) => (
+                                                    <td key={date} className="text-center px-1 py-2" style={tdStyle(idx)}>
+                                                        {rowData?.data?.[date] ?? ""}
+                                                    </td>
+                                                ))}
+                                            </tr>
                                         );
                                     })}
-                                    </tbody>
+                                </tbody>
                             </Table>
-                            </div>
-                                                
-                    </div>
+                        </div>
 
-
-                    <div
-                        className="table-responsive mt-4"
-                        style={{
-                        overflowX: "auto",
-                        WebkitOverflowScrolling: "touch",
-                        maxWidth: "100%",
-                        display: "block",
-                        }}
-                    >
-                        <div className="table-responsive rounded-4 shadow-sm border bg-white overflow-scroll">
-                            <Table
-                                className="mb-0"
-                                style={{
-                                minWidth: "max-content",
-                                borderCollapse: "collapse",
-                                fontSize: "0.88rem",
-                                }}
-                            >
-                                <thead
-                                style={{
-                                    position: "sticky",
-                                    top: 0,
-                                    zIndex: 2,
-                                    background: "#f3f6fb",
-                                }}
-                                >
-                                <tr>
-                                    <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 0,
-                                            zIndex: 12,
-                                        }}
-                                        >
-                                        Round Taken By
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            // maxWidth: 140,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 220,
-                                            zIndex: 11,
-                                        }}
-                                        >
-                                        Center Name
-                                        </th>
-
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 400,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Role
-                                        </th>
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 540,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Total(Last 30 Days)
-                                        </th>
-                                        <th
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                            minWidth: 180,
-                                            maxWidth: 180,
-                                            border: "1px solid #cfd8e3",
-                                            background: "green",
-                                            color: "white",
-                                            position: "sticky",
-                                            left: 720,
-                                            zIndex: 10,
-                                        }}
-                                        >
-                                        Total(Current Month)
-                                        </th>
-
-                                    {dates.map((date) => (
-                                    <th
-                                        key={date}
-                                        className="text-center fw-bold px-2 py-2"
-                                        style={{
-                                        minWidth: 95,
-                                        border: "1px solid #cfd8e3",
-                                        background: "green",
-                                        color: "white",
-                                        whiteSpace: "nowrap",
-                                        }}
-                                    >
-                                        {date}
-                                    </th>
-                                    ))}
-                                </tr>
+                        {/* DOD table */}
+                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
+                                <thead>
+                                    <tr>
+                                        {dodFixedLabels.map((label, i) => {
+                                            const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            return (
+                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, dodColWidths[i])}>
+                                                {i === 0 ? "Total" : ""}
+                                            </th>
+                                            );
+                                        })}
+                                        {dates.map((date) => (
+                                            <th key={`dtot-${date}`} className="text-center fw-bold px-1 py-2" style={thStyle(0, true)}>
+                                                {dodTotals[date] || ""}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                    <tr>
+                                        {dodFixedLabels.map((label, i) => {
+                                            const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            return (
+                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(37, false, left, dodColWidths[i])}>
+                                                {label}
+                                            </th>
+                                            );
+                                        })}
+                                        {dates.map((date) => (
+                                            <th key={date} className="text-center fw-bold px-1 py-2" style={thStyle(37, false)}>
+                                                {formatDate(date)}
+                                            </th>
+                                        ))}
+                                    </tr>
                                 </thead>
-
                                 <tbody>
-                                    {Object.entries(dod_data || {}).flatMap(([roundTakenBy, centers]) => {
-                                        const role = centers?.role || "-";
-
-
-                                        return Object.entries(centers || {}).filter(([centerName]) => {
-                                            if (centerName === "role") return false;
-                                            if (selectedCenter === "ALL") return true;
-                                            return centerName === selectedCenter ;
-                                        }).map(([centerName, row], idx) => {
-                                        const currentMonthTotal = currentMonthDates.reduce(
-                                            (sum, date) => sum + (row?.[date] ?? 0),
-                                            0   
-                                        );
-
-                                       const last30DaysTotal = dates.reduce((sum, date) => {
-                                        const current = new Date();
-                                        const rowDate = new Date(date);
-
-                                        const diffInDays =
-                                            (current.setHours(0, 0, 0, 0) - rowDate.setHours(0, 0, 0, 0)) /
-                                            (1000 * 60 * 60 * 24);
-
-                                        return diffInDays >= 0 && diffInDays <= 30
-                                            ? sum + (row?.[date] ?? 0)
-                                            : sum;
+                                    {dodRows.map(({ roundTakenBy, centerName, role, row }, idx) => {
+                                        const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (row?.[date] ?? 0), 0);
+                                        const last30DaysTotal = dates.reduce((sum, date) => {
+                                            const current = new Date();
+                                            const rowDate = new Date(date);
+                                            const diffInDays = (current.setHours(0,0,0,0) - rowDate.setHours(0,0,0,0)) / (1000*60*60*24);
+                                            return diffInDays >= 0 && diffInDays <= 30 ? sum + (row?.[date] ?? 0) : sum;
                                         }, 0);
-                                        
 
                                         return (
                                             <tr key={`${roundTakenBy}-${centerName}`}>
-                                            <td
-                                                className="text-center fw-semibold px-2 py-2"
-                                                style={{
-                                                border: "1px solid #d6dde8",
-                                                background: "#fff",
-                                                position: "sticky",
-                                                left: 0,
-                                                zIndex: 14,
-                                                minWidth: 220,
-                                                maxWidth: 220,
-                                                whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {roundTakenBy}
-                                            </td>
-
-                                            <td
-                                                className="text-center fw-semibold px-2 py-2"
-                                                style={{
-                                                border: "1px solid #d6dde8",
-                                                background: "#fff",
-                                                position: "sticky",
-                                                left: 220,
-                                                zIndex: 13,
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {centerName}
-                                            </td>
-
-                                            <td
-                                                className="text-center fw-semibold px-2 py-2"
-                                                style={{
-                                                border: "1px solid #d6dde8",
-                                                background: "#fff",
-                                                position: "sticky",
-                                                left: 400,
-                                                zIndex: 12,
-                                                minWidth: 140,
-                                                maxWidth: 140,
-                                                whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {role || "-"}
-                                            </td>
-
-                                            <td
-                                                className="text-center fw-bold px-2 py-2"
-                                                style={{
-                                                border: "1px solid #d6dde8",
-                                                background: "#fff",
-                                                position: "sticky",
-                                                left: 540,
-                                                zIndex: 11,
-                                                minWidth: 180,
-                                                maxWidth: 180,
-                                                }}
-                                            >
-                                                {last30DaysTotal}
-                                            </td>
-
-                                            <td
-                                                className="text-center fw-bold px-2 py-2"
-                                                style={{
-                                                border: "1px solid #d6dde8",
-                                                background: "#fff",
-                                                position: "sticky",
-                                                left: 720,
-                                                zIndex: 10,
-                                                minWidth: 160,
-                                                maxWidth: 160,
-                                                }}
-                                            >
-                                                {currentMonthTotal}
-                                            </td>
-
-                                            {dates.map((date) => {
-                                                const value = row?.[date] ?? 0;
-
-                                                return (
-                                                <td
-                                                    key={date}
-                                                    className="text-center px-2 py-2"
-                                                    style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: "#fff",
-                                                    color: value > 0 ? "#111827" : "#9ca3af",
-                                                    fontWeight: 500,
-                                                    }}
-                                                >
-                                                    {value}
-                                                </td>
-                                                );
-                                            })}
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, 0, dodColWidths[0])}>{roundTakenBy}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0], dodColWidths[1])}>{centerName}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1], dodColWidths[2])}>{role}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1]+dodColWidths[2], dodColWidths[3])}>{last30DaysTotal}</td>
+                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1]+dodColWidths[2]+dodColWidths[3], dodColWidths[4])}>{currentMonthTotal}</td>
+                                                {dates.map((date) => (
+                                                    <td key={date} className="text-center px-1 py-2" style={tdStyle(idx)}>
+                                                        {row?.[date] ?? ""}
+                                                    </td>
+                                                ))}
                                             </tr>
                                         );
-                                        });
                                     })}
-                                    </tbody>
+                                </tbody>
                             </Table>
-                            </div>
-                                                
-                    </div>
-
-                    </>
+                        </div>
+                        </>
                     )}
                 </CardBody>
                 </Card>

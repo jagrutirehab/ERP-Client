@@ -23,7 +23,7 @@ import {
   records,
   testRecord,
 } from "../../../Components/constants/patient";
-
+ 
 //redux
 import { connect, useDispatch } from "react-redux";
 import { createEditChart, setChartDate } from "../../../store/actions";
@@ -52,7 +52,6 @@ const ChartDate = ({
     }
   }, [dispatch, isOpen]);
 
-  console.log("patient", patient);
 
   return (
     <React.Fragment>

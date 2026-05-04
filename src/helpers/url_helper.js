@@ -301,6 +301,9 @@ export const POST_HAMA_TEST = "/clinical-test/hama-test";
 export const POST_HAMD_TEST = "/clinical-test/hamd-test";
 export const POST_PANSS_TEST = "/clinical-test/panss-test";
 export const FETCH_CLINICAL_TEST = "/clinical-test";
+export const POST_MORSE_FALL_TEST = "/clinical-test/morse-fall-test";
+export const POST_RAMSAY_TEST = "/clinical-test/ramsay-test";
+export const POST_GCS_TEST = "/clinical-test/gcs-test";
 
 // OFFER
 export const ADD_OFFER = "/offer/addoffer";
@@ -530,6 +533,10 @@ export const GET_APPROVAL_INBOX = "/hr/approval-inbox";
 export const FINANCE = "/hr/salary";
 export const CHANGE_SALARY = "/hr/salary/change";
 
+export const GET_EMPLOYEE_PAYSLIPS = "/hr/payroll/employee-payslips";
+export const GET_MY_PAYSLIPS = "/hr/payroll/my-payslips";
+
+
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";
@@ -588,6 +595,7 @@ export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
 
 export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings"
 export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings"
+export const GET_EMPLOYEES_WITHOUT_FILTER = "/hrms/get/employees/without/filter"
 export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager"
 
 // FOR HR

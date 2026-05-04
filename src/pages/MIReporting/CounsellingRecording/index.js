@@ -2,22 +2,14 @@
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import {  fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
+    import {  fetchCounsellingRecordings, fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
     import Flatpickr from "react-flatpickr";
     import "flatpickr/dist/themes/material_green.css";
     import { startOfDay, endOfDay } from "date-fns";
 
 
-const STATUS_OPTIONS = [
-    { value: "ALL", label: "All Statuses" },
-    { value: "Overdue", label: "Overdue" },
-    { value: "Due Today", label: "Due Today" },
-    { value: "Upcoming", label: "Upcoming" }
-
-];
-
-const CounsellingRecording = (report_name) => {
+const CounsellingRecording = () => {
     const dispatch = useDispatch();
     const counsellingRecordings = useSelector((state) => state.MIReporting.counsellingRecordings);
     const loading = useSelector((state) => state.MIReporting.loading);
@@ -35,8 +27,8 @@ const CounsellingRecording = (report_name) => {
     // console.log(counsellingRecordings)
     
     useEffect(() => {
-        dispatch(fetchCounsellingSessions({ report_name,centerAccess  }));
-    }, [dispatch, centerAccess,report_name]);
+        dispatch(fetchCounsellingRecordings({ centerAccess  }));
+    }, [dispatch, centerAccess]);
     // console.log(counsellingRecordings)
     // Extract unique months and sort them descending
 
@@ -64,14 +56,22 @@ const CounsellingRecording = (report_name) => {
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const rows = filteredData.map((patient) =>
-            labels.map((label) => {
-                const val = patient[labelsMapping[label]] ?? "";
-                if (label === "Admission Date" && val)
-                    return new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-                return val;
-            })
-        );
+        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
+
+        const totalsRow = [
+            "Total",
+            ...Array(labels.length - 1).fill(""),
+            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+        ];
+
+        const rows = [
+            totalsRow,
+            allHeaders,
+            ...filteredData.map((patient) => [
+                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...last30Days.map(({ label }) => patient[label] ?? ""),
+            ]),
+        ];
 
         setCsvData(rows);
 
@@ -113,6 +113,8 @@ const CounsellingRecording = (report_name) => {
 
             ]
 
+    const fixedColWidths = [150, 120, 90, 100];
+
     const labelsMapping={
             "Psychologist Name":"psychologist",
             "Center Name":"center_name",
@@ -128,12 +130,20 @@ const CounsellingRecording = (report_name) => {
         for (let i =1; i < 30; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
+            const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
     }, []);
+
+    const dateTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+        });
+        return totals;
+    }, [filteredData, last30Days]);
 
 
 
@@ -188,8 +198,7 @@ const CounsellingRecording = (report_name) => {
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename={`patient-docs-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
-                        headers={labels}
+                        filename={`counselling-sessions-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />
@@ -234,7 +243,45 @@ const CounsellingRecording = (report_name) => {
                         >
                             <thead>
                                 <tr>
-                                    {labels.map((label) => (
+                                    {labels.map((label, i) => (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 5,
+                                                minWidth: fixedColWidths[i],
+                                            }}
+                                        >
+                                            {i === 3 ? "Total (Single Day)" : ""}
+                                        </th>
+                                    ))}
+                                    {last30Days.map(({ key ,label}) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                zIndex: 2,
+                                            }}
+                                        >
+                                            {dateTotals[label] || ""}
+                                        </th>
+                                    ))}
+                                </tr>
+                                <tr>
+                                    {labels.map((label, i) => (
                                         <th
                                             key={label}
                                             className="text-center fw-bold px-1 py-2"
@@ -244,8 +291,10 @@ const CounsellingRecording = (report_name) => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
-                                                zIndex: 2,
+                                                top: 37,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 4,
+                                                minWidth: fixedColWidths[i],
                                             }}
                                         >
                                             {label}
@@ -261,7 +310,7 @@ const CounsellingRecording = (report_name) => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
+                                                top: 37,
                                                 zIndex: 2,
                                             }}
                                         >
@@ -274,7 +323,7 @@ const CounsellingRecording = (report_name) => {
                             <tbody>
                                 {filteredData.map((psychologist, idx) => (
                                     <tr key={psychologist?.patient_uid ?? idx}>
-                                        {labels.map((label) => (
+                                        {labels.map((label, i) => (
                                             <td
                                                 key={label}
                                                 className="text-center px-1 py-2"
@@ -282,6 +331,10 @@ const CounsellingRecording = (report_name) => {
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
+                                                    position: "sticky",
+                                                    left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                    zIndex: 3,
+                                                    minWidth: fixedColWidths[i],
                                                 }}
                                             >
                                                 {psychologist[labelsMapping[label]]}

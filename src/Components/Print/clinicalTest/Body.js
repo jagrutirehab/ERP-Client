@@ -20,31 +20,12 @@ const testInfo = [
     { type: 8, name: "YMRS: Young Mania Rating Scale" },
     {
         type: 9, name: "MPQ-9: Multidimensional Personality Questionnaire", totalScore: 24, subScores: [
-            {
-                label: "Psychoticism",
-                key: "Psychoticism"
-            },
-            {
-                label: "Neuroticism",
-                key: "Neuroticism"
-            },
-            {
-                label: "Obsessive Compulsive",
-                key: "ObsessiveCompulsive"
-            },
-            {
-                label: "Somatization Anxiety",
-                key: "SomatizationAnxiety"
-            },
-            {
-                label: "Hysteria",
-                key: "Hysteria"
-            },
-            {
-                label: "Depression",
-                key: "Depression"
-            },
-
+            { label: "Psychoticism", key: "Psychoticism" },
+            { label: "Neuroticism", key: "Neuroticism" },
+            { label: "Obsessive Compulsive", key: "ObsessiveCompulsive" },
+            { label: "Somatization Anxiety", key: "SomatizationAnxiety" },
+            { label: "Hysteria", key: "Hysteria" },
+            { label: "Depression", key: "Depression" },
         ]
     },
     {
@@ -63,23 +44,19 @@ const testInfo = [
     { type: 14, name: "HAM-D: Hamilton Depression Rating Scale", totalScore: 52 },
     {
         type: 15, name: "PANSS: Positive and Negative Syndrome Scale", totalScore: 210, subScores: [
-            {
-                label: "Positive",
-                key: "Positive"
-            },
-            {
-                label: "Negative",
-                key: "Negative"
-            },
-            {
-                label: "General",
-                key: "General"
-            },
-            {
-                label: "Composite",
-                key: "Composite"
-            },
-
+            { label: "Positive", key: "Positive" },
+            { label: "Negative", key: "Negative" },
+            { label: "General", key: "General" },
+            { label: "Composite", key: "Composite" },
+        ]
+    },
+    { type: 16, name: "Morse Fall Scale", totalScore: 125 },
+    { type: 17, name: "Ramsay Sedation Scale", totalScore: 6 },
+    {
+        type: 18, name: "Glasgow Coma Scale (GCS)", totalScore: 15, subScores: [
+            { label: "Eye Opening (E)", key: "eyeScore" },
+            { label: "Verbal Response (V)", key: "verbalScore" },
+            { label: "Motor Response (M)", key: "motorScore" },
         ]
     },
 ];
@@ -234,7 +211,6 @@ const styles = StyleSheet.create({
     },
 });
 
-
 const formatRecommendationsPDF = (text, testType) => {
     if (!text) return [<Text key="none">No Recommendation</Text>];
 
@@ -250,10 +226,8 @@ const formatRecommendationsPDF = (text, testType) => {
         safeText = safeText.replaceAll(abbr, placeholder);
     }
 
-    // Try numbered bullets first
     let parts = safeText.split(/(?=\d+\.\s)/);
 
-    // If no numbered bullets, split by sentence
     if (parts.length === 1) {
         parts = safeText.match(/[^.!?]+[.!?]+(\s|$)/g) || [safeText];
     }
@@ -267,7 +241,6 @@ const formatRecommendationsPDF = (text, testType) => {
         const lineText = restored.replace(/^\d+\.\s*/, "").trim();
 
         let content;
-        //  Hightlight Impairment & moderate in MMSE
         if (testType === 10) {
             content = lineText.split(/(impairment|moderate)/gi).map((part, i) => {
                 const cap = capitalizeWords(part);
@@ -288,18 +261,18 @@ const formatRecommendationsPDF = (text, testType) => {
     });
 };
 
-
-
-
-
 const Body = ({ clinicalTest, charts }) => {
-    const getTestInfo = (testType) => testInfo.find(t => t.type === testType);
+    const getTestInfo = (testType) => testInfo.find(t => t.type === Number(testType));
 
     const chiefComplaints = charts?.find((chart) => chart.chart === "DETAIL_ADMISSION")?.detailAdmission?.ChiefComplaints;
     const filteredChiefComplaints = chiefComplaints
         ? Object.values(chiefComplaints).filter(line => line && line.trim() !== "")
         : [];
 
+    const resolvedTotalScore = (test) => {
+        if (Number(test?.testType) === 10) return test?.scores?.total;
+        return test?.systemTotalScore;
+    };
 
     return (
         <React.Fragment>
@@ -315,9 +288,10 @@ const Body = ({ clinicalTest, charts }) => {
                         <Text style={styles.container}>
                             <Text style={styles.label}>TOTAL SCORE: </Text>
                             <Text style={{ ...styles.score, fontFamily: "Roboto", fontSize: "15px" }}>
-                                {`${clinicalTest?.testType === 10 ? clinicalTest?.scores?.total : clinicalTest?.systemTotalScore}${getTestInfo(clinicalTest?.testType).totalScore ? ` / ${getTestInfo(clinicalTest.testType)?.totalScore}` : ''}`}
+                                {`${resolvedTotalScore(clinicalTest)}${getTestInfo(clinicalTest?.testType)?.totalScore ? ` / ${getTestInfo(clinicalTest.testType)?.totalScore}` : ''}`}
                             </Text>
                         </Text>
+
                         {getTestInfo(clinicalTest?.testType)?.subScores && (
                             <View>
                                 <Text style={styles.label}>SUB SCORES:</Text>
@@ -325,7 +299,7 @@ const Body = ({ clinicalTest, charts }) => {
                                     <View key={index} style={styles.bulletItem}>
                                         <Text style={styles.bullet}>•</Text>
                                         <Text style={styles.value}>
-                                            {clinicalTest?.testType === 10
+                                            {Number(clinicalTest?.testType) === 10
                                                 ? `${sub.label}: ${clinicalTest?.scores?.[sub.key] ?? 'N/A'}`
                                                 : `${sub.label}: ${clinicalTest?.[sub.key] ?? 'N/A'}`
                                             }
@@ -334,20 +308,18 @@ const Body = ({ clinicalTest, charts }) => {
                                 ))}
                             </View>
                         )}
+
                         <View style={styles.divider} />
 
-                        {
-                            (clinicalTest?.severity || clinicalTest?.systemSeverity) && (
-                                <>
-                                    <Text style={styles.label}>SEVERITY:</Text>
-                                    <Text style={styles.value}>
-                                        {clinicalTest?.severity || clinicalTest?.systemSeverity}
-                                    </Text>
-                                    <View style={styles.divider} />
-                                </>
-                            )
-                        }
-
+                        {(clinicalTest?.severity || clinicalTest?.systemSeverity) && (
+                            <>
+                                <Text style={styles.label}>SEVERITY:</Text>
+                                <Text style={styles.value}>
+                                    {clinicalTest?.severity || clinicalTest?.systemSeverity}
+                                </Text>
+                                <View style={styles.divider} />
+                            </>
+                        )}
 
                         {filteredChiefComplaints.length > 0 && (
                             <>
@@ -364,65 +336,58 @@ const Body = ({ clinicalTest, charts }) => {
                             </>
                         )}
 
-                        {
-                            clinicalTest?.observation && (
-                                <>
-                                    <View>
-                                        <Text style={styles.label}>OBSERVATIONS:</Text>
-                                        <Text style={styles.paragraph}>
-                                            {capitalizeWords(clinicalTest.observation)}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.divider} />
-                                </>
-                            )
-                        }
-
-                        {
-                            (clinicalTest?.systemInterpretation || clinicalTest?.interpretation) && (
-                                <>
-                                    <View wrap={false}>
-                                        <Text style={styles.label}>INTERPRETATION:</Text>
-                                        <Text style={styles.paragraph}>
-                                            {/* Hightlight Impairment & moderate in MMSE */}
-                                            {clinicalTest?.testType === 10 ? (
-                                                clinicalTest.interpretation
-                                                    .split(/(impairment|moderate)/gi)
-                                                    .map((part, index) => {
-                                                        const text = capitalizeWords(part);
-                                                        const isHighlight =
-                                                            part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate';
-                                                        return (
-                                                            <Text
-                                                                key={index}
-                                                                style={isHighlight ? { fontWeight: 'bold', fontFamily: "Roboto" } : {}}
-                                                            >
-                                                                {text}
-                                                            </Text>
-                                                        );
-                                                    })
-                                            ) : (
-                                                <Text>{capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}</Text>
-                                            )}
-                                        </Text>
-
-                                    </View>
-                                    <View style={styles.divider} />
-                                </>
-                            )
-                        }
-                        {
-                            (clinicalTest?.systemRecommendation || clinicalTest?.recommendation) && (
-                                <View wrap={false}>
-                                    <Text style={styles.label}>RECOMMENDATION:</Text>
-                                    <View style={styles.recommendationContainer}>
-                                        {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation, clinicalTest?.testType)}
-                                    </View>
+                        {clinicalTest?.observation && (
+                            <>
+                                <View>
+                                    <Text style={styles.label}>OBSERVATIONS:</Text>
+                                    <Text style={styles.paragraph}>
+                                        {capitalizeWords(clinicalTest.observation)}
+                                    </Text>
                                 </View>
-                            )
-                        }
-                        {clinicalTest?.testType === 15 && clinicalTest?.questions?.length > 0 && (
+                                <View style={styles.divider} />
+                            </>
+                        )}
+
+                        {(clinicalTest?.systemInterpretation || clinicalTest?.interpretation) && (
+                            <>
+                                <View wrap={false}>
+                                    <Text style={styles.label}>INTERPRETATION:</Text>
+                                    <Text style={styles.paragraph}>
+                                        {Number(clinicalTest?.testType) === 10 ? (
+                                            clinicalTest.interpretation
+                                                .split(/(impairment|moderate)/gi)
+                                                .map((part, index) => {
+                                                    const text = capitalizeWords(part);
+                                                    const isHighlight =
+                                                        part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate';
+                                                    return (
+                                                        <Text
+                                                            key={index}
+                                                            style={isHighlight ? { fontWeight: 'bold', fontFamily: "Roboto" } : {}}
+                                                        >
+                                                            {text}
+                                                        </Text>
+                                                    );
+                                                })
+                                        ) : (
+                                            <Text>{capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}</Text>
+                                        )}
+                                    </Text>
+                                </View>
+                                <View style={styles.divider} />
+                            </>
+                        )}
+
+                        {(clinicalTest?.systemRecommendation || clinicalTest?.recommendation) && (
+                            <View wrap={false}>
+                                <Text style={styles.label}>RECOMMENDATION:</Text>
+                                <View style={styles.recommendationContainer}>
+                                    {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation, clinicalTest?.testType)}
+                                </View>
+                            </View>
+                        )}
+
+                        {Number(clinicalTest?.testType) === 15 && clinicalTest?.questions?.length > 0 && (
                             <View style={styles.qaSection}>
                                 <View style={styles.divider} />
                                 <Text style={styles.qaSectionTitle}>QUESTIONS & ANSWERS</Text>
@@ -456,15 +421,14 @@ const Body = ({ clinicalTest, charts }) => {
                                 }}
                             >
                                 Note: This Report Is To Be Used For Professional And Clinical Use Only. It Is Not To Be Used For Legal Purposes.
-                                The Results Shall Be Discussed And Interpreted By Professionals Only. Results Are Subject To The Individual’s
+                                The Results Shall Be Discussed And Interpreted By Professionals Only. Results Are Subject To The Individual's
                                 Performance On The Given Day. Kindly Correlate Clinically.
                             </Text>
                         </View>
                     </View>
                 )}
-
             </View>
-        </React.Fragment >
+        </React.Fragment>
     );
 };
 

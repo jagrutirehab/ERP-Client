@@ -168,7 +168,7 @@ const EmergencyAdmissionForm = ({
         <PrintHeader patient={patient} pageWidth={window.innerWidth} />
       </div>
 
-      <div style={heading}>SECTION 98 &ndash; EMERGENCY ADMISSION FORM</div>
+      <div style={heading}>SECTION 94 &ndash; EMERGENCY ADMISSION FORM</div>
       <div style={subHeading}>(MHCA 2017)</div>
 
       {/* Patient Details */}

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
-import { getMedicineFrequencyLabel } from "../../../../../helpers/prescriptionFrequency";
+import { getMedicineFrequencyLabel, formatDosage } from "../../../../../helpers/prescriptionFrequency";
 
 import Montserrat from "../../../../../assets/fonts/Montserrat-ExtraBold.ttf";
 import RobotoHeavy from "../../../../../assets/fonts/Roboto-Black.ttf";
@@ -204,13 +204,13 @@ const PrescriptionTable = ({ medicines }) => {
                 </Text>
                 <View style={{ ...styles.col3, flexDirection: "row" }}>
                   <View style={{ flex: 1, alignItems: "center" }}>
-                    <Text>{item.dosageAndFrequency?.morning || "-"}</Text>
+                    <Text>{formatDosage(item.dosageAndFrequency?.morning, item.dosageAndFrequency?.unit) || "-"}</Text>
                   </View>
                   <View style={{ flex: 1, alignItems: "center" }}>
-                    <Text>{item.dosageAndFrequency?.evening || "-"}</Text>
+                    <Text>{formatDosage(item.dosageAndFrequency?.evening, item.dosageAndFrequency?.unit) || "-"}</Text>
                   </View>
                   <View style={{ flex: 1, alignItems: "center" }}>
-                    <Text>{item.dosageAndFrequency?.night || "-"}</Text>
+                    <Text>{formatDosage(item.dosageAndFrequency?.night, item.dosageAndFrequency?.unit) || "-"}</Text>
                   </View>
                 </View>
 

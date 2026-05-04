@@ -133,6 +133,31 @@ export const postPANSSTest = (data) =>
     },
   });
 
+
+export const postMorseFallTest = (data) =>
+  api.create(url.POST_MORSE_FALL_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postRamsayTest = (data) =>
+  api.create(url.POST_RAMSAY_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postGCSTest = (data) =>
+  api.create(url.POST_GCS_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
 export const getClinicalTest = (data) =>
   api.get(`${url.FETCH_CLINICAL_TEST}`, {
     params: { patientId: data?.patientId },
@@ -140,6 +165,7 @@ export const getClinicalTest = (data) =>
       "X-No-Cookie-Token": "true",
     },
   });
+
 export const postLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postJwtLogin = (data) => api.create(url.POST_USER_LOGIN, data);
 export const postLogout = () => api.get(url.POST_USER_LOGOUT);
@@ -1588,6 +1614,31 @@ export const editUserPassword = (id, newPassword, token) => {
   );
 };
 
+export const getMyPayslips = (params = {}) => {
+  return api.get(url.GET_MY_PAYSLIPS, {
+    ...params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (queryParams) => {
+      return qs.stringify(queryParams, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getEmployeePayslips = (params = {}) => {
+  return api.get(url.GET_EMPLOYEE_PAYSLIPS, {
+    ...params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (queryParams) => {
+      return qs.stringify(queryParams, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+
 export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
     `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,
@@ -2072,7 +2123,7 @@ export const getDailyInvoices = (data) => {
   return api.get(url.GET_DAILY_INVOICES, {
     params: {
       centerIds: data?.centerAccess,
-      status:data?.selectedStatus
+      status: data?.selectedStatus
     }
   });
 };
@@ -2904,6 +2955,18 @@ export const transferManagerPendingApprovals = (data) => {
       },
     })
 }
+
+// 
+export const getEmployeesByWithoutFilter = (params = {}) => {
+  return axios.get(url.GET_EMPLOYEES_WITHOUT_FILTER, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) =>
+      qs.stringify(params, { arrayFormat: "repeat" }),
+  });
+};
 
 export const getTemporaryManager = () => {
   return axios.get(url.GET_TEMPORARY_MANAGER, {

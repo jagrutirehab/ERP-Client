@@ -41,6 +41,7 @@ export const statusTitleMap = {
     LEAVE_WTIHOUT_PAYS: "Leave Without Pay",
 
     HALF_DAY: "Half Day",
+    HALF_DAY_PRESENT: "Half Day Present",
 };
 
 export const shiftTimeOptions = [

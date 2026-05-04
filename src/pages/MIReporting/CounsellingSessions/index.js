@@ -9,15 +9,9 @@
     import { startOfDay, endOfDay } from "date-fns";
 
 
-const STATUS_OPTIONS = [
-    { value: "ALL", label: "All Statuses" },
-    { value: "Overdue", label: "Overdue" },
-    { value: "Due Today", label: "Due Today" },
-    { value: "Upcoming", label: "Upcoming" }
 
-];
 
-const CounsellingSessions = (report_name) => {
+const CounsellingSessions = () => {
     const dispatch = useDispatch();
     const counsellingSessions = useSelector((state) => state.MIReporting.counsellingSessions);
     const loading = useSelector((state) => state.MIReporting.loading);
@@ -35,8 +29,8 @@ const CounsellingSessions = (report_name) => {
     // console.log(counsellingSessions)
     
     useEffect(() => {
-        dispatch(fetchCounsellingSessions({ report_name,centerAccess  }));
-    }, [dispatch, centerAccess,report_name]);
+        dispatch(fetchCounsellingSessions({ centerAccess  }));
+    }, [dispatch, centerAccess]);
     // console.log(counsellingSessions)
     // Extract unique months and sort them descending
 
@@ -64,14 +58,22 @@ const CounsellingSessions = (report_name) => {
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const rows = filteredData.map((patient) =>
-            labels.map((label) => {
-                const val = patient[labelsMapping[label]] ?? "";
-                if (label === "Admission Date" && val)
-                    return new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-                return val;
-            })
-        );
+        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
+
+        const totalsRow = [
+            "Total",
+            ...Array(labels.length - 1).fill(""),
+            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+        ];
+
+        const rows = [
+            totalsRow,
+            allHeaders,
+            ...filteredData.map((patient) => [
+                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...last30Days.map(({ label }) => patient[label] ?? ""),
+            ]),
+        ];
 
         setCsvData(rows);
 
@@ -113,6 +115,8 @@ const CounsellingSessions = (report_name) => {
 
             ]
 
+    const fixedColWidths = [150, 120, 90, 100];
+
     const labelsMapping={
             "Psychologist Name":"psychologist",
             "Center Name":"center_name",
@@ -128,12 +132,20 @@ const CounsellingSessions = (report_name) => {
         for (let i =1; i < 30; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
+            const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
     }, []);
+
+    const dateTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+        });
+        return totals;
+    }, [filteredData, last30Days]);
 
 
 
@@ -188,8 +200,7 @@ const CounsellingSessions = (report_name) => {
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename={`patient-docs-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
-                        headers={labels}
+                        filename={`counselling-sessions-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />
@@ -234,7 +245,45 @@ const CounsellingSessions = (report_name) => {
                         >
                             <thead>
                                 <tr>
-                                    {labels.map((label) => (
+                                    {labels.map((label, i) => (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 5,
+                                                minWidth: fixedColWidths[i],
+                                            }}
+                                        >
+                                            {i === 3 ? "Total (Single Day)" : ""}
+                                        </th>
+                                    ))}
+                                    {last30Days.map(({ key }) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-2"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                position: "sticky",
+                                                top: 0,
+                                                zIndex: 2,
+                                            }}
+                                        >
+                                            {dateTotals[key] || ""}
+                                        </th>
+                                    ))}
+                                </tr>
+                                <tr>
+                                    {labels.map((label, i) => (
                                         <th
                                             key={label}
                                             className="text-center fw-bold px-1 py-2"
@@ -244,8 +293,10 @@ const CounsellingSessions = (report_name) => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
-                                                zIndex: 2,
+                                                top: 37,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                zIndex: 4,
+                                                minWidth: fixedColWidths[i],
                                             }}
                                         >
                                             {label}
@@ -261,7 +312,7 @@ const CounsellingSessions = (report_name) => {
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
-                                                top: 0,
+                                                top: 37,
                                                 zIndex: 2,
                                             }}
                                         >
@@ -274,7 +325,7 @@ const CounsellingSessions = (report_name) => {
                             <tbody>
                                 {filteredData.map((psychologist, idx) => (
                                     <tr key={psychologist?.patient_uid ?? idx}>
-                                        {labels.map((label) => (
+                                        {labels.map((label, i) => (
                                             <td
                                                 key={label}
                                                 className="text-center px-1 py-2"
@@ -282,6 +333,10 @@ const CounsellingSessions = (report_name) => {
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
+                                                    position: "sticky",
+                                                    left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                    zIndex: 3,
+                                                    minWidth: fixedColWidths[i],
                                                 }}
                                             >
                                                 {psychologist[labelsMapping[label]]}

@@ -40,6 +40,12 @@ const VitalSign = ({ data }) => {
                   <th className="sort" colSpan={2} data-sort="discount">
                     PA
                   </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    SpO2 (%)
+                  </th>
+                  <th className="sort" colSpan={2} data-sort="discount">
+                    BSL (mg/dL)
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -107,6 +113,20 @@ const VitalSign = ({ data }) => {
                     className="text-wrap font-size-14"
                   >
                     {data?.pa || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.spo2 || ""}
+                  </td>
+                  <td
+                    colSpan={2}
+                    style={{ width: "150px" }}
+                    className="text-wrap font-size-14"
+                  >
+                    {data?.bloodSugar || ""}
                   </td>
                 </tr>
               </tbody>

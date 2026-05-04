@@ -10,7 +10,7 @@ import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'; 
 import { actionPayroll, editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
 import DataTableComponent from '../../../Components/Common/DataTable';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
