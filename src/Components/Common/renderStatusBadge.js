@@ -107,6 +107,10 @@ export const renderStatusBadge = (stage) => {
       text: "HALF_DAY",
       color: "info",
     },
+    HALF_DAY_PRESENT: {
+      text: "Half Day Present",
+      color: "warning",
+    },
     FIRST_HALF: {
       text: "First Half",
       color: "success",

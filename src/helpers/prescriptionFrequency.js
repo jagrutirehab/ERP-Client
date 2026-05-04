@@ -43,3 +43,8 @@ export const getMedicineFrequencyLabel = (frequency) => {
 
   return `Every ${normalizedFrequency} days`;
 };
+
+export const formatDosage = (val, unit) => {
+  if (!val || val === "0" || val === 0) return val || "0";
+  return unit ? `${val}${unit}` : val;
+};

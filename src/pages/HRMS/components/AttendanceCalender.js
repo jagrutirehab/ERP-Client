@@ -210,10 +210,11 @@ const styles = {
         HOLIDAY: { color: "#0369a1" },
         FESTIVE_LEAVE: { color: "#0dcaf0" },
         EARNED_LEAVE: { color: "#0dcaf0" },
-        LEAVE_WITHOUT_PAYS: { color: "#0dcaf0" },
+        LEAVE_WTIHOUT_PAYS: { color: "#0dcaf0" },
         COMP_OFF: { color: "#000000" },
         HALF_DAY: { color: "#9d174d" },
         ABSENT: { color: "#7f1d1d" },
+        HALF_DAY_PRESENT: { color: "#854d0e" },
     },
 
     statusBarColor: {
@@ -223,10 +224,11 @@ const styles = {
         WEEK_OFFS: "#0dcaf0",
         HOLIDAY: "#38bdf8",
         FESTIVE_LEAVE: "#0dcaf0",
-        LEAVE_WITHOUT_PAYS: "#0dcaf0",
+        LEAVE_WTIHOUT_PAYS: "#0dcaf0",
         COMP_OFF:  "#000000" ,
         EARNED_LEAVE:"#0dcaf0",
         HALF_DAY: "#ec4899",
+        HALF_DAY_PRESENT: "#facc15",
     },
 
     eventBg: {
@@ -236,8 +238,9 @@ const styles = {
         WEEK_OFFS: "#fee2e2",
         HOLIDAY: "#e0f2fe",
         FESTIVE_LEAVE: "#cffafe",
-        LEAVE_WITHOUT_PAYS: "#e0e7ff",
+        LEAVE_WTIHOUT_PAYS: "#e0e7ff",
         HALF_DAY: "#fce7f3",
+        HALF_DAY_PRESENT: "#fef9c3",
         EARNED_LEAVE:"#0dcaf0",
         DEFAULT: "#f9fafb",
     },
