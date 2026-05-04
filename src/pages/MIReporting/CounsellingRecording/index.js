@@ -198,7 +198,7 @@ const CounsellingRecording = () => {
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename={`patient-docs-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
+                        filename={`counselling-sessions-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />

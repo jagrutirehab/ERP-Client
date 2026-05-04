@@ -183,7 +183,7 @@ const DailyInvoices = () => {
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename={`patient-docs-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
+                        filename={`daily-invoices-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         headers={labels}
                         className="d-none"
                         ref={csvRef}

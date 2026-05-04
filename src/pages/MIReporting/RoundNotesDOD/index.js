@@ -97,30 +97,58 @@
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const allHeaders = [...sessionFixedLabels, ...dates.map(formatDate)];
-
-        const totalsRow = [
+        // Sessions table
+        const sessionHeaders = [...sessionFixedLabels, ...dates.map(formatDate)];
+        const sessionTotalsRow = [
             "Total",
             ...Array(sessionFixedLabels.length - 1).fill(""),
             ...dates.map((date) => sessionTotals[date] || ""),
         ];
+        const sessionDataRows = sessionList.map((session) => {
+            const rowData = filteredData.find((item) => item["Round Session"] === session.key);
+            const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
+            return [
+                session.key,
+                currentMonthTotal,
+                session.label,
+                ...dates.map((date) => rowData?.data?.[date] ?? ""),
+            ];
+        });
 
-        const rows = [
-            totalsRow,
-            allHeaders,
-            ...sessionList.map((session) => {
-                const rowData = filteredData.find((item) => item["Round Session"] === session.key);
-                const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
-                return [
-                    session.key,
-                    currentMonthTotal,
-                    session.label,
-                    ...dates.map((date) => rowData?.data?.[date] ?? ""),
-                ];
-            }),
+        // DOD table
+        const dodHeaders = [...dodFixedLabels, ...dates.map(formatDate)];
+        const dodTotalsRow = [
+            "Total",
+            ...Array(dodFixedLabels.length - 1).fill(""),
+            ...dates.map((date) => dodTotals[date] || ""),
         ];
+        const dodDataRows = dodRows.map(({ roundTakenBy, centerName, role, row }) => {
+            const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (row?.[date] ?? 0), 0);
+            const last30DaysTotal = dates.reduce((sum, date) => {
+                const current = new Date();
+                const rowDate = new Date(date);
+                const diffInDays = (current.setHours(0,0,0,0) - rowDate.setHours(0,0,0,0)) / (1000*60*60*24);
+                return diffInDays >= 0 && diffInDays <= 30 ? sum + (row?.[date] ?? 0) : sum;
+            }, 0);
+            return [
+                roundTakenBy,
+                centerName,
+                role,
+                last30DaysTotal,
+                currentMonthTotal,
+                ...dates.map((date) => row?.[date] ?? ""),
+            ];
+        });
 
-        setCsvData(rows);
+        setCsvData([
+            sessionTotalsRow,
+            sessionHeaders,
+            ...sessionDataRows,
+            [],
+            dodTotalsRow,
+            dodHeaders,
+            ...dodDataRows,
+        ]);
 
         setTimeout(() => {
             csvRef.current.link.click();
@@ -226,7 +254,7 @@
                                             const left = sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                             return (
                                             <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, sessionColWidths[i])}>
-                                                {i === 0 ? "Total" : ""}
+                                                {i === 2 ? "Total (Single Day)" : ""}
                                             </th>
                                             );
                                         })}
