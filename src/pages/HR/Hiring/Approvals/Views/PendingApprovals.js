@@ -70,12 +70,12 @@ const PendingApprovals = ({ activeTab }) => {
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -181,7 +181,9 @@ const PendingApprovals = ({ activeTab }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      toast.error(error.message || "Failed to export Excel");
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to export Excel");
+      }
     } finally {
       setIsExporting(false);
     }
@@ -275,12 +277,12 @@ const PendingApprovals = ({ activeTab }) => {
         HiringPreferredGenderOptions.find(
           (opt) => opt.value === row?.preferredGender
         )?.label || row?.preferredGender || "-",
-       minWidth: "160px"
+      minWidth: "160px"
     },
     {
       name: <div>Position Approval Status</div>,
       selector: (row) => renderStatusBadge(row?.status),
-       minWidth: "170px"
+      minWidth: "170px"
     },
     {
       name: <div>Contact Number</div>,
@@ -320,77 +322,77 @@ const PendingApprovals = ({ activeTab }) => {
     },
     ...(hasPermission("HR", "HIRING_APPROVAL", "WRITE")
       ? [
-          {
-            name: <div>Actions</div>,
-            cell: (row) => (
-              <div className="d-flex gap-2">
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  subAccess="HIRING_APPROVAL"
-                  permission="edit"
+        {
+          name: <div>Actions</div>,
+          cell: (row) => (
+            <div className="d-flex gap-2">
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                subAccess="HIRING_APPROVAL"
+                permission="edit"
+              >
+                <Button
+                  color="success"
+                  className="text-white"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRecord(row);
+                    setActionType("APPROVE");
+                    setApproveModalOpen(true);
+                  }}
                 >
-                  <Button
-                    color="success"
-                    className="text-white"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedRecord(row);
-                      setActionType("APPROVE");
-                      setApproveModalOpen(true);
-                    }}
-                  >
-                    <CheckCheck size={18} />
-                  </Button>
+                  <CheckCheck size={18} />
+                </Button>
 
-                  <Button
-                    color="danger"
-                    className="text-white"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedRecord(row);
-                      setActionType("REJECT");
-                      setApproveModalOpen(true);
-                    }}
-                  >
-                    <X size={16} />
-                  </Button>
-                  <Button
-                    color="primary"
-                    outline
-                    size="sm"
-                    onClick={() => {
-                      setSelectedRecord(row);
-                      setModalOpen(true);
-                    }}
-                  >
-                    <Pencil size={16} />
-                  </Button>
-                </CheckPermission>
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  subAccess="HIRING_APPROVAL"
-                  permission="delete"
+                <Button
+                  color="danger"
+                  className="text-white"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRecord(row);
+                    setActionType("REJECT");
+                    setApproveModalOpen(true);
+                  }}
                 >
-                  <Button
-                    color="danger"
-                    size="sm"
-                    className="text-white"
-                    onClick={() => {
-                      setSelectedRecord(row);
-                      setDeleteModalOpen(true);
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </CheckPermission>
-              </div>
-            ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
-            minWidth: "180px",
-          },
-        ]
+                  <X size={16} />
+                </Button>
+                <Button
+                  color="primary"
+                  outline
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRecord(row);
+                    setModalOpen(true);
+                  }}
+                >
+                  <Pencil size={16} />
+                </Button>
+              </CheckPermission>
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                subAccess="HIRING_APPROVAL"
+                permission="delete"
+              >
+                <Button
+                  color="danger"
+                  size="sm"
+                  className="text-white"
+                  onClick={() => {
+                    setSelectedRecord(row);
+                    setDeleteModalOpen(true);
+                  }}
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </CheckPermission>
+            </div>
+          ),
+          ignoreRowClick: true,
+          allowOverflow: true,
+          button: true,
+          minWidth: "180px",
+        },
+      ]
       : []),
   ];
 
@@ -561,11 +563,11 @@ const PendingApprovals = ({ activeTab }) => {
         setNote={setNote}
         {...(selectedRecord?.designation?.status === "PENDING"
           ? {
-              designation: selectedRecord.designation.name
-                ?.toLowerCase()
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (c) => c.toUpperCase()),
-            }
+            designation: selectedRecord.designation.name
+              ?.toLowerCase()
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase()),
+          }
           : {})}
       />
     </>

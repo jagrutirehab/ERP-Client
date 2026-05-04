@@ -55,12 +55,12 @@ const ApprovalHistory = ({ activeTab }) => {
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -166,7 +166,9 @@ const ApprovalHistory = ({ activeTab }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      toast.error(error.message || "Failed to export Excel");
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to export Excel");
+      }
     } finally {
       setIsExporting(false);
     }

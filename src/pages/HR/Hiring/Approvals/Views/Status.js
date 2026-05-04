@@ -175,7 +175,9 @@ const Status = ({ activeTab }) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      toast.error(error.message || "Failed to export Excel");
+      if(!handleAuthError(error)){
+        toast.error(error.message || "Failed to export Excel");
+      }
     } finally {
       setIsExporting(false);
     }
