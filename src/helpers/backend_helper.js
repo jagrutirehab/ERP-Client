@@ -2521,6 +2521,7 @@ export const getHirings = (params = {}) => {
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
+    ...(params.exportExcel && { responseType: "text" }),
   });
 };
 
