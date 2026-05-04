@@ -3,10 +3,9 @@ import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { endOfYear, startOfYear } from "date-fns";
-import { Download, RotateCcw } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
-import RefreshButton from "../../../../Components/Common/RefreshButton";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { fetchMyPayslips } from "../../../../store/features/HR/hrSlice";
 import {
@@ -56,7 +55,6 @@ const MyPaySlipsTab = () => {
   const { data = [], loading, pagination } =
     useSelector((state) => state.HR.myPayslips);
 
-  // ── Persist filters ────────────────────────────────────────────────────────
   useEffect(() => {
     writeStickyFilters(FILTER_KEY, {
       type,
@@ -65,7 +63,6 @@ const MyPaySlipsTab = () => {
     });
   }, [type, search, selectedYear]);
 
-  // ── Reset page on filter change ────────────────────────────────────────────
   useEffect(() => {
     setPage(1);
   }, [type, selectedYear, limit, debouncedSearch]);
@@ -87,7 +84,6 @@ const MyPaySlipsTab = () => {
   const runFetch = useCallback(async () => {
     const { type: t, selectedYear: y, page: p, limit: l, search: s } = paramsRef.current;
 
-    // FORM type → backend returns empty array; still call to keep state consistent
     let dateRange = {};
     if (y) {
       dateRange = {
@@ -110,13 +106,6 @@ const MyPaySlipsTab = () => {
   }, [dispatch, handleAuthError]);
 
   useEffect(() => { runFetch(); }, [fetchKey]); // eslint-disable-line
-
-  const resetFilters = useCallback(() => {
-    setType("PAYSLIP");
-    setSearch("");
-    setSelectedYear(currentYear);
-    setPage(1);
-  }, []);
 
   const handleDownload = async (row) => {
     try {
@@ -212,8 +201,6 @@ const MyPaySlipsTab = () => {
       </div>
 
       <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
-
-        {/* Type filter */}
         <div style={{ minWidth: 160 }}>
           <Select
             value={TYPE_OPTIONS.find((o) => o.value === type)}
@@ -225,7 +212,6 @@ const MyPaySlipsTab = () => {
           />
         </div>
 
-        {/* Search — works on name, employee code, center, designation */}
         <div style={{ minWidth: 280 }}>
           <Input
             type="text"
@@ -235,7 +221,6 @@ const MyPaySlipsTab = () => {
           />
         </div>
 
-        {/* Year filter — shown for both PAYSLIP and FORM */}
         <div style={{ minWidth: 140 }}>
           <Select
             isClearable
@@ -246,17 +231,6 @@ const MyPaySlipsTab = () => {
             placeholder="Year"
             isSearchable={false}
           />
-        </div>
-
-        <div className="d-flex gap-2 ms-auto">
-          <RefreshButton loading={loading} onRefresh={runFetch} />
-          <Button
-            color="light"
-            className="d-inline-flex align-items-center gap-1"
-            onClick={resetFilters}
-          >
-            <RotateCcw size={15} /> Reset
-          </Button>
         </div>
       </div>
 

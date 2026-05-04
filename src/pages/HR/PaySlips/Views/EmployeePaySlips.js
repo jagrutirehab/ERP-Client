@@ -3,14 +3,13 @@ import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { endOfMonth, startOfMonth } from "date-fns";
-import { Calendar, Download, RotateCcw } from "lucide-react";
+import { Calendar, Download } from "lucide-react";
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
 import "flatpickr/dist/plugins/monthSelect/style.css";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
-import RefreshButton from "../../../../Components/Common/RefreshButton";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { fetchEmployeePayslips } from "../../../../store/features/HR/hrSlice";
@@ -25,8 +24,6 @@ import {
 } from "../payslipUtils";
 import { format } from "date-fns";
 
-
-
 const FILTER_KEY = "hr_employee_payslip_filters";
 
 const initialFilters = readStickyFilters(FILTER_KEY, {
@@ -38,7 +35,6 @@ const initialFilters = readStickyFilters(FILTER_KEY, {
 const EmployeePaySlipsTab = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState(() => {
     const saved = initialFilters.center;
     return saved || "ALL";
@@ -57,8 +53,6 @@ const EmployeePaySlipsTab = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
 
-  // Read from user.centerAccess (original full list), not state.User.centerAccess
-  // which gets overwritten by changeUserAccess when parent center selector changes
   const { user, userCenters = [] } = useSelector((state) => state.User);
   const centerAccess = useMemo(() => user?.centerAccess || [], [user]);
 
@@ -69,8 +63,6 @@ const EmployeePaySlipsTab = () => {
   } = useSelector((state) => state.HR.employeePayslips.data);
 
   const hasUserPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
-
-  console.log(centerAccess, userCenters);
 
   const centerOptions = useMemo(
     () => [
@@ -129,7 +121,7 @@ const EmployeePaySlipsTab = () => {
   };
 
   const runFetch = useCallback(
-    async (manual = false) => {
+    async () => {
       const {
         centers: c,
         selectedMonth: m,
@@ -142,8 +134,6 @@ const EmployeePaySlipsTab = () => {
       if (!hasPerm || !c?.length) return;
 
       try {
-        if (manual) setIsRefreshing(true);
-
         await dispatch(
           fetchEmployeePayslips({
             page: p,
@@ -158,12 +148,11 @@ const EmployeePaySlipsTab = () => {
         if (!handleAuthError(error)) {
           toast.error(error?.message || "Failed to fetch payslips");
         }
-      } finally {
-        if (manual) setIsRefreshing(false);
       }
     },
     [dispatch, handleAuthError],
   );
+
   const fetchKey = [
     centers.join(","),
     startOfMonth(selectedMonth).toISOString(),
@@ -176,13 +165,6 @@ const EmployeePaySlipsTab = () => {
   useEffect(() => {
     runFetch();
   }, [fetchKey]); // eslint-disable-line
-
-  const resetFilters = () => {
-    setSelectedCenter("ALL");
-    setSearch("");
-    setSelectedMonth(new Date());
-    setPage(1);
-  };
 
   const handleDownload = async (row) => {
     try {
@@ -326,21 +308,6 @@ const EmployeePaySlipsTab = () => {
               className="form-control form-control-sm"
             />
           </div>
-        </div>
-
-        <div className="d-flex gap-2 ms-lg-auto">
-          <RefreshButton
-            loading={isRefreshing}
-            onRefresh={() => runFetch(true)}
-          />{" "}
-          <Button
-            color="light"
-            className="d-inline-flex align-items-center gap-1"
-            onClick={resetFilters}
-          >
-            <RotateCcw size={16} />
-            Reset
-          </Button>
         </div>
       </div>
 
