@@ -76,7 +76,7 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         center: true
     },
     {
-        name: <div>Total LWOP</div>,
+        name: <div>Total LWP</div>,
         selector: row => row?.lwop || 0,
         wrap: true,
         center: true

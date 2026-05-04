@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import React from "react";
+import { formatDosage } from "../../../../../helpers/prescriptionFrequency";
 
 const styles = StyleSheet.create({
   row: {
@@ -80,7 +81,7 @@ const PrescriptionTable = ({ medicines }) => {
                 </Text>
               </Text>
               <Text style={styles.col4}>
-                {safe(freq?.morning)}-{safe(freq?.evening)}-{safe(freq?.night)}
+                {safe(formatDosage(freq?.morning, freq?.unit))}-{safe(formatDosage(freq?.evening, freq?.unit))}-{safe(formatDosage(freq?.night, freq?.unit))}
               </Text>
               <Text style={styles.col4}>
                 {safe(item?.duration)} {safe(item?.unit)}

@@ -199,10 +199,10 @@ const AttendanceSummaryCard = ({
 
                         <Col xs="6" md="4" xl="2">
                             <StatCard
-                                icon={Plane}
+                                icon={XCircle}
                                 value={data?.lwop ?? 0}
-                                label="LWOP"
-                                color="#64748b"
+                                label="LWP"
+                                color="#f00404"
                                 loading={loading}
                             />
                         </Col>
