@@ -14,11 +14,12 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import Select from "react-select";
-import { Spinner } from "reactstrap";
+import { Spinner, Button } from "reactstrap";
 import DataTable from "react-data-table-component";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import { editManagementRequests } from "../../../../../helpers/backend_helper";
+import { editManagementRequests, getHirings } from "../../../../../helpers/backend_helper";
 import EditHiringRequestModal from "../../../components/EditHiringRequestModal";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const Status = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -42,6 +43,7 @@ const Status = ({ activeTab }) => {
   });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [isExporting, setIsExporting] = useState(false);
   //   const [updateLoading, setUpdateLoading] = useState(false);
   //   const [isModalOpen, setIsModalOpen] = useState(false);
   //   const [selectedRow, setSelectedRow] = useState(null);
@@ -58,12 +60,12 @@ const Status = ({ activeTab }) => {
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -138,6 +140,44 @@ const Status = ({ activeTab }) => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch Hiring Requests");
       }
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      const centers =
+        filters.center === "ALL"
+          ? user?.centerAccess
+          : !user?.centerAccess.length
+            ? []
+            : [filters.center];
+
+      const response = await getHirings({
+        centers,
+        view: "STATUS",
+        ...(filters.designation ? { designation: filters.designation } : {}),
+        ...(filters.gender ? { gender: filters.gender } : {}),
+        ...(filters.updateStatus ? { updateStatus: filters.updateStatus } : {}),
+        ...(queryHiringId !== "" && { hiringId: queryHiringId }),
+        exportExcel: true,
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Hiring_Status_Report_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast.error(error.message || "Failed to export Excel");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -304,7 +344,7 @@ const Status = ({ activeTab }) => {
       wrap: true,
       minWidth: "200px",
     },
-    
+
     {
       name: <div>Remarks</div>,
       selector: (row) => (
@@ -494,6 +534,13 @@ const Status = ({ activeTab }) => {
               placeholder="Update Status"
               isClearable
             />
+          </div>
+          <div className="ms-auto d-flex gap-2">
+            <RefreshButton loading={loading} onRefresh={fetchHiringApprovalHistory} />
+            <Button color="primary" className="text-white d-flex align-items-center" onClick={handleExportExcel} disabled={isExporting}>
+              {isExporting ? <Spinner size="sm" className="me-2" /> : null}
+              Export Excel
+            </Button>
           </div>
         </div>
         <DataTable

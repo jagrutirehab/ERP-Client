@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import {
   deleteHiring,
   hiringAction,
+  getHirings,
 } from "../../../../../helpers/backend_helper";
 import ApproveModal from "../../../components/ApproveModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
@@ -26,6 +27,7 @@ import { renderStatusBadge } from "../../../../../Components/Common/renderStatus
 import { format } from "date-fns";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { CheckCheck, Pencil, Trash2, X } from "lucide-react";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab }) => {
   const dispatch = useDispatch();
@@ -55,6 +57,7 @@ const PendingApprovals = ({ activeTab }) => {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [actionType, setActionType] = useState(null);
   const [note, setNote] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -144,6 +147,43 @@ const PendingApprovals = ({ activeTab }) => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch Hiring Requests");
       }
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      const centers =
+        filters.center === "ALL"
+          ? user?.centerAccess
+          : !user?.centerAccess.length
+            ? []
+            : [filters.center];
+
+      const response = await getHirings({
+        centers,
+        view: "PENDING",
+        ...(filters.designation ? { designation: filters.designation } : {}),
+        ...(filters.gender ? { gender: filters.gender } : {}),
+        ...(queryHiringId !== "" && { hiringId: queryHiringId }),
+        exportExcel: true,
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Hiring_Pending_Report_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast.error(error.message || "Failed to export Excel");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -421,9 +461,17 @@ const PendingApprovals = ({ activeTab }) => {
                   });
                 }
               }}
+              isLoading={loading}
               placeholder="Designation"
               isClearable
             />
+          </div>
+          <div className="ms-auto d-flex gap-2">
+            <RefreshButton loading={loading} onRefresh={fetchPendingHiringApprovals} />
+            <Button color="primary" className="text-white d-flex align-items-center" onClick={handleExportExcel} disabled={isExporting}>
+              {isExporting ? <Spinner size="sm" className="me-2" /> : null}
+              Export Excel
+            </Button>
           </div>
         </div>
       </div>
