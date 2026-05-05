@@ -188,7 +188,7 @@
                                                 minWidth: fixedColWidths[i],
                                             }}
                                         >
-                                            {i === 0 ? "Total" : ""}
+                                            {i === 4 ? "Total (Single Day)" : ""}
                                         </th>
                                         );
                                     })}

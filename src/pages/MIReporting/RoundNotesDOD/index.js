@@ -310,7 +310,7 @@
                                             const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                             return (
                                             <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, dodColWidths[i])}>
-                                                {i === 0 ? "Total" : ""}
+                                                {i === 4 ? "Total (Single Day)" : ""}
                                             </th>
                                             );
                                         })}

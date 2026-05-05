@@ -173,7 +173,7 @@ const CounsellingRecording = () => {
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                             <h6 className="text-truncate mb-0 fs-18">
-                            Counselling Sessions
+                            Counselling Recording
                             </h6>
                         </div>
                         </div>
