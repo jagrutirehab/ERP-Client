@@ -35,14 +35,16 @@ const initialFilters = readStickyFilters(FILTER_KEY, {
 const EmployeePaySlipsTab = () => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
-const [cardWidth, setCardWidth] = useState(window.innerWidth > 990 ? "80%" : "100%");
+  const [cardWidth, setCardWidth] = useState(
+    window.innerWidth > 990 ? "80%" : "100%",
+  );
 
- const [selectedCenter, setSelectedCenter] = useState("ALL");
-const [centerRestored, setCenterRestored] = useState(false);
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [centerRestored, setCenterRestored] = useState(false);
 
   const [search, setSearch] = useState(initialFilters.search);
   const [selectedMonth, setSelectedMonth] = useState(
-    initialFilters.month ? new Date(initialFilters.month) : new Date()
+    initialFilters.month ? new Date(initialFilters.month) : new Date(),
   );
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -58,7 +60,7 @@ const [centerRestored, setCenterRestored] = useState(false);
   // NOT from state.User.user.centerAccess — that nested value can be stale
   // when a parent center selector calls changeUserAccess and updates the slice
   const { centerAccess = [], userCenters = [] } = useSelector(
-    (state) => state.User
+    (state) => state.User,
   );
 
   const {
@@ -79,7 +81,7 @@ const [centerRestored, setCenterRestored] = useState(false);
         return { value: id, label: center?.title || "Unknown Center" };
       }),
     ],
-    [centerAccess, userCenters]
+    [centerAccess, userCenters],
   );
 
   const selectedCenterOption =
@@ -91,20 +93,20 @@ const [centerRestored, setCenterRestored] = useState(false);
       selectedCenter === "ALL"
         ? centerAccess
         : centerAccess.includes(selectedCenter)
-        ? [selectedCenter]
-        : [],
-    [centerAccess, selectedCenter]
+          ? [selectedCenter]
+          : [],
+    [centerAccess, selectedCenter],
   );
 
   useEffect(() => {
     if (!centerRestored && centerAccess.length > 0) {
-        const saved = initialFilters.center;
-        if (saved && saved !== "ALL" && centerAccess.includes(saved)) {
-            setSelectedCenter(saved);
-        }
-        setCenterRestored(true);
+      const saved = initialFilters.center;
+      if (saved && saved !== "ALL" && centerAccess.includes(saved)) {
+        setSelectedCenter(saved);
+      }
+      setCenterRestored(true);
     }
-}, [centerAccess, centerRestored]);
+  }, [centerAccess, centerRestored]);
 
   // Guard: if the selected center disappears from access, reset to ALL
   useEffect(() => {
@@ -128,29 +130,39 @@ const [centerRestored, setCenterRestored] = useState(false);
     setPage(1);
   }, [selectedCenter, selectedMonth, limit, debouncedSearch]);
 
-const fetchPayslips = async () => {
- 
+  const fetchPayslips = async () => {
     if (!hasUserPermission) return;
-    if (!centerAccess?.length) return;  // centerAccess not loaded yet
-    if (!centers?.length) return;       // selected center not in access
-    
-    try {
-        await dispatch(
-            fetchEmployeePayslips({
-                page,
-                limit,
-                centers,
-                startDate: format(startOfMonth(selectedMonth), "yyyy-MM-dd"),
-                endDate: format(endOfMonth(selectedMonth), "yyyy-MM-dd"),
-                ...(debouncedSearch.trim() && { search: debouncedSearch.trim() }),
-            })
-        ).unwrap();
-    } catch (error) {
-        if (!handleAuthError(error)) {
-            toast.error(error?.message || "Failed to fetch payslips");
-        }
+
+    if (!centerAccess?.length) {
+      dispatch({
+        type: "HR/fetchEmployeePayslips/fulfilled",
+        payload: {
+          data: [],
+          pagination: { page: 1, limit, totalDocs: 0, totalPages: 0 },
+        },
+      });
+      return;
     }
-};
+
+    if (!centers?.length) return;
+
+    try {
+      await dispatch(
+        fetchEmployeePayslips({
+          page,
+          limit,
+          centers,
+          startDate: format(startOfMonth(selectedMonth), "yyyy-MM-dd"),
+          endDate: format(endOfMonth(selectedMonth), "yyyy-MM-dd"),
+          ...(debouncedSearch.trim() && { search: debouncedSearch.trim() }),
+        }),
+      ).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to fetch payslips");
+      }
+    }
+  };
   useEffect(() => {
     if (!hasUserPermission) return;
     fetchPayslips();
@@ -160,15 +172,16 @@ const fetchPayslips = async () => {
     selectedCenter,
     selectedMonth,
     debouncedSearch,
-    centerAccess,   
+    centerAccess,
     hasUserPermission,
   ]); // eslint-disable-line
 
-   useEffect(() => {
-  const handleResize = () => setCardWidth(window.innerWidth > 990 ? "80%" : "100%");
-  window.addEventListener("resize", handleResize);
-  return () => window.removeEventListener("resize", handleResize);
-}, []);
+  useEffect(() => {
+    const handleResize = () =>
+      setCardWidth(window.innerWidth > 990 ? "80%" : "100%");
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleDownload = async (row) => {
     try {
@@ -262,17 +275,14 @@ const fetchPayslips = async () => {
         ),
       },
     ],
-    [data, downloadingId, limit, page] // eslint-disable-line
+    [data, downloadingId, limit, page], // eslint-disable-line
   );
 
   if (!permissionLoader && !hasUserPermission) return null;
 
- 
-
-
   return (
-<CardBody className="p-3 bg-white" style={{ width: "80%" }}>
-        <div className="text-center text-md-start mb-4">
+    <CardBody className="p-3 bg-white" style={{ width: "80%" }}>
+      <div className="text-center text-md-start mb-4">
         <h4 className="fw-bold text-primary mb-0">EMPLOYEES PAY SLIPS</h4>
       </div>
 
