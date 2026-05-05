@@ -271,7 +271,7 @@ const fetchPayslips = async () => {
 
 
   return (
-<CardBody className="p-3 bg-white" style={{ width: "100%", maxWidth: "100%" }}>
+<CardBody className="p-3 bg-white" style={{ width: "80%" }}>
         <div className="text-center text-md-start mb-4">
         <h4 className="fw-bold text-primary mb-0">EMPLOYEES PAY SLIPS</h4>
       </div>
