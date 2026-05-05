@@ -138,7 +138,7 @@ const VitalSign = ({ data }) => {
   );
 };
 
-VitalSign.prototype = {
+VitalSign.propTypes = {
   data: PropTypes.object,
 };
 

@@ -24,8 +24,8 @@ export const displayPercent = (value) => {
 
 export const monthLabel = (row) => {
   if (row?.month && row?.year) return `${row.month} ${row.year}`;
-  if (row?.payPeriodStart) {
-    return new Date(row.payPeriodStart).toLocaleString("en-US", {
+  if (row?.payPeriodEnd) {
+    return new Date(row.payPeriodEnd).toLocaleString("en-US", {
       month: "long",
       year: "numeric",
     });

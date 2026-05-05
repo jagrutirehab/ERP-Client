@@ -1614,21 +1614,9 @@ export const editUserPassword = (id, newPassword, token) => {
   );
 };
 
-export const getMyPayslips = (params = {}) => {
-  return api.get(url.GET_MY_PAYSLIPS, {
-    ...params,
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-    paramsSerializer: (queryParams) => {
-      return qs.stringify(queryParams, { arrayFormat: "repeat" });
-    },
-  });
-};
-
 export const getEmployeePayslips = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_PAYSLIPS, {
-    ...params,
+    params,             // ✅ nested under params
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -1638,6 +1626,17 @@ export const getEmployeePayslips = (params = {}) => {
   });
 };
 
+export const getMyPayslips = (params = {}) => {
+  return api.get(url.GET_MY_PAYSLIPS, {
+    params,             // ✅ same fix here too
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (queryParams) => {
+      return qs.stringify(queryParams, { arrayFormat: "repeat" });
+    },
+  });
+};
 
 export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
