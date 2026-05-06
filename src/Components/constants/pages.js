@@ -335,6 +335,14 @@ const pages = [
     link: "/tally",
     icon: "bx bx-transfer",
   },
+  {
+
+    id: "sopconfigs",
+    label: "SOP-configs",
+    name: "SOP-configs",
+    link: "/sop-configs",
+    icon: "bx bx-transfer",
+  }
 
 ];
 
@@ -1014,27 +1022,27 @@ export const HR = [
     ],
   },
 
- {
-  id: "payslips",
-  label: "Pay Slip",
-  icon: "bx bx-wallet",   // changed
-  link: "/hr/pay-slip",
-  isAccordion: true,
-  children: [
-    {
-      id: "employee-pay-slip",
-      label: "Employees Pay Slip",
-      icon: "bx bx-group",   // changed
-      link: "/hr/pay-slip/employees",
-    },
-    {
-      id: "my-pay-slip",
-      label: "My Pay Slip",
-      icon: "bx bx-user-check",   // changed
-      link: "/hr/pay-slip/my",
-    },
-  ],
-},
+  {
+    id: "payslips",
+    label: "Pay Slip",
+    icon: "bx bx-wallet",   // changed
+    link: "/hr/pay-slip",
+    isAccordion: true,
+    children: [
+      {
+        id: "employee-pay-slip",
+        label: "Employees Pay Slip",
+        icon: "bx bx-group",   // changed
+        link: "/hr/pay-slip/employees",
+      },
+      {
+        id: "my-pay-slip",
+        label: "My Pay Slip",
+        icon: "bx bx-user-check",   // changed
+        link: "/hr/pay-slip/my",
+      },
+    ],
+  },
   {
     id: "salary",
     label: "Salary",
@@ -1248,5 +1256,14 @@ export const RECORDINGS = [
 
 
 ];
+
+export const SOP_CONFIGS = [
+  {
+    id: "sopconfigs-create",
+    label: "Configure SOP",
+    link: "/sop-configs/create",
+    icon: "bx bx-slider-alt"
+  },
+]
 
 export default pages;

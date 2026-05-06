@@ -4,6 +4,8 @@ import DashboardEcommerce from "../pages/DashboardEcommerce";
 import Patient from "../pages/Patient";
 import MyMeetingUI from "../pages/Meeting/MeetingPage.jsx";
 import Intern from "../pages/Intern/index.js";
+import SopConfigs from "../pages/SopConfigs/index.js";
+import { element } from "prop-types";
 const Login = React.lazy(() => import("../pages/Authentication/Login"));
 const ForgetPasswordPage = React.lazy(
   () => import("../pages/Authentication/ForgetPassword"),
@@ -41,6 +43,7 @@ const Referral = React.lazy(() => import("../pages/Referral"));
 const Tally = React.lazy(() => import("../pages/Tally"));
 const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
+const SOP = React.lazy(() => import("../pages/SopConfigs"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -68,7 +71,12 @@ const allElements = [
   { element: Tally, label: "Tally" },
   { element: Issues, label: "Issues" },
   { element: Recordings, label: "Recordings" },
+  { element: SOP, label: "SOP-configs" }
 ];
+
+console.log("SOP:", SOP);
+console.log("Recordings:", Recordings);
+console.log("HR:", HR);
 // console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
@@ -99,6 +107,7 @@ const authProtectedRoutes = [
   { path: "/webcamstats/*", component: WebCamStats },
   { path: "/referral", component: Referral },
   { path: "/tally", component: Tally },
+  { path: '/sop-configs/*', component: SOP },
   {
     path: "/",
     exact: true,

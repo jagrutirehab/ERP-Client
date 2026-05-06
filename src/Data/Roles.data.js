@@ -325,9 +325,9 @@ export const permissionList = [
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
       { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
-      
-      { name: "EMPLOYEE_PAYSLIPS" , label: "Employee Pay Slips" },
-      { name: "MY_PAYSLIPS" , label: "My Pay Slips" },
+
+      { name: "EMPLOYEE_PAYSLIPS", label: "Employee Pay Slips" },
+      { name: "MY_PAYSLIPS", label: "My Pay Slips" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
@@ -388,6 +388,13 @@ export const permissionList = [
       { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
       { name: "CALL_RECORDINGS_AI_OVERIVIEW", label: "Call Recording Overview" },
       { name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW", label: "Feedback Recording Overview" }
+    ],
+  },
+  {
+    key: "SOPCONFIGS",
+    label: "Sop Configs",
+    subModules: [
+      { name: "CONFIGURATION", label: "Configuration" },
     ],
   },
 
