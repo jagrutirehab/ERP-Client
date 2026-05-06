@@ -3617,3 +3617,11 @@ export const getAIDischargeSummary = (params = {}) => {
 export const validateAISummary = (summary) => {
   return axios.patch(url.VALIDATE_SUMMARY, summary)
 }
+
+export const sopConfigure = (data) => {
+  return axios.post(url.CONFIGURATION_SOP, data)
+}
+
+export const sopGetRoles = (data) => {
+  return axios.get(url.GET_ROLES, data)
+}
