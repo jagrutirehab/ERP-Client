@@ -285,7 +285,7 @@
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {patient?.dod_data?.[key] ?? ""}
+                                                {patient?.dod_data?.[key] ?? 0}
                                             </td>
                                         ))}
                                     </tr>

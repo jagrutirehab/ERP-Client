@@ -307,7 +307,7 @@ const CounsellingRecording = () => {
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
-                                                color: "white",
+                                                color: "white", 
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 37,
@@ -350,7 +350,7 @@ const CounsellingRecording = () => {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[label] ?? ""}
+                                                {psychologist[label] ?? 0}
                                             </td>
                                         ))}
 
