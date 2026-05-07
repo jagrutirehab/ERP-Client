@@ -20,8 +20,6 @@ const dbFields = [
   "unitType",
   "Strength",
   "stock",
-  // "costprice",
-  // "value",
   "mrp",
   "purchasePrice",
   "SalesPrice",
@@ -36,8 +34,6 @@ const dbFields = [
 const isNumericField = (field) =>
   [
     "stock",
-    // "costprice",
-    // "value",
     "mrp",
     "purchasePrice",
     "SalesPrice",
@@ -53,8 +49,6 @@ const headerToDbMap = {
   Strength: "Strength",
   Unit: "unitType",
   Stock: "stock",
-  // "Cost Price": "costprice",
-  // Value: "value",
   MRP: "mrp",
   "Purchase Price": "purchasePrice",
   "Sales Price": "SalesPrice",

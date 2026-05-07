@@ -12,8 +12,6 @@ export const downloadInventoryTemplate = async (type = "TEMPLATE") => {
             "Strength",
             "Unit",
             "Stock",
-            "Cost Price",
-            "Value",
             "MRP",
             "Purchase Price",
             "Sales Price",
