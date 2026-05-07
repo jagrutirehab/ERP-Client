@@ -11,7 +11,6 @@ import { useSelector } from "react-redux";
 import { downloadFailedMedicines } from "../../../helpers/backend_helper";
 
 const dbFields = [
-  "code",
   "medicineName",
   "brandName",
   "genericName",
@@ -45,7 +44,6 @@ const isNumericField = (field) =>
   ].includes(field);
 
 const headerToDbMap = {
-  Code: "code",
   "Medicine Name": "medicineName",
   "Brand Name": "brandName",
   "Generic Name": "genericName",

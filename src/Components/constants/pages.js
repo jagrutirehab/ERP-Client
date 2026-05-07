@@ -424,6 +424,12 @@ export const Pharmacy = [
         link: "/pharmacy/requisition/sareyaan-orders",
         icon: "bx bx-store-alt",
       },
+      {
+        id: "medicine-requisition",
+        label: "Medicine Requisition",
+        link: "/pharmacy/requisition/medicine-requisition",
+        icon: "bx bx-capsule",
+      },
     ]
   },
   {
@@ -431,7 +437,13 @@ export const Pharmacy = [
     label: "Stock Summary",
     link: "/pharmacy/stock-summary",
     icon: "bx bx-box",
-  }
+  },
+  // {
+  //   id: "billUploadDashboard",
+  //   label: "Bill Upload History",
+  //   link: "/pharmacy/bill-upload-dashboard",
+  //   icon: "bx bx-history",
+  // }
 ];
 
 export const MIReporting = [

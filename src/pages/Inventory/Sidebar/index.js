@@ -19,6 +19,8 @@ const Sidebar = () => {
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
   const hasUserPermission8 = hasPermission("PHARMACY", "REQUISITION_SAREYAAN_ORDERS", "READ");
   const hasUserPermission9 = hasPermission("PHARMACY", "INVENTORY_STOCK_SUMMARY", "READ");
+  const hasUserPermission10 = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
+  const hasUserPermission11 = hasPermission("PHARMACY", "BILL_UPLOAD_DASHBOARD", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -47,6 +49,7 @@ const Sidebar = () => {
         children: (page.children || []).filter((child) => {
           if (child.id === "internal-transfer" && !hasUserPermission7) return false;
           if (child.id === "sareyaan-orders" && !hasUserPermission8) return false;
+          if (child.id === "medicine-requisition" && !hasUserPermission10) return false;
           return true;
         }),
       };
@@ -77,6 +80,10 @@ const Sidebar = () => {
     }
 
     if (page.id === "stockSummary" && !hasUserPermission9) {
+      return false;
+    }
+
+    if (page.id === "billUploadDashboard" && !hasUserPermission11) {
       return false;
     }
 

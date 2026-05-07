@@ -511,7 +511,6 @@ const InventoryManagement = () => {
                       "ID",
                       "Medicine ID",
                       "Barcode",
-                      "Code",
                       "Medicine Name",
                       // "Brand Name",
                       "Generic Name",
@@ -556,6 +555,7 @@ const InventoryManagement = () => {
                     for (let i = 0; i < data.length; i++) {
                       const med = data[i];
                       const medicineDetails = med?.medicineId || {};
+                      const barcodeValue = med?.id ? String(med.id) : med?.code ? String(med.code) : "";
                       const baseUnit =
                         medicineDetails?.baseUnit ?? med?.baseUnit ?? "-";
                       const purchaseUnit =
@@ -571,9 +571,9 @@ const InventoryManagement = () => {
                           : "-";
 
                       let barcodeDataURL = null;
-                      if (med?.code) {
+                      if (barcodeValue) {
                         const canvas = document.createElement("canvas");
-                        JsBarcode(canvas, med.code, {
+                        JsBarcode(canvas, barcodeValue, {
                           format: "CODE128",
                           height: 40,
                           displayValue: true,
@@ -586,7 +586,6 @@ const InventoryManagement = () => {
                         med?.id || "-",
                         med?.medicineId?.id || "-",
                         "",
-                        med?.code || "-",
                         med?.medicineName || "-",
                         // medicineDetails?.brandName ?? med?.brandName ?? "-",
                         medicineDetails?.genericName ?? med?.genericName ?? "-",
@@ -953,7 +952,6 @@ const InventoryManagement = () => {
                       <TableHead noWrap>ID</TableHead>
                       <TableHead noWrap>Medicine ID</TableHead>
                       <TableHead noWrap>Bar Code</TableHead>
-                      <TableHead noWrap>Code</TableHead>
                       <TableHead noWrap>Medicine Name</TableHead>
                       {/* <TableHead noWrap>Brand Name</TableHead> */}
                       <TableHead noWrap>Generic Name</TableHead>
@@ -1043,9 +1041,9 @@ const InventoryManagement = () => {
                                 transformOrigin: "left center",
                               }}
                             >
-                              {med?.code ? (
+                              {med?.id || med?.code ? (
                                 <Barcode
-                                  value={med?.code}
+                                  value={String(med?.id || med?.code)}
                                   height={30}
                                   fontSize={10}
                                   displayValue={true}
@@ -1055,7 +1053,6 @@ const InventoryManagement = () => {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell noWrap>{display(med?.code)}</TableCell>
                           <TableCell
                             noWrap
                             className="font-weight-bold text-primary"
