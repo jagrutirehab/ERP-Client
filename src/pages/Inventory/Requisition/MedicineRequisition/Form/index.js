@@ -112,20 +112,20 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
     validationSchema: Yup.object({
       requestingCenter: Yup.string().required("Requesting Center is required"),
       medicineName: Yup.string().required("Medicine Name is required").max(100),
-      genericName: Yup.string().optional(),
-      form: Yup.string().optional(),
-      baseUnit: Yup.string().optional(),
-      purchaseUnit: Yup.string().optional(),
-      baseQuantity: Yup.number().positive().optional(),
-      purchaseQuantity: Yup.number().positive().optional(),
-      category: Yup.string().optional(),
-      storageType: Yup.string().optional(),
-      scheduleType: Yup.string().optional(),
+      genericName: Yup.string().required("Generic Name is required"),
+      form: Yup.string().required("Medicine Form is required"),
+      baseUnit: Yup.string().required("Base Unit is required"),
+      purchaseUnit: Yup.string().required("Purchase Unit is required"),
+      baseQuantity: Yup.number().positive("Must be positive").required("Base Quantity is required"),
+      purchaseQuantity: Yup.number().positive("Must be positive").required("Purchase Quantity is required"),
+      category: Yup.string().required("Category is required"),
+      storageType: Yup.string().required("Storage Type is required"),
+      scheduleType: Yup.string().required("Schedule Type is required"),
       type: Yup.string().required("Medicine Type is required"),
       strength: Yup.string().optional(),
       instruction: Yup.string().optional(),
       composition: Yup.string().optional(),
-      unitPrice: Yup.number().positive().optional(),
+      unitPrice: Yup.number().positive("Must be positive").optional(),
       isControlledDrug: Yup.boolean().optional(),
       justification: Yup.string().required("Justification is required").min(10),
     }),
@@ -276,7 +276,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                 </Col>
                 <Col md={6}>
                     <Label htmlFor="genericName" className="fs-13 text-muted mb-1">
-                        Generic Name
+                        Generic Name <span className="text-danger">*</span>
                     </Label>
                     <Input
                         id="genericName"
@@ -284,74 +284,97 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                         value={values.genericName}
                         onChange={handleChange}
                         onBlur={handleBlur}
+                        invalid={touched.genericName && !!errors.genericName}
                     />
+                    {errorText("genericName")}
                 </Col>
 
                 {/* Form, Base Unit, Purchase Unit */}
                 {[
-                    { label: "Form", name: "form", options: medicineForms, placeholder: "Choose Form" },
-                    { label: "Base Unit", name: "baseUnit", options: baseUnits, placeholder: "Choose B. Unit" },
-                    { label: "Purchase Unit", name: "purchaseUnit", options: purchaseUnits, placeholder: "Choose P. Unit" },
-                ].map(({ label, name, options, placeholder }) => (
+                    { label: "Form", name: "form", options: medicineForms, placeholder: "Choose Form", required: true },
+                    { label: "Base Unit", name: "baseUnit", options: baseUnits, placeholder: "Choose B. Unit", required: true },
+                    { label: "Purchase Unit", name: "purchaseUnit", options: purchaseUnits, placeholder: "Choose P. Unit", required: true },
+                ].map(({ label, name, options, placeholder, required }) => (
                     <Col key={name} md={4}>
-                        <Label className="fs-13 text-muted mb-1">{label}</Label>
+                        <Label className="fs-13 text-muted mb-1">
+                            {label} {required && <span className="text-danger">*</span>}
+                        </Label>
                         <Select
                             name={name}
                             placeholder={placeholder}
                             options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
                             onChange={(selected) => setFieldValue(name, selected ? selected.value : "")}
+                            onBlur={() => handleBlur({ target: { name } })}
                             value={values[name] ? { value: values[name], label: normalizeLabel(values[name]) } : null}
                             classNamePrefix="react-select"
                         />
+                        {errorText(name)}
                     </Col>
                 ))}
 
                 {/* Conversion */}
                 <Col md={12}>
-                    <Label className="fs-13 text-muted mb-1">Conversion</Label>
-                    <div className="d-flex align-items-center gap-2">
-                        <Input
-                            name="purchaseQuantity"
-                            value={values.purchaseQuantity}
-                            onChange={handleChange}
-                            type="number"
-                            placeholder="Qty"
-                            style={{ width: "80px", flexShrink: 0 }}
-                        />
-                        <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
-                            {normalizeUnderscores(values.purchaseUnit) || "PURCHASE UNIT"}
-                        </span>
-                        <span className="fw-bold text-muted">=</span>
-                        <Input
-                            name="baseQuantity"
-                            value={values.baseQuantity}
-                            onChange={handleChange}
-                            type="number"
-                            placeholder="Qty"
-                            style={{ width: "80px", flexShrink: 0 }}
-                        />
-                        <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
-                            {normalizeUnderscores(values.baseUnit) || "BASE UNIT"}
-                        </span>
+                    <Label className="fs-13 text-muted mb-1">
+                        Conversion <span className="text-danger">*</span>
+                    </Label>
+                    <div className="d-flex align-items-start flex-column">
+                        <div className="d-flex align-items-center gap-2">
+                            <Input
+                                name="purchaseQuantity"
+                                value={values.purchaseQuantity}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                type="number"
+                                placeholder="Qty"
+                                style={{ width: "80px", flexShrink: 0 }}
+                                invalid={touched.purchaseQuantity && !!errors.purchaseQuantity}
+                            />
+                            <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                                {normalizeUnderscores(values.purchaseUnit) || "PURCHASE UNIT"}
+                            </span>
+                            <span className="fw-bold text-muted">=</span>
+                            <Input
+                                name="baseQuantity"
+                                value={values.baseQuantity}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                type="number"
+                                placeholder="Qty"
+                                style={{ width: "80px", flexShrink: 0 }}
+                                invalid={touched.baseQuantity && !!errors.baseQuantity}
+                            />
+                            <span className="badge bg-light text-dark border fs-12" style={{ whiteSpace: "nowrap" }}>
+                                {normalizeUnderscores(values.baseUnit) || "BASE UNIT"}
+                            </span>
+                        </div>
+                        {(touched.purchaseQuantity && errors.purchaseQuantity) || (touched.baseQuantity && errors.baseQuantity) ? (
+                            <div className="text-danger small mt-1">
+                                {errors.purchaseQuantity || errors.baseQuantity}
+                            </div>
+                        ) : null}
                     </div>
                 </Col>
 
                 {/* Category, Storage, Schedule */}
                 {[
-                    { label: "Category", name: "category", options: medicineCategories, placeholder: "Choose Category" },
-                    { label: "Storage Type", name: "storageType", options: storageTypes, placeholder: "Choose Storage Type" },
-                    { label: "Schedule Type", name: "scheduleType", options: scheduleTypes, placeholder: "Choose Schedule Type" },
-                ].map(({ label, name, options, placeholder }) => (
+                    { label: "Category", name: "category", options: medicineCategories, placeholder: "Choose Category", required: true },
+                    { label: "Storage Type", name: "storageType", options: storageTypes, placeholder: "Choose Storage Type", required: true },
+                    { label: "Schedule Type", name: "scheduleType", options: scheduleTypes, placeholder: "Choose Schedule Type", required: true },
+                ].map(({ label, name, options, placeholder, required }) => (
                     <Col key={name} md={4}>
-                        <Label className="fs-13 text-muted mb-1">{label}</Label>
+                        <Label className="fs-13 text-muted mb-1">
+                            {label} {required && <span className="text-danger">*</span>}
+                        </Label>
                         <Select
                             name={name}
                             placeholder={placeholder}
                             options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
                             onChange={(selected) => setFieldValue(name, selected ? selected.value : "")}
+                            onBlur={() => handleBlur({ target: { name } })}
                             value={values[name] ? { value: values[name], label: normalizeLabel(values[name]) } : null}
                             classNamePrefix="react-select"
                         />
+                        {errorText(name)}
                     </Col>
                 ))}
 

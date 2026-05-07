@@ -68,32 +68,47 @@ const MedicineRequisition = () => {
   const hasDeletePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "DELETE");
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
-  const filteredCenterAccess = (user?.centerAccess || []).filter(id => id !== "undefined" && id !== null);
-  const allUserCenterIds = filteredCenterAccess.join(",");
-
   const centerOptions = [
-    ...(filteredCenterAccess.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
-    ...(filteredCenterAccess.map((id) => {
+    ...(user?.centerAccess?.length > 1
+      ? [
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
+      : []),
+    ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
-      return { value: id, label: center?.title || "Unknown Center" };
+      return {
+        value: id,
+        label: center?.title || "Unknown Center",
+      };
     }) || []),
   ];
 
-  const selectedCenterOption = centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0] || null;
-
-  const getCenterIds = () => selectedCenter !== "ALL" ? selectedCenter : allUserCenterIds;
+  const selectedCenterOption =
+    centerOptions.find((opt) => opt.value === selectedCenter) ||
+    centerOptions[0];
 
   const loadRequisitions = async (page = 1, overrideStatus = null) => {
     const status = overrideStatus ?? statusFilter;
     if (status === "") return;
 
     try {
+      const centers =
+        selectedCenter === "ALL"
+          ? user?.centerAccess
+          : !user?.centerAccess?.length
+            ? []
+            : [selectedCenter];
+
       await dispatch(
         fetchMedicineRequisitions({
           page,
           limit: 10,
           status: status,
-          centerIds: getCenterIds() || undefined,
+          centers: centers,
           search: searchQuery || undefined,
         })
       ).unwrap();
@@ -107,7 +122,6 @@ const MedicineRequisition = () => {
   useEffect(() => {
     if (selectedCenter !== "ALL" && !user?.centerAccess?.includes(selectedCenter)) {
       setSelectedCenter("ALL");
-      loadRequisitions(1);
     }
   }, [user?.centerAccess, selectedCenter]);
 
@@ -234,7 +248,7 @@ const MedicineRequisition = () => {
             </div>
             <CheckPermission
               accessRolePermission={roles?.permissions}
-              permission={"write"}
+              permission={"create"}
               subAccess={"REQUISITION_MEDICINE_REQUISITION"}
             >
               <div className="d-flex gap-2 flex-wrap justify-content-end">
@@ -294,9 +308,9 @@ const MedicineRequisition = () => {
                     options={centerOptions}
                     value={selectedCenterOption}
                     onChange={(option) => {
-                      setSelectedCenter(option?.value || "ALL");
+                      setSelectedCenter(option?.value);
                     }}
-                    placeholder="All My Centers"
+                    placeholder="All Centers"
                   />
                 </Col>
                 <Col md={5} lg={4}>
