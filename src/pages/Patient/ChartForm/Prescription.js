@@ -345,11 +345,11 @@ const Prescription = ({
   const addMdicine = (med, data) => {
     if (!med) return;
 
-    // Only allow adding if the medicine is selected from the dropdown
-    if (!med.name) return;
+    const medicineName = med.name || (typeof med === "string" ? med : "");
+    if (!medicineName) return;
 
     const checkMedicine = data.find(
-      (val) => val.medicine?.name === med?.name || val.medicine?.name === med,
+      (val) => val.medicine?.name === medicineName,
     );
 
     if (!checkMedicine) {
@@ -357,7 +357,7 @@ const Prescription = ({
         medicine: {
           _id: med?._id || "",
           name: med?.name || med,
-          isNew: false, // med.name ? false : true,
+          isNew: med?._id ? false : true,
           type: med?.type || "TAB",
           strength: med?.strength || "",
           unit: med?.unit || "MG",
