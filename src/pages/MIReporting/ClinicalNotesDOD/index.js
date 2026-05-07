@@ -4,7 +4,6 @@
     import { CSVLink } from "react-csv";
     import { fetchClinicalNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
-    import { startOfDay, endOfDay } from "date-fns";
 
 
     const ClinicalNotesDOD = () => {
@@ -15,9 +14,6 @@
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
-    const [selectedStatus, setSelectedStatus] = useState("ALL");
-    const [dateFrom, setDateFrom] = useState(null);
-    const [dateTo, setDateTo] = useState(null);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -28,27 +24,19 @@
         dispatch(fetchClinicalNotesDOD({ centerAccess  }));
     }, [dispatch, centerAccess]);
     // console.log(clinicalNotesDOD)
-    // Extract unique months and sort them descending
 
    
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
 
 
     const filteredData = useMemo(() => {
-        const from = dateFrom ? startOfDay(dateFrom) : null;
-        const to = dateTo ? endOfDay(dateTo) : null;
-
+       
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            if (selectedStatus !== "ALL" && item?.status !== selectedStatus) return false;
-            if (item?.invoice_due_date) {
-                const due = new Date(item.invoice_due_date);
-                if (from && due < from) return false;
-                if (to && due > to) return false;
-            }
+           
             return true;
         });
-    }, [data, selectedCenter, selectedStatus, dateFrom, dateTo]);
+    }, [data, selectedCenter]);
 
     
     const prepareCsvData = () => {
@@ -106,8 +94,8 @@
     const labels=[
             "Patient Name",
             "Center Name",
-            "Psychologist Name",
             "Patient UID",
+            "Psychologist Name",
             "Assigned Patients",
             "Total (Current Month)"
 
@@ -120,7 +108,7 @@
             "Center Name":"center_name",
              "Patient Name":"patient",
              "Patient UID":"patient_id",
-            "Assigned Patients":"assigned",
+            "Assigned Patients":"assigned_patients",
             "Total (Current Month)":"total",
 
 
@@ -200,7 +188,7 @@
                     </Button>
                     <CSVLink
                         data={csvData || []}
-                        filename={`counselling-sessions-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
+                        filename={`clinical-notes-dod-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
                         className="d-none"
                         ref={csvRef}
                     />
@@ -323,8 +311,8 @@
                             </thead>
 
                             <tbody>
-                                {filteredData.map((psychologist, idx) => (
-                                    <tr key={psychologist?.patient_uid ?? idx}>
+                                {filteredData.map((patient, idx) => (
+                                    <tr key={patient?.patient_id ?? idx}>
                                         {labels.map((label, i) => (
                                             <td
                                                 key={label}
@@ -339,7 +327,7 @@
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
-                                                {psychologist[labelsMapping[label]]}
+                                                {patient[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (
@@ -352,7 +340,7 @@
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[label] ?? 0}
+                                                {patient[label] ?? 0}
                                             </td>
                                         ))}
 

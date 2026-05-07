@@ -2,11 +2,9 @@
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import {  fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
+    import {  fetchCounsellingSessions } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
-    import Flatpickr from "react-flatpickr";
     import "flatpickr/dist/themes/material_green.css";
-    import { startOfDay, endOfDay } from "date-fns";
 
 
 
@@ -19,9 +17,6 @@ const CounsellingSessions = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
-    const [selectedStatus, setSelectedStatus] = useState("ALL");
-    const [dateFrom, setDateFrom] = useState(null);
-    const [dateTo, setDateTo] = useState(null);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -39,20 +34,13 @@ const CounsellingSessions = () => {
 
 
     const filteredData = useMemo(() => {
-        const from = dateFrom ? startOfDay(dateFrom) : null;
-        const to = dateTo ? endOfDay(dateTo) : null;
-
+       
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            if (selectedStatus !== "ALL" && item?.status !== selectedStatus) return false;
-            if (item?.invoice_due_date) {
-                const due = new Date(item.invoice_due_date);
-                if (from && due < from) return false;
-                if (to && due > to) return false;
-            }
+            
             return true;
         });
-    }, [data, selectedCenter, selectedStatus, dateFrom, dateTo]);
+    }, [data, selectedCenter]);
 
     
     const prepareCsvData = () => {
