@@ -11,6 +11,7 @@ export const getMedicineRequisitionColumns = ({
   handleReject,
   handleDelete,
   hasWritePermission,
+  hasDeletePermission,
   status,
 }) => {
   return [
@@ -159,7 +160,7 @@ export const getMedicineRequisitionColumns = ({
               <i className="bx bx-show" />
             </button>
 
-            {hasWritePermission && ["PENDING", "REJECTED"].includes(row.status) && (
+            {hasDeletePermission && ["PENDING", "REJECTED"].includes(row.status) && (
               <button
                 type="button"
                 className="btn btn-sm btn-outline-danger"

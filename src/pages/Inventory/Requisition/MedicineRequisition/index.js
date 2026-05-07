@@ -65,6 +65,7 @@ const MedicineRequisition = () => {
 
   const hasWritePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "WRITE");
   const hasReadPermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
+  const hasDeletePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "DELETE");
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const filteredCenterAccess = (user?.centerAccess || []).filter(id => id !== "undefined" && id !== null);
@@ -198,6 +199,7 @@ const MedicineRequisition = () => {
     handleReject: (row) => openReviewModal(row, "reject"),
     handleDelete: (row) => setDeleteModal({ open: true, row }),
     hasWritePermission,
+    hasDeletePermission,
     status: statusFilter,
   });
 

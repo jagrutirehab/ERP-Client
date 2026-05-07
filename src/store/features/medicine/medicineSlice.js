@@ -124,9 +124,7 @@ export const fetchMedicineRequisitions = createAsyncThunk(
       const response = await getMedicineRequisitions(params);
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -139,9 +137,7 @@ export const submitMedicineRequisition = createAsyncThunk(
       dispatch(setAlert({ type: "success", message: "Medicine Requisition created successfully" }));
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -153,9 +149,7 @@ export const fetchMedicineRequisitionById = createAsyncThunk(
       const response = await getMedicineRequisitionById(id);
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -168,9 +162,7 @@ export const editMedicineRequisition = createAsyncThunk(
       dispatch(setAlert({ type: "success", message: "Medicine Requisition updated successfully" }));
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -183,9 +175,7 @@ export const approveMedicineRequisition = createAsyncThunk(
       dispatch(setAlert({ type: "success", message: "Medicine Requisition approved successfully" }));
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -198,9 +188,7 @@ export const rejectMedicineRequisition = createAsyncThunk(
       dispatch(setAlert({ type: "success", message: "Medicine Requisition rejected successfully" }));
       return response;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -213,9 +201,7 @@ export const removeMedicineRequisition = createAsyncThunk(
       dispatch(setAlert({ type: "success", message: "Medicine Requisition deleted successfully" }));
       return id;
     } catch (error) {
-      const message = error?.response?.data?.message || "Something went wrong";
-      dispatch(setAlert({ type: "error", message }));
-      return rejectWithValue(message);
+      return rejectWithValue(error);
     }
   }
 );
