@@ -3674,44 +3674,44 @@ export const sopGetRoles = (data) => {
   return axios.get(url.GET_ROLES, data)
 }
 // OCR BILL IMPORT
-export const getMatchingMedicines = (data) =>
-  api.create(url.OCR_GET_MATCHING_MEDICINES, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const getMatchingMedicines = (data) =>
+//   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
-export const uploadOCRBill = (formData) =>
-  api.create(url.OCR_UPLOAD_BILL, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      "X-No-Cookie-Token": "true",
-    },
-  });
+// export const uploadOCRBill = (formData) =>
+//   api.create(url.OCR_UPLOAD_BILL, formData, {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
 
-export const checkPharmacyBatch = (data) =>
-  api.create(url.OCR_CHECK_PHARMACY_BATCH, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const checkPharmacyBatch = (data) =>
+//   api.create(url.OCR_CHECK_PHARMACY_BATCH, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
-export const checkExistingMedicineInPharmacy = (data) =>
-  api.create(url.OCR_CHECK_EXISTING_MEDICINE, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const checkExistingMedicineInPharmacy = (data) =>
+//   api.create(url.OCR_CHECK_EXISTING_MEDICINE, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
-export const confirmOCRMedicines = (data) =>
-  api.create(url.OCR_CONFIRM_MEDICINES, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const confirmOCRMedicines = (data) =>
+//   api.create(url.OCR_CONFIRM_MEDICINES, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
-export const getOCRBillDetails = (billImportId) =>
-  api.get(`${url.OCR_GET_BILL_DETAILS}/${billImportId}`, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const getOCRBillDetails = (billImportId) =>
+//   api.get(`${url.OCR_GET_BILL_DETAILS}/${billImportId}`, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
-export const getBillUploadRecords = (params = {}) =>
-  api.get(url.OCR_GET_BILL_UPLOADS, {
-    params,
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+// export const getBillUploadRecords = (params = {}) =>
+//   api.get(url.OCR_GET_BILL_UPLOADS, {
+//     params,
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
 
 // PHARMACY EXCEL REPORTS
 export const exportConsolidatedReport = (billImportId) => {
