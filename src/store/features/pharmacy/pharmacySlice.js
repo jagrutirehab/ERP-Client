@@ -17,6 +17,7 @@ import {
     grnInternalTransferRequisition,
     requestingReviewInternalTransferRequisition,
     getPharmacyConsolidated,
+    // getMatchingMedicines as getMatchingMedicinesApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -36,6 +37,10 @@ const initialState = {
         data: [],
         totalCount: 0,
         totalPages: 1,
+    },
+    matchingMedicines: {
+        loading: false,
+        data: [],
     },
     submitLoading: false,
 };
@@ -228,6 +233,18 @@ export const getNurseGivenMedicines = createAsyncThunk("pharmacy/getNurseGivenMe
     }
 });
 
+// export const getMatchingMedicines = createAsyncThunk(
+//     "pharmacy/getMatchingMedicines",
+//     async (data, { rejectWithValue }) => {
+//         try {
+//             const response = await getMatchingMedicinesApi(data);
+//             return response;
+//         } catch (error) {
+//             return rejectWithValue(error);
+//         }
+//     }
+// );
+
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
     initialState,
@@ -334,6 +351,21 @@ export const pharmacySlice = createSlice({
             .addCase(getNurseGivenMedicines.rejected, (state) => {
                 state.loading = false;
             });
+
+/*
+        builder
+            .addCase(getMatchingMedicines.pending, (state) => {
+                state.matchingMedicines.loading = true;
+            })
+            .addCase(getMatchingMedicines.fulfilled, (state, { payload }) => {
+                state.matchingMedicines.loading = false;
+                state.matchingMedicines.data = payload.data || payload || [];
+            })
+            .addCase(getMatchingMedicines.rejected, (state) => {
+                state.matchingMedicines.loading = false;
+                state.matchingMedicines.data = [];
+            });
+*/
 
         builder
             .addCase(fetchInternalTransferRequisitions.pending, (state) => {
