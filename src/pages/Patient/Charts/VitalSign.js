@@ -120,12 +120,17 @@ const VitalSign = ({ data }) => {
               <td
                 key={label}
                 className="font-size-14"
+                title={value != null ? String(value) : undefined}
                 style={{
                   textAlign: "center",
                   verticalAlign: "middle",
                   padding: "10px 6px",
                   fontWeight: value ? 500 : 400,
                   color: value ? "inherit" : "#9ca3af",
+                  maxWidth: "100px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {value ?? "—"}
