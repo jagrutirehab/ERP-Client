@@ -2,78 +2,139 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const VitalSign = ({ data }) => {
+  const vitals = [
+    {
+      label: "Weight",
+      unit: "kg",
+      value: data?.weight,
+      icon: "⚖️",
+    },
+    {
+      label: "Blood Pressure",
+      unit: "mmHg",
+      value:
+        data?.bloodPressure?.systolic && data?.bloodPressure?.diastolic
+          ? `${data.bloodPressure.systolic}/${data.bloodPressure.diastolic}`
+          : null,
+    },
+    {
+      label: "Pulse",
+      unit: "bpm",
+      value: data?.pulse,
+    },
+    {
+      label: "Temperature",
+      unit: "°C",
+      value: data?.temprature,
+    },
+    {
+      label: "Resp. Rate",
+      unit: "breaths/min",
+      value: data?.respirationRate,
+    },
+    {
+      label: "CNS",
+      unit: null,
+      value: data?.cns,
+    },
+    {
+      label: "CVS",
+      unit: null,
+      value: data?.cvs,
+    },
+    {
+      label: "RS",
+      unit: null,
+      value: data?.rs,
+    },
+    {
+      label: "PA",
+      unit: null,
+      value: data?.pa,
+    },
+    {
+      label: "SpO2",
+      unit: "%",
+      value: data?.spo2,
+    },
+    {
+      label: "BSL",
+      unit: "mg/dL",
+      value: data?.bloodSugar,
+    },
+  ];
+
   return (
-    <React.Fragment>
-      <div
+    <div
+      style={{
+        width: "100%",
+        minWidth: 0,
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+        boxSizing: "border-box",
+      }}
+    >
+      <table
+        className="table table-sm table-bordered align-middle mb-0"
         style={{
+          minWidth: "900px",
+          whiteSpace: "nowrap",
+          tableLayout: "fixed",
           width: "100%",
-          overflowX: "auto",
-          overflowY: "visible",
-          display: "block",
-          WebkitOverflowScrolling: "touch",
         }}
       >
-        <table
-          className="bill-table table table-sm align-middle table-bordered"
-          id="customerTable"
-          style={{ minWidth: "1650px", whiteSpace: "nowrap" }}
-        >
-          <thead className="table-primary">
-            <tr>
-              <th>WEIGHT (kg)</th>
-              <th>B.P. (mmHg)</th>
-              <th>PULSE (Heart beats/min)</th>
-              <th>TEMPERATURE (°C)</th>
-              <th>RESP. RATE (Breaths/min)</th>
-              <th>CNS</th>
-              <th>CVS</th>
-              <th>RS</th>
-              <th>PA</th>
-              <th>SpO2 (%)</th>
-              <th>BSL (mg/dL)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ minWidth: "120px" }} className="font-size-14">
-                {data?.weight || "—"}
+        <thead className="table-primary">
+          <tr>
+            {vitals.map(({ label, unit }) => (
+              <th
+                key={label}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  padding: "8px 6px",
+                  lineHeight: "1.3",
+                }}
+              >
+                <div>{label}</div>
+                {unit && (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 400,
+                      opacity: 0.75,
+                      marginTop: "2px",
+                    }}
+                  >
+                    ({unit})
+                  </div>
+                )}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {vitals.map(({ label, value }) => (
+              <td
+                key={label}
+                className="font-size-14"
+                style={{
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  padding: "10px 6px",
+                  fontWeight: value ? 500 : 400,
+                  color: value ? "inherit" : "#9ca3af",
+                }}
+              >
+                {value ?? "—"}
               </td>
-              <td style={{ minWidth: "130px" }} className="font-size-14">
-                {data?.bloodPressure?.systolic || "—"}/
-                {data?.bloodPressure?.diastolic || "—"}
-              </td>
-              <td style={{ minWidth: "150px" }} className="font-size-14">
-                {data?.pulse || "—"}
-              </td>
-              <td style={{ minWidth: "140px" }} className="font-size-14">
-                {data?.temprature || "—"}
-              </td>
-              <td style={{ minWidth: "160px" }} className="font-size-14">
-                {data?.respirationRate || "—"}
-              </td>
-              <td style={{ minWidth: "100px" }} className="font-size-14">
-                {data?.cns || "—"}
-              </td>
-              <td style={{ minWidth: "100px" }} className="font-size-14">
-                {data?.cvs || "—"}
-              </td>
-              <td style={{ minWidth: "100px" }} className="font-size-14">
-                {data?.rs || "—"}
-              </td>
-              <td style={{ minWidth: "100px" }} className="font-size-14">
-                {data?.pa || "—"}
-              </td>
-              <td style={{ minWidth: "110px" }} className="font-size-14">
-                {data?.spo2 || "—"}
-              </td>
-              <td style={{ minWidth: "120px" }} className="font-size-14">
-                {data?.bloodSugar || "—"}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </React.Fragment>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 };
 
