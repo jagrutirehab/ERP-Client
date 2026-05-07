@@ -23,6 +23,7 @@ import {
   writeStickyFilters,
 } from "../payslipUtils";
 import { format } from "date-fns";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 
 const FILTER_KEY = "hr_employee_payslip_filters";
 
@@ -183,6 +184,8 @@ const EmployeePaySlipsTab = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const isMobile = useMediaQuery("(max-width: 1000px)");
+
   const handleDownload = async (row) => {
     try {
       setDownloadingId(row._id);
@@ -281,7 +284,10 @@ const EmployeePaySlipsTab = () => {
   if (!permissionLoader && !hasUserPermission) return null;
 
   return (
-    <CardBody className="p-3 bg-white" style={{ width: "80%" }}>
+    <CardBody
+      className="p-3 bg-white"
+      style={isMobile ? { width: "100%" } : { width: "80%" }}
+    >
       <div className="text-center text-md-start mb-4">
         <h4 className="fw-bold text-primary mb-0">EMPLOYEES PAY SLIPS</h4>
       </div>
