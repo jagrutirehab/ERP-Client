@@ -59,7 +59,7 @@ const CounsellingRecording = () => {
             ...filteredData.map((patient) => [
                 ...labels.map((label) =>
                     label === "Total (Current Month)"
-                        ? psychologistMonthTotals[patient.patient_uid] ?? 0
+                        ? psychologistMonthTotals[patient.psychologist] ?? 0
                         : patient[labelsMapping[label]] ?? ""
                 ),
                 ...last30Days.map(({ label }) => patient[label] ?? ""),
@@ -139,7 +139,7 @@ const CounsellingRecording = () => {
     const psychologistMonthTotals = useMemo(() => {
         const totals = {};
         filteredData.forEach((psychologist) => {
-            totals[psychologist.patient_uid] = currentMonthDays.reduce(
+            totals[psychologist.psychologist] = currentMonthDays.reduce(
                 (sum, { label }) => sum + (Number(psychologist[label]) || 0),
                 0
             );
@@ -340,7 +340,7 @@ const CounsellingRecording = () => {
                                                 }}
                                             >
                                                 {label === "Total (Current Month)"
-                                                    ? psychologistMonthTotals[psychologist.patient_uid] ?? 0
+                                                    ? psychologistMonthTotals[psychologist.psychologist] ?? 0
                                                     : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}

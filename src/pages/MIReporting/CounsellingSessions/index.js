@@ -60,7 +60,7 @@ const CounsellingSessions = () => {
             ...filteredData.map((patient) => [
                 ...labels.map((label) =>
                     label === "Total (Current Month)"
-                        ? psychologistMonthTotals[patient.patient_uid] ?? 0
+                        ? psychologistMonthTotals[patient.psychologist] ?? 0
                         : patient[labelsMapping[label]] ?? ""
                 ),
                 ...last30Days.map(({ label }) => patient[label] ?? ""),
@@ -83,20 +83,7 @@ const CounsellingSessions = () => {
         })),
     ], [data]);
 
-    const monthOptions = useMemo(() => {
-        const options = [];
-        const now = new Date();
-        const end = new Date(now.getFullYear(), now.getMonth(), 1);
-        const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
-        for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-            const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-            options.push({ value: label, label });
-        }
-        return options;
-    }, []);
-
-
-
+   
 
 
     const labels=[
@@ -153,7 +140,7 @@ const CounsellingSessions = () => {
     const psychologistMonthTotals = useMemo(() => {
         const totals = {};
         filteredData.forEach((psychologist) => {
-            totals[psychologist.patient_uid] = currentMonthDays.reduce(
+            totals[psychologist.psychologist] = currentMonthDays.reduce(
                 (sum, { label }) => sum + (Number(psychologist[label]) || 0),
                 0
             );
@@ -354,7 +341,7 @@ const CounsellingSessions = () => {
                                                 }}
                                             >
                                                 {label === "Total (Current Month)"
-                                                    ? psychologistMonthTotals[psychologist.patient_uid] ?? 0
+                                                    ? psychologistMonthTotals[psychologist.psychologist] ?? 0
                                                     : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
