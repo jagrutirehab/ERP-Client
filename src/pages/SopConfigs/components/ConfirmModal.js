@@ -1,3 +1,4 @@
+// components/ConfirmModal.js
 import React from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from "reactstrap";
 
@@ -19,11 +20,7 @@ const ConfirmModal = ({
         {cancelLabel}
       </Button>
       <Button color="primary" onClick={onConfirm} disabled={isLoading}>
-        {isLoading ? (
-          <><Spinner size="sm" className="" /></>
-        ) : (
-          confirmLabel
-        )}
+        {isLoading ? <Spinner size="sm" /> : confirmLabel}
       </Button>
     </ModalFooter>
   </Modal>
