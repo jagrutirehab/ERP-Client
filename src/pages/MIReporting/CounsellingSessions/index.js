@@ -58,7 +58,11 @@ const CounsellingSessions = () => {
             totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
-                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...labels.map((label) =>
+                    label === "Total (Current Month)"
+                        ? psychologistMonthTotals[patient.patient_uid] ?? 0
+                        : patient[labelsMapping[label]] ?? ""
+                ),
                 ...last30Days.map(({ label }) => patient[label] ?? ""),
             ]),
         ];
@@ -134,6 +138,28 @@ const CounsellingSessions = () => {
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const currentMonthDays = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        return last30Days.filter(({ key }) => {
+            const [day, mon, year] = key.split("-");
+            const d = new Date(`${mon} ${day}, ${year}`);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    }, [last30Days]);
+
+    const psychologistMonthTotals = useMemo(() => {
+        const totals = {};
+        filteredData.forEach((psychologist) => {
+            totals[psychologist.patient_uid] = currentMonthDays.reduce(
+                (sum, { label }) => sum + (Number(psychologist[label]) || 0),
+                0
+            );
+        });
+        return totals;
+    }, [filteredData, currentMonthDays]);
 
 
 
@@ -327,7 +353,9 @@ const CounsellingSessions = () => {
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
-                                                {psychologist[labelsMapping[label]]}
+                                                {label === "Total (Current Month)"
+                                                    ? psychologistMonthTotals[psychologist.patient_uid] ?? 0
+                                                    : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (

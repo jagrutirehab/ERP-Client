@@ -54,7 +54,11 @@
             totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
-                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...labels.map((label) =>
+                    label === "Total (Current Month)"
+                        ? patientMonthTotals[patient.patient_id] ?? 0
+                        : patient[labelsMapping[label]] ?? ""
+                ),
                 ...last30Days.map(({ label }) => patient[label] ?? ""),
             ]),
         ];
@@ -74,20 +78,6 @@
             label: center,
         })),
     ], [data]);
-
-    const monthOptions = useMemo(() => {
-        const options = [];
-        const now = new Date();
-        const end = new Date(now.getFullYear(), now.getMonth(), 1);
-        const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
-        for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-            const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-            options.push({ value: label, label });
-        }
-        return options;
-    }, []);
-
-
 
 
 
@@ -134,6 +124,28 @@
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const currentMonthDays = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        return last30Days.filter(({ key }) => {
+            const [day, mon, year] = key.split("-");
+            const d = new Date(`${mon} ${day}, ${year}`);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    }, [last30Days]);
+
+    const patientMonthTotals = useMemo(() => {
+        const totals = {};
+        filteredData.forEach((patient) => {
+            totals[patient.patient_id] = currentMonthDays.reduce(
+                (sum, { label }) => sum + (Number(patient[label]) || 0),
+                0
+            );
+        });
+        return totals;
+    }, [filteredData, currentMonthDays]);
 
 
 
@@ -249,7 +261,7 @@
                                                 minWidth: fixedColWidths[i],
                                             }}
                                         >
-                                            {i === 3 ? "Total (Single Day)" : ""}
+                                            {i === 5 ? "Total (Single Day)" : ""}
                                         </th>
                                     ))}
                                     {last30Days.map(({ key ,label}) => (
@@ -327,7 +339,9 @@
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
-                                                {patient[labelsMapping[label]]}
+                                                {label === "Total (Current Month)"
+                                                    ? patientMonthTotals[patient.patient_id] ?? 0
+                                                    : patient[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (
