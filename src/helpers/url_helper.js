@@ -337,7 +337,7 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
-export const GET_PRESCRIPTION_HISTORY="/nurse/prescription-history";
+export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
 
 
 // alerts
@@ -604,7 +604,7 @@ export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
-export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
+export const GET_REGULARIZATIONS_BY_EMPLOYEE = "/hrms/regularizations/employee";
 export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
 export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
 export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
@@ -674,3 +674,4 @@ export const VALIDATE_SUMMARY = "/chart/validate/response"
 // SOP CONFIGS
 export const CONFIGURATION_SOP = "/sop/create"
 export const GET_ROLES = "/sop/getroles"
+export const GET_FIELDS = "/sop/fields"

@@ -3,21 +3,19 @@ import Select from "react-select";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { OPERATOR_OPTIONS, VALUELESS_OPERATORS } from "../constants/sopConstants";
 
-const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, error }) => {
+const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, error, fieldOptions = [] }) => {
   const valueless = VALUELESS_OPERATORS.has(condition.operator?.value);
 
   return (
     <Row className="align-items-end mb-2">
       <Col md={4}>
-        <Label className="small text-muted mb-1">
-          Field{idx === 0 && <span> (e.g. bloodPressure.systolic)</span>}
-        </Label>
-        <Input
-          placeholder="Field path"
-          value={condition.field}
-          onChange={(e) => onChange(idx, "field", e.target.value)}
-          invalid={!!error}
-          disabled={isDisabled}
+        <Label className="small text-muted mb-1">Field</Label>
+        <Select
+          options={fieldOptions}
+          value={fieldOptions.find((f) => f.value === condition.field) || null}
+          onChange={(v) => onChange(idx, "field", v?.value || "")}
+          isDisabled={isDisabled || !fieldOptions.length}
+          placeholder={fieldOptions.length ? "Select field" : "Select target model first"}
         />
       </Col>
 
@@ -51,7 +49,6 @@ const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, 
           size="sm"
           onClick={() => onRemove(idx)}
           disabled={isDisabled || isOnly}
-          title={isOnly ? "At least one row required" : "Remove"}
         >
           ×
         </Button>

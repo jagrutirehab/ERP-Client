@@ -23,11 +23,9 @@ const Configuration = () => {
 
     try {
       console.log("payload:", pendingPayload);
-      // const res = await sopConfigure([pendingPayload]);
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       const created = [{ ...pendingPayload, _id: `mock_${Date.now()}` }];
-
       setRecentRules((prev) => [...created, ...prev].slice(0, 10));
 
       setModalOpen(false);
