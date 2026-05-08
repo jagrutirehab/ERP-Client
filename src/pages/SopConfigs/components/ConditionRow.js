@@ -1,10 +1,44 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { OPERATOR_OPTIONS, VALUELESS_OPERATORS } from "../constants/sopConstants";
+import { getICDCodes } from "../../../helpers/backend_helper";
 
 const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, error, fieldOptions = [] }) => {
   const valueless = VALUELESS_OPERATORS.has(condition.operator?.value);
+  const [icdOptions, setIcdOptions] = useState([]);
+  const [isLoadingIcd, setIsLoadingIcd] = useState(false);
+
+  useEffect(() => {
+    if (condition.field === "provisional_diagnosis" && icdOptions.length === 0) {
+      fetchProvisionalData();
+    }
+  }, [condition.field]);
+
+  const handleFieldChange = (selectedOption) => {
+    const newValue = selectedOption?.value || "";
+    onChange(idx, "field", newValue);
+    onChange(idx, "value", "");
+    if (newValue === "provisional_diagnosis") {
+      fetchProvisionalData();
+    }
+  };
+
+  const fetchProvisionalData = async () => {
+    setIsLoadingIcd(true);
+    try {
+      const response = await getICDCodes();
+      const dataArray = Array.isArray(response) ? response : (response.data || []);
+      setIcdOptions(dataArray.map((item) => ({
+        label: `${item.text} - ${item.code}`,
+        value: item._id,
+      })));
+    } catch (err) {
+      console.error("API Error fetching ICD codes:", err);
+    } finally {
+      setIsLoadingIcd(false);
+    }
+  };
 
   return (
     <Row className="align-items-end mb-2">
@@ -13,7 +47,7 @@ const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, 
         <Select
           options={fieldOptions}
           value={fieldOptions.find((f) => f.value === condition.field) || null}
-          onChange={(v) => onChange(idx, "field", v?.value || "")}
+          onChange={handleFieldChange}
           isDisabled={isDisabled || !fieldOptions.length}
           placeholder={fieldOptions.length ? "Select field" : "Select target model first"}
         />
@@ -32,12 +66,23 @@ const ConditionRow = ({ condition, idx, onChange, onRemove, isDisabled, isOnly, 
       {!valueless && (
         <Col md={4}>
           <Label className="small text-muted mb-1">Value</Label>
-          <Input
-            placeholder="e.g. 160"
-            value={condition.value}
-            onChange={(e) => onChange(idx, "value", e.target.value)}
-            disabled={isDisabled}
-          />
+          {condition.field === "provisional_diagnosis" ? (
+            <Select
+              options={icdOptions}
+              isLoading={isLoadingIcd}
+              value={icdOptions.find((opt) => opt.value === condition.value) || null}
+              onChange={(selected) => onChange(idx, "value", selected ? selected.value : "")}
+              isDisabled={isDisabled}
+              placeholder="Select diagnosis..."
+            />
+          ) : (
+            <Input
+              placeholder="e.g. 160"
+              value={condition.value || ""}
+              onChange={(e) => onChange(idx, "value", e.target.value)}
+              disabled={isDisabled}
+            />
+          )}
         </Col>
       )}
 
