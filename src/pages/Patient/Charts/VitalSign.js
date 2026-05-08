@@ -2,143 +2,148 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const VitalSign = ({ data }) => {
+  const vitals = [
+    {
+      label: "Weight",
+      unit: "kg",
+      value: data?.weight,
+      icon: "⚖️",
+    },
+    {
+      label: "Blood Pressure",
+      unit: "mmHg",
+      value:
+        data?.bloodPressure?.systolic && data?.bloodPressure?.diastolic
+          ? `${data.bloodPressure.systolic}/${data.bloodPressure.diastolic}`
+          : null,
+    },
+    {
+      label: "Pulse",
+      unit: "bpm",
+      value: data?.pulse,
+    },
+    {
+      label: "Temperature",
+      unit: "°C",
+      value: data?.temprature,
+    },
+    {
+      label: "Resp. Rate",
+      unit: "breaths/min",
+      value: data?.respirationRate,
+    },
+    {
+      label: "CNS",
+      unit: null,
+      value: data?.cns,
+    },
+    {
+      label: "CVS",
+      unit: null,
+      value: data?.cvs,
+    },
+    {
+      label: "RS",
+      unit: null,
+      value: data?.rs,
+    },
+    {
+      label: "PA",
+      unit: null,
+      value: data?.pa,
+    },
+    {
+      label: "SpO2",
+      unit: "%",
+      value: data?.spo2,
+    },
+    {
+      label: "BSL",
+      unit: "mg/dL",
+      value: data?.bloodSugar,
+    },
+  ];
+
   return (
-    <React.Fragment>
-      <div>
-        <div className="table-auto">
-          <div className="table-responsive h-auto table-card mb-1 ">
-            <table
-              className="bill-table table table-sm align-middle table-nowrap"
-              id="customerTable"
-            >
-              <thead className="table-primary">
-                <tr>
-                  <th className="sort" colSpan={2} data-sort="treatments">
-                    WEIGHT (kg)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="unit">
-                    B.P. (mmHg)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="cost">
-                    PULSE (Heart beats/min)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    TEMPERATURE (°C)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    RESP. RATE (Breaths/min)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    CNS
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    CVS
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    RS
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    PA
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    SpO2 (%)
-                  </th>
-                  <th className="sort" colSpan={2} data-sort="discount">
-                    BSL (mg/dL)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
+    <div
+      style={{
+        width: "100%",
+        minWidth: 0,
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+        boxSizing: "border-box",
+      }}
+    >
+      <table
+        className="table table-sm table-bordered align-middle mb-0"
+        style={{
+          minWidth: "900px",
+          whiteSpace: "nowrap",
+          tableLayout: "fixed",
+          width: "100%",
+        }}
+      >
+        <thead className="table-primary">
+          <tr>
+            {vitals.map(({ label, unit }) => (
+              <th
+                key={label}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  padding: "8px 6px",
+                  lineHeight: "1.3",
+                }}
+              >
+                <div>{label}</div>
+                {unit && (
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 400,
+                      opacity: 0.75,
+                      marginTop: "2px",
+                    }}
                   >
-                    {data?.weight || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.bloodPressure?.systolic || ""}/
-                    {data?.bloodPressure?.diastolic || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.pulse || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.temprature || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.respirationRate || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.cns || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.cvs || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.rs || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.pa || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.spo2 || ""}
-                  </td>
-                  <td
-                    colSpan={2}
-                    style={{ width: "150px" }}
-                    className="text-wrap font-size-14"
-                  >
-                    {data?.bloodSugar || ""}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </React.Fragment>
+                    ({unit})
+                  </div>
+                )}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {vitals.map(({ label, value }) => (
+              <td
+                key={label}
+                className="font-size-14"
+                title={value != null ? String(value) : undefined}
+                style={{
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  padding: "10px 6px",
+                  fontWeight: value ? 500 : 400,
+                  color: value ? "inherit" : "#9ca3af",
+                  maxWidth: "100px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {value ?? "—"}
+              </td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 };
 
-VitalSign.prototype = {
+VitalSign.propTypes = {
   data: PropTypes.object,
 };
 

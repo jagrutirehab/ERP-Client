@@ -1,11 +1,102 @@
 import axios from "axios";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Dropdown, DropdownToggle, Spinner } from "reactstrap";
+import { Spinner } from "reactstrap";
 import Select from "react-select";
 
 const normalizeLabel = (val) =>
   val ? val.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "";
+
+const sharedStyles = {
+  title: {
+    fontSize: "28px",
+    fontWeight: "700",
+    color: "#1a202c",
+    marginBottom: "24px",
+    borderBottom: "2px solid #edf2f7",
+    paddingBottom: "12px",
+    textAlign: "center",
+  },
+  formGroup: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  label: {
+    marginBottom: "8px",
+    fontWeight: "600",
+    fontSize: "13px",
+    color: "#475467",
+  },
+  input: {
+    minHeight: "42px",
+    padding: "10px 14px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "10px",
+    fontSize: "14px",
+    lineHeight: 1.4,
+    backgroundColor: "#ffffff",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+  },
+  errorText: {
+    color: "#e53e3e",
+    fontSize: "12px",
+    marginTop: "6px",
+  },
+  fullWidth: {
+    gridColumn: "1 / -1",
+  },
+  select: {
+    minHeight: "42px",
+    padding: "10px 14px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "10px",
+    fontSize: "14px",
+    backgroundColor: "white",
+    appearance: "none",
+  },
+  section: {
+    marginBottom: "20px",
+    padding: "18px",
+    border: "1px solid #eaecf0",
+    borderRadius: "14px",
+    backgroundColor: "#fcfcfd",
+  },
+  sectionHeading: {
+    letterSpacing: "0.08em",
+  },
+};
+
+const InputField = ({
+  label,
+  name,
+  register,
+  errors,
+  type = "text",
+  validation,
+  isFullWidth = false,
+  step,
+  disabled = false,
+}) => (
+  <div
+    style={{
+      ...sharedStyles.formGroup,
+      ...(isFullWidth ? sharedStyles.fullWidth : {}),
+    }}
+  >
+    <label htmlFor={name} style={sharedStyles.label}>
+      {label}
+    </label>
+    <input
+      id={name}
+      type={type}
+      step={step || (type === "number" ? "any" : undefined)}
+      {...register(name, validation)}
+      style={sharedStyles.input}
+      disabled={disabled}
+    />
+    {errors[name] && <p style={sharedStyles.errorText}>{errors[name].message}</p>}
+  </div>
+);
 
 const AddinventoryMedicine = ({
   user,
@@ -18,10 +109,9 @@ const AddinventoryMedicine = ({
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isValid, isDirty },
+    formState: { errors },
   } = useForm({
     defaultValues: {
-      code: defaultValues.code || "",
       medicineId: defaultValues.medicineId || "",
       medicineName: defaultValues.medicineName || "",
       brandName: defaultValues.medicineId?.brandName || defaultValues.brandName || "",
@@ -292,97 +382,6 @@ const AddinventoryMedicine = ({
   };
 
 
-  const styles = {
-    title: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#1a202c",
-      marginBottom: "30px",
-      borderBottom: "2px solid #edf2f7",
-      paddingBottom: "10px",
-      textAlign: "center",
-    },
-    form: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "20px",
-    },
-    formGroup: {
-      display: "flex",
-      flexDirection: "column",
-    },
-    label: {
-      marginBottom: "8px",
-      fontWeight: "600",
-      fontSize: "14px",
-      color: "#4a5568",
-    },
-    input: {
-      padding: "12px 15px",
-      border: "1px solid #e2e8f0",
-      borderRadius: "8px",
-      fontSize: "15px",
-      transition: "border-color 0.2s",
-    },
-    errorText: {
-      color: "#e53e3e",
-      fontSize: "12px",
-      marginTop: "4px",
-    },
-    fullWidth: {
-      gridColumn: "1 / -1",
-    },
-    submitButton: {
-      gridColumn: "1 / -1",
-      backgroundColor: "#4299e1",
-      color: "#ffffff",
-      padding: "15px 25px",
-      borderRadius: "8px",
-      fontWeight: "700",
-      fontSize: "16px",
-      border: "none",
-      cursor: "pointer",
-      marginTop: "20px",
-      transition: "background-color 0.2s, transform 0.1s",
-    },
-    select: {
-      padding: "12px 15px",
-      border: "1px solid #e2e8f0",
-      borderRadius: "8px",
-      fontSize: "15px",
-      transition: "border-color 0.2s",
-      backgroundColor: "white",
-      appearance: "none",
-    },
-  };
-
-  const InputField = ({
-    label,
-    name,
-    type = "text",
-    validation,
-    isFullWidth = false,
-    step,
-    disabled = false
-  }) => (
-    <div
-      style={{ ...styles.formGroup, ...(isFullWidth ? styles.fullWidth : {}) }}
-    >
-      <label htmlFor={name} style={styles.label}>
-        {label}
-      </label>
-      <input
-        id={name}
-        type={type}
-        step={step || (type === "number" ? "any" : undefined)}
-        {...register(name, validation)}
-        style={styles.input}
-        disabled={disabled}
-      />
-      {errors[name] && <p style={styles.errorText}>{errors[name].message}</p>}
-    </div>
-  );
-
   if (medicineValidLoader) {
     return (
       <div className="text-center py-4">
@@ -394,7 +393,7 @@ const AddinventoryMedicine = ({
   return (
     <div>
       {
-        medicineValid && (<h2 style={styles.title}>
+        medicineValid && (<h2 style={sharedStyles.title}>
           {defaultValues?.medicineName
             ? "Edit Medicine Details"
             : "Add New Medicine"}
@@ -411,8 +410,8 @@ const AddinventoryMedicine = ({
         <form onSubmit={handleSubmit(submitHandler)}>
 
           {/* Section: Medicine Search */}
-          <div className="mb-4">
-            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={{ letterSpacing: "0.08em" }}>Medicine</p>
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={sharedStyles.sectionHeading}>Medicine</p>
             <div style={{ position: "relative" }}>
               <label className="fs-12 text-muted mb-1">Medicine Name</label>
               <input
@@ -458,7 +457,7 @@ const AddinventoryMedicine = ({
                   )}
                 </div>
               )}
-              {errors.medicineName && <p style={styles.errorText}>{errors.medicineName.message}</p>}
+              {errors.medicineName && <p style={sharedStyles.errorText}>{errors.medicineName.message}</p>}
             </div>
           </div>
 
@@ -499,8 +498,8 @@ const AddinventoryMedicine = ({
           )}
 
           {/* Section: Centers */}
-          <div className="mb-4">
-            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={{ letterSpacing: "0.08em" }}>Centers & Stock</p>
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={sharedStyles.sectionHeading}>Centers & Stock</p>
             <div>
               <label className="fs-12 text-muted mb-1">Select Centers</label>
               <Select
@@ -566,7 +565,7 @@ const AddinventoryMedicine = ({
                         </select>
                       </div>
                       {centerStockTouched[id] && stockNum === 0 && (
-                        <p style={styles.errorText}>Stock quantity cannot be 0</p>
+                        <p style={sharedStyles.errorText}>Stock quantity cannot be 0</p>
                       )}
                       {rawStockStr !== "" && stockNum !== 0 && (
                         <div className="fs-12 text-dark mt-1 fw-medium" style={{ fontSize: "11px" }}>
@@ -581,30 +580,29 @@ const AddinventoryMedicine = ({
           </div>
 
           {/* Section: Inventory Details */}
-          <div className="mb-4">
-            <p className="fw-semibold text-muted fs-12 text-uppercase mb-3" style={{ letterSpacing: "0.08em" }}>Inventory Details</p>
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-3" style={sharedStyles.sectionHeading}>Inventory Details</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-              <InputField label="Code" name="code" validation={{ required: "Code is required" }} />
-              <InputField label="Unit Type" name="unitType" disabled={true} />
+              <InputField label="Unit Type" name="unitType" register={register} errors={errors} disabled={true} />
               {/* <InputField label="Cost Price" name="costprice" type="number" step="any" validation={{ required: "Cost Price is required", min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Value" name="value" type="number" step="any" validation={{ required: "Value is required", min: { value: 0, message: "Must be non-negative" } }} /> */}
-              <InputField label="M.R.P" name="mrp" type="number" step="any" validation={{ required: "MRP is required", min: { value: 0, message: "Must be non-negative" } }} />
-              <InputField label="Purchase Price" name="purchasePrice" type="number" step="any" validation={{ min: { value: 0, message: "Must be non-negative" } }} />
-              <InputField label="Sales Price" name="SalesPrice" type="number" step="any" validation={{ required: "Sales Price is required", min: { value: 0, message: "Must be non-negative" } }} />
-              <InputField label="Expiry Date" name="Expiry" type="date" />
-              <InputField label="Batch Number" name="Batch" />
-              <InputField label="Company" name="company" validation={{ required: "Company is required" }} />
-              <InputField label="Manufacturer" name="manufacturer" />
-              <InputField label="Rack Number" name="RackNum" />
-              <div style={styles.formGroup}>
-                <label htmlFor="Status" style={styles.label}>Status</label>
-                <select id="Status" {...register("Status", { required: "Status is required" })} style={styles.select}>
+              <InputField label="M.R.P" name="mrp" register={register} errors={errors} type="number" step="any" validation={{ required: "MRP is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Purchase Price" name="purchasePrice" register={register} errors={errors} type="number" step="any" validation={{ min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Sales Price" name="SalesPrice" register={register} errors={errors} type="number" step="any" validation={{ required: "Sales Price is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Expiry Date" name="Expiry" register={register} errors={errors} type="date" />
+              <InputField label="Batch Number" name="Batch" register={register} errors={errors} />
+              <InputField label="Company" name="company" register={register} errors={errors} validation={{ required: "Company is required" }} />
+              <InputField label="Manufacturer" name="manufacturer" register={register} errors={errors} />
+              <InputField label="Rack Number" name="RackNum" register={register} errors={errors} />
+              <div style={sharedStyles.formGroup}>
+                <label htmlFor="Status" style={sharedStyles.label}>Status</label>
+                <select id="Status" {...register("Status", { required: "Status is required" })} style={sharedStyles.select}>
                   <option value="NORMAL">Normal</option>
                   <option value="MODERATE">Moderate</option>
                   <option value="LOW">Low</option>
                   <option value="OUTOFSTOCK">Out of Stock</option>
                 </select>
-                {errors.Status && <p style={styles.errorText}>{errors.Status.message}</p>}
+                {errors.Status && <p style={sharedStyles.errorText}>{errors.Status.message}</p>}
               </div>
             </div>
           </div>

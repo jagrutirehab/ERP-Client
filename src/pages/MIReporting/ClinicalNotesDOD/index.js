@@ -8,7 +8,9 @@
 
     const ClinicalNotesDOD = () => {
     const dispatch = useDispatch();
-    const { clinicalNotesDOD, loading, error } = useSelector((state) => state.MIReporting);
+    const clinicalNotesDOD = useSelector((state) => state.MIReporting.clinicalNotesDOD);
+    const loading = useSelector((state) => state.MIReporting.loading);
+    const error = useSelector((state) => state.MIReporting.error);
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -16,56 +18,35 @@
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
+    // console.log(clinicalNotesDOD)
+    
     useEffect(() => {
-        dispatch(fetchClinicalNotesDOD({ centerAccess }));
+        dispatch(fetchClinicalNotesDOD({ centerAccess  }));
     }, [dispatch, centerAccess]);
+    // console.log(clinicalNotesDOD)
 
+   
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
 
-    const last30Days = useMemo(() => {
-        const days = [];
-        const today = new Date();
-        for (let i = 1; i < 30; i++) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            days.push({ key, label });
-        }
-        return days;
-    }, []);
 
-    const filteredData = useMemo(() =>
-        selectedCenter === "ALL" ? data : data.filter((item) => item?.center_name === selectedCenter),
-    [data, selectedCenter]);
-
-    const dateTotals = useMemo(() => {
-        const totals = {};
-        last30Days.forEach(({ key }) => {
-            totals[key] = filteredData.reduce((sum, row) => sum + (row?.dod_data?.[key] ?? 0), 0);
+    const filteredData = useMemo(() => {
+       
+        return data.filter(item => {
+            if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+           
+            return true;
         });
-        return totals;
-    }, [filteredData, last30Days]);
+    }, [data, selectedCenter]);
 
-    const centerOptions = useMemo(() => [
-        { value: "ALL", label: "All Centers" },
-        ...[...new Set(data.map((item) => item.center_name))].map((center) => ({
-            value: center,
-            label: center,
-        })),
-    ], [data]);
-
-    const fixedLabels = ["Patient Name", "Center Name", "Psychologist Name", "Patient UID", "Assigned Patients", "Total (Current Month)"];
-    const fixedColWidths = [150, 120, 150, 80, 90, 100];
-
+    
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const allHeaders = [...fixedLabels, ...last30Days.map(({ label }) => label)];
+        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
 
         const totalsRow = [
             "Total",
-            ...Array(fixedLabels.length - 1).fill(""),
+            ...Array(labels.length - 1).fill(""),
             ...last30Days.map(({ key }) => dateTotals[key] || ""),
         ];
 
@@ -73,13 +54,12 @@
             totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
-                patient?.patient_name ?? "",
-                patient?.center_name ?? "",
-                patient?.psychologist_name ?? "",
-                patient?.patient_id ?? "",
-                patient?.patient_count ?? "",
-                patient?.current_month_total ?? "",
-                ...last30Days.map(({ key }) => patient?.dod_data?.[key] ?? ""),
+                ...labels.map((label) =>
+                    label === "Total (Current Month)"
+                        ? patientMonthTotals[patient.patient_id] ?? 0
+                        : patient[labelsMapping[label]] ?? ""
+                ),
+                ...last30Days.map(({ label }) => patient[label] ?? ""),
             ]),
         ];
 
@@ -91,16 +71,102 @@
         }, 100);
     };
 
+    const centerOptions = useMemo(() => [
+        { value: "ALL", label: "All Centers" },
+        ...[...new Set(data.map((item) => item.center_name))].map((center) => ({
+            value: center,
+            label: center,
+        })),
+    ], [data]);
+
+
+
+    const labels=[
+            "Patient Name",
+            "Center Name",
+            "Patient UID",
+            "Psychologist Name",
+            "Assigned Patients",
+            "Total (Current Month)"
+
+            ]
+
+    const fixedColWidths = [150, 120, 90, 100];
+
+    const labelsMapping={
+            "Psychologist Name":"psychologist_name",
+            "Center Name":"center_name",
+             "Patient Name":"patient",
+             "Patient UID":"patient_id",
+            "Assigned Patients":"assigned_patients",
+            "Total (Current Month)":"total",
+
+
+    }
+
+    const last30Days = useMemo(() => {
+        const days = [];
+        const today = new Date();
+        for (let i =1; i < 30; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            days.push({ key, label });
+        }
+        return days;
+    }, []);
+
+    const dateTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+        });
+        return totals;
+    }, [filteredData, last30Days]);
+
+    const currentMonthDays = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        return last30Days.filter(({ key }) => {
+            const [day, mon, year] = key.split("-");
+            const d = new Date(`${mon} ${day}, ${year}`);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    }, [last30Days]);
+
+    const patientMonthTotals = useMemo(() => {
+        const totals = {};
+        filteredData.forEach((patient) => {
+            totals[patient.patient_id] = currentMonthDays.reduce(
+                (sum, { label }) => sum + (Number(patient[label]) || 0),
+                0
+            );
+        });
+        return totals;
+    }, [filteredData, currentMonthDays]);
+
+
+
+
+
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"
-        style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}
-        >
+        style={{
+            flex: 1,
+            width: "100%",
+            maxWidth: "100%",
+            minWidth: 0,
+        }}
+        >       
          <div className="row">
             <div className="col-12">
             <div className="p-3">
                 <div className="row align-items-center">
-                <div className="col-sm-6 col-8">
+                <div className="col-sm-6 col-8" >
                     <div className="d-flex align-items-center">
                     <div className="flex-grow-1 overflow-hidden">
                         <div className="d-flex align-items-center">
@@ -108,19 +174,26 @@
                             <i className="bx bx-bar-chart-alt-2 fs-1"></i>
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-truncate mb-0 fs-18">Clinical Notes DOD</h6>
+                            <h6 className="text-truncate mb-0 fs-18">
+                            Clnical Notes DOD
+                            </h6>
                         </div>
                         </div>
                     </div>
                     </div>
                 </div>
-
+                
                 <div className="col-sm-6 col-4">
                     <div className="d-flex justify-content-end">
                     <Button
                         color="info"
                         onClick={prepareCsvData}
-                        disabled={csvLoading || loading || !clinicalNotesDOD || clinicalNotesDOD.length === 0}
+                        disabled={
+                        csvLoading ||
+                        loading ||
+                        !clinicalNotesDOD ||
+                        clinicalNotesDOD.length === 0
+                        }
                         className="w-auto"
                     >
                         {csvLoading ? "Preparing CSV..." : "Export CSV"}
@@ -146,6 +219,7 @@
                             placeholder="Center..."
                         />
                     </Col>
+                    
                 </Row>
                 <Card>
                 <CardBody>
@@ -171,9 +245,7 @@
                         >
                             <thead>
                                 <tr>
-                                    {fixedLabels.map((label, i) => {
-                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
-                                        return (
+                                    {labels.map((label, i) => (
                                         <th
                                             key={label}
                                             className="text-center fw-bold px-1 py-2"
@@ -184,16 +256,15 @@
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 0,
-                                                left,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
                                                 zIndex: 5,
                                                 minWidth: fixedColWidths[i],
                                             }}
                                         >
                                             {i === 5 ? "Total (Single Day)" : ""}
                                         </th>
-                                        );
-                                    })}
-                                    {last30Days.map(({ key }) => (
+                                    ))}
+                                    {last30Days.map(({ key ,label}) => (
                                         <th
                                             key={key}
                                             className="text-center fw-bold px-1 py-2"
@@ -207,14 +278,12 @@
                                                 zIndex: 2,
                                             }}
                                         >
-                                            {dateTotals[key] || ""}
+                                            {dateTotals[label] || ""}
                                         </th>
                                     ))}
                                 </tr>
                                 <tr>
-                                    {fixedLabels.map((label, i) => {
-                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
-                                        return (
+                                    {labels.map((label, i) => (
                                         <th
                                             key={label}
                                             className="text-center fw-bold px-1 py-2"
@@ -225,15 +294,14 @@
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 37,
-                                                left,
+                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
                                                 zIndex: 4,
                                                 minWidth: fixedColWidths[i],
                                             }}
                                         >
                                             {label}
                                         </th>
-                                        );
-                                    })}
+                                    ))}
                                     {last30Days.map(({ key, label }) => (
                                         <th
                                             key={key}
@@ -241,7 +309,7 @@
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
-                                                color: "white",
+                                                color: "white", 
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 37,
@@ -257,25 +325,26 @@
                             <tbody>
                                 {filteredData.map((patient, idx) => (
                                     <tr key={patient?.patient_id ?? idx}>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 0, zIndex: 3, minWidth: 150 }}>
-                                            {patient?.patient_name ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
-                                            {patient?.center_name ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 270, zIndex: 3, minWidth: 150 }}>
-                                            {patient?.psychologist_name ?? "-"}
-                                        </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 420, zIndex: 3, minWidth: 80 }}>
-                                            {"UID" + (patient?.patient_id ?? "")}
-                                        </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 500, zIndex: 3, minWidth: 90 }}>
-                                            {patient?.patient_count ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 590, zIndex: 3, minWidth: 100 }}>
-                                            {patient?.current_month_total ?? ""}
-                                        </td>
-                                        {last30Days.map(({ key }) => (
+                                        {labels.map((label, i) => (
+                                            <td
+                                                key={label}
+                                                className="text-center px-1 py-2"
+                                                style={{
+                                                    border: "1px solid #d6dde8",
+                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+                                                    whiteSpace: "nowrap",
+                                                    position: "sticky",
+                                                    left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
+                                                    zIndex: 3,
+                                                    minWidth: fixedColWidths[i],
+                                                }}
+                                            >
+                                                {label === "Total (Current Month)"
+                                                    ? patientMonthTotals[patient.patient_id] ?? 0
+                                                    : patient[labelsMapping[label]]}
+                                            </td>
+                                        ))}
+                                        {last30Days.map(({ key,label }) => (
                                             <td
                                                 key={key}
                                                 className="text-center px-1 py-2"
@@ -285,14 +354,19 @@
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {patient?.dod_data?.[key] ?? ""}
+                                                {patient[label] ?? 0}
                                             </td>
                                         ))}
+
+
+
+
+
                                     </tr>
                                 ))}
                             </tbody>
-                        </Table>
-                    </div>
+                            </Table>
+                        </div>
                     </>
                     )}
                 </CardBody>

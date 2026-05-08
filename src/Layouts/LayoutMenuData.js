@@ -42,6 +42,7 @@ const Navdata = () => {
       // "hrms",
       "webcamstats",
       "tally",
+      "sop-configs"
     ];
 
     routes?.sort((a, b) => {

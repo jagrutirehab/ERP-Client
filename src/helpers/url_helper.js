@@ -440,8 +440,24 @@ export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
+// PHARMACY REQUISITION - MEDICINE REQUISITION
+export const PHARMACY_MEDICINE_REQUISITION = "/pharmacy/requisition/medicine-requisition";
+
 // INVENTORY STOCK SUMMARY
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
+
+// PHARMACY OCR BILL IMPORT
+// export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
+// export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
+// export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
+// export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
+// export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
+// export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
+// export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
+
+// PHARMACY EXCEL REPORTS
+export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
+export const PHARMACY_REPORT_INVENTORY_UPDATE = "/pharmacy/reports/inventory-update";
 
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
@@ -653,3 +669,8 @@ export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews
 // generate AI Summary
 export const GET_AI_SUMMARY = "/chart/generateSummary"
 export const VALIDATE_SUMMARY = "/chart/validate/response"
+
+
+// SOP CONFIGS
+export const CONFIGURATION_SOP = "/sop/create"
+export const GET_ROLES = "/sop/getroles"

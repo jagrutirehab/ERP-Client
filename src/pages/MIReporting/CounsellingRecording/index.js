@@ -2,11 +2,9 @@
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import {  fetchCounsellingRecordings, fetchCounsellingSessions, fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
+    import {  fetchCounsellingRecordings } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
-    import Flatpickr from "react-flatpickr";
     import "flatpickr/dist/themes/material_green.css";
-    import { startOfDay, endOfDay } from "date-fns";
 
 
 const CounsellingRecording = () => {
@@ -17,9 +15,6 @@ const CounsellingRecording = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
-    const [selectedStatus, setSelectedStatus] = useState("ALL");
-    const [dateFrom, setDateFrom] = useState(null);
-    const [dateTo, setDateTo] = useState(null);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -37,20 +32,14 @@ const CounsellingRecording = () => {
 
 
     const filteredData = useMemo(() => {
-        const from = dateFrom ? startOfDay(dateFrom) : null;
-        const to = dateTo ? endOfDay(dateTo) : null;
+        
 
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            if (selectedStatus !== "ALL" && item?.status !== selectedStatus) return false;
-            if (item?.invoice_due_date) {
-                const due = new Date(item.invoice_due_date);
-                if (from && due < from) return false;
-                if (to && due > to) return false;
-            }
+           
             return true;
         });
-    }, [data, selectedCenter, selectedStatus, dateFrom, dateTo]);
+    }, [data, selectedCenter]);
 
     
     const prepareCsvData = () => {
@@ -68,7 +57,11 @@ const CounsellingRecording = () => {
             totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
-                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
+                ...labels.map((label) =>
+                    label === "Total (Current Month)"
+                        ? psychologistMonthTotals[patient.patient_uid] ?? 0
+                        : patient[labelsMapping[label]] ?? ""
+                ),
                 ...last30Days.map(({ label }) => patient[label] ?? ""),
             ]),
         ];
@@ -88,19 +81,6 @@ const CounsellingRecording = () => {
             label: center,
         })),
     ], [data]);
-
-    const monthOptions = useMemo(() => {
-        const options = [];
-        const now = new Date();
-        const end = new Date(now.getFullYear(), now.getMonth(), 1);
-        const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
-        for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-            const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-            options.push({ value: label, label });
-        }
-        return options;
-    }, []);
-
 
 
 
@@ -145,6 +125,28 @@ const CounsellingRecording = () => {
         return totals;
     }, [filteredData, last30Days]);
 
+    const currentMonthDays = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        return last30Days.filter(({ key }) => {
+            const [day, mon, year] = key.split("-");
+            const d = new Date(`${mon} ${day}, ${year}`);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        });
+    }, [last30Days]);
+
+    const psychologistMonthTotals = useMemo(() => {
+        const totals = {};
+        filteredData.forEach((psychologist) => {
+            totals[psychologist.patient_uid] = currentMonthDays.reduce(
+                (sum, { label }) => sum + (Number(psychologist[label]) || 0),
+                0
+            );
+        });
+        return totals;
+    }, [filteredData, currentMonthDays]);
+
 
 
 
@@ -173,7 +175,7 @@ const CounsellingRecording = () => {
                         </div>
                         <div className="flex-grow-1 overflow-hidden">
                             <h6 className="text-truncate mb-0 fs-18">
-                            Counselling Sessions
+                            Counselling Recording
                             </h6>
                         </div>
                         </div>
@@ -307,7 +309,7 @@ const CounsellingRecording = () => {
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
-                                                color: "white",
+                                                color: "white", 
                                                 whiteSpace: "nowrap",
                                                 position: "sticky",
                                                 top: 37,
@@ -337,7 +339,9 @@ const CounsellingRecording = () => {
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
-                                                {psychologist[labelsMapping[label]]}
+                                                {label === "Total (Current Month)"
+                                                    ? psychologistMonthTotals[psychologist.patient_uid] ?? 0
+                                                    : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (
@@ -350,7 +354,7 @@ const CounsellingRecording = () => {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[label] ?? ""}
+                                                {psychologist[label] ?? 0}
                                             </td>
                                         ))}
 

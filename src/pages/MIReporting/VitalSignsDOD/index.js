@@ -188,7 +188,7 @@
                                                 minWidth: fixedColWidths[i],
                                             }}
                                         >
-                                            {i === 0 ? "Total" : ""}
+                                            {i === 4 ? "Total (Single Day)" : ""}
                                         </th>
                                         );
                                     })}
@@ -262,14 +262,15 @@
                                         <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
                                             {patient?.center_name ?? ""}
                                         </td>
+                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 420, zIndex: 3, minWidth: 80 }}>
+                                            { patient?.patient_id ?? ""}
+                                        </td>
                                         <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 270, zIndex: 3, minWidth: 150 }}>
                                             {patient?.psychologist_name ?? "-"}
                                         </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 420, zIndex: 3, minWidth: 80 }}>
-                                            {patient?.patient_id ?? ""}
-                                        </td>
+                                        
                                         <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 500, zIndex: 3, minWidth: 100 }}>
-                                            {patient?.current_month_total ?? ""}
+                                            {patient?.current_month_total ?? 0}
                                         </td>
                                         {last30Days.map(({ key }) => (
                                             <td
@@ -281,7 +282,7 @@
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {patient?.dod_data?.[key] ?? ""}
+                                                {patient?.dod_data?.[key] ?? 0}
                                             </td>
                                         ))}
                                     </tr>

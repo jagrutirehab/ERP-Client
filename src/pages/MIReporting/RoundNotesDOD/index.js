@@ -305,21 +305,21 @@
                         <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
                             <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
                                 <thead>
-                                    <tr>
+                                    {/* <tr>
                                         {dodFixedLabels.map((label, i) => {
                                             const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                             return (
                                             <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, dodColWidths[i])}>
-                                                {i === 0 ? "Total" : ""}
+                                                {i === 4 ? "Total (Single Day)" : ""}
                                             </th>
                                             );
                                         })}
-                                        {dates.map((date) => (
+                                        {dates  .map((date) => (
                                             <th key={`dtot-${date}`} className="text-center fw-bold px-1 py-2" style={thStyle(0, true)}>
                                                 {dodTotals[date] || ""}
                                             </th>
                                         ))}
-                                    </tr>
+                                    </tr> */}
                                     <tr>
                                         {dodFixedLabels.map((label, i) => {
                                             const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);

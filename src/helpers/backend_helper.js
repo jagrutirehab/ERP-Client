@@ -1614,21 +1614,9 @@ export const editUserPassword = (id, newPassword, token) => {
   );
 };
 
-export const getMyPayslips = (params = {}) => {
-  return api.get(url.GET_MY_PAYSLIPS, {
-    ...params,
-    headers: {
-      "X-No-Cookie-Token": "true",
-    },
-    paramsSerializer: (queryParams) => {
-      return qs.stringify(queryParams, { arrayFormat: "repeat" });
-    },
-  });
-};
-
 export const getEmployeePayslips = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_PAYSLIPS, {
-    ...params,
+    params,             // ✅ nested under params
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -1638,6 +1626,17 @@ export const getEmployeePayslips = (params = {}) => {
   });
 };
 
+export const getMyPayslips = (params = {}) => {
+  return api.get(url.GET_MY_PAYSLIPS, {
+    params,             // ✅ same fix here too
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (queryParams) => {
+      return qs.stringify(queryParams, { arrayFormat: "repeat" });
+    },
+  });
+};
 
 export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
@@ -1867,6 +1866,52 @@ export const getPharmacyConsolidated = (params) => api.get(url.PHARMACY_CONSOLID
   paramsSerializer: (parameters) =>
     qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
 });
+
+// PHARMACY REQUISITION - MEDICINE REQUISITION
+export const getMedicineRequisitions = (params = {}) => {
+  return api.get(url.PHARMACY_MEDICINE_REQUISITION, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
+export const createMedicineRequisition = (data) => {
+  return api.create(url.PHARMACY_MEDICINE_REQUISITION, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getMedicineRequisitionById = (id) => {
+  return api.get(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editMedicineRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const approveMedicineRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}/approve`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const rejectMedicineRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteMedicineRequisition = (id) => {
+  return api.delete(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
 
 // PHARMACY REQUISITION - INTERNAL TRANSFER
 export const getInternalTransferRequisitions = (params = {}) => {
@@ -2544,6 +2589,7 @@ export const getManagementHiringRequests = (params = {}) => {
     },
     paramsSerializer: (params) =>
       qs.stringify(params, { arrayFormat: "repeat" }),
+    ...(params.exportExcel && { responseType: "blob" }),
   });
 };
 
@@ -3619,3 +3665,71 @@ export const getAIDischargeSummary = (params = {}) => {
 export const validateAISummary = (summary) => {
   return axios.patch(url.VALIDATE_SUMMARY, summary)
 }
+
+export const sopConfigure = (data) => {
+  return axios.post(url.CONFIGURATION_SOP, data)
+}
+
+export const sopGetRoles = (data) => {
+  return axios.get(url.GET_ROLES, data)
+}
+// OCR BILL IMPORT
+// export const getMatchingMedicines = (data) =>
+//   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// export const uploadOCRBill = (formData) =>
+//   api.create(url.OCR_UPLOAD_BILL, formData, {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//       "X-No-Cookie-Token": "true",
+//     },
+//   });
+
+// export const checkPharmacyBatch = (data) =>
+//   api.create(url.OCR_CHECK_PHARMACY_BATCH, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// export const checkExistingMedicineInPharmacy = (data) =>
+//   api.create(url.OCR_CHECK_EXISTING_MEDICINE, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// export const confirmOCRMedicines = (data) =>
+//   api.create(url.OCR_CONFIRM_MEDICINES, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// export const getOCRBillDetails = (billImportId) =>
+//   api.get(`${url.OCR_GET_BILL_DETAILS}/${billImportId}`, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// export const getBillUploadRecords = (params = {}) =>
+//   api.get(url.OCR_GET_BILL_UPLOADS, {
+//     params,
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+
+// PHARMACY EXCEL REPORTS
+export const exportConsolidatedReport = (billImportId) => {
+  return axios.get(
+    `${url.PHARMACY_REPORT_CONSOLIDATED}/${billImportId}`,
+    {
+      responseType: "blob",
+      headers: { "X-No-Cookie-Token": "true" },
+    }
+  );
+};
+
+export const exportInventoryUpdateReport = (billImportId) => {
+  return axios.get(
+    `${url.PHARMACY_REPORT_INVENTORY_UPDATE}/${billImportId}`,
+    {
+      responseType: "blob",
+      headers: { "X-No-Cookie-Token": "true" },
+    }
+  );
+};
