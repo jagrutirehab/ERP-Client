@@ -6,8 +6,9 @@ export const TRIGGER_OPTIONS = toSelectOptions(["IMMEDIATE", "DELAYED"]);
 export const SEVERITY_OPTIONS = toSelectOptions(["LOW", "MEDIUM", "HIGH", "CRITICAL"]);
 export const TARGET_OPTIONS = toSelectOptions([
   "Addmission", "Patient", "VitalSign",
-  "Prescription", "Employee", "Bill", "Appointment",
+  "Prescription"
 ]);
+// "Employee", "Bill", "Appointment",
 export const OPERATOR_OPTIONS = [
   "GREATER_THAN", "LESS_THAN", "EQUALS",
   "NOT_EQUALS", "EXISTS", "NOT_EXISTS",
@@ -29,4 +30,7 @@ export const emptyForm = () => ({
   alertTemplate: "",
   isActive: true,
   notifyEmails: "",
+  ageGte: "",
+  actionGuidance: "",
+  referenceSection: "",
 });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import Select from "react-select";
 import {
   Card, CardBody, CardHeader,
@@ -11,6 +11,7 @@ import {
 } from "../constants/sopConstants"
 import ConditionRow from "./ConditionRow";
 import RoutingCard from "./RoutingCard";
+import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
   const [form, setForm] = useState(emptyForm);
@@ -19,6 +20,8 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [topError, setTopError] = useState(null);
+  const [fieldOptions, setFieldOptions] = useState([]);
+  const [fieldsLoading, setFieldsLoading] = useState(false);
 
   const clearError = (key) =>
     setFieldErrors((prev) => {
@@ -79,12 +82,39 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     setTopError(null);
   }, []);
 
+  useEffect(() => {
+    if (!form.targetModel?.value) {
+      setFieldOptions([]);
+      return;
+    }
+
+    let alive = true;
+    setFieldsLoading(true);
+
+    sopGetFieldsByModel(form.targetModel.value)
+      .then((res) => {
+        if (!alive) return;
+        const fields = res?.data?.fields || res?.fields || [];
+        setFieldOptions(
+          fields.map((f) => ({
+            value: f.path,
+            label: f.label,
+            type: f.type,
+          }))
+        );
+      })
+      .catch(() => alive && setFieldOptions([]))
+      .finally(() => alive && setFieldsLoading(false));
+
+    return () => { alive = false; };
+  }, [form.targetModel?.value]);
+
+
   const validate = () => {
     const errs = {};
 
     if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
     if (!form.targetModel) errs.targetModel = "Target model is required";
-    if (!form.alertTemplate.trim()) errs.alertTemplate = "Alert template is required";
 
     if (form.triggerType?.value === "DELAYED") {
       const hrs = Number(form.deadlineHours);
@@ -145,14 +175,21 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
       triggerType: form.triggerType?.value,
       targetModel: form.targetModel?.value,
       severity: form.severity?.value,
-      alertTemplate: form.alertTemplate.trim(),
       isActive: form.isActive,
-      conditions: cleanConditions,
+      conditionGroup: {
+        logic: "AND",
+        conditions: cleanConditions,
+        groups: [],
+      },
       routing,
     };
+
+    if (form.alertTemplate.trim()) payload.alertTemplate = form.alertTemplate.trim();
     if (form.protocol.trim()) payload.protocol = form.protocol.trim();
     if (form.triggerType?.value === "DELAYED") payload.deadlineHours = Number(form.deadlineHours);
-
+    if (form.ageGte !== "") payload.patientContextFilter = { ageGte: Number(form.ageGte) };
+    if (form.actionGuidance.trim()) payload.actionGuidance = form.actionGuidance.trim();
+    if (form.referenceSection.trim()) payload.referenceSection = form.referenceSection.trim();
 
     try {
       const response = await onSubmit(payload);
@@ -220,19 +257,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
                   onChange={(v) => handleSelect("severity", v)}
                   isDisabled={isSubmitting}
                 />
-              </FormGroup>
-            </Col>
-            <Col md={6} className="d-flex align-items-center">
-              <FormGroup check className="mt-3">
-                <Input
-                  type="checkbox"
-                  id="isActive"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleField}
-                  disabled={isSubmitting}
-                />
-                <Label check for="isActive">Activate rule immediately</Label>
               </FormGroup>
             </Col>
           </Row>
@@ -323,11 +347,37 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
               isDisabled={isSubmitting}
               isOnly={conditions.length === 1}
               error={Array.isArray(fieldErrors.conditions) ? fieldErrors.conditions[idx] : null}
+              fieldOptions={fieldOptions}
             />
           ))}
           <small className="text-muted d-block mt-2">
             Leave all fields blank in a row to ignore it. Conditions are optional — if none, the rule fires purely on the trigger.
           </small>
+        </CardBody>
+      </Card>
+
+
+      <Card className="mb-4">
+        <CardHeader className="fw-semibold">3.1 Patient Context Filter (optional)</CardHeader>
+        <CardBody>
+          <Row>
+            <Col md={6}>
+              <FormGroup>
+                <Label for="ageGte">Age ≥</Label>
+                <Input
+                  type="number"
+                  id="ageGte"
+                  name="ageGte"
+                  min="0"
+                  placeholder="e.g. 60"
+                  value={form.ageGte}
+                  onChange={handleField}
+                  disabled={isSubmitting}
+                />
+                <small className="text-muted">Rule fires only if patient age is greater than or equal to this value.</small>
+              </FormGroup>
+            </Col>
+          </Row>
         </CardBody>
       </Card>
 
@@ -349,20 +399,42 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
         <CardHeader className="fw-semibold">5. Alert Message</CardHeader>
         <CardBody>
           <FormGroup>
-            <Label for="alertTemplate">Alert Template <span className="text-danger">*</span></Label>
+            <Label for="alertTemplate">Alert Message</Label>
             <Input
               type="textarea"
               id="alertTemplate"
               name="alertTemplate"
               rows="3"
+              // placeholder="Patient {patient.name} has SBP {field.value} mmHg"
               value={form.alertTemplate}
               onChange={handleField}
-              invalid={!!fieldErrors.alertTemplate}
               disabled={isSubmitting}
             />
-            {fieldErrors.alertTemplate && (
-              <small className="text-danger">{fieldErrors.alertTemplate}</small>
-            )}
+          </FormGroup>
+
+          <FormGroup>
+            <Label for="actionGuidance">Action Guidance</Label>
+            <Input
+              type="textarea"
+              id="actionGuidance"
+              name="actionGuidance"
+              rows="2"
+              value={form.actionGuidance}
+              onChange={handleField}
+              disabled={isSubmitting}
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label for="referenceSection">Reference Section</Label>
+            <Input
+              id="referenceSection"
+              name="referenceSection"
+              placeholder="e.g. Section V-D"
+              value={form.referenceSection}
+              onChange={handleField}
+              disabled={isSubmitting}
+            />
           </FormGroup>
         </CardBody>
       </Card>
