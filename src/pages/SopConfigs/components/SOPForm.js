@@ -5,25 +5,26 @@ import {
   Label, Input, Button, Row, Col, Alert, Spinner,
 } from "reactstrap";
 import {
-  TRIGGER_OPTIONS, SEVERITY_OPTIONS, TARGET_OPTIONS,
-  VALUELESS_OPERATORS, emptyCondition, emptyForm, emptyTargetBlock,
-} from "../constants/sopConstants";
+  SEVERITY_OPTIONS, ADMISSION_TYPE_OPTIONS, VALUELESS_OPERATORS,
+  emptyConditionItem, emptyTargetBlock, emptyForm,
+} from "../../../Components/constants/sopConstants";
 import ConditionRow from "./ConditionRow";
+import MainBlock from "./MainBlock";
 import RoutingCard from "./RoutingCard";
 import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyForm());
+  const [satisfyingCriteria, setSatisfyingCriteria] = useState({ conditions: [emptyConditionItem()] });
   const [targetBlocks, setTargetBlocks] = useState([emptyTargetBlock()]);
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [topError, setTopError] = useState(null);
   const [modelFieldsCache, setModelFieldsCache] = useState({});
-  const [fieldsLoading, setFieldsLoading] = useState({});
 
   const clearError = (key) =>
-    setFieldErrors((prev) => {
+    setFieldErrors(prev => {
       if (!prev[key]) return prev;
       const next = { ...prev };
       delete next[key];
@@ -32,18 +33,18 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
 
   const handleField = useCallback((e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     clearError(name);
   }, []);
 
   const handleSelect = useCallback((name, selected) => {
-    setForm((prev) => ({ ...prev, [name]: selected }));
+    setForm(prev => ({ ...prev, [name]: selected }));
     clearError(name);
   }, []);
 
   const handleRoleToggle = useCallback((roleName) => {
-    setSelectedRoles((prev) =>
-      prev.includes(roleName) ? prev.filter((r) => r !== roleName) : [...prev, roleName]
+    setSelectedRoles(prev =>
+      prev.includes(roleName) ? prev.filter(r => r !== roleName) : [...prev, roleName]
     );
     clearError("routing");
   }, []);
@@ -53,89 +54,67 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     clearError("routing");
   }, []);
 
-  const handleBlockModelChange = async (blockIdx, selectedModel) => {
-    setTargetBlocks((prev) => {
-      const next = [...prev];
-      next[blockIdx] = { ...next[blockIdx], model: selectedModel, conditions: [emptyCondition()] };
-      return next;
-    });
-
-    const modelName = selectedModel?.value;
-    if (modelName && !modelFieldsCache[modelName]) {
-      setFieldsLoading((prev) => ({ ...prev, [modelName]: true }));
-      try {
-        const res = await sopGetFieldsByModel(modelName);
-        const fields = res?.data?.fields || res?.fields || [];
-        setModelFieldsCache((prev) => ({
-          ...prev,
-          [modelName]: fields.map((f) => ({ value: f.path, label: f.label, type: f.type })),
-        }));
-      } catch {
-        setTopError(`Failed to load fields for ${modelName}`);
-      } finally {
-        setFieldsLoading((prev) => ({ ...prev, [modelName]: false }));
-      }
+  const fetchModelFields = useCallback(async (modelName) => {
+    if (!modelName || modelFieldsCache[modelName]) return;
+    try {
+      const res = await sopGetFieldsByModel(modelName);
+      const fields = res?.data?.fields || res?.fields || [];
+      setModelFieldsCache(prev => ({
+        ...prev,
+        [modelName]: fields?.map(f => ({
+          value: f.path,
+          label: f.label,
+          type: f.type,
+          enumValues: f.options,
+        })),
+      }));
+    } catch {
+      setTopError(`Failed to load fields for ${modelName}`);
     }
-  };
+  }, [modelFieldsCache]);
 
-  const handleBlockTriggerChange = (blockIdx, selected) => {
-    setTargetBlocks((prev) => {
-      const next = [...prev];
-      next[blockIdx] = {
-        ...next[blockIdx],
-        triggerType: selected,
-        deadlineHours: selected?.value !== 'DELAYED' ? "" : next[blockIdx].deadlineHours,
-      };
-      return next;
-    });
-  };
-
-  const handleBlockDeadlineChange = (blockIdx, value) => {
-    setTargetBlocks((prev) => {
-      const next = [...prev];
-      next[blockIdx] = { ...next[blockIdx], deadlineHours: value };
-      return next;
-    });
-  };
-
-  const handleConditionChange = useCallback((blockIdx, condIdx, key, value) => {
-    setTargetBlocks((prev) => {
+  const handleTargetConditionChange = (blockIdx, condIdx, key, value) => {
+    setTargetBlocks(prev => {
       const next = [...prev];
       const conds = [...next[blockIdx].conditions];
       conds[condIdx] = { ...conds[condIdx], [key]: value };
-      if (key === "operator" && VALUELESS_OPERATORS.has(value?.value)) {
-        conds[condIdx].value = "";
-      }
-      next[blockIdx].conditions = conds;
-      return next;
-    });
-  }, []);
-
-  const addTargetBlock = () => setTargetBlocks((prev) => [...prev, emptyTargetBlock()]);
-
-  const removeTargetBlock = (idx) => setTargetBlocks((prev) => prev.filter((_, i) => i !== idx));
-
-  const addCondition = (blockIdx) => {
-    setTargetBlocks((prev) => {
-      const next = [...prev];
-      next[blockIdx].conditions = [...next[blockIdx].conditions, emptyCondition()];
+      next[blockIdx] = { ...next[blockIdx], conditions: conds };
       return next;
     });
   };
 
-  const removeCondition = (blockIdx, condIdx) => {
-    setTargetBlocks((prev) => {
+  const handleTargetBlockField = (blockIdx, key, value) => {
+    setTargetBlocks(prev => {
       const next = [...prev];
-      next[blockIdx].conditions =
-        next[blockIdx].conditions.length === 1
-          ? next[blockIdx].conditions
-          : next[blockIdx].conditions.filter((_, i) => i !== condIdx);
+      next[blockIdx] = { ...next[blockIdx], [key]: value };
+      return next;
+    });
+  };
+
+  const addTargetBlock = () => setTargetBlocks(prev => [...prev, emptyTargetBlock()]);
+  const removeTargetBlock = (idx) => setTargetBlocks(prev => prev.filter((_, i) => i !== idx));
+
+  const addConditionToBlock = (blockIdx) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      next[blockIdx] = { ...next[blockIdx], conditions: [...next[blockIdx].conditions, emptyConditionItem()] };
+      return next;
+    });
+  };
+
+  const removeConditionFromBlock = (blockIdx, condIdx) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      next[blockIdx].conditions = next[blockIdx].conditions.length === 1
+        ? next[blockIdx].conditions
+        : next[blockIdx].conditions.filter((_, i) => i !== condIdx);
       return next;
     });
   };
 
   const resetForm = useCallback(() => {
     setForm(emptyForm());
+    setSatisfyingCriteria({ conditions: [emptyConditionItem()] });
     setTargetBlocks([emptyTargetBlock()]);
     setSelectedRoles([]);
     setSelectedUsers([]);
@@ -143,48 +122,47 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     setTopError(null);
   }, []);
 
+  const formatCondition = (c) => {
+    const out = {
+      model: c.model?.value,
+      field: c.field,
+      operator: c.operator?.value,
+      triggerType: c.triggerType?.value || "IMMEDIATE",
+    };
+
+    if (c.triggerType?.value === "DELAYED" && c.deadlineHours) {
+      out.deadlineHours = Number(c.deadlineHours);
+    }
+
+    if (!VALUELESS_OPERATORS.has(c.operator?.value)) {
+      if (Array.isArray(c.value)) {
+        out.value = c.value;
+      } else {
+        const n = Number(c.value);
+        out.value = [c.value !== "" && !isNaN(n) ? n : c.value];
+      }
+    }
+
+    return out;
+  };
+
   const validate = () => {
     const errs = {};
     if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
+    if (!form.admissionType) errs.admissionType = "Admission type is required";
     if (!selectedRoles.length && !selectedUsers.length)
       errs.routing = "Add at least one notification channel";
 
-    let hasBlockErrors = false;
-    const blockErrors = [];
-
-    targetBlocks.forEach((b, bIdx) => {
+    let hasTargetErrors = false;
+    const targetErrors = targetBlocks.map(block => {
       const bErr = { conditions: [] };
-
-      if (!b.model) {
-        bErr.model = "Target model is required";
-        hasBlockErrors = true;
-      }
-
-      if (b.triggerType?.value === 'DELAYED') {
-        const hrs = Number(b.deadlineHours);
-        if (!b.deadlineHours || isNaN(hrs) || hrs <= 0) {
-          bErr.deadlineHours = "Deadline hours required for DELAYED";
-          hasBlockErrors = true;
-        }
-      }
-
-      b.conditions.forEach((c, cIdx) => {
-        if (!c.field && (c.value === "" || c.value == null)) return;
-        if (!c.field.trim()) {
-          bErr.conditions[cIdx] = "Field is required";
-          hasBlockErrors = true;
-          return;
-        }
-        if (!VALUELESS_OPERATORS.has(c.operator?.value) && c.value === "") {
-          bErr.conditions[cIdx] = "Value required";
-          hasBlockErrors = true;
-        }
+      block.conditions.forEach((c, cIdx) => {
+        if (!c.model) { bErr.conditions[cIdx] = "Model is required"; hasTargetErrors = true; }
+        else if (!c.field) { bErr.conditions[cIdx] = "Field is required"; hasTargetErrors = true; }
       });
-
-      blockErrors[bIdx] = bErr;
+      return bErr;
     });
-
-    if (hasBlockErrors) errs.targetBlocks = blockErrors;
+    if (hasTargetErrors) errs.targetBlocks = targetErrors;
 
     return { valid: !Object.keys(errs).length, errors: errs };
   };
@@ -201,48 +179,28 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     }
     setFieldErrors({});
 
-    const formattedTargetModels = targetBlocks.map((b) => {
-      const cleanConditions = b.conditions
-        .filter((c) => c.field.trim())
-        .map((c) => {
-          const out = { field: c.field.trim(), operator: c.operator?.value };
-          if (!VALUELESS_OPERATORS.has(c.operator?.value)) {
-            const n = Number(c.value);
-            out.value = c.value !== "" && !isNaN(n) ? n : c.value;
-          }
-          return out;
-        });
-
-      const block = {
-        model: b.model?.value,
-        triggerType: b.triggerType?.value,
-        conditionGroup: {
-          logic: "AND",
-          conditions: cleanConditions,
-          groups: [],
-        },
-      };
-
-      if (b.triggerType?.value === 'DELAYED') {
-        block.deadlineHours = Number(b.deadlineHours);
-      }
-
-      return block;
-    });
+    const validSCConditions = satisfyingCriteria.conditions.filter(c => c.model && c.field);
 
     const payload = {
       ruleName: form.ruleName.trim(),
       severity: form.severity?.value,
+      admissionType: form.admissionType?.value,
       isActive: form.isActive,
-      targetModels: formattedTargetModels,
+      targetBlocks: targetBlocks.map(block => ({
+        alertTemplate: block.alertTemplate?.trim() || undefined,
+        conditions: block.conditions.filter(c => c.model && c.field).map(formatCondition),
+      })),
       routing: {
         ...(selectedRoles.length && { notifyRoles: selectedRoles }),
-        ...(selectedUsers.length && { notifySpecificUsers: selectedUsers.map((u) => u.value) }),
+        ...(selectedUsers.length && { notifySpecificUsers: selectedUsers.map(u => u.value) }),
       },
     };
 
+    if (validSCConditions.length > 0) {
+      payload.satisfyingCriteria = { conditions: validSCConditions.map(formatCondition) };
+    }
+
     if (form.protocol.trim()) payload.protocol = form.protocol.trim();
-    if (form.alertTemplate.trim()) payload.alertTemplate = form.alertTemplate.trim();
     if (form.actionGuidance.trim()) payload.actionGuidance = form.actionGuidance.trim();
     if (form.referenceSection.trim()) payload.referenceSection = form.referenceSection.trim();
 
@@ -266,9 +224,8 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
               <FormGroup>
                 <Label for="ruleName">Rule Name <span className="text-danger">*</span></Label>
                 <Input
-                  id="ruleName" name="ruleName"
-                  value={form.ruleName} onChange={handleField}
-                  invalid={!!fieldErrors.ruleName} disabled={isSubmitting}
+                  id="ruleName" name="ruleName" value={form.ruleName}
+                  onChange={handleField} invalid={!!fieldErrors.ruleName} disabled={isSubmitting}
                 />
                 {fieldErrors.ruleName && <small className="text-danger">{fieldErrors.ruleName}</small>}
               </FormGroup>
@@ -281,111 +238,91 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
             </Col>
           </Row>
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <FormGroup>
                 <Label>Severity <span className="text-danger">*</span></Label>
+                <Select options={SEVERITY_OPTIONS} value={form.severity} onChange={v => handleSelect("severity", v)} isDisabled={isSubmitting} />
+              </FormGroup>
+            </Col>
+            <Col md={4}>
+              <FormGroup>
+                <Label>Admission Type <span className="text-danger">*</span></Label>
                 <Select
-                  options={SEVERITY_OPTIONS} value={form.severity}
-                  onChange={(v) => handleSelect("severity", v)} isDisabled={isSubmitting}
+                  options={ADMISSION_TYPE_OPTIONS} value={form.admissionType}
+                  onChange={v => handleSelect("admissionType", v)}
+                  isDisabled={isSubmitting} placeholder="Select type..."
                 />
+                {fieldErrors.admissionType && <small className="text-danger">{fieldErrors.admissionType}</small>}
               </FormGroup>
             </Col>
           </Row>
         </CardBody>
       </Card>
 
+      <MainBlock
+        satisfyingCriteria={satisfyingCriteria}
+        setSatisfyingCriteria={setSatisfyingCriteria}
+        modelFieldsCache={modelFieldsCache}
+        fetchModelFields={fetchModelFields}
+        isSubmitting={isSubmitting}
+        fieldErrors={fieldErrors}
+      />
+
       <div className="mb-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="fw-semibold mb-0">2. Target Models & Conditions</h5>
+          <h5 className="fw-semibold mb-0">3. Target Blocks</h5>
           <Button color="primary" size="sm" onClick={addTargetBlock} disabled={isSubmitting}>
-            + Add Target Model
+            + Add Block
           </Button>
         </div>
 
-        {targetBlocks.map((block, bIdx) => {
-          const bError = fieldErrors.targetBlocks?.[bIdx] || {};
-          const modelFields = modelFieldsCache[block.model?.value] || [];
-          const isFieldsLoading = fieldsLoading[block.model?.value];
-          const showDeadline = block.triggerType?.value === 'DELAYED';
+        {targetBlocks.map((block, bIdx) => (
+          <Card key={block.id} className="mb-3 border-secondary">
+            <CardHeader className="d-flex justify-content-between align-items-center bg-light">
+              <span className="fw-bold">Block {bIdx + 1}</span>
+              {targetBlocks.length > 1 && (
+                <Button type="button" color="danger" size="sm" outline onClick={() => removeTargetBlock(bIdx)} disabled={isSubmitting}>
+                  Remove Block
+                </Button>
+              )}
+            </CardHeader>
+            <CardBody>
+              <FormGroup>
+                <Label>Alert Template</Label>
+                <Input
+                  type="textarea" rows="2"
+                  // placeholder="Patient {patient.name} — {field.value}"
+                  value={block.alertTemplate}
+                  onChange={e => handleTargetBlockField(bIdx, "alertTemplate", e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </FormGroup>
 
-          return (
-            <Card key={block.id} className="mb-3 border-secondary">
-              <CardHeader className="bg-light d-flex justify-content-between align-items-center">
-                <span className="fw-bold">Target Block {bIdx + 1}</span>
-                {targetBlocks.length > 1 && (
-                  <Button type="button" color="danger" size="sm" outline onClick={() => removeTargetBlock(bIdx)} disabled={isSubmitting}>
-                    Remove Block
+              <div className="mt-2">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <Label className="fw-bold mb-0">Conditions</Label>
+                  <Button type="button" color="secondary" size="sm" outline onClick={() => addConditionToBlock(bIdx)} disabled={isSubmitting}>
+                    + Add Condition
                   </Button>
-                )}
-              </CardHeader>
-              <CardBody>
-                <Row>
-                  <Col md={showDeadline ? 4 : 6}>
-                    <FormGroup>
-                      <Label>Model <span className="text-danger">*</span></Label>
-                      <Select
-                        options={TARGET_OPTIONS}
-                        value={block.model}
-                        onChange={(v) => handleBlockModelChange(bIdx, v)}
-                        isDisabled={isSubmitting}
-                      />
-                      {bError.model && <small className="text-danger">{bError.model}</small>}
-                      {isFieldsLoading && <small className="text-info d-block mt-1">Loading fields...</small>}
-                    </FormGroup>
-                  </Col>
-                  <Col md={showDeadline ? 4 : 6}>
-                    <FormGroup>
-                      <Label>Trigger Type <span className="text-danger">*</span></Label>
-                      <Select
-                        options={TRIGGER_OPTIONS}
-                        value={block.triggerType}
-                        onChange={(v) => handleBlockTriggerChange(bIdx, v)}
-                        isDisabled={isSubmitting}
-                      />
-                    </FormGroup>
-                  </Col>
-                  {showDeadline && (
-                    <Col md={4}>
-                      <FormGroup>
-                        <Label>Deadline (hours) <span className="text-danger">*</span></Label>
-                        <Input
-                          type="number" min="1" placeholder="e.g. 24"
-                          value={block.deadlineHours}
-                          onChange={(e) => handleBlockDeadlineChange(bIdx, e.target.value)}
-                          invalid={!!bError.deadlineHours}
-                          disabled={isSubmitting}
-                        />
-                        {bError.deadlineHours && <small className="text-danger">{bError.deadlineHours}</small>}
-                      </FormGroup>
-                    </Col>
-                  )}
-                </Row>
-
-                <div className="mt-2">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <Label className="fw-bold mb-0">Conditions</Label>
-                    <Button type="button" color="secondary" size="sm" outline onClick={() => addCondition(bIdx)} disabled={isSubmitting || !block.model}>
-                      + Add Condition
-                    </Button>
-                  </div>
-                  {block.conditions.map((c, cIdx) => (
-                    <ConditionRow
-                      key={cIdx}
-                      condition={c}
-                      idx={cIdx}
-                      onChange={(idx, key, val) => handleConditionChange(bIdx, idx, key, val)}
-                      onRemove={(idx) => removeCondition(bIdx, idx)}
-                      isDisabled={isSubmitting}
-                      isOnly={block.conditions.length === 1}
-                      error={bError.conditions?.[cIdx]}
-                      fieldOptions={modelFields}
-                    />
-                  ))}
                 </div>
-              </CardBody>
-            </Card>
-          );
-        })}
+                {block.conditions.map((c, cIdx) => (
+                  <ConditionRow
+                    key={cIdx}
+                    condition={c}
+                    idx={cIdx}
+                    onChange={(idx, key, val) => handleTargetConditionChange(bIdx, idx, key, val)}
+                    onRemove={(idx) => removeConditionFromBlock(bIdx, idx)}
+                    isDisabled={isSubmitting}
+                    isOnly={block.conditions.length === 1}
+                    error={fieldErrors.targetBlocks?.[bIdx]?.conditions?.[cIdx]}
+                    modelFieldsCache={modelFieldsCache}
+                    onModelChange={fetchModelFields}
+                  />
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        ))}
       </div>
 
       <RoutingCard
@@ -401,10 +338,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
         <CardHeader className="fw-semibold">Alert Details (Optional)</CardHeader>
         <CardBody>
           <FormGroup>
-            <Label for="alertTemplate">Alert Message Template</Label>
-            <Input type="textarea" id="alertTemplate" name="alertTemplate" rows="2" value={form.alertTemplate} onChange={handleField} disabled={isSubmitting} />
-          </FormGroup>
-          <FormGroup>
             <Label for="actionGuidance">Action Guidance</Label>
             <Input type="textarea" id="actionGuidance" name="actionGuidance" rows="2" value={form.actionGuidance} onChange={handleField} disabled={isSubmitting} />
           </FormGroup>
@@ -417,13 +350,9 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
 
       <div className="d-flex justify-content-end gap-2">
         {onCancel && (
-          <Button type="button" color="secondary" outline onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
+          <Button type="button" color="secondary" outline onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
         )}
-        <Button type="button" color="secondary" outline onClick={resetForm} disabled={isSubmitting}>
-          Reset
-        </Button>
+        <Button type="button" color="secondary" outline onClick={resetForm} disabled={isSubmitting}>Reset</Button>
         <Button type="submit" color="primary" disabled={isSubmitting}>
           {isSubmitting ? <><Spinner size="sm" className="me-2" />Creating...</> : "Create SOP Rule"}
         </Button>
