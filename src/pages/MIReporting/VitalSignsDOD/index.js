@@ -55,7 +55,7 @@
         })),
     ], [data]);
 
-    const fixedLabels = ["Patient Name", "Center Name", "Psychologist Name", "Patient UID", "Total (Current Month)"];
+    const fixedLabels = ["Patient Name", "Center Name", "Patient UID", "Psychologist Name", "Total (Current Month)"];
     const fixedColWidths = [150, 120, 150, 80, 100];
 
     const prepareCsvData = () => {
