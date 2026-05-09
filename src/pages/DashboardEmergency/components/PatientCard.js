@@ -38,11 +38,15 @@ const sopItems = {
   },
   vitalSign: { label: "Vital", tooltip: "Submitted every day" },
   detailAdmission: {
-    label: "Admission Form",
+    label: "Detail History",
     tooltip: "Within 1st 24 hours of admission",
   },
+  admissionForm: {
+    label: "Admission Form",
+    tooltip: "Signed copies within 1st 24 hours of admission",
+  },
   consentForm: {
-    label: "Consent",
+    label: "Consent Form",
     tooltip: "Signed copies within 1st 24 hours of admission",
   },
   counsellingNote: {
