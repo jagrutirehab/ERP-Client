@@ -66,8 +66,7 @@ const Configuration = () => {
         message={
           pendingPayload ? (
             <span>
-              You're about to create rule <strong>{pendingPayload.ruleName}</strong> monitoring {pendingPayload.targetModels.length} target models.
-              Confirm?
+              You're about to create rule <strong>{pendingPayload.ruleName}</strong> with {pendingPayload.targetBlocks?.length} target block(s). Confirm?
             </span>
           ) : "Do you want to proceed?"
         }
