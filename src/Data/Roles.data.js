@@ -399,6 +399,15 @@ export const permissionList = [
       { name: "CONFIGURATION", label: "Configuration" },
     ],
   },
+    {
+    key: "TRAININGS",
+    label: "Trainings",
+    subModules: [
+      { name: "UPLOAD_TRAININGS", label: "Upload Trainings" },
+      { name: "VIEW_TRAININGS", label: "View My Trainings" },
+      { name: "ALL_TRAININGS", label: "All Trainings" },
+    ],
+  },
 
 ];
 

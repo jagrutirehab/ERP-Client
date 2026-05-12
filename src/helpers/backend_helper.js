@@ -3736,3 +3736,26 @@ export const exportInventoryUpdateReport = (billImportId) => {
     }
   );
 };
+
+
+
+// Create trainings
+export const createTrainings = (formData) => {
+  return axios.post(url.CREATE_TRAININGS, formData, {
+    headers: {
+      'Content-Type': undefined
+    }
+  })
+}
+
+export const getByRoles = (params) => {
+  return axios.get(url.GET_BY_ROLES, { params: params });
+}
+
+export const acknowledgeTraining = (trainingId) => axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}`)
+export const getAllTrainings = (params) => api.get(url.GET_ALL_TRAININGS, { params })
+
+export const editTraining = (trainingId, formData) => axios.patch(`${url.EDIT_TRAINING}/${trainingId}`, formData, {
+  headers: { 'Content-Type': undefined }
+})
+export const getTrainingById = (id) => api.get(`${url.GET_TRAINING_BY_ID}/${id}`)
