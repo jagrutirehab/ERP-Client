@@ -177,7 +177,9 @@ const Booking = ({
   return (
     <React.Fragment>
       <div className="page-content">
-        {(user.role === "DOCTOR" || user.role === "COUNSELLOR") && (
+        {(user.role === "DOCTOR" ||
+          user.role === "COUNSELLOR" ||
+          user.role === "PSW") && (
           <div className="d-flex justify-content-end mb-2">
             <button
               onClick={() => setScheduleModal(!scheduleModal)}
