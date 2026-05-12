@@ -10,6 +10,7 @@ const TrainingDetail = () => {
     const { state } = useLocation()
     const navigate = useNavigate()
     const activeTab = state?.activeTab || 'pending'
+    const canEdit = state?.canEdit
 
     const [training, setTraining] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -25,10 +26,15 @@ const TrainingDetail = () => {
             try {
                 const response = await getTrainingById(id)
                 setTraining(response?.data)
+
+                // If there are no files, immediately set fileLoading to false
+                if (!response?.data?.files || response.data.files.length === 0) {
+                    setFileLoading(false)
+                }
             } catch {
                 toast.error("Failed to load training")
             } finally {
-                setLoading(false)
+                setLoading(false) // This is your main page loading state
             }
         }
         load()
@@ -90,10 +96,51 @@ const TrainingDetail = () => {
             )}
 
             {file?.type?.startsWith('image/') && (
-                <img src={file.url} alt={file.originalName} className="img-fluid mb-4" />
+                <div className="mb-4">
+                    {fileLoading && (
+                        <div className="text-center py-5">
+                            <Spinner color="primary" />
+                            <p className="text-muted small mt-2">Loading Image...</p>
+                        </div>
+                    )}
+                    <img
+                        src={file.url}
+                        alt={file.originalName}
+                        className="img-fluid"
+                        onLoad={() => setFileLoading(false)}
+                        style={{ display: fileLoading ? 'none' : 'block' }}
+                    />
+                </div>
             )}
 
-            {activeTab === 'pending' && (
+            {/* WORD DOCUMENT VIEWER */}
+            {(file?.originalName?.toLowerCase().endsWith('.doc') || file?.originalName?.toLowerCase().endsWith('.docx')) && (
+                <div className="mb-4">
+                    {fileLoading && (
+                        <div className="text-center py-5">
+                            <Spinner color="primary" />
+                            <p className="text-muted small mt-2">Loading Document...</p>
+                        </div>
+                    )}
+                    <iframe
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`}
+                        width="100%"
+                        height={fileLoading ? '0px' : '700px'}
+                        style={{ border: 'none' }}
+                        onLoad={() => setFileLoading(false)}
+                        title="Document Viewer"
+                    ></iframe>
+                    
+                    {/* Fallback download link just in case the viewer fails */}
+                    <div className="mt-2 text-end">
+                        <a href={file.url} target="_blank" rel="noreferrer" className="btn btn-outline-primary btn-sm">
+                            Download Document
+                        </a>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'pending' && canEdit && !fileLoading && (
                 <div className="p-3 border rounded">
                     <FormGroup check className="mb-3">
                         <Input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} />

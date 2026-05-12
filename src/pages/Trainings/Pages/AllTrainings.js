@@ -4,6 +4,7 @@ import { getAllTrainings } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
 import EditTrainingModal from '../Components/EditTrainingModal'
+import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const roleBadgeColors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6']
 
@@ -17,6 +18,13 @@ const AllTrainings = () => {
     const [openAccordions, setOpenAccordions] = useState({})
     const [editTraining, setEditTraining] = useState(null)
     const [fileModal, setFileModal] = useState({ open: false, file: null })
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const { hasPermission } = usePermissions(token);
+    const hasUserPermission = hasPermission("TRAININGS", "ALL_TRAININGS", "READ");
+    const hasWritePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE");
+    const hasDeletePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "DELETE");
+
+    const canEdit = hasWritePermission || hasDeletePermission;
     const limit = 10
 
     const loadTrainings = async (pageNum = 1, tab = activeTab) => {
@@ -120,9 +128,9 @@ const AllTrainings = () => {
                                                 {training.acknowledgedBy?.length || 0}
                                                 <i className={`ri-arrow-${openAccordions[training._id] ? 'up' : 'down'}-s-line ms-1`} />
                                             </Button>
-                                            <Button color="primary" outline size="sm" onClick={() => setEditTraining(training)}>
+                                            {canEdit && <Button color="primary" outline size="sm" onClick={() => setEditTraining(training)}>
                                                 <i className="ri-edit-line me-1" /> Edit
-                                            </Button>
+                                            </Button>}
                                         </div>
                                     </div>
 
@@ -197,9 +205,26 @@ const AllTrainings = () => {
                     {file?.type?.startsWith('image/') && (
                         <img src={file?.url} alt={file?.originalName} className="img-fluid" />
                     )}
-                    {!file?.type?.startsWith('image/') && file?.type !== 'application/pdf' && (
-                        <p className="text-muted text-center py-5">Preview not available for this file type</p>
-                    )}
+                    {/* 3. WORD DOCUMENT VIEWER */}
+                    {((file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') ||
+                        (file?.originalName || file?.name)?.toLowerCase().endsWith('.docx')) && (
+                            <iframe
+                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
+                                width="100%"
+                                height="600px"
+                                style={{ border: 'none' }}
+                                title="Document Viewer"
+                            ></iframe>
+                        )}
+
+                    {/* 4. FALLBACK FOR UNSUPPORTED FILES */}
+                    {!file?.type?.startsWith('image/') &&
+                        file?.type !== 'application/pdf' &&
+                        !(file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') &&
+                        !(file?.originalName || file?.name)?.toLowerCase().endsWith('.docx') && (
+                            <p className="text-muted text-center py-5">Preview not available for this file type</p>
+                        )}
+
                 </ModalBody>
                 <ModalFooter>
                     <a href={file?.url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">Download</a>

@@ -4,6 +4,7 @@ import { acknowledgeTraining, getByRoles } from '../../../helpers/backend_helper
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
 import TrainingCard from '../Components/TrainingCard'
+import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const Trainings = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)")
@@ -16,6 +17,13 @@ const Trainings = () => {
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({})
   const [activeTab, setActiveTab] = useState("pending")
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "READ");
+  const hasWritePermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "WRITE");
+  const hasDeletePermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "DELETE");
+
+  const canEdit = hasWritePermission || hasDeletePermission;
   const limit = 10
 
   const loadTrainings = async (pageNum = 1, tab = activeTab) => {
@@ -114,6 +122,7 @@ const Trainings = () => {
               key={training._id}
               training={training}
               activeTab={activeTab}
+              canEdit={canEdit}
             />
           ))}
 

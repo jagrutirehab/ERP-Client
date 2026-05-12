@@ -3,6 +3,7 @@ import { CardBody, Spinner } from 'reactstrap'
 import { createTrainings, sopGetRoles } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
+import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const Upload = () => {
   const [forms, setForms] = useState([{ id: 0, trainingName: '', roles: [], repeatFrequency: '' }])
@@ -10,7 +11,14 @@ const Upload = () => {
   const [allRoles, setAllRoles] = useState([])
   const [loading, setLoading] = useState(false)
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const hasUserPermission = hasPermission("TRAININGS", "UPLOAD_TRAININGS", "READ");
+  const hasWritePermission = hasPermission("TRAININGS", "UPLOAD_TRAININGS", "WRITE");
+  const hasDeletePermission = hasPermission("TRAININGS", "UPLOAD_TRAININGS", "DELETE");
+
+  const canEdit = hasWritePermission || hasDeletePermission;
 
   const getRoles = async () => {
     try {
@@ -171,8 +179,26 @@ const Upload = () => {
                 <input
                   type="file"
                   className="form-control"
-                  onChange={(e) => handleFile(form.id, e.target.files[0])}
+                  accept="image/*, application/pdf, .doc, .docx"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+
+                    if (!file) return;
+
+                    const isImage = file.type.startsWith('image/');
+                    const isPDF = file.type === 'application/pdf';
+                    const isDoc = file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx');
+
+                    if (!isImage && !isPDF && !isDoc) {
+                      toast.error("Invalid file type! Only Images, PDFs, and Word docs are allowed.");
+                      e.target.value = '';
+                      return;
+                    }
+
+                    handleFile(form.id, file);
+                  }}
                 />
+
                 {files[form.id] ? (
                   <small className="d-block mt-2 text-success">
                     ✓ {files[form.id].name} ({(files[form.id].size / 1024).toFixed(2)} KB)
@@ -194,14 +220,14 @@ const Upload = () => {
             </div>
           ))}
 
-          <div className="d-flex gap-2 mb-4">
+          {canEdit && <div className="d-flex gap-2 mb-4">
             <button type="button" className="btn btn-outline-primary" onClick={addForm}>
               + Add Training
             </button>
             <button type="submit" className="btn btn-primary" disabled={loading || !isFormValid}>
               {loading ? <Spinner size="sm" /> : 'Submit'}
             </button>
-          </div>
+          </div>}
         </form>
       </CardBody>
     </>
