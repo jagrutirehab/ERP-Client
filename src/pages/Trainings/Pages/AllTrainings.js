@@ -25,7 +25,7 @@ const AllTrainings = () => {
     const hasDeletePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "DELETE");
 
     const canEdit = hasWritePermission || hasDeletePermission;
-    const limit = 10
+    const limit = 5
 
     const loadTrainings = async (pageNum = 1, tab = activeTab) => {
         try {

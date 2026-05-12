@@ -8,7 +8,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
     const [form, setForm] = useState({ trainingName: '', repeatFrequency: '' })
     const [file, setFile] = useState(null)
     const [loading, setLoading] = useState(false)
-  
+
 
     const isInactive = training?.status === 'inactive'
 
@@ -16,7 +16,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
         if (training) {
             setForm({
                 trainingName: training.trainingName || '',
-                repeatFrequency: training.repeatFrequency || ''
+                // repeatFrequency: training.repeatFrequency || ''
             })
             setFile(null)
         }
@@ -39,7 +39,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
     const handleSubmit = () => {
         const formData = new FormData()
         formData.append('trainingName', form.trainingName)
-        if (form.repeatFrequency !== '') formData.append('repeatFrequency', form.repeatFrequency)
+        // if (form.repeatFrequency !== '') formData.append('repeatFrequency', form.repeatFrequency)
         if (file) formData.append('file', file)
         callApi(formData)
     }
@@ -89,7 +89,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                             {file && <small className="text-success d-block mt-1">New: {file.name}</small>}
                         </FormGroup> */}
 
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Label className="fw-semibold small">Repeat Frequency (days)</Label>
                             <Input
                                 type="number"
@@ -97,7 +97,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                                 onChange={e => setForm({ ...form, repeatFrequency: e.target.value })}
                                 placeholder="e.g. 30"
                             />
-                        </FormGroup>
+                        </FormGroup> */}
 
                         <hr />
 

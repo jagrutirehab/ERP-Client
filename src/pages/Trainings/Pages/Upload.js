@@ -167,10 +167,15 @@ const Upload = () => {
               <div className="mb-3">
                 <label className="form-label">Repeat Frequency (days)</label>
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
                   value={form.repeatFrequency}
-                  onChange={(e) => handleChange(form.id, 'repeatFrequency', e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (/^\d*$/.test(val) && (val === '' || parseInt(val) >= 1)) {
+                      handleChange(form.id, 'repeatFrequency', val)
+                    }
+                  }}
                 />
               </div>
 
