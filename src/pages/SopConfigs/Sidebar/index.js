@@ -27,7 +27,7 @@ const SOPsidebar = () => {
 
   const navigate = useNavigate();
 
-  const filteredRecordingOptions = SOP_CONFIGS?.filter((page) => {
+  const filteredSOPOptions = SOP_CONFIGS?.filter((page) => {
     if (page.id === "sopconfigs-create") {
       if (!hasConfigurationPermission) return false;
       return true;
@@ -37,7 +37,7 @@ const SOPsidebar = () => {
   });
 
   useEffect(() => {
-    filteredRecordingOptions?.forEach((page) => {
+    filteredSOPOptions?.forEach((page) => {
       if (
         page?.isAccordion &&
         page?.children?.some((child) =>
@@ -49,7 +49,6 @@ const SOPsidebar = () => {
     });
   }, [location.pathname]);
 
-  console.log("Filtered Options:", filteredRecordingOptions);
 
   return (
     <>
@@ -86,7 +85,7 @@ const SOPsidebar = () => {
 
         <PerfectScrollbar className="chat-room-list">
           <ul className="list-unstyled chat-list chat-user-list users-list ps-4 pe-3 pt-2">
-            {filteredRecordingOptions.map((page) => {
+            {filteredSOPOptions.map((page) => {
               const hasChildren = page.children && page.children.length > 0;
 
               if (!accordionRefs.current[page.id]) {

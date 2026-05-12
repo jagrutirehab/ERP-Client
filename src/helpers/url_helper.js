@@ -675,3 +675,13 @@ export const VALIDATE_SUMMARY = "/chart/validate/response"
 export const CONFIGURATION_SOP = "/sop/create"
 export const GET_ROLES = "/sop/getroles"
 export const GET_FIELDS = "/sop/fields"
+
+
+// trainings
+
+export const CREATE_TRAININGS = "/trainings/create"
+export const GET_BY_ROLES = "/trainings/get/by/roles"
+export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge"
+export const GET_ALL_TRAININGS = "/trainings/get"
+export const EDIT_TRAINING = "/trainings/edit"
+export const GET_TRAINING_BY_ID = "/trainings"
