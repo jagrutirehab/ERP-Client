@@ -1,10 +1,7 @@
+// components/RoutingCard.js
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import AsyncSelect from "react-select/async";
-import {
-  Card, CardHeader, CardBody,
-  FormGroup, Label, Input,
-  Button, Badge, Alert, Spinner,
-} from "reactstrap";
+import { Card, CardHeader, CardBody, FormGroup, Label, Button, Badge, Alert, Spinner } from "reactstrap";
 import { sopGetRoles, getEmployeesBySearch } from "../../../helpers/backend_helper";
 
 const isECodeLike = (str) => /^[a-zA-Z]{1,3}\d+$/i.test(str);
@@ -14,9 +11,6 @@ const RoutingCard = ({
   onRoleToggle,
   selectedUsers,
   onUsersChange,
-  notifyEmails,
-  onNotifyEmailsChange,
-  notifyEmailsError,
   routingError,
   isSubmitting,
 }) => {
@@ -34,16 +28,10 @@ const RoutingCard = ({
     const fetchRoles = async () => {
       try {
         const response = await sopGetRoles();
-        const list =
-          (Array.isArray(response) && response) ||
-          response?.data?.data ||
-          response?.data ||
-          [];
+        const list = (Array.isArray(response) && response) || response?.data?.data || response?.data || [];
         if (alive) setRoles(Array.isArray(list) ? list : []);
       } catch (err) {
-        if (alive) {
-          setRolesError(err?.response?.data?.message || err?.message || "Failed to load roles");
-        }
+        if (alive) setRolesError(err?.response?.data?.message || err?.message || "Failed to load roles");
       } finally {
         if (alive) setRolesLoading(false);
       }
@@ -81,20 +69,15 @@ const RoutingCard = ({
     }, 400);
   }, [fetchEmployees]);
 
-  const emailCount = notifyEmails.split(",").map((e) => e.trim()).filter(Boolean).length;
-
   return (
     <Card className="mb-4">
       <CardHeader className="fw-semibold">
-        4. Routing — Who Gets Notified
-        {routingError && (
-          <Badge color="danger" pill className="ms-2">Required</Badge>
-        )}
+        Routing — Who Gets Notified
+        {routingError && <Badge color="danger" pill className="ms-2">Required</Badge>}
       </CardHeader>
       <CardBody>
         <FormGroup>
           <Label className="fw-semibold mb-2">Notify Roles</Label>
-
           {rolesLoading ? (
             <div className="d-flex align-items-center text-muted">
               <Spinner size="sm" className="me-2" />
@@ -121,7 +104,6 @@ const RoutingCard = ({
                     size="sm"
                     onClick={() => onRoleToggle(role.name)}
                     disabled={isSubmitting}
-                    title={role.description || ""}
                   >
                     {active && "✓ "}{role.name?.toUpperCase()}
                   </Button>
@@ -129,42 +111,12 @@ const RoutingCard = ({
               })}
             </div>
           )}
-
-          <small className="text-muted d-block mt-2">
-            Selected: {selectedRoles.length || "none"}
-          </small>
-        </FormGroup>
-
-        <FormGroup>
-          <Label for="notifyEmails" className="fw-semibold">
-            External Emails{" "}
-            {emailCount > 0 && <Badge color="info" pill className="ms-1">{emailCount}</Badge>}
-          </Label>
-          <Input
-            type="textarea"
-            id="notifyEmails"
-            name="notifyEmails"
-            rows="2"
-            placeholder="oncall@hospital.com, qa@hospital.com"
-            value={notifyEmails}
-            onChange={onNotifyEmailsChange}
-            invalid={!!notifyEmailsError}
-            disabled={isSubmitting}
-          />
-          {notifyEmailsError && (
-            <small className="text-danger">{notifyEmailsError}</small>
-          )}
-          <small className="text-muted d-block mt-1">
-            Comma-separated. For external/on-call alerts not tied to a platform user.
-          </small>
         </FormGroup>
 
         <FormGroup>
           <Label className="fw-semibold">
             Notify Specific Users{" "}
-            {selectedUsers.length > 0 && (
-              <Badge color="info" pill className="ms-1">{selectedUsers.length}</Badge>
-            )}
+            {selectedUsers.length > 0 && <Badge color="info" pill className="ms-1">{selectedUsers.length}</Badge>}
           </Label>
           <AsyncSelect
             isMulti
@@ -178,14 +130,9 @@ const RoutingCard = ({
               inputValue?.length >= 2 ? "No employees found" : "Type at least 2 characters to search"
             }
           />
-          <small className="text-muted d-block mt-1">
-            Search and select platform users to notify directly.
-          </small>
         </FormGroup>
 
-        {routingError && (
-          <Alert color="danger" className="mb-0 mt-2 py-2">{routingError}</Alert>
-        )}
+        {routingError && <Alert color="danger" className="mb-0 mt-2 py-2">{routingError}</Alert>}
       </CardBody>
     </Card>
   );
