@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Label, Input, Spinner } from 'reactstrap'
 import { editTraining } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
+import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
     const [form, setForm] = useState({ trainingName: '', repeatFrequency: '' })
     const [file, setFile] = useState(null)
     const [loading, setLoading] = useState(false)
+  
 
     const isInactive = training?.status === 'inactive'
 
@@ -78,14 +80,14 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                             />
                         </FormGroup>
 
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Label className="fw-semibold small">Replace File</Label>
                             <Input type="file" onChange={e => setFile(e.target.files[0])} />
                             {training?.files?.[0] && !file && (
                                 <small className="text-muted d-block mt-1">Current: {training.files[0].originalName}</small>
                             )}
                             {file && <small className="text-success d-block mt-1">New: {file.name}</small>}
-                        </FormGroup>
+                        </FormGroup> */}
 
                         <FormGroup>
                             <Label className="fw-semibold small">Repeat Frequency (days)</Label>
