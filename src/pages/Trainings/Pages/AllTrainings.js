@@ -162,7 +162,7 @@ const AllTrainings = () => {
                                                                     {ack.employee?.name || '—'}
                                                                 </td>
                                                                 <td style={{ color: '#6b7280' }}>{ack.employee?.eCode || '—'}</td>
-                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.email || '—'}</td>
+                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.officialEmail || ack.employee?.email  || '—'}</td>
                                                                 <td style={{ color: '#16a34a', fontWeight: 500 }}>
                                                                     {ack.acknowledgedOn ? new Date(ack.acknowledgedOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                                                 </td>
