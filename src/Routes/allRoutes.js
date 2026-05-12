@@ -44,6 +44,7 @@ const Tally = React.lazy(() => import("../pages/Tally"));
 const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
+const Trainings = React.lazy(() => import("../pages/Trainings"));
 
 const allElements = [
   { element: Register, label: "User" },
@@ -71,7 +72,9 @@ const allElements = [
   { element: Tally, label: "Tally" },
   { element: Issues, label: "Issues" },
   { element: Recordings, label: "Recordings" },
-  { element: SOP, label: "SOP-configs" }
+  { element: SOP, label: "SOP-configs" },
+  { element: Trainings, label: "Trainings" }
+
 ];
 
 console.log("SOP:", SOP);
@@ -108,6 +111,7 @@ const authProtectedRoutes = [
   { path: "/referral", component: Referral },
   { path: "/tally", component: Tally },
   { path: '/sop-configs/*', component: SOP },
+  { path: '/trainings/*', component: Trainings },
   {
     path: "/",
     exact: true,

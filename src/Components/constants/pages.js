@@ -287,6 +287,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "tranings",
+    label: "Trainings",
+    name: "Trainings",
+    link: "/trainings",
+    icon: "bx bx-book-reader"
+  },
+  {
     id: "guidelines",
     label: "Guidelines",
     name: "Guidelines",
@@ -342,7 +349,8 @@ const pages = [
     name: "SOP-configs",
     link: "/sop-configs",
     icon: "bx bx-transfer",
-  }
+  },
+
 
 ];
 
@@ -1276,6 +1284,26 @@ export const SOP_CONFIGS = [
     link: "/sop-configs/create",
     icon: "bx bx-slider-alt"
   },
-]
+];
+export const TRAININGS = [
+  {
+    id: "upload-trainings",
+    label: "Upload Trainings",
+    link: "/trainings/upload",
+    icon: "bx bx-cloud-upload"
+  },
+  {
+    id: "view-trainings",
+    label: "View Trainings",
+    link: "/trainings/view",
+    icon: "bx bx-slideshow"
+  },
+  {
+    id: "all-trainings",
+    label: "All Trainings",
+    link: "/trainings/all",
+    icon: "bx bx-collection"
+  },
+];
 
 export default pages;
