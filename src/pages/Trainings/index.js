@@ -7,6 +7,8 @@ import Upload from "./Pages/Upload";
 import Trainings from "./Pages/Trainings";
 import AllTrainings from "./Pages/AllTrainings";
 import TrainingDetail from "./Pages/TrainingDetail";
+import TrainingHistory from "./Pages/TrainingHistory";
+import TrainingHistoryDetail from "./Pages/HistoryDetail";
 
 const Trainingindex = () => {
     const navigate = useNavigate();
@@ -52,7 +54,8 @@ const Trainingindex = () => {
                                             <Route path="view" element={<Trainings />} />
                                             <Route path="all" element={<AllTrainings />} />
                                             <Route path=":id" element={<TrainingDetail />} />
-                                            
+                                            <Route path="history" element={<TrainingHistory />} />
+                                            <Route path="history/:id" element={<TrainingHistoryDetail />} />
                                         </Routes>
                                     </div>
                                 </Container>
