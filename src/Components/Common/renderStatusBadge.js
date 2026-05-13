@@ -254,6 +254,18 @@ export const renderStatusBadge = (stage) => {
     DISPATCHED: {
       text: "Dispatched",
       color: "primary"
+    },
+    PARTIALLY_COMPLETED: {
+      text: "Partially Completed",
+      color: "info"
+    },
+    COMPLETED: {
+      text: "Completed",
+      color: "success"
+    },
+    FAILED:{
+      text: "Failed",
+      color: "danger"
     }
   };
 

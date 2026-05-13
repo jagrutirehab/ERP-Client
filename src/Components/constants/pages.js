@@ -446,12 +446,12 @@ export const Pharmacy = [
     link: "/pharmacy/stock-summary",
     icon: "bx bx-box",
   },
-  // {
-  //   id: "billUploadDashboard",
-  //   label: "Bill Upload History",
-  //   link: "/pharmacy/bill-upload-dashboard",
-  //   icon: "bx bx-history",
-  // }
+  {
+    id: "billUploadDashboard",
+    label: "Bill Upload History",
+    link: "/pharmacy/bill-upload-dashboard",
+    icon: "bx bx-history",
+  }
 ];
 
 export const MIReporting = [

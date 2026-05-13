@@ -15,8 +15,8 @@ import MedicineRequisition from "./Requisition/MedicineRequisition";
 import MedicineRequisitionAddRequest from "./Requisition/MedicineRequisition/AddRequest";
 import MedicineRequisitionEditRequest from "./Requisition/MedicineRequisition/EditRequest";
 import StockSummary from "./StockSummary";
-// import OCRBillImport from "./OCRBillImport/OCRBillImport";
-// import BillUploadDashboard from "./BillUploadDashboard/BillUploadDashboard";
+import OCRBillImport from "./OCRBillImport/OCRBillImport";
+import BillUploadDashboard from "./BillUploadDashboard/BillUploadDashboard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 
 const Pharmacy = () => {
@@ -68,9 +68,12 @@ const Pharmacy = () => {
                 <Route path={`/requisition/medicine-requisition/add`} element={<MedicineRequisitionAddRequest />} />
                 <Route path={`/requisition/medicine-requisition/edit/:id`} element={<MedicineRequisitionEditRequest />} />
                 <Route path={`/stock-summary`} element={<StockSummary />} />
-                {/* <Route path={`/ocr-bill-import`} element={<OCRBillImport />} />
-                <Route path={`/bill-upload-dashboard`} element={<BillUploadDashboard />} /> */}
+                <Route path={`/ocr-bill-import`} element={<OCRBillImport />} />
+                <Route path={`/bill-upload-dashboard`} element={<BillUploadDashboard />} />
               </Routes>
+
+
+              
             </div>
           </Container>
         </div>

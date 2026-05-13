@@ -447,13 +447,14 @@ export const PHARMACY_MEDICINE_REQUISITION = "/pharmacy/requisition/medicine-req
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
 
 // PHARMACY OCR BILL IMPORT
-// export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
-// export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
-// export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
-// export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
-// export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
-// export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
-// export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
+export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
+export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
+export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
+export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
+export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
+export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
+export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
+export const OCR_UPDATE_BILL_ERRORS = "/pharmacy/ocr/update-bill-errors";
 
 // PHARMACY EXCEL REPORTS
 export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
