@@ -173,8 +173,22 @@ const TrainingHistoryDetail = () => {
                     placeholder="Select Center"
                     styles={{ container: base => ({ ...base, width: 200 }) }}
                 />
-                <input type="date" className="form-control" style={{ width: 160 }} value={from} onChange={e => setFrom(e.target.value)} />
-                <input type="date" className="form-control" style={{ width: 160 }} value={to} onChange={e => setTo(e.target.value)} />
+                <input
+                    type="date"
+                    className="form-control"
+                    style={{ width: 160 }}
+                    value={from}
+                    max={to || undefined}
+                    onChange={e => setFrom(e.target.value)}
+                />
+                <input
+                    type="date"
+                    className="form-control"
+                    style={{ width: 160 }}
+                    value={to}
+                    min={from || undefined}
+                    onChange={e => setTo(e.target.value)}
+                />
                 <button className="btn btn-primary btn-sm" onClick={handleApplyFilter}>
                     Apply
                 </button>
