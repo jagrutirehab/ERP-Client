@@ -102,7 +102,7 @@ const Trainings = () => {
             style={{ cursor: "pointer" }}
             onClick={() => handleTabChange("acknowledged")}
           >
-            Acknowledged
+            Completed
           </NavLink>
         </NavItem>
       </Nav>
@@ -113,7 +113,7 @@ const Trainings = () => {
         </div>
       ) : trainings.length === 0 ? (
         <p className="text-muted text-center py-5">
-          {activeTab === "pending" ? "No pending trainings." : "No acknowledged trainings."}
+          {activeTab === "pending" ? "No pending trainings." : "No Completed trainings."}
         </p>
       ) : (
         <>

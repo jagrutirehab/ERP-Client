@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { CardBody, Spinner, Nav, NavItem, NavLink, Card, Card as RCard, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
+import { CardBody, Spinner, Nav, NavItem, NavLink, Card, Collapse, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap'
 import { getAllTrainings } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
 import EditTrainingModal from '../Components/EditTrainingModal'
 import { usePermissions } from '../../../Components/Hooks/useRoles'
+import { useSelector } from 'react-redux'
+import Select from 'react-select'
 
 const roleBadgeColors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6']
 
 const AllTrainings = () => {
     const isMobile = useMediaQuery("(max-width: 1000px)")
+    const user = useSelector(state => state.User)
     const [trainings, setTrainings] = useState([])
     const [loading, setLoading] = useState(false)
     const [page, setPage] = useState(1)
@@ -18,19 +21,40 @@ const AllTrainings = () => {
     const [openAccordions, setOpenAccordions] = useState({})
     const [editTraining, setEditTraining] = useState(null)
     const [fileModal, setFileModal] = useState({ open: false, file: null })
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
-    const { hasPermission } = usePermissions(token);
-    const hasUserPermission = hasPermission("TRAININGS", "ALL_TRAININGS", "READ");
-    const hasWritePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE");
-    const hasDeletePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "DELETE");
+    const [selectedCenter, setSelectedCenter] = useState("ALL")
+    const [from, setFrom] = useState("")
+    const [to, setTo] = useState("")
+    const [appliedFrom, setAppliedFrom] = useState("")
+    const [appliedTo, setAppliedTo] = useState("")
 
-    const canEdit = hasWritePermission || hasDeletePermission;
+    const token = JSON.parse(localStorage.getItem("user"))?.token
+    const { hasPermission } = usePermissions(token)
+    const hasWritePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE")
+    const hasDeletePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "DELETE")
+    const canEdit = hasWritePermission || hasDeletePermission
     const limit = 5
+
+    const centerOptions = [
+        ...(user?.centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
+        ...(user?.centerAccess?.map(cid => {
+            const center = user?.userCenters?.find(c => c._id === cid)
+            return { value: cid, label: center?.title || "Unknown Center" }
+        }) || [])
+    ]
 
     const loadTrainings = async (pageNum = 1, tab = activeTab) => {
         try {
             setLoading(true)
-            const response = await getAllTrainings({ page: pageNum, limit, status: tab })
+            let centers = []
+            if (selectedCenter === "ALL") centers = user?.centerAccess || []
+            else if (selectedCenter) centers = [selectedCenter]
+
+            const response = await getAllTrainings({
+                page: pageNum, limit, status: tab,
+                ...(centers.length && { centers: centers.join(',') }),
+                ...(appliedFrom && { from: appliedFrom }),
+                ...(appliedTo && { to: appliedTo })
+            })
             setTrainings(response?.data || [])
             setPagination(response?.pagination || {})
         } catch {
@@ -52,9 +76,24 @@ const AllTrainings = () => {
         loadTrainings(newPage)
     }
 
+    const handleApplyFilter = () => {
+        setAppliedFrom(from)
+        setAppliedTo(to)
+    }
+
+    const handleClearDates = () => {
+        setFrom('')
+        setTo('')
+        setAppliedFrom('')
+        setAppliedTo('')
+    }
+
     const toggleAccordion = (id) => setOpenAccordions(prev => ({ ...prev, [id]: !prev[id] }))
 
-    useEffect(() => { loadTrainings() }, [])
+    useEffect(() => {
+        if (!user?.centerAccess) return
+        loadTrainings()
+    }, [selectedCenter, appliedFrom, appliedTo, user?.centerAccess])
 
     const file = fileModal.file
 
@@ -66,7 +105,6 @@ const AllTrainings = () => {
                 .ack-table td { padding: 10px 16px; border-bottom: 1px solid #f1f5f9; color: #374151; }
                 .ack-table tr:last-child td { border-bottom: none; }
                 .ack-table tr:hover td { background: #f9fafb; }
-                .ack-avatar { width: 28px; height: 28px; border-radius: 50%; background: #eff6ff; color: #3b82f6; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 8px; }
             `}</style>
 
             <div className="d-flex align-items-center justify-content-between mb-4">
@@ -88,6 +126,36 @@ const AllTrainings = () => {
                 ))}
             </Nav>
 
+            <div className="d-flex gap-2 flex-wrap mb-4">
+                <Select
+                    options={centerOptions}
+                    value={centerOptions?.find(c => c.value === selectedCenter) || null}
+                    onChange={s => setSelectedCenter(s?.value || "ALL")}
+                    placeholder="Select Center"
+                    styles={{ container: base => ({ ...base, width: 200 }) }}
+                />
+                <input
+                    type="date"
+                    className="form-control"
+                    style={{ width: 160 }}
+                    value={from}
+                    max={to || undefined}
+                    onChange={e => setFrom(e.target.value)}
+                />
+                <input
+                    type="date"
+                    className="form-control"
+                    style={{ width: 160 }}
+                    value={to}
+                    min={from || undefined}
+                    onChange={e => setTo(e.target.value)}
+                />
+                <button className="btn btn-primary btn-sm" onClick={handleApplyFilter}>Apply</button>
+                {(appliedFrom || appliedTo) && (
+                    <button className="btn btn-outline-secondary btn-sm" onClick={handleClearDates}>Clear</button>
+                )}
+            </div>
+
             {loading ? (
                 <div className="text-center py-5"><Spinner color="primary" /></div>
             ) : trainings.length === 0 ? (
@@ -103,7 +171,7 @@ const AllTrainings = () => {
                                         <div>
                                             <h6 className="fw-bold mb-1">{training.trainingName}</h6>
                                             <div className="d-flex align-items-center gap-2 flex-wrap">
-                                                <small className="text-muted fs-10">Author : {training.author?.name}</small>
+                                                <small className="text-muted">Author: {training.author?.name}</small>
                                                 <span className="text-muted">·</span>
                                                 <small className="text-muted">{new Date(training.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</small>
                                                 {training.repeatFrequency && (
@@ -128,9 +196,11 @@ const AllTrainings = () => {
                                                 {training.acknowledgedBy?.length || 0}
                                                 <i className={`ri-arrow-${openAccordions[training._id] ? 'up' : 'down'}-s-line ms-1`} />
                                             </Button>
-                                            {canEdit && <Button color="primary" outline size="sm" onClick={() => setEditTraining(training)}>
-                                                <i className="ri-edit-line me-1" /> Edit
-                                            </Button>}
+                                            {canEdit && (
+                                                <Button color="primary" outline size="sm" onClick={() => setEditTraining(training)}>
+                                                    <i className="ri-edit-line me-1" /> Edit
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -151,18 +221,17 @@ const AllTrainings = () => {
                                                             <th>Employee</th>
                                                             <th>E-Code</th>
                                                             <th>Email</th>
+                                                            <th>Center</th>
                                                             <th>Acknowledged On</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {training?.acknowledgedBy?.map(ack => (
                                                             <tr key={ack._id}>
-                                                                <td>
-                                                                    {/* <span className="ack-avatar">{ack.employee?.name?.[0]?.toUpperCase() || '?'}</span> */}
-                                                                    {ack.employee?.name || '—'}
-                                                                </td>
+                                                                <td>{ack.employee?.name || '—'}</td>
                                                                 <td style={{ color: '#6b7280' }}>{ack.employee?.eCode || '—'}</td>
-                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.officialEmail || ack.employee?.email  || '—'}</td>
+                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.officialEmail || ack.employee?.email || '—'}</td>
+                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.currentLocation?.title || '—'}</td>
                                                                 <td style={{ color: '#16a34a', fontWeight: 500 }}>
                                                                     {ack.acknowledgedOn ? new Date(ack.acknowledgedOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                                                 </td>
@@ -192,39 +261,29 @@ const AllTrainings = () => {
                 <ModalHeader toggle={() => setFileModal({ open: false, file: null })}>{file?.originalName || file?.name}</ModalHeader>
                 <ModalBody>
                     {file?.type === 'application/pdf' && (
-                        <object
-                            data={file.url}
-                            type="application/pdf"
-                            width="100%"
-                            height="600px"
-                            style={{ border: 'none' }}
-                        >
+                        <object data={file.url} type="application/pdf" width="100%" height="600px" style={{ border: 'none' }}>
                             <a href={file.url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">Open PDF</a>
                         </object>
                     )}
                     {file?.type?.startsWith('image/') && (
                         <img src={file?.url} alt={file?.originalName} className="img-fluid" />
                     )}
-                    {/* 3. WORD DOCUMENT VIEWER */}
                     {((file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') ||
                         (file?.originalName || file?.name)?.toLowerCase().endsWith('.docx')) && (
-                            <iframe
-                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
-                                width="100%"
-                                height="600px"
-                                style={{ border: 'none' }}
-                                title="Document Viewer"
-                            ></iframe>
-                        )}
-
-                    {/* 4. FALLBACK FOR UNSUPPORTED FILES */}
+                        <iframe
+                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
+                            width="100%"
+                            height="600px"
+                            style={{ border: 'none' }}
+                            title="Document Viewer"
+                        />
+                    )}
                     {!file?.type?.startsWith('image/') &&
                         file?.type !== 'application/pdf' &&
                         !(file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') &&
                         !(file?.originalName || file?.name)?.toLowerCase().endsWith('.docx') && (
-                            <p className="text-muted text-center py-5">Preview not available for this file type</p>
-                        )}
-
+                        <p className="text-muted text-center py-5">Preview not available for this file type</p>
+                    )}
                 </ModalBody>
                 <ModalFooter>
                     <a href={file?.url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">Download</a>

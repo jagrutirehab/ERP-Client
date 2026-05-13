@@ -99,9 +99,7 @@ const TrainingHistory = () => {
                     {trainings.map(training => {
                         const tFile = training.files?.[0]
                         return (
-                            <Card key={training?._id} className="mb-3"
-                            onClick={() => navigate(`/trainings/history/${training?._id}`)}
-                            >
+                            <Card key={training?._id} className="mb-3">
                                 <CardBody>
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div>
@@ -127,8 +125,10 @@ const TrainingHistory = () => {
                                         </div>
 
                                         <div className="d-flex gap-2 flex-shrink-0">
-                                            <Button color="secondary" outline size="sm">
-                                              View History
+                                            <Button color="secondary" outline size="sm"
+                                                onClick={() => navigate(`/trainings/history/${training?._id}`)}
+                                            >
+                                                View History
                                             </Button>
                                         </div>
                                     </div>
@@ -161,7 +161,7 @@ const TrainingHistory = () => {
                                                                     {ack.employee?.name || '—'}
                                                                 </td>
                                                                 <td style={{ color: '#6b7280' }}>{ack.employee?.eCode || '—'}</td>
-                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.officialEmail || ack.employee?.email  || '—'}</td>
+                                                                <td style={{ color: '#6b7280' }}>{ack.employee?.officialEmail || ack.employee?.email || '—'}</td>
                                                                 <td style={{ color: '#16a34a', fontWeight: 500 }}>
                                                                     {ack.acknowledgedOn ? new Date(ack.acknowledgedOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                                                                 </td>
