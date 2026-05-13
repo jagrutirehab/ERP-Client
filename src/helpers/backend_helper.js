@@ -3759,3 +3759,5 @@ export const editTraining = (trainingId, formData) => axios.patch(`${url.EDIT_TR
   headers: { 'Content-Type': undefined }
 })
 export const getTrainingById = (id) => api.get(`${url.GET_TRAINING_BY_ID}/${id}`)
+
+export const getTrainingHistoryDetail = (params) => api.get(url.GET_TRAINING_HISTORY, { params })

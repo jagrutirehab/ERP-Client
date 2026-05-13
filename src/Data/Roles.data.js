@@ -406,6 +406,7 @@ export const permissionList = [
       { name: "UPLOAD_TRAININGS", label: "Upload Trainings" },
       { name: "VIEW_TRAININGS", label: "View My Trainings" },
       { name: "ALL_TRAININGS", label: "All Trainings" },
+      { name: "TRAINING_HISTORY", label: "Training History" },
     ],
   },
 

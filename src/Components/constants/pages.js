@@ -1304,6 +1304,12 @@ export const TRAININGS = [
     link: "/trainings/all",
     icon: "bx bx-collection"
   },
+  {
+    id: "training-history",
+    label: "Training History",
+    link: "/trainings/history",
+    icon: "bx bx-collection"
+  },
 ];
 
 export default pages;

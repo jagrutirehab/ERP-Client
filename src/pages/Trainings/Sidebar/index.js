@@ -37,6 +37,13 @@ const Trainingsidebar = () => {
         "READ"
     );
 
+    // 
+    const hasTrainingHistoryPermission = hasPermission(
+        "TRAININGS",
+        "TRAINING_HISTORY",
+        "READ"
+    );
+
 
 
     const navigate = useNavigate();
@@ -54,6 +61,11 @@ const Trainingsidebar = () => {
 
         if (page.id === "all-trainings") {
             if (!hasAllPermission) return false;
+            return true;
+        }
+
+        if (page.id === "training-history") {
+            if (!hasTrainingHistoryPermission) return false;
             return true;
         }
 
