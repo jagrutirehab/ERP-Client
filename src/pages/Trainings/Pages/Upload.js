@@ -137,6 +137,25 @@ const Upload = () => {
               <div className="mb-3">
                 <label className="form-label">Select Roles</label>
                 <div className="border p-3 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <div className="form-check border-bottom pb-2 mb-2">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`select-all-${form.id}`}
+                      checked={form.roles.length === allRoles.length}
+                      onChange={() => {
+                        const allSelected = form.roles.length === allRoles.length
+                        setForms(forms.map(f =>
+                          f.id === form.id
+                            ? { ...f, roles: allSelected ? [] : allRoles.map(r => r.name) }
+                            : f
+                        ))
+                      }}
+                    />
+                    <label className="form-check-label fw-semibold" htmlFor={`select-all-${form.id}`}>
+                      Select All
+                    </label>
+                  </div>
                   {allRoles.length > 0 ? (
                     allRoles.map((role) => (
                       <div key={role._id} className="form-check">
