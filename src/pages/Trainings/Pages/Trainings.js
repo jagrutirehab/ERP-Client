@@ -33,7 +33,9 @@ const Trainings = () => {
       setTrainings(response?.data || [])
       setPagination(response?.pagination || {})
     } catch (error) {
-      toast.error("Failed to load trainings")
+      console.log("error", error);
+
+      toast.error(error?.message || "Failed to load trainings")
     } finally {
       setLoading(false)
     }
