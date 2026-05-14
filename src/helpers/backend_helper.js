@@ -3673,6 +3673,9 @@ export const sopConfigure = (data) => {
 export const sopGetRoles = (data) => {
   return axios.get(url.GET_ROLES, data)
 }
+
+export const sopGetFieldsByModel = (model) => axios.get(`${url.GET_FIELDS}/${model}`);
+
 // OCR BILL IMPORT
 export const getMatchingMedicines = (data) =>
   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {
