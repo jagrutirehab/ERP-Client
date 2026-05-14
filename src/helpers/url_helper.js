@@ -690,3 +690,5 @@ export const GET_ALL_TRAININGS = "/trainings/get"
 export const EDIT_TRAINING = "/trainings/edit"
 export const GET_TRAINING_BY_ID = "/trainings"
 export const GET_TRAINING_HISTORY = "/trainings/history"
+export const CREATE_TRAINER_RECORD = '/trainings/create/trainers'
+export const GET_USER_BY_ROLE = "/trainings/get/users/by/role"

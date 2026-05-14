@@ -1314,8 +1314,20 @@ export const TRAININGS = [
     id: "training-history",
     label: "Training History",
     link: "/trainings/history",
-    icon: "bx bx-collection"
+    icon: "bx bx-time-five"
   },
+  // {
+  //   id: "create-training-record",
+  //   label: "Create Trainer Record",
+  //   link: "/trainings/create/record",
+  //   icon: "bx bx-edit-alt"
+  // },
+  // {
+  //   id: "training-records",
+  //   label: "Trainer Records",
+  //   link: "/trainings/get/record",
+  //   icon: "bx bx-spreadsheet"
+  // },
 ];
 
 export default pages;
