@@ -1,26 +1,52 @@
-import React, { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { socket } from "../workers/sopsocket";
 import { toast } from "react-toastify";
+import { getUnreadSopAlerts, markSopAlertRead } from "../helpers/backend_helper";
 
-console.log("FILE READ: SOPAlertListener.jsx is loaded");
+const showAlert = (alert) => {
+  if (!alert?._id) return;
+  toast.error(`[${alert.severity}] ${alert.message}`, {
+    toastId: alert._id,                 // dedupes if the same alert arrives twice
+    autoClose: false,                   // user must acknowledge
+    onClose: () => {
+      markSopAlertRead(alert._id).catch(() => { /* best-effort */ });
+    },
+  });
+};
+
+const fetchMissed = async () => {
+  try {
+    const res = await getUnreadSopAlerts();
+    const alerts = res?.data?.data || [];
+    alerts.forEach(showAlert);
+  } catch (err) {
+    console.error("[SOP] Failed to fetch unread alerts:", err?.message || err);
+  }
+};
 
 const SOPAlertListener = () => {
-  console.log("RENDER: SOPAlertListener component is rendering");
+  const fetchedOnceRef = useRef(false);
 
   useEffect(() => {
-    console.log("MOUNT: SOP Listener is now active. Status:", socket.connected);
+    // Initial pull when the component mounts (covers the "logged in already
+    // and just loaded the page" case).
+    if (!fetchedOnceRef.current) {
+      fetchedOnceRef.current = true;
+      fetchMissed();
+    }
 
-    socket.onAny((eventName, ...args) => {
-      console.log(`[SOP] EVENT: ${eventName}`, args);
-    });
+    // Re-pull every time the socket (re)connects — catches anything fired
+    // while the connection was down.
+    const onConnect = () => fetchMissed();
+
+    socket.on("connect", onConnect);
 
     socket.on("NEW_SOP_ALERT", (alert) => {
-      console.log("ALERT PAYLOAD RECEIVED:", alert);
-      toast.error(`[${alert.severity}] ${alert.message}`);
+      showAlert(alert);
     });
 
     return () => {
-      socket.offAny();
+      socket.off("connect", onConnect);
       socket.off("NEW_SOP_ALERT");
     };
   }, []);

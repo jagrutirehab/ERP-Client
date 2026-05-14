@@ -1284,6 +1284,12 @@ export const SOP_CONFIGS = [
     link: "/sop-configs/create",
     icon: "bx bx-slider-alt"
   },
+  {
+    id: "sopconfigs-alerts",
+    label: "Alerts",
+    link: "/sop-configs/alerts",
+    icon: "bx bx-bell"
+  },
 ];
 export const TRAININGS = [
   {
