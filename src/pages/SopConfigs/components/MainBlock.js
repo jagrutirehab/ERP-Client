@@ -12,25 +12,26 @@ const MainBlock = ({
   fieldErrors,
 }) => {
   const addCondition = () => {
-    setSatisfyingCriteria(prev => ({
+    setSatisfyingCriteria((prev) => ({
       ...prev,
       conditions: [...prev.conditions, emptyConditionItem()],
     }));
   };
 
   const removeCondition = (idx) => {
-    setSatisfyingCriteria(prev => ({
+    setSatisfyingCriteria((prev) => ({
       ...prev,
-      conditions: prev.conditions.length === 1
-        ? prev.conditions
-        : prev.conditions.filter((_, i) => i !== idx),
+      conditions:
+        prev.conditions.length === 1
+          ? prev.conditions
+          : prev.conditions.filter((_, i) => i !== idx),
     }));
   };
 
   const handleConditionChange = (idx, key, value) => {
-    setSatisfyingCriteria(prev => {
+    setSatisfyingCriteria((prev) => {
       const next = [...prev.conditions];
-      next[idx]  = { ...next[idx], [key]: value };
+      next[idx] = { ...next[idx], [key]: value };
       return { ...prev, conditions: next };
     });
   };
@@ -42,7 +43,13 @@ const MainBlock = ({
           2. Satisfying Criteria
           {/* <small className="text-muted fw-normal ms-2">— optional, if empty all patients are counted</small> */}
         </span>
-        <Button color="primary" size="sm" outline onClick={addCondition} disabled={isSubmitting}>
+        <Button
+          color="primary"
+          size="sm"
+          outline
+          onClick={addCondition}
+          disabled={isSubmitting}
+        >
           + Add Condition
         </Button>
       </CardHeader>
@@ -52,6 +59,7 @@ const MainBlock = ({
             key={cIdx}
             condition={c}
             idx={cIdx}
+            disableTrigger={true}
             onChange={handleConditionChange}
             onRemove={removeCondition}
             isDisabled={isSubmitting}

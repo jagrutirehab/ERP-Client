@@ -4,6 +4,7 @@ import { Container, Spinner } from "reactstrap";
 import React from "react";
 import SOPsidebar from "./Sidebar";
 import Configuration from "./pages/Configuration";
+import Alerts from "./pages/Alerts";
 
 const SOPindex = () => {
     const navigate = useNavigate();
@@ -46,6 +47,7 @@ const SOPindex = () => {
 
                                         <Routes>
                                             <Route path="create" element={<Configuration />} />
+                                            <Route path="alerts" element={<Alerts />} />
                                         </Routes>
                                     </div>
                                 </Container>

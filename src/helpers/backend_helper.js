@@ -3676,6 +3676,12 @@ export const sopGetRoles = (data) => {
 
 export const sopGetFieldsByModel = (model) => axios.get(`${url.GET_FIELDS}/${model}`);
 
+export const getUnreadSopAlerts = () => axios.get(url.GET_UNREAD_SOP_ALERTS);
+
+export const getAllSopAlerts = () => axios.get(url.GET_ALL_SOP_ALERTS);
+
+export const markSopAlertRead = (id) => axios.post(`${url.MARK_SOP_ALERT_READ}/${id}/read`);
+
 // OCR BILL IMPORT
 // export const getMatchingMedicines = (data) =>
 //   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {
