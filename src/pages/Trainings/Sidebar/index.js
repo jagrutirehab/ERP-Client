@@ -45,6 +45,17 @@ const Trainingsidebar = () => {
     );
 
 
+    // const hasCreateTrainingRecordPermission = hasPermission(
+    //     "TRAININGS",
+    //     "CREATE_TRAINING_RECORD",
+    //     "READ"
+    // );
+
+    //   const hasGetTrainingRecordPermission = hasPermission(
+    //     "TRAININGS",
+    //     "TRAINING_RECORDS",
+    //     "READ"
+    // );
 
     const navigate = useNavigate();
 
@@ -69,6 +80,17 @@ const Trainingsidebar = () => {
             return true;
         }
 
+        // if (page.id === "create-training-record") {
+        //     if (!hasCreateTrainingRecordPermission) return false;
+        //     return true;
+        // }
+        //  if (page.id === "training-records") {
+        //     if (!hasGetTrainingRecordPermission) return false;
+        //     return true;
+        // }
+        
+
+        
         return true;
     });
 

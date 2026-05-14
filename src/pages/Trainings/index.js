@@ -9,6 +9,8 @@ import AllTrainings from "./Pages/AllTrainings";
 import TrainingDetail from "./Pages/TrainingDetail";
 import TrainingHistory from "./Pages/TrainingHistory";
 import TrainingHistoryDetail from "./Pages/HistoryDetail";
+import CreateTrainers from "./Pages/CreateTrainers";
+import TrainingRecords from "./Pages/TrainingRecords";
 
 const Trainingindex = () => {
     const navigate = useNavigate();
@@ -46,9 +48,7 @@ const Trainingindex = () => {
                             <div className="patient-page">
                                 <Container fluid>
                                     <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1">
-
                                         <Trainingsidebar />
-
                                         <Routes>
                                             <Route path="upload" element={<Upload />} />
                                             <Route path="view" element={<Trainings />} />
@@ -56,6 +56,8 @@ const Trainingindex = () => {
                                             <Route path=":id" element={<TrainingDetail />} />
                                             <Route path="history" element={<TrainingHistory />} />
                                             <Route path="history/:id" element={<TrainingHistoryDetail />} />
+                                            <Route path="create/record" element={<CreateTrainers />} />
+                                            <Route path="get/record" element={<TrainingRecords />} />
                                         </Routes>
                                     </div>
                                 </Container>
