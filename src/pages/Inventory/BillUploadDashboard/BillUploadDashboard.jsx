@@ -108,18 +108,22 @@ const BillUploadDashboard = () => {
 
     setLoading(true);
     try {
+      let centers = [];
+      if (selectedCenter && selectedCenter.value !== "") {
+        centers = [selectedCenter.value];
+      } else {
+        centers = user?.centerAccess || [];
+      }
+
       const params = {
         page: currentPage,
         limit: pageSize,
         search: debouncedSearch || undefined,
+        centers,
       };
 
       if (selectedStatus && selectedStatus.value !== "") {
         params.status = selectedStatus.value;
-      }
-
-      if (selectedCenter && selectedCenter.value !== "") {
-        params.centerIds = [selectedCenter.value];
       }
 
       const response = await getBillUploadRecords(params);
@@ -306,7 +310,7 @@ const BillUploadDashboard = () => {
 
               {/* Financial Section */}
               <div className="mb-4 pb-3 border-bottom">
-                <h6 className="font-weight-bold text-dark mb-3">💰 Financial Details</h6>
+                <h6 className="font-weight-bold text-dark mb-3">Financial Details</h6>
                 <Row>
                   <Col md="6" className="mb-2">
                     <small className="text-muted">Gross Amount</small>
@@ -329,7 +333,7 @@ const BillUploadDashboard = () => {
 
               {/* Medicines Summary */}
               <div className="mb-4 pb-3 border-bottom">
-                <h6 className="font-weight-bold text-dark mb-3">📦 Medicines Summary</h6>
+                <h6 className="font-weight-bold text-dark mb-3">Medicines Summary</h6>
                 <Row>
                   <Col sm="6" md="3" className="mb-2">
                     <div className="bg-light p-3 rounded text-center">
@@ -360,7 +364,7 @@ const BillUploadDashboard = () => {
 
               {/* Metadata */}
               <div className="mb-0">
-                <h6 className="font-weight-bold text-dark mb-3">📅 Metadata</h6>
+                <h6 className="font-weight-bold text-dark mb-3">Metadata</h6>
                 <Row>
                   <Col md="6">
                     <small className="text-muted">Uploaded By</small>
@@ -376,7 +380,7 @@ const BillUploadDashboard = () => {
               {/* Missing Medicines List */}
               {selectedBill.errors?.length > 0 && (
                 <div className="mt-4 pt-3 border-top">
-                  <h6 className="font-weight-bold text-warning mb-3">⚠️ Missing Medicines ({selectedBill.errors.length})</h6>
+                  <h6 className="font-weight-bold mb-3">Missing Medicines ({selectedBill.errors.length})</h6>
                   <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                     <table className="table table-sm table-bordered mb-0">
                       <thead>

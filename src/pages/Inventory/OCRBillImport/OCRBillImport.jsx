@@ -1642,12 +1642,16 @@ const OCRBillImport = () => {
             }
           }
 
+          // Use first matched medicine's strength from database
+          const firstMatch = newMatch.matches?.[0];
+          const matchedStrength = firstMatch?.strength || newMatch.strength || "";
+
           // Create a new medicine entry with the structure expected by extract step
           updatedExtractedMedicines.push({
             medicineId: null, // Will be selected from dropdown
             ocrExtracted: {
               name: newMatch.name,
-              strength: newMatch.strength || "",
+              strength: matchedStrength,
               batchNumber: originalMedicine?.batchNumber || null,
               quantity: originalMedicine?.quantity || 0,
               unitPrice: originalMedicine?.unitPrice || null,
@@ -1663,7 +1667,7 @@ const OCRBillImport = () => {
           // Initialize form data for this medicine
           newFormDataEntries[startIdx] = {
             medicineName: newMatch.name,
-            strength: newMatch.strength || "",
+            strength: matchedStrength,
             quantity: originalMedicine?.quantity || 0,
             batchNumber: originalMedicine?.batchNumber || null,
             expiryDate: formattedExpiryDate,
@@ -1694,6 +1698,16 @@ const OCRBillImport = () => {
       const retryNames = newMatches.map(m => m.name);
       const updatedErrors = errorMedicines.filter(e => !retryNames.includes(e.extractedName));
       setErrorMedicines(updatedErrors);
+
+      // Update database to mark retried medicines as processed
+      try {
+        await updateBillErrors({
+          billImportId: billImportIdParam,
+          errors: updatedErrors,
+        });
+      } catch (updateErr) {
+        console.error("Failed to update bill errors in database:", updateErr);
+      }
 
       setError(null);
       setIsResuming(false);
@@ -1891,19 +1905,6 @@ const OCRBillImport = () => {
                       <h4 className="fw-semibold text-dark mb-3">
                         Extracting Medicine Details
                       </h4>
-
-                      <p className="text-muted mb-4">
-                        AI is analyzing your bill and extracting medicine information.
-                      </p>
-
-                      <div className="progress mb-3" style={{ height: "6px" }}>
-                        <div
-                          className="progress-bar progress-bar-striped progress-bar-animated"
-                          role="progressbar"
-                          style={{ width: "70%" }}
-                        />
-                      </div>
-
                       <p className="text-muted small mb-2">
                         This may take a minute or two
                       </p>
@@ -2074,7 +2075,7 @@ const OCRBillImport = () => {
                 <Row className="align-items-center">
                   <Col>
                     <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines ({errorMedicines.length})</h6>
-                    <small className="text-muted">Edit details • Search again • Match & move to extracted list</small>
+                    <small className="text-muted">Edit details • Move to extracted list to search & match</small>
                   </Col>
                   <Col xs="auto">
                     <Button
@@ -2123,15 +2124,14 @@ const OCRBillImport = () => {
                   <table className="table table-sm mb-0 error-medicine-table">
                     <thead className="bg-light">
                       <tr>
-                        <th style={{ width: "15%" }}>Medicine Name</th>
-                        <th style={{ width: "10%" }}>Strength</th>
-                        <th style={{ width: "8%" }}>Qty</th>
-                        <th style={{ width: "12%" }}>Batch</th>
-                        <th style={{ width: "12%" }}>Expiry</th>
-                        <th style={{ width: "9%" }}>Unit Price</th>
-                        <th style={{ width: "9%" }}>Total</th>
-                        <th style={{ width: "20%" }}>Search & Match</th>
-                        <th style={{ width: "5%" }}></th>
+                        <th style={{ width: "18%" }}>Medicine Name</th>
+                        <th style={{ width: "12%" }}>Strength</th>
+                        <th style={{ width: "10%" }}>Qty</th>
+                        <th style={{ width: "15%" }}>Batch</th>
+                        <th style={{ width: "15%" }}>Expiry</th>
+                        <th style={{ width: "12%" }}>Unit Price</th>
+                        <th style={{ width: "12%" }}>Total</th>
+                        <th style={{ width: "6%" }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2152,19 +2152,7 @@ const OCRBillImport = () => {
                           }));
                         }
 
-                        // Auto-fetch matching medicines when name/strength is set
-                        if (!errorMatchingMedicinesMap[idx] && med.extractedName) {
-                          if (debounceTimersRef.current[`error-init-${idx}`]) {
-                            clearTimeout(debounceTimersRef.current[`error-init-${idx}`]);
-                          }
-                          debounceTimersRef.current[`error-init-${idx}`] = setTimeout(async () => {
-                            const matches = await fetchMatchingMedicines(med.extractedName, med.extractedStrength);
-                            setErrorMatchingMedicinesMap(prevMap => ({
-                              ...prevMap,
-                              [idx]: matches,
-                            }));
-                          }, 300);
-                        }
+                        // Auto-fetch disabled - search happens in extracted list instead
 
                         return (
                           <tr key={idx}>
@@ -2248,75 +2236,6 @@ const OCRBillImport = () => {
                                 disabled
                               />
                             </td>
-                            <td style={{ minWidth: "280px" }}>
-                              {errorMatchingMedicinesMap[idx]?.length > 0 ? (
-                                <Row className="g-1">
-                                  <Col xs="9">
-                                    <Select
-                                      options={errorMatchingMedicinesMap[idx]?.map((m) => ({
-                                        value: m._id,
-                                        label: `${m.id || m._id} | ${m.name} ${m.strength || ""}`.trim(),
-                                        data: m,
-                                      })) || []}
-                                      value={
-                                        selectedErrorMedicineIds[idx]
-                                          ? {
-                                            value: selectedErrorMedicineIds[idx],
-                                            label: errorMatchingMedicinesMap[idx]?.find(
-                                              (m) => m._id === selectedErrorMedicineIds[idx]
-                                            )?.id || selectedErrorMedicineIds[idx],
-                                          }
-                                          : null
-                                      }
-                                      onChange={(selected) => {
-                                        if (selected) {
-                                          setSelectedErrorMedicineIds({
-                                            ...selectedErrorMedicineIds,
-                                            [idx]: selected.value,
-                                          });
-                                        }
-                                      }}
-                                      isClearable
-                                      isSearchable
-                                      placeholder="Select..."
-                                      onClearValue={() => {
-                                        const updated = { ...selectedErrorMedicineIds };
-                                        delete updated[idx];
-                                        setSelectedErrorMedicineIds(updated);
-                                      }}
-                                      menuPortalTarget={document.body}
-                                      menuPosition="fixed"
-                                      styles={{
-                                        control: (base) => ({
-                                          ...base,
-                                          minHeight: "36px",
-                                          fontSize: "0.75rem",
-                                          padding: "0 4px",
-                                        }),
-                                        option: (base, state) => ({
-                                          ...base,
-                                          fontSize: "0.75rem",
-                                          padding: "6px 10px",
-                                        }),
-                                      }}
-                                    />
-                                  </Col>
-                                  <Col xs="3">
-                                    <Button
-                                      color="success"
-                                      size="sm"
-                                      onClick={() => handleAddErrorMedicineToExtracted(idx)}
-                                      disabled={!selectedErrorMedicineIds[idx]}
-                                      className="w-100"
-                                    >
-                                      Add ✓
-                                    </Button>
-                                  </Col>
-                                </Row>
-                              ) : (
-                                <span className="text-muted small">Searching...</span>
-                              )}
-                            </td>
                             <td style={{ textAlign: "center" }}>
                               <Button
                                 color="link"
@@ -2358,7 +2277,7 @@ const OCRBillImport = () => {
                     <Row className="align-items-center">
                       <Col>
                         <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines Found ({errorMedicines.length})</h6>
-                        <small className="text-muted">Edit details • Search again • Match & move to extracted list</small>
+                        <small className="text-muted">Edit details • Move to extracted list to search & match</small>
                       </Col>
                       <Col xs="auto">
                         <Button
