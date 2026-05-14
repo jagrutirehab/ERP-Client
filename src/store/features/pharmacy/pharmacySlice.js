@@ -17,7 +17,7 @@ import {
     grnInternalTransferRequisition,
     requestingReviewInternalTransferRequisition,
     getPharmacyConsolidated,
-    // getMatchingMedicines as getMatchingMedicinesApi,
+    getMatchingMedicines,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -352,20 +352,19 @@ export const pharmacySlice = createSlice({
                 state.loading = false;
             });
 
-/*
-        builder
-            .addCase(getMatchingMedicines.pending, (state) => {
-                state.matchingMedicines.loading = true;
-            })
-            .addCase(getMatchingMedicines.fulfilled, (state, { payload }) => {
-                state.matchingMedicines.loading = false;
-                state.matchingMedicines.data = payload.data || payload || [];
-            })
-            .addCase(getMatchingMedicines.rejected, (state) => {
-                state.matchingMedicines.loading = false;
-                state.matchingMedicines.data = [];
-            });
-*/
+        // builder
+        //     .addCase(getMatchingMedicines.pending, (state) => {
+        //         state.matchingMedicines.loading = true;
+        //     })
+        //     .addCase(getMatchingMedicines.fulfilled, (state, { payload }) => {
+        //         state.matchingMedicines.loading = false;
+        //         state.matchingMedicines.data = payload.data || payload || [];
+        //     })
+        //     .addCase(getMatchingMedicines.rejected, (state) => {
+        //         state.matchingMedicines.loading = false;
+        //         state.matchingMedicines.data = [];
+        //     });
+
 
         builder
             .addCase(fetchInternalTransferRequisitions.pending, (state) => {

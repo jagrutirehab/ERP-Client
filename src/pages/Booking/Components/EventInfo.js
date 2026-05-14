@@ -214,7 +214,9 @@ const EventInfo = ({
           </div>
         )}
         <div className="d-flex justify-content-end mt-3">
-          {data?.chart && data?.doctor?.role === "COUNSELLOR" ? (
+          {data?.chart &&
+          (data?.doctor?.role === "COUNSELLOR" ||
+            data?.doctor?.role === "PSW") ? (
             <>
               <button
                 onClick={(e) => {
@@ -262,7 +264,8 @@ const EventInfo = ({
                 View Note
               </button>
             </>
-          ) : data?.doctor?.role === "COUNSELLOR" ? (
+          ) : data?.doctor?.role === "COUNSELLOR" ||
+            data?.doctor?.role === "PSW" ? (
             <button
               onClick={(e) => {
                 // setAppointment(data);

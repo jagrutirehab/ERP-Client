@@ -1,27 +1,30 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import Select from "react-select";
 import {
-  Card, CardBody, CardHeader,
-  Form, FormGroup, Label, Input,
-  Button, Row, Col, Alert, Spinner,
+  Card, CardBody, CardHeader, Form, FormGroup,
+  Label, Input, Button, Row, Col, Alert, Spinner,
 } from "reactstrap";
 import {
-  TRIGGER_OPTIONS, SEVERITY_OPTIONS, TARGET_OPTIONS,
-  VALUELESS_OPERATORS, emptyCondition, emptyForm,
-} from "../constants/sopConstants"
+  SEVERITY_OPTIONS, ADMISSION_TYPE_OPTIONS, VALUELESS_OPERATORS,
+  emptyConditionItem, emptyTargetBlock, emptyForm,
+} from "../../../Components/constants/sopConstants";
 import ConditionRow from "./ConditionRow";
+import MainBlock from "./MainBlock";
 import RoutingCard from "./RoutingCard";
+import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
-  const [form, setForm] = useState(emptyForm);
-  const [conditions, setConditions] = useState([emptyCondition()]);
+  const [form, setForm] = useState(emptyForm());
+  const [satisfyingCriteria, setSatisfyingCriteria] = useState({ conditions: [emptyConditionItem()] });
+  const [targetBlocks, setTargetBlocks] = useState([emptyTargetBlock()]);
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [topError, setTopError] = useState(null);
+  const [modelFieldsCache, setModelFieldsCache] = useState({});
 
   const clearError = (key) =>
-    setFieldErrors((prev) => {
+    setFieldErrors(prev => {
       if (!prev[key]) return prev;
       const next = { ...prev };
       delete next[key];
@@ -30,18 +33,18 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
 
   const handleField = useCallback((e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     clearError(name);
   }, []);
 
   const handleSelect = useCallback((name, selected) => {
-    setForm((prev) => ({ ...prev, [name]: selected }));
+    setForm(prev => ({ ...prev, [name]: selected }));
     clearError(name);
   }, []);
 
   const handleRoleToggle = useCallback((roleName) => {
-    setSelectedRoles((prev) =>
-      prev.includes(roleName) ? prev.filter((r) => r !== roleName) : [...prev, roleName]
+    setSelectedRoles(prev =>
+      prev.includes(roleName) ? prev.filter(r => r !== roleName) : [...prev, roleName]
     );
     clearError("routing");
   }, []);
@@ -51,72 +54,124 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     clearError("routing");
   }, []);
 
-  const handleConditionChange = useCallback((idx, key, value) => {
-    setConditions((prev) =>
-      prev.map((c, i) => {
-        if (i !== idx) return c;
-        const next = { ...c, [key]: value };
-        if (key === "operator" && VALUELESS_OPERATORS.has(value?.value)) next.value = "";
-        return next;
-      })
-    );
-  }, []);
+  const fetchModelFields = useCallback(async (modelName) => {
+    if (!modelName || modelFieldsCache[modelName]) return;
+    try {
+      const res = await sopGetFieldsByModel(modelName);
+      const fields = res?.data?.fields || res?.fields || [];
+      setModelFieldsCache(prev => ({
+        ...prev,
+        [modelName]: fields?.map(f => ({
+          value: f.path,
+          label: f.label,
+          type: f.type,
+          enumValues: f.options,
+        })),
+      }));
+    } catch {
+      setTopError(`Failed to load fields for ${modelName}`);
+    }
+  }, [modelFieldsCache]);
 
-  const addCondition = useCallback(() => {
-    setConditions((prev) => [...prev, emptyCondition()]);
-  }, []);
+  const handleTargetConditionChange = (blockIdx, condIdx, key, value) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      const conds = [...next[blockIdx].conditions];
+      conds[condIdx] = { ...conds[condIdx], [key]: value };
+      next[blockIdx] = { ...next[blockIdx], conditions: conds };
+      return next;
+    });
+  };
 
-  const removeCondition = useCallback((idx) => {
-    setConditions((prev) => prev.length === 1 ? prev : prev.filter((_, i) => i !== idx));
-  }, []);
+  const handleTargetBlockField = (blockIdx, key, value) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      next[blockIdx] = { ...next[blockIdx], [key]: value };
+      return next;
+    });
+  };
+
+  const addTargetBlock = () => setTargetBlocks(prev => [...prev, emptyTargetBlock()]);
+  const removeTargetBlock = (idx) => setTargetBlocks(prev => prev.filter((_, i) => i !== idx));
+
+  const addConditionToBlock = (blockIdx) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      next[blockIdx] = { ...next[blockIdx], conditions: [...next[blockIdx].conditions, emptyConditionItem()] };
+      return next;
+    });
+  };
+
+  const removeConditionFromBlock = (blockIdx, condIdx) => {
+    setTargetBlocks(prev => {
+      const next = [...prev];
+      next[blockIdx].conditions = next[blockIdx].conditions.length === 1
+        ? next[blockIdx].conditions
+        : next[blockIdx].conditions.filter((_, i) => i !== condIdx);
+      return next;
+    });
+  };
 
   const resetForm = useCallback(() => {
     setForm(emptyForm());
-    setConditions([emptyCondition()]);
+    setSatisfyingCriteria({ conditions: [emptyConditionItem()] });
+    setTargetBlocks([emptyTargetBlock()]);
     setSelectedRoles([]);
     setSelectedUsers([]);
     setFieldErrors({});
     setTopError(null);
   }, []);
 
-  const validate = () => {
-    const errs = {};
+  const formatCondition = (c) => {
+    const out = {
+      model: c.model?.value,
+      field: c.field,
+      operator: c.operator?.value,
+      triggerType: c.triggerType?.value || "IMMEDIATE",
+    };
 
-    if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
-    if (!form.targetModel) errs.targetModel = "Target model is required";
-    if (!form.alertTemplate.trim()) errs.alertTemplate = "Alert template is required";
-
-    if (form.triggerType?.value === "DELAYED") {
-      const hrs = Number(form.deadlineHours);
-      if (!form.deadlineHours || isNaN(hrs) || hrs <= 0)
-        errs.deadlineHours = "Deadline hours must be greater than 0 for DELAYED rules";
+    if (c.triggerType?.value === "DELAYED" && c.deadlineHours) {
+      out.deadlineHours = Number(c.deadlineHours);
     }
 
-    const conditionErrs = [];
-    conditions.forEach((c, i) => {
-      if (!c.field && (c.value === "" || c.value == null)) return;
-      if (!c.field.trim()) { conditionErrs[i] = "Field is required"; return; }
-      if (!VALUELESS_OPERATORS.has(c.operator?.value) && c.value === "")
-        conditionErrs[i] = `Value required for ${c.operator?.value}`;
+    if (!VALUELESS_OPERATORS.has(c.operator?.value)) {
+      if (Array.isArray(c.value)) {
+        out.value = c.value;
+      } else {
+        const n = Number(c.value);
+        out.value = [c.value !== "" && !isNaN(n) ? n : c.value];
+      }
+    }
+
+    return out;
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
+    if (!form.admissionType) errs.admissionType = "Admission type is required";
+    if (!selectedRoles.length && !selectedUsers.length)
+      errs.routing = "Add at least one notification channel";
+
+    let hasTargetErrors = false;
+    const targetErrors = targetBlocks.map(block => {
+      const bErr = { conditions: [] };
+      block.conditions.forEach((c, cIdx) => {
+        if (!c.model) { bErr.conditions[cIdx] = "Model is required"; hasTargetErrors = true; }
+        else if (!c.field) { bErr.conditions[cIdx] = "Field is required"; hasTargetErrors = true; }
+      });
+      return bErr;
     });
-    if (conditionErrs.length) errs.conditions = conditionErrs;
+    if (hasTargetErrors) errs.targetBlocks = targetErrors;
 
-    const parsedEmails = form.notifyEmails.split(",").map((e) => e.trim()).filter(Boolean);
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const badEmails = parsedEmails.filter((e) => !emailRegex.test(e));
-    if (badEmails.length) errs.notifyEmails = `Invalid email(s): ${badEmails.join(", ")}`;
-
-    if (!selectedRoles.length && !parsedEmails.length && !selectedUsers.length)
-      errs.routing = "Add at least one notification channel (role, email, or user)";
-
-    return { valid: !Object.keys(errs).length, errors: errs, parsedEmails };
+    return { valid: !Object.keys(errs).length, errors: errs };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setTopError(null);
 
-    const { valid, errors, parsedEmails } = validate();
+    const { valid, errors } = validate();
     if (!valid) {
       setFieldErrors(errors);
       setTopError("Please fix the highlighted fields before submitting");
@@ -124,58 +179,42 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     }
     setFieldErrors({});
 
-    const cleanConditions = conditions
-      .filter((c) => c.field.trim())
-      .map((c) => {
-        const out = { field: c.field.trim(), operator: c.operator?.value };
-        if (!VALUELESS_OPERATORS.has(c.operator?.value)) {
-          const n = Number(c.value);
-          out.value = c.value !== "" && !isNaN(n) ? n : c.value;
-        }
-        return out;
-      });
-
-    const routing = {};
-    if (selectedRoles.length) routing.notifyRoles = selectedRoles;
-    if (parsedEmails.length) routing.notifyEmails = parsedEmails;
-    if (selectedUsers.length) routing.notifySpecificUsers = selectedUsers.map((u) => u.value);
+    const validSCConditions = satisfyingCriteria.conditions.filter(c => c.model && c.field);
 
     const payload = {
       ruleName: form.ruleName.trim(),
-      triggerType: form.triggerType?.value,
-      targetModel: form.targetModel?.value,
       severity: form.severity?.value,
-      alertTemplate: form.alertTemplate.trim(),
+      admissionType: form.admissionType?.value,
       isActive: form.isActive,
-      conditions: cleanConditions,
-      routing,
+      targetBlocks: targetBlocks.map(block => ({
+        alertTemplate: block.alertTemplate?.trim() || undefined,
+        conditions: block.conditions.filter(c => c.model && c.field).map(formatCondition),
+      })),
+      routing: {
+        ...(selectedRoles.length && { notifyRoles: selectedRoles }),
+        ...(selectedUsers.length && { notifySpecificUsers: selectedUsers.map(u => u.value) }),
+      },
     };
-    if (form.protocol.trim()) payload.protocol = form.protocol.trim();
-    if (form.triggerType?.value === "DELAYED") payload.deadlineHours = Number(form.deadlineHours);
 
+    if (validSCConditions.length > 0) {
+      payload.satisfyingCriteria = { conditions: validSCConditions.map(formatCondition) };
+    }
+
+    if (form.protocol.trim()) payload.protocol = form.protocol.trim();
+    if (form.actionGuidance.trim()) payload.actionGuidance = form.actionGuidance.trim();
+    if (form.referenceSection.trim()) payload.referenceSection = form.referenceSection.trim();
 
     try {
       const response = await onSubmit(payload);
-      if (response) {
-        setForm((prev) => ({ ...emptyForm(), targetModel: prev.targetModel, severity: prev.severity }));
-        setConditions([emptyCondition()]);
-        setSelectedRoles([]);
-        setSelectedUsers([]);
-      }
+      if (response) resetForm();
     } catch (err) {
       setTopError(err?.message || "Submission failed");
     }
   };
 
-  const showDeadline = form.triggerType?.value === "DELAYED";
-
   return (
     <Form onSubmit={handleSubmit} noValidate>
-      {topError && (
-        <Alert color="danger" toggle={() => setTopError(null)}>{topError}</Alert>
-      )}
-
-      {/* Basic Info */}
+      {topError && <Alert color="danger" toggle={() => setTopError(null)}>{topError}</Alert>}
 
       <Card className="mb-4">
         <CardHeader className="fw-semibold">1. Basic Info</CardHeader>
@@ -185,197 +224,135 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
               <FormGroup>
                 <Label for="ruleName">Rule Name <span className="text-danger">*</span></Label>
                 <Input
-                  id="ruleName"
-                  name="ruleName"
-                  placeholder="e.g. 24hr Admission Form Check"
-                  value={form.ruleName}
-                  onChange={handleField}
-                  invalid={!!fieldErrors.ruleName}
-                  disabled={isSubmitting}
+                  id="ruleName" name="ruleName" value={form.ruleName}
+                  onChange={handleField} invalid={!!fieldErrors.ruleName} disabled={isSubmitting}
                 />
                 {fieldErrors.ruleName && <small className="text-danger">{fieldErrors.ruleName}</small>}
               </FormGroup>
             </Col>
             <Col md={6}>
               <FormGroup>
-                <Label for="protocol">Protocol (optional)</Label>
-                <Input
-                  id="protocol"
-                  name="protocol"
-                  placeholder="e.g. PROTO-001"
-                  value={form.protocol}
-                  onChange={handleField}
-                  disabled={isSubmitting}
-                />
+                <Label for="protocol">Protocol</Label>
+                <Input id="protocol" name="protocol" value={form.protocol} onChange={handleField} disabled={isSubmitting} />
               </FormGroup>
             </Col>
           </Row>
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <FormGroup>
-                <Label>Severity</Label>
-                <Select
-                  options={SEVERITY_OPTIONS}
-                  value={form.severity}
-                  onChange={(v) => handleSelect("severity", v)}
-                  isDisabled={isSubmitting}
-                />
+                <Label>Severity <span className="text-danger">*</span></Label>
+                <Select options={SEVERITY_OPTIONS} value={form.severity} onChange={v => handleSelect("severity", v)} isDisabled={isSubmitting} />
               </FormGroup>
             </Col>
-            <Col md={6} className="d-flex align-items-center">
-              <FormGroup check className="mt-3">
-                <Input
-                  type="checkbox"
-                  id="isActive"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleField}
-                  disabled={isSubmitting}
+            <Col md={4}>
+              <FormGroup>
+                <Label>Admission Type <span className="text-danger">*</span></Label>
+                <Select
+                  options={ADMISSION_TYPE_OPTIONS} value={form.admissionType}
+                  onChange={v => handleSelect("admissionType", v)}
+                  isDisabled={isSubmitting} placeholder="Select type..."
                 />
-                <Label check for="isActive">Activate rule immediately</Label>
+                {fieldErrors.admissionType && <small className="text-danger">{fieldErrors.admissionType}</small>}
               </FormGroup>
             </Col>
           </Row>
         </CardBody>
       </Card>
 
-      {/* Trigger */}
-      <Card className="mb-4">
-        <CardHeader className="fw-semibold">2. Trigger</CardHeader>
-        <CardBody>
-          <Row>
-            <Col md={showDeadline ? 4 : 6}>
-              <FormGroup>
-                <Label>Trigger Type <span className="text-danger">*</span></Label>
-                <Select
-                  options={TRIGGER_OPTIONS}
-                  value={form.triggerType}
-                  onChange={(v) => handleSelect("triggerType", v)}
-                  isDisabled={isSubmitting}
-                />
-                <small className="text-muted">
-                  {form.triggerType?.value === "IMMEDIATE"
-                    ? "Fires the moment the entity is created/updated."
-                    : "Fires after the deadline if conditions are still met."}
-                </small>
-              </FormGroup>
-            </Col>
-            <Col md={showDeadline ? 4 : 6}>
-              <FormGroup>
-                <Label>Target Model <span className="text-danger">*</span></Label>
-                <Select
-                  options={TARGET_OPTIONS}
-                  value={form.targetModel}
-                  onChange={(v) => handleSelect("targetModel", v)}
-                  isDisabled={isSubmitting}
-                  placeholder="-- Select model --"
-                  classNamePrefix={fieldErrors.targetModel ? "select-error" : ""}
-                />
-                {fieldErrors.targetModel && (
-                  <small className="text-danger">{fieldErrors.targetModel}</small>
-                )}
-              </FormGroup>
-            </Col>
-            {showDeadline && (
-              <Col md={4}>
-                <FormGroup>
-                  <Label for="deadlineHours">Deadline (hours) <span className="text-danger">*</span></Label>
-                  <Input
-                    type="number"
-                    id="deadlineHours"
-                    name="deadlineHours"
-                    min="1"
-                    placeholder="e.g. 24"
-                    value={form.deadlineHours}
-                    onChange={handleField}
-                    invalid={!!fieldErrors.deadlineHours}
-                    disabled={isSubmitting}
-                  />
-                  {fieldErrors.deadlineHours && (
-                    <small className="text-danger">{fieldErrors.deadlineHours}</small>
-                  )}
-                </FormGroup>
-              </Col>
-            )}
-          </Row>
-        </CardBody>
-      </Card>
+      <MainBlock
+        satisfyingCriteria={satisfyingCriteria}
+        setSatisfyingCriteria={setSatisfyingCriteria}
+        modelFieldsCache={modelFieldsCache}
+        fetchModelFields={fetchModelFields}
+        isSubmitting={isSubmitting}
+        fieldErrors={fieldErrors}
+      />
 
-      {/*  Conditions */}
-      <Card className="mb-4">
-        <CardHeader className="d-flex justify-content-between align-items-center fw-semibold">
-          <span>
-            3. Conditions{" "}
-            <small className="text-muted fw-normal">(all must match for the rule to fire)</small>
-          </span>
-          <Button type="button" color="primary" size="sm" outline onClick={addCondition} disabled={isSubmitting}>
-            + Add Condition
+      <div className="mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="fw-semibold mb-0">3. Target Blocks</h5>
+          <Button color="primary" size="sm" onClick={addTargetBlock} disabled={isSubmitting}>
+            + Add Block
           </Button>
-        </CardHeader>
-        <CardBody>
-          {conditions?.map((c, idx) => (
-            <ConditionRow
-              key={idx}
-              condition={c}
-              idx={idx}
-              onChange={handleConditionChange}
-              onRemove={removeCondition}
-              isDisabled={isSubmitting}
-              isOnly={conditions.length === 1}
-              error={Array.isArray(fieldErrors.conditions) ? fieldErrors.conditions[idx] : null}
-            />
-          ))}
-          <small className="text-muted d-block mt-2">
-            Leave all fields blank in a row to ignore it. Conditions are optional — if none, the rule fires purely on the trigger.
-          </small>
-        </CardBody>
-      </Card>
+        </div>
 
-      {/* Routing */}
+        {targetBlocks.map((block, bIdx) => (
+          <Card key={block.id} className="mb-3 border-secondary">
+            <CardHeader className="d-flex justify-content-between align-items-center bg-light">
+              <span className="fw-bold">Block {bIdx + 1}</span>
+              {targetBlocks.length > 1 && (
+                <Button type="button" color="danger" size="sm" outline onClick={() => removeTargetBlock(bIdx)} disabled={isSubmitting}>
+                  Remove Block
+                </Button>
+              )}
+            </CardHeader>
+            <CardBody>
+              <FormGroup>
+                <Label>Alert Template</Label>
+                <Input
+                  type="textarea" rows="2"
+                  // placeholder="Patient {patient.name} — {field.value}"
+                  value={block.alertTemplate}
+                  onChange={e => handleTargetBlockField(bIdx, "alertTemplate", e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </FormGroup>
+
+              <div className="mt-2">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <Label className="fw-bold mb-0">Conditions</Label>
+                  <Button type="button" color="secondary" size="sm" outline onClick={() => addConditionToBlock(bIdx)} disabled={isSubmitting}>
+                    + Add Condition
+                  </Button>
+                </div>
+                {block.conditions.map((c, cIdx) => (
+                  <ConditionRow
+                    key={cIdx}
+                    condition={c}
+                    idx={cIdx}
+                    onChange={(idx, key, val) => handleTargetConditionChange(bIdx, idx, key, val)}
+                    onRemove={(idx) => removeConditionFromBlock(bIdx, idx)}
+                    isDisabled={isSubmitting}
+                    isOnly={block.conditions.length === 1}
+                    error={fieldErrors.targetBlocks?.[bIdx]?.conditions?.[cIdx]}
+                    modelFieldsCache={modelFieldsCache}
+                    onModelChange={fetchModelFields}
+                  />
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+
       <RoutingCard
         selectedRoles={selectedRoles}
         onRoleToggle={handleRoleToggle}
         selectedUsers={selectedUsers}
         onUsersChange={handleUsersChange}
-        notifyEmails={form.notifyEmails}
-        onNotifyEmailsChange={handleField}
-        notifyEmailsError={fieldErrors.notifyEmails}
         routingError={fieldErrors.routing}
         isSubmitting={isSubmitting}
       />
 
-      {/* Alert Message */}
       <Card className="mb-4">
-        <CardHeader className="fw-semibold">5. Alert Message</CardHeader>
+        <CardHeader className="fw-semibold">Alert Details (Optional)</CardHeader>
         <CardBody>
           <FormGroup>
-            <Label for="alertTemplate">Alert Template <span className="text-danger">*</span></Label>
-            <Input
-              type="textarea"
-              id="alertTemplate"
-              name="alertTemplate"
-              rows="3"
-              value={form.alertTemplate}
-              onChange={handleField}
-              invalid={!!fieldErrors.alertTemplate}
-              disabled={isSubmitting}
-            />
-            {fieldErrors.alertTemplate && (
-              <small className="text-danger">{fieldErrors.alertTemplate}</small>
-            )}
+            <Label for="actionGuidance">Action Guidance</Label>
+            <Input type="textarea" id="actionGuidance" name="actionGuidance" rows="2" value={form.actionGuidance} onChange={handleField} disabled={isSubmitting} />
+          </FormGroup>
+          <FormGroup className="mb-0">
+            <Label for="referenceSection">Reference Section</Label>
+            <Input id="referenceSection" name="referenceSection" value={form.referenceSection} onChange={handleField} disabled={isSubmitting} />
           </FormGroup>
         </CardBody>
       </Card>
 
       <div className="d-flex justify-content-end gap-2">
         {onCancel && (
-          <Button type="button" color="secondary" outline onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
+          <Button type="button" color="secondary" outline onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
         )}
-        <Button type="button" color="secondary" outline onClick={resetForm} disabled={isSubmitting}>
-          Reset
-        </Button>
+        <Button type="button" color="secondary" outline onClick={resetForm} disabled={isSubmitting}>Reset</Button>
         <Button type="submit" color="primary" disabled={isSubmitting}>
           {isSubmitting ? <><Spinner size="sm" className="me-2" />Creating...</> : "Create SOP Rule"}
         </Button>

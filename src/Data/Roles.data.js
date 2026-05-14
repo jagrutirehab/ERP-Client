@@ -159,7 +159,7 @@ export const permissionList = [
       { name: "REQUISITION_SAREYAAN_ORDERS", label: "Requisition: Sareyaan Orders" },
       { name: "REQUISITION_MEDICINE_REQUISITION", label: "Requisition: Medicine Requisition" },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
-      // { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
+      { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
     ],
   },
   {
@@ -397,6 +397,16 @@ export const permissionList = [
     label: "Sop Configs",
     subModules: [
       { name: "CONFIGURATION", label: "Configuration" },
+    ],
+  },
+    {
+    key: "TRAININGS",
+    label: "Trainings",
+    subModules: [
+      { name: "UPLOAD_TRAININGS", label: "Upload Trainings" },
+      { name: "VIEW_TRAININGS", label: "View My Trainings" },
+      { name: "ALL_TRAININGS", label: "All Trainings" },
+      { name: "TRAINING_HISTORY", label: "Training History" },
     ],
   },
 

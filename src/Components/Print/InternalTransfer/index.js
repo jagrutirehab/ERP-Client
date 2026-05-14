@@ -287,9 +287,6 @@ const InternalTransferPDF = ({ requisition }) => {
                                     .filter(Boolean)
                                     .join(" ");
 
-                                const conversion = med.conversion || {};
-                                const conversionFactor = (conversion.baseQuantity || 1) / (conversion.purchaseQuantity || 1);
-
                                 // Check if batches exist
                                 const hasBatches = item.batches && item.batches.length > 0;
                                 const rowsToRender = hasBatches ? item.batches : [{ pharmacyId: {}, approvedQty: item.approvedQty, dispatchedQty: item.dispatchedQty }];
@@ -297,48 +294,47 @@ const InternalTransferPDF = ({ requisition }) => {
                                 return rowsToRender
                                     .filter(batch => (batch.dispatchedQty ?? batch.approvedQty ?? 0) > 0)
                                     .map((batchRow, batchIdx) => {
-                                    // Handle both old (flat) and new (populated) batch structure
-                                    const batchPharm = batchRow.pharmacyId || {};
-                                    const dispatchedQty = (batchRow.dispatchedQty ?? batchRow.approvedQty ?? 0) || (batchIdx === 0 ? item.dispatchedQty ?? item.approvedQty : 0);
-                                    const purchasePrice = typeof batchPharm === 'object' ? (batchPharm.purchasePrice || 0) : (batchRow.purchasePrice || 0);
-                                    const rate = purchasePrice * (conversionFactor || 1);
-                                    const amount = dispatchedQty * rate;
-                                    const batchNumber = typeof batchPharm === 'object' ? (batchPharm.Batch || "—") : (batchRow.Batch || "—");
-                                    const rowIndex = hasBatches ? `${itemIdx + 1}.${batchIdx + 1}` : itemIdx + 1;
+                                        const batchPharm = batchRow.pharmacyId || {};
+                                        const dispatchedQty = (batchRow.dispatchedQty ?? batchRow.approvedQty ?? 0) || (batchIdx === 0 ? item.dispatchedQty ?? item.approvedQty : 0);
+                                        const purchasePrice = typeof batchPharm === 'object' ? (batchPharm.purchasePrice || 0) : (batchRow.purchasePrice || 0);
+                                        const rate = purchasePrice || 0;
+                                        const amount = dispatchedQty * rate;
+                                        const batchNumber = typeof batchPharm === 'object' ? (batchPharm.Batch || "—") : (batchRow.Batch || "—");
+                                        const rowIndex = hasBatches ? `${itemIdx + 1}.${batchIdx + 1}` : itemIdx + 1;
 
-                                    return (
-                                        <View
-                                            key={`${item._id}-${batchIdx}`}
-                                            style={[styles.tableRow, (itemIdx + batchIdx) % 2 !== 0 ? styles.tableRowAlt : {}, { gap: 4 }]}
-                                            wrap={false}
-                                        >
-                                            <View style={{ width: "3%", paddingRight: 2 }}>
-                                                <Text style={styles.cellText}>{rowIndex}</Text>
+                                        return (
+                                            <View
+                                                key={`${item._id}-${batchIdx}`}
+                                                style={[styles.tableRow, (itemIdx + batchIdx) % 2 !== 0 ? styles.tableRowAlt : {}, { gap: 4 }]}
+                                                wrap={false}
+                                            >
+                                                <View style={{ width: "3%", paddingRight: 2 }}>
+                                                    <Text style={styles.cellText}>{rowIndex}</Text>
+                                                </View>
+                                                <View style={{ width: "37%", paddingRight: 4 }}>
+                                                    <Text style={styles.cellText}>{primaryLabel}</Text>
+                                                </View>
+                                                <View style={{ width: "13%", textAlign: "center" }}>
+                                                    <Text style={{ ...styles.cellText, textAlign: "center" }}>
+                                                        {dispatchedQty} {pluralizeUnit(purchaseUnit)}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ width: "13%", textAlign: "center" }}>
+                                                    <Text style={{ ...styles.cellText, textAlign: "center" }}>
+                                                        Rs. {Number(rate || 0).toFixed(2)}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ width: "13%", textAlign: "center" }}>
+                                                    <Text style={{ ...styles.cellText, textAlign: "center" }}>
+                                                        Rs. {Number(amount || 0).toFixed(2)}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ width: "21%", paddingLeft: 4 }}>
+                                                    <Text style={styles.cellText}>{batchNumber}</Text>
+                                                </View>
                                             </View>
-                                            <View style={{ width: "37%", paddingRight: 4 }}>
-                                                <Text style={styles.cellText}>{primaryLabel}</Text>
-                                            </View>
-                                            <View style={{ width: "13%", textAlign: "center" }}>
-                                                <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                    {dispatchedQty} {pluralizeUnit(purchaseUnit)}
-                                                </Text>
-                                            </View>
-                                            <View style={{ width: "13%", textAlign: "center" }}>
-                                                <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                    Rs. {Number(rate || 0).toFixed(2)}
-                                                </Text>
-                                            </View>
-                                            <View style={{ width: "13%", textAlign: "center" }}>
-                                                <Text style={{ ...styles.cellText, textAlign: "center" }}>
-                                                    Rs. {Number(amount || 0).toFixed(2)}
-                                                </Text>
-                                            </View>
-                                            <View style={{ width: "21%", paddingLeft: 4 }}>
-                                                <Text style={styles.cellText}>{batchNumber}</Text>
-                                            </View>
-                                        </View>
-                                    );
-                                });
+                                        );
+                                    });
                             })}
 
                             {/* Total Row */}
@@ -349,24 +345,18 @@ const InternalTransferPDF = ({ requisition }) => {
                                 <View style={{ width: "13%", textAlign: "center" }}>
                                     <Text style={{ ...styles.cellText, textAlign: "center", fontWeight: 600 }}>
                                         {formatCurrencyPDF((requisition.items || []).reduce((sum, item) => {
-                                            const med = item.medicineId || (item.pharmacyId?.medicineId || {});
-                                            const conversion = med.conversion || {};
-                                            const conversionFactor = (conversion.baseQuantity || 1) / (conversion.purchaseQuantity || 1);
-
-                                            // If batches exist, sum across all batches
                                             if (item.batches && item.batches.length > 0) {
                                                 return sum + item.batches.reduce((itemSum, batch) => {
                                                     const dispatchedQty = batch.dispatchedQty ?? batch.approvedQty ?? 0;
                                                     const batchPharm = batch.pharmacyId || {};
                                                     const purchasePrice = typeof batchPharm === 'object' ? (batchPharm.purchasePrice || 0) : (batch.purchasePrice || 0);
-                                                    return itemSum + (dispatchedQty * purchasePrice * conversionFactor);
+                                                    return itemSum + (dispatchedQty * purchasePrice);
                                                 }, 0);
                                             } else {
-                                                // Fallback to single pharmacyId
                                                 const pharm = item.pharmacyId || {};
                                                 const dispatchedQty = item.dispatchedQty ?? item.approvedQty ?? item.requestedQty ?? 0;
                                                 const purchasePrice = pharm.purchasePrice || 0;
-                                                return sum + (dispatchedQty * purchasePrice * conversionFactor);
+                                                return sum + (dispatchedQty * purchasePrice);
                                             }
                                         }, 0))}
                                     </Text>

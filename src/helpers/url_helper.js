@@ -337,7 +337,7 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
-export const GET_PRESCRIPTION_HISTORY="/nurse/prescription-history";
+export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
 
 
 // alerts
@@ -447,13 +447,14 @@ export const PHARMACY_MEDICINE_REQUISITION = "/pharmacy/requisition/medicine-req
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
 
 // PHARMACY OCR BILL IMPORT
-// export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
-// export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
-// export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
-// export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
-// export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
-// export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
-// export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
+export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
+export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
+export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
+export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
+export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
+export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
+export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
+export const OCR_UPDATE_BILL_ERRORS = "/pharmacy/ocr/update-bill-errors";
 
 // PHARMACY EXCEL REPORTS
 export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
@@ -604,7 +605,7 @@ export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
 export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
-export const GET_REGULARIZATIONS_BY_EMPLOYEE="/hrms/regularizations/employee";
+export const GET_REGULARIZATIONS_BY_EMPLOYEE = "/hrms/regularizations/employee";
 export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
 export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
 export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
@@ -674,3 +675,15 @@ export const VALIDATE_SUMMARY = "/chart/validate/response"
 // SOP CONFIGS
 export const CONFIGURATION_SOP = "/sop/create"
 export const GET_ROLES = "/sop/getroles"
+export const GET_FIELDS = "/sop/fields"
+
+
+// trainings
+
+export const CREATE_TRAININGS = "/trainings/create"
+export const GET_BY_ROLES = "/trainings/get/by/roles"
+export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge"
+export const GET_ALL_TRAININGS = "/trainings/get"
+export const EDIT_TRAINING = "/trainings/edit"
+export const GET_TRAINING_BY_ID = "/trainings"
+export const GET_TRAINING_HISTORY = "/trainings/history"
