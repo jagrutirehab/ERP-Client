@@ -20,7 +20,6 @@
         dispatch(fetchRoundNotesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
 
-    const sessionOrder = ["Actual Rounds", "Morning", "Afternoon", "Evening", "Night", "Late Night"];
 
     const centerDodData = useMemo(() => roundNotesDOD?.center_dod_data || [], [roundNotesDOD]);
     const dod_data = useMemo(() => roundNotesDOD?.dod_data || [], [roundNotesDOD]);
@@ -92,7 +91,7 @@
     ];
 
     const sessionFixedLabels = ["Round Session", "Total (Current Month)", "Session"];
-    const dodFixedLabels = ["Round Taken By", "Center Name", "Role", "Total (Last 30 Days)", "Total (Current Month)"];
+    const dodFixedLabels = ["Round Taken By",  "Total (Current Month)","Center Name", "Role", "Total (Last 30 Days)"];
 
     const prepareCsvData = () => {
         setCsvLoading(true);
@@ -157,7 +156,7 @@
     };
 
     const sessionColWidths = [130, 100, 100];
-    const dodColWidths = [150, 120, 100, 100, 100];
+    const dodColWidths = [220, 120, 100, 100, 100];
 
     const thStyle = (top, dark, left = null, width = null) => ({
         border: "1px solid #cfd8e3",
@@ -247,34 +246,34 @@
                         <>
                         {/* Sessions table */}
                         <div className="shadow-sm bg-white mb-4" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
-                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
+                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem" }}>
                                 <thead>
                                     <tr>
                                         {sessionFixedLabels.map((label, i) => {
-                                            const left = sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            const left = i < 2 ? sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0) : null;
                                             return (
-                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, sessionColWidths[i])}>
+                                            <th key={label} className="text-center fw-bold px-1 py-1" style={thStyle(0, true, left, sessionColWidths[i])}>
                                                 {i === 2 ? "Total (Single Day)" : ""}
                                             </th>
                                             );
                                         })}
                                         {dates.map((date) => (
-                                            <th key={`tot-${date}`} className="text-center fw-bold px-1 py-2" style={thStyle(0, true)}>
+                                            <th key={`tot-${date}`} className="text-center fw-bold px-1 py-1" style={thStyle(0, true)}>
                                                 {sessionTotals[date] || ""}
                                             </th>
                                         ))}
                                     </tr>
                                     <tr>
                                         {sessionFixedLabels.map((label, i) => {
-                                            const left = sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            const left = i < 2 ? sessionColWidths.slice(0, i).reduce((a, b) => a + b, 0) : null;
                                             return (
-                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(37, false, left, sessionColWidths[i])}>
+                                            <th key={label} className="text-center fw-bold px-1 py-1" style={thStyle(20, false, left, sessionColWidths[i])}>
                                                 {label}
                                             </th>
                                             );
                                         })}
                                         {dates.map((date) => (
-                                            <th key={date} className="text-center fw-bold px-1 py-2" style={thStyle(37, false)}>
+                                            <th key={date} className="text-center fw-bold px-1 py-1" style={thStyle(20, false)}>
                                                 {formatDate(date)}
                                             </th>
                                         ))}
@@ -286,11 +285,11 @@
                                         const currentMonthTotal = currentMonthDates.reduce((sum, date) => sum + (rowData?.data?.[date] ?? 0), 0);
                                         return (
                                             <tr key={session.key}>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, 0, sessionColWidths[0])}>{session.key}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, sessionColWidths[0], sessionColWidths[1])}>{currentMonthTotal}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, sessionColWidths[0] + sessionColWidths[1], sessionColWidths[2])}>{session.label}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx, 0, sessionColWidths[0])}>{session.key}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx, sessionColWidths[0], sessionColWidths[1])}>{currentMonthTotal}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx)}>{session.label}</td>
                                                 {dates.map((date) => (
-                                                    <td key={date} className="text-center px-1 py-2" style={tdStyle(idx)}>
+                                                    <td key={date} className="text-center px-1 py-1" style={tdStyle(idx)}>
                                                         {rowData?.data?.[date] ?? ""}
                                                     </td>
                                                 ))}
@@ -303,34 +302,19 @@
 
                         {/* DOD table */}
                         <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
-                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
+                            <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem" }}>
                                 <thead>
-                                    {/* <tr>
-                                        {dodFixedLabels.map((label, i) => {
-                                            const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
-                                            return (
-                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(0, true, left, dodColWidths[i])}>
-                                                {i === 4 ? "Total (Single Day)" : ""}
-                                            </th>
-                                            );
-                                        })}
-                                        {dates  .map((date) => (
-                                            <th key={`dtot-${date}`} className="text-center fw-bold px-1 py-2" style={thStyle(0, true)}>
-                                                {dodTotals[date] || ""}
-                                            </th>
-                                        ))}
-                                    </tr> */}
                                     <tr>
                                         {dodFixedLabels.map((label, i) => {
-                                            const left = dodColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                            const left = i < 2 ? dodColWidths.slice(0, i).reduce((a, b) => a + b, 0) : null;
                                             return (
-                                            <th key={label} className="text-center fw-bold px-1 py-2" style={thStyle(37, false, left, dodColWidths[i])}>
+                                            <th key={label} className="text-center fw-bold px-1 py-1" style={thStyle(0, true, left, dodColWidths[i])}>
                                                 {label}
                                             </th>
                                             );
                                         })}
                                         {dates.map((date) => (
-                                            <th key={date} className="text-center fw-bold px-1 py-2" style={thStyle(37, false)}>
+                                            <th key={date} className="text-center fw-bold px-1 py-1" style={thStyle(0, true)}>
                                                 {formatDate(date)}
                                             </th>
                                         ))}
@@ -348,13 +332,13 @@
 
                                         return (
                                             <tr key={`${roundTakenBy}-${centerName}`}>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, 0, dodColWidths[0])}>{roundTakenBy}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0], dodColWidths[1])}>{centerName}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1], dodColWidths[2])}>{role}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1]+dodColWidths[2], dodColWidths[3])}>{last30DaysTotal}</td>
-                                                <td className="text-center px-1 py-2" style={tdStyle(idx, dodColWidths[0]+dodColWidths[1]+dodColWidths[2]+dodColWidths[3], dodColWidths[4])}>{currentMonthTotal}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx, 0, dodColWidths[0])}>{roundTakenBy}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx, dodColWidths[0], dodColWidths[1])}>{currentMonthTotal}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx)}>{centerName}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx)}>{role}</td>
+                                                <td className="text-center px-1 py-1" style={tdStyle(idx)}>{last30DaysTotal}</td>
                                                 {dates.map((date) => (
-                                                    <td key={date} className="text-center px-1 py-2" style={tdStyle(idx)}>
+                                                    <td key={date} className="text-center px-1 py-1" style={tdStyle(idx)}>
                                                         {row?.[date] ?? ""}
                                                     </td>
                                                 ))}

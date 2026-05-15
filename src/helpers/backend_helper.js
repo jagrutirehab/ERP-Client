@@ -2198,6 +2198,22 @@ export const getCounsellingRecordings = (data) => {
 };
 
 
+export const getDailyDashboard = (data) => {
+
+  return api.get(url.GET_DAILY_DASHBOARD, {
+    params: {
+      centerIds: data?.centerAccess,
+      date:data?.date
+    }
+  });
+};
+
+
+
+
+
+
+
 
 
 

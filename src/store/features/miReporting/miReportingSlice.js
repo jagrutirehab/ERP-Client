@@ -22,6 +22,7 @@ import {
   getDailyInvoices,
   getCounsellingSessions,
   getCounsellingRecordings,
+  getDailyDashboard,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -53,6 +54,7 @@ const initialState = {
   dailyInvoices:[],
   counsellingSessions:[],
   counsellingRecordings:[],
+  dailyDashboard:[],
   loading: false,
   error: null,
 };
@@ -391,11 +393,30 @@ export const fetchCounsellingRecordings = createAsyncThunk(
     } catch (error) {
        console.log("response failed")
       return rejectWithValue(
-        error.message || "Failed to fetch Counselling Sessions"
+        error.message || "Failed to fetch Counselling Recordings"
       );
     }
   }
 );
+
+
+export const fetchDailyDashboard = createAsyncThunk(
+  "miReporting/fetchDailyDashboard",
+  async (data , { rejectWithValue }) => {
+    try {
+      const response = await getDailyDashboard(data);
+      return response;
+    } catch (error) {
+       console.log("response failed")
+      return rejectWithValue(
+        error.message || "Failed to fetch Daily Dashboard"
+      );
+    }
+  }
+);
+
+
+
 
 
 
@@ -712,6 +733,21 @@ const miReportingSlice = createSlice({
         state.counsellingRecordings = action.payload.payload || [];
       })
       .addCase(fetchCounsellingRecordings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+
+      //Daily Dashboard
+      .addCase(fetchDailyDashboard.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDailyDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dailyDashboard = action.payload.payload || [];
+      })
+      .addCase(fetchDailyDashboard.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
