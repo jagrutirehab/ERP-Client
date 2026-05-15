@@ -11,6 +11,7 @@ import TrainingHistory from "./Pages/TrainingHistory";
 import TrainingHistoryDetail from "./Pages/HistoryDetail";
 import CreateTrainers from "./Pages/CreateTrainers";
 import TrainingRecords from "./Pages/TrainingRecords";
+import TrainingRecordDetail from "./Pages/TrainingRecordDetail";
 
 const Trainingindex = () => {
     const navigate = useNavigate();
@@ -58,6 +59,8 @@ const Trainingindex = () => {
                                             <Route path="history/:id" element={<TrainingHistoryDetail />} />
                                             <Route path="create/record" element={<CreateTrainers />} />
                                             <Route path="get/record" element={<TrainingRecords />} />
+                                            <Route path="records/:id" element={<TrainingRecordDetail />} />
+
                                         </Routes>
                                     </div>
                                 </Container>

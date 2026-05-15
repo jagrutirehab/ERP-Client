@@ -1,19 +1,15 @@
-import { Spinner } from "reactstrap";
-import { useSelector } from "react-redux";
 import Select from "react-select";
-
+import { useSelector } from "react-redux";
 
 const SessionForm = ({ record, recordIdx, onUpdate }) => {
     const user = useSelector((state) => state.User);
 
-    const centers = (user?.centerAccess || []).map((cid) => {
+    const centerOptions = (user?.centerAccess || []).map((cid) => {
         const center = user?.userCenters?.find((c) => c._id === cid);
         return { value: cid, label: center?.title || "Unknown Center" };
     });
 
-    const toMax = record.from
-        ? record.from.slice(0, 10) + "T23:59"
-        : undefined;
+    const toMax = record.from ? record.from.slice(0, 10) + "T23:59" : undefined;
 
     const handleFromChange = (val) => {
         onUpdate(recordIdx, "from", val);
@@ -33,7 +29,6 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                 Session Details
             </h6>
             <div className="row g-3">
-
                 <div className="col-sm-6">
                     <label className="form-label fw-medium" style={{ fontSize: 13 }}>
                         Training Name <span className="text-danger">*</span>
@@ -60,21 +55,39 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                     />
                 </div>
 
-                <div className="col-sm-6">
+                <div className="col-12">
+
                     <label className="form-label fw-medium" style={{ fontSize: 13 }}>
-                        Center
+                        Description <span className="text-danger">*</span>
                     </label>
-                    <Select
-                        options={centers}
-                        value={centers.find((c) => c.value === record.center) || null}
-                        onChange={(selected) => onUpdate(recordIdx, "center", selected?.value || "")}
-                        placeholder="Select center"
-                        isClearable
+                    <textarea
+                        className="form-control form-control-sm"
+                        placeholder="Enter training description..."
+                        rows={3}
+                        value={record.trainingDescription}
+                        onChange={(e) => onUpdate(recordIdx, "trainingDescription", e.target.value)}
                     />
                 </div>
 
-                <div className="col-sm-3">
-                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>From</label>
+                <div className="col-12">
+                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>
+                        Centers <span className="text-danger">*</span>
+                    </label>
+                    <Select
+                        isMulti
+                        options={centerOptions}
+                        value={centerOptions.filter((c) => (record.center || []).includes(c.value))}
+                        onChange={(selected) =>
+                            onUpdate(recordIdx, "center", selected ? selected.map((s) => s.value) : [])
+                        }
+                        placeholder="Select centers"
+                    />
+                </div>
+
+                <div className="col-sm-6">
+                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>
+                        From <span className="text-danger">*</span>
+                    </label>
                     <input
                         type="datetime-local"
                         className="form-control form-control-sm"
@@ -83,8 +96,10 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                     />
                 </div>
 
-                <div className="col-sm-3">
-                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>To</label>
+                <div className="col-sm-6">
+                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>
+                        To <span className="text-danger">*</span>
+                    </label>
                     <input
                         type="datetime-local"
                         className="form-control form-control-sm"
@@ -95,9 +110,7 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                         onChange={(e) => onUpdate(recordIdx, "to", e.target.value)}
                     />
                     {!record.from && (
-                        <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>
-                            Select "From" first
-                        </p>
+                        <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>Select "From" first</p>
                     )}
                 </div>
 
@@ -114,4 +127,5 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
         </div>
     );
 };
+
 export default SessionForm;
