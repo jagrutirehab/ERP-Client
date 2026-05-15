@@ -45,6 +45,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
 
     useEffect(() => {
         if (!isOpen || !record) return
+        console.log("record.trainingDescription", record)
 
         setForm({
             trainingName: record.trainingName || "",
@@ -177,7 +178,12 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
                 presents: users.map(u => ({ user: u._id }))
             }));
 
-        const payload = { ...form, attendanceData };
+        const payload = {
+            ...form,
+            from: form.from ? new Date(form.from).toISOString() : "",
+            to: form.to ? new Date(form.to).toISOString() : "",
+            attendanceData
+        };
 
         try {
             setSubmitting(true);

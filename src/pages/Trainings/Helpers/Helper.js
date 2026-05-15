@@ -17,8 +17,8 @@ export const buildPayload = (records) =>
         trainingDescription,
         trainerName,
         center,
-        from,
-        to,
+        from: from ? new Date(from).toISOString() : "",
+        to: to ? new Date(to).toISOString() : "",
         attendanceData: Object.entries(selectedUsers)
             .filter(([, users]) => users.length > 0)
             .map(([role, users]) => ({
