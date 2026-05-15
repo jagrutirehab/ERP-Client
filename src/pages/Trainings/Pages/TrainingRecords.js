@@ -38,7 +38,8 @@ const TrainingCard = ({ record, onEdit, onDelete }) => {
                             <small className="text-muted">Trainer: <strong>{record?.trainerName}</strong></small>
                         </div>
                         <span className="badge bg-soft-primary text-primary ms-2 flex-shrink-0" style={{ fontSize: 11 }}>
-                            <i className="ri-time-line me-1" />{record?.totalHours} hrs
+                            <i className="ri-time-line me-1" />
+                            {record?.totalHours ? `${Math.floor(record.totalHours)}h ${Math.round((record.totalHours % 1) * 60)}m` : "—"}
                         </span>
                     </div>
 
