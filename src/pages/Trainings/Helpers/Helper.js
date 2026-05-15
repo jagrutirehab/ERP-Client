@@ -3,16 +3,18 @@ export const uid = () => `_${Date.now()}_${Math.random().toString(36).slice(2, 7
 export const emptyRecord = (defaultTrainerName = "") => ({
     _uid: uid(),
     trainingName: "",
+    trainingDescription: "",
     trainerName: defaultTrainerName,
-    center: "",
+    center: [],
     from: "",
     to: "",
     selectedUsers: {},
 });
 
 export const buildPayload = (records) =>
-    records.map(({ trainingName, trainerName, center, from, to, selectedUsers }) => ({
+    records.map(({ trainingName, trainingDescription, trainerName, center, from, to, selectedUsers }) => ({
         trainingName,
+        trainingDescription,
         trainerName,
         center,
         from,

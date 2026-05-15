@@ -16,12 +16,8 @@ const UserCheckbox = React.memo(({ user, checked, onToggle }) => (
             onChange={() => {}}
         />
         <div className="flex-grow-1 overflow-hidden">
-            <p className="mb-0 fw-medium text-truncate" style={{ fontSize: 13 }}>
-                {user.name}
-            </p>
-            <p className="mb-0 text-muted text-truncate" style={{ fontSize: 11 }}>
-                {user.email}
-            </p>
+            <p className="mb-0 fw-medium text-truncate" style={{ fontSize: 13 }}>{user.name}</p>
+            <p className="mb-0 text-muted text-truncate" style={{ fontSize: 11 }}>{user.email}</p>
         </div>
     </div>
 ));
@@ -47,16 +43,12 @@ const UserSelector = ({
     useEffect(() => {
         const sentinel = sentinelRef.current;
         if (!sentinel) return;
-
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading) {
-                    onLoadMore();
-                }
+                if (entries[0].isIntersecting && hasMore && !loading) onLoadMore();
             },
             { threshold: 0.1 }
         );
-
         observer.observe(sentinel);
         return () => observer.disconnect();
     }, [hasMore, loading, onLoadMore]);
@@ -64,27 +56,16 @@ const UserSelector = ({
     return (
         <div>
             <div className="d-flex align-items-center justify-content-between mb-2">
-                <h6
-                    className="text-uppercase text-muted fw-semibold mb-0"
-                    style={{ fontSize: 11, letterSpacing: 1 }}
-                >
+                <h6 className="text-uppercase text-muted fw-semibold mb-0" style={{ fontSize: 11, letterSpacing: 1 }}>
                     Select Attendees by Role
                 </h6>
                 {users.length > 0 && (
                     <div className="d-flex gap-2">
-                        <button
-                            className="btn btn-link btn-sm text-primary p-0"
-                            style={{ fontSize: 12 }}
-                            onClick={onSelectAll}
-                        >
+                        <button className="btn btn-link btn-sm text-primary p-0" style={{ fontSize: 12 }} onClick={onSelectAll}>
                             Select all
                         </button>
                         <span className="text-muted">|</span>
-                        <button
-                            className="btn btn-link btn-sm text-danger p-0"
-                            style={{ fontSize: 12 }}
-                            onClick={onClearRole}
-                        >
+                        <button className="btn btn-link btn-sm text-danger p-0" style={{ fontSize: 12 }} onClick={onClearRole}>
                             Clear
                         </button>
                     </div>
@@ -98,19 +79,17 @@ const UserSelector = ({
                         <button
                             key={r._id}
                             type="button"
-                            className={`btn btn-sm ${
-                                activeRole === r.name ? "btn-primary" : "btn-outline-secondary"
+                            className={`btn btn-sm rounded-pill ${
+                                activeRole.name === r.name ? "btn-primary" : "btn-outline-secondary"
                             }`}
                             style={{ fontSize: 12 }}
-                            onClick={() => onRoleChange(r.name)}
+                            onClick={() => onRoleChange(r)}
                         >
                             {r.name}
                             {count > 0 && (
                                 <span
                                     className={`ms-1 badge rounded-pill ${
-                                        activeRole === r.name
-                                            ? "bg-white text-primary"
-                                            : "bg-primary text-white"
+                                        activeRole.name === r.name ? "bg-white text-primary" : "bg-primary text-white"
                                     }`}
                                     style={{ fontSize: 10 }}
                                 >
@@ -129,7 +108,7 @@ const UserSelector = ({
                 <input
                     type="text"
                     className="form-control border-start-0 bg-light"
-                    placeholder={`Search ${activeRole} by name or email...`}
+                    placeholder={`Search ${activeRole.name} by name or email...`}
                     value={search}
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
@@ -140,10 +119,7 @@ const UserSelector = ({
                 )}
             </div>
 
-            <div
-                className="border rounded-2 p-2"
-                style={{ maxHeight: 300, overflowY: "auto", background: "#fafbfc" }}
-            >
+            <div className="border rounded-2 p-2" style={{ maxHeight: 300, overflowY: "auto", background: "#fafbfc" }}>
                 {loading && users.length === 0 ? (
                     <div className="d-flex justify-content-center align-items-center py-4 gap-2 text-muted">
                         <Spinner size="sm" />
@@ -184,8 +160,7 @@ const UserSelector = ({
             </div>
 
             <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>
-                {selectedInActiveRole.length} of{" "}
-                <strong>{total}</strong> total selected in <strong>{activeRole}</strong>
+                {selectedInActiveRole.length} of <strong>{total}</strong> total selected in <strong>{activeRole.name}</strong>
             </p>
         </div>
     );

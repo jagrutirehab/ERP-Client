@@ -407,8 +407,8 @@ export const permissionList = [
       { name: "VIEW_TRAININGS", label: "View My Trainings" },
       { name: "ALL_TRAININGS", label: "All Trainings" },
       { name: "TRAINING_HISTORY", label: "Training History" },
-      // { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
-      // { name: "TRAINING_RECORDS", label: "Trainer Records" },
+      { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
+      { name: "TRAINING_RECORDS", label: "Trainer Records" },
 
     ],
   },

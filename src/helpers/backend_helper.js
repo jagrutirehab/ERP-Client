@@ -3781,3 +3781,7 @@ export const createTrainerRecord = (data) => {
 export const getUsersByRoles = (params) => {
   return axios.get(url.GET_USER_BY_ROLE, { params })
 }
+export const getTrainerRecords = (params) => axios.get(url.GET_TRAINERS, { params });
+export const getTrainerRecordById = (id) => axios.get(`${url.GET_TRAINER_BY_ID}/${id}`);
+export const editTrainerRecord = (id, data) => axios.patch(`${url.EDIT_TRAINER}/${id}`, data)
+export const deleteTrainerRecord = (id) => axios.patch(`${url.DELETE_RECORD}/${id}`, {})
