@@ -326,6 +326,7 @@ import {
 } from "../../../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import CentersModal from "./CentersModal";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
 const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   const [editingId, setEditingId] = useState(null);
@@ -477,6 +478,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
                   {priceColumns.map((p) => (
                     <th key={p.unit}>{p.unit.toUpperCase()} Cost</th>
                   ))}
+                  <th>Last Modified By</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -529,6 +531,9 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
                             )}
                           </td>
                         ))}
+
+                        {/* AUTHOR */}
+                        <td>{capitalizeWords(row?.author?.name || "System")}</td>
 
                         {/* ACTIONS */}
                         <td>
