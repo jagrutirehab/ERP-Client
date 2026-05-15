@@ -19,7 +19,7 @@ import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
   uploadOCRBill,
@@ -38,6 +38,7 @@ const OCRBillImport = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const location = useLocation();
+  const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
@@ -107,32 +108,121 @@ const OCRBillImport = () => {
   // Track debounce timers for refetching matching medicines
   const debounceTimersRef = useRef({});
 
-  // Get available centers for dropdown
+  // Center dropdown — only centers the user has access to.
+  // centerAccess is the authoritative list of IDs the user is allowed on;
+  // userCenters carries the full objects (title etc.) keyed by _id.
   const centerOptions = useMemo(() => {
-    if (!user?.userCenters) return [];
-    return user.userCenters.map((center) => ({
-      value: center._id || center.id,
-      label: center.title || "Unknown Center",
-    }));
-  }, [user?.userCenters]);
+    const accessIds = user?.centerAccess || [];
+    if (accessIds.length === 0) return [];
+    return accessIds
+      .map((id) => {
+        const center = (user?.userCenters || []).find(
+          (c) => String(c._id || c.id) === String(id)
+        );
+        if (!center) return null;
+        return {
+          value: center._id || center.id,
+          label: center.title || "Unknown Center",
+        };
+      })
+      .filter(Boolean);
+  }, [user?.centerAccess, user?.userCenters]);
 
-  // Set default center on mount
-  useMemo(() => {
-    if (!selectedCenter && centerOptions.length > 0) {
+  // Keep selectedCenter in sync with the user's centerAccess.
+  //   - First render with options available → pick the first one.
+  //   - centerAccess changed and the current pick is no longer allowed →
+  //     clear it (or pick the new first one if any remain).
+  // Side-effect kept inside useEffect, not useMemo, since this mutates state.
+  useEffect(() => {
+    if (centerOptions.length === 0) {
+      if (selectedCenter) setSelectedCenter(null);
+      return;
+    }
+    const stillAllowed =
+      selectedCenter &&
+      centerOptions.some(
+        (c) => String(c.value) === String(selectedCenter.value)
+      );
+    if (!stillAllowed) {
       setSelectedCenter(centerOptions[0]);
     }
   }, [centerOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const centerId = selectedCenter?.value;
 
-  // Handle resume/retry from BillUploadDashboard navigation
+  // Handle resume/retry from BillUploadDashboard navigation.
+  // After dispatching, clear location.state via replaceState so a browser
+  // back-navigation doesn't re-trigger the same load.
   useEffect(() => {
     if (location.state?.resumeBillId) {
       handleResumeBill(location.state.resumeBillId);
+      navigate(location.pathname, { replace: true, state: null });
     } else if (location.state?.retryBillId) {
       handleRetryMissing(location.state.retryBillId);
+      navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state?.resumeBillId, location.state?.retryBillId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ============================================================
+  // Single source of truth for per-medicine discount calculation.
+  //
+  // Each medicine receives ITS FAIR SHARE of the bill-level discount,
+  // weighted by its line total against the bill's full gross amount.
+  // This matters when only some of the bill's medicines are being
+  // entered into inventory — the unentered items still "own" their
+  // share of the discount; we don't redistribute that share onto the
+  // entered ones.
+  //
+  //   lineTotal_i        = unitPrice_i * quantity_i
+  //   denominator        = billGrossAmount  (preferred; whole bill)
+  //                          || Σ lineTotal_i  (fallback if gross is missing)
+  //   effectiveAmount    = billDiscountAmount
+  //                          || denominator * billDiscountPercentage / 100
+  //   medicineDiscount_i = (lineTotal_i / denominator) * effectiveAmount
+  //   purchasePrice_i    = max(0, unitPrice_i - medicineDiscount_i / qty_i)
+  //
+  // Returns an array aligned with the input order, each entry shaped
+  //   { purchasePrice, medicineDiscount }
+  // ============================================================
+  const computeDiscountedPrices = (lines, discountAmount, discountPercentage, grossAmount) => {
+    if (!Array.isArray(lines) || lines.length === 0) return [];
+
+    const totals = lines.map((m) => {
+      const unitPrice = Number(m.unitPrice) || 0;
+      const qty = Number(m.quantity) || 0;
+      return { unitPrice, qty, lineTotal: unitPrice * qty };
+    });
+    const totalSelected = totals.reduce((acc, t) => acc + t.lineTotal, 0);
+
+    // Use the bill's gross as the denominator so each medicine gets only
+    // its share of the discount — even when other bill lines weren't
+    // selected for entry. Fall back to the sum of selected lines if the
+    // bill metadata didn't carry a gross.
+    const denominator = Number(grossAmount) > 0 ? Number(grossAmount) : totalSelected;
+
+    // Effective discount: prefer absolute amount; derive from % only if amount is 0.
+    let effectiveAmount = Number(discountAmount) || 0;
+    if (effectiveAmount === 0 && Number(discountPercentage) > 0) {
+      effectiveAmount = (denominator * Number(discountPercentage)) / 100;
+    }
+
+    return totals.map((t) => {
+      // Guards: no qty, no denominator, or no discount → keep unit price as-is.
+      if (t.qty === 0 || denominator === 0 || effectiveAmount === 0) {
+        return { purchasePrice: t.unitPrice, medicineDiscount: 0 };
+      }
+      const medicineDiscount = (t.lineTotal / denominator) * effectiveAmount;
+      const perUnit = medicineDiscount / t.qty;
+      const purchasePrice = Math.max(
+        0,
+        Math.round((t.unitPrice - perUnit) * 100) / 100
+      );
+      return {
+        purchasePrice,
+        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
+      };
+    });
+  };
 
   // Separate medicines into new and existing (at top level)
   const { newMedicines, existingMedicines } = useMemo(() => {
@@ -286,31 +376,28 @@ const OCRBillImport = () => {
     },
   ], []);
 
-  // Prepare data for new medicines table
-  const newMedicinesData = useMemo(() => {
-    if (!newMedicines || newMedicines.length === 0) return [];
-
-    // Calculate total bill price for all medicines (for discount distribution)
-    let totalBillPrice = 0;
-    newMedicines.forEach(({ idx, result }) => {
-      const formData = medicineFormData[idx];
-      const price = parseFloat(formData?.purchasePrice) || 0;
-      const qty = parseFloat(formData?.quantity) || 0;
-      totalBillPrice += price * qty;
+  // Build the per-row display data for new + existing tables.
+  // Both pull discount from the single helper so what the user sees is
+  // exactly what will be persisted (no more display/save divergence).
+  const buildRowDisplay = (collection) => {
+    const lines = collection.map(({ idx }) => {
+      const fd = medicineFormData[idx] || {};
+      return {
+        unitPrice: parseFloat(fd.unitPrice) || 0,
+        quantity: parseFloat(fd.quantity) || 0,
+      };
     });
+    const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
 
-    return newMedicines.map(({ idx, result }) => {
-      const { selectedMedicine, extractedData } = result;
-      const formData = medicineFormData[idx];
-      const qty = parseFloat(formData?.quantity) || 0;
-      const purchasePrice = parseFloat(formData?.purchasePrice) || 0;
-      const medicineTotalPrice = purchasePrice * qty;
-
-      // Calculate discount for this medicine (proportional to its share of total bill)
-      const medicineDiscount = totalBillPrice > 0
-        ? (medicineTotalPrice / totalBillPrice) * billDiscountAmount
-        : 0;
-      const discountedPrice = Math.round((purchasePrice - (medicineDiscount / qty)) * 100) / 100;
+    return collection.map(({ idx, result }, i) => {
+      const { selectedMedicine, extractedData, pharmacyStatus } = result;
+      const formData = medicineFormData[idx] || {};
+      const qty = parseFloat(formData.quantity) || 0;
+      const unitPrice = parseFloat(formData.unitPrice) || 0;
+      const { purchasePrice, medicineDiscount } = discounts[i] || {
+        purchasePrice: unitPrice,
+        medicineDiscount: 0,
+      };
 
       const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
       const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
@@ -321,76 +408,37 @@ const OCRBillImport = () => {
       return {
         idx,
         medId: selectedMedicine?._id?.slice(-6) || selectedMedicine?.id,
+        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
         name: selectedMedicine?.name,
         strength: selectedMedicine?.strength,
         form: selectedMedicine?.form,
         baseUnit: selectedMedicine?.baseUnit,
-        batchNumber: formData?.batchNumber || "",
-        expiryDate: formData?.expiryDate || "",
-        quantity: formData?.quantity || "",
-        qty,
-        purchaseUnit,
-        baseUnitQtyDisplay,
-        purchasePrice: purchasePrice,
-        discountedPrice: discountedPrice,
-        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
-        mrp: formData?.mrp || "",
-      };
-    });
-  }, [newMedicines, medicineFormData, billDiscountAmount]);
-
-  // Prepare data for existing medicines table
-  const existingMedicinesData = useMemo(() => {
-    if (!existingMedicines || existingMedicines.length === 0) return [];
-
-    // Calculate total bill price for all medicines (for discount distribution)
-    let totalBillPrice = 0;
-    existingMedicines.forEach(({ idx, result }) => {
-      const formData = medicineFormData[idx];
-      const price = parseFloat(formData?.purchasePrice) || 0;
-      const qty = parseFloat(formData?.quantity) || 0;
-      totalBillPrice += price * qty;
-    });
-
-    return existingMedicines.map(({ idx, result }) => {
-      const { selectedMedicine, extractedData, pharmacyStatus } = result;
-      const formData = medicineFormData[idx];
-      const qty = parseFloat(formData?.quantity) || 0;
-      const purchasePrice = parseFloat(formData?.purchasePrice) || 0;
-      const medicineTotalPrice = purchasePrice * qty;
-
-      // Calculate discount for this medicine (proportional to its share of total bill)
-      const medicineDiscount = totalBillPrice > 0
-        ? (medicineTotalPrice / totalBillPrice) * billDiscountAmount
-        : 0;
-      const discountedPrice = Math.round((purchasePrice - (medicineDiscount / qty)) * 100) / 100;
-
-      const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
-      const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
-      const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
-      const baseUnitQty = qty * factor;
-      const baseUnitQtyDisplay = qty === 0 ? "—" : baseUnitQty.toFixed(2);
-      return {
-        idx,
-        medId: selectedMedicine?.id,
-        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
-        name: selectedMedicine?.name,
-        strength: selectedMedicine?.strength,
-        batchNumber: extractedData.batchNumber,
-        expiryDate: extractedData.expiryDate,
+        batchNumber: formData.batchNumber || extractedData?.batchNumber || "",
+        expiryDate: formData.expiryDate || extractedData?.expiryDate || "",
         centerStock: pharmacyStatus?.data?.centerStock || 0,
-        baseUnit: selectedMedicine?.baseUnit,
-        quantity: formData?.quantity || "",
+        quantity: formData.quantity || "",
         qty,
         purchaseUnit,
         baseUnitQtyDisplay,
-        purchasePrice: purchasePrice,
-        discountedPrice: discountedPrice,
-        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
-        mrp: formData?.mrp || "",
+        purchasePrice,
+        discountedPrice: purchasePrice,
+        medicineDiscount,
+        mrp: formData.mrp || "",
       };
     });
-  }, [existingMedicines, medicineFormData, billDiscountAmount]);
+  };
+
+  const newMedicinesData = useMemo(
+    () => (newMedicines?.length ? buildRowDisplay(newMedicines) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [newMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
+  );
+
+  const existingMedicinesData = useMemo(
+    () => (existingMedicines?.length ? buildRowDisplay(existingMedicines) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [existingMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
+  );
 
   if (permissionLoader) {
     return (
@@ -427,26 +475,33 @@ const OCRBillImport = () => {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Missing Medicines");
 
+      // Mirror the columns the user sees in the missing-medicines table,
+      // plus a few extras for downstream use (confidence, reason, bill URL).
       worksheet.columns = [
         { header: "Medicine Name", key: "name", width: 30 },
         { header: "Strength", key: "strength", width: 20 },
-        { header: "Form", key: "form", width: 15 },
-        { header: "Base Unit", key: "baseUnit", width: 15 },
-        { header: "Category", key: "category", width: 20 },
-        { header: "Storage Type", key: "storage", width: 20 },
+        { header: "Quantity", key: "quantity", width: 12 },
+        { header: "Batch", key: "batch", width: 18 },
+        { header: "Expiry", key: "expiry", width: 14 },
+        { header: "Unit Price", key: "unitPrice", width: 14 },
+        { header: "Total Price", key: "totalPrice", width: 14 },
         { header: "OCR Confidence", key: "confidence", width: 15 },
         { header: "Reason", key: "reason", width: 40 },
         { header: "Source Bill URL", key: "billUrl", width: 50 },
       ];
 
-      medicines.forEach((med) => {
+      // Prefer the user's inline edits from errorMedicinesFormData (keyed by
+      // index in the rendered table). Fall back to the original OCR value.
+      medicines.forEach((med, idx) => {
+        const form = errorMedicinesFormData[idx] || {};
         worksheet.addRow({
-          name: med.extractedName || med.name,
-          strength: med.extractedStrength || med.strength || "N/A",
-          form: "",
-          baseUnit: "",
-          category: "",
-          storage: "",
+          name: form.extractedName ?? med.extractedName ?? med.name ?? "",
+          strength: form.extractedStrength ?? med.extractedStrength ?? med.strength ?? "",
+          quantity: form.quantity ?? med.quantity ?? "",
+          batch: form.batchNumber ?? med.batchNumber ?? "",
+          expiry: form.expiryDate ?? med.expiryDate ?? "",
+          unitPrice: form.unitPrice ?? med.unitPrice ?? "",
+          totalPrice: form.totalPrice ?? med.totalPrice ?? "",
           confidence: med.confidence ? (med.confidence * 100).toFixed(0) + "%" : "N/A",
           reason: med.reason || "Not found in master database",
           billUrl: billFileUrl || "-",
@@ -928,8 +983,30 @@ const OCRBillImport = () => {
     });
   };
 
-  // Handle error medicines data changes (for retry/search)
+  // Handle error medicines data changes (for retry/search).
+  //
+  // Three side-effects per edit:
+  //   1. Update errorMedicinesFormData (drives the input value).
+  //   2. Mirror the edit onto errorMedicines[idx] so any in-flight
+  //      submission picks up the latest values (the confirm payload
+  //      sends errorMedicines directly).
+  //   3. Debounced auto-save to the server via updateBillErrors —
+  //      keeps billImport.errors[] in sync so the consolidated Excel
+  //      export reflects the user's edits without waiting for a full
+  //      bill submission.
   const handleErrorMedicineDataChange = (idx, field, value) => {
+    // Mirror onto the underlying errorMedicines array.
+    const errorField =
+      field === "extractedName" ? "extractedName" :
+      field === "extractedStrength" ? "extractedStrength" :
+      field; // quantity / batchNumber / expiryDate / unitPrice / totalPrice
+    setErrorMedicines((prev) => {
+      if (!prev[idx]) return prev;
+      const next = [...prev];
+      next[idx] = { ...next[idx], [errorField]: value };
+      return next;
+    });
+
     setErrorMedicinesFormData((prev) => {
       const updated = {
         ...prev,
@@ -962,6 +1039,36 @@ const OCRBillImport = () => {
 
       return updated;
     });
+
+    // Debounced auto-save so the DB (and consequently the server-generated
+    // consolidated Excel) reflects edits without requiring a bill submission.
+    if (billImportId) {
+      const saveKey = `error-save-${idx}`;
+      if (debounceTimersRef.current[saveKey]) {
+        clearTimeout(debounceTimersRef.current[saveKey]);
+      }
+      debounceTimersRef.current[saveKey] = setTimeout(async () => {
+        try {
+          // Build the latest snapshot of this row from state. Reading from a
+          // ref-fresh place: use the underlying errorMedicines array since
+          // we already mirrored the edit there synchronously above.
+          setErrorMedicines((current) => {
+            const row = current[idx];
+            if (row && row._tempId) {
+              updateBillErrors({
+                billImportId,
+                errors: [row],
+              }).catch((err) =>
+                console.warn("Auto-save of edited error failed:", err?.message || err)
+              );
+            }
+            return current;
+          });
+        } catch (err) {
+          console.warn("Auto-save of edited error failed:", err?.message || err);
+        }
+      }, 800);
+    }
   };
 
   // Search Again for a missing medicine using the user's edited name/strength.
@@ -1189,6 +1296,29 @@ const OCRBillImport = () => {
       const results = {};
       const unselectedMedicines = [];
 
+      // Precompute discounted prices once for the whole submission. The
+      // proportional-distribution formula needs the total bill across all
+      // medicines, so it must be calculated outside the per-medicine loop.
+      // Only includes rows the user actually selected + checked, so unselected
+      // rows don't dilute the share. Pharmacy-check below reads from this map.
+      const eligibleIdx = indicesToProcess.filter((idx) => {
+        const i = parseInt(idx);
+        return checkedMedicines[i] && selectedMedicineIds[i];
+      });
+      const eligibleLines = eligibleIdx.map((idx) => {
+        const i = parseInt(idx);
+        const editedData = extractedFormData[i] || extractedMedicines[i]?.ocrExtracted;
+        return {
+          unitPrice: parseFloat(editedData?.unitPrice) || 0,
+          quantity: parseFloat(editedData?.quantity) || 0,
+        };
+      });
+      const eligibleDiscounts = computeDiscountedPrices(eligibleLines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
+      const discountByIdx = {};
+      eligibleIdx.forEach((idx, j) => {
+        discountByIdx[parseInt(idx)] = eligibleDiscounts[j]?.purchasePrice ?? null;
+      });
+
       for (const idx of indicesToProcess) {
         const idx_num = parseInt(idx);
         const isChecked = checkedMedicines[idx_num];
@@ -1226,9 +1356,10 @@ const OCRBillImport = () => {
           const medicineId = selectedMedicine._id || selectedMedicine.id;
           const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
 
-          // Calculate discounted purchase price (rounded to 2 decimal places)
+          // Use the single-formula discounted price computed up-front for the
+          // whole submission. Falls back to raw unitPrice if somehow missing.
           const unitPrice = parseFloat(editedData?.unitPrice) || 0;
-          const discountedPrice = Math.round((unitPrice * (1 - (billDiscountPercentage / 100))) * 100) / 100;
+          const discountedPrice = discountByIdx[idx_num] ?? unitPrice;
 
           try {
             const checkResult = await checkExistingMedicineInPharmacy({
@@ -1390,33 +1521,22 @@ const OCRBillImport = () => {
   const initializeMedicineFormData = (results) => {
     const initialData = {};
 
-    // Use discount percentage if available, otherwise calculate from amount
-    const discountPercentageToUse = billDiscountPercentage > 0
-      ? billDiscountPercentage / 100
-      : (billDiscountAmount > 0 && billGrossAmount > 0 ? billDiscountAmount / billGrossAmount : 0);
+    // Use the single proportional-discount helper so initial purchasePrice
+    // matches what the display memo and pharmacy-check both compute.
+    const orderedEntries = Object.entries(results);
+    const lines = orderedEntries.map(([, result]) => {
+      const ext = result.extractedData || {};
+      return {
+        unitPrice: parseFloat(ext.unitPrice) || 0,
+        quantity: parseFloat(ext.quantity) || 0,
+      };
+    });
+    const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
 
-    console.log("\n💰 INITIALIZING MEDICINE FORM DATA WITH DISCOUNT:");
-    console.log(`  Bill Discount Percentage: ${billDiscountPercentage}%`);
-    console.log(`  Bill Discount Amount: ₹${billDiscountAmount}`);
-    console.log(`  Bill Gross Amount: ₹${billGrossAmount}`);
-    console.log(`  Effective Discount Rate: ${(discountPercentageToUse * 100).toFixed(2)}%`);
-
-    Object.entries(results).forEach(([idx, result]) => {
+    orderedEntries.forEach(([idx, result], i) => {
       const { extractedData } = result;
-
-      // Use extracted unit price as the MRP (this is the price from the bill)
       const basePrice = parseFloat(extractedData.unitPrice) || 0;
-
-      // Calculate purchase price by applying discount percentage to MRP
-      const discountAmount = basePrice * discountPercentageToUse;
-      const purchasePriceWithDiscount = basePrice > 0
-        ? basePrice - discountAmount
-        : 0;
-
-      console.log(`\n  [${idx}] ${extractedData.medicineName} ${extractedData.strength || ""}`);
-      console.log(`      MRP: ₹${basePrice.toFixed(2)}`);
-      console.log(`      Discount (${(discountPercentageToUse * 100).toFixed(2)}%): - ₹${discountAmount.toFixed(2)}`);
-      console.log(`      Purchase Price: ₹${purchasePriceWithDiscount.toFixed(2)}`);
+      const purchasePriceWithDiscount = discounts[i]?.purchasePrice ?? basePrice;
 
       initialData[idx] = {
         medicineName: extractedData.medicineName || "",
@@ -1426,7 +1546,7 @@ const OCRBillImport = () => {
         expiryDate: extractedData.expiryDate || "",
         unitPrice: basePrice,
         totalCost: extractedData.totalCost || 0,
-        purchasePrice: purchasePriceWithDiscount > 0 ? Math.round(purchasePriceWithDiscount * 100) / 100 : basePrice,
+        purchasePrice: purchasePriceWithDiscount,
         mrp: basePrice > 0 ? Math.round(basePrice * 100) / 100 : "",
         salePrice: "",
         company: "",
@@ -1434,7 +1554,6 @@ const OCRBillImport = () => {
         rackNumber: "",
       };
     });
-    console.log("\n");
     setMedicineFormData(initialData);
   };
 
@@ -1611,6 +1730,18 @@ const OCRBillImport = () => {
       setBillFileUrl(billData.fileUrl || null);
       setErrorMedicines(addIdsToMedicines(billData.errors || []));
 
+      // Restore center selection from the bill record so the next pharmacy-check
+      // call lands on the correct center (without this, the user's last manual
+      // center pick was reused).
+      const restoredCenterId =
+        typeof billData.center === "object" ? billData.center?._id : billData.center;
+      if (restoredCenterId) {
+        const matchedCenter = centerOptions.find(
+          (c) => String(c.value) === String(restoredCenterId)
+        );
+        if (matchedCenter) setSelectedCenter(matchedCenter);
+      }
+
       // Restore financial state
       const meta = billData.extractedData?.billMetadata || {};
       setBillSupplier(meta.supplier || "");
@@ -1706,6 +1837,17 @@ const OCRBillImport = () => {
 
       // Store billImportId for submission
       setBillImportId(billImportIdParam);
+
+      // Restore center selection so retry's pharmacy-check uses the bill's
+      // original center, not whatever the user last picked manually.
+      const restoredCenterId =
+        typeof billData.center === "object" ? billData.center?._id : billData.center;
+      if (restoredCenterId) {
+        const matchedCenter = centerOptions.find(
+          (c) => String(c.value) === String(restoredCenterId)
+        );
+        if (matchedCenter) setSelectedCenter(matchedCenter);
+      }
 
       // Restore bill level information from extracted metadata
       const meta = billData.extractedData?.billMetadata || {};
