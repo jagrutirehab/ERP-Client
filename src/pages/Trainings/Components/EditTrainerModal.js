@@ -8,6 +8,13 @@ import UserSelector from "./UserSelector";
 
 const LIMIT = 10;
 
+const toLocalDatetime = (dateStr) => {
+    if (!dateStr) return ""
+    const d = new Date(dateStr)
+    const offset = d.getTimezoneOffset() * 60000
+    return new Date(d - offset).toISOString().slice(0, 16)
+}
+
 const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     const user = useSelector(state => state.User)
     const [allRoles, setAllRoles] = useState([]);
@@ -28,6 +35,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
 
     const [selectedUsers, setSelectedUsers] = useState({})
 
+
     const centerOptions = user?.centerAccess?.map(cid => {
         const center = user?.userCenters?.find(c => c._id === cid)
         return { value: cid, label: center?.title || "Unknown Center" }
@@ -42,8 +50,8 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
             trainingName: record.trainingName || "",
             trainerName: record.trainerName || "",
             trainingDescription: record.trainingDescription || "",
-            from: record.from ? new Date(record.from).toISOString().slice(0, 16) : "",
-            to: record.to ? new Date(record.to).toISOString().slice(0, 16) : "",
+            from: toLocalDatetime(record.from),
+            to: toLocalDatetime(record.to),
             center: record.center?.map(c => c._id || c) || []
         })
 
@@ -179,7 +187,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
             onClose();
         } catch (err) {
             console.log("error", err);
-            
+
             toast.error(err?.response?.data?.message || "Update failed");
         } finally {
             setSubmitting(false);
@@ -189,6 +197,9 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     const activeRoleState = usersByRole[activeRole.name] || { users: [], total: 0, hasMore: false, loading: false };
     const selectedInActiveRole = selectedUsers[activeRole.name] || [];
     const fakeRecord = { selectedUsers, center: form.center }
+
+
+
 
     return (
         <Modal isOpen={isOpen} toggle={onClose} size="xl" centered>
@@ -222,12 +233,32 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
                             />
                         </div>
                         <div className="mb-3">
-                            <label className="form-label fw-semibold small">Centers</label>
+                            <div className="d-flex align-items-center justify-content-between mb-1">
+                                <label className="form-label fw-semibold small mb-0">Centers</label>
+                                <button
+                                    type="button"
+                                    className="btn btn-link btn-sm p-0 text-primary"
+                                    style={{ fontSize: 12 }}
+                                    onClick={() => setForm(p => ({ ...p, center: centerOptions.map(c => c.value) }))}
+                                >
+                                    Select All
+                                </button>
+                            </div>
                             <Select
                                 isMulti
                                 options={centerOptions}
                                 value={centerOptions.filter(c => form.center.includes(c.value))}
-                                onChange={selected => setForm(p => ({ ...p, center: selected.map(s => s.value) }))}
+                                onChange={selected => {
+                                    const newCenters = selected.map(s => s.value)
+                                    const filteredUsers = {}
+                                    Object.entries(selectedUsers).forEach(([role, users]) => {
+                                        filteredUsers[role] = users.filter(u =>
+                                            (u.centerAccess || []).some(c => newCenters.includes(c.toString()))
+                                        )
+                                    })
+                                    setSelectedUsers(filteredUsers)
+                                    setForm(p => ({ ...p, center: newCenters }))
+                                }}
                                 placeholder="Select centers"
                             />
                         </div>
@@ -259,7 +290,11 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
                                     value={form.to}
                                     min={form.from || undefined}
                                     max={form.from ? `${form.from.slice(0, 10)}T23:59` : undefined}
-                                    onChange={e => setForm(p => ({ ...p, to: e.target.value }))}
+                                    onChange={e => {
+                                        const selected = e.target.value
+                                        if (selected < form.from) return toast.error("Cannot set previous time")
+                                        setForm(p => ({ ...p, to: selected }))
+                                    }}
                                 />
                             </div>
                         </div>

@@ -5,7 +5,16 @@ import { toast } from "react-toastify";
 import { getTrainerRecordById } from "../../../helpers/backend_helper";
 
 const formatDate = (d) =>
-    d ? new Date(d).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+  d
+    ? new Date(d).toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
 
 const RoleBadge = ({ role }) => (
     <span style={{ padding: "2px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#3b82f6", border: "1px solid #bfdbfe" }}>
@@ -72,12 +81,12 @@ const TrainingRecordDetail = () => {
                 <>
                     <div className="row g-3 mb-4">
                         {[
-                            { label: "Trainer",         value: data?.trainerName,         icon: "ri-user-line" },
-                            { label: "Centers",         value: centerNames,               icon: "ri-building-line" },
-                            { label: "From",            value: formatDate(data?.from),    icon: "ri-calendar-line" },
-                            { label: "To",              value: formatDate(data?.to),      icon: "ri-calendar-check-line" },
-                            { label: "Total Hours",     value: `${data?.totalHours} hrs`, icon: "ri-time-line" },
-                            { label: "Total Attendees", value: totalAttendees,            icon: "ri-group-line" },
+                            { label: "Trainer", value: data?.trainerName, icon: "ri-user-line" },
+                            { label: "Centers", value: centerNames, icon: "ri-building-line" },
+                            { label: "From", value: formatDate(data?.from), icon: "ri-calendar-line" },
+                            { label: "To", value: formatDate(data?.to), icon: "ri-calendar-check-line" },
+                            { label: "Total Hours", value: data?.totalHours ? `${Math.floor(data.totalHours)}h ${Math.round((data.totalHours % 1) * 60)}m` : "—", icon: "ri-time-line" },
+                            { label: "Total Attendees", value: totalAttendees, icon: "ri-group-line" },
                         ].map(({ label, value, icon }) => (
                             <div className="col-sm-4 col-6" key={label}>
                                 <div className="p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
@@ -137,7 +146,7 @@ const TrainingRecordDetail = () => {
                                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                             <thead>
                                                 <tr>
-                                                    {["#", "Name", "Email", "Access Role" ,"Role"].map((h) => (
+                                                    {["#", "Name", "Email", "Access Role", "Role"].map((h) => (
                                                         <th key={h} style={{ padding: "9px 12px", background: "#f8fafc", color: "#6b7280", fontWeight: 600, textAlign: "left", borderBottom: "1px solid #e5e7eb", whiteSpace: "nowrap" }}>
                                                             {h}
                                                         </th>

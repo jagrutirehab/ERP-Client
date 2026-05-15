@@ -8,6 +8,7 @@ import { deleteTrainerRecord, getTrainerRecords } from "../../../helpers/backend
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainerModal from "../Components/EditTrainerModal";
 import DeleteTrainerModal from "../Components/DeleteTrainerModal";
+import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const LIMIT = 5;
 
@@ -16,6 +17,11 @@ const formatDateOnly = (d) =>
 
 const TrainingCard = ({ record, onEdit, onDelete }) => {
     const navigate = useNavigate();
+    const token = JSON.parse(localStorage.getItem("user"))?.token
+    const { hasPermission } = usePermissions(token)
+    const hasWritePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "WRITE")
+    const hasDeletePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "DELETE")
+    const canEdit = hasWritePermission
     const totalAttendees = record?.attendanceData?.reduce(
         (sum, d) => sum + (d?.presents?.length || 0), 0
     ) || 0;
@@ -59,18 +65,22 @@ const TrainingCard = ({ record, onEdit, onDelete }) => {
                         <i className="ri-group-line" /> View Attendees
                     </button>
                     <div className="d-flex gap-2">
-                        <button
-                            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                            onClick={() => onEdit(record)}
-                        >
-                            <i className="ri-edit-line" /> Edit
-                        </button>
-                        <button
-                            className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
-                            onClick={() => onDelete(record)}
-                        >
-                            <i className="ri-delete-bin-line" /> Delete
-                        </button>
+                        {canEdit && (
+                            <button
+                                className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                                onClick={() => onEdit(record)}
+                            >
+                                <i className="ri-edit-line" /> Edit
+                            </button>
+                        )}
+                        {hasDeletePermission && (
+                            <button
+                                className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+                                onClick={() => onDelete(record)}
+                            >
+                                <i className="ri-delete-bin-line" /> Delete
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -94,6 +104,8 @@ const TrainingRecords = () => {
     const [editRecord, setEditRecord] = useState(null)
     const [deleteRecord, setDeleteRecord] = useState(null)
     const [deletedLoading, setDeleteLoading] = useState(false);
+
+
 
 
     const centerOptions = [

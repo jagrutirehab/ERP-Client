@@ -26,7 +26,7 @@ const SelectedPanel = ({
     );
 
     return (
-        <div className="sticky-top">
+        <div>
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h6
                     className="text-uppercase text-muted fw-semibold mb-0"
