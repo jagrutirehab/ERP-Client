@@ -26,8 +26,8 @@ const CreateTrainers = () => {
 
     const token = JSON.parse(localStorage.getItem("user"))?.token
     const { hasPermission } = usePermissions(token)
-    const hasWritePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "WRITE")
-    const hasDeletePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "DELETE")
+    const hasWritePermission = hasPermission("TRAININGS", "CREATE_TRAINING_RECORD", "WRITE")
+    const hasDeletePermission = hasPermission("TRAININGS", "CREATE_TRAINING_RECORD", "DELETE")
     const canEdit = hasWritePermission
 
     const activeRecord = records[activeRecordIdx] || emptyRecord(user?.data?.name);
