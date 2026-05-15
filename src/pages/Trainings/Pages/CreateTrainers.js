@@ -7,6 +7,7 @@ import RecordTab from "../Components/RecordTab";
 import SessionForm from "../Components/SessionForm";
 import UserSelector from "../Components/UserSelector";
 import SelectedPanel from "../Components/SelectedPanel";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const LIMIT = 10;
 
@@ -22,6 +23,12 @@ const CreateTrainers = () => {
     const [records, setRecords] = useState([emptyRecord(user?.data?.name)]);
     const [activeRecordIdx, setActiveRecordIdx] = useState(0);
     const searchTimeout = useRef(null);
+
+    const token = JSON.parse(localStorage.getItem("user"))?.token
+    const { hasPermission } = usePermissions(token)
+    const hasWritePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "WRITE")
+    const hasDeletePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "DELETE")
+    const canEdit = hasWritePermission
 
     const activeRecord = records[activeRecordIdx] || emptyRecord(user?.data?.name);
     const getCenterIds = () => (activeRecord.center || []).join(",");
@@ -102,8 +109,22 @@ const CreateTrainers = () => {
         setSearch("");
     };
 
-    const updateRecord = (idx, field, value) =>
-        setRecords((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+    const updateRecord = (idx, field, value) => {
+        setRecords(prev => prev.map((r, i) => {
+            if (i !== idx) return r
+            if (field !== 'center') return { ...r, [field]: value }
+
+            const newCenters = value
+            const filteredUsers = {}
+            Object.entries(r.selectedUsers).forEach(([role, users]) => {
+                filteredUsers[role] = users.filter(u =>
+                    (u.centerAccess || []).some(c => newCenters.includes(c.toString()))
+                )
+            })
+
+            return { ...r, center: newCenters, selectedUsers: filteredUsers }
+        }))
+    }
 
     const addRecord = () => {
         setRecords((prev) => [...prev, emptyRecord(user?.data?.name)]);
@@ -210,7 +231,7 @@ const CreateTrainers = () => {
             setActiveRecordIdx(0);
         } catch (err) {
             console.log("err", err);
-            
+
             toast.error(err?.response?.data?.error || "Submission failed. Try again.");
         } finally {
             setSubmitting(false);
@@ -306,7 +327,7 @@ const CreateTrainers = () => {
                         <p className="text-muted mb-0" style={{ fontSize: 12 }}>
                             {records.length} record(s) ready to submit
                         </p>
-                        <div className="d-flex gap-2">
+                        {canEdit && <div className="d-flex gap-2">
                             <button
                                 className="btn btn-light btn-sm"
                                 onClick={() => { setRecords([emptyRecord(user?.data?.name)]); setActiveRecordIdx(0); }}
@@ -325,7 +346,7 @@ const CreateTrainers = () => {
                                     <><i className="ri-save-line" /> Submit {records.length > 1 ? `(${records.length} Records)` : ""}</>
                                 )}
                             </button>
-                        </div>
+                        </div>}
                     </div>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 import Select from "react-select";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const SessionForm = ({ record, recordIdx, onUpdate }) => {
     const user = useSelector((state) => state.User);
@@ -18,10 +19,15 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
         }
     };
 
-    const calculatedHours =
-        record.from && record.to
-            ? ((new Date(record.to) - new Date(record.from)) / (1000 * 60 * 60)).toFixed(2)
-            : null;
+    const calculatedHours = (() => {
+        if (!record.from || !record.to) return null
+        const diffMs = new Date(record.to) - new Date(record.from)
+        if (diffMs <= 0) return null
+        const totalMins = Math.floor(diffMs / (1000 * 60))
+        const hours = Math.floor(totalMins / 60)
+        const mins = totalMins % 60
+        return `${hours}h ${mins}m`
+    })()
 
     return (
         <div className="mb-4">
@@ -70,9 +76,19 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                 </div>
 
                 <div className="col-12">
-                    <label className="form-label fw-medium" style={{ fontSize: 13 }}>
-                        Centers <span className="text-danger">*</span>
-                    </label>
+                    <div className="d-flex align-items-center justify-content-between mb-1">
+                        <label className="form-label fw-medium mb-0" style={{ fontSize: 13 }}>
+                            Centers <span className="text-danger">*</span>
+                        </label>
+                        <button
+                            type="button"
+                            className="btn btn-link btn-sm p-0 text-primary"
+                            style={{ fontSize: 12 }}
+                            onClick={() => onUpdate(recordIdx, "center", centerOptions.map(c => c.value))}
+                        >
+                            Select All
+                        </button>
+                    </div>
                     <Select
                         isMulti
                         options={centerOptions}
@@ -107,18 +123,22 @@ const SessionForm = ({ record, recordIdx, onUpdate }) => {
                         min={record.from || undefined}
                         max={toMax}
                         disabled={!record.from}
-                        onChange={(e) => onUpdate(recordIdx, "to", e.target.value)}
+                        onChange={(e) => {
+                            const selected = e.target.value
+                            if (selected < record.from) return toast.error("Cannot set previous time")
+                            onUpdate(recordIdx, "to", selected)
+                        }}
                     />
                     {!record.from && (
                         <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>Select "From" first</p>
                     )}
                 </div>
 
-                {calculatedHours && Number(calculatedHours) > 0 && (
+                {calculatedHours && (
                     <div className="col-12">
                         <div className="alert alert-info py-2 px-3 mb-0 d-flex align-items-center gap-2" style={{ fontSize: 13 }}>
                             <i className="ri-time-line" />
-                            <strong>Total Hours:</strong>&nbsp;{calculatedHours} hrs
+                            <strong>Total Hours:</strong>&nbsp;{calculatedHours}
                             <span className="text-muted">(calculated automatically)</span>
                         </div>
                     </div>
