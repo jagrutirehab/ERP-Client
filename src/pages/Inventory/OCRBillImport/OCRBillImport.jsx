@@ -585,6 +585,7 @@ const OCRBillImport = () => {
 
       // Axios interceptor already unwraps response.data, so result is { success: true, data: [...] }
       // Extract the medicines array from the response
+      // NOTE: API already filters by strict strength matching, so no frontend filtering needed
       const medicinesArray = result?.data || [];
       console.log(`   Total matches found: ${Array.isArray(medicinesArray) ? medicinesArray.length : 'ERROR - not an array'}`);
       if (Array.isArray(medicinesArray) && medicinesArray.length > 0) {
@@ -643,6 +644,32 @@ const OCRBillImport = () => {
       setError("Center ID not found. Please select your center.");
       return;
     }
+
+    // Reset all form state before uploading new bill
+    setStep("upload");
+    setBillImportId(null);
+    setExtractedMedicines([]);
+    setErrorMedicines([]);
+    setExtractedFormData({});
+    setCheckedMedicines({});
+    setSelectedMedicineIds({});
+    setErrorMedicinesFormData({});
+    setSelectedErrorMedicineIds({});
+    setErrorMatchingMedicinesMap({});
+    setErrorCheckedMedicines({});
+    setPharmacyCheckResults({});
+    setMedicineFormData({});
+    setPharmacyStatus({});
+    setSuccessResult(null);
+    setBillSupplier("");
+    setBillNumber("");
+    setBillGrossAmount(0);
+    setBillDiscountPercentage(0);
+    setBillDiscountAmount(0);
+    setBillFinalAmount(0);
+    setBillTotal(0);
+    setMatchingMedicinesMap({});
+    setConfirmedMedicines({});
 
     setLoading(true);
     setError(null);
@@ -1023,12 +1050,12 @@ const OCRBillImport = () => {
   };
 
   const handleProceedFromExtraction = async () => {
-    // Get checked medicines
-    let indicesToProcess = Object.keys(checkedMedicines).filter(idx => checkedMedicines[idx]);
+    // Process ALL medicines (checked & unchecked)
+    // Unselected ones will be moved to errors array
+    let indicesToProcess = extractedMedicines.map((_, idx) => String(idx));
 
     if (indicesToProcess.length === 0) {
-      setError("Please select at least one medicine to process");
-      toast.warning("Select medicines using checkboxes");
+      setError("No medicines to process");
       return;
     }
 
@@ -1036,7 +1063,7 @@ const OCRBillImport = () => {
     setError(null);
 
     try {
-      // Step 1: Fetch matching medicines for each checked medicine
+      // Step 1: Fetch matching medicines for ALL medicines
       const matchingMap = {};
       for (let idx of indicesToProcess) {
         const extractedData = extractedFormData[idx];
@@ -1048,7 +1075,7 @@ const OCRBillImport = () => {
       }
       setMatchingMedicinesMap(matchingMap);
 
-      // Step 2: Auto-proceed to pharmacy check with selected medicines
+      // Step 2: Process all medicines (selected ones proceed, unselected go to errors)
       await handleProceedToPharmacyCheckAuto(indicesToProcess, matchingMap);
     } catch (err) {
       console.error("Error in extraction flow:", err);
@@ -1066,12 +1093,16 @@ const OCRBillImport = () => {
 
       for (const idx of indicesToProcess) {
         const idx_num = parseInt(idx);
+        const isChecked = checkedMedicines[idx_num];
         const selectedMedicineId = selectedMedicineIds[idx_num];
         const medicine = extractedMedicines[idx_num];
 
-        // Check if user selected a medicine from dropdown
-        if (!selectedMedicineId) {
-          // User didn't select any medicine - add to unselected/failed list
+        // Check if medicine is unchecked OR user didn't select a medicine from dropdown
+        if (!isChecked || !selectedMedicineId) {
+          // Medicine is unchecked OR no dropdown selection - add to errors
+          const reason = !isChecked
+            ? "Not checked by user"
+            : "No medicine selected from dropdown";
           unselectedMedicines.push({
             extractedName: medicine.ocrExtracted?.name,
             extractedStrength: medicine.ocrExtracted?.strength,
@@ -1080,8 +1111,8 @@ const OCRBillImport = () => {
             expiryDate: medicine.ocrExtracted?.expiryDate || null,
             unitPrice: medicine.ocrExtracted?.unitPrice || null,
             totalPrice: medicine.ocrExtracted?.totalPrice || null,
-            reason: "No medicine selected from matching list during review step",
-            action: "Please select a matched medicine from the dropdown and try again",
+            reason: reason,
+            action: "Edit & Retry from missing list",
           });
           continue;
         }
@@ -1122,19 +1153,14 @@ const OCRBillImport = () => {
 
       // Add unselected medicines to error list
       if (unselectedMedicines.length > 0) {
-        setErrorMedicines([...errorMedicines, ...unselectedMedicines]);
+        const newErrorList = [...errorMedicines, ...unselectedMedicines];
+        console.log(`📊 ERROR MEDICINES UPDATE:`);
+        console.log(`   Before: ${errorMedicines.length} medicines`);
+        console.log(`   Adding: ${unselectedMedicines.length} unselected medicines`);
+        console.log(`   After: ${newErrorList.length} medicines`, newErrorList);
+        setErrorMedicines(newErrorList);
 
-        // Update database with unselected medicines
-        try {
-          await updateBillErrors({
-            billImportId,
-            errors: unselectedMedicines,
-          });
-        } catch (updateErr) {
-          console.error("Failed to update bill errors in database:", updateErr);
-        }
-
-        toast.warning(`${unselectedMedicines.length} medicine(s) not selected - moved to missing list`);
+        toast.info(`⚠️ ${unselectedMedicines.length} medicine(s) not selected → Moved to "Missing" list. You can retry them later.`);
       }
 
       if (Object.keys(results).length === 0) {
@@ -1294,7 +1320,7 @@ const OCRBillImport = () => {
         purchasePrice: purchasePriceWithDiscount > 0 ? Math.round(purchasePriceWithDiscount * 100) / 100 : basePrice,
         mrp: basePrice > 0 ? Math.round(basePrice * 100) / 100 : "",
         salePrice: "",
-        company: billSupplier,
+        company: "",
         manufacturer: "",
         rackNumber: "",
       };
@@ -1346,6 +1372,15 @@ const OCRBillImport = () => {
   // ============================================
 
   const handleFinalSubmission = async () => {
+    console.log(`\n🔍 FINAL SUBMISSION DEBUG:`);
+    console.log(`   Error Medicines Count: ${errorMedicines.length}`);
+    console.log(`   Error Medicines Details:`, errorMedicines.map(m => ({
+      name: m.extractedName,
+      strength: m.extractedStrength,
+      reason: m.reason
+    })));
+    console.log(`   Confirmed Medicines: ${Object.keys(pharmacyCheckResults).length}`);
+
     setLoading(true);
     setError(null);
 
@@ -1369,12 +1404,27 @@ const OCRBillImport = () => {
         });
       });
 
+      console.log(`\n📤 SENDING TO API:`);
+      console.log(`   medicineConfirmations count: ${medicineConfirmations.length}`);
+      console.log(`   errorMedicines count: ${errorMedicines.length}`);
+      console.log(`   errorMedicines being passed:`, errorMedicines);
+
       const response = await confirmOCRMedicines({
         billImportId,
+        billMetadata: {
+          billNumber,
+          billSupplier,
+          billGrossAmount,
+          billDiscountPercentage,
+          billDiscountAmount,
+          billFinalAmount,
+          billTotal,
+        },
         medicineConfirmations,
+        errorMedicines: errorMedicines, // Include all error medicines (unchecked + not found)
       });
 
-      console.log("Confirm response:", response);
+      console.log("✅ Confirm response:", response);
 
       const result = response.data || response;
 
@@ -1675,11 +1725,10 @@ const OCRBillImport = () => {
             totalPrice: originalMedicine?.totalPrice || null,
           };
 
-          // Mark as checked and auto-select first matching medicine if available
+          // Don't auto-select on retry - let user manually verify strength match
+          // This ensures user catches any strength mismatches (e.g., 7 vs 7.5)
           newCheckedMedicines[startIdx] = false;
-          if (newMatch.matches && newMatch.matches.length > 0) {
-            newSelectedMedicineIds[startIdx] = newMatch.matches[0]._id;
-          }
+          // newSelectedMedicineIds[startIdx] remains empty - user must manually select
 
           startIdx++;
         }
@@ -1969,7 +2018,7 @@ const OCRBillImport = () => {
                           type="text"
                           size="sm"
                           value={billNumber}
-                          disabled
+                          onChange={(e) => setBillNumber(e.target.value)}
                           placeholder="Bill number (if extracted)"
                         />
                       </FormGroup>
@@ -1983,7 +2032,7 @@ const OCRBillImport = () => {
                           type="text"
                           size="sm"
                           value={billSupplier}
-                          disabled
+                          onChange={(e) => setBillSupplier(e.target.value)}
                           placeholder="Supplier/Company name for entire bill"
                         />
                       </FormGroup>
@@ -1998,10 +2047,12 @@ const OCRBillImport = () => {
                           <strong>Gross Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billGrossAmount > 0 ? `₹ ${billGrossAmount.toFixed(2)}` : "₹ 0.00"}
-                          disabled
+                          value={billGrossAmount || ""}
+                          onChange={(e) => setBillGrossAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2011,10 +2062,12 @@ const OCRBillImport = () => {
                           <strong>Discount %</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billDiscountPercentage > 0 ? `${billDiscountPercentage.toFixed(2)}%` : "0%"}
-                          disabled
+                          value={billDiscountPercentage || ""}
+                          onChange={(e) => setBillDiscountPercentage(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2027,10 +2080,12 @@ const OCRBillImport = () => {
                           <strong>— Discount Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billDiscountAmount > 0 ? `— ₹ ${billDiscountAmount.toFixed(2)}` : "— ₹ 0.00"}
-                          disabled
+                          value={billDiscountAmount || ""}
+                          onChange={(e) => setBillDiscountAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2040,10 +2095,12 @@ const OCRBillImport = () => {
                           <strong>= Final Amount (After Discount)</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billFinalAmount > 0 ? `= ₹ ${billFinalAmount.toFixed(2)}` : `= ₹ ${billGrossAmount.toFixed(2)}`}
-                          disabled
+                          value={billFinalAmount || ""}
+                          onChange={(e) => setBillFinalAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2056,10 +2113,12 @@ const OCRBillImport = () => {
                           <strong>= Total Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={`= ₹ ${billTotal.toFixed(2)}`}
-                          disabled
+                          value={billTotal || ""}
+                          onChange={(e) => setBillTotal(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2075,16 +2134,14 @@ const OCRBillImport = () => {
                 <Row className="align-items-center">
                   <Col>
                     <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines ({errorMedicines.length})</h6>
-                    <small className="text-muted">Edit details • Move to extracted list to search & match</small>
                   </Col>
                   <Col xs="auto">
                     <Button
-                      color="warning"
+                      color="primary"
                       size="sm"
                       onClick={() => downloadMissingFieldsCSV(errorMedicines)}
-                      outline
                     >
-                      📥 Download Excel
+                    Download Excel
                     </Button>
                   </Col>
                 </Row>
@@ -2277,16 +2334,14 @@ const OCRBillImport = () => {
                     <Row className="align-items-center">
                       <Col>
                         <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines Found ({errorMedicines.length})</h6>
-                        <small className="text-muted">Edit details • Move to extracted list to search & match</small>
                       </Col>
                       <Col xs="auto">
                         <Button
-                          color="warning"
+                          color="primary"
                           size="sm"
                           onClick={() => downloadMissingFieldsCSV(errorMedicines)}
-                          outline
                         >
-                          📥 Download Excel
+                          Download Excel
                         </Button>
                       </Col>
                     </Row>
@@ -2326,15 +2381,14 @@ const OCRBillImport = () => {
                       <table className="table table-sm mb-0 error-medicine-table-no-extracted">
                         <thead className="bg-light">
                           <tr>
-                            <th style={{ width: "15%" }}>Medicine Name</th>
-                            <th style={{ width: "10%" }}>Strength</th>
-                            <th style={{ width: "8%" }}>Qty</th>
-                            <th style={{ width: "12%" }}>Batch</th>
-                            <th style={{ width: "12%" }}>Expiry</th>
-                            <th style={{ width: "9%" }}>Unit Price</th>
-                            <th style={{ width: "9%" }}>Total</th>
-                            <th style={{ width: "20%" }}>Search & Match</th>
-                            <th style={{ width: "5%" }}></th>
+                            <th style={{ width: "18%" }}>Medicine Name</th>
+                            <th style={{ width: "12%" }}>Strength</th>
+                            <th style={{ width: "10%" }}>Qty</th>
+                            <th style={{ width: "15%" }}>Batch</th>
+                            <th style={{ width: "15%" }}>Expiry</th>
+                            <th style={{ width: "12%" }}>Unit Price</th>
+                            <th style={{ width: "12%" }}>Total</th>
+                            <th style={{ width: "6%" }}></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2449,75 +2503,6 @@ const OCRBillImport = () => {
                                     disabled
                                   />
                                 </td>
-                                <td style={{ minWidth: "280px" }}>
-                                  {errorMatchingMedicinesMap[idx]?.length > 0 ? (
-                                    <Row className="g-1">
-                                      <Col xs="9">
-                                        <Select
-                                          options={errorMatchingMedicinesMap[idx]?.map((m) => ({
-                                            value: m._id,
-                                            label: `${m.id || m._id} | ${m.name} ${m.strength || ""}`.trim(),
-                                            data: m,
-                                          })) || []}
-                                          value={
-                                            selectedErrorMedicineIds[idx]
-                                              ? {
-                                                value: selectedErrorMedicineIds[idx],
-                                                label: errorMatchingMedicinesMap[idx]?.find(
-                                                  (m) => m._id === selectedErrorMedicineIds[idx]
-                                                )?.id || selectedErrorMedicineIds[idx],
-                                              }
-                                              : null
-                                          }
-                                          onChange={(selected) => {
-                                            if (selected) {
-                                              setSelectedErrorMedicineIds({
-                                                ...selectedErrorMedicineIds,
-                                                [idx]: selected.value,
-                                              });
-                                            }
-                                          }}
-                                          isClearable
-                                          isSearchable
-                                          placeholder="Select..."
-                                          onClearValue={() => {
-                                            const updated = { ...selectedErrorMedicineIds };
-                                            delete updated[idx];
-                                            setSelectedErrorMedicineIds(updated);
-                                          }}
-                                          menuPortalTarget={document.body}
-                                          menuPosition="fixed"
-                                          styles={{
-                                            control: (base) => ({
-                                              ...base,
-                                              minHeight: "36px",
-                                              fontSize: "0.75rem",
-                                              padding: "0 4px",
-                                            }),
-                                            option: (base, state) => ({
-                                              ...base,
-                                              fontSize: "0.75rem",
-                                              padding: "6px 10px",
-                                            }),
-                                          }}
-                                        />
-                                      </Col>
-                                      <Col xs="3">
-                                        <Button
-                                          color="success"
-                                          size="sm"
-                                          onClick={() => handleAddErrorMedicineToExtracted(idx)}
-                                          disabled={!selectedErrorMedicineIds[idx]}
-                                          className="w-100"
-                                        >
-                                          Add ✓
-                                        </Button>
-                                      </Col>
-                                    </Row>
-                                  ) : (
-                                    <span className="text-muted small">Searching...</span>
-                                  )}
-                                </td>
                                 <td style={{ textAlign: "center" }}>
                                   <Button
                                     color="link"
@@ -2569,7 +2554,8 @@ const OCRBillImport = () => {
             </Row>
           )}
 
-          {/* Compact Table View for Quick Bulk Entry */}
+          {/* Compact Table View for Quick Bulk Entry - Only show if medicines were extracted */}
+          {extractedMedicines.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader className="bg-light border-0">
               <h6 className="mb-0 font-weight-bold">
@@ -2836,6 +2822,7 @@ const OCRBillImport = () => {
               </div>
             </CardBody>
           </Card>
+          )}
 
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
