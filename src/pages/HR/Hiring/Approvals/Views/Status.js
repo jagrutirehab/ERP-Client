@@ -163,13 +163,15 @@ const Status = ({ activeTab }) => {
         exportExcel: true,
       });
 
-      const blob = new Blob([response.data], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      const csvData = typeof response === "string" ? response : response.data;
+
+      const blob = new Blob([csvData], {
+        type: "text/csv;charset=utf-8;",
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Hiring_Status_Report_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
+      a.download = `Hiring_Status_Report_${format(new Date(), "dd-MM-yyyy")}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -541,7 +543,7 @@ const Status = ({ activeTab }) => {
             <RefreshButton loading={loading} onRefresh={fetchHiringApprovalHistory} />
             <Button color="primary" className="text-white d-flex align-items-center" onClick={handleExportExcel} disabled={isExporting}>
               {isExporting ? <Spinner size="sm" className="me-2" /> : null}
-              Export Excel
+              Export CSV
             </Button>
           </div>
         </div>
