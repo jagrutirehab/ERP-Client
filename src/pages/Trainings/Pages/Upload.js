@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { CardBody, Spinner } from 'reactstrap'
-import { createTrainings, sopGetRoles } from '../../../helpers/backend_helper'
+import { createTrainings, getRolesDisctinct, sopGetRoles } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
 import { usePermissions } from '../../../Components/Hooks/useRoles'
@@ -22,7 +22,8 @@ const Upload = () => {
 
   const getRoles = async () => {
     try {
-      const response = await sopGetRoles()
+      const response = await getRolesDisctinct()
+      // getRolesDisctinct
       if (response?.data) {
         setAllRoles(response.data)
       }
