@@ -40,7 +40,7 @@ const DailyDashboard = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("Total");
-    const [selectedDate, setSelectedDate] = useState(moment().format("YYYY-MM-DD"));
+    const [selectedDate, setSelectedDate] = useState(moment().subtract(1, "day").format("YYYY-MM-DD"));
 
     useEffect(() => {
         dispatch(fetchDailyDashboard({ centerAccess, date: selectedDate }));
@@ -92,7 +92,7 @@ const DailyDashboard = () => {
         <div className="mt-4 mt-sm-0" style={{ maxWidth: 700 }}>
             <div className="p-3 d-flex align-items-center">
                 <i className="bx bx-bar-chart-alt-2 fs-1 me-3"></i>
-                <h6 className="text-truncate mb-0 fs-18">Daily Dashboard DOD</h6>
+                <h6 className="text-truncate mb-0 fs-18">Daily Dashboard</h6>
             </div>
 
             <div className="px-3 pb-3">
@@ -110,7 +110,11 @@ const DailyDashboard = () => {
                         <Flatpickr
                             className="form-control"
                             value={selectedDate}
-                            options={{ dateFormat: "Y-m-d", maxDate: "today" }}
+                            options={{
+                                    dateFormat: "Y-m-d",
+                                    maxDate: moment().subtract(1, "day").toDate(),
+                                    minDate: moment().subtract(60, "days").toDate(),
+                                }}
                             onChange={([date]) => setSelectedDate(moment(date).format("YYYY-MM-DD"))}
                             placeholder="Select date..."
                             style={{ width: 130 }}

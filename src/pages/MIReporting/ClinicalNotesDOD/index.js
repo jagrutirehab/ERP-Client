@@ -83,15 +83,16 @@
 
     const labels=[
             "Patient Name",
+             "Total (Current Month)",
             "Center Name",
             "Patient UID",
             "Psychologist Name",
             "Assigned Patients",
-            "Total (Current Month)"
+           
 
             ]
 
-    const fixedColWidths = [150, 120, 90, 100];
+    const fixedColWidths = [240, 120, 90, 100];
 
     const labelsMapping={
             "Psychologist Name":"psychologist_name",
@@ -240,42 +241,36 @@
                             style={{
                                 borderCollapse: "separate",
                                 borderSpacing: 0,
-                                fontSize: "0.78rem",
+                                fontSize: "0.68rem",
                             }}
                         >
-                            <thead>
+                            <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                                 <tr>
                                     {labels.map((label, i) => (
                                         <th
                                             key={label}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "#004d00",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 0,
-                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
-                                                zIndex: 5,
                                                 minWidth: fixedColWidths[i],
+                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {i === 5 ? "Total (Single Day)" : ""}
                                         </th>
                                     ))}
-                                    {last30Days.map(({ key ,label}) => (
+                                    {last30Days.map(({ key, label }) => (
                                         <th
                                             key={key}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "#004d00",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 0,
-                                                zIndex: 2,
                                             }}
                                         >
                                             {dateTotals[label] || ""}
@@ -286,17 +281,14 @@
                                     {labels.map((label, i) => (
                                         <th
                                             key={label}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
                                                 color: "white",
-                                                whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 37,
-                                                left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
-                                                zIndex: 4,
+                                                whiteSpace: i===2?"wrap":"nowrap",
                                                 minWidth: fixedColWidths[i],
+                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -305,15 +297,12 @@
                                     {last30Days.map(({ key, label }) => (
                                         <th
                                             key={key}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
-                                                color: "white", 
+                                                color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 37,
-                                                zIndex: 2,
                                             }}
                                         >
                                             {label}
@@ -328,14 +317,12 @@
                                         {labels.map((label, i) => (
                                             <td
                                                 key={label}
-                                                className="text-center px-1 py-2"
+                                                className="text-center px-1 py-1"
                                                 style={{
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
-                                                    position: "sticky",
-                                                    left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0),
-                                                    zIndex: 3,
+                                                    ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
@@ -347,7 +334,7 @@
                                         {last30Days.map(({ key,label }) => (
                                             <td
                                                 key={key}
-                                                className="text-center px-1 py-2"
+                                                className="text-center px-1 py-1"
                                                 style={{
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
