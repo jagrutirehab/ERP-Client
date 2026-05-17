@@ -19,6 +19,7 @@ import CustomModal from "../../../Components/Common/Modal";
 //data
 import {
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   PRESCRIPTION,
   records,
   testRecord,
@@ -167,7 +168,8 @@ const ChartDate = ({
                         editChartData.data.chart !== item.category
                           ? true
                           : type === "GENERAL" &&
-                              item.category === DISCHARGE_SUMMARY
+                              (item.category === DISCHARGE_SUMMARY ||
+                                item.category === EXPIRY_SUMMARY)
                             ? true
                             : false
                       }

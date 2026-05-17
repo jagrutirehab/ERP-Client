@@ -13,6 +13,7 @@ const LAB_REPORT = "LAB_REPORT";
 const PROCEDURE = "PROCEDURE";
 const RELATIVE_VISIT = "RELATIVE_VISIT";
 const DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY";
+const EXPIRY_SUMMARY = "EXPIRY_SUMMARY";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const MENTAL_EXAMINATION_V2 = "MENTAL_EXAMINATION_V2";
@@ -82,6 +83,10 @@ const records = [
   {
     name: "Discharge Summary",
     category: DISCHARGE_SUMMARY,
+  },
+  {
+    name: "Expiry Summary",
+    category: EXPIRY_SUMMARY,
   },
   {
     name: "Detail History",
@@ -1220,6 +1225,310 @@ const dischargeSummaryFields = [
   },
 ];
 
+const expirySummaryFields = [
+  {
+    label: "Cause of Death",
+    name: "expiryCause",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+    required: true,
+  },
+  {
+    label: "Date and Time of Expiry",
+    name: "expiryDateTime",
+    type: "datetime-local",
+    xs: 12,
+    md: 6,
+    required: true,
+  },
+  {
+    label: "Diagnosis",
+    name: "diagnosis",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Presenting Symptoms",
+    name: "presentingSymptoms",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Mse at addmission",
+    name: "mseAddmission",
+    fields: [
+      {
+        label: "Appearance and Behavior",
+        name: "appearance",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "ECC / Rapport",
+        name: "ecc",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Speech",
+        name: "speech",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Mood",
+        name: "mood",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Affect",
+        name: "affect",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Thoughts",
+        name: "thoughts",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Perception",
+        name: "perception",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Memory",
+        name: "memory",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Abstract Thinking",
+        name: "abstractThinking",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Social Judgment",
+        name: "socialJudgment",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Insight",
+        name: "insight",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+    ],
+  },
+  {
+    label: "Past History",
+    name: "pastHistory",
+    type: "textarea",
+    xs: 12,
+    md: 4,
+  },
+  {
+    label: "Medical History",
+    name: "medicalHistory",
+    type: "textarea",
+    xs: 12,
+    md: 4,
+  },
+  {
+    label: "Family History",
+    name: "familyHistory",
+    type: "textarea",
+    xs: 12,
+    md: 4,
+  },
+  {
+    label: "Personal History",
+    name: "personalHistory",
+    fields: [
+      {
+        label: "Smoking",
+        name: "smoking",
+        type: "text",
+        xs: 6,
+        md: 4,
+      },
+      {
+        label: "Chewing Tobacco",
+        name: "chewingTobacco",
+        type: "text",
+        xs: 6,
+        md: 4,
+      },
+      {
+        label: "Alcohol",
+        name: "alcohol",
+        type: "text",
+        xs: 6,
+        md: 4,
+      },
+    ],
+  },
+  {
+    label: "Physical Examination",
+    name: "physicalExamination",
+    fields: [
+      {
+        label: "Temprature",
+        name: "temprature",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Pulse",
+        name: "pulse",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "B.P",
+        name: "bp",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "CVS",
+        name: "cvs",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "RS",
+        name: "rs",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Abdomen",
+        name: "abdomen",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "CNS",
+        name: "cns",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+      {
+        label: "Others",
+        name: "others",
+        type: "text",
+        xs: 6,
+        md: 3,
+      },
+    ],
+  },
+  {
+    label: "Investigation",
+    name: "investigation",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "DISCUSSION / WARD MANAGMENT",
+    name: "discussion",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Refernces",
+    name: "refernces",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Modified ECT's / Ketamine / Other Treatment",
+    name: "modifiedTreatment",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "LA / Deport Administered",
+    name: "deportAdministered",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "PATIENT CONDITION / STATUS AT THE TIME OF EXPIRY",
+    name: "patientStatus",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Note",
+    name: "note",
+    type: "textarea",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Consultant Name",
+    name: "consultantName",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "MO/SMO/CMO/Consultant",
+    name: "consultantSignature",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Consultant Psychologist",
+    name: "consultantPsychologist",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+  {
+    label: "Expiry Summary Prepared By",
+    name: "summaryPreparedBy",
+    type: "text",
+    xs: 12,
+    md: 6,
+  },
+
+];
+
 let addPatientFields = [
   {
     label: "Name",
@@ -2086,6 +2395,7 @@ export {
   PROCEDURE,
   RELATIVE_VISIT,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   DETAIL_ADMISSION,
   MENTAL_EXAMINATION,
   MENTAL_EXAMINATION_V2,
@@ -2117,6 +2427,7 @@ export {
   counsellingNoteFields,
   relativeVisitFields,
   dischargeSummaryFields,
+  expirySummaryFields,
   //PATIENT FIELDS
   addPatientFields,
   patientGuradianFields,

@@ -7,6 +7,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   LAB_REPORT,
   MENTAL_EXAMINATION,
   PRESCRIPTION,
@@ -26,6 +27,7 @@ import {
 import { connect, useDispatch } from "react-redux";
 
 import DischargeSummary from "./DischargeSummary";
+import ExpirySummary from "./ExpirySummary";
 import Prescription from "./Prescription";
 import VitalSign from "./VitalSign";
 import ClinicalNote from "./ClinicalNote";
@@ -38,7 +40,6 @@ import MentalExamination from "./MentalExamination";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
-
 const Charts = ({ addmission, charts, toggleDateModal }) => {
 
 
@@ -212,6 +213,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === DISCHARGE_SUMMARY && (
                   <DischargeSummary data={chart?.dischargeSummary} />
+                )}
+                {chart.chart === EXPIRY_SUMMARY && (
+                  <ExpirySummary data={chart?.expirySummary} />
                 )}
                 {chart.chart === VITAL_SIGN && (
                   <VitalSign data={chart.vitalSign} />
