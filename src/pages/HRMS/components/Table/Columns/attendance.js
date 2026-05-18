@@ -42,6 +42,27 @@ export const attendanceColumns = ({ searchText }) => [
         minWidth: "120px"
     },
     {
+        name: <div>Status</div>,
+        selector: row => row?.employee?.status || "-",
+        cell: row => {
+            const status = row?.employee?.status;
+            const colorMap = {
+                ACTIVE: "success",
+                RESIGNED: "danger",
+                FNF_CLOSED: "secondary",
+                NEW_JOINING: "warning",
+            };
+            return (
+                <span className={`badge bg-${colorMap[status] || "secondary"}`}>
+                    {status || "-"}
+                </span>
+            );
+        },
+        wrap: true,
+        center: false,
+        minWidth: "130px"
+    },
+    {
         name: <div>Source</div>,
         selector: row => capitalizeWords(row?.source) || "-",
         wrap: true
