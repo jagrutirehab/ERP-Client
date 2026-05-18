@@ -3682,6 +3682,14 @@ export const getAllSopAlerts = () => axios.get(url.GET_ALL_SOP_ALERTS);
 
 export const markSopAlertRead = (id) => axios.post(`${url.MARK_SOP_ALERT_READ}/${id}/read`);
 
+export const markAllSopAlertsRead = () => axios.post(url.MARK_ALL_SOP_ALERTS_READ);
+
+export const listSopRules = (params) => axios.get(url.SOP_RULES, { params });
+export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);
+export const updateSopRule = (id, payload) => axios.patch(`${url.SOP_RULES}/${id}`, payload);
+export const toggleSopRuleActive = (id, isActive) => axios.patch(`${url.SOP_RULES}/${id}/active`, { isActive });
+export const deleteSopRule = (id) => axios.delete(`${url.SOP_RULES}/${id}`);
+
 // OCR BILL IMPORT
 export const getMatchingMedicines = (data) =>
   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {

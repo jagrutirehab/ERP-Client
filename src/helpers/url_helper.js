@@ -679,6 +679,9 @@ export const GET_FIELDS = "/sop/fields"
 export const GET_ALL_SOP_ALERTS = "/sop/alerts"
 export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread"
 export const MARK_SOP_ALERT_READ = "/sop/alerts"
+export const MARK_ALL_SOP_ALERTS_READ = "/sop/alerts/mark-all-read"
+
+export const SOP_RULES = "/sop/rules"
 
 
 // trainings
