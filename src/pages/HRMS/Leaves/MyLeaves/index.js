@@ -104,7 +104,7 @@ const MyLeaves = () => {
           docCreatedAt: d?.createdAt,
           year: d?.year,
           eCode: d?.eCode,
-          center: d?.center,
+          center: l?.leave?.center || d?.center,
           approvalAuthority: d?.approvalAuthority,
           regularizedDates: l?.regularizedDates,
           cancellationAction : l?.cancellationAction,

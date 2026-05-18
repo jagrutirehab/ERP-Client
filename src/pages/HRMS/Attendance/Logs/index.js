@@ -19,6 +19,14 @@ import AttendanceUploadModal from "../../components/AttendanceUploadModal";
 import { downloadAttendanceTemplate, refetchBiometricAttendanace } from "../../../../helpers/backend_helper";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 
+const statusOptions = [
+    { value: "", label: "All Status" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "RESIGNED", label: "Resigned" },
+    { value: "FNF_CLOSED", label: "FNF Closed" },
+    { value: "NEW_JOINING", label: "New Joining" },
+];
+
 const AttendanceLogs = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -42,6 +50,7 @@ const AttendanceLogs = () => {
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [isTemplateGenerating, setIsTemplateGenerating] = useState(false);
     const [isRefetchingBiometricAttendance, setIsRefetchingBiometricAttendance] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState("ACTIVE");
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -70,6 +79,7 @@ const AttendanceLogs = () => {
                     centers,
                     startDate: reportDate.start,
                     endDate: reportDate.end,
+                    status: selectedStatus || undefined,
                     ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
                 })
             ).unwrap();
@@ -102,7 +112,8 @@ const AttendanceLogs = () => {
         reportDate.end,
         hasUserPermission,
         debouncedSearch,
-        user?.centerAccess
+        user?.centerAccess,
+        selectedStatus
     ]);
 
 
@@ -113,7 +124,8 @@ const AttendanceLogs = () => {
         reportDate.start,
         reportDate.end,
         limit,
-        debouncedSearch
+        debouncedSearch,
+        selectedStatus
     ]);
 
     const handleDownloadXlsxTemplate = async () => {
@@ -219,6 +231,15 @@ const AttendanceLogs = () => {
                                 classNamePrefix="react-select"
                             />
                         </div>
+                        <div style={{ width: "180px" }}>
+                            <Select
+                                value={statusOptions.find(opt => opt.value === selectedStatus)}
+                                onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
+                                options={statusOptions}
+                                classNamePrefix="react-select"
+                                isSearchable={false}
+                            />
+                        </div>
 
                         <div style={{ minWidth: "220px" }}>
                             <Input
@@ -310,6 +331,14 @@ const AttendanceLogs = () => {
                         options={centerOptions}
                         classNamePrefix="react-select"
                     />
+                    <Select
+                        value={statusOptions.find(opt => opt.value === selectedStatus)}
+                        onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
+                        options={statusOptions}
+                        classNamePrefix="react-select"
+                        isSearchable={false}
+                    />
+
 
                     <Input
                         type="text"
