@@ -1281,8 +1281,22 @@ export const SOP_CONFIGS = [
   {
     id: "sopconfigs-create",
     label: "Configure SOP",
-    link: "/sop-configs/create",
-    icon: "bx bx-slider-alt"
+    icon: "bx bx-slider-alt",
+    isAccordion: true,
+    children: [
+      {
+        id: "sopconfigs-create-new",
+        label: "Create New",
+        link: "/sop-configs/save",
+        icon: "bx bx-plus-circle",
+      },
+      {
+        id: "sopconfigs-manage",
+        label: "Manage Rules",
+        link: "/sop-configs/manage",
+        icon: "bx bx-list-ul",
+      },
+    ],
   },
   {
     id: "sopconfigs-alerts",

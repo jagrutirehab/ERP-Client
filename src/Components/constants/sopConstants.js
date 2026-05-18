@@ -77,20 +77,27 @@ export const emptyConditionItem = () => ({
   value: [],
 });
 
+export const emptyRouting = () => ({
+  selectedRoles: [],
+  selectedUsers: [],
+});
+
 export const emptyTargetBlock = () => ({
   id: Date.now() + Math.random(),
+  name: "",
   alertTemplate: "",
   conditions: [emptyConditionItem()],
+  // Per-block alert recipe — every block is a self-contained alert definition.
+  severity: SEVERITY_OPTIONS[1],
+  actionGuidance: "",
+  referenceSection: "",
+  ...emptyRouting(),
 });
 
 export const emptyForm = () => ({
   ruleName: "",
   protocol: "",
-  severity: SEVERITY_OPTIONS[1],
-  admissionType: null,
   isActive: true,
-  actionGuidance: "",
-  referenceSection: "",
 });
 export const BLOOD_GROUP_OPTIONS = [
   "A+",

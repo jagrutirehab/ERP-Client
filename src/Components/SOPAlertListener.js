@@ -1,15 +1,20 @@
 import { useEffect, useRef } from "react";
 import { socket } from "../workers/sopsocket";
 import { toast } from "react-toastify";
-import { getUnreadSopAlerts, markSopAlertRead } from "../helpers/backend_helper";
+import {
+  getUnreadSopAlerts,
+  markSopAlertRead,
+} from "../helpers/backend_helper";
 
 const showAlert = (alert) => {
   if (!alert?._id) return;
   toast.error(`[${alert.severity}] ${alert.message}`, {
-    toastId: alert._id,                 // dedupes if the same alert arrives twice
-    autoClose: false,                   // user must acknowledge
+    toastId: alert._id, // dedupes if the same alert arrives twice
+    autoClose: false, // user must acknowledge
     onClose: () => {
-      markSopAlertRead(alert._id).catch(() => { /* best-effort */ });
+      markSopAlertRead(alert._id).catch(() => {
+        /* best-effort */
+      });
     },
   });
 };
@@ -17,7 +22,7 @@ const showAlert = (alert) => {
 const fetchMissed = async () => {
   try {
     const res = await getUnreadSopAlerts();
-    const alerts = res?.data?.data || [];
+    const alerts = res?.data || [];
     alerts.forEach(showAlert);
   } catch (err) {
     console.error("[SOP] Failed to fetch unread alerts:", err?.message || err);
