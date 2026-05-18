@@ -297,15 +297,13 @@ const AttendanceMetrics = () => {
                     classNamePrefix="react-select"
                     isSearchable={false}
                 />
-                <div style={{ width: "180px" }}>
-                    <Select
-                        value={statusOptions.find(opt => opt.value === selectedStatus)}
-                        onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
-                        options={statusOptions}
-                        classNamePrefix="react-select"
-                        isSearchable={false}
-                    />
-                </div>
+                <Select
+                    value={statusOptions.find(opt => opt.value === selectedStatus)}
+                    onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
+                    options={statusOptions}
+                    classNamePrefix="react-select"
+                    isSearchable={false}
+                />
 
                 <Input
                     type="text"
