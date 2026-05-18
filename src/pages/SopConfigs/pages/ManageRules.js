@@ -9,11 +9,31 @@ import ManageRulesFilters from "../components/manageRules/ManageRulesFilters";
 import RulesList from "../components/manageRules/RulesList";
 import RulePreviewOffcanvas from "../components/manageRules/RulePreviewOffcanvas";
 import DeleteRuleModal from "../components/manageRules/DeleteRuleModal";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useEffect } from "react";
 
 const ManageRules = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const navigate = useNavigate();
   const rulesState = useManageRules();
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+
+  const hasReadPermission = hasPermission("SOPCONFIGS", "MANAGE", "READ");
+  const hasWritePermission = hasPermission("SOPCONFIGS", "MANAGE", "WRITE");
+  const hasDeletePermission = hasPermission("SOPCONFIGS", "MANAGE", "DELETE");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasReadPermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasReadPermission, permissionLoader]);
 
   // Preview offcanvas — fetches full detail (with populated specific users)
   // when opened, falls back to the row-level rule data while loading.
@@ -70,6 +90,7 @@ const ManageRules = () => {
       style={isMobile ? { width: "100%" } : { width: "78%" }}
     >
       <ManageRulesHeader
+        hasWritePermission={hasWritePermission}
         counts={rulesState.counts}
         loading={rulesState.loading}
         onNew={() => navigate("/sop-configs/save")}
@@ -88,6 +109,8 @@ const ManageRules = () => {
       />
 
       <RulesList
+        hasWritePermission={hasWritePermission}
+        hasDeletePermission={hasDeletePermission}
         filtered={rulesState.filtered}
         filteredCount={rulesState.filtered.length}
         loading={rulesState.loading}

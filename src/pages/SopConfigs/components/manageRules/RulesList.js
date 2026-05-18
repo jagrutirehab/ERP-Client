@@ -2,6 +2,8 @@ import { Button, Card, CardHeader, Spinner } from "reactstrap";
 import RuleRow from "./RuleRow";
 
 const RulesList = ({
+  hasWritePermission,
+  hasDeletePermission,
   filtered,
   filteredCount,
   loading,
@@ -14,7 +16,10 @@ const RulesList = ({
 }) => (
   <Card style={{ overflow: "hidden" }}>
     <CardHeader className="fw-semibold py-2 d-flex justify-content-between align-items-center">
-      <span><i className="bx bx-list-ul me-1" />Rules</span>
+      <span>
+        <i className="bx bx-list-ul me-1" />
+        Rules
+      </span>
       <small className="text-muted">{filteredCount} shown</small>
     </CardHeader>
     <div style={{ maxHeight: "75vh", overflowY: "auto" }}>
@@ -26,7 +31,7 @@ const RulesList = ({
         <div className="text-center text-muted py-5">
           <i className="bx bx-folder-open display-5 d-block mb-2" />
           No rules match these filters.
-          {emptyStateShowCreate && (
+          {emptyStateShowCreate && hasWritePermission && (
             <div className="mt-2">
               <Button color="primary" size="sm" onClick={onCreate}>
                 Create your first rule
@@ -38,6 +43,8 @@ const RulesList = ({
         filtered.map((r) => (
           <RuleRow
             key={r._id}
+            hasWritePermission={hasWritePermission}
+            hasDeletePermission={hasDeletePermission}
             rule={r}
             onPreview={onPreview}
             onToggleActive={onToggleActive}

@@ -10,6 +10,7 @@ import {
   getSopRuleById,
   updateSopRule,
 } from "../../../helpers/backend_helper";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 /**
  * Dual-purpose page:
@@ -31,6 +32,26 @@ const SaveRule = () => {
   const [pendingPayload, setPendingPayload] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
 
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+
+  const hasCreatePermission = hasPermission("SOPCONFIGS", "MANAGE", "CREATE");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasCreatePermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasCreatePermission, permissionLoader]);
+
+  // if (!permissionLoader && !hasCreatePermission) {
+  //   navigate("/unauthorized");
+  // }
+
   useEffect(() => {
     if (!isEdit) {
       setInitialValues(null);
@@ -51,7 +72,9 @@ const SaveRule = () => {
         setLoadError(err?.response?.data?.message || "Failed to load rule");
       })
       .finally(() => alive && setLoading(false));
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [id, isEdit]);
 
   const handleFormSubmit = (payload) => {
@@ -75,7 +98,7 @@ const SaveRule = () => {
       navigate("/sop-configs/manage");
       return true;
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Save failed");
+      toast.error(err?.message || "Save failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +112,10 @@ const SaveRule = () => {
 
   if (isEdit && loading) {
     return (
-      <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
+      <CardBody
+        className="p-3 bg-white"
+        style={isMobile ? { width: "100%" } : { width: "78%" }}
+      >
         <div className="text-center py-5">
           <Spinner color="primary" />
           <div className="mt-2 text-muted">Loading rule...</div>
@@ -100,10 +126,17 @@ const SaveRule = () => {
 
   if (isEdit && loadError) {
     return (
-      <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
+      <CardBody
+        className="p-3 bg-white"
+        style={isMobile ? { width: "100%" } : { width: "78%" }}
+      >
         <Alert color="danger">
           {loadError}{" "}
-          <Button color="link" size="sm" onClick={() => navigate("/sop-configs/manage")}>
+          <Button
+            color="link"
+            size="sm"
+            onClick={() => navigate("/sop-configs/manage")}
+          >
             Back to list
           </Button>
         </Alert>
@@ -122,17 +155,34 @@ const SaveRule = () => {
             {isEdit ? "EDIT SOP RULE" : "CREATE SOP RULE"}
           </h1>
           <p className="text-muted mb-0">
-            {isEdit
-              ? <>Editing <strong>{initialValues?.ruleName || id}</strong> — saving creates a new version.</>
-              : "Define a new compliance rule. Alerts will dispatch to the routes you configure."}
+            {isEdit ? (
+              <>
+                Editing <strong>{initialValues?.ruleName || id}</strong> —
+                saving creates a new version.
+              </>
+            ) : (
+              "Define a new compliance rule. Alerts will dispatch to the routes you configure."
+            )}
           </p>
         </div>
-        <Button color="secondary" outline size="sm" onClick={() => navigate("/sop-configs/manage")}>
+        <Button
+          color="secondary"
+          outline
+          size="sm"
+          onClick={() => navigate("/sop-configs/manage")}
+        >
           <i className="bx bx-arrow-back me-1" /> Back to list
         </Button>
       </div>
 
-      <div style={{ maxHeight: "80vh", overflowY: "auto", paddingRight: "4px", marginBottom: "20px" }}>
+      <div
+        style={{
+          maxHeight: "80vh",
+          overflowY: "auto",
+          paddingRight: "4px",
+          marginBottom: "20px",
+        }}
+      >
         <SOPForm
           onSubmit={handleFormSubmit}
           isSubmitting={isSubmitting}
@@ -149,9 +199,12 @@ const SaveRule = () => {
           pendingPayload ? (
             <span>
               {isEdit ? "Save changes to" : "Create rule"}{" "}
-              <strong>{pendingPayload.ruleName}</strong> with {pendingPayload.targetBlocks?.length} target block(s)?
+              <strong>{pendingPayload.ruleName}</strong> with{" "}
+              {pendingPayload.targetBlocks?.length} target block(s)?
             </span>
-          ) : "Do you want to proceed?"
+          ) : (
+            "Do you want to proceed?"
+          )
         }
         confirmLabel={isEdit ? "Save Changes" : "Yes, Create Rule"}
         onConfirm={handleConfirm}

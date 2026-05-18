@@ -127,7 +127,8 @@ const SOPForm = ({
           conditions: b.conditions?.length
             ? b.conditions.map(hydrateCondition)
             : [emptyConditionItem()],
-          severity: findOpt(SEVERITY_OPTIONS, b.severity) || SEVERITY_OPTIONS[1],
+          severity:
+            findOpt(SEVERITY_OPTIONS, b.severity) || SEVERITY_OPTIONS[1],
           actionGuidance: b.actionGuidance || "",
           referenceSection: b.referenceSection || "",
           selectedRoles: b.routing?.notifyRoles || [],
@@ -161,7 +162,11 @@ const SOPForm = ({
       next[blockIdx] = { ...next[blockIdx], [key]: value };
       return next;
     });
-    if (key === "severity" || key === "selectedRoles" || key === "selectedUsers") {
+    if (
+      key === "severity" ||
+      key === "selectedRoles" ||
+      key === "selectedUsers"
+    ) {
       clearError("targetBlocks");
     }
   };
@@ -339,6 +344,8 @@ const SOPForm = ({
       const response = await onSubmit(payload);
       if (response) resetForm();
     } catch (err) {
+      console.log({ err });
+
       setTopError(err?.message || "Submission failed");
     }
   };
@@ -496,7 +503,9 @@ const SOPForm = ({
                 {/* Conditions */}
                 <div className="mt-2">
                   <div className="d-flex justify-content-between align-items-center mb-2">
-                    <Label className="fw-bold mb-0">Conditions</Label>
+                    <Label className="fw-bold mb-0">
+                      Conditions <span className="text-danger">*</span>
+                    </Label>
                     <Button
                       type="button"
                       color="secondary"

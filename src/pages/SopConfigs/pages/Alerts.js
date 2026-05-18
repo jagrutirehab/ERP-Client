@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CardBody } from "reactstrap";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAlertsInbox } from "../components/alerts/useAlertsInbox";
@@ -6,10 +6,38 @@ import AlertsHeader from "../components/alerts/AlertsHeader";
 import AlertsFilters from "../components/alerts/AlertsFilters";
 import AlertsList from "../components/alerts/AlertsList";
 import AlertDetailOffcanvas from "../components/alerts/AlertDetailOffcanvas";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const Alerts = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const inbox = useAlertsInbox();
+  const navigate = useNavigate();
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+
+  const hasReadPermission = hasPermission(
+    "SOPCONFIGS",
+    "ALERT_HISTORY",
+    "READ",
+  );
+  const hasWritePermission = hasPermission(
+    "SOPCONFIGS",
+    "ALERT_HISTORY",
+    "WRITE",
+  );
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasReadPermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasReadPermission, permissionLoader]);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -34,6 +62,7 @@ const Alerts = () => {
       style={isMobile ? { width: "100%" } : { width: "78%" }}
     >
       <AlertsHeader
+        hasWritePermission={hasWritePermission}
         unreadCount={inbox.counts.unread}
         loading={inbox.loading}
         bulkLoading={inbox.bulkLoading}
