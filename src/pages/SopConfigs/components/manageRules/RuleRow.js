@@ -1,6 +1,7 @@
 import { Badge, Button } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX } from "../alerts/alertConstants";
 import { fmtDate, ruleSummary } from "./ruleUtils";
+import RenderWhen from "../../../../Components/Common/RenderWhen";
 
 const SEV_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
 
@@ -11,7 +12,15 @@ const deriveSeverity = (rule) => {
   return { worst, uniqueCount: new Set(sevs).size };
 };
 
-const RuleRow = ({ rule, onPreview, onToggleActive, onEdit, onDelete }) => {
+const RuleRow = ({
+  hasWritePermission,
+  hasDeletePermission,
+  rule,
+  onPreview,
+  onToggleActive,
+  onEdit,
+  onDelete,
+}) => {
   const { worst, uniqueCount } = deriveSeverity(rule);
   const sevHex = SEVERITY_HEX[worst] || "#6c757d";
   const baseBg = !rule.isActive ? "rgba(108,117,125,0.04)" : "transparent";
@@ -25,30 +34,53 @@ const RuleRow = ({ rule, onPreview, onToggleActive, onEdit, onDelete }) => {
         transition: "background 0.15s ease",
         background: baseBg,
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(13,110,253,0.06)")}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.background = "rgba(13,110,253,0.06)")
+      }
       onMouseLeave={(e) => (e.currentTarget.style.background = baseBg)}
     >
       {/* Severity color bar */}
-      <div style={{
-        position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
-        background: sevHex, opacity: rule.isActive ? 1 : 0.35,
-      }} />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 4,
+          background: sevHex,
+          opacity: rule.isActive ? 1 : 0.35,
+        }}
+      />
 
       <div className="d-flex justify-content-between align-items-center gap-3">
-        <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => onPreview(rule)}>
+        <div
+          style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
+          onClick={() => onPreview(rule)}
+        >
           <div className="d-flex gap-1 align-items-center mb-1 flex-wrap">
-            <Badge color={SEVERITY_COLOR[worst]} pill>{worst}</Badge>
+            <Badge color={SEVERITY_COLOR[worst]} pill>
+              {worst}
+            </Badge>
             {uniqueCount > 1 && (
               <Badge color="light" className="text-dark border" pill>
                 mixed severities
               </Badge>
             )}
-            {!rule.isActive && <Badge color="dark" pill>INACTIVE</Badge>}
+            {!rule.isActive && (
+              <Badge color="dark" pill>
+                INACTIVE
+              </Badge>
+            )}
             {rule.targetBlocks?.length > 1 && (
-              <Badge color="secondary" pill>{rule.targetBlocks.length} blocks</Badge>
+              <Badge color="secondary" pill>
+                {rule.targetBlocks.length} blocks
+              </Badge>
             )}
           </div>
-          <div className={`fw-semibold ${!rule.isActive ? "text-muted" : ""}`} style={{ lineHeight: 1.3 }}>
+          <div
+            className={`fw-semibold ${!rule.isActive ? "text-muted" : ""}`}
+            style={{ lineHeight: 1.3 }}
+          >
             {rule.ruleName}
           </div>
           <small className="text-muted">
@@ -57,38 +89,69 @@ const RuleRow = ({ rule, onPreview, onToggleActive, onEdit, onDelete }) => {
             {rule.protocol && (
               <>
                 <span className="mx-2">·</span>
-                <i className="bx bx-bookmark me-1" />{rule.protocol}
+                <i className="bx bx-bookmark me-1" />
+                {rule.protocol}
               </>
             )}
             <span className="mx-2">·</span>
-            <i className="bx bx-time me-1" />{fmtDate(rule.createdAt)}
+            <i className="bx bx-time me-1" />
+            {fmtDate(rule.createdAt)}
           </small>
         </div>
 
         <div className="d-flex align-items-center gap-2">
-          <div
-            className="form-check form-switch m-0"
-            title={rule.isActive ? "Active — click to disable" : "Inactive — click to enable"}
-          >
-            <input
-              className="form-check-input"
-              type="checkbox"
-              role="switch"
-              checked={!!rule.isActive}
-              onChange={(e) => onToggleActive(rule, e.target.checked)}
-              style={{ cursor: "pointer" }}
-            />
-          </div>
+          <RenderWhen isTrue={hasWritePermission}>
+            <div
+              className="form-check form-switch m-0"
+              title={
+                rule.isActive
+                  ? "Active — click to disable"
+                  : "Inactive — click to enable"
+              }
+            >
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                checked={!!rule.isActive}
+                onChange={(e) => onToggleActive(rule, e.target.checked)}
+                style={{ cursor: "pointer" }}
+              />
+            </div>
+          </RenderWhen>
 
-          <Button color="secondary" outline size="sm" onClick={() => onPreview(rule)} title="Preview">
+          <Button
+            color="secondary"
+            outline
+            size="sm"
+            onClick={() => onPreview(rule)}
+            title="Preview"
+          >
             <i className="bx bx-show" />
           </Button>
-          <Button color="primary" outline size="sm" onClick={() => onEdit(rule)} title="Edit">
-            <i className="bx bx-edit" />
-          </Button>
-          <Button color="danger" outline size="sm" onClick={() => onDelete(rule)} title="Delete">
-            <i className="bx bx-trash" />
-          </Button>
+          <RenderWhen isTrue={hasWritePermission}>
+            <Button
+              color="primary"
+              outline
+              size="sm"
+              onClick={() => onEdit(rule)}
+              title="Edit"
+            >
+              <i className="bx bx-edit" />
+            </Button>
+          </RenderWhen>
+
+          <RenderWhen isTrue={hasDeletePermission}>
+            <Button
+              color="danger"
+              outline
+              size="sm"
+              onClick={() => onDelete(rule)}
+              title="Delete"
+            >
+              <i className="bx bx-trash" />
+            </Button>
+          </RenderWhen>
         </div>
       </div>
     </div>
