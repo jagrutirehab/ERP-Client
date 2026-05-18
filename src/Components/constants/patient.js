@@ -1485,13 +1485,6 @@ const expirySummaryFields = [
     md: 6,
   },
   {
-    label: "PATIENT CONDITION / STATUS AT THE TIME OF EXPIRY",
-    name: "patientStatus",
-    type: "textarea",
-    xs: 12,
-    md: 6,
-  },
-  {
     label: "Note",
     name: "note",
     type: "textarea",

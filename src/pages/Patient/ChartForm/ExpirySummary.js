@@ -43,8 +43,14 @@ const ExpirySummary = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validateType, setValidateType] = useState(null);
 
-
   const editSummary = editChartData?.expirySummary;
+
+  const [step, setStep] = useState(editSummary ? 2 : 1);
+
+  // Track date independently so selecting a date doesn't auto-fill the current time
+  const [expiryDateOnly, setExpiryDateOnly] = useState(
+    editSummary?.expiryDateTime ? new Date(editSummary.expiryDateTime) : null
+  );
 
   const validation = useFormik({
     enableReinitialize: !!editSummary,
@@ -58,7 +64,6 @@ const ExpirySummary = ({
       chart: EXPIRY_SUMMARY,
       diagnosis: editSummary ? editSummary.diagnosis : "",
       presentingSymptoms: editSummary ? editSummary.presentingSymptoms : "",
-      /* START MSE AT ADDMISSION */
       mseAddmission: {
         appearance: editSummary ? editSummary.mseAddmission?.appearance : "",
         ecc: editSummary ? editSummary.mseAddmission?.ecc : "",
@@ -76,7 +81,6 @@ const ExpirySummary = ({
           : "",
         insight: editSummary ? editSummary.mseAddmission?.insight : "",
       },
-      /* END MSE AT ADDMISSION */
       pastHistory: editSummary ? editSummary.pastHistory : "",
       medicalHistory: editSummary ? editSummary.medicalHistory : "",
       familyHistory: editSummary ? editSummary.familyHistory : "",
@@ -104,7 +108,6 @@ const ExpirySummary = ({
       refernces: editSummary ? editSummary.refernces : "",
       modifiedTreatment: editSummary ? editSummary.modifiedTreatment : "",
       deportAdministered: editSummary ? editSummary.deportAdministered : "",
-      patientStatus: editSummary ? editSummary.patientStatus : "",
       treatment: editSummary ? editSummary.treatment : "",
       note: editSummary ? editSummary.note : "",
       consultantName: editSummary ? editSummary.consultantName : "",
@@ -114,10 +117,9 @@ const ExpirySummary = ({
         : "",
       summaryPreparedBy: editSummary ? editSummary.summaryPreparedBy : "",
       expiryCause: editSummary ? editSummary.expiryCause : "",
-      expiryDateTime:
-        editSummary?.expiryDateTime && new Date(editSummary.expiryDateTime)
-          ? format(new Date(editSummary.expiryDateTime), "yyyy-MM-dd'T'HH:mm")
-          : format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      expiryDateTime: editSummary?.expiryDateTime
+        ? format(new Date(editSummary.expiryDateTime), "yyyy-MM-dd'T'HH:mm")
+        : "",
       type,
       date: chartDate,
     },
@@ -126,7 +128,6 @@ const ExpirySummary = ({
       expiryDateTime: Yup.string().required("Please enter the date and time of expiry"),
     }),
     onSubmit: (values) => {
-
       const extraFields =
         geminiResponse && Object.keys(geminiResponse).length > 0
           ? {
@@ -151,15 +152,11 @@ const ExpirySummary = ({
             ...extraFields,
           })
         );
-
       }
 
       localStorage.removeItem("ai_expiry_summary");
     },
-
   });
-
-
 
   const closeForm = () => {
     localStorage.removeItem("ai_expiry_summary");
@@ -167,6 +164,17 @@ const ExpirySummary = ({
     validation.resetForm();
   };
 
+  // Validate step 1 fields and advance to step 2
+  const handleNext = async () => {
+    // Touch step-1 fields to show errors
+    await validation.setFieldTouched("expiryCause", true, true);
+    await validation.setFieldTouched("expiryDateTime", true, true);
+
+    const errors = await validation.validateForm();
+    if (errors.expiryCause || errors.expiryDateTime) return; // stay on step 1
+
+    setStep(2);
+  };
 
   const getGeminiSummary = async () => {
     setGenerateLoading(true);
@@ -177,7 +185,7 @@ const ExpirySummary = ({
       });
 
       const data = response?.data;
-      setGeminiResponse(data)
+      setGeminiResponse(data);
       localStorage.setItem("ai_expiry_summary", JSON.stringify(data));
 
       const clean = (val) => {
@@ -250,18 +258,17 @@ const ExpirySummary = ({
         refernces: clean(data.refernces),
         modifiedTreatment: clean(data.modifiedTreatment),
         deportAdministered: clean(data.deportAdministered),
-        patientStatus: clean(data.patientStatus),
         treatment: clean(data.treatment),
         note: clean(data.note),
         consultantName: clean(data.consultantName),
         consultantPsychologist: clean(data.consultantPsychologist),
         summaryPreparedBy: clean(data.summaryPreparedBy),
-        expiryCause: clean(data.expiryCause),
+        expiryCause: clean(data.expiryCause) || validation.values.expiryCause,
         expiryDateTime:
           data.expiryDateTime &&
             data.expiryDateTime !== "Not documented in records"
             ? data.expiryDateTime
-            : validation.values.expiryDateTime || format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+            : validation.values.expiryDateTime,
       });
 
       toast.success(response?.message || "AI Summary Generated");
@@ -269,7 +276,7 @@ const ExpirySummary = ({
     } catch (error) {
       toast.error("Failed to Generate the summary, please try again");
     } finally {
-      setGenerateLoading(false)
+      setGenerateLoading(false);
     }
   };
 
@@ -328,24 +335,24 @@ const ExpirySummary = ({
         refernces: clean(data.refernces),
         modifiedTreatment: clean(data.modifiedTreatment),
         deportAdministered: clean(data.deportAdministered),
-        patientStatus: clean(data.patientStatus),
         treatment: clean(data.treatment),
         note: clean(data.note),
         consultantName: clean(data.consultantName),
         consultantPsychologist: clean(data.consultantPsychologist),
         summaryPreparedBy: clean(data.summaryPreparedBy),
-        expiryCause: clean(data.expiryCause),
+        expiryCause: clean(data.expiryCause) || validation.values.expiryCause,
         expiryDateTime:
           data.expiryDateTime &&
             data.expiryDateTime !== "Not documented in records"
             ? data.expiryDateTime
-            : validation.values.expiryDateTime || format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+            : validation.values.expiryDateTime,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleValidateResponse = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await validateAIExpirySummary({ summary: editSummary?._id });
       setIsEditVerified(true);
@@ -355,18 +362,134 @@ const ExpirySummary = ({
           payload: response.payload,
         },
       });
-      toast.success(response?.message || "Successfully Validated.")
-
+      toast.success(response?.message || "Successfully Validated.");
     } catch (error) {
       console.log(error);
-      toast.error(error.message || "Failed to Validate Response")
-    }
-    finally {
+      toast.error(error.message || "Failed to Validate Response");
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   const toggleModal = () => setIsModalOpen((prev) => !prev);
+
+  const renderMandatoryFields = () => (
+    <Row className="mt-3">
+      <Col xs={12} md={6}>
+        <div className="mb-3">
+          <Label for="expiryDateTime">
+            Date and Time of Expiry <span className="text-danger">*</span>
+          </Label>
+          <div className="d-flex align-items-center">
+            <span>
+              <Flatpickr
+                value={expiryDateOnly || undefined}
+                onChange={([date]) => {
+                  setExpiryDateOnly(date);
+                  if (validation.values.expiryDateTime) {
+                    const base = new Date(validation.values.expiryDateTime);
+                    const combined = set(base, {
+                      year: date.getFullYear(),
+                      month: date.getMonth(),
+                      date: date.getDate(),
+                    });
+                    validation.setFieldValue(
+                      "expiryDateTime",
+                      format(combined, "yyyy-MM-dd'T'HH:mm")
+                    );
+                  }
+                }}
+                options={{
+                  dateFormat: "d M, Y",
+                }}
+                placeholder="Select date"
+                className="form-control shadow-none bg-light"
+              />
+            </span>
+            <span className="ms-3 me-3">at</span>
+            <span>
+              <Flatpickr
+                value={
+                  validation.values.expiryDateTime
+                    ? new Date(validation.values.expiryDateTime)
+                    : undefined
+                }
+                onChange={([time]) => {
+                  const base = expiryDateOnly
+                    ? new Date(expiryDateOnly)
+                    : (validation.values.expiryDateTime
+                      ? new Date(validation.values.expiryDateTime)
+                      : new Date());
+                  const combined = set(base, {
+                    hours: time.getHours(),
+                    minutes: time.getMinutes(),
+                    seconds: time.getSeconds(),
+                    milliseconds: time.getMilliseconds(),
+                  });
+                  validation.setFieldValue(
+                    "expiryDateTime",
+                    format(combined, "yyyy-MM-dd'T'HH:mm")
+                  );
+                }}
+                options={{
+                  enableTime: true,
+                  noCalendar: true,
+                  dateFormat: "G:i:S K",
+                  time_24hr: false,
+                }}
+                placeholder="Select time"
+                className="form-control shadow-none bg-light"
+              />
+            </span>
+          </div>
+          {validation.touched.expiryDateTime && validation.errors.expiryDateTime && (
+            <div className="invalid-feedback d-block">{validation.errors.expiryDateTime}</div>
+          )}
+        </div>
+      </Col>
+
+      <Col xs={12} md={6}>
+        <div className="mb-3">
+          <Label for="expiryCause">
+            Cause of Death <span className="text-danger">*</span>
+          </Label>
+          <textarea
+            id="expiryCause"
+            rows="4"
+            name="expiryCause"
+            onChange={validation.handleChange}
+            onBlur={validation.handleBlur}
+            value={validation.values.expiryCause || ""}
+            className={`form-control${validation.touched.expiryCause && validation.errors.expiryCause
+                ? " is-invalid"
+                : ""
+              }`}
+          />
+          {validation.touched.expiryCause && validation.errors.expiryCause && (
+            <div className="invalid-feedback">{validation.errors.expiryCause}</div>
+          )}
+        </div>
+      </Col>
+    </Row>
+  );
+
+  if (step === 1) {
+    return (
+      <React.Fragment>
+        <div>
+          {renderMandatoryFields()}
+          <div className="d-flex gap-3 justify-content-end mt-3 border-top pt-3">
+            <Button color="danger" outline size="sm" type="button" onClick={closeForm}>
+              Cancel
+            </Button>
+            <Button color="primary" size="sm" type="button" onClick={handleNext}>
+              Next →
+            </Button>
+          </div>
+        </div>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -380,128 +503,45 @@ const ExpirySummary = ({
           className="needs-validation"
           action="#"
         >
-          {!editSummary && <div className="d-flex align-items-center justify-content-between">
-            <Button type="button" onClick={getGeminiSummary} disabled={generateLoading}>
-              {generateLoading ? (
-                <span className="d-flex align-items-center">
-                  <Spinner size="sm" className="me-2" />
-                  Generating...
-                </span>
-              ) : (
-                "Generate AI-Summary"
-              )}
-            </Button>
-          </div>}
 
-          <Row className="mt-3">
-            <Col xs={12} md={6}>
-              <div className="mb-3">
-                <Label for="expiryDateTime">
-                  Date and Time of Expiry <span className="text-danger">*</span>
-                </Label>
-                <div className="d-flex align-items-center">
-                  <span>
-                    <Flatpickr
-                      value={
-                        validation.values.expiryDateTime
-                          ? new Date(validation.values.expiryDateTime)
-                          : new Date()
-                      }
-                      onChange={([date]) => {
-                        const base = validation.values.expiryDateTime
-                          ? new Date(validation.values.expiryDateTime)
-                          : new Date();
-                        const combined = set(base, {
-                          year: date.getFullYear(),
-                          month: date.getMonth(),
-                          date: date.getDate(),
-                        });
-                        validation.setFieldValue(
-                          "expiryDateTime",
-                          format(combined, "yyyy-MM-dd'T'HH:mm")
-                        );
-                      }}
-                      options={{
-                        dateFormat: "d M, Y",
-                        defaultDate: new Date(),
-                      }}
-                      className="form-control shadow-none bg-light"
-                    />
-                  </span>
-                  <span className="ms-3 me-3">at</span>
-                  <span>
-                    <Flatpickr
-                      value={
-                        validation.values.expiryDateTime
-                          ? new Date(validation.values.expiryDateTime)
-                          : new Date()
-                      }
-                      onChange={([date]) => {
-                        const base = validation.values.expiryDateTime
-                          ? new Date(validation.values.expiryDateTime)
-                          : new Date();
-                        const combined = set(base, {
-                          hours: date.getHours(),
-                          minutes: date.getMinutes(),
-                          seconds: date.getSeconds(),
-                          milliseconds: date.getMilliseconds(),
-                        });
-                        validation.setFieldValue(
-                          "expiryDateTime",
-                          format(combined, "yyyy-MM-dd'T'HH:mm")
-                        );
-                      }}
-                      options={{
-                        enableTime: true,
-                        noCalendar: true,
-                        dateFormat: "G:i:S K",
-                        time_24hr: false,
-                        defaultDate: new Date(),
-                      }}
-                      className="form-control shadow-none bg-light"
-                    />
-                  </span>
-                </div>
-                {validation.touched.expiryDateTime && validation.errors.expiryDateTime && (
-                  <div className="invalid-feedback d-block">{validation.errors.expiryDateTime}</div>
-                )}
-              </div>
-            </Col>
-
-            <Col xs={12} md={6}>
-              <div className="mb-3">
-                <Label for="expiryCause">
-                  Cause of Death <span className="text-danger">*</span>
-                </Label>
-                <textarea
-                  id="expiryCause"
-                  rows="4"
-                  name="expiryCause"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.expiryCause || ""}
-                  className={`form-control${validation.touched.expiryCause && validation.errors.expiryCause
-                    ? " is-invalid"
+          {!editSummary && (
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <Button
+                type="button"
+                onClick={getGeminiSummary}
+                disabled={
+                  generateLoading ||
+                  !validation.values.expiryDateTime ||
+                  !validation.values.expiryCause?.trim()
+                }
+                title={
+                  !validation.values.expiryDateTime || !validation.values.expiryCause?.trim()
+                    ? "Please fill Date & Time of Expiry and Cause of Death first"
                     : ""
-                    }`}
-                />
-                {validation.touched.expiryCause && validation.errors.expiryCause && (
-                  <div className="invalid-feedback">{validation.errors.expiryCause}</div>
+                }
+              >
+                {generateLoading ? (
+                  <span className="d-flex align-items-center">
+                    <Spinner size="sm" className="me-2" />
+                    Generating...
+                  </span>
+                ) : (
+                  "Generate AI-Summary"
                 )}
-              </div>
-            </Col>
-          </Row>
+              </Button>
+            </div>
+          )}
+
+          {renderMandatoryFields()}
 
           <Row>
-            {(expirySummaryFields.slice(2, 13) || []).map((item, idx) => {
-              return (
-                <SummaryFields
-                  validation={validation}
-                  item={item}
-                  key={item.name + idx}
-                />
-              );
-            })}
+            {(expirySummaryFields.slice(2, 13) || []).map((item, idx) => (
+              <SummaryFields
+                validation={validation}
+                item={item}
+                key={item.name + idx}
+              />
+            ))}
             <Col xs={12} className="my-3">
               <div className="mb-3">
                 <Label>Treatment Given</Label>
@@ -516,64 +556,59 @@ const ExpirySummary = ({
                 />
               </div>
             </Col>
-            {(expirySummaryFields.slice(13, 16) || []).map((item, idx) => {
-              return (
-                <SummaryFields
-                  validation={validation}
-                  item={item}
-                  key={item.name + idx}
-                />
-              );
-            })}
-            {(expirySummaryFields.slice(16) || []).map((item, idx) => {
-              return (
-                <SummaryFields
-                  validation={validation}
-                  item={item}
-                  key={item.name + idx}
-                />
-              );
-            })}
+            {(expirySummaryFields.slice(13, 16) || []).map((item, idx) => (
+              <SummaryFields
+                validation={validation}
+                item={item}
+                key={item.name + idx}
+              />
+            ))}
+            {(expirySummaryFields.slice(16) || []).map((item, idx) => (
+              <SummaryFields
+                validation={validation}
+                item={item}
+                key={item.name + idx}
+              />
+            ))}
           </Row>
+
           <div className="mt-3">
             <div className="d-flex gap-3 justify-content-end">
-              {
-                !editChartData ? (
-                  geminiResponse &&
-                  Object.keys(geminiResponse).length > 0 && (
-                    <Button
-                      disabled={loading}
-                      onClick={() => {
-                        setValidateType("new");
-                        toggleModal();
-                      }}
-                    >
-                      {loading ? (
-                        <span className="d-flex align-items-center">
-                          <Spinner size="sm" className="me-2" />
-                          Validating...
-                        </span>
-                      ) : isVerified ? (
-                        <span className="d-flex align-items-center">
-                          <FaCheck className="me-2 text-success" />
-                          Validated
-                        </span>
-                      ) : (
-                        "Validate"
-                      )}
-                    </Button>
-                  )
-                ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+              {!editChartData ? (
+                geminiResponse &&
+                Object.keys(geminiResponse).length > 0 && (
                   <Button
+                    disabled={loading}
                     onClick={() => {
-                      setValidateType("edit");
+                      setValidateType("new");
                       toggleModal();
                     }}
                   >
-                    {loading ? <span><Spinner size="sm" />Validating...</span> : "Validate"}
+                    {loading ? (
+                      <span className="d-flex align-items-center">
+                        <Spinner size="sm" className="me-3" />
+                        Validating...
+                      </span>
+                    ) : isVerified ? (
+                      <span className="d-flex align-items-center">
+                        <FaCheck className="me-3" />
+                        Validated
+                      </span>
+                    ) : (
+                      "Validate"
+                    )}
                   </Button>
-                ) : null
-              }
+                )
+              ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+                <Button
+                  onClick={() => {
+                    setValidateType("edit");
+                    toggleModal();
+                  }}
+                >
+                  {loading ? <span><Spinner size="sm" />Validating...</span> : "Validate"}
+                </Button>
+              ) : null}
               <Button
                 onClick={closeForm}
                 size="sm"

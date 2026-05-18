@@ -317,16 +317,6 @@ const ExpirySummaryBody = ({ chart }) => {
             </Text>
           </View>
         )}
-        {!!data?.patientStatus && (
-          <View style={styles.marginBottom}>
-            <Text style={styles.fontSize13}>
-              PATIENT CONDITION / STATUS AT THE TIME OF EXPIRY:
-            </Text>
-            <Text wrap={true} style={styles.preText}>
-              {clean(data?.patientStatus) || ""}
-            </Text>
-          </View>
-        )}
         {typeof data?.note === "string" && data?.note.trim() && (
           <View style={styles.marginBottom} wrap={false}>
             <Text style={styles.fontSize13}>Note:</Text>
