@@ -114,7 +114,7 @@ const ExpirySummaryBody = ({ chart }) => {
         )}
         {data?.expiryCause && (
           <View style={styles.marginBottom}>
-            <Text style={styles.fontSize13}>Cause of Expiry:</Text>
+            <Text style={styles.fontSize13}>Cause of Death:</Text>
             <Text style={styles.preText}>{clean(data?.expiryCause) || ""}</Text>
           </View>
         )}

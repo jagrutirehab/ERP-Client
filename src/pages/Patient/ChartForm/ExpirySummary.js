@@ -124,7 +124,7 @@ const ExpirySummary = ({
       date: chartDate,
     },
     validationSchema: Yup.object({
-      expiryCause: Yup.string().required("Please enter the cause of expiry"),
+      expiryCause: Yup.string().required("Please enter the cause of death"),
       expiryDateTime: Yup.string().required("Please enter the date and time of expiry"),
     }),
     onSubmit: (values) => {

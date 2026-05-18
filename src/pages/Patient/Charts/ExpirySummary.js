@@ -38,7 +38,7 @@ const ExpirySummary = ({ data }) => {
             <div className="mt-1 mb-1">
               <p className="fs-xs-9 fs-md-11 mb-0">
                 <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                  Cause of Expiry:-
+                  Cause of Death:-
                 </span>
                 {data.expiryCause}
               </p>
