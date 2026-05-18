@@ -9,13 +9,13 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  useEffect(() => {
-    connectSopSocket();
-  }, []);
+  // useEffect(() => {
+  //   connectSopSocket();
+  // }, []);
 
   return (
     <React.Fragment>
-      <SOPAlertListener />
+      {/* <SOPAlertListener /> */}
       <Route />
     </React.Fragment>
   );
