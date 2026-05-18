@@ -4,7 +4,6 @@ import PerfectScrollbar from "react-perfect-scrollbar";
 import { RECORDINGS, SOP_CONFIGS } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
-
 const SOPsidebar = () => {
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -21,8 +20,13 @@ const SOPsidebar = () => {
 
   const hasConfigurationPermission = hasPermission(
     "SOPCONFIGS",
-    "CONFIGURATION",
-    "READ"
+    "MANAGE",
+    "READ",
+  );
+  const hasAlertsPermission = hasPermission(
+    "SOPCONFIGS",
+    "ALERT_HISTORY",
+    "READ",
   );
 
   const navigate = useNavigate();
@@ -30,6 +34,10 @@ const SOPsidebar = () => {
   const filteredSOPOptions = SOP_CONFIGS?.filter((page) => {
     if (page.id === "sopconfigs-create") {
       if (!hasConfigurationPermission) return false;
+      return true;
+    }
+    if (page.id === "sopconfigs-alerts") {
+      if (!hasAlertsPermission) return false;
       return true;
     }
 
@@ -41,14 +49,13 @@ const SOPsidebar = () => {
       if (
         page?.isAccordion &&
         page?.children?.some((child) =>
-          location.pathname.startsWith(child.link)
+          location.pathname.startsWith(child.link),
         )
       ) {
         setOpenSection(page.id);
       }
     });
   }, [location.pathname]);
-
 
   return (
     <>
@@ -124,12 +131,13 @@ const SOPsidebar = () => {
                       {/* Children */}
                       <div
                         ref={contentRef}
-                        className={`accordion-wrap ${openSection === page.id ? "open" : ""
-                          }`}
+                        className={`accordion-wrap ${
+                          openSection === page.id ? "open" : ""
+                        }`}
                         style={{
                           maxHeight:
                             openSection === page.id
-                              ? contentRef.current?.scrollHeight ?? 0
+                              ? (contentRef.current?.scrollHeight ?? 0)
                               : 0,
                         }}
                       >
@@ -155,8 +163,9 @@ const SOPsidebar = () => {
                   ) : (
                     <div
                       onClick={() => navigate(page.link)}
-                      className={`d-flex align-items-center py-2 ${location.pathname.startsWith(page.link) ? "active" : ""
-                        }`}
+                      className={`d-flex align-items-center py-2 ${
+                        location.pathname.startsWith(page.link) ? "active" : ""
+                      }`}
                       style={{ paddingLeft: "0px", cursor: "pointer" }}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
