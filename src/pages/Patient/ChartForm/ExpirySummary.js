@@ -10,10 +10,10 @@ import {
   expirySummaryFields,
 } from "../../../Components/constants/patient";
 import SummaryFields from "./Components/SummaryFields";
-import { format } from "date-fns";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import { set } from "date-fns";
+import { set, formatISO } from "date-fns";
+
 
 import { connect, useDispatch } from "react-redux";
 import {
@@ -118,7 +118,7 @@ const ExpirySummary = ({
       summaryPreparedBy: editSummary ? editSummary.summaryPreparedBy : "",
       expiryCause: editSummary ? editSummary.expiryCause : "",
       expiryDateTime: editSummary?.expiryDateTime
-        ? format(new Date(editSummary.expiryDateTime), "yyyy-MM-dd'T'HH:mm")
+        ? formatISO(new Date(editSummary.expiryDateTime))
         : "",
       type,
       date: chartDate,
@@ -395,7 +395,7 @@ const ExpirySummary = ({
                     });
                     validation.setFieldValue(
                       "expiryDateTime",
-                      format(combined, "yyyy-MM-dd'T'HH:mm")
+                      formatISO(combined)
                     );
                   }
                 }}
@@ -428,7 +428,7 @@ const ExpirySummary = ({
                   });
                   validation.setFieldValue(
                     "expiryDateTime",
-                    format(combined, "yyyy-MM-dd'T'HH:mm")
+                    formatISO(combined)
                   );
                 }}
                 options={{
