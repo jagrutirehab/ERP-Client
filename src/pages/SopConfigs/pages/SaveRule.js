@@ -37,7 +37,7 @@ const SaveRule = () => {
 
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
 
-  const hasCreatePermission = hasPermission("SOPCONFIGS", "MANAGE", "CREATE");
+  const hasCreatePermission = hasPermission("SOPCONFIGS", "MANAGE", "WRITE");
 
   useEffect(() => {
     if (permissionLoader) return;
